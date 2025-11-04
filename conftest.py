@@ -19,12 +19,11 @@ from _pytest.junitxml import xml_key
 from pytest_jsonreport.plugin import JSONReport
 from pluggy._result import _Result as Result
 
-from manifests.parser.core import load as load_manifests
 from utils import context
 from utils.properties_serialization import SetupProperties
 from utils._context._scenarios import scenarios, Scenario
 from utils._context.component_version import ComponentVersion
-from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
+from utils._decorators import configure as configure_decorators, add_pytest_marker
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 from utils.get_declaration import get_declarations, match_rule
@@ -259,6 +258,7 @@ def _collect_item_metadata(item: pytest.Item):
 
     return metadata
 
+
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
     """Unselect items that are not included in the current scenario"""
 
@@ -321,18 +321,19 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
 
-    rules = get_declarations(context.library.name,
-                               context.library.version,
-                               context.weblog_variant,
-                               context.agent_version,
-                               context.dd_apm_inject_version,
-                               context.k8s_cluster_agent_version)
+    rules = get_declarations(
+        context.library.name,
+        context.library.version,
+        context.weblog_variant,
+        context.agent_version,
+        context.dd_apm_inject_version,
+        context.k8s_cluster_agent_version,
+    )
     for item in items:
         for rule, declarations in rules.items():
             if match_rule(rule, item.nodeid):
                 for declaration in declarations:
                     add_pytest_marker(item, declaration[0], declaration[1])
-
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
@@ -423,7 +424,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 
     context.scenario.post_setup(session)
 
-    print("\n=== Collected test functions and their marks ===")
+    logger.info("\n=== Collected test functions and their marks ===")
     Path("./dumps").mkdir(exist_ok=True)
     with open(f"./dumps/dump_{context.library.name}_{context.weblog_variant}_{context.scenario.name}", "w") as f:
         for item in session.items:

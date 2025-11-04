@@ -16,7 +16,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "missing_feature"
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
-    - excluded_variant: [apache-mod-7.1, apache-mod-7.3, apache-mod-7.0-zts, apache-mod-7.2-zts, apache-mod-7.0, apache-mod-7.2, apache-mod-7.3-zts, apache-mod-7.1-zts]
+    - excluded_variant: [apache-mod-7.1-zts, apache-mod-7.0, apache-mod-7.2, apache-mod-7.1, apache-mod-7.2-zts, apache-mod-7.3-zts, apache-mod-7.0-zts, apache-mod-7.3]
       library_version: "<1.11.0-dev"
       declaration: missing_feature
     - variant: apache-mod-7.0

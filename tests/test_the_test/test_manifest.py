@@ -1,10 +1,7 @@
-from functools import lru_cache
 import os
 from pathlib import Path
-import re
-import semantic_version as semver
 
-from manifests.parser.core import validate_manifest_files, load
+from manifests.parser.core import validate_manifest_files
 
 from utils import scenarios
 
@@ -34,5 +31,3 @@ def get_variants_map():
 @scenarios.test_the_test
 def test_formats():
     validate_manifest_files()
-
-

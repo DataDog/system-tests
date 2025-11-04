@@ -18,7 +18,7 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: "missing_feature"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: "missing_feature"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.60.0"
       declaration: missing_feature
     - variant: net-http
@@ -38,7 +38,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: "v1.60.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: "v1.60.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.60.0"
       declaration: missing_feature
     - variant: net-http
@@ -263,7 +263,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: "irrelevant (Body blocking happens through SDK)"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: net-http
@@ -271,7 +271,7 @@ manifest:
     - variant: net-http-orchestrion
       declaration: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: net-http
@@ -279,7 +279,7 @@ manifest:
     - variant: net-http-orchestrion
       declaration: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: net-http
@@ -287,7 +287,7 @@ manifest:
     - variant: net-http-orchestrion
       declaration: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: net-http
@@ -295,7 +295,7 @@ manifest:
     - variant: net-http-orchestrion
       declaration: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: net-http
@@ -303,7 +303,7 @@ manifest:
     - variant: net-http-orchestrion
       declaration: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: net-http
@@ -492,7 +492,7 @@ manifest:
       library_version: "<1.37.0"
       declaration: missing_feature
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - excluded_variant: [net-http, gin, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http, gin]
       library_version: "<1.36.0"
       declaration: missing_feature
     - variant: gin
@@ -658,28 +658,28 @@ manifest:
       library_version: "<0.1"
       declaration: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_rabbitmq.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_sns_to_sqs.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/crossed_integrations/test_sqs.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
@@ -709,63 +709,63 @@ manifest:
       library_version: "<0.1"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmKinesis:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSNS:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_DsmSQS:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
-    - excluded_variant: [net-http, net-http-orchestrion]
+    - excluded_variant: [net-http-orchestrion, net-http]
       declaration: irrelevant
     - variant: net-http
       declaration: missing_feature (Endpoint not implemented)
     - variant: net-http-orchestrion
       declaration: missing_feature (Endpoint not implemented)
   tests/integrations/test_inferred_proxy.py:
-    - variant: [gqlgen, graphql-go, uds-echo, graph-gophers]
+    - variant: [graphql-go, uds-echo, graph-gophers, gqlgen]
       declaration: irrelevant
     - variant: chi
       library_version: "<1.72.1"
@@ -891,7 +891,7 @@ manifest:
   tests/test_distributed.py::Test_Synthetics_APM_Datadog: "bug (APMAPI-901)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - excluded_variant: [gqlgen, graphql-go, graph-gophers]
+    - excluded_variant: [graphql-go, graph-gophers, gqlgen]
       declaration: irrelevant
     - variant: gqlgen
       library_version: "<1.73.0"
@@ -903,7 +903,7 @@ manifest:
       library_version: "<1.73.0"
       declaration: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - excluded_variant: [gqlgen, graphql-go, graph-gophers]
+    - excluded_variant: [graphql-go, graph-gophers, gqlgen]
       declaration: missing_feature
     - variant: gqlgen
       declaration: missing_feature

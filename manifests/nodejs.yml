@@ -84,18 +84,18 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints:
-      - library_version: *ref_5_27_0
-        declaration: missing_feature
+    - library_version: *ref_5_27_0
+      declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths:
-      - library_version: *ref_5_27_0
-        declaration: missing_feature
+    - library_version: *ref_5_27_0
+      declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status:
-      - library_version: *ref_5_27_0
-        declaration: missing_feature
+    - library_version: *ref_5_27_0
+      declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: "irrelevant (new api security sampling algorithm implemented)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay:
-      - library_version: *ref_5_27_0
-        declaration: missing_feature
+    - library_version: *ref_5_27_0
+      declaration: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: *ref_5_76_0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: *ref_5_76_0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: *ref_5_76_0
@@ -135,8 +135,8 @@ manifest:
       library_version: *ref_5_3_0
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers:
-      - library_version: *ref_4_21_0
-        declaration: missing_feature
+    - library_version: *ref_4_21_0
+      declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
     - excluded_variant: [fastify]
       library_version: *ref_4_21_0
@@ -145,7 +145,7 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_4_21_0
       declaration: missing_feature
     - variant: express5
@@ -164,7 +164,7 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_3_0
       declaration: missing_feature
     - variant: express5
@@ -177,8 +177,8 @@ manifest:
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
-      - library_version: *ref_4_21_0
-        declaration: missing_feature
+    - library_version: *ref_4_21_0
+      declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py:
     - variant: fastify
@@ -620,7 +620,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/iast/source/test_graphql_resolver.py:
-    - excluded_variant: [nextjs, express5]
+    - excluded_variant: [express5, nextjs]
       library_version: *ref_5_4_0
       declaration: missing_feature
     - variant: express5
@@ -658,7 +658,7 @@ manifest:
   tests/appsec/iast/source/test_multipart.py::TestMultipart: "missing_feature"
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName: "missing_feature"
   tests/appsec/iast/source/test_parameter_value.py:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_3_19_0
       declaration: missing_feature
     - variant: express5
@@ -671,7 +671,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/source/test_path.py::TestPath: "missing_feature"
   tests/appsec/iast/source/test_path_parameter.py:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_4_4_0
       declaration: missing_feature
     - variant: express5
@@ -745,8 +745,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability:
-      - library_version: *ref_5_30_0
-        declaration: missing_feature
+    - library_version: *ref_5_30_0
+      declaration: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:
     - excluded_variant: [fastify]
       library_version: *ref_5_30_0
@@ -762,8 +762,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version:
-      - library_version: *ref_5_30_0
-        declaration: missing_feature
+    - library_version: *ref_5_30_0
+      declaration: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:
     - excluded_variant: [fastify]
       library_version: *ref_5_30_0
@@ -802,10 +802,10 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version:
-      - library_version: *ref_5_30_0
-        declaration: missing_feature
+    - library_version: *ref_5_30_0
+      declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -817,7 +817,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -835,8 +835,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability:
-      - library_version: *ref_5_24_0
-        declaration: missing_feature
+    - library_version: *ref_5_24_0
+      declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:
     - excluded_variant: [fastify]
       library_version: *ref_5_24_0
@@ -852,7 +852,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -864,8 +864,8 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version:
-      - library_version: *ref_5_26_0
-        declaration: missing_feature
+    - library_version: *ref_5_26_0
+      declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
     - excluded_variant: [fastify]
       library_version: *ref_5_24_0
@@ -895,7 +895,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -907,10 +907,10 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express5
@@ -922,7 +922,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express5
@@ -940,8 +940,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Capability:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:
     - excluded_variant: [fastify]
       library_version: *ref_5_25_0
@@ -957,8 +957,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version:
-      - library_version: *ref_5_24_0
-        declaration: missing_feature
+    - library_version: *ref_5_24_0
+      declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace:
     - excluded_variant: [fastify]
       library_version: *ref_5_25_0
@@ -988,7 +988,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express5
@@ -1000,10 +1000,10 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_23_0
       declaration: missing_feature
     - variant: express5
@@ -1015,7 +1015,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_23_0
       declaration: missing_feature
     - variant: express5
@@ -1033,8 +1033,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability:
-      - library_version: *ref_5_23_0
-        declaration: missing_feature
+    - library_version: *ref_5_23_0
+      declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
     - excluded_variant: [fastify]
       library_version: *ref_5_23_0
@@ -1050,8 +1050,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
     - excluded_variant: [fastify]
       library_version: *ref_5_23_0
@@ -1074,7 +1074,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_23_0
       declaration: missing_feature
     - variant: express5
@@ -1086,8 +1086,8 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - excluded_variant: [fastify, nextjs]
       library_version: *ref_5_20_0
@@ -1113,8 +1113,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability:
-      - library_version: *ref_5_23_0
-        declaration: missing_feature
+    - library_version: *ref_5_23_0
+      declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
     - excluded_variant: [fastify]
       library_version: *ref_5_18_0
@@ -1130,8 +1130,8 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
     - excluded_variant: [fastify, express5]
       library_version: *ref_5_20_0
@@ -1160,7 +1160,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_20_0
       declaration: missing_feature
     - variant: express5
@@ -1172,13 +1172,13 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/appsec/test_alpha.py::Test_Basic: "v2.0.0"
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: *ref_5_52_0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
-      - library_version: *ref_5_18_0
-        declaration: missing_feature
+    - library_version: *ref_5_18_0
+      declaration: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
@@ -1208,8 +1208,8 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability:
-      - library_version: *ref_5_29_0
-        declaration: missing_feature
+    - library_version: *ref_5_29_0
+      declaration: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
     - excluded_variant: [fastify, nextjs]
       library_version: *ref_5_29_0
@@ -1260,7 +1260,7 @@ manifest:
       library_version: "<5.35.0"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers:
-    - excluded_variant: [nextjs, express5]
+    - excluded_variant: [express5, nextjs]
       library_version: *ref_4_22_0
       declaration: missing_feature
     - variant: express5
@@ -1268,8 +1268,8 @@ manifest:
     - variant: nextjs
       declaration: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: *ref_5_66_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
@@ -1300,13 +1300,13 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -1318,7 +1318,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_3_19_0
       declaration: missing_feature
     - variant: express5
@@ -1330,14 +1330,14 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
-      - library_version: *ref_5_17_0
-        declaration: missing_feature
+    - library_version: *ref_5_17_0
+      declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
-      - library_version: *ref_5_17_0
-        declaration: missing_feature
+    - library_version: *ref_5_17_0
+      declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
     - excluded_variant: [nextjs]
       library_version: *ref_3_19_0
@@ -1345,7 +1345,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -1357,8 +1357,8 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp:
-      - library_version: *ref_3_6_0
-        declaration: missing_feature
+    - library_version: *ref_3_6_0
+      declaration: missing_feature
   tests/appsec/test_conf.py::Test_ConfigurationVariables: "v2.7.0"
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: *ref_5_59_0
   tests/appsec/test_customconf.py::Test_ConfRuleSet: "v2.0.0"
@@ -1493,17 +1493,17 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network:
-      - library_version: *ref_5_24_0
-        declaration: missing_feature
+    - library_version: *ref_5_24_0
+      declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor:
-      - library_version: *ref_5_24_0
-        declaration: missing_feature
+    - library_version: *ref_5_24_0
+      declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability:
-      - library_version: *ref_5_24_0
-        declaration: missing_feature
+    - library_version: *ref_5_24_0
+      declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability:
-      - library_version: *ref_5_24_0
-        declaration: missing_feature
+    - library_version: *ref_5_24_0
+      declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
     - excluded_variant: [fastify, nextjs]
       library_version: "<5.39.0"
@@ -1531,8 +1531,8 @@ manifest:
       declaration: missing_feature
   tests/appsec/test_identify.py::Test_Basic: "v2.4.0"
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
-      - library_version: *ref_3_11_0
-        declaration: missing_feature
+    - library_version: *ref_3_11_0
+      declaration: missing_feature
   tests/appsec/test_logs.py::Test_Standardization: "missing_feature"
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: "missing_feature"
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: "v2.2.0"
@@ -1542,29 +1542,29 @@ manifest:
   tests/appsec/test_rate_limiter.py::Test_Main: "v2.0.0"
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: *ref_5_59_0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
-      - library_version: *ref_4_1_0
-        declaration: missing_feature
+    - library_version: *ref_4_1_0
+      declaration: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: *ref_5_66_0
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
-      - library_version: *ref_4_1_0
-        declaration: missing_feature
+    - library_version: *ref_4_1_0
+      declaration: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action:
-      - library_version: *ref_4_1_0
-        declaration: missing_feature
+    - library_version: *ref_4_1_0
+      declaration: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule:
-      - library_version: *ref_4_1_0
-        declaration: missing_feature
+    - library_version: *ref_4_1_0
+      declaration: missing_feature
   tests/appsec/test_reports.py::Test_Info: "v2.0.0"
   tests/appsec/test_reports.py::Test_RequestHeaders: "v2.0.0"
   tests/appsec/test_reports.py::Test_StatusCode: "v2.0.0"
   tests/appsec/test_request_blocking.py:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: *ref_3_19_0
       declaration: missing_feature
     - variant: express5
@@ -1576,26 +1576,26 @@ manifest:
     - variant: nextjs
       declaration: missing_feature (can not block by query param in nextjs yet)
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation:
-      - library_version: *ref_3_9_0
-        declaration: missing_feature
+    - library_version: *ref_3_9_0
+      declaration: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
-      - library_version: *ref_3_9_0
-        declaration: missing_feature
+    - library_version: *ref_3_9_0
+      declaration: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: "missing_feature"
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: *ref_5_55_0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: *ref_5_55_0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: "missing_feature"
   tests/appsec/test_shell_execution.py::Test_ShellExecution:
-      - library_version: *ref_5_3_0
-        declaration: missing_feature
+    - library_version: *ref_5_3_0
+      declaration: missing_feature
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: *ref_5_59_0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: *ref_5_60_0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: *ref_5_60_0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: "v2.0.0"
   tests/appsec/test_traces.py::Test_AppSecObfuscator: "v2.6.0"
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
-      - library_version: *ref_5_18_0
-        declaration: missing_feature
+    - library_version: *ref_5_18_0
+      declaration: missing_feature
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - excluded_variant: [fastify]
       library_version: "<2.0.0"
@@ -1604,8 +1604,8 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification:
-      - library_version: *ref_5_7_0
-        declaration: missing_feature
+    - library_version: *ref_5_7_0
+      declaration: missing_feature
   tests/appsec/test_traces.py::Test_RetainTraces: "v2.0.0"
   tests/appsec/test_user_blocking_full_denylist.py:
     - excluded_variant: [nextjs]
@@ -1653,7 +1653,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_GraphQL:
-    - excluded_variant: [nextjs, express5]
+    - excluded_variant: [express5, nextjs]
       library_version: *ref_4_22_0
       declaration: missing_feature
     - variant: express5
@@ -1663,7 +1663,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers: "v2.0.0"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - excluded_variant: [fastify, nextjs, express5]
+    - excluded_variant: [fastify, express5, nextjs]
       library_version: "<2.0.0"
       declaration: missing_feature
     - variant: express5
@@ -1698,14 +1698,14 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_UrlRaw: "v2.0.0"
   tests/appsec/waf/test_addresses.py::Test_gRPC: "missing_feature"
   tests/appsec/waf/test_blocking.py::Test_Blocking:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers:
-      - library_version: *ref_5_17_0
-        declaration: missing_feature
+    - library_version: *ref_5_17_0
+      declaration: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse:
-      - library_version: *ref_5_15_0
-        declaration: missing_feature
+    - library_version: *ref_5_15_0
+      declaration: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: "missing_feature"
@@ -1833,8 +1833,8 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics:
-      - library_version: *ref_4_17_0
-        declaration: missing_feature
+    - library_version: *ref_4_17_0
+      declaration: missing_feature
   tests/appsec/waf/test_truncation.py:
     - excluded_variant: [fastify]
       library_version: "<5.43.0"
@@ -2140,48 +2140,48 @@ manifest:
       library_version: *ref_5_26_0
       declaration: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd:
-      - library_version: *ref_5_29_0
-        declaration: missing_feature
+    - library_version: *ref_5_29_0
+      declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_Tags: *ref_5_41_0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled:
-      - library_version: *ref_4_3_0
-        declaration: missing_feature
+    - library_version: *ref_4_3_0
+      declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: "missing_feature"
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: *ref_5_62_0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: "missing_feature"
   tests/parametric/test_crashtracking.py::Test_Crashtracking:
-      - library_version: *ref_5_27_0
-        declaration: missing_feature
+    - library_version: *ref_5_27_0
+      declaration: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules:
-      - library_version: *ref_5_16_0
-        declaration: missing_feature
+    - library_version: *ref_5_16_0
+      declaration: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled:
-      - library_version: *ref_5_4_0
-        declaration: missing_feature
+    - library_version: *ref_5_4_0
+      declaration: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets:
-      - library_version: *ref_5_4_0
-        declaration: missing_feature
+    - library_version: *ref_5_4_0
+      declaration: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets:
-      - library_version: *ref_5_4_0
-        declaration: missing_feature
+    - library_version: *ref_5_4_0
+      declaration: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2:
-      - library_version: *ref_4_23_0
-        declaration: missing_feature
+    - library_version: *ref_4_23_0
+      declaration: missing_feature
   tests/parametric/test_feature_flag_exposure/test_feature_flag_exposure.py::Test_Feature_Flag_Exposure: *ref_5_75_0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: "irrelevant (uses weblog tests)"
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: *ref_5_54_0
@@ -2206,58 +2206,58 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: "missing_feature"
   tests/parametric/test_span_events.py: "missing_feature"
   tests/parametric/test_span_links.py::Test_Span_Links:
-      - library_version: *ref_5_3_0
-        declaration: missing_feature
+    - library_version: *ref_5_3_0
+      declaration: missing_feature
   tests/parametric/test_telemetry.py::Test_Consistent_Configs:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults:
-      - library_version: *ref_5_6_0
-        declaration: missing_feature
+    - library_version: *ref_5_6_0
+      declaration: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment:
-      - library_version: *ref_5_6_0
-        declaration: missing_feature
+    - library_version: *ref_5_6_0
+      declaration: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: *ref_5_41_0
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature:
-      - library_version: *ref_4_23_0
-        declaration: missing_feature
+    - library_version: *ref_4_23_0
+      declaration: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar:
-      - library_version: *ref_5_13_0
-        declaration: missing_feature
+    - library_version: *ref_5_13_0
+      declaration: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "missing_feature"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic:
-      - library_version: *ref_5_16_0
-        declaration: missing_feature
+    - library_version: *ref_5_16_0
+      declaration: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs:
-      - library_version: *ref_5_16_0
-        declaration: missing_feature
+    - library_version: *ref_5_16_0
+      declaration: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_5_38_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: *ref_5_38_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags: *ref_5_38_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision:
-      - library_version: *ref_5_16_0
-        declaration: missing_feature
+    - library_version: *ref_5_16_0
+      declaration: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: *ref_5_38_0
   tests/parametric/test_tracer.py::Test_TracerSCITagging:
-      - library_version: *ref_3_21_0
-        declaration: missing_feature
+    - library_version: *ref_3_21_0
+      declaration: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1:
-      - library_version: *ref_5_15_0
-        declaration: missing_feature
+    - library_version: *ref_5_15_0
+      declaration: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices:
-      - library_version: *ref_4_17_0
-        declaration: missing_feature
+    - library_version: *ref_4_17_0
+      declaration: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: "irrelevant (cache is implemented)"
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures:
-      - library_version: *ref_3_9_0
-        declaration: missing_feature
+    - library_version: *ref_3_9_0
+      declaration: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: "irrelevant (cache is implemented)"
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging:
-      - library_version: *ref_5_16_0
-        declaration: missing_feature
+    - library_version: *ref_5_16_0
+      declaration: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: "missing_feature"
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: "missing_feature"
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: "missing_feature"
@@ -2268,14 +2268,14 @@ manifest:
   tests/test_baggage.py::Test_Baggage_Headers_Max_Items: *ref_5_56_0
   tests/test_baggage.py::Test_Only_Baggage_Header: *ref_5_56_0
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False:
-      - library_version: *ref_3_13_0
-        declaration: missing_feature
+    - library_version: *ref_3_13_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured:
-      - library_version: *ref_3_13_0
-        declaration: missing_feature
+    - library_version: *ref_3_13_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence:
-      - library_version: *ref_3_19_0
-        declaration: missing_feature
+    - library_version: *ref_3_19_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: *ref_5_37_0
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: "missing_feature (removes query strings by default)"
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: "missing_feature"
@@ -2332,32 +2332,32 @@ manifest:
       declaration: incomplete_test_app (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: "irrelevant (nodejs does not support log injection for unstructured logs)"
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: "missing_feature"
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/test_data_integrity.py::Test_LibraryHeaders: *ref_5_47_0
   tests/test_distributed.py::Test_DistributedHttp:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts:
-      - library_version: *ref_5_27_0
-        declaration: missing_feature
+    - library_version: *ref_5_27_0
+      declaration: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:
     - excluded_variant: [nextjs]
@@ -2384,62 +2384,62 @@ manifest:
       declaration: missing_feature
   tests/test_identify.py::Test_Basic: "v2.4.0"
   tests/test_identify.py::Test_Propagate:
-      - library_version: *ref_3_2_0
-        declaration: missing_feature
+    - library_version: *ref_3_2_0
+      declaration: missing_feature
   tests/test_identify.py::Test_Propagate_Legacy:
-      - library_version: *ref_3_2_0
-        declaration: missing_feature
+    - library_version: *ref_3_2_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Default: *ref_5_46_0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: *ref_5_47_0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
   tests/test_library_conf.py::Test_HeaderTags:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: "missing_feature"
   tests/test_library_conf.py::Test_HeaderTags_Long:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Short:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Tag:
-      - library_version: *ref_5_25_0
-        declaration: missing_feature
+    - library_version: *ref_5_25_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Long:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short:
-      - library_version: *ref_4_11_0
-        declaration: missing_feature
+    - library_version: *ref_4_11_0
+      declaration: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: "missing_feature"
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: "missing_feature"
   tests/test_profiling.py::Test_Profile:
-      - library_version: *ref_5_16_0
-        declaration: missing_feature
+    - library_version: *ref_5_16_0
+      declaration: missing_feature
   tests/test_protobuf.py: "missing_feature"
   tests/test_resource_renaming.py: "missing_feature"
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded:
-      - library_version: *ref_5_17_0
-        declaration: missing_feature
+    - library_version: *ref_5_17_0
+      declaration: missing_feature
   tests/test_sampling_rates.py::Test_SamplingDecisions: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDeterminism: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingRates:
-      - library_version: *ref_5_17_0
-        declaration: missing_feature
+    - library_version: *ref_5_17_0
+      declaration: missing_feature
   tests/test_scrubbing.py::Test_UrlField:
-      - library_version: *ref_3_13_1
-        declaration: missing_feature
+    - library_version: *ref_3_13_1
+      declaration: missing_feature
   tests/test_scrubbing.py::Test_UrlQuery:
     - excluded_variant: [nextjs]
       library_version: *ref_3_0_0
@@ -2454,8 +2454,8 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/test_semantic_conventions.py::Test_MetricsStandardTags:
-      - library_version: *ref_3_13_1
-        declaration: missing_feature
+    - library_version: *ref_3_13_1
+      declaration: missing_feature
   tests/test_span_events.py:
     - excluded_variant: [fastify, express5, express4]
       declaration: irrelevant
@@ -2495,19 +2495,19 @@ manifest:
       declaration: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: "v2.11.0"
   tests/test_standard_tags.py::Test_StandardTagsUrl:
-      - library_version: *ref_3_0_0
-        declaration: missing_feature
+    - library_version: *ref_3_0_0
+      declaration: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: "v2.9.0"
   tests/test_telemetry.py::Test_DependencyEnable: "missing_feature"
   tests/test_telemetry.py::Test_Log_Generation: "missing_feature"
   tests/test_telemetry.py::Test_MessageBatch:
-      - library_version: *ref_4_21_0
-        declaration: missing_feature
+    - library_version: *ref_4_21_0
+      declaration: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: "missing_feature"
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: "missing_feature"
   tests/test_telemetry.py::Test_ProductsDisabled:
-      - library_version: *ref_4_21_0
-        declaration: missing_feature
+    - library_version: *ref_4_21_0
+      declaration: missing_feature
   tests/test_telemetry.py::Test_Telemetry:
     - excluded_variant: [nextjs, uds-express4]
       library_version: *ref_3_2_0
@@ -2528,6 +2528,6 @@ manifest:
       declaration: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: "missing_feature"
   tests/test_telemetry.py::Test_TelemetryV2:
-      - library_version: *ref_4_21_0
-        declaration: missing_feature
+    - library_version: *ref_4_21_0
+      declaration: missing_feature
   tests/test_v1_payloads.py: "missing_feature"

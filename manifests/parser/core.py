@@ -1,10 +1,10 @@
 from collections import defaultdict
-from functools import lru_cache
 import json
 from jsonschema.exceptions import ValidationError
 import os
 import ast
 import re
+from pathlib import Path
 
 from utils._decorators import CustomSpec as SemverRange
 from utils.get_declaration import match_rule
@@ -26,18 +26,19 @@ def _flatten(base: str, obj: dict):
             else:
                 yield from _flatten(f"{base}{key}", value)
 
-def sanitize_version(version):
-    if re.fullmatch("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]*(-|\+|\.|[a-z]|[A-Z]|[0-9])*", version.strip()):
-        core_version = re.match("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
+
+def sanitize_version(version: str) -> str:
+    if re.fullmatch(r"(<|>|=)*[0-9]*\.[0-9]*\.[0-9]*(-|\+|\.|[a-z]|[A-Z]|[0-9])*", version.strip()):
+        core_version = re.match(r"(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
         connector = ""
-        if version[core_version.end():] and not version[core_version.end():].startswith(("-", ".", "+")):
+        if version[core_version.end() :] and not version[core_version.end() :].startswith(("-", ".", "+")):
             connector = "-"
-        version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
+        version = version[: core_version.end()] + connector + version[core_version.end() :].replace(".", "-")
     return version
 
 
 def _load_file(file: str, component: str):
-    def to_semver(version: str, nodeid):
+    def to_semver(version: str, nodeid: str):  # noqa: ARG001
         par = version.find("(")
         if par >= 0:
             version = version[:par]
@@ -54,28 +55,26 @@ def _load_file(file: str, component: str):
 
     ret = {}
     for nodeid, value in data["manifest"].items():
-            if isinstance(value, str):
-                sdec = value
-                value = {}
-                if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
-                    value["declaration"] = sdec
-                else:
-                    if sdec.startswith(">"):
-                       sdec = "<" + sdec[1:]
-                    elif sdec.startswith("v"):
-                       sdec = "<" + sdec[1:]
-                    elif not re.fullmatch("[0-9].*", sdec):
-                        raise ValueError(f"Invalid inline version: {sdec}")
-                    value["library_version"] = to_semver(sdec, nodeid)
-                    value["declaration"] = "missing_feature"
-            if not isinstance(value, list):
-                value = [value]
-            for entry in value:
-                if isinstance(entry.get("library_version"), str):
-                        entry["library_version"] = to_semver(entry["library_version"], nodeid)
-                entry["library"] = component
+        if isinstance(value, str):
+            sdec = value
+            value = {}  # noqa: PLW2901
+            if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
+                value["declaration"] = sdec
+            else:
+                if sdec.startswith((">", "v")):
+                    sdec = "<" + sdec[1:]
+                elif not re.fullmatch("[0-9].*", sdec):
+                    raise ValueError(f"Invalid inline version: {sdec}")
+                value["library_version"] = to_semver(sdec, nodeid)
+                value["declaration"] = "missing_feature"
+        if not isinstance(value, list):
+            value = [value]  # noqa: PLW2901
+        for entry in value:
+            if isinstance(entry.get("library_version"), str):
+                entry["library_version"] = to_semver(entry["library_version"], nodeid)
+            entry["library"] = component
 
-            ret[nodeid] = value
+        ret[nodeid] = value
 
     return ret
 
@@ -126,36 +125,37 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     return result
 
 
-def assert_key_order(obj: dict, path: str = ""):
+def assert_key_order(obj: dict, path: str = "") -> list[str]:
     last_key = "/"
     errors = []
 
-    for key in obj.keys():
+    for key in obj:
         if not last_key < key:
             errors.append(f"Order is not respected at {path} ({last_key} < {key})")
         last_key = key
 
     return errors
 
-def assert_nodeids_exist(obj: dict, path: str = ""):
+
+def assert_nodeids_exist(obj: dict, path: str = "") -> list[str]:  # noqa: ARG001
     errors = []
-    for key in obj.keys():
+    for key in obj:
         elements = key.split("::")
 
-        if not os.path.exists(elements[0]):
+        if not Path(elements[0]).exists():
             errors.append(f"{elements[0]} does not exist")
             continue
 
-        if len(elements) < 2 or not ".py" in elements[0]:
+        if len(elements) < 2 or ".py" not in elements[0]:  # noqa: PLR2004
             continue
 
         with open(elements[0]) as f:
             test_ast = ast.parse(f.read())
 
         found_class = False
-        found_function = len(elements) < 3
+        found_function = len(elements) < 3  # noqa: PLR2004
         for node in ast.walk(test_ast):
-            if not isinstance(node, ast.ClassDef) or not node.name == elements[1]:
+            if not isinstance(node, ast.ClassDef) or node.name != elements[1]:
                 continue
             if found_class:
                 break
@@ -170,20 +170,21 @@ def assert_nodeids_exist(obj: dict, path: str = ""):
 
         if not found_class:
             errors.append(f"{elements[0]} does not contain class {elements[1]}")
-        if found_class and not found_function and len(elements) >= 3:
+        if found_class and not found_function and len(elements) >= 3:  # noqa: PLR2004
             errors.append(f"{elements[0]}::{elements[1]} does not contain function {elements[2]}")
 
     return errors
 
-def assert_increasing_versions(obj: dict):
+
+def assert_increasing_versions(obj: dict) -> list[str]:
     def to_version(sdec: str):
         if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
             return None
-        while len(sdec.split(".")) < 3:
+        while len(sdec.split(".")) < 3:  # noqa: PLR2004
             sdec += ".0"
         sdec = sdec.strip("v")
-        sdec = sdec[:sdec.find(" ")%(len(sdec)+1)]
-        sdec = sdec[:sdec.find("(")%(len(sdec)+1)]
+        sdec = sdec[: sdec.find(" ") % (len(sdec) + 1)]
+        sdec = sdec[: sdec.find("(") % (len(sdec) + 1)]
         sdec = sanitize_version(sdec)
         return Version(sdec.strip(">").strip("="))
 
@@ -210,16 +211,14 @@ def assert_increasing_versions(obj: dict):
 
     return errors
 
-    
 
-def pretty(errors):
+def pretty(errors: dict[str, list]) -> str:
     ret = ""
     for file, file_errors in errors.items():
         ret += f"{file}:\n"
         for error in file_errors:
-            ret += '\n'.join('    ' + line for line in str(error).splitlines()) + "\n"
+            ret += "\n".join("    " + line for line in str(error).splitlines()) + "\n"
     return ret
-
 
 
 def validate_manifest_files() -> None:
@@ -231,11 +230,9 @@ def validate_manifest_files() -> None:
     nodeid_errors = {}
     parser_errors = {}
     increasing_versions_errors = {}
-    
+
     for file in os.listdir("manifests/"):
         if file.endswith(".yml"):
-            with open(f"manifests/{file}", encoding="utf-8") as f:
-                raw_data = f.read()
             with open(f"manifests/{file}", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
@@ -245,10 +242,12 @@ def validate_manifest_files() -> None:
                 validation_errors[file] = [e]
 
             errors = assert_key_order(data["manifest"])
-            if errors: order_errors[file] = errors
+            if errors:
+                order_errors[file] = errors
 
             errors = assert_nodeids_exist(data["manifest"])
-            if errors: nodeid_errors[file] = errors
+            if errors:
+                nodeid_errors[file] = errors
 
             try:
                 _load_file(f"manifests/{file}", file.strip(".yml"))
@@ -256,7 +255,8 @@ def validate_manifest_files() -> None:
                 parser_errors[file] = [e]
 
             errors = assert_increasing_versions(data["manifest"])
-            if errors: increasing_versions_errors[file] = errors
+            if errors:
+                increasing_versions_errors[file] = errors
 
     message = ""
     if order_errors:
@@ -270,6 +270,7 @@ def validate_manifest_files() -> None:
     if increasing_versions_errors:
         message += "\n==================Version order errors==================\n" + pretty(increasing_versions_errors)
     assert not message, message
+
 
 if __name__ == "__main__":
     validate_manifest_files()

@@ -15,7 +15,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "v3.17.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "v3.17.0"
   tests/appsec/api_security/test_endpoint_discovery.py:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<3.13.0.dev"
       declaration: missing_feature
     - variant: django-poc
@@ -115,7 +115,7 @@ manifest:
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       declaration: irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
     - variant: django-poc
       library_version: "<3.10.0.dev"
@@ -131,7 +131,7 @@ manifest:
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionPragma: "missing_feature"
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionTransferEncoding: "missing_feature"
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_ExtendedLocation:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       declaration: irrelevant (was v3.1.0.dev but algorithm was updated will be updated)
     - variant: django-poc
       library_version: "<3.10.0.dev"
@@ -143,7 +143,7 @@ manifest:
       library_version: "<3.10.0.dev"
       declaration: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_StackTrace:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       declaration: irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
     - variant: django-poc
       library_version: "<3.10.0.dev"
@@ -311,7 +311,7 @@ manifest:
       library_version: "<2.20.1"
       declaration: missing_feature
   tests/appsec/iast/source/test_header_value.py:
-    - variant: [django-py3.13, django-poc, python3.12]
+    - variant: [django-py3.13, python3.12, django-poc]
       library_version: "<1.18.0"
       declaration: missing_feature
     - variant: fastapi
@@ -344,7 +344,7 @@ manifest:
       library_version: "<2.13.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_path.py:
-    - variant: [django-py3.13, django-poc, python3.12]
+    - variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.9.0"
       declaration: missing_feature
     - variant: fastapi
@@ -360,7 +360,7 @@ manifest:
       library_version: "<2.13.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_path_parameter.py:
-    - variant: [django-py3.13, django-poc, python3.12]
+    - variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.9.0"
       declaration: missing_feature
     - variant: fastapi
@@ -379,7 +379,7 @@ manifest:
   tests/appsec/iast/source/test_uri.py::TestURI: "missing_feature"
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: "v3.9.0.dev"
   tests/appsec/iast/test_security_controls.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<3.11.0.dev"
@@ -519,7 +519,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: "v2.12.3"
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: "v3.2.0.dev"
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
-    - excluded_variant: [uds-flask, flask-poc]
+    - excluded_variant: [flask-poc, uds-flask]
       library_version: "<3.2.0.dev"
       declaration: missing_feature
     - variant: flask-poc
@@ -539,7 +539,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant (was v2.11.0 but will be replaced by V3)"
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "v2.11.0"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.20.0.dev"
       declaration: missing_feature
     - variant: django-poc
@@ -552,7 +552,7 @@ manifest:
       library_version: "<3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)"
       declaration: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.20.0.dev"
       declaration: missing_feature
     - variant: django-poc
@@ -565,7 +565,7 @@ manifest:
       library_version: "<3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)"
       declaration: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.20.0.dev"
       declaration: missing_feature
     - variant: django-poc
@@ -579,7 +579,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: "v2.11.0"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<3.11.0.dev"
       declaration: missing_feature
     - variant: django-poc
@@ -592,7 +592,7 @@ manifest:
       library_version: "<3.3.0.dev"
       declaration: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<3.0.0.rc"
       declaration: missing_feature
     - variant: django-poc
@@ -605,7 +605,7 @@ manifest:
       library_version: "<3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)"
       declaration: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<3.1.0.dev"
       declaration: missing_feature
     - variant: django-poc
@@ -619,7 +619,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -653,7 +653,7 @@ manifest:
       library_version: "<3.7.0.dev (is v1.16.1.dev but weblog use new SDK now)"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -780,7 +780,7 @@ manifest:
       library_version: "<3.7.0.dev (is v1.16.1 but weblog use new SDK now)"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -793,7 +793,7 @@ manifest:
       library_version: "<1.10"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -825,7 +825,7 @@ manifest:
       library_version: "<3.7.0.dev (is v1.16.1 but weblog use new SDK now)"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.4.0"
       declaration: missing_feature
     - variant: django-poc
@@ -850,7 +850,7 @@ manifest:
   tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry: "v3.15.0.dev"
   tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: "v1.1.0-rc2"
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<1.10.0"
       declaration: missing_feature
     - variant: django-poc
@@ -864,7 +864,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: "v3.10.0.dev"
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.10.0"
       declaration: missing_feature
     - variant: django-poc
@@ -878,7 +878,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: "v3.10.0.dev"
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.10.0"
       declaration: missing_feature
     - variant: django-poc
@@ -971,7 +971,7 @@ manifest:
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: "v2.9.0"
   tests/appsec/test_traces.py::Test_RetainTraces: "v1.1.0-rc2"
   tests/appsec/test_user_blocking_full_denylist.py:
-    - excluded_variant: [django-py3.13, django-poc, python3.12]
+    - excluded_variant: [django-py3.13, python3.12, django-poc]
       library_version: "<2.11.0"
       declaration: missing_feature
     - variant: django-poc
@@ -992,7 +992,7 @@ manifest:
       library_version: "<2.4.0"
       declaration: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyRaw:
-    - excluded_variant: [fastapi, django-poc, python3.12]
+    - excluded_variant: [fastapi, python3.12, django-poc]
       declaration: missing_feature
     - variant: django-poc
       library_version: "<1.5.2"
@@ -1089,7 +1089,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/waf/test_addresses.py::Test_gRPC: "missing_feature"
   tests/appsec/waf/test_blocking.py::Test_Blocking:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -1114,7 +1114,7 @@ manifest:
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: "missing_feature"
   tests/appsec/waf/test_custom_rules.py:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -1127,7 +1127,7 @@ manifest:
       library_version: "<1.12"
       declaration: missing_feature
   tests/appsec/waf/test_exclusions.py:
-    - excluded_variant: [fastapi, django-poc, flask-poc]
+    - excluded_variant: [flask-poc, fastapi, django-poc]
       library_version: "<1.16.1"
       declaration: missing_feature
     - variant: django-poc
@@ -1204,7 +1204,7 @@ manifest:
       library_version: "<2.4.0"
       declaration: missing_feature
   tests/appsec/waf/test_rules.py::Test_LFI:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       library_version: "<2.4.0"
       declaration: missing_feature
     - variant: flask-poc
@@ -1274,7 +1274,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: "v3.3.0.dev"
   tests/debugger/test_debugger_code_origins.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1286,7 +1286,7 @@ manifest:
       library_version: "<2.11.0"
       declaration: missing_feature
   tests/debugger/test_debugger_exception_replay.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<3.4.0"
@@ -1298,7 +1298,7 @@ manifest:
       library_version: "<3.4.0"
       declaration: missing_feature
   tests/debugger/test_debugger_expression_language.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1310,7 +1310,7 @@ manifest:
       library_version: "<2.11.0"
       declaration: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<3.5.0"
@@ -1322,7 +1322,7 @@ manifest:
       library_version: "<3.5.0"
       declaration: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1334,7 +1334,7 @@ manifest:
       library_version: "<2.11.0"
       declaration: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<3.7.0"
@@ -1346,7 +1346,7 @@ manifest:
       library_version: "<3.7.0"
       declaration: missing_feature
   tests/debugger/test_debugger_probe_budgets.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1358,7 +1358,7 @@ manifest:
       library_version: "<2.11.0"
       declaration: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1370,7 +1370,7 @@ manifest:
       library_version: "<2.11.0"
       declaration: missing_feature
   tests/debugger/test_debugger_probe_status.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1382,7 +1382,7 @@ manifest:
       library_version: "<2.11.0"
       declaration: missing_feature
   tests/debugger/test_debugger_symdb.py:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature
     - variant: flask-poc
       library_version: "<2.11.0"
@@ -1436,7 +1436,7 @@ manifest:
       library_version: "<1.18.3"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<0.1"
@@ -1448,7 +1448,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1460,7 +1460,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1472,7 +1472,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1484,7 +1484,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.8.0"
@@ -1496,7 +1496,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1508,7 +1508,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1520,7 +1520,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1532,7 +1532,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1544,7 +1544,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1556,7 +1556,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.8.0"
@@ -1568,7 +1568,7 @@ manifest:
       library_version: "<2.9.0"
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql:
-    - excluded_variant: [uwsgi-poc, uds-flask, flask-poc]
+    - excluded_variant: [uwsgi-poc, flask-poc, uds-flask]
       declaration: missing_feature (Missing on weblog)
     - variant: flask-poc
       library_version: "<2.9.0"
@@ -1753,7 +1753,7 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: "irrelevant (cache is implemented)"
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: "v2.8.0"
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py:
-    - excluded_variant: [django-poc, python3.12, flask-poc]
+    - excluded_variant: [flask-poc, python3.12, django-poc]
       declaration: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject:
     - variant: django-poc

@@ -66,7 +66,7 @@ def parse_skip_declaration(skip_declaration: str) -> tuple[_TestDeclaration, str
     assert match is not None
     declaration, _, declaration_details = match.groups()
 
-    return [_TestDeclaration(declaration), declaration_details]
+    return (_TestDeclaration(declaration), declaration_details)
 
 
 def _is_jira_ticket(declaration_details: str | None):
@@ -91,7 +91,12 @@ def add_pytest_marker(
     *,
     force_skip: bool = False,
 ):
-    if not inspect.isfunction(item) and not inspect.isclass(item) and not isinstance(item, pytest.Module) and not isinstance(item, pytest.Function):
+    if (
+        not inspect.isfunction(item)
+        and not inspect.isclass(item)
+        and not isinstance(item, pytest.Module)
+        and not isinstance(item, pytest.Function)
+    ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
     if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
@@ -104,7 +109,7 @@ def add_pytest_marker(
 
     reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
-    if isinstance(item, pytest.Module) or isinstance(item, pytest.Function):
+    if isinstance(item, (pytest.Module, pytest.Function)):
         add_marker = item.add_marker
     else:
         if not hasattr(item, "pytestmark"):

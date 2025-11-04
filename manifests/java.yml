@@ -1,7 +1,7 @@
 ---
 manifest:
   tests/apm_tracing_e2e/test_otel.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<0.2.0"
       declaration: missing_feature
     - variant: akka-http
@@ -21,7 +21,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
   tests/apm_tracing_e2e/test_single_span.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<0.2.0"
       declaration: missing_feature
     - variant: akka-http
@@ -41,7 +41,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
   tests/appsec/api_security/test_api_security_rc.py:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.38.0"
       declaration: missing_feature
     - variant: akka-http
@@ -58,7 +58,7 @@ manifest:
       library_version: "<1.51.0"
       declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.48.0"
       declaration: missing_feature
     - variant: akka-http
@@ -75,7 +75,7 @@ manifest:
       library_version: "<1.51.0"
       declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.48.0"
       declaration: missing_feature
     - variant: akka-http
@@ -92,7 +92,7 @@ manifest:
       library_version: "<1.51.0"
       declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.48.0"
       declaration: missing_feature
     - variant: akka-http
@@ -110,7 +110,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: "irrelevant (new sampling algorithm implemented)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.48.0"
       declaration: missing_feature
     - variant: akka-http
@@ -140,7 +140,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
-    - excluded_variant: [play, vertx3, spring-boot-3-native, vertx4, akka-http, spring-boot-payara]
+    - excluded_variant: [spring-boot-payara, spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -160,7 +160,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -177,7 +177,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -194,7 +194,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -211,7 +211,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.36.0"
       declaration: missing_feature
     - variant: akka-http
@@ -233,7 +233,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.36.0"
       declaration: missing_feature
     - variant: akka-http
@@ -254,7 +254,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -271,7 +271,7 @@ manifest:
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - excluded_variant: [vertx3, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, vertx3]
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
     - variant: akka-http
@@ -290,7 +290,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
-    - excluded_variant: [vertx3, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, vertx3]
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
     - variant: akka-http
@@ -303,7 +303,7 @@ manifest:
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.1.0"
       declaration: missing_feature
     - variant: akka-http
@@ -329,7 +329,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_StackTrace:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -339,7 +339,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -360,7 +360,7 @@ manifest:
       declaration: missing_feature (No endpoint implemented)
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_StackTrace:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -383,7 +383,7 @@ manifest:
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.29.0"
@@ -410,7 +410,7 @@ manifest:
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: "irrelevant (not expected to have a stack trace)"
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.27.0"
@@ -439,7 +439,7 @@ manifest:
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionTransferEncoding: "missing_feature"
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_StackTrace:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.47.0"
@@ -463,7 +463,7 @@ manifest:
       library_version: "<1.47.0"
       declaration: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.20.0"
       declaration: missing_feature
     - variant: akka-http
@@ -485,7 +485,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_ExtendedLocation:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.20.0"
       declaration: missing_feature
     - variant: akka-http
@@ -508,7 +508,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_StackTrace: "irrelevant (not expected to have a stack trace)"
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol:
-    - excluded_variant: [play, spring-boot-openliberty, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, akka-http, spring-boot-openliberty, play, ratpack]
       library_version: "<1.30.0"
       declaration: missing_feature
     - variant: akka-http
@@ -523,7 +523,7 @@ manifest:
       declaration: bug (APPSEC-54981)
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace:
-    - excluded_variant: [play, spring-boot-openliberty, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, akka-http, spring-boot-openliberty, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -537,7 +537,7 @@ manifest:
     - variant: spring-boot-openliberty
       declaration: bug (APPSEC-54981)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.18.0"
       declaration: missing_feature
     - variant: akka-http
@@ -551,7 +551,7 @@ manifest:
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: "missing_feature"
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -563,7 +563,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.3.0"
       declaration: missing_feature
     - variant: akka-http
@@ -589,7 +589,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -599,7 +599,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.18.0"
       declaration: missing_feature
     - variant: akka-http
@@ -613,7 +613,7 @@ manifest:
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: "missing_feature"
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -625,7 +625,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.18.0"
       declaration: missing_feature
     - variant: akka-http
@@ -639,7 +639,7 @@ manifest:
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: "missing_feature"
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -654,7 +654,7 @@ manifest:
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, vertx3, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx3, ratpack, akka-http, play]
       library_version: "<1.1.0"
       declaration: missing_feature
     - variant: akka-http
@@ -677,7 +677,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal_StackTrace:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -687,7 +687,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -700,7 +700,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -712,7 +712,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, vertx3, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx3, ratpack, akka-http, play]
       library_version: "<1.1.0"
       declaration: missing_feature
     - variant: akka-http
@@ -735,7 +735,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -745,7 +745,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF:
-    - excluded_variant: [play, ratpack, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, ratpack, akka-http, play]
       library_version: "<1.13.0"
       declaration: missing_feature
     - variant: akka-http
@@ -760,7 +760,7 @@ manifest:
       declaration: missing_feature (No endpoint implemented)
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace:
-    - excluded_variant: [play, ratpack, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, ratpack, akka-http, play]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -777,7 +777,7 @@ manifest:
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection: "missing_feature"
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.22.0"
       declaration: missing_feature
     - variant: akka-http
@@ -798,7 +798,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_StackTrace:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -818,7 +818,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.38.0"
       declaration: missing_feature
     - variant: akka-http
@@ -839,7 +839,7 @@ manifest:
       declaration: missing_feature (No endpoint implemented)
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -859,7 +859,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (No endpoint implemented)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
-    - excluded_variant: [play, vertx3, ratpack, spring-boot-jetty, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, spring-boot-jetty, play, ratpack]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: akka-http
@@ -881,7 +881,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -893,7 +893,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
-    - excluded_variant: [play, ratpack, spring-boot-jetty, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, akka-http, spring-boot-jetty, play, ratpack]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: akka-http
@@ -912,7 +912,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -924,7 +924,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: akka-http
@@ -947,7 +947,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, ratpack, akka-http, play]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -963,7 +963,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<0.108.0"
       declaration: missing_feature
     - variant: play
@@ -972,7 +972,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -980,7 +980,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<0.108.0"
       declaration: missing_feature
     - variant: play
@@ -988,7 +988,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<0.108.0"
       declaration: missing_feature
     - variant: play
@@ -997,7 +997,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_StackTrace:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -1005,7 +1005,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: play
@@ -1014,7 +1014,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_StackTrace:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -1022,7 +1022,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.22.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1044,7 +1044,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_ExtendedLocation:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.22.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1067,7 +1067,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_StackTrace: "irrelevant (not expected to have a stack trace)"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.18.0"
       declaration: missing_feature
     - variant: play
@@ -1078,7 +1078,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_StackTrace:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: play
@@ -1088,7 +1088,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/sink/test_xss.py::TestXSS:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.19.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1109,7 +1109,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/sink/test_xss.py::TestXSS_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.47.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1129,7 +1129,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/source/test_body.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.7.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1152,7 +1152,7 @@ manifest:
       library_version: "<1.12.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_cookie_name.py:
-    - excluded_variant: [resteasy-netty3, play, vertx3, ratpack, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, spring-boot-3-native, vertx4, vertx3, ratpack, akka-http, play]
       library_version: "<1.4.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1173,7 +1173,7 @@ manifest:
       library_version: "<1.12.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_cookie_value.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.10.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1199,7 +1199,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/source/test_graphql_resolver.py::TestGraphqlResolverArgument: "missing_feature"
   tests/appsec/iast/source/test_header_name.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.3.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1223,7 +1223,7 @@ manifest:
       library_version: "<1.12.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_header_value.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.3.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1248,7 +1248,7 @@ manifest:
       library_version: "<1.12.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_kafka_key.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1268,7 +1268,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/source/test_kafka_value.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.31.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1288,7 +1288,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/source/test_multipart.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.22.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1308,7 +1308,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/source/test_parameter_name.py:
-    - excluded_variant: [jersey-grizzly2, play, vertx3, ratpack, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [jersey-grizzly2, spring-boot-3-native, vertx4, vertx3, ratpack, akka-http, play]
       library_version: "<1.1.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1330,7 +1330,7 @@ manifest:
       library_version: "<1.12.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_parameter_value.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.1.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1356,7 +1356,7 @@ manifest:
       library_version: "<1.12.0"
       declaration: missing_feature
   tests/appsec/iast/source/test_path.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.22.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1377,7 +1377,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/source/test_path_parameter.py: "missing_feature"
   tests/appsec/iast/source/test_sql_row.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.46.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1397,7 +1397,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (endpoint not implemented)
   tests/appsec/iast/source/test_uri.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.23.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1417,7 +1417,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature
   tests/appsec/iast/test_sampling_by_route_method_count.py:
-    - excluded_variant: [play, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, ratpack]
       library_version: "<1.51.0-SNAPSHOT"
       declaration: missing_feature
     - variant: akka-http
@@ -1430,7 +1430,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/test_security_controls.py:
-    - excluded_variant: [play, ratpack, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play, ratpack]
       library_version: "<1.46.0"
       declaration: missing_feature
     - variant: play
@@ -1491,7 +1491,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: "missing_feature"
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
-    - excluded_variant: [spring-boot-payara, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, spring-boot-payara, vertx4]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1504,7 +1504,7 @@ manifest:
       library_version: "<1.47.0"
       declaration: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
-    - excluded_variant: [spring-boot-payara, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, spring-boot-payara]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1514,7 +1514,7 @@ manifest:
     - variant: spring-boot-payara
       declaration: missing_feature (APPSEC-54966)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
-    - excluded_variant: [vertx3, spring-boot-3-native, vertx4, akka-http, spring-boot-payara]
+    - excluded_variant: [spring-boot-payara, spring-boot-3-native, vertx4, vertx3, akka-http]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1575,7 +1575,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:
-    - excluded_variant: [spring-boot-payara, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, spring-boot-payara]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1591,7 +1591,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
-    - excluded_variant: [spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara, vertx4]
       library_version: "<1.40.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1602,7 +1602,7 @@ manifest:
       library_version: "<1.47.0"
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
-    - excluded_variant: [spring-boot-payara, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara]
       library_version: "<1.40.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1610,7 +1610,7 @@ manifest:
     - variant: spring-boot-payara
       declaration: missing_feature (APPSEC-54966)
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
-    - excluded_variant: [vertx3, spring-boot-3-native, vertx4, akka-http, spring-boot-payara]
+    - excluded_variant: [spring-boot-payara, spring-boot-3-native, vertx4, vertx3, akka-http]
       library_version: "<1.40.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1663,7 +1663,7 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: "missing_feature"
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
-    - excluded_variant: [spring-boot-payara, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara]
       library_version: "<1.40.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1677,7 +1677,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
-    - excluded_variant: [spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara, vertx4]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1688,7 +1688,7 @@ manifest:
       library_version: "<1.47.0"
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
-    - excluded_variant: [spring-boot-payara, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1696,7 +1696,7 @@ manifest:
     - variant: spring-boot-payara
       declaration: missing_feature (APPSEC-54966)
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:
-    - excluded_variant: [vertx3, spring-boot-3-native, vertx4, akka-http, spring-boot-payara]
+    - excluded_variant: [spring-boot-payara, spring-boot-3-native, vertx4, vertx3, akka-http]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1753,7 +1753,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
-    - excluded_variant: [spring-boot-payara, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1767,7 +1767,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - excluded_variant: [spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, spring-boot-payara, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1778,7 +1778,7 @@ manifest:
       library_version: "<1.47.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - excluded_variant: [vertx3, spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, spring-boot-payara, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1792,7 +1792,7 @@ manifest:
       library_version: "<1.40.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml:
-    - excluded_variant: [vertx3, spring-boot-3-native, vertx4, akka-http, spring-boot-payara]
+    - excluded_variant: [spring-boot-payara, spring-boot-3-native, vertx4, vertx3, akka-http]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1812,7 +1812,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
-    - excluded_variant: [vertx3, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1824,7 +1824,7 @@ manifest:
       library_version: "<1.40.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
-    - excluded_variant: [vertx3, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1842,7 +1842,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
-    - excluded_variant: [vertx3, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1854,7 +1854,7 @@ manifest:
       library_version: "<1.40.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
-    - excluded_variant: [vertx3, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1867,7 +1867,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - excluded_variant: [vertx3, spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, spring-boot-payara, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1887,7 +1887,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
-    - excluded_variant: [vertx3, spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, spring-boot-payara, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1899,7 +1899,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (APPSEC-55781, APPSEC-55785)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
-    - excluded_variant: [vertx3, spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, spring-boot-payara, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1911,7 +1911,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
-    - excluded_variant: [vertx3, spring-boot-3-native, vertx4, akka-http, spring-boot-payara]
+    - excluded_variant: [spring-boot-payara, spring-boot-3-native, vertx4, vertx3, akka-http]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: akka-http
@@ -1931,7 +1931,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
-    - excluded_variant: [vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1939,7 +1939,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
-    - excluded_variant: [vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1953,7 +1953,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
-    - excluded_variant: [vertx3, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1963,7 +1963,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
-    - excluded_variant: [vertx3, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -1974,7 +1974,7 @@ manifest:
       declaration: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
-    - excluded_variant: [vertx3, spring-boot-payara, vertx4, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx3, spring-boot-payara, vertx4]
       library_version: "<1.39.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -2001,7 +2001,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:
-    - excluded_variant: [play, vertx3, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, akka-http, play]
       library_version: "<1.50.0-SNAPSHOT"
       declaration: missing_feature
     - variant: akka-http
@@ -2034,7 +2034,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2054,7 +2054,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (login endpoints not implemented)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2081,7 +2081,7 @@ manifest:
       library_version: "<1.48.0"
       declaration: missing_feature
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2119,7 +2119,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2139,7 +2139,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (login endpoints not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2159,7 +2159,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (login endpoints not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2181,7 +2181,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (login endpoints not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2204,7 +2204,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: flaky (APMAPI-979)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
-    - variant: [spring-boot-openliberty, spring-boot, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot, spring-boot-openliberty, spring-boot-payara, uds-spring-boot]
       library_version: "<1.46.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2228,7 +2228,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (home endpoint does not use cookies)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2248,7 +2248,7 @@ manifest:
     - variant: vertx4
       declaration: missing_feature (login endpoints not implemented)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.45.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2267,7 +2267,7 @@ manifest:
       declaration: missing_feature (login endpoints not implemented)
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<0.111.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2304,7 +2304,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
-    - excluded_variant: [play, spring-boot-payara, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, spring-boot-payara]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2318,7 +2318,7 @@ manifest:
     - variant: spring-boot-payara
       declaration: bug (APPSEC-54985)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
-    - variant: [spring-boot-undertow, vertx3, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, vertx4]
+    - variant: [spring-boot-undertow, vertx4, vertx3, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2481,7 +2481,7 @@ manifest:
       library_version: "<1.7.0"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - excluded_variant: [play, spring-boot-payara, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play, spring-boot-payara]
       library_version: "<1.15.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2588,7 +2588,7 @@ manifest:
       library_version: "<1.7.0"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       declaration: missing_feature
     - variant: akka-http
       library_version: "<1.22.0"
@@ -2599,7 +2599,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
-    - excluded_variant: [spring-boot-openliberty, jersey-grizzly2, spring-boot-payara, spring-boot-3-native]
+    - excluded_variant: [jersey-grizzly2, spring-boot-openliberty, spring-boot-3-native, spring-boot-payara]
       library_version: "<1.22.0"
       declaration: missing_feature
     - variant: jersey-grizzly2
@@ -2612,7 +2612,7 @@ manifest:
     - variant: spring-boot-payara
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot]
+    - variant: [spring-boot-undertow, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<0.111.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2665,7 +2665,7 @@ manifest:
       library_version: "<1.51.0"
       declaration: missing_feature
   tests/appsec/test_customconf.py::Test_ConfRuleSet:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.93.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2677,7 +2677,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_customconf.py::Test_CorruptedRules:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.93.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2690,7 +2690,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry: "missing_feature"
   tests/appsec/test_customconf.py::Test_MissingRules:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.93.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2702,7 +2702,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_customconf.py::Test_NoLimitOnWafRules:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.97.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2714,7 +2714,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.8.0"
       declaration: missing_feature
     - variant: play
@@ -2724,7 +2724,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: "missing_feature"
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.8.0"
       declaration: missing_feature
     - variant: play
@@ -2739,7 +2739,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
-    - excluded_variant: [play, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, play]
       library_version: "<1.8.0"
       declaration: missing_feature
     - variant: play
@@ -2799,7 +2799,7 @@ manifest:
       library_version: "<1.39.0"
       declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
-    - variant: [spring-boot-openliberty, spring-boot, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot, spring-boot-openliberty, spring-boot-payara, uds-spring-boot]
       library_version: "<1.40.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2832,7 +2832,7 @@ manifest:
       library_version: "<1.40.0"
       declaration: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
-    - variant: [spring-boot-openliberty, spring-boot, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot, spring-boot-openliberty, spring-boot-payara, uds-spring-boot]
       library_version: "<1.40.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2872,7 +2872,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_ip_blocking_full_denylist.py:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, spring-boot, vertx3, spring-boot-openliberty, ratpack, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx3, ratpack, spring-boot, spring-boot-openliberty]
       library_version: "<0.111.0"
       declaration: missing_feature
     - variant: jersey-grizzly2
@@ -2987,7 +2987,7 @@ manifest:
       library_version: "<1.22.0"
       declaration: missing_feature
   tests/appsec/test_request_blocking.py:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<1.9.0"
       declaration: missing_feature
     - variant: akka-http
@@ -2999,7 +2999,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_runtime_activation.py:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.115.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3015,7 +3015,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: "missing_feature"
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: "missing_feature"
   tests/appsec/test_shell_execution.py:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<1.2.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3046,7 +3046,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.104.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3067,7 +3067,7 @@ manifest:
       library_version: "<1.35.0"
       declaration: missing_feature
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.102.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3088,7 +3088,7 @@ manifest:
       library_version: "<1.22.0"
       declaration: missing_feature
   tests/appsec/test_user_blocking_full_denylist.py:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, spring-boot, vertx3, spring-boot-openliberty, ratpack, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx3, ratpack, spring-boot, spring-boot-openliberty]
       library_version: "<0.111.0"
       declaration: missing_feature
     - variant: jersey-grizzly2
@@ -3113,7 +3113,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/test_versions.py::Test_Events: "v0.90.0"
   tests/appsec/waf/test_addresses.py::Test_BodyJson:
-    - excluded_variant: [play, vertx3, ratpack, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, ratpack, akka-http, play]
       library_version: "<0.95.1"
       declaration: missing_feature
     - variant: akka-http
@@ -3134,7 +3134,7 @@ manifest:
       library_version: "<1.47.0"
       declaration: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyRaw:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       declaration: missing_feature
     - variant: akka-http
       library_version: "<1.22.0"
@@ -3145,7 +3145,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
-    - excluded_variant: [spring-boot-undertow, play, vertx3, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-undertow, spring-boot-3-native, vertx3, ratpack, akka-http, play]
       library_version: "<0.95.1"
       declaration: missing_feature
     - variant: akka-http
@@ -3166,7 +3166,7 @@ manifest:
       library_version: "<0.99.0"
       declaration: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyXml:
-    - excluded_variant: [play, vertx3, ratpack, vertx4, akka-http, spring-boot-3-native]
+    - excluded_variant: [spring-boot-3-native, vertx4, vertx3, ratpack, akka-http, play]
       library_version: "<0.95.1"
       declaration: missing_feature
     - variant: akka-http
@@ -3205,7 +3205,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, vertx3, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, vertx3, ratpack, akka-http, play]
       library_version: "<0.95.1"
       declaration: missing_feature
     - variant: akka-http
@@ -3261,7 +3261,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_gRPC:
-    - variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - variant: [spring-boot-jetty, spring-boot-undertow, spring-boot-payara, spring-boot-openliberty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<0.96.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3293,7 +3293,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking.py::Test_Blocking:
-    - variant: [spring-boot-undertow, spring-boot, spring-boot-wildfly, spring-boot-payara, spring-boot-jetty, uds-spring-boot, vertx4]
+    - variant: [spring-boot-undertow, spring-boot-payara, vertx4, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       library_version: "<0.112.0"
       declaration: missing_feature
     - variant: jersey-grizzly2
@@ -3312,10 +3312,10 @@ manifest:
       library_version: "<1.7.0"
       declaration: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       declaration: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<1.11.0"
       declaration: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py:
@@ -3330,7 +3330,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_exclusions.py:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<1.6.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3428,7 +3428,7 @@ manifest:
       declaration: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_truncation.py::Test_Truncation: "missing_feature"
   tests/debugger/test_debugger_code_origins.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.38.0"
@@ -3461,7 +3461,7 @@ manifest:
       library_version: "<1.50.0"
       declaration: missing_feature
   tests/debugger/test_debugger_expression_language.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.33.0"
@@ -3485,7 +3485,7 @@ manifest:
       library_version: "<1.33.0"
       declaration: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.48.0"
@@ -3509,7 +3509,7 @@ manifest:
       library_version: "<1.48.0"
       declaration: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.33.0"
@@ -3533,7 +3533,7 @@ manifest:
       library_version: "<1.33.0"
       declaration: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.49.0"
@@ -3557,7 +3557,7 @@ manifest:
       library_version: "<1.49.0"
       declaration: missing_feature
   tests/debugger/test_debugger_probe_budgets.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.38.0"
@@ -3581,7 +3581,7 @@ manifest:
       library_version: "<1.38.0"
       declaration: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.38.0"
@@ -3605,7 +3605,7 @@ manifest:
       library_version: "<1.38.0"
       declaration: missing_feature
   tests/debugger/test_debugger_probe_status.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot, spring-boot-payara]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot-payara, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.38.0"
@@ -3629,7 +3629,7 @@ manifest:
       library_version: "<1.38.0"
       declaration: missing_feature
   tests/debugger/test_debugger_symdb.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-jetty, uds-spring-boot]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot, spring-boot-jetty, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.38.0"
@@ -3647,7 +3647,7 @@ manifest:
       library_version: "<1.38.0"
       declaration: missing_feature
   tests/debugger/test_debugger_telemetry.py:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-jetty, uds-spring-boot]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot, spring-boot-jetty, uds-spring-boot]
       declaration: missing_feature
     - variant: spring-boot
       library_version: "<1.38.0"
@@ -3885,7 +3885,7 @@ manifest:
       library_version: "<1.50.0"
       declaration: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, spring-boot, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, ratpack, spring-boot, akka-http, play]
       library_version: "<1.53.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3901,7 +3901,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, spring-boot, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, ratpack, spring-boot, akka-http, play]
       library_version: "<1.53.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3917,7 +3917,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, spring-boot, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, ratpack, spring-boot, akka-http, play]
       library_version: "<1.53.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3933,7 +3933,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes:
-    - excluded_variant: [spring-boot-undertow, spring-boot, spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, uds-spring-boot]
+    - excluded_variant: [spring-boot-undertow, spring-boot-openliberty, spring-boot, spring-boot-jetty, spring-boot-wildfly, uds-spring-boot]
       declaration: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     - variant: spring-boot-jetty
       library_version: "<1.53.0"
@@ -3951,7 +3951,7 @@ manifest:
       library_version: "<1.53.0"
       declaration: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Max_Items:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, spring-boot, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, ratpack, spring-boot, akka-http, play]
       library_version: "<1.53.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3967,7 +3967,7 @@ manifest:
     - variant: spring-boot-3-native
       declaration: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Only_Baggage_Header:
-    - excluded_variant: [jersey-grizzly2, resteasy-netty3, play, spring-boot, ratpack, akka-http, spring-boot-3-native]
+    - excluded_variant: [resteasy-netty3, jersey-grizzly2, spring-boot-3-native, ratpack, spring-boot, akka-http, play]
       library_version: "<1.53.0"
       declaration: missing_feature
     - variant: akka-http
@@ -3986,7 +3986,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: "v1.43.0"
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: "missing_feature (does not support x-forwarded header)"
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured:
-    - excluded_variant: [vertx3, vertx4]
+    - excluded_variant: [vertx4, vertx3]
       library_version: "<1.43.0"
       declaration: missing_feature
     - variant: vertx3
@@ -3994,7 +3994,7 @@ manifest:
     - variant: vertx4
       declaration: irrelevant (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty:
-    - excluded_variant: [vertx3, vertx4]
+    - excluded_variant: [vertx4, vertx3]
       library_version: "<1.43.0"
       declaration: missing_feature
     - variant: vertx3
@@ -4067,7 +4067,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: "v1.39.0"
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: "v0.64.0"
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled:
-    - excluded_variant: [spring-boot-openliberty, spring-boot-wildfly, spring-boot-3-native]
+    - excluded_variant: [spring-boot-openliberty, spring-boot-3-native, spring-boot-wildfly]
       library_version: "<0.64.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -4078,7 +4078,7 @@ manifest:
       library_version: "<1.54.0-SNAPSHOT+c2aec92b86"
       declaration: missing_feature
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
-    - excluded_variant: [spring-boot-openliberty, spring-boot-wildfly, spring-boot-3-native]
+    - excluded_variant: [spring-boot-openliberty, spring-boot-3-native, spring-boot-wildfly]
       library_version: "<0.64.0"
       declaration: missing_feature
     - variant: spring-boot-3-native
@@ -4192,7 +4192,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: "v0.102.0"
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: "missing_feature"
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers:
-    - excluded_variant: [play, akka-http]
+    - excluded_variant: [akka-http, play]
       library_version: "<1.51.0"
       declaration: missing_feature
     - variant: akka-http
@@ -4267,7 +4267,7 @@ manifest:
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: "v1.3.0"
   tests/test_span_events.py: "incomplete_test_app (Weblog `/add_event` not implemented)"
   tests/test_standard_tags.py::Test_StandardTagsClientIp:
-    - excluded_variant: [play, akka-http, spring-boot-3-native]
+    - excluded_variant: [akka-http, spring-boot-3-native, play]
       library_version: "<0.114.0"
       declaration: missing_feature
     - variant: akka-http
@@ -4281,7 +4281,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsMethod: "v0.102.0"
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsRoute:
-    - excluded_variant: [play, akka-http]
+    - excluded_variant: [akka-http, play]
       library_version: "<0.102.0"
       declaration: missing_feature
     - variant: akka-http

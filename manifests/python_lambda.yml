@@ -1,7 +1,7 @@
 ---
 manifest:
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -11,7 +11,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -21,7 +21,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -31,7 +31,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -41,7 +41,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -51,7 +51,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -61,7 +61,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -71,7 +71,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -81,7 +81,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -91,7 +91,7 @@ manifest:
     - variant: function-url
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
@@ -223,7 +223,7 @@ manifest:
       library_version: "<8.114.0.dev"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - variant: [apigw-http, apigw-rest]
+    - variant: [apigw-rest, apigw-http]
       library_version: "<8.113.0"
       declaration: missing_feature
     - variant: alb
