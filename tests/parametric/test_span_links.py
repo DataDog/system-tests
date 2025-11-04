@@ -97,11 +97,11 @@ class Test_Span_Links:
         with test_library, test_library.dd_start_span("root") as rs:
             parent_id = test_library.dd_extract_headers(
                 http_headers=[
-                    ["x-datadog-trace-id", "1234567890"],
-                    ["x-datadog-parent-id", "9876543210"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-origin", "synthetics"],
-                    ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"],
+                    ("x-datadog-trace-id", "1234567890"),
+                    ("x-datadog-parent-id", "9876543210"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-origin", "synthetics"),
+                    ("x-datadog-tags", "_dd.p.dm=-4,_dd.p.tid=0000000000000010"),
                 ]
             )
             rs.add_link(parent_id=parent_id, attributes={"foo": "bar"})
@@ -131,8 +131,8 @@ class Test_Span_Links:
         with test_library, test_library.dd_start_span("root") as rs:
             parent_id = test_library.dd_extract_headers(
                 http_headers=[
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=t.dm:-4;s:2,bar=baz"),
                 ]
             )
             rs.add_link(parent_id=parent_id)
@@ -222,10 +222,10 @@ class Test_Span_Links:
             with test_library.dd_start_span("link_w_manual_keep") as s1:
                 parent_id = test_library.dd_extract_headers(
                     http_headers=[
-                        ["x-datadog-trace-id", "666"],
-                        ["x-datadog-parent-id", "777"],
-                        ["x-datadog-sampling-priority", "2"],
-                        ["x-datadog-tags", "_dd.p.dm=-0,_dd.p.tid=0000000000000010"],
+                        ("x-datadog-trace-id", "666"),
+                        ("x-datadog-parent-id", "777"),
+                        ("x-datadog-sampling-priority", "2"),
+                        ("x-datadog-tags", "_dd.p.dm=-0,_dd.p.tid=0000000000000010"),
                     ]
                 )
                 s1.add_link(parent_id=parent_id)
@@ -233,8 +233,8 @@ class Test_Span_Links:
             with test_library.dd_start_span("link_w_manual_drop") as s2:
                 parent_id = test_library.dd_extract_headers(
                     http_headers=[
-                        ["traceparent", "00-66645678901234567890123456789012-0000000000000011-01"],
-                        ["tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"],
+                        ("traceparent", "00-66645678901234567890123456789012-0000000000000011-01"),
+                        ("tracestate", "foo=1,dd=t.dm:-3;s:-1,bar=baz"),
                     ]
                 )
                 s2.add_link(parent_id=parent_id)

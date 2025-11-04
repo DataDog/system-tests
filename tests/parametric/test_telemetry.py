@@ -146,6 +146,7 @@ def _check_propagation_style_with_inject_and_extract(
     assert (
         inject_item is not None
     ), f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert isinstance(inject_item, dict)
     assert (
         inject_item["origin"] == expected_origin
     ), f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
@@ -156,6 +157,7 @@ def _check_propagation_style_with_inject_and_extract(
     assert (
         extract_item is not None
     ), f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert isinstance(extract_item, dict)
     assert (
         extract_item["origin"] == expected_origin
     ), f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
@@ -224,6 +226,7 @@ class Test_Defaults:
             assert (
                 cfg_item is not None
             ), f"No configuration found for '{mapped_apm_telemetry_name}' with origin 'default'"
+            assert isinstance(cfg_item, dict)
             if isinstance(value, tuple):
                 assert (
                     cfg_item.get("value") in value
@@ -433,6 +436,7 @@ class Test_Environment:
                 configuration_by_name, mapped_apm_telemetry_name, "env_var"
             )
             assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
+            assert isinstance(cfg_item, dict)
             if isinstance(environment_value, tuple):
                 assert cfg_item.get("value") in environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             else:
@@ -690,6 +694,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert (
                 telemetry_item is not None
             ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'"
+            assert isinstance(telemetry_item, dict)
             assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
@@ -749,6 +754,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         assert (
             telemetry_item is not None
         ), f"No configuration found for '{apm_telemetry_name}' with origin 'fleet_stable_config'"
+        assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
 
@@ -760,6 +766,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         assert (
             telemetry_item is not None
         ), f"No configuration found for '{apm_telemetry_name}' with origin 'local_stable_config'"
+        assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "local_stable_config"
         assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
 
@@ -835,7 +842,9 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 telemetry_item is not None
             ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
 
+            assert isinstance(telemetry_item, dict)
             actual_origin = telemetry_item.get("origin", "<missing>")
+            assert isinstance(telemetry_item, dict)
             assert (
                 telemetry_item["origin"] == expected_origin
             ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
@@ -919,7 +928,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 assert (
                     telemetry_item is not None
                 ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
-
+                assert isinstance(telemetry_item, dict)
                 actual_origin = telemetry_item.get("origin", "<missing>")
                 assert (
                     telemetry_item["origin"] == expected_origin
@@ -1075,6 +1084,7 @@ class Test_TelemetrySSIConfigs:
             configuration_by_name, ssi_enabled_telemetry_name, "env_var", fallback_to_first=(expected_value is None)
         )
         assert inject_enabled is not None, f"No configuration found for '{ssi_enabled_telemetry_name}'"
+        assert isinstance(inject_enabled, dict)
         assert inject_enabled.get("value") == expected_value
         if expected_value is not None:
             assert inject_enabled.get("origin") == "env_var"
@@ -1125,6 +1135,7 @@ class Test_TelemetrySSIConfigs:
             configuration_by_name, inject_force_telemetry_name, "env_var", fallback_to_first=(expected_value == "none")
         )
         assert inject_force is not None, f"No configuration found for '{inject_force_telemetry_name}'"
+        assert isinstance(inject_force, dict)
         assert str(inject_force.get("value")).lower() == expected_value
         if expected_value != "none":
             assert inject_force.get("origin") == "env_var"
@@ -1149,7 +1160,10 @@ class Test_TelemetrySSIConfigs:
         assert (
             instrumentation_source is not None
         ), f"No configuration found for '{instrumentation_source_telemetry_name}'"
-        assert instrumentation_source.get("value").lower() != "ssi"
+        assert isinstance(instrumentation_source, dict)
+        value: str | None = instrumentation_source.get("value")
+        assert value is not None
+        assert value.lower() != "ssi"
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")

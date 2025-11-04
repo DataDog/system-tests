@@ -42,9 +42,9 @@ class Test_Span_Sampling:
         1. a span sampling rule matches
         2. tracer is set to drop the trace manually
         """
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
@@ -66,10 +66,10 @@ class Test_Span_Sampling:
     )
     def test_special_glob_characters_span_sampling_sss002(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test span sampling tags are added when a rule with glob patterns with special characters * and ? match"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
 
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -90,9 +90,9 @@ class Test_Span_Sampling:
         1. a basic span sampling rule does not match
         2. the tracer is set to drop the span manually
         """
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
 
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
@@ -119,9 +119,9 @@ class Test_Span_Sampling:
         1. a span sampling rule that only has a service pattern matches
         2. the tracer is set to drop the span manually
         """
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -144,9 +144,9 @@ class Test_Span_Sampling:
         1. a span sampling rule that only has a name pattern does not match
         2. the tracer is set to drop the span manually
         """
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -184,9 +184,9 @@ class Test_Span_Sampling:
         1. rules are assessed in order of their listing
         2. that once a rule is matched, we do not try to match against further rules. We do this by assuming that the "sample_rate": 0 of the second rule, if matched against would cause the span to not have span sampling tags.
         """
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1.0
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -221,9 +221,9 @@ class Test_Span_Sampling:
         1. rules are assessed in order of their listing
         2. that once a rule is matched, we do not try to match against further rules. We do this by assuming that the "sample_rate": 0 of the first rule, will cause the span to not have span sampling tags.
         """
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as main_span:
             pass
-        span = find_span_in_traces(test_agent.wait_for_num_traces(1), span.trace_id, span.span_id)
+        span = find_span_in_traces(test_agent.wait_for_num_traces(1), main_span.trace_id, main_span.span_id)
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
@@ -896,10 +896,10 @@ class Test_Span_Sampling:
         with test_library.dd_extract_headers_and_make_child_span(
             "web.request",
             [
-                ["x-datadog-trace-id", "12345678901"],
-                ["x-datadog-parent-id", "98765432101"],
-                ["x-datadog-sampling-priority", "1"],
-                ["x-datadog-origin", "rum"],
+                ("x-datadog-trace-id", "12345678901"),
+                ("x-datadog-parent-id", "98765432101"),
+                ("x-datadog-sampling-priority", "1"),
+                ("x-datadog-origin", "rum"),
             ],
         ) as s1:
             pass
@@ -907,10 +907,10 @@ class Test_Span_Sampling:
         with test_library.dd_extract_headers_and_make_child_span(
             "web.request",
             [
-                ["x-datadog-trace-id", "12345678902"],
-                ["x-datadog-parent-id", "98765432102"],
-                ["x-datadog-sampling-priority", "0"],
-                ["x-datadog-origin", "rum"],
+                ("x-datadog-trace-id", "12345678902"),
+                ("x-datadog-parent-id", "98765432102"),
+                ("x-datadog-sampling-priority", "0"),
+                ("x-datadog-origin", "rum"),
             ],
         ) as s2:
             pass
@@ -972,10 +972,10 @@ class Test_Span_Sampling:
         with test_library.dd_extract_headers_and_make_child_span(
             "web.request",
             [
-                ["x-datadog-trace-id", "12345678901"],
-                ["x-datadog-parent-id", "98765432101"],
-                ["x-datadog-sampling-priority", "1"],
-                ["x-datadog-origin", "rum"],
+                ("x-datadog-trace-id", "12345678901"),
+                ("x-datadog-parent-id", "98765432101"),
+                ("x-datadog-sampling-priority", "1"),
+                ("x-datadog-origin", "rum"),
             ],
         ) as s1:
             pass
@@ -983,10 +983,10 @@ class Test_Span_Sampling:
         with test_library.dd_extract_headers_and_make_child_span(
             "web.request",
             [
-                ["x-datadog-trace-id", "12345678902"],
-                ["x-datadog-parent-id", "98765432102"],
-                ["x-datadog-sampling-priority", "0"],
-                ["x-datadog-origin", "rum"],
+                ("x-datadog-trace-id", "12345678902"),
+                ("x-datadog-parent-id", "98765432102"),
+                ("x-datadog-sampling-priority", "0"),
+                ("x-datadog-origin", "rum"),
             ],
         ) as s2:
             pass

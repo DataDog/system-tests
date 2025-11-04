@@ -59,18 +59,15 @@ class Test_Decisionless_Extraction:
         parent_id = 34343434
         test_library.dd_extract_headers(
             [
-                ["x-datadog-trace-id", str(trace_id)],
-                ["x-datadog-parent-id", str(parent_id)],
-                ["x-datadog-origin", "rum"],
+                ("x-datadog-trace-id", str(trace_id)),
+                ("x-datadog-parent-id", str(parent_id)),
+                ("x-datadog-origin", "rum"),
             ]
         )
-        span_args = {
-            "name": "name",
-            "service": "service",
-            "resource": "resource",
-            "parent_id": parent_id,
-        }
-        with test_library, test_library.dd_start_span(**span_args):
+        with (
+            test_library,
+            test_library.dd_start_span(name="name", service="service", resource="resource", parent_id=parent_id),
+        ):
             pass
 
         (trace,) = test_agent.wait_for_num_traces(1)

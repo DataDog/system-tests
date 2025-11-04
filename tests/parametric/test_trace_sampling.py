@@ -48,7 +48,7 @@ class Test_Trace_Sampling_Basic:
     )
     def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the exact matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -69,7 +69,7 @@ class Test_Trace_Sampling_Basic:
     )
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -131,7 +131,7 @@ class Test_Trace_Sampling_Globs:
     )
     def test_trace_sampled_by_trace_sampling_rule_glob_match(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the glob matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -171,7 +171,7 @@ class Test_Trace_Sampling_Globs:
             test_library,
             test_library.dd_start_span(
                 name="web.request", service="webserver", resource="/random", tags=[("key", "value")]
-            ) as span,
+            ),
         ):
             pass
 
@@ -192,7 +192,7 @@ class Test_Trace_Sampling_Globs:
     )
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -236,7 +236,7 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """Test that a trace is sampled by the glob matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -308,7 +308,7 @@ class Test_Trace_Sampling_Resource:
     )
     def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the exact matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -334,7 +334,7 @@ class Test_Trace_Sampling_Resource:
     )
     def test_trace_dropped_by_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -396,9 +396,12 @@ class Test_Trace_Sampling_Tags:
     )
     def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
-            span.set_meta("tag1", "val1")
-            span.set_meta("tag2", "val2")
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as main_span,
+        ):
+            main_span.set_meta("tag1", "val1")
+            main_span.set_meta("tag2", "val2")
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
@@ -421,9 +424,12 @@ class Test_Trace_Sampling_Tags:
     )
     def test_trace_dropped_by_trace_sampling_rule_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
-            span.set_meta("tag1", "val1")
-            span.set_meta("tag2", "val2")
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as main_span,
+        ):
+            main_span.set_meta("tag1", "val1")
+            main_span.set_meta("tag2", "val2")
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
@@ -597,8 +603,8 @@ class Test_Trace_Sampling_With_W3C:
         with (
             test_library,
             test_library.dd_start_span(
-                name="web.request", service="webserver", resource="/bar", tags=[["tag0", "val0"]]
-            ) as span,
+                name="web.request", service="webserver", resource="/bar", tags=[("tag0", "val0")]
+            ) as main_span,
         ):
             # based on the Tag("tag0", "val0") start span option, span sampling would be 'drop',
 
@@ -606,12 +612,12 @@ class Test_Trace_Sampling_With_W3C:
             # but injecting headers does. In such case, headers will reflect the state
             # after new pair of tags was set
             # based on the Tag("tag1", "val1"), span sampling would be 'keep'
-            span.set_meta("tag1", "val1")
-            headers = {k.lower(): v for k, v in test_library.dd_inject_headers(span.span_id)}
+            main_span.set_meta("tag1", "val1")
+            headers = {k.lower(): v for k, v in test_library.dd_inject_headers(main_span.span_id)}
 
             # based on the Tag("tag2", "val2"), span sampling would be usually 'drop',
             # but since headers were injected already, the sampling priority won't change
-            span.set_meta("tag2", "val2")
+            main_span.set_meta("tag2", "val2")
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -636,10 +642,10 @@ class Test_Trace_Sampling_With_W3C:
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "0"],
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-datadog-origin", "synthetics;=web,z"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "0"),
+                    ("x-datadog-sampling-priority", "1"),
+                    ("x-datadog-origin", "synthetics;=web,z"),
                 ],
             )
 

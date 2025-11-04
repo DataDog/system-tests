@@ -17,7 +17,8 @@ UNSET = -420
 
 
 class AnyRatio:
-    def __eq__(self, other: float):
+    def __eq__(self, other: object):
+        assert isinstance(other, float)
         return 0 <= other <= 1
 
 
@@ -37,7 +38,7 @@ def _get_spans(test_agent: TestAgentAPI, test_library: APMLibrary, child_span_ta
     return parent_span, child_span, traces[0][0]
 
 
-def _assert_equal(elem_a: str, elem_b: tuple, description: str):
+def _assert_equal(elem_a: str | float | None, elem_b: str | tuple | float | AnyRatio | None, description: str):
     if isinstance(elem_b, tuple):
         assert elem_a in elem_b, f"{description}\n{elem_a} not in {elem_b}"
     else:
@@ -55,8 +56,11 @@ def _assert_sampling_tags(
     limit_rate: int | AnyRatio = UNSET,
     description: str = "",
 ):
-    _assert_equal(first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY), dm, description)
-    _assert_equal(parent_span["metrics"].get(SAMPLING_PRIORITY_KEY), parent_priority, description)
+    meta: dict[str, str] = first_span["meta"]
+    metrics: dict[str, float] = parent_span["metrics"]
+
+    _assert_equal(meta.get(SAMPLING_DECISION_MAKER_KEY), dm, description)
+    _assert_equal(metrics.get(SAMPLING_PRIORITY_KEY), parent_priority, description)
     for rate_key, rate_expectation in (
         (SAMPLING_AGENT_PRIORITY_RATE, agent_rate),
         (SAMPLING_LIMIT_PRIORITY_RATE, limit_rate),
@@ -412,11 +416,11 @@ class Test_Knuth_Sample_Rate:
         """
         with test_library:
             incoming_headers = [
-                ["x-datadog-trace-id", "123456789"],
-                ["x-datadog-parent-id", "987654321"],
-                ["x-datadog-sampling-priority", "2"],
-                ["x-datadog-origin", "synthetics"],
-                ["x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1.000000"],
+                ("x-datadog-trace-id", "123456789"),
+                ("x-datadog-parent-id", "987654321"),
+                ("x-datadog-sampling-priority", "2"),
+                ("x-datadog-origin", "synthetics"),
+                ("x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1.000000"),
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
             assert "_dd.p.ksr=1.000000" in outgoing_headers["x-datadog-tags"]
@@ -447,8 +451,8 @@ class Test_Knuth_Sample_Rate:
         """
         with test_library:
             incoming_headers = [
-                ["traceparent", "00-00000000000000000000000000000007-0000000000000006-01"],
-                ["tracestate", "dd=s:2;o:synthetics;t.dm:-1;t.ksr:0.1"],
+                ("traceparent", "00-00000000000000000000000000000007-0000000000000006-01"),
+                ("tracestate", "dd=s:2;o:synthetics;t.dm:-1;t.ksr:0.1"),
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
             assert "t.ksr:0.1" in outgoing_headers["tracestate"]

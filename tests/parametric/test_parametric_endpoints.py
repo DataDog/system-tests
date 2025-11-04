@@ -127,7 +127,7 @@ class Test_Parametric_DDTrace_Extract_Headers:
         - span_id: Union[int, str]
         """
         with test_library:
-            parent_id = test_library.dd_extract_headers([["x-datadog-trace-id", "1"], ["x-datadog-parent-id", "2"]])
+            parent_id = test_library.dd_extract_headers([("x-datadog-trace-id", "1"), ("x-datadog-parent-id", "2")])
             # nodejs library returns span and trace_ids as strings
             assert int(parent_id) == 2
 
@@ -318,21 +318,26 @@ class Test_Parametric_DDTrace_Current_Span:
         """
         with test_library:
             dd_current_span = test_library.dd_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
             with test_library.dd_start_span("span_test_current_span") as s1:
                 dd_current_span = test_library.dd_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
                 with test_library.dd_start_span("span_test_current_spans_s2", parent_id=s1.span_id) as s2:
                     dd_current_span = test_library.dd_current_span()
+                    assert dd_current_span is not None
                     assert dd_current_span.span_id == s2.span_id
 
                 dd_current_span = test_library.dd_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
             dd_current_span = test_library.dd_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
@@ -346,8 +351,10 @@ class Test_Parametric_DDTrace_Current_Span:
         with test_library:
             with test_library.otel_start_span("span_test_current_span_from_otel") as s1:
                 dd_current_span = test_library.dd_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
             dd_current_span = test_library.dd_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
@@ -700,21 +707,26 @@ class Test_Parametric_Otel_Current_Span:
         """
         with test_library:
             dd_current_span = test_library.otel_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
             with test_library.otel_start_span("span_test_current_span") as s1:
                 dd_current_span = test_library.otel_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
                 with test_library.otel_start_span("span_test_current_spans_s2", parent_id=s1.span_id) as s2:
                     dd_current_span = test_library.otel_current_span()
+                    assert dd_current_span is not None
                     assert dd_current_span.span_id == s2.span_id
 
                 dd_current_span = test_library.otel_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
             dd_current_span = test_library.otel_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
