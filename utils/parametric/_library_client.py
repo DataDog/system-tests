@@ -219,7 +219,7 @@ class APMLibraryClient:
     def span_remove_all_baggage(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
-    def span_set_metric(self, span_id: int, key: str, value: float | list[int]) -> None:
+    def span_set_metric(self, span_id: int, key: str, value: float | list[int] | None) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
@@ -654,7 +654,7 @@ class _TestSpan:
     def set_meta(self, key: str, val: str | bool | list[str | list[str]] | None):
         self._client.span_set_meta(self.span_id, key, val)
 
-    def set_metric(self, key: str, val: float | list[int]):
+    def set_metric(self, key: str, val: float | list[int] | None):
         self._client.span_set_metric(self.span_id, key, val)
 
     def set_baggage(self, key: str, val: str):
