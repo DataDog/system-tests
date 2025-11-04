@@ -1085,15 +1085,15 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.9.0
     test_otel_logs.py:
-      Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
-      Test_FR03_Resource_Attributes: v3.13.0.dev
-      Test_FR04_Trace_Span_IDs: v3.13.0.dev
-      Test_FR05_Custom_Endpoints: v3.13.0.dev
-      Test_FR06_OTLP_Protocols: v3.13.0.dev
-      Test_FR07_Host_Name: v3.13.0.dev
-      Test_FR08_Custom_Headers: v3.13.0.dev
-      Test_FR09_Log_Injection: v3.13.0.dev
-      Test_FR10_Timeout_Configuration: v3.14.0.dev
+      Test_FR01_Enable_OTLP_Log_Collection: v3.18.0.dev
+      Test_FR03_Resource_Attributes: v3.18.0.dev
+      Test_FR04_Trace_Span_IDs: v3.18.0.dev
+      Test_FR05_Custom_Endpoints: v3.18.0.dev
+      Test_FR06_OTLP_Protocols: v3.18.0.dev
+      Test_FR07_Host_Name: v3.18.0.dev
+      Test_FR08_Custom_Headers: v3.18.0.dev
+      Test_FR09_Log_Injection: v3.18.0.dev
+      Test_FR10_Timeout_Configuration: v3.18.0.dev
       Test_FR11_Telemetry: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
