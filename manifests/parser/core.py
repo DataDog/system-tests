@@ -60,12 +60,12 @@ def _load_file(file: str, component: str):
                 if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
                     value["declaration"] = sdec
                 else:
-                    if sdec.startswith("<"):
-                           sdec = ">" + sdec[1:]
-                    elif sdec.startswith(">"):
-                           sdec = "<" + sdec[1:]
-                    if sdec.startswith("v"):
-                           sdec = "<" + sdec[1:]
+                    if sdec.startswith(">"):
+                       sdec = "<" + sdec[1:]
+                    elif sdec.startswith("v"):
+                       sdec = "<" + sdec[1:]
+                    elif not re.fullmatch("[0-9].*", sdec):
+                        raise ValueError(f"Invalid inline version: {sdec}")
                     value["library_version"] = to_semver(sdec, nodeid)
                     value["declaration"] = "missing_feature"
             if not isinstance(value, list):
