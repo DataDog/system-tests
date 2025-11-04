@@ -145,7 +145,7 @@ def flatten(
         if refs and data in refs:
             data_str = f"*{refs[data]}"
             if "||" in data:
-                output += f"{root}:\n    - library_version: {data_str}\n      declaration: missing_feature\n"
+                output += f"{root}:\n  - library_version: {data_str}\n    declaration: missing_feature\n"
             else:
                 output += f"{root}: {data_str}\n"
         else:
@@ -163,10 +163,10 @@ def flatten(
                     leaves.add(f' "{var[1]}"')
                     continue
                 if len(variants_set) > len(variants[lib]) // 2:
-                    leaf += f"variant: {variants[lib] - variants_set}\n    "
+                    leaf += f"variant: {sorted(variants[lib] - variants_set)}\n    "
                     leaf = leaf.replace("{", "[").replace("}", "]").replace("'", "")
                 else:
-                    leaf += f"excluded_variant: {variants_set}\n    "
+                    leaf += f"excluded_variant: {sorted(variants_set)}\n    "
                     leaf = leaf.replace("{", "[").replace("}", "]").replace("'", "")
             else:
                 leaf += f"variant: {var[0]}\n    "
