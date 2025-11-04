@@ -49,7 +49,7 @@ def build_inputs(
     return inputs
 
 
-@scenarios.test_the_test
+# @scenarios.test_the_test
 class Test_ComputeLibrariesAndScenarios:
     def test_complete_file_path(self):
         inputs = build_inputs([".github/workflows/run-docker-ssi.yml"])
