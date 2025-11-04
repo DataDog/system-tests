@@ -329,8 +329,7 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     if (4, 0, 0) > get_ddtrace_version() >= (2, 8, 0):
         HTTPPropagator.inject(span.context, headers, span)
     else:
-        ddtrace.tracer.sample(span)
-        HTTPPropagator.inject(span.context, headers)
+        HTTPPropagator.inject(span, headers)
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
