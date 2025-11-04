@@ -13,6 +13,47 @@ receivers:
     collection_interval: 10s
     tls:
       insecure: true
+    events: # from the opentelemetry-collector-contrib/receiver/postgresqlreceiver/README.md
+      db.server.query_sample:
+        enabled: true
+      db.server.top_query:
+        enabled: true
+    query_sample_collection:
+      max_rows_per_query: 100
+    top_query_collection:
+      max_rows_per_query: 100
+      top_n_query: 100
+    metrics:
+      postgresql.blks_read:
+        enabled: true
+      postgresql.blks_hit:
+        enabled: true
+      postgresql.database.locks:
+        enabled: true
+      postgresql.deadlocks:
+        enabled: true
+      postgresql.function.calls:
+        enabled: true
+      postgresql.sequential_scans:
+        enabled: true
+      postgresql.temp.io:
+        enabled: true
+      postgresql.temp_files:
+        enabled: true
+      postgresql.tup_deleted:
+        enabled: true
+      postgresql.tup_fetched:
+        enabled: true
+      postgresql.tup_inserted:
+        enabled: true
+      postgresql.tup_returned:
+        enabled: true
+      postgresql.tup_updated:
+        enabled: true
+      postgresql.wal.delay:
+        enabled: true
+      postgresql.wal.age:
+        enabled: true
 
 exporters:
   datadog:
@@ -20,6 +61,8 @@ exporters:
       key: ${DD_API_KEY}
       site: ${DD_SITE}
       fail_on_invalid_key: true
+    tls:
+      insecure_skip_verify: true #else it fails the handshake
     metrics:
       instrumentation_scope_metadata_as_tags: true
 
@@ -48,6 +91,15 @@ processors:
         value: "otel-postgres-metrics"
         action: upsert
 
+  attributes/add_docker_image:
+    actions:
+      - key: docker.image
+        value: ${DOCKER_IMAGE_NAME}
+        action: upsert
+      - key: docker.tag
+        value: ${DOCKER_IMAGE_TAG}
+        action: upsert
+
 extensions:
   health_check:
     endpoint: "0.0.0.0:13133"
@@ -67,7 +119,7 @@ service:
 
     metrics/postgresql:
       receivers: [postgresql]
-      processors: [attributes/add_rid, batch]
+      processors: [attributes/add_rid, attributes/add_docker_image, batch]
       exporters: [datadog, debug, file/metrics]
 
     logs:

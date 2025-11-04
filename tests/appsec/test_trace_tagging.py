@@ -23,7 +23,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_no_keep_no_event(self):
         """Test trace-tagging rule with attributes, no keep and no event"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -45,7 +45,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_keep_no_event(self):
         """Test trace-tagging rule with attributes, sampling priority user_keep and no event"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -67,7 +67,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_keep_event(self):
         """Test trace-tagging rule with attributes, sampling priority user_keep and an event"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -90,7 +90,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_no_keep_event(self):
         """Test trace-tagging rule with attributes and an event, but no sampling priority change"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 

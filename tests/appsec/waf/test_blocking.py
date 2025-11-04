@@ -2,15 +2,56 @@ from pathlib import Path
 
 from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
+from .test_blocking_security_response_id import (
+    is_valid_uuid4,
+    extract_security_response_id_from_json,
+    extract_security_response_id_from_html,
+)
 
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"
 BLOCK_TEMPLATE_HTML_MIN_V2 = "blocked.v2.min.html"
+BLOCK_TEMPLATE_JSON_MIN_V3 = "blocked.v3.min.json"
+BLOCK_TEMPLATE_HTML_MIN_V3 = "blocked.v3.min.html"
 
 
 def _read_file(file_path: str) -> str:
     with Path(__file__).resolve().parent.joinpath(file_path).open() as file:
         return file.read()
+
+
+def _is_valid_json_v3_template(body: str) -> bool:
+    """Check if body matches v3 JSON template with valid dynamic security_response_id
+
+    RFC-1070: Uses the actual security_response_id from the response for validation
+    """
+    # Extract and validate security_response_id from actual response
+    security_response_id = extract_security_response_id_from_json(body)
+    if security_response_id is None or not is_valid_uuid4(security_response_id):
+        return False
+
+    # Build expected response by injecting the actual security_response_id into the template
+    v3_template = _read_file(BLOCK_TEMPLATE_JSON_MIN_V3).rstrip()
+    expected_response = v3_template.replace("00000000-0000-4000-8000-000000000000", security_response_id)
+
+    return body.rstrip() == expected_response
+
+
+def _is_valid_html_v3_template(body: str) -> bool:
+    """Check if body matches v3 HTML template with valid dynamic security_response_id
+
+    RFC-1070: Uses the actual security_response_id from the response for validation
+    """
+    # Extract and validate security_response_id from actual response
+    security_response_id = extract_security_response_id_from_html(body)
+    if security_response_id is None or not is_valid_uuid4(security_response_id):
+        return False
+
+    # Build expected response by injecting the actual security_response_id into the template
+    v3_template = _read_file(BLOCK_TEMPLATE_HTML_MIN_V3).rstrip()
+    expected_response = v3_template.replace("00000000-0000-4000-8000-000000000000", security_response_id)
+
+    return body.rstrip() == expected_response
 
 
 def assert_valid_html_blocked_template(body: str) -> None:
@@ -24,7 +65,8 @@ def assert_valid_html_blocked_template(body: str) -> None:
         _read_file(BLOCK_TEMPLATE_HTML_MIN_V2),
     }
 
-    assert body in valid_templates
+    # Check for v3 template with dynamic security_response_id
+    assert body in valid_templates or _is_valid_html_v3_template(body)
 
 
 def assert_valid_json_blocked_template(body: str) -> None:
@@ -38,7 +80,9 @@ def assert_valid_json_blocked_template(body: str) -> None:
         _read_file(BLOCK_TEMPLATE_JSON_MIN_V1),
         _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip(),
     }
-    assert body in valid_templates
+
+    # Check for v3 template with dynamic security_response_id
+    assert body in valid_templates or _is_valid_json_v3_template(body)
 
 
 HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
@@ -82,7 +126,7 @@ class Test_Blocking:
             self.r_abt, pattern="Arachni/v", address="server.request.headers.no_cookies"
         )
 
-        def validate_appsec_blocked(span):
+        def validate_appsec_blocked(span: dict):
             if span.get("type") not in ("web", "serverless"):
                 return None
 
@@ -182,10 +226,20 @@ class Test_Blocking:
     @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_json_template_v1(self):
-        """HTML block template is v1 minified"""
+        """JSON block template is v1 minified (or v3 with security_response_id)"""
         assert self.r_json_v1.status_code == 403
         assert self.r_json_v1.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
-        assert self.r_json_v1.text.rstrip() == _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip()
+
+        # Accept v1 template without security_response_id or v3 template with security_response_id
+        response_text = self.r_json_v1.text.rstrip()
+        v1_template = _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip()
+
+        # Check if it's v1 template
+        if response_text == v1_template:
+            return
+
+        # Check if it's v3 template with valid security_response_id
+        assert _is_valid_json_v3_template(self.r_json_v1.text), "Response doesn't match v1 or v3 template"
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html"})
@@ -197,10 +251,20 @@ class Test_Blocking:
     @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_html_template_v2(self):
-        """HTML block template is v2 minified"""
+        """HTML block template is v2 minified (or v3 with security_response_id)"""
         assert self.r_html_v2.status_code == 403
         assert self.r_html_v2.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
-        assert self.r_html_v2.text == _read_file(BLOCK_TEMPLATE_HTML_MIN_V2)
+
+        # Accept v2 template without security_response_id or v3 template with security_response_id
+        response_text = self.r_html_v2.text
+        v2_template = _read_file(BLOCK_TEMPLATE_HTML_MIN_V2)
+
+        # Check if it's v2 template
+        if response_text == v2_template:
+            return
+
+        # Check if it's v3 template with valid security_response_id
+        assert _is_valid_html_v3_template(self.r_html_v2.text), "Response doesn't match v2 or v3 template"
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
