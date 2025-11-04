@@ -71,12 +71,12 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
             for req in interfaces.library.get_data("/v0.6/stats"):
                 stats_req.append(req)
         print(stats_req)
-        #sleep(10)
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
         for _ in range(3):
             self.requests.append(weblog.get("/resource_renaming/api/posts/456"))
+        sleep(10)
 
     def test_stats_aggregation_with_method_and_endpoint(self):
         """Test that stats are aggregated by method and endpoint"""
