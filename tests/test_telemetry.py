@@ -853,6 +853,7 @@ class Test_ProductsDisabled:
     @scenarios.telemetry_app_started_products_disabled
     @missing_feature(context.library == "ruby", reason="feature not implemented")
     @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
     @irrelevant(library="golang")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
@@ -894,11 +895,7 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
-        # Code Origin is enabled by default for Java tracer since version 1.55.0
-        if context.library >= "java@1.55.0":
-            assert co_config == "true", "Code Origin for Spans should be enabled by default for Java >= 1.55.0"
-        else:
-            assert co_config == "false", "Code Origin for Spans should be disabled by default"
+        assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
