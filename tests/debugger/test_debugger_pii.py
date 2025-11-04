@@ -113,7 +113,7 @@ REDACTED_TYPES = ["customPii"]
 @features.debugger_pii_redaction
 class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
     ############ setup ############
-    def _setup(self, *, line_probe=False):
+    def _setup(self, *, line_probe: bool = False):
         self.initialize_weblog_remote_config()
 
         if line_probe:
@@ -129,18 +129,18 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         self.wait_for_snapshot_received()
 
     ############ assert ############
-    def _assert(self, excluded_identifiers=None, *, line_probe=False):
+    def _assert(self, excluded_identifiers: list[str] | None = None, *, line_probe: bool = False):
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok()
 
-        self._validate_pii_keyword_redaction(excluded_identifiers, line_probe)
+        self._validate_pii_keyword_redaction(excluded_identifiers, line_probe=line_probe)
         if context.library != "nodejs":  # Node.js does not support type redacting
-            self._validate_pii_type_redaction(line_probe)
+            self._validate_pii_type_redaction(line_probe=line_probe)
 
-    def _validate_pii_keyword_redaction(self, excluded_identifiers, line_probe):
+    def _validate_pii_keyword_redaction(self, excluded_identifiers: list[str] | None, *, line_probe: bool):
         not_redacted = []
         not_found = list(set(REDACTED_KEYS))
         improperly_redacted = []
@@ -191,7 +191,7 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         if error_message:
             raise ValueError(". ".join(error_message))
 
-    def _validate_pii_type_redaction(self, line_probe):
+    def _validate_pii_type_redaction(self, *, line_probe: bool):
         not_redacted = []
 
         for probe_id in self.probe_ids:

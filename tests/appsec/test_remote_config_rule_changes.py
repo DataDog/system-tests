@@ -167,14 +167,14 @@ class Test_UpdateRuleFileWithRemoteConfig:
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
-        def validate_waf_rule_version_tag(span, appsec_data):  # noqa: ARG001
+        def validate_waf_rule_version_tag(span: dict, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack"""
             meta = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
             assert re.match(expected_version_regex, meta[expected_rules_version_tag])
             return True
 
-        def validate_waf_rule_version_tag_by_rc(span, appsec_data):  # noqa: ARG001
+        def validate_waf_rule_version_tag_by_rc(span: dict, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack with expected rc version"""
             meta: dict = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
