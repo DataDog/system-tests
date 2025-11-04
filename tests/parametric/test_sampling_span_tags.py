@@ -18,7 +18,7 @@ UNSET = -420
 
 class AnyRatio:
     def __eq__(self, other: object):
-        assert isinstance(other, float)
+        assert isinstance(other, (int, float))
         return 0 <= other <= 1
 
 
