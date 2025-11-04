@@ -67,6 +67,7 @@ Rails.application.routes.draw do
   get '/debugger/pii' => 'debugger#pii'
   get '/debugger/log' => 'debugger#log_probe'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
+  get '/debugger/snapshot/limits' => 'debugger#snapshot_limits'
 
   get '/rasp/sqli' => 'rasp_sqli#show'
   post '/rasp/sqli' => 'rasp_sqli#show'

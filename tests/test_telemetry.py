@@ -853,6 +853,7 @@ class Test_ProductsDisabled:
     @scenarios.telemetry_app_started_products_disabled
     @missing_feature(context.library == "ruby", reason="feature not implemented")
     @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
     @irrelevant(library="golang")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""

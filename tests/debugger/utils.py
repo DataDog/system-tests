@@ -139,6 +139,7 @@ class BaseDebuggerTest:
             "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "nodejs": [96]},
             "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "nodejs": [120]},
             "Nulls": {"java": [130], "dotnet": [127], "python": [136], "nodejs": [126]},
+            "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [78], "dotnet": [150]},
         }
 
         return definitions.get(method, {}).get(language, [])
