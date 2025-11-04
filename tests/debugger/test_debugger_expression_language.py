@@ -39,7 +39,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             for base in snapshots:
                 snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
                 assert snapshot
-                
+
                 if probe_id in expected_message_map:
                     not_found_ids.remove(probe_id)
 
@@ -123,7 +123,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         if self.get_tracer()["language"] == "ruby":
             # Ruby does not include exception message into serialized payloads
             # at the moment (this requires writing serialization code in C).
-            expected_message = '.*RuntimeError'
+            expected_message = ".*RuntimeError"
         else:
             expected_message = ".*Hello from exception"
         message_map, probes = self._create_expression_probes(
@@ -598,17 +598,17 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         # which requires a method probe (and this case does not capture
         # local variables).
         if self.get_tracer()["language"] == "ruby":
-            if method_name == 'Expression' and not lines:
-                prob_types.append('method')
-                method_name = 'expression'
-            elif method_name == 'ExpressionException':
-                prob_types.append('method')
-                method_name = 'expression_exception'
+            if method_name == "Expression" and not lines:
+                prob_types.append("method")
+                method_name = "expression"
+            elif method_name == "ExpressionException":
+                prob_types.append("method")
+                method_name = "expression_exception"
             else:
                 prob_types.append("line")
         elif self.get_tracer()["language"] != "nodejs":  # Method probes are not supported in Node.js
             prob_types.append("method")
-        if len(lines) > 0 and 'line' not in prob_types:
+        if len(lines) > 0 and "line" not in prob_types:
             prob_types.append("line")
 
         for probe_type in prob_types:

@@ -289,7 +289,7 @@ class BaseDebuggerTest:
     _last_read = 0
 
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
-        logger.debug('Wating for all probes')
+        logger.debug("Wating for all probes")
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
@@ -345,7 +345,7 @@ class BaseDebuggerTest:
     _snapshot_found = False
 
     def wait_for_snapshot_received(self, exception_message: str = "", timeout: int = 30) -> bool:
-        logger.debug('Waiting for snapshots to be received')
+        logger.debug("Waiting for snapshots to be received")
         exception_snapshot = False
         if exception_message:
             self._exception_message = exception_message
