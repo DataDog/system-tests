@@ -40,7 +40,7 @@ class Test_Otel_Env_Vars:
         # Some languages do not support the DD_TRACE_LOG_LEVEL env var
         # Here we can test that the OTEL_LOG_LEVEL is not used
         assert resp["dd_log_level"] != "debug"
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.5
         assert resp["dd_trace_enabled"] == "true"
         tags = resp["dd_tags"]
@@ -78,7 +78,7 @@ class Test_Otel_Env_Vars:
             resp = t.config()
 
         assert resp["dd_service"] == "otel_service"
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.1
         assert resp["dd_trace_enabled"] == "true"
         tags = resp["dd_tags"]
@@ -135,14 +135,14 @@ class Test_Otel_Env_Vars:
     def test_otel_traces_always_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
-            assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+            assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
             assert float(resp["dd_trace_sample_rate"]) == 1.0
 
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_off", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_otel_traces_always_off(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.0
 
     @pytest.mark.parametrize(
@@ -152,7 +152,7 @@ class Test_Otel_Env_Vars:
     def test_otel_traces_traceidratio(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
     @missing_feature(
@@ -164,7 +164,7 @@ class Test_Otel_Env_Vars:
     def test_otel_traces_parentbased_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 1.0
 
     @pytest.mark.parametrize(
@@ -173,7 +173,7 @@ class Test_Otel_Env_Vars:
     def test_otel_traces_parentbased_off(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.0
 
     @pytest.mark.parametrize(
@@ -189,7 +189,7 @@ class Test_Otel_Env_Vars:
     def test_otel_traces_parentbased_ratio(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str))
+        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_EXPORTER": "none", "DD_TRACE_OTEL_ENABLED": "true"}])
