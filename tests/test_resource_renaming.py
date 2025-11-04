@@ -61,16 +61,16 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         # Generate multiple requests to the same endpoint for aggregation
         # Wait for the CSS to be enabled
 
-        # weblog.get("/resource_renaming/api/users/123")
-        # stats_req = []
-        # for req in interfaces.library.get_data("/v0.6/stats"):
-        #     stats_req.append(req)
-        # while stats_req == []:
-        #     sleep(1)
-        #     weblog.get("/resource_renaming/api/users/123")
-        #     for req in interfaces.library.get_data("/v0.6/stats"):
-        #         stats_req.append(req)
-        # print(stats_req)
+        weblog.get("/resource_renaming/api/users/123")
+        stats_req = []
+        for req in interfaces.library.get_data("/v0.6/stats"):
+            stats_req.append(req)
+        while stats_req == []:
+            sleep(1)
+            weblog.get("/resource_renaming/api/users/123")
+            for req in interfaces.library.get_data("/v0.6/stats"):
+                stats_req.append(req)
+        print(stats_req)
         sleep(10)
         self.requests = []
         for _ in range(5):
