@@ -584,6 +584,8 @@ class ProxyContainer(TestedContainer):
             },
         )
 
+        self.mocked_backend = mocked_backend
+
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
         self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}

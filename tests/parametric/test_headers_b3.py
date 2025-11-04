@@ -3,6 +3,8 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
+from utils.docker_fixtures import TestAgentAPI
+from utils.parametric._library_client import APMLibrary
 from utils import missing_feature, context, scenarios, features, irrelevant, logger
 
 parametrize = pytest.mark.parametrize
@@ -45,13 +47,13 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
-    def test_headers_b3_extract_valid(self, test_agent, test_library):
+    def test_headers_b3_extract_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that b3 distributed tracing headers are extracted
         and activated properly.
         """
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
-                [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
+                [("b3", "000000000000000000000000075bcd15-000000003ade68b1-1")]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -64,10 +66,10 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
-    def test_headers_b3_extract_invalid(self, test_agent, test_library):
+    def test_headers_b3_extract_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that invalid b3 distributed tracing headers are not extracted."""
         with test_library:
-            test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
+            test_library.dd_make_child_span_and_get_headers([("b3", "0-0-1")])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
@@ -78,7 +80,7 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
-    def test_headers_b3_inject_valid(self, test_agent, test_library):
+    def test_headers_b3_inject_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that b3 distributed tracing headers are injected properly."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([])
@@ -101,13 +103,13 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
-    def test_headers_b3_propagate_valid(self, test_agent, test_library):
+    def test_headers_b3_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that b3 distributed tracing headers are extracted
         and injected properly.
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
-                [["b3", "000000000000000000000000075bcd15-000000003ade68b1-1"]]
+                [("b3", "000000000000000000000000075bcd15-000000003ade68b1-1")]
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -127,12 +129,12 @@ class Test_Headers_B3:
     @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
-    def test_headers_b3_propagate_invalid(self, test_agent, test_library):
+    def test_headers_b3_propagate_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that invalid b3 distributed tracing headers are not extracted
         and the new span context is injected properly.
         """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers([["b3", "0-0-1"]])
+            headers = test_library.dd_make_child_span_and_get_headers([("b3", "0-0-1")])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") != 0
@@ -157,7 +159,7 @@ class Test_Headers_B3:
         reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0 but the name is no longer recognized in 2.x",
     )
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
-    def test_headers_b3_single_key_propagate_valid(self, test_agent, test_library):
+    def test_headers_b3_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
@@ -167,7 +169,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    def test_headers_b3_migrated_extract_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_extract_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_extract_valid(test_agent, test_library)
 
     @enable_migrated_b3()
@@ -176,7 +178,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    def test_headers_b3_migrated_extract_invalid(self, test_agent, test_library):
+    def test_headers_b3_migrated_extract_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
     @enable_migrated_b3()
@@ -186,7 +188,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    def test_headers_b3_migrated_inject_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_inject_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
     @enable_migrated_b3()
@@ -196,7 +198,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    def test_headers_b3_migrated_propagate_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
@@ -206,7 +208,7 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    def test_headers_b3_migrated_propagate_invalid(self, test_agent, test_library):
+    def test_headers_b3_migrated_propagate_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
     @enable_migrated_b3_single_key()
@@ -217,5 +219,5 @@ class Test_Headers_B3:
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library < "ruby@1.8.0", reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0")
-    def test_headers_b3_migrated_single_key_propagate_valid(self, test_agent, test_library):
+    def test_headers_b3_migrated_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)

@@ -894,7 +894,11 @@ class Test_ProductsDisabled:
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
-        assert co_config == "false", "Code Origin for Spans should be disabled by default"
+        # Code Origin is enabled by default for Java tracer since version 1.55.0
+        if context.library >= "java@1.55.0":
+            assert co_config == "true", "Code Origin for Spans should be enabled by default for Java >= 1.55.0"
+        else:
+            assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported

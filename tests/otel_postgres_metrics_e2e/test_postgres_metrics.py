@@ -2,10 +2,17 @@ import json
 from pathlib import Path
 import time
 
-from utils import scenarios, interfaces, logger, irrelevant, features
+from utils import scenarios, interfaces, logger, features, context
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils._context._scenarios.otel_collector import OtelCollectorScenario
+
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 postgresql_metrics = {
+    # Default metrics
     "postgresql.connection.max": {
         "data_type": "Gauge",
         "description": "Configured maximum number of client connections allowed",
@@ -15,53 +22,68 @@ postgresql_metrics = {
     "postgresql.rollbacks": {"data_type": "Sum", "description": "The number of rollbacks"},
     "postgresql.db_size": {"data_type": "Sum", "description": "The database disk usage"},
     "postgresql.table.count": {"data_type": "Sum", "description": "Number of user tables in a database"},
-    # TODO: Those may have been observed somewhere
-    # "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},  TODO
-    # "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table"}, TODO
-    # "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},  TODO
-    # "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},  TODO
-    # "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"}, TODO
-    # "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk"}, TODO
-    # "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},  TODO
-    # "postgresql.table.vacuum.count": {
-    #     "data_type": "Sum",
-    #     "description": "Number of times a table has manually been vacuumed",
-    # }, TODO
-    # "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"}, TODO
-    # "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},TODO
-    # "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},TODO
-    # "postgresql.bgwriter.duration": {
-    #     "data_type": "Sum",
-    #     "description": "Total time spent writing and syncing files to disk by checkpoints",
-    # },TODO
-    # "postgresql.bgwriter.maxwritten": {
-    #     "data_type": "Sum",
-    #     "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
-    # }, TODO
-    # missing metrics
-    # "postgresql.replication.data_delay": {"data_type": "Gauge", "description": "The amount of data delayed in replication"},
+    "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},
+    "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
+    "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
+    "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
+    "postgresql.bgwriter.duration": {
+        "data_type": "Sum",
+        "description": "Total time spent writing and syncing files to disk by checkpoints",
+    },
+    "postgresql.bgwriter.maxwritten": {
+        "data_type": "Sum",
+        "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
+    },
+    # Optional metrics (enabled in otelcol-config-with-postgres.yaml)
+    "postgresql.blks_hit": {
+        "data_type": "Sum",
+        "description": "Number of times disk blocks were found already in the buffer cache",
+    },
+    "postgresql.blks_read": {"data_type": "Sum", "description": "Number of disk blocks read in this database"},
+    "postgresql.database.locks": {"data_type": "Gauge", "description": "The number of database locks"},
+    "postgresql.deadlocks": {"data_type": "Sum", "description": "The number of deadlocks"},
+    "postgresql.temp.io": {
+        "data_type": "Sum",
+        "description": "Total amount of data written to temporary files by queries",
+    },
+    "postgresql.temp_files": {"data_type": "Sum", "description": "The number of temp files"},
+    "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
+    "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
+    "postgresql.tup_inserted": {
+        "data_type": "Sum",
+        "description": "Number of rows inserted by queries in the database",
+    },
+    "postgresql.tup_returned": {
+        "data_type": "Sum",
+        "description": "Number of rows returned by queries in the database",
+    },
+    "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
+    "postgresql.function.calls": {
+        "data_type": "Sum",
+        "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config.",
+    },
+    "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
+    "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table."},
+    "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
+    "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},
+    "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"},
+    "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk."},
+    "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
+    "postgresql.table.vacuum.count": {
+        "data_type": "Sum",
+        "description": "Number of times a table has manually been vacuumed",
+    },
+    # Metrics not yet appearing due to needing a replica db
+    # "postgresql.wal.delay": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification that the standby server has completed an operation with it"},
     # "postgresql.wal.age": {"data_type": "Gauge", "description": "Age of the oldest WAL file"},
+    # "postgresql.replication.data_delay": {"data_type": "Gauge", "description": "The amount of data delayed in replication"},
     # "postgresql.wal.lag": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification"},
-    # optional metrics
-    # "postgresql.blks_hit": {"data_type": "Sum", "description": "Number of times disk blocks were found already in the buffer cache"},
-    # "postgresql.blks_read": {"data_type": "Sum", "description": "Number of disk blocks read in this database"},
-    # "postgresql.database.locks": {"data_type": "Gauge", "description": "The number of database locks"},
-    # "postgresql.deadlocks": {"data_type": "Sum", "description": "The number of deadlocks"},
-    # "postgresql.function.calls": {"data_type": "Sum", "description": "The number of calls made to a function. Requires track_functions=pl|all in Postgres config"},
-    # "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
-    # "postgresql.temp.io": {"data_type": "Sum", "description": "Total amount of data written to temporary files by queries"},
-    # "postgresql.temp_files": {"data_type": "Sum", "description": "The number of temp files"},
-    # "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
-    # "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
-    # "postgresql.tup_inserted": {"data_type": "Sum", "description": "Number of rows inserted by queries in the database"},
-    # "postgresql.tup_returned": {"data_type": "Sum", "description": "Number of rows returned by queries in the database"},
-    # "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
-    # "postgresql.wal.delay": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification that the standby server has completed an operation with it"}
 }
 
 
 def _get_metrics() -> list[dict]:
-    collector_log_path = f"{scenarios.otel_collector.collector_container.log_folder_path}/logs/metrics.json"
+    scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+    collector_log_path = f"{scenario.collector_container.log_folder_path}/logs/metrics.json"
     assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
 
     # Default behaviors is that metrics are batched together in the file exporter
@@ -75,6 +97,7 @@ def _get_metrics() -> list[dict]:
 
 
 @scenarios.otel_collector
+@scenarios.otel_collector_e2e
 @features.otel_postgres_support
 class Test_PostgreSQLMetricsCollection:
     def _process_metrics_data(self, data: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
@@ -175,8 +198,8 @@ class Test_PostgreSQLMetricsCollection:
 
 
 @scenarios.otel_collector
+@scenarios.otel_collector_e2e
 @features.otel_postgres_support
-@irrelevant(condition=True)
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
         """The goal of this test is to validate that the metrics can actually be queried, meaning they
@@ -192,19 +215,33 @@ class Test_BackendValidity:
         failed_metrics = []
 
         for metric_name in metrics_to_validate:
+            logger.info(f"Looking at metric: {metric_name}")
             try:
-                metric_data = interfaces.backend.query_timeseries(
-                    rid="otel-postgres-metrics,host:collector",  # TODO: figure out if this needs to be dynamic
-                    start=start_time,
-                    end=end_time,
-                    metric=metric_name,
+                start_time_ms = start_time * 1000
+                end_time_ms = end_time * 1000
+
+                metric_data = interfaces.backend.query_ui_timeseries(
+                    query=f"avg:{metric_name}{{rid:otel-postgres-metrics,host:collector}}",
+                    start=start_time_ms,
+                    end=end_time_ms,
+                    semantic_mode="combined",
                     retries=3,
                     initial_delay_s=15.0,
                 )
 
-                if metric_data and "series" in metric_data and len(metric_data["series"]) > 0:
-                    series = metric_data["series"][0]
-                    if "pointlist" in series and len(series["pointlist"]) > 0:
+                if metric_data and metric_data.get("data") and len(metric_data["data"]) > 0:
+                    data_item = metric_data["data"][0]
+                    attributes = data_item.get("attributes", {})
+
+                    meta_responses = metric_data.get("meta", {}).get("responses", [])
+                    results_warning = meta_responses[0].get("results_warnings") if meta_responses else None
+                    if results_warning:
+                        logger.warning(f"Results warning: {results_warning}")
+
+                    times = attributes.get("times", [])
+                    values = attributes.get("values", [])
+
+                    if times and values and len(values) > 0 and len(values[0]) > 0:
                         validated_metrics.append(metric_name)
                     else:
                         failed_metrics.append(f"{metric_name}: No data points found")
@@ -219,10 +256,36 @@ class Test_BackendValidity:
 
 
 @scenarios.otel_collector
+@scenarios.otel_collector_e2e
 @features.otel_postgres_support
 class Test_Smoke:
     def setup_main(self):
-        container = scenarios.otel_collector.postgres_container
+        """When the postgres container spins up, we need some activity:
+        - call a test function
+        - create a table
+        - query something
+        """
+        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+        container = scenario.postgres_container
+
+        r = container.exec_run(
+            "psql -U system_tests_user -d system_tests_dbname -c "
+            '"CREATE OR REPLACE FUNCTION test_return_1_function() RETURNS integer AS $$ BEGIN RETURN 1; END; $$ LANGUAGE plpgsql;"'
+        )
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT test_return_1_function();"')
+        logger.info(r.output)
+
+        r = container.exec_run(
+            "psql -U system_tests_user -d system_tests_dbname -c "
+            '"CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY);"'
+        )
+
+        r = container.exec_run(
+            "psql -U system_tests_user -d system_tests_dbname -c " '"INSERT INTO test_table DEFAULT VALUES;"'
+        )
+        logger.info(r.output)
+
+        # Run a basic query
         r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
         logger.info(r.output)
 
@@ -249,7 +312,9 @@ class Test_Smoke:
         all_metric_has_be_seen = True
         for metric in expected_metrics:
             if metric not in observed_metrics:
-                logger.error(f"Metric {metric} hasn't be observed")
+                logger.error(f"Metric {metric} hasn't been observed")
                 all_metric_has_be_seen = False
+            else:
+                logger.error(f"Metric {metric} has been observed")
 
         assert all_metric_has_be_seen
