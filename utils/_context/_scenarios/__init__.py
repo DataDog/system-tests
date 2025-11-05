@@ -795,7 +795,7 @@ class _Scenarios:
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
@@ -809,7 +809,7 @@ class _Scenarios:
         ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={"DD_PROFILING_UPLOAD_PERIOD": "5", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -819,7 +819,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={"DD_PROFILING_UPLOAD_PERIOD": "5", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
