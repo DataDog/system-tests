@@ -214,17 +214,11 @@ class Test_Telemetry:
         assert len(telemetry_data) > 0, "No telemetry messages"
         for batch in telemetry_data:
             if batch["request"]["content"].get("request_type") == "message-batch":
-                first_message = batch["request"]["content"]["payload"][0]
-                if first_message.get("request_type") in ["sketches", "generate-metrics", "logs"]:
+                if all(message.get("request_type") in ["sketches", "generate-metrics", "logs"] for message in batch["request"]["content"]["payload"]):
                     # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
-                    # In this case if the batch only contains message not related to app-lifecycle we can ignore it.
-                    for message in batch["request"]["content"]["payload"]:
-                        assert message.get("request_type") in [
-                            "sketches",
-                            "generate-metrics",
-                            "logs",
-                        ], "app-started is not the first message in the first batch containing app-lifecycle messages"
+                    # If the batch contains only messages not related to app-lifecycle we can ignore it.
                     continue
+                first_message = batch["request"]["content"]["payload"][0]
                 assert (
                     first_message.get("request_type") == "app-started"
                 ), "app-started was not the first message in the first batch"
