@@ -1,3 +1,4 @@
+import time
 from utils import scenarios, weblog, interfaces, features
 from utils._weblog import HttpResponse
 
@@ -57,12 +58,24 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
 
     def setup_stats_aggregation_with_method_and_endpoint(self):
         """Generate multiple requests to create stats"""
+        # Wait for some stats to be sent to verify that client-side stats has been enabled
+        stats_received = False
+        for _ in interfaces.library.get_data("/v0.6/stats"):
+            stats_received = True
+        while not stats_received:
+            time.sleep(1)
+            for _ in interfaces.library.get_data("/v0.6/stats"):
+                stats_received = True
+
         # Generate multiple requests to the same endpoint for aggregation
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
         for _ in range(3):
             self.requests.append(weblog.get("/resource_renaming/api/posts/456"))
+
+        # Wait for stats to be flushed
+        time.sleep(10)
 
     def test_stats_aggregation_with_method_and_endpoint(self):
         """Test that stats are aggregated by method and endpoint"""
@@ -82,7 +95,11 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         actual_hits = {}
         for point in stats_points:
             method = point.get("HTTPMethod", "")
+            if method == "":
+                method = point.get("HttpMethod", "")
             endpoint = point.get("HTTPEndpoint", "")
+            if endpoint == "":
+                endpoint = point.get("HttpEndpoint", "")
             hits = point.get("Hits", 0)
 
             if (method, endpoint) in expected_hits:
