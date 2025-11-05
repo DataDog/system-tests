@@ -59,13 +59,13 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
     def setup_stats_aggregation_with_method_and_endpoint(self):
         """Generate multiple requests to create stats"""
         # Wait for some stats to be sent to verify that client-side stats has been enabled
-        stats_req = []
-        for req in interfaces.library.get_data("/v0.6/stats"):
-            stats_req.append(req)
-        while stats_req == []:
+        stats_received = False
+        for _ in interfaces.library.get_data("/v0.6/stats"):
+            stats_received = True
+        while not stats_received:
             time.sleep(1)
-            for req in interfaces.library.get_data("/v0.6/stats"):
-                stats_req.append(req)
+            for _ in interfaces.library.get_data("/v0.6/stats"):
+                stats_received = True
 
         # Generate multiple requests to the same endpoint for aggregation
         self.requests = []
@@ -107,11 +107,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
 
         # Verify that the hits match expectations
         for (method, endpoint), expected_count in expected_hits.items():
-            try:
-                assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
-            except Exception as e:
-                print(f"Actual hits are: {stats_points}")
-                raise e
+            assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
             actual_count = actual_hits[(method, endpoint)]
             assert (
                 actual_count == expected_count
