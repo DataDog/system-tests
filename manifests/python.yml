@@ -960,7 +960,7 @@ manifest:
     - variant: fastapi
       library_version: "<2.6.0"
       declaration: missing_feature
-  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: "v2.9.040"
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: "v2.9.0"
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - excluded_variant: [fastapi]
       library_version: "<1.4.0-rc1"

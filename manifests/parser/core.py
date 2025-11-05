@@ -3,6 +3,7 @@ import json
 import os
 import re
 from collections import defaultdict
+from collections.abc import Callable
 from pathlib import Path
 
 import yaml
@@ -20,7 +21,9 @@ class Declaration:
     simple_regex = rf"(>|>=|v)?({version_regex}) ?\(?(.*)\)?"
     full_regex = r"([^()]*) ?\(?(.*)\)?"
 
-    def __init__(self, raw_declaration: str, is_inline: bool = False, semver_factory = SemverRange):
+    def __init__(
+        self, raw_declaration: str, *, is_inline: bool = False, semver_factory: type[SemverRange] = SemverRange
+    ) -> None:
         if not raw_declaration:
             raise ValueError("raw_declaration must not be None or an empty string")
         self.raw = raw_declaration.strip()
@@ -29,7 +32,7 @@ class Declaration:
         self.parse_declaration()
 
     @staticmethod
-    def fix_separator(version: str):
+    def fix_separator(version: str) -> str:
         elements = re.fullmatch(r"(\d+\.\d+\.\d+)([.+-]?)([.\w+-]*)", version)
         if not elements or not elements.group(3):
             return version
@@ -40,8 +43,7 @@ class Declaration:
         return sanitized_version
 
     @staticmethod
-    def fix_missing_minor_patch(version: str):
-        elements = re.fullmatch(r"(\d+\.\d+\.\d+|\d+\.\d+|\d+)(.*)", version)
+    def fix_missing_minor_patch(version: str) -> str:
         while not re.fullmatch(r"\d+\.\d+\.\d+.*", version):
             version += ".0"
         return version
@@ -49,18 +51,19 @@ class Declaration:
     transformations = [fix_separator, fix_missing_minor_patch]
 
     @staticmethod
-    def sanitize_version(version: str, transformations=transformations):
+    def sanitize_version(version: str, transformations: list[Callable[[str], str]] | None = None) -> str:
+        if transformations is None:
+            transformations = Declaration.transformations
         matches = re.finditer(Declaration.version_regex, version)
-        sanitized = []
         for match in matches:
-            matched_section = version[match.start():match.end()]
+            matched_section = version[match.start() : match.end()]
             for transformation in transformations:
                 matched_section = transformation(matched_section)
             version = f"{version[:match.start()]}{matched_section}{version[match.end():]}"
         return version
 
-    def parse_declaration(self):
-        elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.A)
+    def parse_declaration(self) -> None:
+        elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
             self.declaration = elements[0]
@@ -69,9 +72,9 @@ class Declaration:
             return
 
         if self.is_inline:
-            elements = re.fullmatch(self.simple_regex, self.raw, re.A)
+            elements = re.fullmatch(self.simple_regex, self.raw, re.ASCII)
         else:
-            elements = re.fullmatch(self.full_regex, self.raw, re.A)
+            elements = re.fullmatch(self.full_regex, self.raw, re.ASCII)
 
         if not elements:
             raise ValueError(f"Wrong version format: {self.raw} (is inline: {self.is_inline})")
@@ -92,8 +95,7 @@ class Declaration:
     def __str__(self):
         if self.reason:
             return f"{self.declaration} ({self.reason})"
-        else:
-            return f"{self.declaration}"
+        return f"{self.declaration}"
 
 
 def _load_file(file: str, component: str):
