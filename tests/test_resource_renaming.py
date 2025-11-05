@@ -1,4 +1,4 @@
-from utils import scenarios, weblog, interfaces, features
+from utils import bug, scenarios, weblog, interfaces, features
 from utils._weblog import HttpResponse
 
 
@@ -64,6 +64,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         for _ in range(3):
             self.requests.append(weblog.get("/resource_renaming/api/posts/456"))
 
+    @bug(library="python", reason="APMSP-2359")  # trace exporter uses a wrong fieldname
     def test_stats_aggregation_with_method_and_endpoint(self):
         """Test that stats are aggregated by method and endpoint"""
         stats_points = []
