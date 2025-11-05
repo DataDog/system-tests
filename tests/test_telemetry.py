@@ -214,7 +214,10 @@ class Test_Telemetry:
         assert len(telemetry_data) > 0, "No telemetry messages"
         for batch in telemetry_data:
             if batch["request"]["content"].get("request_type") == "message-batch":
-                if all(message.get("request_type") in ["sketches", "generate-metrics", "logs"] for message in batch["request"]["content"]["payload"]):
+                if all(
+                    message.get("request_type") in ["sketches", "generate-metrics", "logs"]
+                    for message in batch["request"]["content"]["payload"]
+                ):
                     # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
                     # If the batch contains only messages not related to app-lifecycle we can ignore it.
                     continue
