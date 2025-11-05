@@ -72,7 +72,17 @@ jobs:
     permissions:
       contents: read
       packages: write
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      TEST_OPTIMIZATION_API_KEY: ${{ secrets.DD_API_KEY }}
+      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+      DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+      DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+      DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+      DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     with:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
@@ -89,6 +99,8 @@ jobs:
       _enable_replay_scenarios: true
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch }}
+      test_optimization_datadog_site: datad0g.com
+      push_to_test_optimization: true
 
   exotics:
     name: Exotics scenarios
