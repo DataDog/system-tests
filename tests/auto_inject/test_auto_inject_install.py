@@ -43,7 +43,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
             "test-app-java-multialpine",
             "test-app-java-multicontainer",
         ],
-        reason="java profiling is flaky on containers",
+        reason="JIRA-1234",
         reruns=3,
         reruns_delay=3,
     )
@@ -136,7 +136,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
             "test-app-java-multialpine",
             "test-app-java-multicontainer",
         ],
-        reason="java profiling is flaky on containers",
+        reason="JIRA-1234",
         reruns=3,
         reruns_delay=3,
     )
