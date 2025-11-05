@@ -701,7 +701,7 @@ class _Scenarios:
     debugger_exception_replay = DebuggerScenario(
         "DEBUGGER_EXCEPTION_REPLAY",
         weblog_env={
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
@@ -735,7 +735,7 @@ class _Scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
         library_interface_timeout=5,
