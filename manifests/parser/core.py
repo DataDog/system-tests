@@ -8,7 +8,6 @@ from pathlib import Path
 
 import yaml
 from jsonschema import validate
-from jsonschema.exceptions import ValidationError
 from semantic_version import Version
 
 from utils._decorators import CustomSpec as SemverRange
@@ -44,7 +43,9 @@ class Declaration:
 
     @staticmethod
     def fix_missing_minor_patch(version: str) -> str:
-        while not re.fullmatch(r"\d+\.\d+\.\d+.*", version):
+        for _ in range(2):
+            if re.fullmatch(r"\d+\.\d+\.\d+.*", version):
+                break
             version += ".0"
         return version
 
@@ -66,7 +67,7 @@ class Declaration:
         elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
-            self.declaration = elements[0]
+            self.value = elements[0]
             if elements[1]:
                 self.reason = elements[1]
             return
@@ -88,14 +89,14 @@ class Declaration:
         else:
             sanitized_version = Declaration.sanitize_version(elements.group(1))
 
-        self.declaration = self.semver_factory(sanitized_version)
+        self.value = self.semver_factory(sanitized_version)
         if elements.group(len(elements.groups()) - 1):
             self.reason = elements.group(len(elements.groups()) - 1)
 
     def __str__(self):
         if self.reason:
-            return f"{self.declaration} ({self.reason})"
-        return f"{self.declaration}"
+            return f"{self.value} ({self.reason})"
+        return f"{self.value}"
 
 
 def _load_file(file: str, component: str):
@@ -106,21 +107,25 @@ def _load_file(file: str, component: str):
         return {}
 
     ret = {}
-    for nodeid, value in data["manifest"].items():
-        if isinstance(value, str):
-            declaration = Declaration(value, is_inline=True)
-            value = {}  # noqa: PLW2901
+    for nodeid, raw_value in data["manifest"].items():
+        if isinstance(raw_value, str):
+            declaration = Declaration(raw_value, is_inline=True)
+            value = {}
             if declaration.is_skip:
                 value["declaration"] = str(declaration)
             else:
-                value["library_version"] = declaration.declaration
+                value["library_version"] = declaration.value
                 value["declaration"] = "missing_feature"
-        if not isinstance(value, list):
-            value = [value]  # noqa: PLW2901
-        for entry in value:
-            if isinstance(entry.get("library_version"), str):
-                entry["library_version"] = Declaration(entry["library_version"]).declaration
-            entry["library"] = component
+            value["library"] = component
+            value = [value]
+        else:
+            value = raw_value
+            if not isinstance(raw_value, list):
+                value = [raw_value]
+            for entry in value:
+                if "library_version" in entry:
+                    entry["library_version"] = Declaration(entry["library_version"]).value
+                entry["library"] = component
 
         ret[nodeid] = value
 
@@ -174,6 +179,7 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
 
 
 def assert_key_order(obj: dict, path: str = "") -> list[str]:
+    obj = obj["manifest"]
     last_key = "/"
     errors = []
 
@@ -185,7 +191,8 @@ def assert_key_order(obj: dict, path: str = "") -> list[str]:
     return errors
 
 
-def assert_nodeids_exist(obj: dict, path: str = "") -> list[str]:  # noqa: ARG001
+def assert_nodeids_exist(obj: dict) -> list[str]:
+    obj = obj["manifest"]
     errors = []
     for key in obj:
         elements = key.split("::")
@@ -202,14 +209,14 @@ def assert_nodeids_exist(obj: dict, path: str = "") -> list[str]:  # noqa: ARG00
 
         found_class = False
         found_function = len(elements) < 3  # noqa: PLR2004
-        for node in ast.walk(test_ast):
+        for node in ast.iter_child_nodes(test_ast):
             if not isinstance(node, ast.ClassDef) or node.name != elements[1]:
                 continue
             if found_class:
                 break
 
             found_class = True
-            for child in ast.walk(node):
+            for child in ast.iter_child_nodes(node):
                 if found_function:
                     break
 
@@ -225,6 +232,7 @@ def assert_nodeids_exist(obj: dict, path: str = "") -> list[str]:  # noqa: ARG00
 
 
 def assert_increasing_versions(obj: dict) -> list[str]:
+    obj = obj["manifest"]
     stack = []
     errors = []
     for key, val in obj.items():
@@ -237,7 +245,7 @@ def assert_increasing_versions(obj: dict) -> list[str]:
         declaration = Declaration(val, is_inline=True, semver_factory=lambda v: Version(v.strip("<").strip("=")))
         if declaration.is_skip:
             continue
-        version = declaration.declaration
+        version = declaration.value
 
         if not stack:
             stack.append((key, version))
@@ -250,8 +258,10 @@ def assert_increasing_versions(obj: dict) -> list[str]:
     return errors
 
 
-def pretty(errors: dict[str, list]) -> str:
-    ret = ""
+def pretty(name: str, errors: dict[str, list]) -> str:
+    width = 80
+    padding = width - len(name)
+    ret = "\n" + "=" * (padding // 2 + padding % 2) + name + "=" * (padding // 2) + "\n"
     for file, file_errors in errors.items():
         ret += f"{file}:\n"
         for error in file_errors:
@@ -263,50 +273,41 @@ def validate_manifest_files() -> None:
     with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
-    order_errors = {}
-    validation_errors = {}
-    nodeid_errors = {}
-    parser_errors = {}
-    increasing_versions_errors = {}
+    validations = [
+        ("Syntax validation errors", lambda d: validate(d, schema)),
+        ("Key order errors", assert_key_order),
+        ("Node ID errors", assert_nodeids_exist),
+        ("Version order errors", assert_increasing_versions),
+    ]
+
+    all_errors = {}
 
     for file in os.listdir("manifests/"):
         if file.endswith(".yml"):
             with open(f"manifests/{file}", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
-            try:
-                validate(data, schema)
-            except ValidationError as e:
-                validation_errors[file] = [e]
-
-            errors = assert_key_order(data["manifest"])
-            if errors:
-                order_errors[file] = errors
-
-            errors = assert_nodeids_exist(data["manifest"])
-            if errors:
-                nodeid_errors[file] = errors
+            for name, validation in validations:
+                try:
+                    errors = validation(data)
+                except BaseException as e:
+                    errors = [e]
+                if errors:
+                    if name not in all_errors:
+                        all_errors[name] = {}
+                    all_errors[name][file] = errors
 
             try:
                 _load_file(f"manifests/{file}", file.strip(".yml"))
-            except ValueError as e:
-                parser_errors[file] = [e]
-
-            errors = assert_increasing_versions(data["manifest"])
-            if errors:
-                increasing_versions_errors[file] = errors
+            except BaseException as e:
+                name = "Loading errors"
+                all_errors[name] = {}
+                all_errors[name][file] = [e]
 
     message = ""
-    if order_errors:
-        message += "\n====================Key order errors====================\n" + pretty(order_errors)
-    if validation_errors:
-        message += "\n================Syntax validation errors================\n" + pretty(validation_errors)
-    if nodeid_errors:
-        message += "\n=====================Node ID errors=====================\n" + pretty(nodeid_errors)
-    if parser_errors:
-        message += "\n===================Declaration errors===================\n" + pretty(parser_errors)
-    if increasing_versions_errors:
-        message += "\n==================Version order errors==================\n" + pretty(increasing_versions_errors)
+    for name, errors in all_errors.items():
+        message += pretty(name, errors)
+
     assert not message, message
 
 
