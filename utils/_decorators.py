@@ -66,7 +66,7 @@ def parse_skip_declaration(skip_declaration: str) -> tuple[_TestDeclaration, str
     assert match is not None
     declaration, _, declaration_details = match.groups()
 
-    return (_TestDeclaration(declaration), declaration_details)
+    return _TestDeclaration(declaration), declaration_details
 
 
 def _is_jira_ticket(declaration_details: str | None):

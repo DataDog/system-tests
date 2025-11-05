@@ -1,52 +1,102 @@
-from collections import defaultdict
-import json
-from jsonschema.exceptions import ValidationError
-import os
 import ast
+import json
+import os
 import re
+from collections import defaultdict
 from pathlib import Path
+
+import yaml
+from jsonschema import validate
+from jsonschema.exceptions import ValidationError
+from semantic_version import Version
 
 from utils._decorators import CustomSpec as SemverRange
 from utils.get_declaration import match_rule
 
-from jsonschema import validate
-import yaml
-from semantic_version import Version
 
+class Declaration:
+    skip_declaration_regex = r"(bug|flaky|incomplete_test_app|irrelevant|missing_feature) ?\(?(.*)\)?"
+    version_regex = r"(?:\d+\.\d+\.\d+|\d+\.\d+|\d+)[.+-]?[.\w+-]*"
+    simple_regex = rf"(>|>=|v)?({version_regex}) ?\(?(.*)\)?"
+    full_regex = r"([^()]*) ?\(?(.*)\)?"
 
-def _flatten(base: str, obj: dict):
-    if base.endswith(".py"):
-        base += "::"
-    for key, value in obj.items():
-        if isinstance(value, str):
-            yield f"{base}{key}", value
-        elif isinstance(value, dict):
-            if base.endswith(".py::"):
-                yield f"{base}{key}", value
+    def __init__(self, raw_declaration: str, is_inline: bool = False, semver_factory = SemverRange):
+        if not raw_declaration:
+            raise ValueError("raw_declaration must not be None or an empty string")
+        self.raw = raw_declaration.strip()
+        self.is_inline = is_inline
+        self.semver_factory = semver_factory
+        self.parse_declaration()
+
+    @staticmethod
+    def fix_separator(version: str):
+        elements = re.fullmatch(r"(\d+\.\d+\.\d+)([.+-]?)([.\w+-]*)", version)
+        if not elements or not elements.group(3):
+            return version
+        if not elements.group(2) or elements.group(2) == ".":
+            sanitized_version = elements.group(1) + "-" + elements.group(3)
+        else:
+            sanitized_version = elements.group(1) + elements.group(2) + elements.group(3)
+        return sanitized_version
+
+    @staticmethod
+    def fix_missing_minor_patch(version: str):
+        elements = re.fullmatch(r"(\d+\.\d+\.\d+|\d+\.\d+|\d+)(.*)", version)
+        while not re.fullmatch(r"\d+\.\d+\.\d+.*", version):
+            version += ".0"
+        return version
+
+    transformations = [fix_separator, fix_missing_minor_patch]
+
+    @staticmethod
+    def sanitize_version(version: str, transformations=transformations):
+        matches = re.finditer(Declaration.version_regex, version)
+        sanitized = []
+        for match in matches:
+            matched_section = version[match.start():match.end()]
+            for transformation in transformations:
+                matched_section = transformation(matched_section)
+            version = f"{version[:match.start()]}{matched_section}{version[match.end():]}"
+        return version
+
+    def parse_declaration(self):
+        elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.A)
+        if elements:
+            self.is_skip = True
+            self.declaration = elements[0]
+            if elements[1]:
+                self.reason = elements[1]
+            return
+
+        if self.is_inline:
+            elements = re.fullmatch(self.simple_regex, self.raw, re.A)
+        else:
+            elements = re.fullmatch(self.full_regex, self.raw, re.A)
+
+        if not elements:
+            raise ValueError(f"Wrong version format: {self.raw} (is inline: {self.is_inline})")
+
+        self.is_skip = False
+        if self.is_inline:
+            if elements.group(1) == ">":
+                sanitized_version = f"<={Declaration.sanitize_version(elements.group(2))}"
             else:
-                yield from _flatten(f"{base}{key}", value)
+                sanitized_version = f"<{Declaration.sanitize_version(elements.group(2))}"
+        else:
+            sanitized_version = Declaration.sanitize_version(elements.group(1))
 
+        self.declaration = self.semver_factory(sanitized_version)
+        if elements.group(len(elements.groups()) - 1):
+            self.reason = elements.group(len(elements.groups()) - 1)
 
-def sanitize_version(version: str) -> str:
-    if re.fullmatch(r"(<|>|=)*[0-9]*\.[0-9]*\.[0-9]*(-|\+|\.|[a-z]|[A-Z]|[0-9])*", version.strip()):
-        core_version = re.match(r"(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
-        connector = ""
-        if version[core_version.end() :] and not version[core_version.end() :].startswith(("-", ".", "+")):
-            connector = "-"
-        version = version[: core_version.end()] + connector + version[core_version.end() :].replace(".", "-")
-    return version
+    def __str__(self):
+        if self.reason:
+            return f"{self.declaration} ({self.reason})"
+        else:
+            return f"{self.declaration}"
 
 
 def _load_file(file: str, component: str):
-    def to_semver(version: str, nodeid: str):  # noqa: ARG001
-        par = version.find("(")
-        if par >= 0:
-            version = version[:par]
-
-        version = sanitize_version(version)
-
-        return SemverRange(version)
-
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -56,22 +106,18 @@ def _load_file(file: str, component: str):
     ret = {}
     for nodeid, value in data["manifest"].items():
         if isinstance(value, str):
-            sdec = value
+            declaration = Declaration(value, is_inline=True)
             value = {}  # noqa: PLW2901
-            if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
-                value["declaration"] = sdec
+            if declaration.is_skip:
+                value["declaration"] = str(declaration)
             else:
-                if sdec.startswith((">", "v")):
-                    sdec = "<" + sdec[1:]
-                elif not re.fullmatch("[0-9].*", sdec):
-                    raise ValueError(f"Invalid inline version: {sdec}")
-                value["library_version"] = to_semver(sdec, nodeid)
+                value["library_version"] = declaration.declaration
                 value["declaration"] = "missing_feature"
         if not isinstance(value, list):
             value = [value]  # noqa: PLW2901
         for entry in value:
             if isinstance(entry.get("library_version"), str):
-                entry["library_version"] = to_semver(entry["library_version"], nodeid)
+                entry["library_version"] = Declaration(entry["library_version"]).declaration
             entry["library"] = component
 
         ret[nodeid] = value
@@ -177,17 +223,6 @@ def assert_nodeids_exist(obj: dict, path: str = "") -> list[str]:  # noqa: ARG00
 
 
 def assert_increasing_versions(obj: dict) -> list[str]:
-    def to_version(sdec: str):
-        if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
-            return None
-        while len(sdec.split(".")) < 3:  # noqa: PLR2004
-            sdec += ".0"
-        sdec = sdec.strip("v")
-        sdec = sdec[: sdec.find(" ") % (len(sdec) + 1)]
-        sdec = sdec[: sdec.find("(") % (len(sdec) + 1)]
-        sdec = sanitize_version(sdec)
-        return Version(sdec.strip(">").strip("="))
-
     stack = []
     errors = []
     for key, val in obj.items():
@@ -197,9 +232,10 @@ def assert_increasing_versions(obj: dict) -> list[str]:
         while stack and not match_rule(stack[-1][0], key):
             stack.pop()
 
-        version = to_version(val)
-        if not version:
+        declaration = Declaration(val, is_inline=True, semver_factory=lambda v: Version(v.strip("<").strip("=")))
+        if declaration.is_skip:
             continue
+        version = declaration.declaration
 
         if not stack:
             stack.append((key, version))
