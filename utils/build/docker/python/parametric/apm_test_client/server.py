@@ -1257,7 +1257,6 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         default_value = body.get("defaultValue")
         targeting_key = body.get("targetingKey")
         attributes = body.get("attributes", {})
-        print(f"!!!!!!!!!!!!!!!!!!!!flag: {flag}, variation_type: {variation_type}, default_value: {default_value}, targeting_key: {targeting_key}, attributes: {attributes}")
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
 
