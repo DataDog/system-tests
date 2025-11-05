@@ -3451,15 +3451,7 @@ manifest:
     - variant: uds-spring-boot
       library_version: "<1.38.0"
       declaration: missing_feature
-  tests/debugger/test_debugger_exception_replay.py:
-    - excluded_variant: [spring-boot, uds-spring-boot]
-      declaration: missing_feature
-    - variant: spring-boot
-      library_version: "<1.50.0"
-      declaration: missing_feature
-    - variant: uds-spring-boot
-      library_version: "<1.50.0"
-      declaration: missing_feature
+  tests/debugger/test_debugger_exception_replay.py: "irrelevant"
   tests/debugger/test_debugger_expression_language.py:
     - excluded_variant: [spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot]
       declaration: missing_feature

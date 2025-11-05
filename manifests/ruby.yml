@@ -651,7 +651,18 @@ manifest:
     - variant: uds-rails
       declaration: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: "missing_feature (feature not implemented)"
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: "missing_feature (feature not implemented)"
+  tests/debugger/test_debugger_expression_language.py:
+    - excluded_variant: [rails72, rails80, uds-rails]
+      declaration: irrelevant
+    - variant: rails72
+      library_version: "<2.20.0"
+      declaration: missing_feature
+    - variant: rails80
+      library_version: "<2.20.0"
+      declaration: missing_feature
+    - variant: uds-rails
+      library_version: "<2.20.0"
+      declaration: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: "missing_feature"
