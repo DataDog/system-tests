@@ -88,17 +88,14 @@ def add_pytest_marker(
     declaration_details: str | None,
     *,
     force_skip: bool = False,
+    reruns: int | None = None,
+    reruns_delay: int | None = None,
 ):
     if not inspect.isfunction(item) and not inspect.isclass(item) and not isinstance(item, pytest.Module):
         raise ValueError(f"Unexpected skipped object: {item}")
 
     if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
         _ensure_jira_ticket_as_reason(item, declaration_details)
-
-    if force_skip or declaration in (_TestDeclaration.IRRELEVANT, _TestDeclaration.FLAKY):
-        marker = pytest.mark.skip
-    else:
-        marker = pytest.mark.xfail
 
     reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
@@ -110,7 +107,21 @@ def add_pytest_marker(
 
         add_marker = item.pytestmark.append  # type: ignore[union-attr]
 
-    add_marker(marker(reason=reason))
+    # For flaky tests with reruns specified, use pytest.mark.flaky from pytest-rerunfailures
+    if declaration == _TestDeclaration.FLAKY and reruns is not None:
+        flaky_kwargs = {"reruns": reruns}
+        if reruns_delay is not None:
+            flaky_kwargs["reruns_delay"] = reruns_delay
+        add_marker(pytest.mark.flaky(**flaky_kwargs))
+        # Add a custom marker to indicate this is a flaky test with retries (for reporting purposes)
+        add_marker(pytest.mark.flaky_with_retries(reruns=reruns, reruns_delay=reruns_delay))
+    elif force_skip or declaration in (_TestDeclaration.IRRELEVANT, _TestDeclaration.FLAKY):
+        marker = pytest.mark.skip
+        add_marker(marker(reason=reason))
+    else:
+        marker = pytest.mark.xfail
+        add_marker(marker(reason=reason))
+
     add_marker(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))
 
     return item
@@ -158,6 +169,8 @@ def _decorator(
     declaration_details: str | None,
     *,
     force_skip: bool = False,
+    reruns: int | None = None,
+    reruns_delay: int | None = None,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -168,7 +181,12 @@ def _decorator(
         return function_or_class
 
     return add_pytest_marker(
-        function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
+        function_or_class,
+        declaration=declaration,
+        declaration_details=declaration_details,
+        force_skip=force_skip,
+        reruns=reruns,
+        reruns_delay=reruns_delay,
     )
 
 
@@ -248,8 +266,29 @@ def bug(
     )
 
 
-def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):
-    """Decorator, allow to mark a test function/class as a known bug, and skip it"""
+def flaky(
+    condition: bool | None = None,
+    library: str | None = None,
+    weblog_variant: str | None = None,
+    *,
+    reason: str,
+    reruns: int | None = None,
+    reruns_delay: int | None = None,
+):
+    """Decorator, allow to mark a test function/class as flaky.
+
+    Args:
+        condition: Boolean condition to determine if the test should be marked as flaky
+        library: Specific library this flaky behavior applies to
+        weblog_variant: Specific weblog variant this flaky behavior applies to
+        reason: JIRA ticket reference (required)
+        reruns: Number of times to rerun the test if it fails (optional)
+        reruns_delay: Delay in seconds between reruns (optional)
+
+    If reruns is not specified, the test will be skipped (default behavior).
+    If reruns is specified, the test will be executed and retried up to 'reruns' times on failure.
+
+    """
     return partial(
         _decorator,
         declaration=_TestDeclaration.FLAKY,
@@ -257,6 +296,8 @@ def flaky(condition: bool | None = None, library: str | None = None, weblog_vari
         library=library,
         weblog_variant=weblog_variant,
         declaration_details=reason,
+        reruns=reruns,
+        reruns_delay=reruns_delay,
     )
 
 

@@ -35,6 +35,18 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         reason="Python version too old",
     )
     @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
+    @flaky(
+        context.weblog_variant
+        in [
+            "test-app-java-container",
+            "test-app-java-alpine",
+            "test-app-java-multialpine",
+            "test-app-java-multicontainer",
+        ],
+        reason="java profiling is flaky on containers",
+        reruns=3,
+        reruns_delay=3,
+    )
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -115,6 +127,18 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @bug(
         context.weblog_variant == "test-app-nodejs-container-25",
         reason="PROF-12765",
+    )
+    @flaky(
+        context.weblog_variant
+        in [
+            "test-app-java-container",
+            "test-app-java-alpine",
+            "test-app-java-multialpine",
+            "test-app-java-multicontainer",
+        ],
+        reason="java profiling is flaky on containers",
+        reruns=3,
+        reruns_delay=3,
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)

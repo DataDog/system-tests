@@ -42,6 +42,7 @@ tests/:
       Test_FeatureA: v1.14 # declare a version for a class
 
       Test_FeatureB: flaky # skip a class with bug, flaky, irrelevant ...
+                            # Note: manifest flaky always skips. For retry behavior, use inline @flaky decorator with reruns parameter
 
       Test_FeatureC: # declare a version for a class, depending on weblog
         '*': missing_feature # All other weblogs: not yet available
@@ -60,6 +61,7 @@ tests/:
 #### Notes
 - The wildcard `*` is supported for weblog declarations. This will associate missing_feature/bug/flaky/etc. marking to all unspecified weblog variables.
 - Manifests support the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
+- **Flaky tests in manifests are always skipped**. To enable retry behavior for flaky tests, use the inline `@flaky` decorator with the `reruns` parameter (see [skip-tests.md](./skip-tests.md) for details).
 
 ## Why Manifest Files?
 
