@@ -7,9 +7,10 @@ import re
 from jsonschema import validate as validation_jsonschema
 from utils import features, scenarios, context, missing_feature
 from utils._context.component_version import Version
+from .conftest import APMLibrary
 
 
-def find_dd_memfds(test_library, pid: int) -> list[str]:
+def find_dd_memfds(test_library: APMLibrary, pid: int) -> list[str]:
     rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info-*'")
     if not rc:
         return []
@@ -35,7 +36,7 @@ def validate_schema(payload: str) -> bool:
         return False
 
 
-def read_memfd(test_library, memfd_path: str):
+def read_memfd(test_library: APMLibrary, memfd_path: str):
     rc, output = test_library.container_exec_run_raw(f"cat {memfd_path}")
     if not rc:
         return rc, output
@@ -61,7 +62,7 @@ def get_context_tracer_version():
         return context.library.version
 
 
-def assert_v1(tracer_metadata, test_library, library_env):
+def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
     assert tracer_metadata["runtime_id"]
     # assert tracer_metadata["hostname"]
 
@@ -75,7 +76,7 @@ def assert_v1(tracer_metadata, test_library, library_env):
     assert version == get_context_tracer_version()
 
 
-def assert_v2(tracer_metadata, test_library, library_env):
+def assert_v2(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
     assert_v1(tracer_metadata, test_library, library_env)
     if library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "true":
         assert "entrypoint.name" in tracer_metadata["process_tags"]
@@ -86,7 +87,7 @@ def assert_v2(tracer_metadata, test_library, library_env):
 asserters = {1: assert_v1, 2: assert_v2}
 
 
-def assert_metadata_content(test_library, library_env):
+def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str]):
     # NOTE(@dmehala): the server is started on container is always pid 1.
     # That's a strong assumption :hehe:
     # Maybe we should use `pidof pidof parametric-http-server` instead.
@@ -124,7 +125,7 @@ class Test_ProcessDiscovery:
             }
         ],
     )
-    def test_metadata_content_without_process_tags(self, test_library, library_env):
+    def test_metadata_content_without_process_tags(self, test_library: APMLibrary, library_env: dict[str, str]):
         """Verify the content of the memfd file matches the expected metadata format and structure"""
         with test_library:
             assert_metadata_content(test_library, library_env)
@@ -143,7 +144,7 @@ class Test_ProcessDiscovery:
             }
         ],
     )
-    def test_metadata_content_with_process_tags(self, test_library, library_env):
+    def test_metadata_content_with_process_tags(self, test_library: APMLibrary, library_env: dict[str, str]):
         """Verify the content of the memfd file matches the expected metadata format and structure"""
         with test_library:
             assert_metadata_content(test_library, library_env)

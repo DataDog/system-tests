@@ -175,27 +175,6 @@ ignore = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
 ]
 
-"tests/parametric/test_headers_tracestate_dd.py"= [ "ANN001" ]
-"tests/parametric/test_library_tracestats.py"= [ "ANN001" ]
-"tests/parametric/test_otel_api_interoperability.py"= [ "ANN001" ]
-"tests/parametric/test_otel_env_vars.py"= [ "ANN001" ]
-"tests/parametric/test_otel_logs.py"= [ "ANN001" ]
-"tests/parametric/test_otel_metrics.py"= [ "ANN001" ]
-"tests/parametric/test_otel_span_methods.py"= [ "ANN001" ]
-"tests/parametric/test_otel_span_with_baggage.py"= [ "ANN001" ]
-"tests/parametric/test_otel_tracer.py"= [ "ANN001" ]
-"tests/parametric/test_parametric_endpoints.py"= [ "ANN001" ]
-"tests/parametric/test_partial_flushing.py"= [ "ANN001" ]
-"tests/parametric/test_process_discovery.py"= [ "ANN001" ]
-"tests/parametric/test_sampling_delegation.py"= [ "ANN001" ]
-"tests/parametric/test_sampling_span_tags.py"= [ "ANN001" ]
-"tests/parametric/test_span_events.py"= [ "ANN001" ]
-"tests/parametric/test_span_links.py"= [ "ANN001" ]
-"tests/parametric/test_span_sampling.py"= [ "ANN001" ]
-"tests/parametric/test_telemetry.py"= [ "ANN001" ]
-"tests/parametric/test_trace_sampling.py"= [ "ANN001" ]
-"tests/parametric/test_tracer_flare.py"= [ "ANN001" ]
-
 "tests/debugger/test_debugger_exception_replay.py" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]

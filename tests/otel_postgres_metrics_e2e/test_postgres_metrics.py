@@ -197,7 +197,6 @@ class Test_PostgreSQLMetricsCollection:
         )
 
 
-@scenarios.otel_collector
 @scenarios.otel_collector_e2e
 @features.otel_postgres_support
 class Test_BackendValidity:
