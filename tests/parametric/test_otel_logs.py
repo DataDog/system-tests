@@ -337,7 +337,6 @@ class Test_FR07_Host_Name:
             },
         ],
     )
-
     @irrelevant(context.library != "python", reason="DD_HOSTNAME is only supported in Python")
     def test_hostname_from_dd_hostname(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
@@ -679,11 +678,11 @@ class Test_FR11_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
 
-            assert (
-                config is not None
+            assert isinstance(
+                config, dict
             ), f"No configuration found for '{expected_env}', configurations: {configurations_by_name}"
             assert (
-                str(config.get("value", "")) == expected_value.lower()
+                config.get("value", "") == expected_value.lower()
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
     @pytest.mark.parametrize(
