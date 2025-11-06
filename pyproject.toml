@@ -174,28 +174,6 @@ ignore = [
 "tests/*test_*.py" = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
 ]
-"tests/parametric*/test_*.py" = [
-    "ANN001",    # missing-type-function-argument: TODO
-]
-
-"tests/appsec/test_extended_data_collection.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_extended_header_collection.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_extended_request_body_collection.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_fingerprinting.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_remote_config_rule_changes.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_reports.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_runtime_activation.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_service_activation_metric.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_shell_execution.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_trace_tagging.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_traces.py" = [ "ANN001" ]  # TODO
-"tests/appsec/test_user_blocking_full_denylist.py" = [ "ANN001" ]  # TODO
-"tests/appsec/waf/test_addresses.py" = [ "ANN001" ]  # TODO
-"tests/appsec/waf/test_blocking.py" = [ "ANN001" ]  # TODO
-"tests/appsec/waf/test_blocking_security_response_id.py" = [ "ANN001" ]  # TODO
-"tests/appsec/waf/test_reports.py" = [ "ANN001" ]  # TODO
-"tests/appsec/waf/test_telemetry.py" = [ "ANN001" ]  # TODO
-"tests/appsec/waf/test_truncation.py" = [ "ANN001" ]  # TODO
 
 "tests/debugger/test_debugger_exception_replay.py" = [
     "ANN001",    # missing-type-function-argument: TODO

@@ -162,7 +162,6 @@ tests/:
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
-            fastapi: bug (APPSEC-59742)
           TestSSRF_ExtendedLocation: v3.1.0.dev
           TestSSRF_StackTrace: v3.9.0.dev
         test_stacktrace_leak.py:
@@ -806,7 +805,7 @@ tests/:
       Test_AppSecObfuscator:
         '*': v1.5.0-rc1
         fastapi: v2.6.0
-      Test_CollectDefaultRequestHeader: v2.9.040
+      Test_CollectDefaultRequestHeader: v2.9.0
       Test_CollectRespondHeaders:
         '*': v1.4.0-rc1
         fastapi: v2.4.0
