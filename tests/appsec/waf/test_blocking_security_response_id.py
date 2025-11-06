@@ -9,7 +9,7 @@ from urllib.parse import urlparse, parse_qs
 from utils import scenarios, weblog, rfc, features, interfaces
 
 
-def is_valid_uuid4(uuid_string):
+def is_valid_uuid4(uuid_string: str):
     """Validate UUID format: 8-4-4-4-12 hex digits"""
     if not uuid_string or not isinstance(uuid_string, str):
         return False
@@ -18,7 +18,7 @@ def is_valid_uuid4(uuid_string):
     return bool(uuid_pattern.match(uuid_string))
 
 
-def extract_security_response_id_from_json(response_body):
+def extract_security_response_id_from_json(response_body: str):
     """Extract security_response_id from JSON blocking response
 
     RFC-1070: Libraries emit security_response_id in blocking responses
@@ -32,7 +32,7 @@ def extract_security_response_id_from_json(response_body):
     return None
 
 
-def extract_security_response_id_from_html(response_body):
+def extract_security_response_id_from_html(response_body: str):
     """Extract security_response_id from HTML blocking response
 
     RFC-1070: Libraries emit security_response_id in blocking responses
@@ -52,7 +52,7 @@ def extract_security_response_id_from_html(response_body):
     return None
 
 
-def extract_security_response_id_from_redirect_url(location_url):
+def extract_security_response_id_from_redirect_url(location_url: str):
     """Extract security_response_id from custom redirect URL query parameters
 
     RFC-1070: Libraries emit security_response_id in blocking responses

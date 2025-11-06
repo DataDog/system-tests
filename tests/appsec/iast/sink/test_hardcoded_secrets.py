@@ -11,7 +11,7 @@ from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stac
 # as the vulnerability is not always set in the current request span.
 
 
-def get_expectation(d):
+def get_expectation(d: dict):
     expected = d.get(context.library.name)
     if isinstance(expected, dict):
         expected = expected.get(context.weblog_variant)

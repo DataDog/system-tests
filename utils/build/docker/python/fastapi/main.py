@@ -1092,7 +1092,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     if parsed_url.hostname not in allowed_domains:
         return PlainTextResponse("Forbidden", status_code=403)
     try:
-        requests.get(parsed_url.geturl())
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 

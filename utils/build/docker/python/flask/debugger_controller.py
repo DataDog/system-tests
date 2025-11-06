@@ -2,11 +2,11 @@ from flask import Blueprint, request, abort
 from debugger.pii import Pii, CustomPii
 from debugger.expression_test_struct import ExpressionTestStruct
 from debugger.collection_factory import CollectionFactory
+from debugger.data_generator import generate_test_data
 
 # The `debugger` feature allows attachment to specific lines of code.
 # Due to differences in line numbering between libraries,
 # 'dummy lines' are used to standardize this functionality.
-# dummy line
 # dummy line
 # dummy line
 debugger_blueprint = Blueprint("debugger", __name__, url_prefix="/debugger")
@@ -155,3 +155,18 @@ def exception_replay_recursion():
         return exception_replay_recursion(depth - 1)
     else:
         raise Exception("recursion exception")
+
+
+@debugger_blueprint.route("/snapshot/limits", methods=["GET"])
+def snapshot_limits():
+    data = generate_test_data(
+        depth=request.args.get("depth", type=int, default=0),
+        fields=request.args.get("fields", type=int, default=0),
+        collection_size=request.args.get("collectionSize", type=int, default=0),
+        string_length=request.args.get("stringLength", type=int, default=0),
+    )
+    deepObject = data["deepObject"]  # noqa: N806
+    manyFields = data["manyFields"]  # noqa: N806
+    largeCollection = data["largeCollection"]  # noqa: N806
+    longString = data["longString"]  # noqa: N806
+    return "Capture limits probe", 200
