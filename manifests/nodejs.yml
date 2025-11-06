@@ -514,7 +514,7 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
-          fastify: flaky (APPSEC-58724)
+          fastify: *ref_5_61_0
           nextjs: missing_feature
     rasp/:
       test_api10.py:
