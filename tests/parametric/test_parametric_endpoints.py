@@ -15,7 +15,7 @@ from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import retrieve_span_events
 from utils.parametric.spec.trace import find_only_span
-from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context, missing_feature
+from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 from utils.parametric._library_client import APMLibrary, Link, LogLevel
@@ -29,11 +29,6 @@ pytestmark = pytest.mark.parametrize(
 )
 
 
-@missing_feature(
-    context.library == "nodejs",
-    reason="Temporarily disabled while adjusting FFE implementation and system tests",
-    force_skip=True,
-)
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Start:

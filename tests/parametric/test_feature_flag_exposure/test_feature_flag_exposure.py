@@ -8,8 +8,6 @@ from typing import Any
 from utils import (
     features,
     scenarios,
-    missing_feature,
-    context,
 )
 from utils.dd_constants import RemoteConfigApplyState
 from tests.parametric.conftest import _TestAgentAPI, APMLibrary
@@ -79,11 +77,6 @@ def _set_and_wait_ffe_rc(
     return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
-@missing_feature(
-    context.library == "nodejs",
-    reason="Temporarily disabled while adjusting FFE implementation and system tests",
-    force_skip=True,
-)
 @scenarios.parametric
 @features.feature_flag_exposure
 class Test_Feature_Flag_Exposure:
