@@ -10,16 +10,19 @@ from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 UNSET = -420
 
 
 class AnyRatio:
-    def __eq__(self, other):
+    def __eq__(self, other: object):
+        assert isinstance(other, (int, float))
         return 0 <= other <= 1
 
 
-def _get_spans(test_agent, test_library, child_span_tag=None):
+def _get_spans(test_agent: TestAgentAPI, test_library: APMLibrary, child_span_tag: str | None = None):
     with (
         test_library,
         test_library.dd_start_span(name="parent", service="webserver") as ps,
@@ -35,7 +38,7 @@ def _get_spans(test_agent, test_library, child_span_tag=None):
     return parent_span, child_span, traces[0][0]
 
 
-def _assert_equal(elem_a, elem_b, description):
+def _assert_equal(elem_a: str | float | None, elem_b: str | tuple | float | AnyRatio | None, description: str):
     if isinstance(elem_b, tuple):
         assert elem_a in elem_b, f"{description}\n{elem_a} not in {elem_b}"
     else:
@@ -43,18 +46,21 @@ def _assert_equal(elem_a, elem_b, description):
 
 
 def _assert_sampling_tags(
-    parent_span,
-    child_span,
-    first_span,
-    dm,
-    parent_priority,
-    rule_rate=UNSET,
-    agent_rate=UNSET,
-    limit_rate=UNSET,
-    description="",
+    parent_span: dict,
+    child_span: dict,
+    first_span: dict,
+    dm: str | tuple[str, ...],
+    parent_priority: int,
+    rule_rate: float = UNSET,
+    agent_rate: int | tuple = UNSET,
+    limit_rate: int | AnyRatio = UNSET,
+    description: str = "",
 ):
-    _assert_equal(first_span["meta"].get(SAMPLING_DECISION_MAKER_KEY), dm, description)
-    _assert_equal(parent_span["metrics"].get(SAMPLING_PRIORITY_KEY), parent_priority, description)
+    meta: dict[str, str] = first_span["meta"]
+    metrics: dict[str, float] = parent_span["metrics"]
+
+    _assert_equal(meta.get(SAMPLING_DECISION_MAKER_KEY), dm, description)
+    _assert_equal(metrics.get(SAMPLING_PRIORITY_KEY), parent_priority, description)
     for rate_key, rate_expectation in (
         (SAMPLING_AGENT_PRIORITY_RATE, agent_rate),
         (SAMPLING_LIMIT_PRIORITY_RATE, limit_rate),
@@ -84,7 +90,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="cpp", reason="APMAPI-737")  # c++ does not support magic tags
     @bug(library="java", reason="APMAPI-737")  # java sets dm tag -3
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
-    def test_tags_child_dropped_sst001(self, test_agent, test_library):
+    def test_tags_child_dropped_sst001(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_DROP_KEY)
         _assert_sampling_tags(
             parent_span,
@@ -105,7 +111,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="java", reason="APMAPI-737")  # java sets dm tag -3 on first span
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -3 on first span
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
-    def test_tags_child_kept_sst007(self, test_agent, test_library):
+    def test_tags_child_kept_sst007(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_KEEP_KEY)
         _assert_sampling_tags(
             parent_span,
@@ -123,7 +129,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="cpp", reason="APMAPI-737")  # unknown
     @bug(context.library < "nodejs@5.17.0", reason="APMAPI-737")  # APMRP-360  # actual fixed version is not known
-    def test_tags_defaults_sst002(self, test_agent, test_library):
+    def test_tags_defaults_sst002(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -146,7 +152,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets limit_psr
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
-    def test_tags_defaults_rate_1_sst003(self, test_agent, test_library):
+    def test_tags_defaults_rate_1_sst003(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -169,7 +175,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
     @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1 on first span
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1e-06}])
-    def test_tags_defaults_rate_tiny_sst004(self, test_agent, test_library):
+    def test_tags_defaults_rate_tiny_sst004(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -193,7 +199,7 @@ class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 1}])}]
     )
-    def test_tags_defaults_rate_1_and_rule_1_sst005(self, test_agent, test_library):
+    def test_tags_defaults_rate_1_and_rule_1_sst005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -219,7 +225,7 @@ class Test_Sampling_Span_Tags:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}])}]
     )
-    def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent, test_library):
+    def test_tags_defaults_rate_1_and_rule_0_sst006(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -242,7 +248,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="php", reason="APMAPI-737")  # php does not set limit_psr
     @bug(library="cpp", reason="APMAPI-737")  # this test times out with the c++ tracer
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
-    def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent, test_library):
+    def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -275,7 +281,9 @@ class Test_Sampling_Span_Tags:
             }
         ],
     )
-    def test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009(self, test_agent, test_library):
+    def test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -300,7 +308,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": 3}])
-    def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent, test_library):
+    def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -323,7 +331,7 @@ class Test_Sampling_Span_Tags:
     @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize("library_env", [{"DD_APPSEC_ENABLED": 1}])
-    def test_tags_appsec_enabled_sst011(self, test_agent, test_library):
+    def test_tags_appsec_enabled_sst011(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
             parent_span,
@@ -361,7 +369,9 @@ class Test_Knuth_Sample_Rate:
         ],
         ids=["truncate_trailing_zeros", "percision_of_6_digits"],
     )
-    def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env, sample_rate):
+    def test_sampling_knuth_sample_rate_trace_sampling_rule(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str], sample_rate: str
+    ):
         """When a trace is sampled via a sampling rule, the knuth sample rate
         is sent to the agent on the chunk root span with the _dd.p.ksr key in the meta field.
         """
@@ -397,18 +407,20 @@ class Test_Knuth_Sample_Rate:
             }
         ],
     )
-    def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(self, test_agent, test_library):
+    def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When a trace is extracted from datadog headers, the sampling decision
         and rate is extracted from X-Datadog-Sampling-Priority and X-Datadog-Tags
         headers. These values are stored in the span's meta fields.
         """
         with test_library:
             incoming_headers = [
-                ["x-datadog-trace-id", "123456789"],
-                ["x-datadog-parent-id", "987654321"],
-                ["x-datadog-sampling-priority", "2"],
-                ["x-datadog-origin", "synthetics"],
-                ["x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1.000000"],
+                ("x-datadog-trace-id", "123456789"),
+                ("x-datadog-parent-id", "987654321"),
+                ("x-datadog-sampling-priority", "2"),
+                ("x-datadog-origin", "synthetics"),
+                ("x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1.000000"),
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
             assert "_dd.p.ksr=1.000000" in outgoing_headers["x-datadog-tags"]
@@ -431,14 +443,16 @@ class Test_Knuth_Sample_Rate:
             }
         ],
     )
-    def test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext(self, test_agent, test_library):
+    def test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When a trace is extracted from tracecontext headers, the sampling rate and decision
         are sent in the tracestate header (t.dm, t.ksr). These values are stored in the span's meta fields.
         """
         with test_library:
             incoming_headers = [
-                ["traceparent", "00-00000000000000000000000000000007-0000000000000006-01"],
-                ["tracestate", "dd=s:2;o:synthetics;t.dm:-1;t.ksr:0.1"],
+                ("traceparent", "00-00000000000000000000000000000007-0000000000000006-01"),
+                ("tracestate", "dd=s:2;o:synthetics;t.dm:-1;t.ksr:0.1"),
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
             assert "t.ksr:0.1" in outgoing_headers["tracestate"]
