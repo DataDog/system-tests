@@ -16,7 +16,7 @@ from utils.get_declaration import match_rule
 
 class Declaration:
     reason_regex = r" ?(?:\((.*)\))?"
-    skip_declaration_regex = fr"(bug|flaky|incomplete_test_app|irrelevant|missing_feature){reason_regex}"
+    skip_declaration_regex = rf"(bug|flaky|incomplete_test_app|irrelevant|missing_feature){reason_regex}"
     version_regex = r"(?:\d+\.\d+\.\d+|\d+\.\d+|\d+)[.+-]?[.\w+-]*"
     simple_regex = rf"(>|>=|v)?({version_regex}){reason_regex}"
     full_regex = rf"([^()]*){reason_regex}"
