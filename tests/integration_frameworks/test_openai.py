@@ -1,4 +1,4 @@
-from utils import context, missing_feature, scenarios, features
+from utils import scenarios, features
 
 import pytest
 import os
@@ -40,7 +40,6 @@ TOOLS = [
 @features.llm_observability
 @scenarios.integration_frameworks
 class TestOpenAiAPM:
-    @missing_feature(context.library == "java", reason="Java does not auto-instrument OpenAI")
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):
@@ -64,7 +63,6 @@ class TestOpenAiAPM:
         assert span["resource"] in ("createChatCompletion", "chat.completions.create")
         assert span["meta"]["openai.request.model"] == "gpt-3.5-turbo"
 
-    @missing_feature(context.library == "java", reason="Java does not auto-instrument OpenAI")
     def test_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
@@ -86,7 +84,6 @@ class TestOpenAiAPM:
         assert span["resource"] in ("createCompletion", "completions.create")
         assert span["meta"]["openai.request.model"] == "gpt-3.5-turbo-instruct"
 
-    @missing_feature(context.library == "java", reason="Java does not auto-instrument OpenAI")
     def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
@@ -105,7 +102,6 @@ class TestOpenAiAPM:
         assert span["resource"] in ("createEmbedding", "embeddings.create")
         assert span["meta"]["openai.request.model"] == "text-embedding-ada-002"
 
-    @missing_feature(context.library == "java", reason="Java does not auto-instrument OpenAI")
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion_tool_call(
         self,
@@ -141,8 +137,6 @@ class TestOpenAiAPM:
         assert span["resource"] in ("chat.completions.create", "createChatCompletion")
         assert span["meta"]["openai.request.model"] == "gpt-3.5-turbo"
 
-    @missing_feature(context.library == "java", reason="Java does not auto-instrument OpenAI")
-    @missing_feature(context.library == "nodejs", reason="Node.js does not support responses.create")
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):

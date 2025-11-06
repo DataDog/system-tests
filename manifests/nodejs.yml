@@ -72,6 +72,7 @@ refs:
   - &ref_5_72_0 '>=5.72.0'  # FFE support
   - &ref_5_73_0 '>=5.73.0'
   - &ref_5_74_0 '>=5.74.0'
+  - &ref_5_76_0 '>=5.76.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1152,6 +1153,9 @@ tests/:
       Test_Debugger_Telemetry:
         '*': *ref_5_39_0
         nextjs: irrelevant
+  integration_frameworks/:
+    test_openai.py:
+      TestOpenAiAPM: *ref_5_76_0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
