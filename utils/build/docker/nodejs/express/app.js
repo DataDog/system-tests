@@ -25,6 +25,7 @@ const api = require('@opentelemetry/api')
 const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
+const { OpenFeature } = require('@openfeature/server-sdk')
 
 const { spawnSync } = require('child_process')
 
@@ -666,18 +667,6 @@ app.get('/add_event', (req, res) => {
 
 require('./rasp')(app)
 
-const startServer = () => {
-  return new Promise((resolve) => {
-    app.listen(7777, '0.0.0.0', () => {
-      tracer.trace('init.service', () => {})
-      console.log('listening')
-      resolve()
-    })
-  })
-}
-
-// apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
-const { OpenFeature } = require('@openfeature/server-sdk')
 let openFeatureClient = null
 
 // Initialize OpenFeature provider if FFE is enabled
@@ -724,10 +713,31 @@ app.post('/ffe', async (req, res) => {
   }
 })
 
+// apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
 const initGraphQL = () => {
   return graphQLEnabled
     ? require('./graphql')(app)
     : Promise.resolve()
+}
+
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      if (req.url.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve()
+    })
+  })
 }
 
 initGraphQL()

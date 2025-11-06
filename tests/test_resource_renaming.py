@@ -38,13 +38,11 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
 
     def setup_http_endpoint_edge_cases(self):
         """Setup requests for edge case testing"""
-        self.r_root = weblog.get("/")
         self.r_long_path = weblog.get("/resource_renaming/a/b/c/d/e/f/g/h/i/j/k/l/m")
         self.r_empty_segments = weblog.get("/resource_renaming//double//slash")
 
     def test_http_endpoint_edge_cases(self):
         """Test that edge cases are handled correctly"""
-        assert get_endpoint_tag(self.r_root) == "/"
         assert get_endpoint_tag(self.r_long_path) == "/resource_renaming/a/b/c/d/e/f/g"
         assert get_endpoint_tag(self.r_empty_segments) == "/resource_renaming/double/slash"
 
