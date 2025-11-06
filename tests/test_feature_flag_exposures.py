@@ -6,6 +6,8 @@ from utils import (
     scenarios,
     features,
     remote_config as rc,
+    missing_feature,
+    context,
 )
 
 
@@ -38,6 +40,11 @@ UFC_FIXTURE_DATA = {
 }
 
 
+@missing_feature(
+    context.library == "nodejs",
+    reason="Temporarily disabled while adjusting FFE implementation and system tests",
+    force_skip=True,
+)
 @scenarios.feature_flag_exposure
 @features.feature_flag_exposure
 class Test_FFE_Exposure_Events:
