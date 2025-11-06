@@ -23,7 +23,7 @@ tests/:
         Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
         Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery: v0.94.0
       test_schemas.py:
         Test_Scanners:
           '*': v1.11.0-dev

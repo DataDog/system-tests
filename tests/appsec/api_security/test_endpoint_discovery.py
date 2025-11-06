@@ -80,7 +80,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        context.library in ["python"],
+        context.library in ["python", "php"],
         reason="Not supported",
     )
     def test_optional_type(self):
@@ -124,7 +124,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        context.library in ["dotnet", "nodejs", "python", "ruby"],
+        context.library in ["dotnet", "nodejs", "python", "ruby", "php"],
         reason="Not supported",
     )
     @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
@@ -146,7 +146,7 @@ class Test_Endpoint_Discovery:
         (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "nodejs", "ruby", "php"], reason="Not supported")
     def test_optional_response_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -172,7 +172,7 @@ class Test_Endpoint_Discovery:
         (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "nodejs", "ruby", "php"], reason="Not supported")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -193,7 +193,7 @@ class Test_Endpoint_Discovery:
         reason="Not applicable to weblog variant",
     )
     @irrelevant(
-        context.library in ["dotnet", "nodejs", "python", "ruby"],
+        context.library in ["dotnet", "nodejs", "python", "ruby", "php"],
         reason="Not supported",
     )
     def test_optional_authentication(self):
@@ -212,7 +212,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        context.library in ["python", "dotnet", "nodejs", "ruby"],
+        context.library in ["python", "dotnet", "nodejs", "ruby", "php"],
         reason="Not supported",
     )
     def test_optional_metadata(self):
