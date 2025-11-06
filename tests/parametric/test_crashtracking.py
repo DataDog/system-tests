@@ -6,13 +6,14 @@ import pytest
 
 from utils import bug, features, scenarios, logger
 from utils.parametric._library_client import APMLibrary
+from utils.docker_fixtures import TestAgentAPI
 
 
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
-    def test_report_crash(self, test_agent, test_library):
+    def test_report_crash(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
 
         while True:
@@ -22,7 +23,7 @@ class Test_Crashtracking:
         self.assert_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
-    def test_disable_crashtracking(self, test_agent, test_library):
+    def test_disable_crashtracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
 
         requests = test_agent.raw_telemetry(clear=True)
@@ -36,7 +37,7 @@ class Test_Crashtracking:
 
     @bug(library="java", reason="APMLP-302")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
-    def test_telemetry_timeout(self, test_agent, test_library: APMLibrary):
+    def test_telemetry_timeout(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_agent.set_trace_delay(60)
 
         test_library.crash()
@@ -47,7 +48,7 @@ class Test_Crashtracking:
         finally:
             test_agent.set_trace_delay(0)
 
-    def assert_crash_report(self, test_library, event):
+    def assert_crash_report(self, test_library: APMLibrary, event: dict):
         logger.debug(f"event: {json.dumps(event, indent=2)}")
 
         assert isinstance(event.get("payload"), list), event.get("payload")

@@ -132,13 +132,14 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "nodejs": [82]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "nodejs": [90]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "nodejs": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "nodejs": [120]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "nodejs": [126]},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [122], "nodejs": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
+            "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -288,6 +289,7 @@ class BaseDebuggerTest:
     _last_read = 0
 
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
+        logger.debug("Wating for all probes")
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
@@ -343,6 +345,7 @@ class BaseDebuggerTest:
     _snapshot_found = False
 
     def wait_for_snapshot_received(self, exception_message: str = "", timeout: int = 30) -> bool:
+        logger.debug("Waiting for snapshots to be received")
         exception_snapshot = False
         if exception_message:
             self._exception_message = exception_message

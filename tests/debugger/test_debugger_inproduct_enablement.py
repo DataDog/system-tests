@@ -26,7 +26,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(enabled=None):
+        def _send_config(enabled: bool | None = None):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
@@ -78,7 +78,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
     ):
         self.send_rc_apm_tracing(exception_replay_enabled=enabled, service_name=service_name, env=env, reset=reset)
 
-    def _wait_for_exception_snapshot_received(self, request_path, exception_message):
+    def _wait_for_exception_snapshot_received(self, request_path: str, exception_message: str):
         self.weblog_responses = []
 
         retries = 0
@@ -175,7 +175,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):
-        def _send_config(enabled=None):
+        def _send_config(enabled: bool | None = None):
             self.send_rc_apm_tracing(code_origin_enabled=enabled)
             self.send_weblog_request("/healthcheck")
 
