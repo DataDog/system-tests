@@ -849,7 +849,7 @@ manifest:
       library_version: "<1.10.0"
       declaration: missing_feature
     - variant: django-poc
-      library_version: "<3.7.0.dev (is v1.10.0 but weblog use new SDK now)'"
+      library_version: "<3.7.0.dev (is v1.10.0 but weblog use new SDK now)"
       declaration: missing_feature
     - variant: django-py3.13
       library_version: "<3.7.0.dev (is v1.10.0 but weblog use new SDK now)"
@@ -863,7 +863,7 @@ manifest:
       library_version: "<2.10.0"
       declaration: missing_feature
     - variant: django-poc
-      library_version: "<3.7.0.dev (is v2.10.0 but weblog use new SDK now)'"
+      library_version: "<3.7.0.dev (is v2.10.0 but weblog use new SDK now)"
       declaration: missing_feature
     - variant: django-py3.13
       library_version: "<3.7.0.dev (is v2.10.0 but weblog use new SDK now)"
@@ -877,7 +877,7 @@ manifest:
       library_version: "<2.10.0"
       declaration: missing_feature
     - variant: django-poc
-      library_version: "<3.7.0.dev (is v2.10.0 but weblog use new SDK now)'"
+      library_version: "<3.7.0.dev (is v2.10.0 but weblog use new SDK now)"
       declaration: missing_feature
     - variant: django-py3.13
       library_version: "<3.7.0.dev (is v2.10.0 but weblog use new SDK now)"

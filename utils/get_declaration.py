@@ -52,6 +52,7 @@ def match_condition(
 
 def match_rule(rule: str, nodeid: str) -> bool:
     path = rule.split("/")
+    path = [part for part in path if part]
     rest = rule.split("::")
     rule_elements = path[:-1] + [path[-1].split("::")[0]] + rest[1:]
 

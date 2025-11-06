@@ -15,10 +15,11 @@ from utils.get_declaration import match_rule
 
 
 class Declaration:
-    skip_declaration_regex = r"(bug|flaky|incomplete_test_app|irrelevant|missing_feature) ?\(?(.*)\)?"
+    reason_regex = r" ?(?:\((.*)\))?"
+    skip_declaration_regex = fr"(bug|flaky|incomplete_test_app|irrelevant|missing_feature){reason_regex}"
     version_regex = r"(?:\d+\.\d+\.\d+|\d+\.\d+|\d+)[.+-]?[.\w+-]*"
-    simple_regex = rf"(>|>=|v)?({version_regex}) ?\(?(.*)\)?"
-    full_regex = r"([^()]*) ?\(?(.*)\)?"
+    simple_regex = rf"(>|>=|v)?({version_regex}){reason_regex}"
+    full_regex = rf"([^()]*){reason_regex}"
 
     def __init__(
         self, raw_declaration: str, *, is_inline: bool = False, semver_factory: type[SemverRange] = SemverRange
@@ -67,9 +68,9 @@ class Declaration:
         elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
-            self.value = elements[0]
+            self.value = elements[1]
             if elements[1]:
-                self.reason = elements[1]
+                self.reason = elements[2]
             return
 
         if self.is_inline:
