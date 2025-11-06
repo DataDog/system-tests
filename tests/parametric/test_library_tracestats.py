@@ -9,8 +9,8 @@ from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, scenarios, features, logger, bug
-
-from .conftest import _TestAgentAPI
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
@@ -44,7 +44,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_metrics_msgpack_serialization_TS001(self, library_env, test_agent, test_library):
+    def test_metrics_msgpack_serialization_TS001(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When spans are finished
         Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
         The required metrics are:
@@ -98,7 +100,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library):
+    def test_distinct_aggregationkeys_TS003(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
         The dimensions are: { service, type, name, resource, HTTP_status_code, synthetics }
@@ -184,7 +188,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_measured_spans_TS004(self, library_env, test_agent, test_library):
+    def test_measured_spans_TS004(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When spans are marked as measured
         Each has stats computed for it
         """
@@ -227,7 +233,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_top_level_TS005(self, library_env, test_agent, test_library):
+    def test_top_level_TS005(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
         """
@@ -279,7 +285,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_successes_errors_recorded_separately_TS006(self, library_env, test_agent, test_library):
+    def test_successes_errors_recorded_separately_TS006(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
         """
@@ -335,7 +343,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats(sample_rate=0.0)
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_sample_rate_0_TS007(self, library_env, test_agent, test_library):
+    def test_sample_rate_0_TS007(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
         trace stats should be produced
@@ -357,7 +365,9 @@ class Test_Library_Tracestats:
 
     @missing_feature(reason="relative error test is broken")
     @enable_tracestats()
-    def test_relative_error_TS008(self, library_env, test_agent: _TestAgentAPI, test_library):
+    def test_relative_error_TS008(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When trace stats are computed for traces
             The stats should be accurate to within 1% of the real values
 
@@ -406,7 +416,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
     @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
-    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent: _TestAgentAPI, test_library):
+    def test_metrics_computed_after_span_finsh_TS009(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
@@ -457,7 +469,9 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @parametrize("library_env", [{"DD_TRACE_STATS_COMPUTATION_ENABLED": "0"}])
-    def test_metrics_computed_after_span_finish_TS010(self, library_env, test_agent, test_library):
+    def test_metrics_computed_after_span_finish_TS010(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """When DD_TRACE_STATS_COMPUTATION_ENABLED=False
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
