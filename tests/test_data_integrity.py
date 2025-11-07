@@ -5,9 +5,10 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority
+
+from utils import bug, context, features, interfaces, irrelevant, logger, missing_feature, rfc, scenarios, weblog
 from utils.cgroup_info import get_container_id
+from utils.dd_constants import SamplingPriority
 
 
 @features.trace_data_integrity
@@ -144,7 +145,6 @@ class Test_LibraryHeaders:
         interfaces.library.validate_all(validator, allow_no_data=True)
 
     @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
-    @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd")
@@ -159,6 +159,9 @@ class Test_LibraryHeaders:
                 return
             if data["path"] in ("/info", "/v0.7/config"):
                 # Those endpoints don't require Datadog-Entity-ID header, so skip them
+                return
+            # Skip telemetry paths as they don't require Datadog-Entity-ID header
+            if data["path"].startswith("/telemetry/"):
                 return
             request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
             if "datadog-entity-id" not in request_headers:
