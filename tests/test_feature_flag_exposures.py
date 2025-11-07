@@ -6,8 +6,6 @@ from utils import (
     scenarios,
     features,
     remote_config as rc,
-    missing_feature,
-    context,
 )
 
 
@@ -40,11 +38,6 @@ UFC_FIXTURE_DATA = {
 }
 
 
-@missing_feature(
-    context.library == "nodejs",
-    reason="Temporarily disabled while adjusting FFE implementation and system tests",
-    force_skip=True,
-)
 @scenarios.feature_flag_exposure
 @features.feature_flag_exposure
 class Test_FFE_Exposure_Events:
@@ -87,9 +80,7 @@ class Test_FFE_Exposure_Events:
             # Validate context object
             assert "context" in exposure_data, "Response missing 'context' field"
             context = exposure_data["context"]
-            assert (
-                context["service_name"] == "weblog"
-            ), f"Expected service_name 'weblog', got '{context['service_name']}'"
+            assert context["service"] == "weblog", f"Expected service 'weblog', got '{context['service']}'"
             assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
             assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
 

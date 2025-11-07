@@ -54,7 +54,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
         self._validate_diagnostics()
 
     def _validate_diagnostics(self):
-        def _check_probe_status(expected_id, expected_status: debugger.ProbeStatus):
+        def _check_probe_status(expected_id: str, expected_status: debugger.ProbeStatus):
             if expected_id not in self.probe_diagnostics:
                 return f"Probe {expected_id} was not received."
 
@@ -85,6 +85,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
+@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
 
