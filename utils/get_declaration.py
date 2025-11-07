@@ -1,7 +1,5 @@
 from typing import Any
 
-import semantic_version as semver
-
 from utils._context.component_version import Version
 from utils._decorators import _TestDeclaration, parse_skip_declaration
 
@@ -9,14 +7,14 @@ from utils._decorators import _TestDeclaration, parse_skip_declaration
 def match_condition(
     condition: dict[str, Any],
     library: str | None = None,
-    library_version: str | Version | None = None,
+    library_version: Version | None = None,
     variant: str | None = None,
-    agent_version: str | Version | None = None,
-    dd_apm_inject_version: str | Version | None = None,
-    k8s_cluster_agent_version: str | Version | None = None,
+    agent_version: Version | None = None,
+    dd_apm_inject_version: Version | None = None,
+    k8s_cluster_agent_version: Version | None = None,
 ) -> bool:
     ret = False
-    ref_version = library_version
+
     match condition["library"]:
         case "agent":
             ref_version = agent_version
@@ -27,11 +25,8 @@ def match_condition(
         case _:
             ref_version = library_version
 
-    if isinstance(ref_version, str):
-        return False
     if not ref_version:
         return True
-    ref_version = semver.Version(str(ref_version))
 
     if condition["library"] == library or library in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
@@ -66,22 +61,22 @@ def match_rule(rule: str, nodeid: str) -> bool:
     return all(elements[0] == elements[1] for elements in zip(rule_elements, nodeid_elements, strict=False))
 
 
-def get_declarations(
+def get_rules(
     library: str,
-    library_version: str | Version | None = None,
+    library_version: Version | None = None,
     variant: str | None = None,
-    agent_version: str | Version | None = None,
-    dd_apm_inject_version: str | Version | None = None,
-    k8s_cluster_agent_version: str | Version | None = None,
+    agent_version: Version | None = None,
+    dd_apm_inject_version: Version | None = None,
+    k8s_cluster_agent_version: Version | None = None,
 ) -> dict[str, list[tuple[_TestDeclaration, str | None]]]:
     from manifests.parser.core import load as load_manifests
 
-    declarations: dict[str, list[tuple[_TestDeclaration, str | None]]] = {}
+    rules: dict[str, list[tuple[_TestDeclaration, str | None]]] = {}
 
-    rules = load_manifests()
-    for rule, conditions in rules.items():
+    manifests = load_manifests()
+    for rule, conditions in manifests.items():
         for condition in conditions:
-            if match_condition(
+            if not match_condition(
                 condition,
                 library,
                 library_version,
@@ -90,10 +85,11 @@ def get_declarations(
                 dd_apm_inject_version,
                 k8s_cluster_agent_version,
             ):
-                if rule not in declarations:
-                    declarations[rule] = []
-                declaration_tuple = parse_skip_declaration(condition["declaration"])
-                # Convert tuple element to string since tuples are immutable
-                declarations[rule].append((declaration_tuple[0], f"{declaration_tuple[1]}"))
+                continue
 
-    return declarations
+            if rule not in rules:
+                rules[rule] = []
+            declaration_tuple = parse_skip_declaration(condition["declaration"])
+            rules[rule].append(declaration_tuple)
+
+    return rules

@@ -8,7 +8,6 @@ from utils.proxy import scrubber  # noqa: F401
 from collections.abc import Sequence, Generator
 import json
 import os
-from pathlib import Path
 import time
 import types
 from typing import Any
@@ -26,7 +25,7 @@ from utils._context.component_version import ComponentVersion
 from utils._decorators import configure as configure_decorators, add_pytest_marker
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
-from utils.get_declaration import get_declarations, match_rule
+from utils.get_declaration import get_rules, match_rule
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
@@ -321,7 +320,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
 
-    rules = get_declarations(
+    rules = get_rules(
         context.library.name,
         context.library.version,
         context.weblog_variant,
@@ -331,9 +330,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     )
     for item in items:
         for rule, declarations in rules.items():
-            if match_rule(rule, item.nodeid):
-                for declaration in declarations:
-                    add_pytest_marker(item, declaration[0], declaration[1])
+            if not match_rule(rule, item.nodeid):
+                continue
+            for declaration in declarations:
+                add_pytest_marker(item, declaration[0], declaration[1])
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
@@ -424,17 +424,6 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 
     context.scenario.post_setup(session)
 
-    logger.info("\n=== Collected test functions and their marks ===")
-    Path("./dumps").mkdir(exist_ok=True)
-    with open(f"./dumps/dump_{context.library.name}_{context.weblog_variant}_{context.scenario.name}", "w") as f:
-        for item in session.items:
-            # Get all marks, including inherited ones (parametrize, class, etc.)
-            marks = [m.name for m in item.iter_markers()]
-            f.write(f"{item.nodeid} :: {', '.join(sorted(set(marks))) or 'no marks'}\n")
-
-    # Stop after collection, before running tests
-    # pytest.exit("Listed all test marks.", returncode=0)
-
 
 def pytest_runtest_call(item: pytest.Item) -> None:
     # add a log line for each request made by the setup, to help debugging
@@ -501,10 +490,10 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
 
+    context.scenario.pytest_sessionfinish(session, exitstatus)
+
     if session.config.option.collectonly or session.config.option.replay:
         return
-
-    context.scenario.pytest_sessionfinish(session, exitstatus)
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
     # it will run in the master thread after all other processes have finished testing
