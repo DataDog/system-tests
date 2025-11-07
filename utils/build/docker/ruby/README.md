@@ -22,6 +22,7 @@ Rails 7.2
 
 * `/otel_drop_in_default_propagator_extract` with `opentelemetry-{sdk,api}` gem
 * `/otel_drop_in_default_propagator_inject` with `opentelemetry-{sdk,api}` gem
+* `/otel_drop_in_baggage_api_otel` with `opentelemetry-{sdk,api}` gem
 * `/read_file`
 * `/log/library`
 * `/kafka/*` with `ruby-kafka` gem
