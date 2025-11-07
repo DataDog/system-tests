@@ -15,6 +15,7 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 
 # Simple UFC fixture for testing with doLog: true
 UFC_FIXTURE_DATA = {
+    "id": "1",
     "createdAt": "2024-04-17T19:40:53.716Z",
     "format": "SERVER",
     "environment": {"name": "Test"},
@@ -44,12 +45,7 @@ class Test_FFE_Exposure_Events:
         """Set up FFE exposure event generation."""
         # Set up Remote Config
         config_id = "ffe-test-config"
-        rc_config = {
-            "action": "apply",
-            "flag_configuration": UFC_FIXTURE_DATA,
-            "flag_environment": "test",
-            "id": config_id,
-        }
+        rc_config = UFC_FIXTURE_DATA
         rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
 
         # Evaluate a feature flag
@@ -84,9 +80,7 @@ class Test_FFE_Exposure_Events:
             # Validate context object
             assert "context" in exposure_data, "Response missing 'context' field"
             context = exposure_data["context"]
-            assert (
-                context["service_name"] == "weblog"
-            ), f"Expected service_name 'weblog', got '{context['service_name']}'"
+            assert context["service"] == "weblog", f"Expected service 'weblog', got '{context['service']}'"
             assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
             assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
 

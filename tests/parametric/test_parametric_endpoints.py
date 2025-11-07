@@ -18,7 +18,8 @@ from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
-from utils.parametric._library_client import Link, LogLevel
+from utils.parametric._library_client import APMLibrary, Link, LogLevel
+from utils.docker_fixtures import TestAgentAPI
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -31,7 +32,7 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Start:
-    def test_start_span(self, test_agent, test_library):
+    def test_start_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/start creates a new span.
 
         Supported Parameters:
@@ -77,7 +78,7 @@ class Test_Parametric_DDSpan_Start:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Finish:
-    def test_span_finish(self, test_agent, test_library):
+    def test_span_finish(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/finish finishes a span and sends it to the agent.
 
         Supported Parameters:
@@ -99,7 +100,7 @@ class Test_Parametric_DDSpan_Finish:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Inject_Headers:
-    def test_inject_headers(self, test_agent, test_library):
+    def test_inject_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/inject_headers generates distributed tracing headers from span data.
 
         Supported Parameters:
@@ -117,7 +118,7 @@ class Test_Parametric_Inject_Headers:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Extract_Headers:
-    def test_extract_headers(self, test_agent, test_library):
+    def test_extract_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/extract_headers extracts span data from distributed tracing headers.
 
         Supported Parameters:
@@ -126,7 +127,7 @@ class Test_Parametric_DDTrace_Extract_Headers:
         - span_id: Union[int, str]
         """
         with test_library:
-            parent_id = test_library.dd_extract_headers([["x-datadog-trace-id", "1"], ["x-datadog-parent-id", "2"]])
+            parent_id = test_library.dd_extract_headers([("x-datadog-trace-id", "1"), ("x-datadog-parent-id", "2")])
             # nodejs library returns span and trace_ids as strings
             assert int(parent_id) == 2
 
@@ -143,7 +144,7 @@ class Test_Parametric_DDTrace_Extract_Headers:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Set_Meta:
-    def test_set_meta(self, test_agent, test_library):
+    def test_set_meta(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/set_meta sets a key value pair on a span.
 
         Supported Parameters:
@@ -164,7 +165,7 @@ class Test_Parametric_DDSpan_Set_Meta:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Set_Metric:
-    def test_set_metric(self, test_agent, test_library):
+    def test_set_metric(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/set_metric sets a metric on a span.
 
         Supported Parameters:
@@ -185,7 +186,7 @@ class Test_Parametric_DDSpan_Set_Metric:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Set_Error:
-    def test_set_error(self, test_agent, test_library):
+    def test_set_error(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/error sets an error on a span.
 
         Supported Parameters:
@@ -210,7 +211,7 @@ class Test_Parametric_DDSpan_Set_Error:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Set_Resource:
-    def test_set_resource(self, test_agent, test_library):
+    def test_set_resource(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/set_resource sets a resource name on a span.
 
         Supported Parameters:
@@ -229,7 +230,7 @@ class Test_Parametric_DDSpan_Set_Resource:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDSpan_Add_Link:
-    def test_add_link(self, test_agent, test_library):
+    def test_add_link(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/add_link adds a spanlink to a span.
 
         Supported Parameters:
@@ -257,7 +258,7 @@ class Test_Parametric_DDSpan_Add_Link:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Config:
-    def test_config(self, test_agent, test_library):
+    def test_config(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/config returns a list of tracer configurations. This list is expected to
         grow over time.
 
@@ -294,7 +295,7 @@ class Test_Parametric_DDTrace_Config:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Crash:
-    def test_crash(self, test_agent, test_library):
+    def test_crash(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/crash crashes the current process.
 
         Supported Parameters:
@@ -308,7 +309,7 @@ class Test_Parametric_DDTrace_Crash:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Current_Span:
-    def test_current_span(self, test_agent, test_library):
+    def test_current_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/current returns the active Datadog span.
 
         Supported Parameters:
@@ -317,25 +318,30 @@ class Test_Parametric_DDTrace_Current_Span:
         """
         with test_library:
             dd_current_span = test_library.dd_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
             with test_library.dd_start_span("span_test_current_span") as s1:
                 dd_current_span = test_library.dd_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
                 with test_library.dd_start_span("span_test_current_spans_s2", parent_id=s1.span_id) as s2:
                     dd_current_span = test_library.dd_current_span()
+                    assert dd_current_span is not None
                     assert dd_current_span.span_id == s2.span_id
 
                 dd_current_span = test_library.dd_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
             dd_current_span = test_library.dd_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
-    def test_current_span_from_otel(self, test_agent, test_library):
+    def test_current_span_from_otel(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/current can return the Datadog span that was created by the OTEL API.
 
         Supported Parameters:
@@ -345,8 +351,10 @@ class Test_Parametric_DDTrace_Current_Span:
         with test_library:
             with test_library.otel_start_span("span_test_current_span_from_otel") as s1:
                 dd_current_span = test_library.dd_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
             dd_current_span = test_library.dd_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
@@ -354,7 +362,7 @@ class Test_Parametric_DDTrace_Current_Span:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Flush:
-    def test_flush(self, test_agent, test_library):
+    def test_flush(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/flush and /trace/stats/flush endpoints are implemented and return successful status codes.
         If these endpoint are not implemented, spans and/or stats will not be flushed when the test_library contextmanager exits.
         Trace data may or may not be received by the agent in time for validation. This can introduce flakiness in tests.
@@ -371,7 +379,7 @@ class Test_Parametric_DDTrace_Flush:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_DDTrace_Baggage:
-    def test_set_baggage(self, test_agent, test_library):
+    def test_set_baggage(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/set_baggage sets a baggage item.
 
         Supported Parameters:
@@ -387,7 +395,7 @@ class Test_Parametric_DDTrace_Baggage:
             headers = test_library.dd_inject_headers(s1.span_id)
             assert any("baggage" in header for header in headers)
 
-    def test_get_baggage(self, test_agent, test_library):
+    def test_get_baggage(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/get_baggage gets a baggage item.
 
         Supported Parameters:
@@ -402,7 +410,7 @@ class Test_Parametric_DDTrace_Baggage:
             baggage = s1.get_baggage("key")
             assert baggage == "value"
 
-    def test_get_all_baggage(self, test_agent, test_library):
+    def test_get_all_baggage(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/get_all_baggage gets all baggage items.
 
         Supported Parameters:
@@ -418,7 +426,7 @@ class Test_Parametric_DDTrace_Baggage:
             assert baggage["key1"] == "value"
             assert baggage["key2"] == "value"
 
-    def test_remove_baggage(self, test_agent, test_library):
+    def test_remove_baggage(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/remove_baggage removes a baggage item.
 
         Supported Parameters:
@@ -438,7 +446,7 @@ class Test_Parametric_DDTrace_Baggage:
             headers = test_library.dd_inject_headers(s1.span_id)
             assert not any("baggage" in header for header in headers)
 
-    def test_remove_all_baggage(self, test_agent, test_library):
+    def test_remove_all_baggage(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/span/remove_all_baggage removes all baggage items from a span.
 
         Supported Parameters:
@@ -462,7 +470,7 @@ class Test_Parametric_DDTrace_Baggage:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Start:
-    def test_span_start(self, test_agent, test_library):
+    def test_span_start(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that the /trace/otel/start_span creates a new span.
 
         Supported Parameters:
@@ -512,7 +520,7 @@ class Test_Parametric_OtelSpan_Start:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_End:
-    def test_span_end(self, test_agent, test_library):
+    def test_span_end(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that the /trace/otel/end_span finishes a span and sends it to the agent
 
         Supported Parameters:
@@ -529,7 +537,7 @@ class Test_Parametric_OtelSpan_End:
         span = find_only_span(traces)
         assert sleep <= span["duration"] / 1e9 <= total_time, span["start"]
 
-    def test_span_end_with_timestamp(self, test_agent, test_library):
+    def test_span_end_with_timestamp(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that the /trace/otel/end_span finishes a span and sends it to the agent with the expected duration
 
         Supported Parameters:
@@ -552,7 +560,7 @@ class Test_Parametric_OtelSpan_End:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Set_Attribute:
-    def test_otel_set_attribute(self, test_agent, test_library):
+    def test_otel_set_attribute(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/set_attributes sets a key value pair on a span.
 
         Supported Parameters:
@@ -571,7 +579,7 @@ class Test_Parametric_OtelSpan_Set_Attribute:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Set_Status:
-    def test_otel_set_status(self, test_agent, test_library):
+    def test_otel_set_status(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/set_status sets a status on a span.
 
         Supported Parameters:
@@ -591,7 +599,7 @@ class Test_Parametric_OtelSpan_Set_Status:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Set_Name:
-    def test_otelspan_set_name(self, test_agent, test_library):
+    def test_otelspan_set_name(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/set_name sets the resource name on a span.
 
         Supported Parameters:
@@ -610,7 +618,7 @@ class Test_Parametric_OtelSpan_Set_Name:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Events:
-    def test_add_event(self, test_agent, test_library):
+    def test_add_event(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/add_event adds an event to a span.
 
         Supported Parameters:
@@ -634,7 +642,7 @@ class Test_Parametric_OtelSpan_Events:
 
     @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
     @bug(library="nodejs", reason="APMAPI-778")  # doees not set attributes on the exception event
-    def test_record_exception(self, test_agent, test_library):
+    def test_record_exception(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/record_exception adds an exception event to a span.
 
         Supported Parameters:
@@ -658,7 +666,7 @@ class Test_Parametric_OtelSpan_Events:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_OtelSpan_Is_Recording:
-    def test_is_recording(self, test_agent, test_library):
+    def test_is_recording(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/is_recording returns whether a span is recording.
 
         Supported Parameters:
@@ -673,7 +681,7 @@ class Test_Parametric_OtelSpan_Is_Recording:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Otel_Baggage:
-    def test_set_baggage(self, test_agent, test_library):
+    def test_set_baggage(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/otel_set_baggage sets a baggage item.
 
         Supported Parameters:
@@ -690,7 +698,7 @@ class Test_Parametric_Otel_Baggage:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Otel_Current_Span:
-    def test_otel_current_span(self, test_agent, test_library):
+    def test_otel_current_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/current_span returns the current span.
 
         Supported Parameters:
@@ -699,21 +707,26 @@ class Test_Parametric_Otel_Current_Span:
         """
         with test_library:
             dd_current_span = test_library.otel_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
             with test_library.otel_start_span("span_test_current_span") as s1:
                 dd_current_span = test_library.otel_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
                 with test_library.otel_start_span("span_test_current_spans_s2", parent_id=s1.span_id) as s2:
                     dd_current_span = test_library.otel_current_span()
+                    assert dd_current_span is not None
                     assert dd_current_span.span_id == s2.span_id
 
                 dd_current_span = test_library.otel_current_span()
+                assert dd_current_span is not None
                 assert dd_current_span.span_id == s1.span_id
 
             dd_current_span = test_library.otel_current_span()
+            assert dd_current_span is not None
             assert int(dd_current_span.span_id) == 0
             assert int(dd_current_span.trace_id) == 0
 
@@ -721,7 +734,7 @@ class Test_Parametric_Otel_Current_Span:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Otel_Trace_Flush:
-    def test_flush(self, test_agent, test_library):
+    def test_flush(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/flush flushes all finished spans.
 
         Supported Parameters:
@@ -739,7 +752,7 @@ class Test_Parametric_Otel_Trace_Flush:
 @features.parametric_endpoint_parity
 class Test_Parametric_Write_Log:
     @incomplete_test_app(context.library != "python", reason="Logs endpoint is only implemented in python app")
-    def test_write_log(self, test_agent, test_library):
+    def test_write_log(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /log/write creates a log message with the specified parameters.
 
         Supported Parameters:
@@ -762,7 +775,7 @@ class Test_Parametric_Write_Log:
         result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
         assert result is True
 
-    def test_write_log_with_span_id(self, test_agent, test_library):
+    def test_write_log_with_span_id(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /log/write creates a log message with the specified parameters.
 
         Supported Parameters:
@@ -787,7 +800,7 @@ class Test_Parametric_Write_Log:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_FFE_Start:
-    def test_ffe_start(self, test_agent, test_library):
+    def test_ffe_start(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /ffe/start initializes the feature flag evaluation provider and returns a successful status code.
 
         Supported Parameters:

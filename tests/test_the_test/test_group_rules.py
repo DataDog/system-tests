@@ -66,6 +66,7 @@ def test_tracer_release():
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
         scenarios.demo_aws,
+        scenarios.otel_collector_e2e,
     ]
 
     for scenario in get_all_scenarios():
@@ -77,7 +78,7 @@ def test_tracer_release():
         if scenario_groups.tracer_release not in scenario.scenario_groups:
             assert (
                 scenario in not_in_tracer_release_group
-            ), f"Scenario {scenario} is not part of {scenario_groups.tracer_release}"
+            ), f"Scenario {scenario.name} is not part of {scenario_groups.tracer_release.name} group"
 
             if scenario in not_in_tracer_release_group:
                 assert scenario_groups.tracer_release not in scenario.scenario_groups

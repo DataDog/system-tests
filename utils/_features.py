@@ -18,6 +18,7 @@ class _Owner(StrEnum):
     idm = "@DataDog/apm-idm"
     injection_platform = "@DataDog/injection-platform"
     language_platform = "@DataDog/apm-lang-platform"
+    ml_observability = "@DataDog/ml-observability"
     profiler = "@DataDog/profiling"  # it does not exists
     remote_config = "@DataDog/remote-config"
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
@@ -2589,6 +2590,22 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=495
         """
         return _mark_test_object(test_object, feature_id=495, owner=_Owner.agent_apm)
+
+    @staticmethod
+    def llm_observability(test_object):
+        """Data integrity
+
+        https://feature-parity.us1.prod.dog/#/?feature=497
+        """
+        return _mark_test_object(test_object, feature_id=497, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def blocking_response_id(test_object):
+        """Data integrity
+
+        https://feature-parity.us1.prod.dog/#/?feature=493
+        """
+        return _mark_test_object(test_object, feature_id=493, owner=_Owner.agent_apm)
 
     @staticmethod
     def b3multi_headers_propagation(test_object):

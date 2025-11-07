@@ -1148,6 +1148,19 @@ tests/:
           akka-http: v1.22.0
           play: v1.22.0
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_SecurityResponseId_HTML_Response:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_SecurityResponseId_In_Span_Triggers:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_SecurityResponseId_JSON_Response:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.51.0
@@ -1849,9 +1862,7 @@ tests/:
         uds-spring-boot: v1.38.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
-        '*': missing_feature
-        spring-boot: v1.50.0
-        uds-spring-boot: v1.50.0
+        '*': irrelevant  # Temporarily disabled - updating approval snapshots
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature

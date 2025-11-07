@@ -162,7 +162,6 @@ tests/:
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
-            fastapi: bug (APPSEC-59742)
           TestSSRF_ExtendedLocation: v3.1.0.dev
           TestSSRF_StackTrace: v3.9.0.dev
         test_stacktrace_leak.py:
@@ -452,6 +451,11 @@ tests/:
         Test_CustomBlockingResponse:
           '*': v1.20.0
           fastapi: v2.4.0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: v3.19.0
+        Test_SecurityResponseId_HTML_Response: v3.19.0
+        Test_SecurityResponseId_In_Span_Triggers: v3.19.0
+        Test_SecurityResponseId_JSON_Response: v3.19.0
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1
@@ -681,19 +685,19 @@ tests/:
     test_event_tracking.py:
       Test_CustomEvent:
         '*': v1.10.0
-        'django-poc': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)'
+        'django-poc': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
         'django-py3.13': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
       Test_CustomEvent_Metrics: v3.10.0.dev
       Test_UserLoginFailureEvent:
         '*': v2.10.0
-        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
+        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
-        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
+        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
@@ -727,10 +731,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v3.7.0.dev
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability: missing_feature
-      Test_ExtendedRequestBodyCollection: missing_feature
-      Test_ExtendedRequestHeadersDataCollection: missing_feature
-      Test_ExtendedResponseHeadersDataCollection: missing_feature
+      Test_ExtendedDataCollectionCapability: irrelevant (wont do)
+      Test_ExtendedRequestBodyCollection: irrelevant (wont do)
+      Test_ExtendedRequestHeadersDataCollection: irrelevant (wont do)
+      Test_ExtendedResponseHeadersDataCollection: irrelevant (wont do)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -801,7 +805,7 @@ tests/:
       Test_AppSecObfuscator:
         '*': v1.5.0-rc1
         fastapi: v2.6.0
-      Test_CollectDefaultRequestHeader: v2.9.040
+      Test_CollectDefaultRequestHeader: v2.9.0
       Test_CollectRespondHeaders:
         '*': v1.4.0-rc1
         fastapi: v2.4.0

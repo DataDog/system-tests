@@ -345,6 +345,11 @@ tests/:
         Test_Blocking: v1.11.0
         Test_Blocking_strip_response_headers: v1.13.0
         Test_CustomBlockingResponse: v1.15.0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
@@ -585,7 +590,11 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: missing_feature (feature not implemented)
+      Test_Debugger_Expression_Language:
+        "*": irrelevant
+        rails72: v2.20.0
+        rails80: v2.20.0
+        uds-rails: v2.20.0
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
@@ -902,7 +911,15 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag:
+      "*": v2.23.0.dev
+      sinatra14: irrelevant
+      sinatra22: irrelevant
+      sinatra32: irrelevant
+      sinatra41: irrelevant
+      uds-sinatra: irrelevant
+    Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v2.15.0  # real version unknown
     Test_SamplingDecisionAdded: v2.12.1  # real version unknown
