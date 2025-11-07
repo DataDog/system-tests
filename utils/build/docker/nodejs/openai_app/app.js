@@ -59,12 +59,21 @@ app.post('/embeddings', async (req, res) => {
 
 app.post('/responses/create', async (req, res) => {
   const { model, input, parameters } = req.body;
-  const response = await client.responses.create({
+  let response = await client.responses.create({
     model,
     input,
     ...parameters,
   });
-  res.json({ response });
+
+  if (parameters.stream) {
+    const chunks = [];
+    for await (const chunk of response) {
+      chunks.push(chunk);
+    }
+    response = chunks;
+  }
+
+  res.json({ response: response });
 });
 
 app.listen(process.env.FRAMEWORK_TEST_CLIENT_SERVER_PORT || 80, () => {

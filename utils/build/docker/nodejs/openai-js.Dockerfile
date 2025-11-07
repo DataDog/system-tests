@@ -7,7 +7,7 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/openai /usr/app
+COPY utils/build/docker/nodejs/openai_app /usr/app
 
 WORKDIR /usr/app
 
