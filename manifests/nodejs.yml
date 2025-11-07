@@ -1086,7 +1086,7 @@ tests/:
       Test_RuntimeActivation: *ref_3_9_0
       Test_RuntimeDeactivation: *ref_3_9_0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: *ref_5_26_0
+      TestServiceActivationEnvVarConfigurationMetric: *ref_5_55_0 # real version unknown
       TestServiceActivationEnvVarMetric: *ref_5_55_0
       TestServiceActivationRemoteConfigMetric: *ref_5_55_0
       TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
