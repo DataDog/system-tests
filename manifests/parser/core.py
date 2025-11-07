@@ -5,6 +5,7 @@ import re
 from collections import defaultdict
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 import yaml
 from jsonschema import validate
@@ -100,12 +101,28 @@ class Declaration:
         return f"{self.value}"
 
 
+def field_processing(
+    name: str,
+    transformation: Callable[[str, list[dict[str, Any]], dict[str, Any]], None],
+    value: list[dict[str, Any]],
+    entry: dict[str, Any],
+) -> None:
+    if name in entry:
+        transformation(name, value, entry)
+
+
+def process_lib_version(n: str, _: object, e: dict[str, Any]) -> None:
+    e[n] = Declaration(e[n]).value
+
+
 def _load_file(file: str, component: str):
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except FileNotFoundError:
         return {}
+
+    field_processors = [("library_version", process_lib_version)]
 
     ret = {}
     for nodeid, raw_value in data["manifest"].items():
@@ -124,8 +141,8 @@ def _load_file(file: str, component: str):
             if not isinstance(raw_value, list):
                 value = [raw_value]
             for entry in value:
-                if "library_version" in entry:
-                    entry["library_version"] = Declaration(entry["library_version"]).value
+                for field_processor in field_processors:
+                    field_processing(field_processor[0], field_processor[1], value, entry)
                 entry["library"] = component
 
         ret[nodeid] = value
