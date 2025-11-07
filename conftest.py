@@ -5,27 +5,28 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence, Generator
 import json
 import os
 import time
 import types
-from typing import Any
 import xml.etree.ElementTree as ET
+from collections.abc import Generator, Sequence
+from typing import Any
 
 import pytest
 from _pytest.junitxml import xml_key
-from pytest_jsonreport.plugin import JSONReport
 from pluggy._result import _Result as Result
+from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
-from utils.properties_serialization import SetupProperties
-from utils._context._scenarios import scenarios, Scenario
+from utils._context._scenarios import Scenario, scenarios
 from utils._context.component_version import ComponentVersion
-from utils._decorators import configure as configure_decorators, add_pytest_marker
+from utils._decorators import add_pytest_marker
+from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 from utils.get_declaration import get_rules, match_rule
+from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
