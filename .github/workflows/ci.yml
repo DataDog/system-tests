@@ -65,11 +65,7 @@ jobs:
     - compute_libraries_and_scenarios
     strategy:
       matrix:
-        # include: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.library_matrix) }}
-        includes:
-          - library: otel_collector
-            version: prod
-
+        include: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.library_matrix) }}
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     permissions:
@@ -87,9 +83,9 @@ jobs:
       DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
       DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     with:
-      library: otel_collector
-      scenarios:  OTEL_COLLECTOR  # ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
-      # scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
+      library: ${{ matrix.library }}
+      scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
+      scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
       excluded_scenarios: OTEL_COLLECTOR_E2E  # rely on real backend
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
