@@ -73,18 +73,23 @@ tests/:
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities:
           '*': v1.55.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
           '*': v1.55.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Negative:
           '*': v1.55.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Processor_Override:
           '*': v1.55.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Scanner:
           '*': v1.55.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
