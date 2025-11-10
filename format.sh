@@ -149,6 +149,17 @@ if ! python ./manifests/parser/core.py; then
   exit 1
 fi
 
+echo "Running shellcheck checks..."
+if ! which ./venv/bin/shellcheck > /dev/null; then
+  echo "shellcheck is not installed, installing it (ETA 60s)"
+  ./build.sh -i runner > /dev/null
+fi
+
+if ! ./utils/scripts/shellcheck.sh; then
+  echo "shellcheck checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
 echo "Running language-specific linters..."
 if which npm > /dev/null; then
   echo "Running Node.js linters"
