@@ -1279,6 +1279,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             environment=environment,
             volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
+            user=f"{os.getuid()}:{os.getgid()}",
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
