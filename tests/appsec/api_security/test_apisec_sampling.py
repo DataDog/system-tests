@@ -8,13 +8,14 @@ from utils import (
     weblog,
     logger,
 )
+from utils._weblog import HttpResponse
 
 import random
 import string
 import time
 
 
-def get_schema(request, address):
+def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})

@@ -71,6 +71,11 @@ on:
         default: false
         required: false
         type: boolean
+      test_optimization_datadog_site:
+        description: "DataDog site to use for test optimization"
+        default: "datadoghq.com"
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -135,6 +140,9 @@ jobs:
         if: always()
         run: |
           if compgen -G "logs*/" > /dev/null; then
+            # the script that pushes logs to FPD does not handles folder name collisions.
+            # waiting for a proper fix, we add the job instance in the folder name
+            mv logs_parametric logs_parametric_${{ matrix.job_instance }}
             tar -czvf artifact.tar.gz logs*/
           else
             echo "No logs*/ found; skipping tar."
@@ -152,3 +160,4 @@ jobs:
         uses: ./.github/actions/push_to_test_optim
         with:
           datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
+          datadog_site: ${{ inputs.test_optimization_datadog_site }}

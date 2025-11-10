@@ -1,7 +1,10 @@
+from urllib.parse import urlparse
 import pytest
 
 from utils import context, features, missing_feature, scenarios
-from urllib.parse import urlparse
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
+
 
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 
@@ -45,7 +48,11 @@ DEFAULT_ENVVARS = {
 
 @pytest.fixture
 def otlp_metrics_endpoint_library_env(
-    library_env, endpoint_env, test_agent_otlp_http_port, test_agent_otlp_grpc_port, test_agent_container_name
+    library_env: dict[str, str],
+    endpoint_env: str,
+    test_agent: TestAgentAPI,
+    test_agent_otlp_http_port: int,
+    test_agent_otlp_grpc_port: int,
 ):
     """Set up a custom endpoint for OTLP metrics."""
     prev_value = library_env.get(endpoint_env)
@@ -59,7 +66,7 @@ def otlp_metrics_endpoint_library_env(
     port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
     path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/metrics"
 
-    library_env[endpoint_env] = f"http://{test_agent_container_name}:{port}{path}"
+    library_env[endpoint_env] = f"http://{test_agent.container_name}:{port}{path}"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]
@@ -67,7 +74,7 @@ def otlp_metrics_endpoint_library_env(
         library_env[endpoint_env] = prev_value
 
 
-def generate_default_counter_data_point(test_library, instrument_name):
+def generate_default_counter_data_point(test_library: APMLibrary, instrument_name: str):
     test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
     test_library.otel_metrics_force_flush()
     test_library.otel_create_counter(
@@ -84,7 +91,13 @@ def generate_default_counter_data_point(test_library, instrument_name):
     test_library.otel_metrics_force_flush()
 
 
-def assert_scope_metric(scope_metric, meter_name, meter_version, schema_url, expected_scope_attributes):
+def assert_scope_metric(
+    scope_metric: dict[str, dict],
+    meter_name: str,
+    meter_version: str,
+    schema_url: str,
+    expected_scope_attributes: dict[str, str],
+):
     assert scope_metric["scope"]["name"] == meter_name
     assert scope_metric["scope"]["version"] == meter_version
     assert (
@@ -94,19 +107,21 @@ def assert_scope_metric(scope_metric, meter_name, meter_version, schema_url, exp
     assert scope_metric["schema_url"] == schema_url
 
 
-def assert_metric_info(metric, name, unit, description):
+def assert_metric_info(metric: dict, name: str, unit: str, description: str):
     assert metric["name"] == name
     assert metric["unit"] == unit
     assert metric["description"] == description
 
 
-def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotonic, value, attributes):
+def assert_sum_aggregation(
+    sum_aggregation: dict, aggregation_temporality: str, *, is_monotonic: bool, value: int, attributes: dict
+):
     assert sum_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
     assert sum_aggregation["is_monotonic"] if is_monotonic else not sum_aggregation.get("is_monotonic")
 
     for sum_data_point in sum_aggregation["data_points"]:
         if attributes == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}:
-            assert sum_data_point["as_double"] == value
+            assert float(sum_data_point.get("as_int", 0)) == value
             assert (
                 attributes.items()
                 == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}.items()
@@ -117,10 +132,10 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
     pytest.fail(f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}")
 
 
-def assert_gauge_aggregation(gauge_aggregation, value, attributes):
+def assert_gauge_aggregation(gauge_aggregation: dict, value: int, attributes: dict[str, str]):
     for gauge_data_point in gauge_aggregation["data_points"]:
         if attributes == {item["key"]: item["value"]["string_value"] for item in gauge_data_point["attributes"]}:
-            assert gauge_data_point["as_double"] == value
+            assert float(gauge_data_point.get("as_int", 0)) == value
             assert "time_unix_nano" in gauge_data_point
             return
 
@@ -128,19 +143,22 @@ def assert_gauge_aggregation(gauge_aggregation, value, attributes):
 
 
 def assert_histogram_aggregation(
-    histogram_aggregation,
-    aggregation_temporality,
-    count,
-    sum_value,
-    min_value,
-    max_value,
-    bucket_boundaries,
-    bucket_counts,
-    attributes,
+    histogram_aggregation: dict[str, str | list[dict]],
+    aggregation_temporality: str,
+    count: int,
+    sum_value: int,
+    min_value: int,
+    max_value: int,
+    bucket_boundaries: list[float],
+    bucket_counts: list[int],
+    attributes: dict[str, str],
 ):
-    assert histogram_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
+    aggregation_temporality: str = histogram_aggregation["aggregation_temporality"]
+    assert aggregation_temporality.casefold() == aggregation_temporality.casefold()
 
-    for histogram_data_point in histogram_aggregation["data_points"]:
+    assert isinstance(histogram_aggregation["data_points"], list)
+    data_points: list[dict] = histogram_aggregation["data_points"]
+    for histogram_data_point in data_points:
         if attributes == {item["key"]: item["value"]["string_value"] for item in histogram_data_point["attributes"]}:
             assert int(histogram_data_point["count"]) == count
             assert histogram_data_point["sum"] == sum_value
@@ -155,7 +173,7 @@ def assert_histogram_aggregation(
     pytest.fail(f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}")
 
 
-def find_metric_by_name(scope_metric: dict, name: str):
+def find_metric_by_name(scope_metric: dict, name: str) -> dict:
     for metric in scope_metric["metrics"]:
         if metric["name"] == name:
             return metric
@@ -180,7 +198,6 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -200,7 +217,9 @@ class Test_Otel_Metrics_Configuration_Enabled:
             },
         ],
     )
-    def test_otlp_metrics_enabled(self, test_agent, test_library, library_env):
+    def test_otlp_metrics_enabled(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """Ensure that OTLP metrics are emitted."""
 
         name = "enabled-counter"
@@ -232,7 +251,9 @@ class Test_Otel_Metrics_Configuration_Enabled:
             },
         ],
     )
-    def test_otlp_metrics_disabled(self, test_agent, test_library, library_env):
+    def test_otlp_metrics_disabled(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """Ensure that OTLP metrics are not emitted."""
         name = "disabled-counter"
 
@@ -249,7 +270,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -265,7 +285,9 @@ class Test_Otel_Metrics_Api_MeterProvider:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_get_meter_by_distinct(self, test_agent, test_library, library_env):
+    def test_otel_get_meter_by_distinct(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         name = "counter-test_get_meter_same_parameters"
         first_meter_name = DEFAULT_METER_NAME
         identical_meter_name = DEFAULT_METER_NAME
@@ -322,7 +344,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -337,7 +358,9 @@ class Test_Otel_Metrics_Api_Meter:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_instruments_by_distinct(self, test_agent, test_library, library_env):
+    def test_otel_create_instruments_by_distinct(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         counter_name = "test_otel_create_counter"
         updowncounter_name = "test_otel_create_updowncounter"
         gauge_name = "test_otel_create_gauge"
@@ -542,7 +565,6 @@ class Test_Otel_Metrics_Api_Meter:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -558,7 +580,9 @@ class Test_Otel_Metrics_Api_Instrument:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_counter_add_non_negative_and_negative_values(self, test_agent, test_library):
+    def test_otel_counter_add_non_negative_and_negative_values(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         non_negative_value = 42
         second_non_negative_value = 21
         negative_value = -21
@@ -612,7 +636,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_counter_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+    def test_otel_counter_add_non_negative_values_with_different_tags(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         non_negative_value = 42
         second_non_negative_value = 21
         name = f"counter1-{non_negative_value}-{second_non_negative_value}-different-tags"
@@ -664,7 +690,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_updowncounter_add_multiple_values(self, test_agent, test_library):
+    def test_otel_updowncounter_add_multiple_values(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         first_value = 42
         second_value = 21
         name = f"updowncounter1-{first_value}-{second_value}"
@@ -711,7 +737,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_updowncounter_add_multiple_values_with_different_tags(self, test_agent, test_library):
+    def test_otel_updowncounter_add_multiple_values_with_different_tags(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         first_value = 42
         second_value = 21
         name = f"updowncounter1-{first_value}-{second_value}-different-tags"
@@ -765,7 +793,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_gauge_record_multiple_values(self, test_agent, test_library):
+    def test_otel_gauge_record_multiple_values(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         first_value = 42
         second_value = 21
         name = f"gauge-{first_value}-{second_value}"
@@ -804,7 +832,9 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_gauge_record_multiple_values_with_different_tags(self, test_agent, test_library):
+    def test_otel_gauge_record_multiple_values_with_different_tags(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         first_value = 42
         second_value = 21
         name = f"gauge-{first_value}-{second_value}-different-tags"
@@ -844,7 +874,9 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_histogram_add_non_negative_and_negative_values(self, test_agent, test_library):
+    def test_otel_histogram_add_non_negative_and_negative_values(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         non_negative_value1 = 42
         non_negative_value2 = 21
         negative_value1 = -21
@@ -905,7 +937,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_histogram_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+    def test_otel_histogram_add_non_negative_values_with_different_tags(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         non_negative_value1 = 42
         non_negative_value2 = 21
         name = f"histogram-{non_negative_value1}-{non_negative_value2}-different-tags"
@@ -966,7 +1000,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_asynchronous_counter_constant_callback_value(self, test_agent, test_library):
+    def test_otel_asynchronous_counter_constant_callback_value(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         n = 42
         name = f"observablecounter1-{n}"
 
@@ -1001,7 +1037,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_asynchronous_updowncounter_constant_callback_value(self, test_agent, test_library):
+    def test_otel_asynchronous_updowncounter_constant_callback_value(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         n = 42
         name = f"observableupdowncounter1-{n}"
 
@@ -1036,7 +1074,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_asynchronous_gauge_constant_callback_value(self, test_agent, test_library):
+    def test_otel_asynchronous_gauge_constant_callback_value(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         n = 42
         name = f"observablegauge-{n}"
 
@@ -1071,7 +1109,6 @@ class Test_Otel_Metrics_Api_Instrument:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1095,7 +1132,9 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         ],
         ids=["default", "delta", "cumulative"],
     )
-    def test_otel_aggregation_temporality(self, library_env, test_agent, test_library):
+    def test_otel_aggregation_temporality(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
 
         counter_name = f"test_otel_aggregation_temporality_counter-{temporality_preference.lower()}"
@@ -1263,7 +1302,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1289,12 +1327,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     )
     def test_otlp_custom_endpoint_http_protobuf(
         self,
-        library_env,
-        endpoint_env,
-        test_agent_otlp_http_port,
-        otlp_metrics_endpoint_library_env,
-        test_agent,
-        test_library,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        test_agent_otlp_http_port: int,
+        otlp_metrics_endpoint_library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
     ):
         """Metrics are exported to custom OTLP endpoint."""
         name = "test_otlp_custom_endpoint-counter"
@@ -1309,6 +1347,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1324,12 +1363,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     )
     def test_otlp_custom_endpoint_grpc(
         self,
-        library_env,
-        endpoint_env,
-        test_agent_otlp_grpc_port,
-        otlp_metrics_endpoint_library_env,
-        test_agent,
-        test_library,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        test_agent_otlp_grpc_port: int,
+        otlp_metrics_endpoint_library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
     ):
         """Metrics are exported to custom OTLP endpoint."""
         name = "test_otlp_custom_endpoint-counter"
@@ -1359,12 +1398,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     )
     def test_otlp_metrics_custom_endpoint_http_protobuf(
         self,
-        library_env,
-        endpoint_env,
-        test_agent_otlp_http_port,
-        otlp_metrics_endpoint_library_env,
-        test_agent,
-        test_library,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        test_agent_otlp_http_port: int,
+        otlp_metrics_endpoint_library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
     ):
         """Metrics are exported to custom OTLP endpoint."""
         name = "test_otlp_metrics_custom_endpoint_http_protobuf-counter"
@@ -1379,6 +1418,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1394,12 +1434,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     )
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
-        library_env,
-        endpoint_env,
-        test_agent_otlp_grpc_port,
-        otlp_metrics_endpoint_library_env,
-        test_agent,
-        test_library,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        test_agent_otlp_grpc_port: int,
+        otlp_metrics_endpoint_library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
     ):
         """Metrics are exported to custom OTLP endpoint."""
         name = "test_otlp_metrics_custom_endpoint_grpc-counter"
@@ -1421,7 +1461,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1442,7 +1481,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
             },
         ],
     )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
+    def test_custom_http_headers_included_in_otlp_export(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """OTLP metrics are emitted when enabled."""
 
         name = "test_custom_http_headers_included_in_otlp_export-counter"
@@ -1473,7 +1514,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
             },
         ],
     )
-    def test_custom_metrics_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
+    def test_custom_metrics_http_headers_included_in_otlp_export(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """OTLP metrics are emitted when enabled."""
 
         name = "test_custom_metrics_http_headers_included_in_otlp_export-counter"
@@ -1501,7 +1544,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1522,7 +1564,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
             },
         ],
     )
-    def test_otlp_protocol_http_protobuf(self, test_agent, test_library, library_env):
+    def test_otlp_protocol_http_protobuf(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """OTLP metrics are emitted in expected format."""
         protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
         name = f"test_otlp_protocols-{protocol}-counter"
@@ -1551,7 +1595,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
             },
         ],
     )
-    def test_otlp_protocol_grpc(self, test_agent, test_library, library_env):
+    def test_otlp_protocol_grpc(self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]):
         """OTLP metrics are emitted in expected format."""
         protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
         name = f"test_otlp_protocols-{protocol}-counter"
@@ -1578,7 +1622,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1600,7 +1644,9 @@ class Test_Otel_Metrics_Host_Name:
             },
         ],
     )
-    def test_hostname_from_dd_hostname(self, test_agent, test_library, library_env):
+    def test_hostname_from_dd_hostname(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """host.name is set from DD_HOSTNAME."""
         name = "test_hostname_from_dd_hostname"
 
@@ -1627,7 +1673,9 @@ class Test_Otel_Metrics_Host_Name:
         ],
         ids=["host.name"],
     )
-    def test_hostname_from_otel_resources(self, test_agent, test_library, library_env, host_attribute):
+    def test_hostname_from_otel_resources(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str], host_attribute: str
+    ):
         """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
         name = "test_hostname_from_otel_resources"
 
@@ -1656,7 +1704,7 @@ class Test_Otel_Metrics_Host_Name:
         ],
         ids=["disabled", "default"],
     )
-    def test_hostname_omitted(self, test_agent, test_library, library_env):
+    def test_hostname_omitted(self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]):
         """host.name is omitted when not configured."""
         name = "test_hostname_omitted"
 
@@ -1676,7 +1724,6 @@ class Test_Otel_Metrics_Host_Name:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1698,7 +1745,7 @@ class Test_Otel_Metrics_Resource_Attributes:
             },
         ],
     )
-    def test_otel_resource_attributes(self, test_agent, test_library):
+    def test_otel_resource_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         name = "counter1"
         expected_attributes = {
             "service.name": "service",
@@ -1757,7 +1804,9 @@ class Test_Otel_Metrics_Resource_Attributes:
             },
         ],
     )
-    def test_otel_resource_attributes_populated_by_dd_otel_envs(self, test_agent, test_library):
+    def test_otel_resource_attributes_populated_by_dd_otel_envs(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         name = "counter1"
         expected_attributes = {
             "service.name": "service",
@@ -1795,7 +1844,7 @@ class Test_Otel_Metrics_Resource_Attributes:
             },
         ],
     )
-    def test_dd_env_vars_override_otel(self, test_agent, test_library):
+    def test_dd_env_vars_override_otel(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         name = "counter1"
         expected_attributes = {
             "service.name": "service",
@@ -1827,7 +1876,6 @@ class Test_Otel_Metrics_Resource_Attributes:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1849,7 +1897,9 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_default_configurations(self, test_agent, test_library, library_env):
+    def test_telemetry_default_configurations(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    ):
         """Test default configurations values for environment variables associated with the OTel Metrics features."""
         name = "test_telemetry_exporter_configurations"
 
@@ -1873,6 +1923,7 @@ class Test_Otel_Metrics_Telemetry:
                 configurations_by_name, expected_env, "default", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
+            assert isinstance(config, dict)
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
@@ -1897,12 +1948,12 @@ class Test_Otel_Metrics_Telemetry:
     )
     def test_telemetry_exporter_configurations(
         self,
-        library_env,
-        endpoint_env,
-        test_agent_otlp_http_port,
-        otlp_metrics_endpoint_library_env,
-        test_agent,
-        test_library,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        test_agent_otlp_http_port: int,
+        otlp_metrics_endpoint_library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
     ):
         """Test configurations starting with OTEL_EXPORTER_OTLP_ are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_exporter_configurations"
@@ -1929,6 +1980,7 @@ class Test_Otel_Metrics_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
+            assert isinstance(config, dict)
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
@@ -1951,12 +2003,12 @@ class Test_Otel_Metrics_Telemetry:
     )
     def test_telemetry_exporter_metrics_configurations(
         self,
-        library_env,
-        endpoint_env,
-        test_agent_otlp_http_port,
-        otlp_metrics_endpoint_library_env,
-        test_agent,
-        test_library,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        test_agent_otlp_http_port: int,
+        otlp_metrics_endpoint_library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
     ):
         """Test Teleemtry configurations starting with OTEL_EXPORTER_OTLP_METRICS_ are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_exporter_metrics_configurations"
@@ -1981,6 +2033,7 @@ class Test_Otel_Metrics_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
+            assert isinstance(config, dict)
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
@@ -1995,7 +2048,9 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_metrics_http_protobuf(self, library_env, test_agent, test_library):
+    def test_telemetry_metrics_http_protobuf(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 
@@ -2026,6 +2081,7 @@ class Test_Otel_Metrics_Telemetry:
             assert "protocol:http" in metric.get("tags")
             assert "encoding:protobuf" in metric.get("tags")
 
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2036,7 +2092,9 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_metrics_grpc(self, library_env, test_agent, test_library):
+    def test_telemetry_metrics_grpc(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 

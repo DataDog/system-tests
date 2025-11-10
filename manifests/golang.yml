@@ -24,11 +24,11 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
+        Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Negative: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0-dev
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
@@ -215,12 +215,15 @@ tests/:
       test_api10.py:
         Test_API10_all: v2.4.0-dev
         Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: v2.4.0-dev
         Test_API10_request_headers: v2.4.0-dev
         Test_API10_request_method: v2.4.0-dev
         Test_API10_response_body: v2.4.0-dev
         Test_API10_response_headers: v2.4.0-dev
         Test_API10_response_status: v2.4.0-dev
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
@@ -347,6 +350,11 @@ tests/:
         Test_Blocking: v1.50.0-rc.1
         Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: v1.63.0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
@@ -745,6 +753,9 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         net-http: v1.70.1
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.50.0
     test_config_consistency.py:
@@ -781,6 +792,7 @@ tests/:
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (spans are stored in a local context, there is no global current span in the go tracer)
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # The set_name endpoint should set the resouce name (not the span name)
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # String attributes are incorrectly stored/serialized in a list
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
@@ -866,6 +878,8 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.2.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant

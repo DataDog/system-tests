@@ -96,6 +96,11 @@ on:
         default: false
         required: false
         type: boolean
+      test_optimization_datadog_site:
+        description: "DataDog site to use for test optimization"
+        default: "datadoghq.com"
+        required: false
+        type: string
 
 jobs:
   main:
@@ -163,6 +168,9 @@ jobs:
       env:
         SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
+    - name: Run INTEGRATION_FRAMEWORKS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')
+      run: ./run.sh INTEGRATION_FRAMEWORKS -L ${{ inputs.library }} --weblog ${{ inputs.weblog }}
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
@@ -266,6 +274,9 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+    - name: Run FEATURE_FLAG_EXPOSURE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"FEATURE_FLAG_EXPOSURE"')
+      run: ./run.sh FEATURE_FLAG_EXPOSURE
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -334,6 +345,12 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE"')
+      run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE
+    - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX"')
+      run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX
     - name: Run APPSEC_STANDALONE_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
       run: ./run.sh APPSEC_STANDALONE_RASP
@@ -437,6 +454,9 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
+      run: ./run.sh APPSEC_LAMBDA_RASP
     - name: Run EXTERNAL_PROCESSING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING"')
       run: ./run.sh EXTERNAL_PROCESSING
@@ -498,3 +518,4 @@ jobs:
       uses: ./.github/actions/push_to_test_optim
       with:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
+        datadog_site: ${{ inputs.test_optimization_datadog_site }}
