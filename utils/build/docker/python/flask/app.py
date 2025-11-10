@@ -1884,13 +1884,14 @@ def otel_drop_in_default_propagator_inject():
 
     return jsonify(result)
 
+
 # From https://github.com/open-telemetry/opentelemetry-python/issues/2432#issuecomment-1742425474
 # This context manager handles correctly managing context with repeated baggage operations
 @contextlib.contextmanager
 def otel_baggage(
-    baggage_to_remove = None,
-    baggage_to_set = None,
-    context = None,
+    baggage_to_remove=None,
+    baggage_to_set=None,
+    context=None,
 ):
     attached_context_tokens: list[object] = list()
 
@@ -1910,6 +1911,7 @@ def otel_baggage(
         for attached_token in attached_context_tokens:
             opentelemetry.context.detach(attached_token)
 
+
 @app.route("/otel_drop_in_baggage_api_otel", methods=["GET"])
 def otel_drop_in_baggage_api_otel():
     url = flask_request.args["url"]
@@ -1917,7 +1919,11 @@ def otel_drop_in_baggage_api_otel():
     baggage_set_header = flask_request.args["baggage_set"]
 
     baggage_to_remove = [key.strip() for key in baggage_remove_header.split(",")] if baggage_remove_header else None
-    baggage_to_set = {key.strip(): value.strip() for key, value in [item.split("=") for item in baggage_set_header.split(",")]} if baggage_set_header else None
+    baggage_to_set = (
+        {key.strip(): value.strip() for key, value in [item.split("=") for item in baggage_set_header.split(",")]}
+        if baggage_set_header
+        else None
+    )
 
     with otel_baggage(baggage_to_remove, baggage_to_set):
         response = requests.get(url)
@@ -1931,6 +1937,7 @@ def otel_drop_in_baggage_api_otel():
 
         return result
 
+
 @app.route("/otel_drop_in_baggage_api_datadog", methods=["GET"])
 def otel_drop_in_baggage_api_datadog():
     url = flask_request.args["url"]
@@ -1938,7 +1945,11 @@ def otel_drop_in_baggage_api_datadog():
     baggage_set_header = flask_request.args["baggage_set"]
 
     baggage_to_remove = [key.strip() for key in baggage_remove_header.split(",")] if baggage_remove_header else None
-    baggage_to_set = {key.strip(): value.strip() for key, value in [item.split("=") for item in baggage_set_header.split(",")]} if baggage_set_header else None
+    baggage_to_set = (
+        {key.strip(): value.strip() for key, value in [item.split("=") for item in baggage_set_header.split(",")]}
+        if baggage_set_header
+        else None
+    )
 
     span = tracer.current_span()
     if span:
