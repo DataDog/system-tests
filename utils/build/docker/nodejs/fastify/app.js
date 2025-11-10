@@ -25,7 +25,6 @@ const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
-const { runInNewContext } = require('vm')
 
 // Unstructured logging (plain text)
 const plainLogger = console
@@ -603,16 +602,16 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
     method: 'GET'
   }
 
-  const baggage_remove = request.query.baggage_remove
-  const baggage_set = request.query.baggage_set
-  const baggage_to_remove = baggage_remove ? baggage_remove.split(',') : []
-  const baggage_to_set = baggage_set ? baggage_set.split(',').map(item => item.split('=')) : []
+  const baggageRemove = request.query.baggage_remove
+  const baggageSet = request.query.baggage_set
+  const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
+  const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
 
-  let baggage = api.propagation.getActiveBaggage() || api.propagation.createBaggage();
-  for (const key of baggage_to_remove) {
+  let baggage = api.propagation.getActiveBaggage() || api.propagation.createBaggage()
+  for (const key of baggageToRemove) {
     baggage = baggage.removeEntry(key.trim())
   }
-  for (const [key, value] of baggage_to_set) {
+  for (const [key, value] of baggageToSet) {
     baggage = baggage.setEntry(key.trim(), { value: value.trim() })
   }
 
@@ -667,16 +666,16 @@ fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
     method: 'GET'
   }
 
-  const baggage_remove = request.query.baggage_remove
-  const baggage_set = request.query.baggage_set
-  const baggage_to_remove = baggage_remove ? baggage_remove.split(',') : []
-  const baggage_to_set = baggage_set ? baggage_set.split(',').map(item => item.split('=')) : []
+  const baggageRemove = request.query.baggage_remove
+  const baggageSet = request.query.baggage_set
+  const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
+  const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
 
-  for (const key of baggage_to_remove) {
+  for (const key of baggageToRemove) {
     console.log(`Removing baggage item: ${key.trim()}`)
     removeBaggageItem(key.trim())
   }
-  for (const [key, value] of baggage_to_set) {
+  for (const [key, value] of baggageToSet) {
     console.log(`Setting baggage item: ${key.trim()} = ${value.trim()}`)
     setBaggageItem(key.trim(), value.trim())
   }
