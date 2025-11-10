@@ -15,7 +15,6 @@ from utils import rfc
 from utils import scenarios
 from utils import weblog
 
-
 CONFIG_ENABLED = (
     "datadog/2/ASM_FEATURES/asm_features_activation/config",
     {"asm": {"enabled": True}},
@@ -168,14 +167,14 @@ class Test_UpdateRuleFileWithRemoteConfig:
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
-        def validate_waf_rule_version_tag(span, appsec_data):  # noqa: ARG001
+        def validate_waf_rule_version_tag(span: dict, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack"""
             meta = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
             assert re.match(expected_version_regex, meta[expected_rules_version_tag])
             return True
 
-        def validate_waf_rule_version_tag_by_rc(span, appsec_data):  # noqa: ARG001
+        def validate_waf_rule_version_tag_by_rc(span: dict, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack with expected rc version"""
             meta: dict = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
@@ -186,10 +185,10 @@ class Test_UpdateRuleFileWithRemoteConfig:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
-        interfaces.library.validate_appsec(self.response_1, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_1, validate_waf_rule_version_tag)
         interfaces.library.assert_waf_attack(self.response_1b, rule="ua0-600-12x")
         assert self.response_1b.status_code == 200
-        interfaces.library.validate_appsec(self.response_1b, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_1b, validate_waf_rule_version_tag)
 
         # new rule file with only 12x
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
@@ -198,7 +197,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.assert_no_appsec_event(self.response_2)
         interfaces.library.assert_waf_attack(self.response_2b, rule="ua0-600-12x")
         assert self.response_2b.status_code == 200
-        interfaces.library.validate_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
+        interfaces.library.validate_one_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
 
         # block on 405/json with RC. It must not change anything for the new rule file
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
@@ -207,22 +206,22 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.assert_no_appsec_event(self.response_3)
         interfaces.library.assert_waf_attack(self.response_3b, rule="ua0-600-12x")
         assert self.response_3b.status_code == 200
-        interfaces.library.validate_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
+        interfaces.library.validate_one_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
 
         # Switch back to default rules but keep updated blocking action
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
-        interfaces.library.validate_appsec(self.response_4, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_4, validate_waf_rule_version_tag)
         assert self.response_4.status_code == 405
         interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
         assert self.response_4b.status_code == 200
-        interfaces.library.validate_appsec(self.response_4b, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_4b, validate_waf_rule_version_tag)
 
         # ASM disabled
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
 
         # Check for rule version in telemetry
-        series = find_series("generate-metrics", "appsec", ["waf.requests", "waf.init", "waf.updates"])
+        series = find_series("appsec", ["waf.requests", "waf.init", "waf.updates"])
         rule_versions = set()
         for s in series:
             for t in s.get("tags", ()):
@@ -320,7 +319,7 @@ RULES_COMPAT_FILE: tuple[str, dict] = (
 @rfc(
     "https://docs.google.com/document/d/1t6U7WXko_QChhoNIApn0-CRNe6SAKuiiAQIyCRPUXP4/edit?tab=t.0#heading=h.uw8qbgyhhb47"
 )
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 @features.appsec_rc_asm_dd_multiconfig
 @features.appsec_trace_tagging_rules
 class Test_AsmDdMultiConfiguration:
@@ -443,3 +442,161 @@ class Test_AsmDdMultiConfiguration:
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_no_appsec_event(self.response_4a)
         interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
+
+
+# This is used to test that configuring a new undefined action like "foo" does not break the library RC feature.
+FOO_ACTION = (
+    "datadog/2/ASM/actions/config",
+    {
+        "actions": [
+            {"id": "foo", "type": "foo"},
+        ]
+    },
+)
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+class Test_Unknown_Action:
+    def setup_unknown_action(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.set_config(*FOO_ACTION).apply()
+        self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_3 = rc.rc_state.reset().apply()
+        self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    def test_unknown_action(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        assert self.response_1.status_code == 403
+
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        assert self.response_2.status_code == 403
+
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)
+
+
+# tests that the library can handle multiple actions in the same remote config.
+BLOCK_FOO_ACTION = (
+    "datadog/2/ASM/actions/config",
+    {
+        "actions": [
+            {"id": "block", "parameters": {"status_code": 406, "type": "json"}, "type": "block_request"},
+            {"id": "foo", "type": "foo"},
+        ]
+    },
+)
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+class Test_Multiple_Actions:
+    def setup_multiple_actions(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_FOO_ACTION).apply()
+        self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_3 = rc.rc_state.reset().apply()
+        self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    def test_multiple_actions(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        assert self.response_1.status_code == 403
+
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        assert self.response_2.status_code == 406
+
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)
+
+
+EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+# Empty RC updates were incorrectly sent to waf
+@bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")
+class Test_Empty_Config:
+    def setup_empty_config(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.set_config(*EMPTY_CONFIG).apply()
+        self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_3 = rc.rc_state.reset().apply()
+        self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    def test_empty_config(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        assert self.response_1.status_code == 403
+
+        assert (
+            self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
+        )  # empty configs should be acknowledged and should not trigger errors
+        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        assert self.response_2.status_code == 403
+
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)
+
+
+DUPLICATE_ID_CONFIG = (
+    # the rules contains no id
+    "datadog/2/ASM/actions/config",
+    {
+        "actions": [
+            {"id": "block", "parameters": {"status_code": 405, "type": "html"}, "type": "block_request"},
+            {"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request"},
+        ]
+    },
+)
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+class Test_Invalid_Config:
+    def setup_invalid_config(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.set_config(*DUPLICATE_ID_CONFIG).apply()
+
+        self.config_state_3 = rc.rc_state.reset().apply()
+        self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    @bug(context.library < "nodejs@5.68.0", reason="APPSEC-59077")
+    def test_invalid_config(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        assert self.response_1.status_code == 403
+
+        assert self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
+        waf_config_errors_series = find_series("appsec", ["waf.config_errors"])
+        waf_config_errors_values = [point[1] for p in waf_config_errors_series for point in p["points"]]
+        assert any(val >= 1.0 for val in waf_config_errors_values)
+
+        for p in waf_config_errors_series:
+            tags = dict(tag.split(":") for tag in p["tags"])
+            assert "waf_version" in tags
+            assert "event_rules_version" in tags
+            assert "action" in tags
+            assert tags["action"] == "update"
+
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)

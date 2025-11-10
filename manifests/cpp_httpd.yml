@@ -1,6 +1,14 @@
 ---
 # Important note : version specified in this file are httpd-datadog version
 # you can find the list of existing version here : https://github.com/DataDog/httpd-datadog/releases
+#
+# For features that are not yet available in the latest release,
+# please specify a version greater than the current release using `>`.
+# DO NOT SPECIFY A NON EXISTING RELEASE.
+#
+# For example, if the latest release is `v1.0.0` and a feature like Baggage
+# is only supported on the `main` branch and in the upcoming release,
+# use `>1.0.0` to indicate that requirement.
 tests/:
   apm_tracing_e2e/: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/: irrelevant (ASM is not implemented in C++)
@@ -29,11 +37,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
     Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
@@ -71,6 +74,8 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py: missing_feature
   test_identify.py: irrelevant
   test_ipv6.py: missing_feature (APMAPI-869)
@@ -78,6 +83,7 @@ tests/:
   test_miscs.py: irrelevant
   test_profiling.py: missing_feature (missing profiling module in weblog)
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.0.0  # real version unknown
     Test_SamplingDecisionAdded: v1.0.0  # real version unknown
@@ -92,4 +98,6 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
+  test_v1_payloads.py: missing_feature

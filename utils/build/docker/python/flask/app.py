@@ -2,7 +2,6 @@ import os
 
 if os.environ.get("UWSGI_ENABLED", "false") == "false":
     # Patch with gevent but not for uwsgi-poc
-    import ddtrace.auto  # noqa: E402
     import gevent  # noqa: E402
     from gevent import monkey  # noqa: E402
 
@@ -28,7 +27,6 @@ import mock
 import urllib3
 import xmltodict
 import graphene
-import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -88,8 +86,15 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
+
+# This mimics a scenario where a user has one config setting set in multiple sources
+# so that config chaining data is sent
+if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
+    from ddtrace import config
+
+    config._logs_injection = True
+
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -99,11 +104,15 @@ from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -160,8 +169,6 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
 
 def main():
-    # IAST Flask patch
-    ddtrace_iast_flask_patch()
     app = Flask(__name__)
     app.secret_key = "SECRET_FOR_TEST"
     app.config["SESSION_TYPE"] = "memcached"
@@ -247,23 +254,27 @@ def check_and_create_users_table():
     cur = postgres_db.cursor()
 
     # Check if 'users' exists
-    cur.execute("""
+    cur.execute(
+        """
         SELECT EXISTS (
-            SELECT FROM information_schema.tables 
+            SELECT FROM information_schema.tables
             WHERE table_name = 'users'
         );
-    """)
+    """
+    )
     table_exists = cur.fetchone()[0]
 
     if not table_exists:
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE users (
                 id VARCHAR(255) PRIMARY KEY,
                 username VARCHAR(255),
                 email VARCHAR(255),
                 password VARCHAR(255)
             );
-        """)
+        """
+        )
         postgres_db.commit()
 
         users_data = [
@@ -1727,10 +1738,9 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1748,11 +1758,15 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
+
+
+@app.get("/resource_renaming/<path:path>")
+def resource_renaming(path: str):
+    return Response("ok", mimetype="text/plain")
 
 
 @app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])
@@ -1980,3 +1994,30 @@ def view_iast_sc_iv_overloaded_insecure():
     if _sc_v_overloaded(user, password):
         _sink_point_sqli(table=user)
     return Response("OK")
+
+
+@app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
+def external_request():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = flask_request.data or None
+    if body:
+        queries["Content-Type"] = flask_request.headers.get("content-type") or "application/json"
+    request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}",
+        method=flask_request.method,
+        headers=queries,
+        data=body,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})

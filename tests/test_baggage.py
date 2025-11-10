@@ -2,7 +2,7 @@ import json
 from utils import weblog, interfaces, features, scenarios
 
 
-def extract_baggage_value(request_headers):
+def extract_baggage_value(request_headers: dict | list):
     """Helper function that returns the baggage header value from the given headers.
     Supports both a list of header objects and a dict.
     """
@@ -18,7 +18,7 @@ def extract_baggage_value(request_headers):
     return None
 
 
-@scenarios.trace_propagation_style_default
+@scenarios.tracing_config_empty
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Basic:
     def setup_basic(self):
@@ -37,7 +37,7 @@ class Test_Baggage_Headers_Basic:
         assert "foo=bar" in baggage_value
 
 
-@scenarios.trace_propagation_style_default
+@scenarios.tracing_config_empty
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Malformed:
     def setup_malformed(self):
@@ -64,7 +64,7 @@ class Test_Baggage_Headers_Malformed:
             assert all(header.get("key") != "baggage" for header in headers)
 
 
-@scenarios.trace_propagation_style_default
+@scenarios.tracing_config_empty
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Malformed2:
     def setup_malformed_2(self):
@@ -85,7 +85,7 @@ class Test_Baggage_Headers_Malformed2:
             assert all(header.get("key") != "baggage" for header in headers)
 
 
-@scenarios.trace_propagation_style_default
+@scenarios.tracing_config_empty
 @features.datadog_baggage_headers
 class Test_Only_Baggage_Header:
     def setup_only_baggage(self):
@@ -100,7 +100,7 @@ class Test_Only_Baggage_Header:
         assert "foo=bar" in baggage_value
 
 
-@scenarios.trace_propagation_style_default
+@scenarios.tracing_config_empty
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Max_Items:
     def setup_max_headers(self):
@@ -130,7 +130,7 @@ class Test_Baggage_Headers_Max_Items:
         assert len(items) == self.max_items
 
 
-@scenarios.trace_propagation_style_default
+@scenarios.tracing_config_empty
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Max_Bytes:
     def setup_max_bytes(self):

@@ -15,6 +15,7 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
+from utils._context.docker import get_docker_client
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -30,7 +31,6 @@ from utils._context.containers import (
     TestedContainer,
     LocalstackContainer,
     ElasticMQContainer,
-    _get_client as get_docker_client,
 )
 
 from utils._logger import logger
@@ -51,6 +51,8 @@ class DockerScenario(Scenario):
 
     _network: Network = None
 
+    postgres_container: PostgresContainer
+
     def __init__(
         self,
         name: str,
@@ -60,6 +62,7 @@ class DockerScenario(Scenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
+        mocked_backend: bool = True,
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
@@ -89,41 +92,42 @@ class DockerScenario(Scenario):
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
-                host_log_folder=self.host_log_folder,
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 enable_ipv6=enable_ipv6,
+                mocked_backend=mocked_backend,
             )
 
             self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._supporting_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+            self.postgres_container = PostgresContainer()
+            self._supporting_containers.append(self.postgres_container)
 
         if include_mongo_db:
-            self._supporting_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MongoContainer())
 
         if include_cassandra_db:
-            self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(CassandraContainer())
 
         if include_kafka:
-            self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(KafkaContainer())
 
         if include_rabbitmq:
-            self._supporting_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(RabbitMqContainer())
 
         if include_mysql_db:
-            self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MySqlContainer())
 
         if include_sqlserver:
-            self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MsSqlServerContainer())
 
         if include_localstack:
-            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(LocalstackContainer())
 
         if include_elasticmq:
-            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(ElasticMQContainer())
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -140,7 +144,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(replay=self.replay)
+            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -232,6 +236,36 @@ class DockerScenario(Scenario):
             except:
                 logger.exception(f"Failed to remove container {container}")
 
+    def test_schemas(
+        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
+    ) -> None:
+        long_repr = []
+
+        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+
+        for error in interface.get_schemas_errors():
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
+                long_repr.append(f"* {error.message}")
+
+        if len(long_repr) != 0:
+            report = TestReport(
+                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::test_schemas",
+                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
+                {},
+                "failed",
+                "\n".join(long_repr),
+                "call",
+            )
+
+            if "error" not in logger.terminal.stats:
+                logger.terminal.stats["error"] = []
+
+            logger.terminal.stats["error"].append(report)
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
+
 
 class EndToEndScenario(DockerScenario):
     """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
@@ -305,9 +339,7 @@ class EndToEndScenario(DockerScenario):
 
         self._require_api_key = require_api_key
 
-        self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
-        )
+        self.agent_container = AgentContainer(use_proxy=use_proxy_for_agent, environment=agent_env)
 
         if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -327,7 +359,6 @@ class EndToEndScenario(DockerScenario):
         )
 
         self.weblog_container = WeblogContainer(
-            self.host_log_folder,
             environment=weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
@@ -344,8 +375,6 @@ class EndToEndScenario(DockerScenario):
         if use_proxy_for_weblog:
             self.weblog_container.depends_on.append(self.proxy_container)
 
-        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
-
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
 
@@ -360,23 +389,22 @@ class EndToEndScenario(DockerScenario):
             # 2. the trace agent port where the buddy connect to the agent
             # 3. and the host port where the buddy is accessible
             supported_languages = [
-                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
-                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
-                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
-                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
-                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python, "datadog/system-tests:python_buddy-v2"),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs, "datadog/system-tests:nodejs_buddy-v1"),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java, "datadog/system-tests:java_buddy-v1"),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v2"),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang, "datadog/system-tests:golang_buddy-v2"),
             ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
-                    f"datadog/system-tests:{language}_buddy-v1",
-                    self.host_log_folder,
+                    image_name,
                     host_port=host_port,
                     trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, trace_agent_port, host_port in supported_languages
+                for language, trace_agent_port, host_port, image_name in supported_languages
             ]
 
             for buddy in self.buddies:
@@ -391,6 +419,8 @@ class EndToEndScenario(DockerScenario):
 
     def configure(self, config: pytest.Config):
         super().configure(config)
+
+        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
@@ -539,7 +569,10 @@ class EndToEndScenario(DockerScenario):
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
             )
 
-            if self.library in ("nodejs",):
+            if self.library in (
+                "nodejs",
+                "ruby",
+            ):
                 from utils import weblog  # TODO better interface
 
                 # for weblogs who supports it, call the flush endpoint
@@ -579,6 +612,12 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         library_bugs = [
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[]",
+                condition=self.library >= "php@1.12.0",
+                ticket="DEBUG-4431",
+            ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$",
@@ -647,8 +686,17 @@ class EndToEndScenario(DockerScenario):
                 condition=self.library >= "php@1.8.3",
                 ticket="DEBUG-3709",
             ),
+            _SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path=None,
+                condition=self.library
+                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                and self.name in ("APPSEC_BLOCKING", "TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
+                ticket="APMSP-2158",
+            ),
         ]
-        self._test_schemas(session, interfaces.library, library_bugs)
+
+        self.test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
             _SchemaBug(
@@ -704,39 +752,9 @@ class EndToEndScenario(DockerScenario):
                 ticket="DEBUG-3709",
             ),
         ]
-        self._test_schemas(session, interfaces.agent, agent_bugs)
+        self.test_schemas(session, interfaces.agent, agent_bugs)
 
         return super().pytest_sessionfinish(session, exitstatus)
-
-    def _test_schemas(
-        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
-    ) -> None:
-        long_repr = []
-
-        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
-
-        for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points and (
-                error.endpoint,
-                None,
-            ) not in excluded_points:
-                long_repr.append(f"* {error.message}")
-
-        if len(long_repr) != 0:
-            report = TestReport(
-                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::_test_schemas",
-                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
-                {},
-                "failed",
-                "\n".join(long_repr),
-                "call",
-            )
-
-            if "error" not in logger.terminal.stats:
-                logger.terminal.stats["error"] = []
-
-            logger.terminal.stats["error"].append(report)
-            session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
     @property
     def dd_site(self):
@@ -774,14 +792,13 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result

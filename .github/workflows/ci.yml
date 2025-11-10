@@ -28,7 +28,7 @@ jobs:
       contents: read # need to read releases
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Install runner
         uses: ./.github/actions/install_runner
       # force /bin/bash in order to test against bash 3.2 on macOS
@@ -41,19 +41,15 @@ jobs:
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
-  scenarios:
-    name: Get scenarios and groups
-    uses: ./.github/workflows/compute-scenarios.yml
-
-  impacted_libraries:
-    name: Get impacted libraries
-    uses: ./.github/workflows/compute-impacted-libraries.yml
+  compute_libraries_and_scenarios:
+    name: Compute libraries and scenarios
+    uses: ./.github/workflows/compute_libraries_and_scenarios.yml
 
   fail-if-target-branch:
     name: Fail if target branch is specified
     needs:
-      - impacted_libraries
-    if: needs.impacted_libraries.outputs.target-branch != ''
+      - compute_libraries_and_scenarios
+    if: needs.compute_libraries_and_scenarios.outputs.target-branch != ''
     runs-on: ubuntu-latest
     steps:
       - name: Fail if PR title contains a target branch
@@ -66,51 +62,51 @@ jobs:
     needs:
     - lint
     - test_the_test
-    - scenarios
-    - impacted_libraries
+    - compute_libraries_and_scenarios
     strategy:
       matrix:
-        include: ${{ fromJson(needs.impacted_libraries.outputs.library_matrix) }}
+        include: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.library_matrix) }}
 
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     permissions:
       contents: read
       packages: write
-    secrets: inherit
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      TEST_OPTIMIZATION_API_KEY: ${{ secrets.DD_API_KEY }}
+      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+      DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+      DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+      DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+      DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     with:
       library: ${{ matrix.library }}
-      scenarios: ${{ needs.scenarios.outputs.scenarios }}
-      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
-      build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
-      build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
-      build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
-      build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
+      scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
+      scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
-      enable_replay_scenarios: true
-      desired_execution_time: ${{ needs.impacted_libraries.outputs.desired_execution_time }}
-      _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
-      _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
+      display_summary: true
+      desired_execution_time: ${{ needs.compute_libraries_and_scenarios.outputs.desired_execution_time }}
       artifact_retention_days: 3
-
-  system_tests_docker_mode:
-    name: Ruby Docker Mode
-    needs:
-    - lint
-    - test_the_test
-    - impacted_libraries
-    if: contains(needs.impacted_libraries.outputs.library_matrix, 'ruby')
-    uses: ./.github/workflows/run-docker-mode.yml
-    permissions:
-      packages: write
-    secrets: inherit
+      _build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
+      _build_lambda_proxy_image: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.rebuild_lambda_proxy) }}
+      _build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
+      _build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
+      _enable_replay_scenarios: true
+      _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
+      _system_tests_library_target_branch: ${{ needs.compute_libraries_and_scenarios.outputs.target-branch }}
+      test_optimization_datadog_site: datad0g.com
+      push_to_test_optimization: true
 
   exotics:
     name: Exotics scenarios
     needs:
-      - scenarios
-    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.scenarios.outputs.scenarios_groups, 'all')
+      - compute_libraries_and_scenarios
+    if: contains(needs.compute_libraries_and_scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.compute_libraries_and_scenarios.outputs.scenarios_groups, 'all')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
@@ -125,28 +121,16 @@ jobs:
     - system_tests
     if: '!cancelled()'
     steps:
-    - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
+    - uses: DataDog/ensure-ci-success@b0d931ac77c810490e61964c321103040eef888e
       with:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
         # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
         # https://regex101.com/r/Bo5Kpn/1
+        # Also ignore the job that waits for the tests to succeed before adding
+        # to the merge queue.
 
         ignored-name-patterns: |
           dd-gitlab/(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
-
-  update-CI-visibility:
-    name: Update CI Visibility Dashboard
-    runs-on: ubuntu-latest
-    needs:
-    - system_tests
-    if: always() && github.ref == 'refs/heads/main'
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Update CI Dashboard
-      run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      env:
-        DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
+          devflow/merge

@@ -31,17 +31,22 @@ from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from packaging.version import Version
 from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 ddtrace.patch_all(urllib3=True)
 
@@ -56,13 +61,9 @@ except ImportError:
 app = FastAPI()
 
 # Custom middleware
-try:
-    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
-    current_ddtrace_version = (int(maj), int(min), int(patch))
-except Exception:
-    current_ddtrace_version = (0, 0, 0)
+current_ddtrace_version = Version(getattr(ddtrace, "__version__", "0.0.0"))
 
-if current_ddtrace_version >= (3, 1, 0):
+if current_ddtrace_version >= Version("3.1.0"):
     """custom middleware only supported after PR 12413"""
 
     @app.middleware("http")
@@ -103,9 +104,9 @@ async def custom_404_handler(request: Request, _):
     return JSONResponse({"error": 404}, status_code=404)
 
 
-@app.get("/", response_class=PlainTextResponse)
-@app.post("/", response_class=PlainTextResponse)
-@app.options("/", response_class=PlainTextResponse)
+@app.get("/", response_class=PlainTextResponse, status_code=200)
+@app.post("/", response_class=PlainTextResponse, status_code=200)
+@app.options("/", response_class=PlainTextResponse, status_code=200)
 async def root():
     return "Hello, World!"
 
@@ -1073,12 +1074,13 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
 
     # Validate the URL and enforce whitelist
     allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
-    parsed_url = urlparse(str(url))
-
+    if type(url) == bytes:
+        url = url.decode("utf-8")
+    parsed_url = urlparse(url)
     if parsed_url.hostname not in allowed_domains:
         return PlainTextResponse("Forbidden", status_code=403)
     try:
-        result = requests.get(parsed_url.geturl())
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1275,3 +1277,36 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
+
+
+@app.get("/external_request", response_class=JSONResponse, status_code=200)
+@app.post("/external_request", response_class=JSONResponse, status_code=200)
+@app.trace("/external_request", response_class=JSONResponse, status_code=200)
+@app.put("/external_request", response_class=JSONResponse, status_code=200)
+async def external_request(request: Request):
+    queries = {k: str(v) for k, v in request.query_params.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    try:
+        body = await request.body()
+    except Exception:
+        body = None
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+    full_url = f"http://internal_server:8089/mirror/{status}{url_extra}"
+    try:
+        with requests.Session() as s:
+            response = s.request(request.method, full_url, data=body, headers=queries, timeout=10)
+            payload = response.text
+            return {
+                "status": int(response.status_code),
+                "headers": dict(response.headers),
+                "payload": json.loads(payload),
+            }
+    except Exception as e:
+        return {"status": int(e.status), "error": repr(e)}
+
+
+@app.get("/resource_renaming/{path:path}", response_class=PlainTextResponse)
+def resource_renaming(path: str = ""):
+    return "ok"

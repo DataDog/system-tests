@@ -28,6 +28,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
+from traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
 
 
 logger = logging.getLogger(__name__)
@@ -144,6 +145,12 @@ def deserialize_http_message(
         # replace zero length strings/bytes by None
         return content if content else None
 
+    if path == "/v1.0/traces" and source_is_datadog_tracer:
+        if content_type == "text/plain; charset=utf-8":
+            return content.decode(encoding="utf-8")
+
+        return deserialize_v1_trace(content)
+
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
@@ -185,6 +192,7 @@ def deserialize_http_message(
         if path == "/api/v0.2/traces":
             result = MessageToDict(TracePayload.FromString(content))
             _deserialized_nested_json_from_trace_payloads(result, interface)
+            _uncompress_agent_v1_trace(result, interface)
             return result
         if path == "/api/v2/series":
             return MessageToDict(MetricPayload.FromString(content))
@@ -197,13 +205,13 @@ def deserialize_http_message(
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
         for part in MultipartDecoder(content, raw_content_type).parts:
-            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
+            headers: dict[str, str] = {k.decode("utf-8").lower(): v.decode("utf-8") for k, v in part.headers.items()}
             item: dict[str, Any] = {"headers": headers}
 
             content_type_part = ""
 
             for name, value in headers.items():
-                if name.lower() == "content-type":
+                if name == "content-type":
                     content_type_part = value.lower()
                     break
 
@@ -246,10 +254,12 @@ def deserialize_http_message(
 def _deserialize_file_in_multipart_form_data(
     path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
 ) -> None:
-    content_disposition = headers.get("Content-Disposition", "")
+    content_disposition = headers.get("content-disposition", "<not set>")
 
     if not content_disposition.startswith("form-data"):
-        item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
+        item["system-tests-error"] = (
+            f"Unknown content-disposition: {content_disposition}, please contact #apm-shared-testing"
+        )
         item["content"] = None
 
     else:
@@ -347,7 +357,11 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
         )
     except:
         status_code: int = data[key]["status_code"]
-        if key == "response" and status_code in (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.REQUEST_TIMEOUT):
+        if key == "response" and status_code in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.FORBIDDEN,
+        ):
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

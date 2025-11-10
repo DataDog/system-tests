@@ -23,20 +23,19 @@ class ExternalProcessingScenario(DockerScenario):
         super().__init__(
             name,
             doc=doc,
-            github_workflow="externalprocessing",
+            github_workflow="endtoend",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing, scenario_groups.all],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
 
-        self._agent_container = AgentContainer(self.host_log_folder)
+        self._agent_container = AgentContainer()
         self._external_processing_container = ExternalProcessingContainer(
-            self.host_log_folder,
             env=extproc_env,
             volumes=extproc_volumes,
         )
-        self._envoy_container = EnvoyContainer(self.host_log_folder)
-        self._http_app_container = DummyServerContainer(self.host_log_folder)
+        self._envoy_container = EnvoyContainer()
+        self._http_app_container = DummyServerContainer()
 
         self._agent_container.depends_on.append(self.proxy_container)
         self._external_processing_container.depends_on.append(self.proxy_container)

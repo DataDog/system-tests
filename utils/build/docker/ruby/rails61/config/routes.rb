@@ -1,10 +1,18 @@
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
+  class ResourceRenamingRackApp
+    def call(_env)
+      [200, {'Content-Type' => 'text/plain'}, ['OK']]
+    end
+  end
+  mount ResourceRenamingRackApp.new => '/resource_renaming'
+
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 
-  get  '/healthcheck' => 'system_test#healthcheck'
+  get '/healthcheck' => 'internal#healthcheck'
+  get '/flush' => 'internal#flush'
 
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
@@ -19,9 +27,11 @@ Rails.application.routes.draw do
   get '/headers' => 'system_test#test_headers'
   get '/identify' => 'system_test#identify'
 
-  get 'user_login_success_event' => 'system_test#user_login_success_event'
-  get 'user_login_failure_event' => 'system_test#user_login_failure_event'
-  get 'custom_event' => 'system_test#custom_event'
+  get 'user_login_success_event' => 'business_logic_events#user_login_success_event'
+  get 'user_login_failure_event' => 'business_logic_events#user_login_failure_event'
+  get 'custom_event' => 'business_logic_events#custom_event'
+  post 'user_login_success_event_v2' => 'business_logic_events#user_login_success_event_v2'
+  post 'user_login_failure_event_v2' => 'business_logic_events#user_login_failure_event_v2'
 
   %i[get post].each do |request_method|
     send(request_method, '/tag_value/:tag_value/:status_code' => 'system_test#tag_value')
@@ -48,8 +58,7 @@ Rails.application.routes.draw do
   get '/rasp/ssrf' => 'rasp_ssrf#show'
   post '/rasp/ssrf' => 'rasp_ssrf#show'
 
-  get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
-
-  get '/api_security_sampling/:i' => 'system_test#api_security_sampling'
-  get '/api_security/sampling/:status' => 'system_test#api_security_with_sampling'
+  get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
+  get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
+  get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
 end

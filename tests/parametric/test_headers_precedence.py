@@ -2,6 +2,8 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
+from utils.docker_fixtures import TestAgentAPI
+
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -101,53 +103,58 @@ class Test_Headers_Precedence:
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
-    def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
+    @irrelevant(context.library == "rust", reason="Implements the new 'datadog,tracecontext' default")
+    def test_headers_precedence_propagationstyle_legacy(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
-    def test_headers_precedence_propagationstyle_datadog(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_datadog(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]],
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), ("tracestate", "foo=1")],
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 5) Only Datadog headers
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
             headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-0000000000000000-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
@@ -219,11 +226,16 @@ class Test_Headers_Precedence:
     @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration")
-    def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
+    @irrelevant(context.library == "rust", reason="Issue: tracecontext,Datadog was never the default configuration")
+    def test_headers_precedence_propagationstyle_default_tracecontext_datadog(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library: APMLibrary):
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -368,49 +380,51 @@ class Test_Headers_Precedence:
         assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_tracecontext()
-    def test_headers_precedence_propagationstyle_tracecontext(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_tracecontext(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), ("tracestate", "foo=1")]
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 5) Only Datadog headers
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
             headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-0000000000000000-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
@@ -499,53 +513,57 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
     @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
     @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
-    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
     @enable_datadog_tracecontext()
-    def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_datadog_tracecontext(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), ("tracestate", "foo=1")]
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 5) Only Datadog headers
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
             headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-0000000000000000-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
@@ -655,8 +673,8 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
     @missing_feature(context.library < "ruby@1.17.0", reason="Implemented in 1.17.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
-        self, test_agent, test_library
-    ):
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
             test_agent, test_library, prefer_tracecontext=False, extract_first=False
         )
@@ -668,31 +686,31 @@ class Test_Headers_Precedence:
         context.library < "golang@1.57.0", reason="APMRP-360"
     )  # Legacy behaviour: tracecontext propagator would always take precedence
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
-        self, test_agent, test_library
-    ):
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
             test_agent, test_library, prefer_tracecontext=False, extract_first=True
         )
 
     @enable_tracecontext_datadog_b3multi_extract_first_false()
     def test_headers_precedence_propagationstyle_tracecontext_first_extract_first_false_correctly_propagates_tracestate(
-        self, test_agent, test_library
-    ):
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
             test_agent, test_library, prefer_tracecontext=True, extract_first=False
         )
 
     @enable_tracecontext_datadog_b3multi_extract_first_true()
     def test_headers_precedence_propagationstyle_tracecontext_first_extract_first_true_correctly_propagates_tracestate(
-        self, test_agent, test_library
-    ):
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         self._test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
             test_agent, test_library, prefer_tracecontext=True, extract_first=True
         )
 
     def _test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
-        self, test_agent, test_library, prefer_tracecontext, extract_first
-    ):
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, *, prefer_tracecontext: bool, extract_first: bool
+    ) -> None:
         """This test asserts that ALL the propagators are executed in the specified
         order, and the the first propagator to extract a valid trace context determines
         the trace-id, parent-id, and supplemental information such as
@@ -708,24 +726,24 @@ class Test_Headers_Precedence:
             # Note: This is expected to be the most frequent case
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
-                    ["x-datadog-trace-id", "1"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ("traceparent", "00-11111111111111110000000000000001-000000003ade68b1-01"),
+                    ("tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"),
+                    ("x-datadog-trace-id", "1"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-tags", "_dd.p.tid=1111111111111111"),
                 ],
             )
             # 2) Scenario 1 but the x-datadog-* headers don't match the tracestate string
             # Note: This is an exceptional case that should not happen, but we should be consistent
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"],
-                    ["x-datadog-trace-id", "2"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ("traceparent", "00-11111111111111110000000000000002-000000003ade68b1-01"),
+                    ("tracestate", "dd=s:1;t.tid:1111111111111111,foo=1"),
+                    ("x-datadog-trace-id", "2"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-tags", "_dd.p.tid=1111111111111111"),
                 ],
             )
 
@@ -733,12 +751,12 @@ class Test_Headers_Precedence:
             # Note: This is an exceptional case that should not happen, but we should be consistent
             headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "3"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ("traceparent", "00-11111111111111110000000000000003-000000003ade68b1-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "3"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-tags", "_dd.p.tid=1111111111111111"),
                 ],
             )
 
@@ -746,12 +764,12 @@ class Test_Headers_Precedence:
             # Note: This happens when a W3C Proxy / Cloud Provider continues the W3C trace
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01"],
-                    ["tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"],
-                    ["x-datadog-trace-id", "4"],
-                    ["x-datadog-parent-id", "3540"],  # 3539 == 0xdd4
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ("traceparent", "00-11111111111111110000000000000004-000000003ade68b1-01"),
+                    ("tracestate", "dd=s:2;t.tid:1111111111111111,foo=1"),
+                    ("x-datadog-trace-id", "4"),
+                    ("x-datadog-parent-id", "3540"),  # 3539 == 0xdd4
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-tags", "_dd.p.tid=1111111111111111"),
                 ],
             )
 
@@ -760,12 +778,12 @@ class Test_Headers_Precedence:
             # which would happen if the incoming request only had x-datadog-* headers
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "3541"],  # 3538 == 0xdd5
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-tags", "_dd.p.tid=1111111111111111"],
+                    ("traceparent", "00-11111111111111110000000000000005-000000003ade68b1-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "3541"),  # 3538 == 0xdd5
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-tags", "_dd.p.tid=1111111111111111"),
                 ],
             )
 

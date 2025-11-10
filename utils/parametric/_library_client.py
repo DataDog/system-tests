@@ -7,16 +7,23 @@ from typing import TypedDict, NotRequired
 from types import TracebackType
 from collections.abc import Generator, Iterable
 from http import HTTPStatus
+from enum import Enum
 
 from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
 import requests
 from opentelemetry.trace import SpanKind, StatusCode
-from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils._logger import logger
+
+
+class LogLevel(Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
 
 
 def _fail(message: str):
@@ -47,7 +54,8 @@ class Event(TypedDict):
 
 
 class APMLibraryClient:
-    def __init__(self, url: str, timeout: int, container: Container):
+    def __init__(self, library: str, url: str, timeout: int, container: Container):
+        self.library = library
         self._base_url = url
         self._session = requests.Session()
         self.container = container
@@ -150,7 +158,7 @@ class APMLibraryClient:
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ):
-        if context.library == "cpp":
+        if self.library == "cpp":
             # TODO: Update the cpp parametric app to accept null values for unset parameters
             service = service or ""
             resource = resource or ""
@@ -211,7 +219,7 @@ class APMLibraryClient:
     def span_remove_all_baggage(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
-    def span_set_metric(self, span_id: int, key: str, value: float | list[int]) -> None:
+    def span_set_metric(self, span_id: int, key: str, value: float | list[int] | None) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
@@ -278,6 +286,53 @@ class APMLibraryClient:
         r = self._session.post(self._url("/trace/stats/flush"), json={})
 
         return HTTPStatus(r.status_code).is_success
+
+    def write_log(
+        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+    ) -> bool:
+        """Generate a log message with the specified parameters.
+
+        Args:
+            message: The log message to generate
+            level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            logger_name: The name of the logger to use
+            logger_type: The type of logger (0=default for the language, 1=logging, 2=loguru, 3=struct_log)
+            span_id: The ID of the span that should be active when the log is generated
+
+        Returns:
+            bool: True if the log was generated successfully, False otherwise
+
+        """
+        resp = self._session.post(
+            self._url("/log/write"),
+            json={
+                "message": message,
+                "level": level.value,
+                "logger_name": logger_name,
+                "logger_type": logger_type,
+                "span_id": span_id,
+            },
+        )
+        return HTTPStatus(resp.status_code).is_success
+
+    def otel_logs_flush(self, timeout_sec: int) -> tuple[bool, str]:
+        """Flush all OpenTelemetry logs and get provider information.
+
+        Returns:
+            tuple[bool, str]: (success, message) - success status and provider information
+
+        """
+        try:
+            resp = self._session.post(
+                self._url("/log/otel/flush"),
+                json={"seconds": timeout_sec},
+            )
+            if HTTPStatus(resp.status_code).is_success:
+                data = resp.json()
+                return data["success"], data["message"]
+            return False, f"HTTP error: {resp.status_code}"
+        except Exception as e:
+            return False, f"Error: {e!s}"
 
     def otel_trace_start_span(
         self,
@@ -402,6 +457,190 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
+    def ffe_start(self) -> bool:
+        """Initialize the FFE (Feature Flag Exposure) provider.
+
+        Returns:
+            bool: True if the provider was initialized successfully, False otherwise
+
+        """
+        resp = self._session.post(self._url("/ffe/start"), json={})
+        return HTTPStatus(resp.status_code).is_success
+
+    def ffe_evaluate(
+        self,
+        flag: str,
+        variation_type: str,
+        default_value: bool | str | float | dict,
+        targeting_key: str,
+        attributes: dict | None = None,
+    ) -> dict:
+        """Evaluate a feature flag.
+
+        Args:
+            flag: The flag key to evaluate
+            variation_type: The type of variation (BOOLEAN, STRING, INTEGER, NUMERIC, JSON)
+            default_value: The default value to return if evaluation fails
+            targeting_key: The targeting key (usually user ID) for evaluation context
+            attributes: Optional additional attributes for evaluation context
+
+        Returns:
+            dict: Evaluation result containing 'value' and 'reason'
+
+        """
+        resp = self._session.post(
+            self._url("/ffe/evaluate"),
+            json={
+                "flag": flag,
+                "variationType": variation_type,
+                "defaultValue": default_value,
+                "targetingKey": targeting_key,
+                "attributes": attributes or {},
+            },
+        )
+        return resp.json()
+
+    def otel_get_meter(
+        self, name: str, version: str | None = None, schema_url: str | None = None, attributes: dict | None = None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/get_meter"),
+            json={"name": name, "version": version, "schema_url": schema_url, "attributes": attributes},
+        )
+
+    def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_counter"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_counter_add(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/counter_add"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_create_updowncounter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_updowncounter"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_updowncounter_add(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/updowncounter_add"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_create_gauge(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_gauge"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_gauge_record(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/gauge_record"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_create_histogram(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_histogram"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_histogram_record(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/histogram_record"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_create_asynchronous_counter(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_asynchronous_counter"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_create_asynchronous_updowncounter(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_asynchronous_updowncounter"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_create_asynchronous_gauge(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_asynchronous_gauge"),
+            json={
+                "meter_name": meter_name,
+                "name": name,
+                "unit": unit,
+                "description": description,
+                "value": value,
+                "attributes": attributes,
+            },
+        )
+
+    def otel_metrics_force_flush(self) -> bool:
+        resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
+        return resp["success"]
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
@@ -415,7 +654,7 @@ class _TestSpan:
     def set_meta(self, key: str, val: str | bool | list[str | list[str]] | None):
         self._client.span_set_meta(self.span_id, key, val)
 
-    def set_metric(self, key: str, val: float | list[int]):
+    def set_metric(self, key: str, val: float | list[int] | None):
         self._client.span_set_metric(self.span_id, key, val)
 
     def set_baggage(self, key: str, val: str):
@@ -502,6 +741,9 @@ class APMLibrary:
             if self.lang != "cpp":
                 # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
+                # Logs flush endpoint is not implemented in all parametric apps
+                # TODO: otel_flush should return False if the logs flush fails
+                self.otel_logs_flush()
 
         return None
 
@@ -581,6 +823,9 @@ class APMLibrary:
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
 
+    def otel_logs_flush(self, timeout_sec: int = 3) -> bool:
+        return self._client.otel_logs_flush(timeout_sec)[0]
+
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
@@ -608,8 +853,89 @@ class APMLibrary:
             return None
         return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
 
+    def otel_get_meter(
+        self, name: str, version: str | None = None, schema_url: str | None = None, attributes: dict | None = None
+    ) -> None:
+        self._client.otel_get_meter(name, version, schema_url, attributes)
+
+    def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_counter(meter_name, name, unit, description)
+
+    def otel_counter_add(
+        self,
+        meter_name: str,
+        name: str,
+        unit: str,
+        description: str,
+        value: float,
+        attributes: dict | None = None,
+    ) -> None:
+        self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_updowncounter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_updowncounter(meter_name, name, unit, description)
+
+    def otel_updowncounter_add(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None
+    ) -> None:
+        self._client.otel_updowncounter_add(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_gauge(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_gauge(meter_name, name, unit, description)
+
+    def otel_gauge_record(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None
+    ) -> None:
+        self._client.otel_gauge_record(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_histogram(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_histogram(meter_name, name, unit, description)
+
+    def otel_histogram_record(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None
+    ) -> None:
+        self._client.otel_histogram_record(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_asynchronous_counter(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._client.otel_create_asynchronous_counter(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_asynchronous_updowncounter(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._client.otel_create_asynchronous_updowncounter(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_asynchronous_gauge(
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
+    ) -> None:
+        self._client.otel_create_asynchronous_gauge(meter_name, name, unit, description, value, attributes)
+
+    def otel_metrics_force_flush(self) -> bool:
+        return self._client.otel_metrics_force_flush()
+
     def is_alive(self) -> bool:
         try:
             return self._client.is_alive()
         except Exception:
             return False
+
+    def write_log(
+        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+    ) -> bool:
+        return self._client.write_log(message, level, logger_name, logger_type, span_id)
+
+    def ffe_start(self) -> bool:
+        """Initialize the FFE (Feature Flag Exposure) provider."""
+        return self._client.ffe_start()
+
+    def ffe_evaluate(
+        self,
+        flag: str,
+        variation_type: str,
+        default_value: bool | str | float | dict,
+        targeting_key: str,
+        attributes: dict | None = None,
+    ) -> dict:
+        """Evaluate a feature flag."""
+        return self._client.ffe_evaluate(flag, variation_type, default_value, targeting_key, attributes)

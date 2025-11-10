@@ -17,6 +17,8 @@ from typing import Any
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
+from utils._logger import logger
+
 
 def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
@@ -31,6 +33,7 @@ def _get_schemas_filenames():
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
+        "utils/interfaces/schemas/otel_collector/",
     ):
         for root, _, files in os.walk(schema_dir):
             for f in files:
@@ -86,6 +89,9 @@ class SchemaError:
         return re.sub(r"\[\d+\]", "[]", self.error.json_path)
 
 
+HEADER_PAIR_LENGTH = 2
+
+
 class SchemaValidator:
     def __init__(self, interface_name: str, allowed_errors: list[str] | tuple[str, ...] = ()):
         self.interface = interface_name
@@ -99,6 +105,7 @@ class SchemaValidator:
         schema_id = f"/{self.interface}{path}-request.json"
 
         if schema_id not in _get_schemas_store():
+            logger.info(f"Schema {schema_id} does not exists")
             return []
 
         validator = _get_schema_validator(schema_id)
@@ -107,13 +114,72 @@ class SchemaValidator:
             # it's not the schema job to complain about it
             return []
 
-        if validator.is_valid(data["request"]["content"]):
+        # Transform data for schemas that expect headers and content structure
+        validation_data = self._prepare_validation_data(data, path)
+
+        if validator.is_valid(validation_data):
             return []
 
         return [
             SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data)
-            for error in validator.iter_errors(data["request"]["content"])
+            for error in validator.iter_errors(validation_data)
         ]
+
+    def _prepare_validation_data(self, data: dict, path: str):
+        """Prepare data for validation based on the endpoint schema requirements"""
+
+        # For library endpoints that expect headers+content structure (like diagnostics, symdb)
+        if self.interface == "library" and path in ["/debugger/v1/diagnostics", "/symdb/v1/input"]:
+            # Handle multipart structure where content contains nested parts with headers/content
+            result = []
+            content = data["request"].get("content", [])
+            if content is None:
+                return content
+            for part in data["request"].get("content", []):
+                if isinstance(part, dict) and "headers" in part and "content" in part:
+                    # Convert headers from dict to object (already in correct format)
+                    headers_obj = part["headers"]
+
+                    # Add the multipart structure expected by schema
+                    result.append({"headers": headers_obj, "content": part["content"]})
+                else:
+                    # Fallback: convert request headers from array of tuples to object
+                    headers_obj = {}
+                    for header_pair in data["request"].get("headers", []):
+                        if len(header_pair) >= HEADER_PAIR_LENGTH:
+                            headers_obj[header_pair[0]] = header_pair[1]
+
+                    result.append({"headers": headers_obj, "content": data["request"]["content"]})
+                    break
+
+            return result
+
+        # For agent debugger endpoint, handle multipart structure
+        if self.interface == "agent" and path == "/api/v2/debugger":
+            # Extract the actual debugger data from multipart structure
+            result = []
+            content = data["request"].get("content", [])
+
+            if content is None:
+                return content
+
+            for part in data["request"].get("content", []):
+                if isinstance(part, dict) and "content" in part:
+                    # Handle both array and single object content
+                    content = part["content"]
+                    if isinstance(content, list):
+                        # Diagnostics/snapshots: content is an array
+                        result.extend(content)
+                    else:
+                        # Symdb: content is a single object
+                        result.append(content)
+                else:
+                    # Fallback: return content as-is
+                    result.append(part)
+            return result
+
+        # For other endpoints, return content as-is
+        return data["request"]["content"]
 
 
 def _main():

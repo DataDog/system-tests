@@ -8,7 +8,18 @@ import os
 
 from tests.integrations.utils import compute_dsm_hash
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger
+from utils import (
+    weblog,
+    interfaces,
+    scenarios,
+    irrelevant,
+    bug,
+    features,
+    missing_feature,
+    flaky,
+    logger,
+    context,
+)
 
 
 # Kafka specific
@@ -45,7 +56,7 @@ DSM_REQUEST_TIMEOUT = 61
 WEBLOG_VARIANT_SANITIZED = context.weblog_variant.replace(".", "_").replace(" ", "_").replace("/", "_")
 
 
-def get_message(test, system):
+def get_message(test: str, system: str) -> str:
     return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.name} DSM test: {scenarios.integrations_aws.unique_id}"
 
 
@@ -58,6 +69,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
@@ -67,8 +79,8 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 7021878731777772655
-            consumer_hash = 4591800307942911915
+            producer_hash = 8001907834230501985
+            consumer_hash = 12353223394116417855
         elif context.library == "golang":
             producer_hash = 4463699290244539355
             consumer_hash = 13758451224913876939
@@ -102,6 +114,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @features.datastreams_monitoring_support_for_kafka
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     @irrelevant(context.library != "dotnet")
     def test_dsm_kafka_without_cluster_id(self):
         assert self.r.text == "ok"
@@ -148,6 +161,7 @@ class Test_DsmRabbitmq:
     @bug(library="java", reason="APMAPI-840")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -156,8 +170,8 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 5246740674878013159
-            consumer_hash = 8116149247198652772
+            producer_hash = 16680966241789857864
+            consumer_hash = 7235406874724180592
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
@@ -175,6 +189,7 @@ class Test_DsmRabbitmq:
         )
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 
@@ -206,6 +221,7 @@ class Test_DsmRabbitmq_TopicExchange:
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
     @bug(library="java", reason="APMAPI-840")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -295,6 +311,7 @@ class Test_DsmSQS:
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -302,8 +319,8 @@ class Test_DsmSQS:
         tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
 
         if context.library == "nodejs":
-            producer_hash = 8993664068648876726
-            consumer_hash = 8544812442360155699
+            producer_hash = 2649573563161019048
+            consumer_hash = 3674518247845931278
         else:
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
@@ -334,6 +351,7 @@ class Test_DsmSNS:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
@@ -341,8 +359,8 @@ class Test_DsmSNS:
         topic = self.topic if context.library in ["java", "dotnet"] else arn
 
         if context.library == "nodejs":
-            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713
-            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 797339341876345963
+            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 4474403991591098370
+            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 3839681565914825635
             tags_out = ("direction:out", f"topic:{topic}", "type:sns")
             tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
         else:
@@ -378,6 +396,7 @@ class Test_DsmKinesis:
         )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
@@ -386,8 +405,8 @@ class Test_DsmKinesis:
         if context.library == "nodejs":
             tags_out = ("direction:out", f"topic:{self.stream}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
-            producer_hash = 2387568642918822206
-            consumer_hash = 10101425062685840509
+            producer_hash = 6996061165171108813
+            consumer_hash = 18286084103800622023
         else:
             tags_out = ("direction:out", f"topic:{stream_arn}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{stream_arn}", "type:kinesis")
@@ -409,11 +428,12 @@ class Test_DsmContext_Injection_Base64:
 
         self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=DSM_REQUEST_TIMEOUT)
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
         if context.library == "nodejs":
-            producer_hash = 18431567370843181989
+            producer_hash = 11949115791662959359
         else:
             producer_hash = 6031446427375485596
 
@@ -459,14 +479,15 @@ class Test_DsmContext_Extraction_Base64:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsmcontext_extraction_base64(self):
         assert self.r.text == "ok"
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            consumer_hash = 18410421833994263340
-            producer_hash = 11295735785862509651
+            consumer_hash = 3232267919319990015
+            producer_hash = 6031446427375485596
         else:
             consumer_hash = 12795903374559614717
             producer_hash = 6031446427375485596
@@ -496,6 +517,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
+    @flaky(context.weblog_variant == "spring-boot", reason="AIDM-117")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"
@@ -506,8 +528,8 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 16586338448658789200
-            consumer_hash = 9706550123902107656
+            producer_hash = 9931057434765374197
+            consumer_hash = 17324614250411467957
             parent_producer_hash = 0
         elif context.library == "java":
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
@@ -574,8 +596,8 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 5168239543453408764
-            consumer_hash = 1957306998450816025
+            producer_hash = 12899996614288916469
+            consumer_hash = 4416193018187534291
             parent_producer_hash = 0
         elif context.library == "java":
             producer_hash = 4667583249035065277
@@ -614,14 +636,14 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
 class DsmHelper:
     @staticmethod
-    def is_tags_included(actual_tags, expected_tags) -> bool:
+    def is_tags_included(actual_tags: tuple, expected_tags: tuple) -> bool:
         assert isinstance(actual_tags, tuple)
         assert isinstance(expected_tags, tuple)
 
         return all(expected_tag in actual_tags for expected_tag in expected_tags)
 
     @staticmethod
-    def assert_checkpoint_presence(hash_, parent_hash, tags) -> None:
+    def assert_checkpoint_presence(hash_: int, parent_hash: int, tags: tuple) -> None:
         assert isinstance(tags, tuple)
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")

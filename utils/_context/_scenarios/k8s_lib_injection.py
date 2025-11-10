@@ -49,6 +49,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.with_datadog_operator = with_datadog_operator
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
+        self._configuration: dict[str, str] = {}
 
     def configure(self, config: pytest.Config):
         # If we are using the datadog operator, we don't need to deploy the test agent
@@ -79,6 +80,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
         self.components["cluster_agent"] = self.k8s_cluster_img.version
+        self._configuration["cluster_agent"] = self.k8s_cluster_img.version
         self._datadog_apm_inject_version = f"v{self.k8s_injector_img.version}"
         self.components["datadog-apm-inject"] = self._datadog_apm_inject_version
 
@@ -170,6 +172,10 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     @property
     def dd_apm_inject_version(self):
         return self._datadog_apm_inject_version
+
+    @property
+    def configuration(self):
+        return self._configuration
 
 
 class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider):
@@ -324,18 +330,16 @@ class WeblogInjectionScenario(Scenario):
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
-        self._mount_injection_volume = MountInjectionVolume(
-            host_log_folder=self.host_log_folder, name="volume-injector"
-        )
-        self._weblog_injection = WeblogInjectionInitContainer(host_log_folder=self.host_log_folder)
+        self._mount_injection_volume = MountInjectionVolume(name="volume-injector")
+        self._weblog_injection = WeblogInjectionInitContainer()
 
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(self._mount_injection_volume)
-        self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
+        self._required_containers.append(APMTestAgentContainer())
         self._required_containers.append(self._weblog_injection)
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby,rust"
         self._library = ComponentVersion(os.environ["TEST_LIBRARY"], "0.0")
 
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
@@ -345,7 +349,7 @@ class WeblogInjectionScenario(Scenario):
         self._weblog_injection.set_environment_for_library(self.library)
 
         for container in self._required_containers:
-            container.configure(replay=self.replay)
+            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
     def _create_network(self):
         self._network = create_network()

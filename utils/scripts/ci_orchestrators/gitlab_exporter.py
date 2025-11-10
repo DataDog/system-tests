@@ -193,7 +193,8 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
     # Special filters from env variables
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
-
+    if not dd_installer_library_version:
+        dd_installer_library_version = os.getenv(f"DD_INSTALLER_LIBRARY_VERSION_{language.upper()}")
     scenarios_prefix_names = _generate_unique_prefix(docker_ssi_matrix)
     # Create the jobs by scenario.
     for scenario, weblogs in docker_ssi_matrix.items():
@@ -210,7 +211,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                 result_pipeline[vm_job]["stage"] = scenario
                 result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
                 result_pipeline[vm_job]["tags"] = [
-                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'runner:docker-arm'}"
+                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'docker-in-docker:arm64'}"
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}
@@ -269,8 +270,11 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
     only_defaults = should_run_only_defaults_vm()
 
     # Special filters from env variables
+    dd_install_script_version = os.getenv("DD_INSTALL_SCRIPT_VERSION")
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
+    if not dd_installer_library_version:
+        dd_installer_library_version = os.getenv(f"DD_INSTALLER_LIBRARY_VERSION_{language.upper()}")
 
     scenarios_prefix_names = _generate_unique_prefix(aws_matrix)
 
@@ -305,7 +309,8 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
                 result_pipeline[vm_job]["variables"]["DD_INSTALLER_LIBRARY_VERSION"] = dd_installer_library_version
             if dd_installer_injector_version:
                 result_pipeline[vm_job]["variables"]["DD_INSTALLER_INJECTOR_VERSION"] = dd_installer_injector_version
-
+            if dd_install_script_version:
+                result_pipeline[vm_job]["variables"]["DD_INSTALL_SCRIPT_VERSION"] = dd_install_script_version
             # Job weblog matrix for a virtaul machine
             result_pipeline[vm_job]["parallel"] = {"matrix": []}
             for weblog in weblogs.keys():  # noqa: SIM118

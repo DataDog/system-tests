@@ -130,6 +130,21 @@ fastify.get('/customResponseHeaders', (request, reply) => {
   return 'OK'
 })
 
+fastify.get('/authorization_related_headers', (request, reply) => {
+  reply.headers({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
+  })
+  return 'OK'
+})
+
 fastify.get('/exceedResponseHeaders', (request, reply) => {
   reply.header('content-type', 'text/plain')
   for (let i = 0; i < 50; i++) {
@@ -678,6 +693,8 @@ fastify.get('/add_event', async (request, reply) => {
   reply.status(200)
   return { message: 'Event added' }
 })
+
+require('./rasp')(fastify)
 
 const startServer = async () => {
   try {

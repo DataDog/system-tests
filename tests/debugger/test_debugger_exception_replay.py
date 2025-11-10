@@ -6,6 +6,8 @@ import re
 import os
 import tests.debugger.utils as debugger
 import time
+from pathlib import Path
+from packaging import version
 from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
 
 
@@ -15,6 +17,7 @@ def get_env_bool(env_var_name, *, default=False) -> bool:
 
 
 _OVERRIDE_APROVALS = get_env_bool("DI_OVERRIDE_APPROVALS")
+_STORE_NEW_APPROVALS = get_env_bool("DI_STORE_NEW_APPROVALS")
 _SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 
 _max_retries = 2
@@ -28,6 +31,7 @@ _timeout_next = 30
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@irrelevant(context.library <= "dotnet@3.28.0", reason="DEBUG-4582")
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}
@@ -44,7 +48,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_exception_snapshot_received(exception_message, timeout)
+            snapshot_found = self.wait_for_snapshot_received(exception_message, timeout)
             timeout = _timeout_next
 
             retries += 1
@@ -135,7 +139,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     if key in ["timestamp", "id", "exceptionId", "duration"]:
                         scrubbed_data[key] = "<scrubbed>"
                     else:
-                        scrubbed_data[key] = scrub_language(key, value, data)
+                        scrubbed_value = scrub_language(key, value, data)
+                        if scrubbed_value is not None:
+                            scrubbed_data[key] = scrubbed_value
 
                 return scrubbed_data
             elif isinstance(data, list):
@@ -229,6 +235,10 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
                 scrubbed.append({"<runtime>": "<scrubbed>"})
                 return scrubbed
+
+            elif key == "type" and value == "er_snapshot":
+                return None
+
             return __scrub(value)
 
         def __scrub_none(key, value, parent):  # noqa: ARG001
@@ -244,12 +254,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             scrub_language = __scrub_none
 
         def __approve(snapshots):
-            self.write_approval(snapshots, test_name, "snapshots_received")
+            self._write_approval(snapshots, test_name, "snapshots_received")
 
-            if _OVERRIDE_APROVALS:
-                self.write_approval(snapshots, test_name, "snapshots_expected")
+            if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
+                self._write_approval(snapshots, test_name, "snapshots_expected")
 
-            expected_snapshots = self.read_approval(test_name, "snapshots_expected")
+            expected_snapshots = self._read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
                 "exceptionId" in snapshot for snapshot in snapshots
@@ -270,8 +280,18 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     return "<scrubbed>"
 
                 if key == "meta" and isinstance(value, dict):
+                    keys_to_remove = []
                     for meta_key, meta_value in value.items():
-                        if meta_key.endswith(("id", "hash", "version")) or meta_key in {
+                        # These keys are present in some library versions but not others,
+                        # but are unrelated to the functionality under test
+                        if meta_key in {
+                            "_dd.appsec.fp.http.endpoint",
+                            "_dd.appsec.fp.http.header",
+                            "_dd.appsec.fp.http.network",
+                            "_dd.appsec.fp.session",
+                        }:
+                            keys_to_remove.append(meta_key)
+                        elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
                             "http.request.headers.user-agent",
                             "http.useragent",
                             "thread.name",
@@ -281,6 +301,10 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                             value[meta_key] = "<scrubbed>"
                         elif meta_key == "error.stack":
                             value[meta_key] = meta_value[:128] + "<scrubbed>"
+
+                    for k in keys_to_remove:
+                        value.pop(k, None)
+
                     return dict(sorted(value.items()))
 
                 return value
@@ -297,12 +321,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             return scrubbed_spans
 
         def __approve(spans):
-            self.write_approval(spans, test_name, "spans_received")
+            self._write_approval(spans, test_name, "spans_received")
 
-            if _OVERRIDE_APROVALS:
-                self.write_approval(spans, test_name, "spans_expected")
+            if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
+                self._write_approval(spans, test_name, "spans_expected")
 
-            expected = self.read_approval(test_name, "spans_expected")
+            expected = self._read_approval(test_name, "spans_expected")
             assert expected == spans
 
             missing_keys_dict = {}
@@ -400,6 +424,45 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             found_expected_reason
         ), f"Expected no_capture_reason '{expected_reason}' not found. Actual reasons: {actual_reasons}"
 
+    ############ Approvals ############
+
+    def _get_approval_version(self) -> str:
+        """Get the version to use for approvals.
+        - If STORE_NEW_APPROVALS: use current version (creates new folder)
+        - Otherwise: use maximum compatible version (assumes folders exist)
+        """
+        current_version = self.get_tracer()["tracer_version"]
+        current_version = re.sub(r"[^0-9.].*$", "", current_version)
+
+        if _STORE_NEW_APPROVALS:
+            return current_version
+
+        language = self.get_tracer()["language"]
+        approvals_dir = Path(__file__).parent / "utils" / "approvals"
+        language_dir = approvals_dir / language
+
+        current_ver = version.parse(current_version)
+        compatible_versions = []
+
+        for item in language_dir.iterdir():
+            if item.is_dir():
+                item_ver = version.parse(item.name)
+                if item_ver <= current_ver:
+                    compatible_versions.append(item.name)
+
+        compatible_versions.sort(key=lambda x: version.parse(x), reverse=True)
+        return compatible_versions[0]
+
+    def _write_approval(self, data: list, test_name: str, suffix: str) -> None:
+        """Write approval data to version-aware path."""
+        version = self._get_approval_version()
+        debugger.write_approval(data, test_name, suffix, version)
+
+    def _read_approval(self, test_name: str, suffix: str) -> dict:
+        """Read approval data from version-aware path."""
+        version = self._get_approval_version()
+        return debugger.read_approval(test_name, suffix, version)
+
     ########### test ############
     ########### Simple ############
     def setup_exception_replay_simple(self):
@@ -478,7 +541,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_exception_snapshot_received(shape, timeout)
+                shapes[shape] = self.wait_for_snapshot_received(shape, timeout)
                 if self.get_tracer()["language"] == "python":
                     time.sleep(1)
 

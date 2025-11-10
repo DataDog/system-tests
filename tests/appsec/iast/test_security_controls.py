@@ -2,30 +2,17 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, rfc, weblog, interfaces, irrelevant
+from utils import features, rfc, weblog, irrelevant
 from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, assert_metric
+from utils._weblog import HttpResponse
 
 
 @features.iast_security_controls
 @rfc("https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0")
 class TestSecurityControls:
     @staticmethod
-    def assert_iast_is_enabled(request) -> None:
-        product_enabled = False
-        for _, _, span in interfaces.library.get_spans(request=request):
-            # Check if the product is enabled in meta
-            meta = span["meta"]
-            if "_dd.iast.json" in meta:
-                product_enabled = True
-                break
-
-            # Check if the product is enabled in meta_struct
-            meta_struct = span.get("meta_struct", {})
-            if meta_struct and meta_struct.get("iast", {}).get("vulnerabilities"):
-                product_enabled = True
-                break
-
-        assert product_enabled, "IAST is not available"
+    def assert_iast_is_enabled(request: HttpResponse) -> None:
+        assert_metric(request, "_dd.iast.enabled", expected=True)
 
     def setup_iast_is_enabled(self):
         self.check_r = weblog.post("/iast/sc/iv/not-configured", data={"param": "param"})

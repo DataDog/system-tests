@@ -28,7 +28,7 @@ class Test_Json_Report:
         with open("logs_mock_the_test/tests.log", encoding="utf-8") as f:
             cls.logs = [line.split(" ", 1)[1] for line in f]
 
-    def get_test_fp(self, nodeid):
+    def get_test_fp(self, nodeid: str):
         for test in self.report["tests"]:
             if test["path"] == f"tests/test_the_test/test_json_report.py::{nodeid}":
                 return test
@@ -47,7 +47,7 @@ class Test_Json_Report:
         test = self.get_test_fp("Test_Mock::test_irrelevant")
 
         assert test["outcome"] == "skipped"
-        assert test["details"] == "irrelevant (irrelevant)", test
+        assert test["details"] == "irrelevant (never be done)", test
 
     def test_pass(self):
         """Report is generated with correct test data when a test is passed"""
@@ -98,7 +98,7 @@ class Test_Json_Report:
     def test_released_manifest(self):
         test = self.get_test_fp("Test_NotReleased::test_method")
         assert test["outcome"] == "xpassed"
-        assert test["testDeclaration"] == "notImplemented"
+        assert test["testDeclaration"] == "missing_feature"
 
     def test_irrelevant(self):
         test = self.get_test_fp("Test_IrrelevantClass::test_method")
@@ -132,8 +132,8 @@ class Test_Json_Report:
     def test_logs(self):
         assert f"DEBUG    {BASE_PATH}::Test_IrrelevantClass::test_method => irrelevant => skipped\n" in self.logs
         assert f"DEBUG    {BASE_PATH}::Test_Class::test_irrelevant_method => irrelevant => skipped\n" in self.logs
-        assert f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky (FAKE-001) => skipped\n" in self.logs
-        assert f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky (FAKE-001) => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_FlakyClass::test_method => flaky => skipped\n" in self.logs
+        assert f"DEBUG    {BASE_PATH}::Test_Class::test_flaky_method => flaky => skipped\n" in self.logs
 
 
 @scenarios.mock_the_test
@@ -150,7 +150,7 @@ class Test_Mock:
     def test_missing_feature(self):
         raise ValueError("Should not be executed")
 
-    @irrelevant(condition=True, reason="irrelevant")
+    @irrelevant(condition=True, reason="never be done")
     def test_irrelevant(self):
         raise ValueError("Should not be executed")
 
@@ -212,11 +212,11 @@ class Test_Class:
         pass
 
     @missing_feature(condition=True, reason="not yet done")
-    @irrelevant(condition=True, reason="irrelevant")
+    @irrelevant(condition=True, reason="never be done")
     def test_skipping_prio(self):
         raise ValueError("Should not be executed")
 
-    @irrelevant(condition=True, reason="irrelevant")
+    @irrelevant(condition=True, reason="never be done")
     @missing_feature(condition=True, reason="not yet done")
     def test_skipping_prio2(self):
         raise ValueError("Should not be executed")

@@ -1,0 +1,64 @@
+[
+  {
+    "captures": {
+      "entry": {
+        "arguments": {},
+        "locals": {},
+        "staticFields": {}
+      },
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "fields": {}
+          }
+        },
+        "locals": {},
+        "staticFields": {},
+        "throwable": {
+          "message": "500 INTERNAL_SERVER_ERROR \"Simple exception\"",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
+              "lineNumber": 13
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 51
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "org.springframework.web.server.ResponseStatusException"
+        }
+      }
+    },
+    "exceptionId": "<scrubbed>",
+    "id": "<scrubbed>",
+    "language": "java",
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "lines": [],
+        "method": "exceptionReplaySimple",
+        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplaySimple",
+        "lineNumber": 13
+      },
+      {
+        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+        "lineNumber": 51
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "timestamp": "<scrubbed>"
+  }
+]

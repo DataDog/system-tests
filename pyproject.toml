@@ -10,7 +10,7 @@ packages = ["tests", "utils", "manifests"]
 dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
-addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
+addopts = "--json-report --json-report-indent=2 --color=yes --no-header -r Xf"
 testpaths = [
     "tests",
 ]
@@ -29,7 +29,9 @@ junit_suite_name = "system_tests_suite"
 
 markers =[
     "scenario: run a test only for a specified scenario",
-    "features: declare the feature id"
+    "features: declare the feature id",
+    "owners: declare the owner of the test",
+    "declaration: declare the expected outcome of a test",
 ]
 
 python_files = "test_*.py *utils.py"
@@ -157,7 +159,7 @@ ignore = [
 # 1. keep everything sorted alphabetically
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
-"lib-injection/*" = [
+"lib-injection/build/docker/python/*" = [
     "ANN001",   # missing-type-function-argument
     "ANN201",   # missing-return-type-undocumented-public-function
     "ARG001",   # unused-function-argument
@@ -171,7 +173,10 @@ ignore = [
 ]  
 "tests/*test_*.py" = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
-    "ANN001",    # missing-type-function-argument: TODO (TBD)
+]
+
+"tests/debugger/test_debugger_exception_replay.py" = [
+    "ANN001",    # missing-type-function-argument: TODO
 ]
 "tests/*" = [
     "E501",      # line-too-long: TODO
@@ -204,7 +209,6 @@ ignore = [
     "SLF001",  # private-member-access: TODO
 ]
 "tests/fuzzer/*" = [
-    "ANN001",   # missing-type-function-argument: TODO   
     "T201",     # print: fuzzer use prints...
 ]
 "tests/fuzzer/request_mutator.py" = [
@@ -292,7 +296,6 @@ ignore = [
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
-"utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
     "ANN001",   # missing-type-function-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO

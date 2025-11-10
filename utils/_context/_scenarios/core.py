@@ -27,12 +27,16 @@ class _ScenarioGroups:
     all = ScenarioGroup()
     appsec = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
+    appsec_rasp_scenario = ScenarioGroup()
+    appsec_lambda = ScenarioGroup()
     debugger = ScenarioGroup()
+    docker_fixtures = ScenarioGroup()
     end_to_end = ScenarioGroup()
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
     ipv6 = ScenarioGroup()
+    lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
     k8s_injector_dev = ScenarioGroup()
@@ -46,10 +50,15 @@ class _ScenarioGroups:
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
     external_processing = ScenarioGroup()
+    stream_processing_offload = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
+    parametric = ScenarioGroup()
+    appsec_low_waf_timeout = ScenarioGroup()
+    default = ScenarioGroup()
+    feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -81,7 +90,6 @@ VALID_CI_WORKFLOWS = {
     "parametric",
     "testthetest",
     "dockerssi",
-    "externalprocessing",
 }
 
 
@@ -197,11 +205,11 @@ class Scenario:
     def parametrized_tests_metadata(self):
         return {}
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
     def customize_feature_parity_dashboard(self, result: dict):
         pass
 
     def __str__(self) -> str:
-        return f"Scenario '{self.name}'"
+        return f"{self.__class__.__name__} '{self.name}'"

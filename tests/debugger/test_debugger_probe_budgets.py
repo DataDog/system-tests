@@ -10,12 +10,13 @@ from utils import scenarios, features, missing_feature, context
 
 @features.debugger_probe_budgets
 @scenarios.debugger_probes_snapshot
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
     def _setup(
         self,
         probes_name: str,
         request_path: str,
-        lines,
+        lines: list | None,
         probe_type: str = "log",
     ):
         self.initialize_weblog_remote_config()
@@ -71,6 +72,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_log_line_budgets(self):
         self._assert()
         self._validate_snapshots()

@@ -3,9 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky
+from utils._weblog import HttpResponse
+from types import EllipsisType
 
 
-def get_schema(request, address):
+def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
@@ -19,16 +21,18 @@ def get_schema(request, address):
 ANY = ...
 
 
-def contains(t1, t2):
+def contains(t1: list | EllipsisType | None, t2: list | EllipsisType | None):
     """Validate that schema t1 contains all keys and values from t2"""
     if t2 is ANY:
         return True
     if t1 is None or t2 is None:
         return False
+    assert isinstance(t1, list)
+    assert isinstance(t2, list)
     return equal_value(t1[0], t2[0])
 
 
-def equal_value(t1, t2):
+def equal_value(t1: list | dict | int | EllipsisType, t2: list | dict | int | EllipsisType):
     """Compare two schema type values, ignoring any metadata"""
     if t2 is ANY:
         return True
@@ -43,6 +47,7 @@ def equal_value(t1, t2):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
     """Test API Security - Request Headers Schema"""
@@ -63,6 +68,7 @@ class Test_Schema_Request_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
     """Test API Security - Request Cookies Schema"""
@@ -87,6 +93,7 @@ class Test_Schema_Request_Cookies:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
@@ -107,6 +114,7 @@ class Test_Schema_Request_Query_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
     """Test API Security - Request Path Parameters Schema"""
@@ -128,6 +136,7 @@ class Test_Schema_Request_Path_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
     """Test API Security - Request Body and list length"""
@@ -148,6 +157,7 @@ class Test_Schema_Request_Json_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
@@ -188,6 +198,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
     """Test API Security - Response Header Schema"""
@@ -207,6 +218,7 @@ class Test_Schema_Response_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Body:
     """Test API Security - Response Body Schema with urlencoded body"""
@@ -233,6 +245,7 @@ class Test_Schema_Response_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_on_Block:
     """Test API Security - Response Schemas with urlencoded body
@@ -293,6 +306,7 @@ class Test_Schema_Response_Body_env_var:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Scanners:
     """Test API Security - Scanners"""

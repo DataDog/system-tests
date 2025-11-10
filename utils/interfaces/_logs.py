@@ -92,25 +92,32 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator: Callable, *, success_by_default: bool = False):
+    def validate_one(self, validator: Callable[[dict], bool]):
         for data in self.get_data():
             try:
-                if validator(data) is True:
+                if validator(data):
                     return
             except Exception:
                 logger.error(f"{data} did not validate this test")
                 raise
 
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
+        raise ValueError("Test has not been validated by any data")
+
+    def validate_all(self, validator: Callable[[dict], None]):
+        for data in self.get_data():
+            try:
+                validator(data)
+            except Exception:
+                logger.error(f"{data} did not validate this test")
+                raise
 
     def assert_presence(self, pattern: str, **extra_conditions: str):
         validator = _LogPresence(pattern, **extra_conditions)
-        self.validate(validator.check, success_by_default=False)
+        self.validate_one(validator.check)
 
     def assert_absence(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         validator = _LogAbsence(pattern, allowed_patterns)
-        self.validate(validator.check, success_by_default=True)
+        self.validate_all(validator.check)
 
 
 class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
@@ -157,7 +164,13 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             timestamp = p("timestamp", r"\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d\d\d")
             klass = p("klass", r"[\w\.$\[\]/]+")
             self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
-
+        elif library == "cpp_nginx":
+            self._new_log_line_pattern = re.compile(r".")
+            timestamp = p("timestamp", r"\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}")
+            level = p("level", r"\w+")
+            thread = p("thread", r"\d+#\d+")
+            message = p("message", r".+")
+            self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {thread}: {message}"))
         elif library == "php":
             self._skipped_patterns += [
                 re.compile(
@@ -183,7 +196,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         return line
 
     def _get_standardized_level(self, level: str):
-        if self.library == "php":
+        if self.library in ("php", "cpp_nginx"):
             return level.upper()
 
         return super()._get_standardized_level(level)

@@ -12,6 +12,12 @@
   "dependencies": {
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^1.25.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "@openfeature/core": "^1.9.0",
+    "@openfeature/server-sdk": "~1.19.0"
+  },
+  "overrides": {
+    "@opentelemetry/api": "$@opentelemetry/api",
+    "@openfeature/server-sdk": "$@openfeature/server-sdk"
   }
 }

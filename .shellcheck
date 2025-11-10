@@ -2,10 +2,8 @@
 TODO=(
   utils/scripts/load-binary.sh
   utils/scripts/install_mitm_certificate.sh
-  utils/scripts/update_dashboard_CI_visibility.sh
   utils/scripts/slack/report.sh
   utils/scripts/docker_base_image.sh
-  utils/scripts/upload_results_CI_visibility.sh
   utils/build/docker/postgres-init-db.sh
   utils/build/docker/nodejs/app.sh
   utils/build/docker/nodejs/install_ddtrace.sh

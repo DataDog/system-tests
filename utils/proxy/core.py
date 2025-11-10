@@ -43,10 +43,15 @@ class _RequestLogger:
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
 
-        self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
+        self.host_log_folder = "logs"
 
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
+        self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
+
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
+
+        self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
+        self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
         self.span_events = span_events != "False"
@@ -56,6 +61,10 @@ class _RequestLogger:
         # mimic the old API
         self.rc_api_sequential_commands = None
         self.rc_api_runtime_ids_request_count: dict = {}
+
+        logger.info(f"rc_api_enabled: {self.rc_api_enabled}")
+        logger.info(f"mocked_backend: {self.mocked_backend}")
+        logger.info(f"span_meta_structs_disabled: {self.span_meta_structs_disabled}")
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
@@ -114,6 +123,9 @@ class _RequestLogger:
 
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
+        elif port == ProxyPorts.otel_collector and self.mocked_backend:
+            flow.response = http.Response.make(200, b"Ok")  # TODO : response accepted by collector
+
         elif port in (
             ProxyPorts.python_buddy,
             ProxyPorts.nodejs_buddy,
@@ -122,9 +134,14 @@ class _RequestLogger:
             ProxyPorts.golang_buddy,
             ProxyPorts.weblog,
         ):
-            flow.request.host, flow.request.port = "agent", 8127
+            flow.request.host, flow.request.port = (
+                self.tracing_agent_target_host,
+                self.tracing_agent_target_port,
+            )
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
+        elif port == ProxyPorts.agent and self.mocked_backend:
+            flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
@@ -138,12 +155,14 @@ class _RequestLogger:
             return
 
         try:
-            logger.info(f"    => Response {flow.response.status_code}")
+            logger.info(f"    => {flow.request.pretty_url} Response {flow.response.status_code}")
 
             self._modify_response(flow)
 
             # get the interface name
-            if port == ProxyPorts.open_telemetry_weblog:
+            if port == ProxyPorts.otel_collector:
+                interface = "otel_collector"
+            elif port == ProxyPorts.open_telemetry_weblog:
                 interface = "open_telemetry"
             elif port == ProxyPorts.weblog:
                 interface = "library"
@@ -212,7 +231,7 @@ class _RequestLogger:
                     export_content_files_to=export_content_files_to,
                 )
 
-            logger.info(f"    => Saving data as {log_filename}")
+            logger.info(f"    => Saving {flow.request.pretty_url} as {log_filename}")
 
             with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
@@ -299,6 +318,7 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
     loop = asyncio.new_event_loop()

@@ -352,11 +352,18 @@ func main() {
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
+	r.Any("/rasp/multiple", echoHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
 
+	r.Any("/external_request", echoHandleFunc(rasp.ExternalRequest))
+
 	r.Any("/requestdownstream", echoHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))
+
+	var d DebuggerController
+	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
+	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
@@ -401,4 +408,14 @@ func waf(c echo.Context) error {
 		appsec.MonitorParsedHTTPBody(req.Context(), body)
 	}
 	return c.String(http.StatusOK, "Hello, WAF!\n")
+}
+
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }

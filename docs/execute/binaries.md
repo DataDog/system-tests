@@ -37,13 +37,7 @@ Create a file `golang-load-from-go-get` under the `binaries` directory that spec
 
 To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
 * Content example:
-    * `github.com/DataDog/orchestrion@main` Test the main branch
-    * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
-    * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
-
-To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
-* Content example:
-    * `github.com/DataDog/orchestrion@main` Test the main branch
+    * `github.com/DataDog/orchestrion@latest` Test the latest release
     * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
     * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
 
@@ -124,8 +118,9 @@ There are three ways to run system-tests with a custom node tracer.
 
 ## PHP library
 
-- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-aarch64-linux-gnu.tar.gz` (or the `x86_64` if you're not on ARM) in `/binaries` folder
-  - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
+- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-*-linux-gnu.tar.gz` in `/binaries` folder
+  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline), from a CI run of your branch.
+  - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
 - Copy it in the binaries folder
 
 Then run the tests from the repo root folder:
@@ -165,6 +160,21 @@ You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rb
 
 ```bash
 ./utils/scripts/watch.sh /path/to/dd-trace-rb
+```
+
+## Rust library
+
+You have two ways to run system-tests with a custom Rust Tracer version:
+
+1. Create `rust-load-from-git` in `binaries` directory with the name of the branch or the ref you want to test.
+2. Clone the dd-trace-rs repo inside `binaries` and checkout the branch that you want to test against.
+
+*__Note__: You cannot have `rust-load-from-git` and `dd-trace-rs` folder at the same time, else the build will fail with exit code `128`.*
+
+You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rs` repo into the `binaries` folder:
+
+```bash
+./utils/scripts/watch.sh /path/to/dd-trace-rs
 ```
 
 ## WAF rule set

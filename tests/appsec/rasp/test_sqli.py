@@ -18,6 +18,8 @@ from tests.appsec.rasp.utils import (
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_UrlQuery:
     """SQL Injection through query parameters"""
 
@@ -41,6 +43,8 @@ class Test_Sqli_UrlQuery:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_BodyUrlEncoded:
     """SQL Injection through a url-encoded body parameter"""
 
@@ -64,6 +68,8 @@ class Test_Sqli_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_BodyXml:
     """SQL Injection through an xml body parameter"""
 
@@ -88,6 +94,8 @@ class Test_Sqli_BodyXml:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_BodyJson:
     """SQL Injection through a json body parameter"""
 
@@ -113,6 +121,8 @@ class Test_Sqli_BodyJson:
 @features.rasp_span_tags
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -127,6 +137,8 @@ class Test_Sqli_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -141,6 +153,8 @@ class Test_Sqli_Optional_SpanTags:
 @features.rasp_stack_trace
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
@@ -154,6 +168,8 @@ class Test_Sqli_StackTrace:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
@@ -177,6 +193,8 @@ class Test_Sqli_Telemetry:
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""
 

@@ -3,6 +3,10 @@ name: End-to-end tests
 on:
   workflow_call:
     inputs:
+      runs_on:
+        description: "Github runner"
+        required: true
+        type: string
       library:
         description: "Library to test"
         required: true
@@ -19,8 +23,17 @@ on:
         description: "Weblog name"
         required: true
         type: string
+      weblog_build_required:
+        description: "Is ./build.sh required?"
+        required: true
+        type: boolean
       weblog_instance:
         description: "Weblog instance name, if several job runs the same weblog, usefull to distinguish them in UI"
+        required: false
+        type: string
+        default: ''
+      force_execute:
+        description: "List of nodeid to force execute, separated by comma"
         required: false
         type: string
         default: ''
@@ -34,18 +47,23 @@ on:
         default: 'custom'
         required: false
         type: string
-      build_python_base_images:
+      _build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
         required: false
         type: boolean
-      build_buddies_images:
+      _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
         required: false
         type: boolean
-      build_proxy_image:
+      _build_proxy_image:
         description: "Shall we build proxy image"
+        default: false
+        required: false
+        type: boolean
+      _build_lambda_proxy_image:
+        description: "Shall we build the lambda-proxy image"
         default: false
         required: false
         type: boolean
@@ -59,7 +77,7 @@ on:
         default: false
         required: false
         type: boolean
-      enable_replay_scenarios:
+      _enable_replay_scenarios:
         description: "Enable replay scenarios, should only used in system-tests CI"
         default: false
         required: false
@@ -73,18 +91,26 @@ on:
         default: 14
         required: false
         type: number
-
-env:
-  REGISTRY: ghcr.io
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization"
+        default: false
+        required: false
+        type: boolean
+      test_optimization_datadog_site:
+        description: "DataDog site to use for test optimization"
+        default: "datadoghq.com"
+        required: false
+        type: string
 
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
-    runs-on: ${{ (contains(inputs.scenarios, 'CROSSED_TRACING_LIBRARIES') || contains(inputs.scenarios, 'INTEGRATIONS')) && 'ubuntu-latest-16-cores' || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runs_on }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
+      SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -97,7 +123,7 @@ jobs:
           echo "ref=main" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
@@ -105,60 +131,61 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
       if : ${{ inputs.binaries_artifact != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
     - name: Build python's weblog base images
-      if: inputs.library == 'python' && inputs.build_python_base_images
+      if: inputs.library == 'python' && inputs._build_python_base_images
       run: |
         ./utils/build/build_python_base_images.sh
     - name: Build buddies weblog images
-      if: inputs.build_buddies_images
+      if: inputs._build_buddies_images
       run: ./utils/build/build_tracer_buddies.sh
     - name: Build proxy image
-      if: inputs.build_proxy_image
+      if: inputs._build_proxy_image
       run: ./build.sh -i proxy
+    - name: Build lambda-proxy image
+      if: inputs._build_lambda_proxy_image
+      run: ./build.sh -i lambda-proxy
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        cleanup: "false"
         library: ${{ inputs.library }}
         weblog: ${{ inputs.weblog }}
         scenarios: ${{ inputs.scenarios }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to the Container registry
-      if: ${{ inputs.library == 'ruby' }}
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      run: |
+        # If not required, skip but succeed so outcome == 'success'
+        if [[ "${{ inputs.weblog_build_required }}" == 'false' ]]; then
+          echo "Skipping build (weblog_build_required=false)"
+          exit 0
+        fi
+        ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      env:
+        SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
+    - name: Run INTEGRATION_FRAMEWORKS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')
+      run: ./run.sh INTEGRATION_FRAMEWORKS -L ${{ inputs.library }} --weblog ${{ inputs.weblog }}
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
     - name: Run APPSEC_STANDALONE_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_API_SECURITY"')
       run: ./run.sh APPSEC_STANDALONE_API_SECURITY
-    - name: Run APPSEC_STANDALONE_EXPERIMENTAL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_EXPERIMENTAL"')
-      run: ./run.sh APPSEC_STANDALONE_EXPERIMENTAL
     - name: Run TRACE_STATS_COMPUTATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
       run: ./run.sh TRACE_STATS_COMPUTATION
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
-    - name: Run IAST_STANDALONE_EXPERIMENTAL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE_EXPERIMENTAL"')
-      run: ./run.sh IAST_STANDALONE_EXPERIMENTAL
     - name: Run SCA_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
-    - name: Run SCA_STANDALONE_EXPERIMENTAL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE_EXPERIMENTAL"')
-      run: ./run.sh SCA_STANDALONE_EXPERIMENTAL
     - name: Run IAST_DEDUPLICATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
@@ -168,6 +195,9 @@ jobs:
     - name: Run GRAPHQL_APPSEC scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC
+    - name: Run GRAPHQL_ERROR_TRACKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_ERROR_TRACKING"')
+      run: ./run.sh GRAPHQL_ERROR_TRACKING
     - name: Run IPV6 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
       run: ./run.sh IPV6
@@ -186,9 +216,6 @@ jobs:
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
-    - name: Run TRACE_PROPAGATION_STYLE_DEFAULT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_DEFAULT"')
-      run: ./run.sh TRACE_PROPAGATION_STYLE_DEFAULT
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
@@ -208,6 +235,9 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
+      run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
@@ -244,9 +274,9 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+    - name: Run FEATURE_FLAG_EXPOSURE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"FEATURE_FLAG_EXPOSURE"')
+      run: ./run.sh FEATURE_FLAG_EXPOSURE
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -254,14 +284,12 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
       run: ./run.sh APPSEC_MISSING_RULES
     - name: Run APPSEC_CUSTOM_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
       run: ./run.sh APPSEC_CORRUPTED_RULES
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
@@ -285,12 +313,6 @@ jobs:
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
-    - name: Run APPSEC_REQUEST_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
-      run: ./run.sh APPSEC_REQUEST_BLOCKING
-    - name: Run APPSEC_AND_RC_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
-      run: ./run.sh APPSEC_AND_RC_ENABLED
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
@@ -323,6 +345,15 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE"')
+      run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE
+    - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX"')
+      run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX
+    - name: Run APPSEC_STANDALONE_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
+      run: ./run.sh APPSEC_STANDALONE_RASP
     - name: Run APPSEC_RASP_NON_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_NON_BLOCKING"')
       run: ./run.sh APPSEC_RASP_NON_BLOCKING
@@ -335,18 +366,15 @@ jobs:
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
-    - name: Run TELEMETRY_APP_STARTED_CONFIG_CHAINING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_CONFIG_CHAINING"')
-      run: ./run.sh TELEMETRY_APP_STARTED_CONFIG_CHAINING
+    - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
+      run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
-    - name: Run TELEMETRY_METRIC_GENERATION_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_ENABLED"')
-      run: ./run.sh TELEMETRY_METRIC_GENERATION_ENABLED
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
@@ -356,6 +384,9 @@ jobs:
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
+    - name: Run DEBUGGER_PROBES_SNAPSHOT_WITH_SCM scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
+      run: ./run.sh DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
@@ -414,8 +445,36 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run APPSEC_LAMBDA_DEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
+      run: ./run.sh APPSEC_LAMBDA_DEFAULT
+    - name: Run APPSEC_LAMBDA_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
+      run: ./run.sh APPSEC_LAMBDA_BLOCKING
+    - name: Run APPSEC_LAMBDA_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
+      run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
+      run: ./run.sh APPSEC_LAMBDA_RASP
+    - name: Run EXTERNAL_PROCESSING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING"')
+      run: ./run.sh EXTERNAL_PROCESSING
+    - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING_BLOCKING"')
+      run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
+    - name: Run STREAM_PROCESSING_OFFLOAD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD"')
+      run: ./run.sh STREAM_PROCESSING_OFFLOAD
+    - name: Run STREAM_PROCESSING_OFFLOAD_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD_BLOCKING"')
+      run: ./run.sh STREAM_PROCESSING_OFFLOAD_BLOCKING
+    - name: Run OTEL_COLLECTOR scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
+      run: ./run.sh OTEL_COLLECTOR
+
     - name: Run all scenarios in replay mode
-      if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
+      if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
       env:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
@@ -424,10 +483,15 @@ jobs:
     - name: Compress logs
       id: compress_logs
       if: always() && steps.build.outcome == 'success'
-      run: tar -czvf artifact.tar.gz $(ls | grep logs)
+      run: |
+        if compgen -G "logs*/" > /dev/null; then
+          tar -czvf artifact.tar.gz logs*/
+        else
+          echo "No logs*/ found; skipping tar."
+        fi
     - name: Upload artifact
       if: always() && steps.compress_logs.outcome == 'success'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
         name: ${{ inputs.logs_artifact_name }}
@@ -448,3 +512,10 @@ jobs:
       env:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
+
+    - name: Push results to Test Optimization
+      if: always() && inputs.push_to_test_optimization
+      uses: ./.github/actions/push_to_test_optim
+      with:
+        datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
+        datadog_site: ${{ inputs.test_optimization_datadog_site }}

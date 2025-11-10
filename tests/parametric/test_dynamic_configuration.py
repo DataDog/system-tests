@@ -5,7 +5,17 @@ from typing import Any
 
 import pytest
 
-from utils import bug, context, features, irrelevant, missing_feature, rfc, scenarios, flaky
+from utils import (
+    bug,
+    context,
+    features,
+    irrelevant,
+    missing_feature,
+    rfc,
+    scenarios,
+    flaky,
+)
+from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.parametric.spec.trace import (
     Span,
@@ -13,7 +23,7 @@ from utils.parametric.spec.trace import (
     find_trace,
     find_first_span_in_trace_payload,
 )
-from .conftest import _TestAgentAPI, APMLibrary
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
@@ -36,7 +46,7 @@ DEFAULT_ENVVARS = {
 
 def send_and_wait_trace(
     test_library: APMLibrary,
-    test_agent: _TestAgentAPI,
+    test_agent: TestAgentAPI,
     name: str,
     service: str | None = None,
     resource: str | None = None,
@@ -82,11 +92,12 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-def _set_rc(test_agent, config: dict[str, Any]) -> None:
-    cfg_id = hash(json.dumps(config))
+def _set_rc(test_agent: TestAgentAPI, config: dict[str, Any], config_id: str | None = None) -> None:
+    if not config_id:
+        config_id = str(hash(json.dumps(config)))
 
-    config["id"] = str(cfg_id)
-    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{cfg_id}/config", payload=config)
+    config["id"] = str(config_id)
+    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{config_id}/config", payload=config)
 
 
 def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
@@ -96,14 +107,14 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
     return rc_config
 
 
-def set_and_wait_rc(test_agent, config_overrides: dict[str, Any]) -> dict:
+def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
     """
     rc_config = _create_rc_config(config_overrides)
 
-    _set_rc(test_agent, rc_config)
+    _set_rc(test_agent, rc_config, config_id)
 
     # Wait for both the telemetry event and the RC apply status.
     test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
@@ -139,7 +150,13 @@ def is_sampled(trace: list[dict]):
     return span["metrics"].get("_sampling_priority_v1", 0) > 0
 
 
-def get_sampled_trace(test_library, test_agent, service, name, tags=None):
+def get_sampled_trace(
+    test_library: APMLibrary,
+    test_agent: TestAgentAPI,
+    service: str,
+    name: str,
+    tags: list[tuple[str, str]] | None = None,
+) -> list[Span]:
     trace = None
     while not trace or not is_sampled(trace):
         trace = send_and_wait_trace(test_library, test_agent, service=service, name=name, tags=tags)
@@ -182,6 +199,8 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
         Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
         Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        Capabilities.ASM_EXTENDED_DATA_COLLECTION,
+        Capabilities.APM_TRACING_MULTICONFIG,
     },
     "nodejs": {
         Capabilities.ASM_ACTIVATION,
@@ -192,6 +211,7 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
         Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+        Capabilities.FFE_FLAG_CONFIGURATION_RULES,
     },
     "python": {Capabilities.APM_TRACING_ENABLED},
     "dotnet": {
@@ -212,6 +232,11 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
         Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        Capabilities.APM_TRACING_MULTICONFIG,
     },
     "cpp": {
         Capabilities.APM_TRACING_SAMPLE_RATE,
@@ -237,7 +262,15 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(context.library == "java", reason="APMAPI-1225")
-    def test_default_capability_completeness(self, library_env, test_agent, test_library):
+    @missing_feature(context.library < "dotnet@3.29.0", reason="Added new capabilities", force_skip=True)
+    @missing_feature(
+        context.library < "nodejs@5.72.0",
+        reason="Added new FFE flag capabilities",
+        force_skip=True,
+    )
+    def test_default_capability_completeness(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
         if context.library is not None and context.library.name is not None:
             seen_capabilities = test_agent.wait_for_rc_capabilities()
@@ -252,12 +285,19 @@ class TestDynamicConfigTracingEnabled:
                 )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_enabled(self, library_env, test_agent, test_library):
+    def test_capability_tracing_enabled(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the tracing enabled capability."""
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_ENABLED})
 
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
-    def test_tracing_client_tracing_enabled(self, library_env, test_agent, test_library):
+    @parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}],
+    )
+    def test_tracing_client_tracing_enabled(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
         if trace_enabled_env:
             with test_library, test_library.dd_start_span("allowed"):
@@ -280,11 +320,19 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_num_traces(num=1, clear=True)
         assert True, "no traces are sent after RC response with tracing_enabled: false"
 
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
+    @parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}],
+    )
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
+    @irrelevant(library="java", reason="APMAPI-1592")
+    @irrelevant(library="cpp", reason="APMAPI-1592")
+    @irrelevant(library="nodejs", reason="APMAPI-1592")
     @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
-    def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
+    def test_tracing_client_tracing_disable_one_way(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
         _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
@@ -293,6 +341,7 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
         _set_rc(test_agent, _create_rc_config({}))
+        test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
         with test_library, test_library.dd_start_span("test"):
             pass
 
@@ -303,7 +352,7 @@ class TestDynamicConfigTracingEnabled:
         ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
 
 
-def reverse_case(s):
+def reverse_case(s: str) -> str:
     return "".join([char.lower() if char.isupper() else char.upper() for char in s])
 
 
@@ -320,7 +369,9 @@ class TestDynamicConfigV1:
     """
 
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
-    def test_telemetry_app_started(self, library_env, test_agent, test_library):
+    def test_telemetry_app_started(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure that the app-started telemetry event is being submitted.
 
         Telemetry events are used as a signal for the configuration being applied
@@ -333,7 +384,7 @@ class TestDynamicConfigV1:
         assert len(events) > 0
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_apply_state(self, library_env, test_agent, test_library):
+    def test_apply_state(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Create a default RC record and ensure the apply_state is correctly set.
 
         This signal, along with the telemetry event, is used to determine when the
@@ -346,7 +397,7 @@ class TestDynamicConfigV1:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
-    def test_trace_sampling_rate_override_default(self, test_agent, test_library):
+    def test_trace_sampling_rate_override_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rate should override the default sampling rate.
 
         When RC is unset, the default should be used again.
@@ -366,11 +417,16 @@ class TestDynamicConfigV1:
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]])
-    @bug(library="cpp", reason="APMAPI-863")
+    @parametrize(
+        "library_env",
+        [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]],
+    )
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     @irrelevant(context.library == "python", reason="DD_TRACE_SAMPLE_RATE was removed in 3.x")
-    def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
+    def test_trace_sampling_rate_override_env(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """The RC sampling rate should override the environment variable.
 
         When RC is unset, the environment variable should be used.
@@ -387,18 +443,29 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        rc_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
+        # Keep a reference on the RC config id
+        config_id = rc_state["id"]
+
         # Create another remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.6})
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={"tracing_sampling_rate": 0.6},
+            config_id=config_id,
+        )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.6)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={"tracing_sampling_rate": None},
+            config_id=config_id,
+        )
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, initial_sample_rate)
 
@@ -411,10 +478,10 @@ class TestDynamicConfigV1:
             }
         ],
     )
-    @bug(library="cpp", reason="APMAPI-864")
-    def test_trace_sampling_rate_with_sampling_rules(self, library_env, test_agent, test_library):
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-864")
+    def test_trace_sampling_rate_with_sampling_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
-        rc_sampling_rule_rate = 0.56
+        rc_sampling_rule_rate = 0.70
         assert rc_sampling_rule_rate != ENV_SAMPLING_RULE_RATE
 
         # Create an initial trace to assert that the rule is correctly applied.
@@ -423,7 +490,10 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry with a different sample rate. This rate should not
         # apply to env_service spans but should apply to all others.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": rc_sampling_rule_rate})
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={"tracing_sampling_rate": rc_sampling_rule_rate},
+        )
 
         trace = send_and_wait_trace(test_library, test_agent, name="env_name", service="")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
@@ -437,7 +507,10 @@ class TestDynamicConfigV1:
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @missing_feature(context.library in ("cpp", "golang"), reason="Tracer doesn't support automatic logs injection")
+    @missing_feature(
+        context.library in ("cpp", "golang"),
+        reason="Tracer doesn't support automatic logs injection",
+    )
     @parametrize(
         "library_env",
         [
@@ -446,7 +519,9 @@ class TestDynamicConfigV1:
             {**DEFAULT_ENVVARS},
         ],
     )
-    def test_log_injection_enabled(self, library_env, test_agent, test_library):
+    def test_log_injection_enabled(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure that the log injection setting can be set.
 
         There is no way (at the time of writing) to check the logs produced by the library.
@@ -480,17 +555,17 @@ class TestDynamicConfigV1_EmptyServiceTargets:
         ],
     )
     @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
-    def test_not_match_service_target_empty_env(self, library_env, test_agent, test_library):
+    def test_not_match_service_target_empty_env(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty."""
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
-        rc_args = {}
-        if context.library == "cpp":
-            # C++ make RC requests every second -> update is a bit slower to propagate.
-            rc_args["wait_loops"] = 1000
+        # C++ make RC requests every second -> update is a bit slower to propagate.
+        wait_loops = 1000 if context.library == "cpp" else 100
 
         cfg_state = test_agent.wait_for_rc_apply_state(
-            "APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, **rc_args
+            "APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, wait_loops=wait_loops
         )
         assert cfg_state["apply_state"] == 2
 
@@ -516,9 +591,18 @@ class TestDynamicConfigV1_ServiceTargets:
                 "DD_ENV": e,
             }
             for (s, e) in [
-                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"]),
-                (DEFAULT_ENVVARS["DD_SERVICE"], DEFAULT_ENVVARS["DD_ENV"] + "-override"),
-                (DEFAULT_ENVVARS["DD_SERVICE"] + "-override", DEFAULT_ENVVARS["DD_ENV"] + "-override"),
+                (
+                    DEFAULT_ENVVARS["DD_SERVICE"] + "-override",
+                    DEFAULT_ENVVARS["DD_ENV"],
+                ),
+                (
+                    DEFAULT_ENVVARS["DD_SERVICE"],
+                    DEFAULT_ENVVARS["DD_ENV"] + "-override",
+                ),
+                (
+                    DEFAULT_ENVVARS["DD_SERVICE"] + "-override",
+                    DEFAULT_ENVVARS["DD_ENV"] + "-override",
+                ),
             ]
         ],
     )
@@ -526,7 +610,9 @@ class TestDynamicConfigV1_ServiceTargets:
     @irrelevant(library="java", reason="APMAPI-1003")
     @irrelevant(library="cpp", reason="APMAPI-1003")
     @irrelevant(library="golang", reason="APMAPI-1003")
-    def test_not_match_service_target(self, library_env, test_agent, test_library):
+    def test_not_match_service_target(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """This is an old behavior, see APMAPI-1003
 
         ----
@@ -541,18 +627,17 @@ class TestDynamicConfigV1_ServiceTargets:
         """
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
-        rc_args = {}
-        if context.library == "cpp":
-            # C++ make RC requests every second -> update is a bit slower to propagate.
-            rc_args["wait_loops"] = 1000
+        # C++ make RC requests every second -> update is a bit slower to propagate.
+        wait_loops = 1000 if context.library == "cpp" else 100
 
-        cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ERROR, **rc_args)
+        cfg_state = test_agent.wait_for_rc_apply_state(
+            "APM_TRACING", state=RemoteConfigApplyState.ERROR, wait_loops=wait_loops
+        )
         assert cfg_state["apply_state"] == RemoteConfigApplyState.ERROR.value
         assert cfg_state["apply_error"] != ""
 
-    @missing_feature(
-        context.library in ["golang", "cpp"], reason="Tracer does case-sensitive checks for service and env"
-    )
+    @missing_feature(context.library == "golang", reason="Tracer does case-sensitive checks for service and env")
+    @missing_feature(context.library <= "cpp@1.0.0", reason="Tracer does case-sensitive checks for service and env")
     @parametrize(
         "library_env",
         [
@@ -563,13 +648,24 @@ class TestDynamicConfigV1_ServiceTargets:
                 "DD_ENV": e,
             }
             for (s, e) in [
-                (reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]), DEFAULT_ENVVARS["DD_ENV"]),
-                (DEFAULT_ENVVARS["DD_SERVICE"], reverse_case(DEFAULT_ENVVARS["DD_ENV"])),
-                (reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]), reverse_case(DEFAULT_ENVVARS["DD_ENV"])),
+                (
+                    reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]),
+                    DEFAULT_ENVVARS["DD_ENV"],
+                ),
+                (
+                    DEFAULT_ENVVARS["DD_SERVICE"],
+                    reverse_case(DEFAULT_ENVVARS["DD_ENV"]),
+                ),
+                (
+                    reverse_case(DEFAULT_ENVVARS["DD_SERVICE"]),
+                    reverse_case(DEFAULT_ENVVARS["DD_ENV"]),
+                ),
             ]
         ],
     )
-    def test_match_service_target_case_insensitively(self, library_env, test_agent, test_library):
+    def test_match_service_target_case_insensitively(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Test that the library reports a non-erroneous apply_state when the service targeting is correct but differ in case.
 
         This can occur if the library requests Remote Configuration with an initial service + env pair and then
@@ -588,12 +684,19 @@ class TestDynamicConfigV1_ServiceTargets:
 @features.dynamic_configuration
 @features.adaptive_sampling
 class TestDynamicConfigV2:
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}])
+    @parametrize(
+        "library_env",
+        [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}],
+    )
     @flaky(context.library > "python@3.7.0", reason="APMAPI-1400")
-    def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
-        expected_local_tags = {}
+    def test_tracing_client_tracing_tags(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        expected_local_tags: dict[str, int | str | float | bool] = {}
         if "DD_TAGS" in library_env:
-            expected_local_tags = dict([p.split(":") for p in library_env["DD_TAGS"].split(",")])
+            expected_local_tags: dict[str, int | str | float | bool] = dict(
+                [p.split(":") for p in library_env["DD_TAGS"].split(",")]
+            )
 
         # Ensure tags are applied from the env
         with (
@@ -606,7 +709,10 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], expected_local_tags)
 
         # Ensure local tags are overridden and RC tags applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]})
+        set_and_wait_rc(
+            test_agent,
+            config_overrides={"tracing_tags": ["rc_key1:val1", "rc_key2:val2"]},
+        )
         with (
             test_library,
             test_library.dd_start_span("test") as span,
@@ -628,24 +734,35 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], expected_local_tags)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_sample_rate(self, library_env, test_agent, test_library):
+    def test_capability_tracing_sample_rate(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the trace sampling rate capability."""
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
 
-    @irrelevant(context.library in ("cpp", "golang"), reason="Tracer doesn't support automatic logs injection")
+    @irrelevant(
+        context.library in ("cpp", "golang"),
+        reason="Tracer doesn't support automatic logs injection",
+    )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_logs_injection(self, library_env, test_agent, test_library):
+    def test_capability_tracing_logs_injection(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the logs injection capability."""
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
 
-    @irrelevant(library="cpp", reason="The CPP tracer doesn't support automatic logs injection")
+    @irrelevant(library="cpp", reason="The CPP tracer doesn't support http header tags")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_http_header_tags(self, library_env, test_agent, test_library):
+    def test_capability_tracing_http_header_tags(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the http header tags capability."""
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_HTTP_HEADER_TAGS})
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_custom_tags(self, library_env, test_agent, test_library):
+    def test_capability_tracing_custom_tags(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the custom tags capability."""
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_CUSTOM_TAGS})
 
@@ -655,7 +772,9 @@ class TestDynamicConfigV2:
 @features.adaptive_sampling
 class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_sample_rules(self, library_env, test_agent, test_library):
+    def test_capability_tracing_sample_rules(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES})
 
@@ -669,7 +788,9 @@ class TestDynamicConfigSamplingRules:
         ],
     )
     @bug(library="ruby", reason="APMAPI-867")
-    def test_trace_sampling_rules_override_env(self, library_env, test_agent, test_library):
+    def test_trace_sampling_rules_override_env(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
         When RC is unset, the environment variable should be used.
@@ -736,7 +857,10 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(library="ruby", reason="APMAPI-867")
     @flaky(library="python", reason="APMAPI-1051")
-    def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1595")
+    def test_trace_sampling_rules_override_rate(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """The RC sampling rules should override the RC sampling rate."""
         rc_sampling_rule_rate_customer = 0.8
         rc_sampling_rate = 0.9
@@ -752,7 +876,12 @@ class TestDynamicConfigSamplingRules:
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
                 "tracing_sampling_rules": [
-                    {"sample_rate": rc_sampling_rule_rate_customer, "service": TEST_SERVICE, "provenance": "customer"}
+                    {
+                        "sample_rate": rc_sampling_rule_rate_customer,
+                        "service": TEST_SERVICE,
+                        "resource": "*",
+                        "provenance": "customer",
+                    }
                 ],
             },
         )
@@ -787,12 +916,12 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(context.library == "cpp", reason="APMAPI-866")
     @bug(context.library == "ruby", reason="APMAPI-868")
     @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
     @missing_feature(library="python")
     @missing_feature(context.library < "nodejs@5.19.0")
-    def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
+    def test_trace_sampling_rules_with_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
         When a sampling rule contains a tag clause/pattern, it should be used to match against a trace/span.
@@ -807,7 +936,11 @@ class TestDynamicConfigSamplingRules:
         assert rc_sampling_adaptive_rate != ENV_SAMPLING_RULE_RATE
 
         trace = get_sampled_trace(
-            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")]
+            test_library,
+            test_agent,
+            service=TEST_SERVICE,
+            name="op_name",
+            tags=[("tag-a", "tag-a-val")],
         )
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         # Make sure `_dd.p.dm` is set to "-3" (i.e., local RULE_RATE)
@@ -817,7 +950,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Create a remote config entry with two rules at different sample rates.
-        set_and_wait_rc(
+        rc_state = set_and_wait_rc(
             test_agent,
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
@@ -833,9 +966,16 @@ class TestDynamicConfigSamplingRules:
             },
         )
 
+        # Keep a reference on the RC config ID
+        config_id = rc_state["id"]
+
         # A span with matching tag and value. The remote matching tag rule should apply.
         trace = get_sampled_trace(
-            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "tag-a-val")]
+            test_library,
+            test_agent,
+            service=TEST_SERVICE,
+            name="op_name",
+            tags=[("tag-a", "tag-a-val")],
         )
         assert_sampling_rate(trace, rc_sampling_tags_rule_rate)
         # Make sure `_dd.p.dm` is set to "-11" (i.e., remote user RULE_RATE)
@@ -846,7 +986,11 @@ class TestDynamicConfigSamplingRules:
 
         # A span with the tag but value does not match. Remote global rate should apply.
         trace = get_sampled_trace(
-            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")]
+            test_library,
+            test_agent,
+            service=TEST_SERVICE,
+            name="op_name",
+            tags=[("tag-a", "NOT-tag-a-val")],
         )
         assert_sampling_rate(trace, rc_sampling_rate)
         # Make sure `_dd.p.dm` is set to "-3"
@@ -856,7 +1000,11 @@ class TestDynamicConfigSamplingRules:
 
         # A different tag key, value does not matter. Remote global rate should apply.
         trace = get_sampled_trace(
-            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("not-tag-a", "tag-a-val")]
+            test_library,
+            test_agent,
+            service=TEST_SERVICE,
+            name="op_name",
+            tags=[("not-tag-a", "tag-a-val")],
         )
         assert_sampling_rate(trace, rc_sampling_rate)
         # Make sure `_dd.p.dm` is set to "-3"
@@ -875,6 +1023,7 @@ class TestDynamicConfigSamplingRules:
         # RC config using dynamic sampling
         set_and_wait_rc(
             test_agent,
+            config_id=config_id,
             config_overrides={
                 "dynamic_sampling_enabled": "true",
                 "tracing_sampling_rules": [
@@ -897,7 +1046,11 @@ class TestDynamicConfigSamplingRules:
 
         # A span with non-matching tags. Adaptive rate should apply.
         trace = get_sampled_trace(
-            test_library, test_agent, service=TEST_SERVICE, name="op_name", tags=[("tag-a", "NOT-tag-a-val")]
+            test_library,
+            test_agent,
+            service=TEST_SERVICE,
+            name="op_name",
+            tags=[("tag-a", "NOT-tag-a-val")],
         )
         assert_sampling_rate(trace, rc_sampling_adaptive_rate)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
@@ -905,23 +1058,43 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
-    @bug(library="cpp", reason="APMAPI-863")
     @bug(library="ruby", reason="APMAPI-867")
     @bug(library="python", reason="APMAPI-857")
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
+    def test_remote_sampling_rules_retention(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Only the last set of sampling rules should be applied"""
-        set_and_wait_rc(
+        rc_state = set_and_wait_rc(
             test_agent,
             config_overrides={
-                "tracing_sampling_rules": [{"service": "svc*", "sample_rate": 0.5, "provenance": "customer"}],
+                "tracing_sampling_rules": [
+                    {
+                        "service": "svc*",
+                        "resource": "*",
+                        "sample_rate": 0.5,
+                        "provenance": "customer",
+                    }
+                ],
             },
         )
 
+        # Keep a reference on the RC config ID
+        config_id = rc_state["id"]
+
         set_and_wait_rc(
             test_agent,
+            config_id=config_id,
             config_overrides={
-                "tracing_sampling_rules": [{"service": "foo*", "sample_rate": 0.1, "provenance": "customer"}],
+                "tracing_sampling_rules": [
+                    {
+                        "service": "foo*",
+                        "resource": "*",
+                        "sample_rate": 0.1,
+                        "provenance": "customer",
+                    }
+                ],
             },
         )
 

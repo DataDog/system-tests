@@ -29,6 +29,11 @@ on:
         default: ''
         required: false
         type: string
+      force_execute:
+        description: "List of nodeid to force execute, separated by comma"
+        required: false
+        type: string
+        default: ''
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -39,23 +44,23 @@ on:
         default: 'custom'
         required: false
         type: string
-      build_python_base_images:
+      _build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
         required: false
         type: boolean
-      build_buddies_images:
+      _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
         required: false
         type: boolean
-      build_proxy_image:
+      _build_proxy_image:
         description: "Shall we build proxy image"
         default: false
         required: false
         type: boolean
-      build_lib_injection_app_images:
-        description: "Shall we build and push k8s lib injection weblog images"
+      _build_lambda_proxy_image:
+        description: "Shall we build the lambda-proxy image"
         default: false
         required: false
         type: boolean
@@ -79,7 +84,7 @@ on:
         default: "-1"
         required: false
         type: string
-      enable_replay_scenarios:
+      _enable_replay_scenarios:
         description: "Enable replay scenarios, should only used in system-tests CI"
         default: false
         required: false
@@ -104,6 +109,43 @@ on:
         default: 14
         required: false
         type: number
+      display_summary:
+        description: "Shall we display a summary of the test results at the end of the workflow run"
+        default: false
+        required: false
+        type: boolean
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization, require TEST_OPTIMIZATION_API_KEY secret"
+        default: false
+        required: false
+        type: boolean
+      test_optimization_datadog_site:
+        description: "DataDog site to use for test optimization"
+        default: "datadoghq.com"
+        required: false
+        type: string
+
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+      TEST_OPTIMIZATION_API_KEY:
+        required: false
+      CIRCLECI_TOKEN:
+        required: false
+      DD_API_KEY:
+        required: false
+      DD_APPLICATION_KEY:
+        required: false
+      DD_API_KEY_2:
+        required: false
+      DD_APP_KEY_2:
+        required: false
+      DD_API_KEY_3:
+        required: false
+      DD_APP_KEY_3:
+        required: false
 
 jobs:
   compute_parameters:
@@ -132,32 +174,20 @@ jobs:
       library: ${{ inputs.library }}
       ref: ${{ inputs.ref }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
+      force_execute: ${{ inputs.force_execute }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
-
-  lib_injection:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
-    uses: ./.github/workflows/run-lib-injection.yml
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-    with:
-      build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
-      library: ${{ inputs.library }}
-      ref: ${{ inputs.ref }}
-      version: ${{ needs.compute_parameters.outputs.ci_environment }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      test_optimization_datadog_site: ${{ inputs.test_optimization_datadog_site }}
 
   build_end_to_end:
-    name: Build end-to-end (${{ matrix.weblog }})
+    name: Build end-to-end (${{ matrix.weblog.name }})
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' && needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs != '[]'}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -175,13 +205,13 @@ jobs:
             echo "ref=main" >> $GITHUB_OUTPUT
           fi
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
@@ -191,12 +221,12 @@ jobs:
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Build weblog base images
-        if: inputs.library == 'python' && inputs.build_python_base_images
+        if: inputs.library == 'python' && inputs._build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
       - name: Build weblog
         id: build
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
       - name: Remove secrets
         if: always()
         run: |
@@ -208,9 +238,9 @@ jobs:
             echo "Token file not found — nothing to clean up"
           fi
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+          name: ${{ matrix.weblog.artifact_name }}
           path: binaries/
           retention-days: ${{ inputs.artifact_retention_days }}
 
@@ -219,7 +249,7 @@ jobs:
     needs:
       - compute_parameters
       - build_end_to_end
-    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ always() && needs.build_end_to_end.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
     strategy:
       matrix:
         job: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_jobs) }}
@@ -227,29 +257,55 @@ jobs:
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
+      runs_on: ${{ matrix.job.runs_on }}
       library: ${{ matrix.job.library }}
       ref: ${{ inputs.ref }}
       weblog: ${{ matrix.job.weblog }}
       weblog_instance: ${{ matrix.job.weblog_instance }}
+      weblog_build_required: ${{ matrix.job.weblog_build_required }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
-      build_buddies_images: ${{ inputs.build_buddies_images }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+      force_execute: ${{ inputs.force_execute }}
+      binaries_artifact: ${{ matrix.job.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      test_optimization_datadog_site: ${{ inputs.test_optimization_datadog_site }}
+      _build_buddies_images: ${{ inputs._build_buddies_images }}
+      _build_proxy_image: ${{ inputs._build_proxy_image }}
+      _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
+      _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
 
-  external_processing:
+  display_summary:
+    name: Report failures
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang'}}
-    uses: ./.github/workflows/run-external-processing.yml
-    secrets: inherit
-    with:
-      ref: ${{ inputs.ref }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
-      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      - run_end_to_end
+      - parametric
+    if: always() && inputs.display_summary == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - name: Download logs artifact
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: false
+          pattern: logs_*_${{ needs.compute_parameters.outputs.unique_id }}
+      - name: Uncompress logs
+        run: |
+          for d in logs_*; do
+            if [ -f "$d/artifact.tar.gz" ]; then
+              tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/reportJunit.xml'
+            fi
+          done
+      - name: Get summary
+        run: |
+          source venv/bin/activate
+          python utils/scripts/get-summary.py -o ${GITHUB_STEP_SUMMARY}

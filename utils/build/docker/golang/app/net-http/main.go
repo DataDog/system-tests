@@ -719,6 +719,7 @@ func main() {
 	mux.HandleFunc("/returnheaders", common.Returnheaders)
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
@@ -736,6 +737,12 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`[Event added]`))
 	})
+
+	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+
+	var d DebuggerController
+	mux.HandleFunc("/debugger/log", d.logProbe)
+	mux.HandleFunc("/debugger/mix", d.mixProbe)
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -889,4 +896,18 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 			return timedOutMessage, 408, nil
 		}
 	}
+}
+
+// The below handler functions are used to test the live debugging feature.
+// They need to be free-standing functions to avoid inlining and to make sure
+// make sure the debugger can probe them.
+
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }

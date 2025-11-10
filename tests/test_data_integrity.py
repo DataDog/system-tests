@@ -10,7 +10,7 @@ from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
 
-@features.data_integrity
+@features.trace_data_integrity
 class Test_TraceUniqueness:
     """All trace ids are uniques"""
 
@@ -19,7 +19,7 @@ class Test_TraceUniqueness:
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
-@features.data_integrity
+@features.trace_data_integrity
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
@@ -37,7 +37,7 @@ class Test_TraceHeaders:
             "x-datadog-trace-count",
         )
 
-        def check_condition(data):
+        def check_condition(data: dict):
             # if there is not trace, don't check anything
             return len(data["request"]["content"]) != 0
 
@@ -48,17 +48,17 @@ class Test_TraceHeaders:
     def test_trace_header_diagnostic_check(self):
         """x-datadog-diagnostic-check header is present iif content is empty"""
 
-        def validator(data):
+        def validator(data: dict):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}
             if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
                 raise ValueError("Tracer sent a dignostic request with traces in it")
 
-        interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_traces(validator=validator, allow_no_trace=True)
 
     def test_trace_header_count_match(self):
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
 
-        def validator(data):
+        def validator(data: dict):
             for header, value in data["request"]["headers"]:
                 if header.lower() == "x-datadog-trace-count":
                     try:
@@ -69,7 +69,7 @@ class Test_TraceHeaders:
                     if trace_count != len(data["request"]["content"]):
                         raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
 
-        interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_traces(validator=validator, allow_no_trace=True)
 
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
@@ -97,7 +97,7 @@ class Test_TraceHeaders:
         weblog_container_id = get_container_id(infos)
         logger.info(f"cgroup: weblog container id is {weblog_container_id}")
 
-        def validator(data):
+        def validator(data: dict):
             if _empty_request(data):
                 # RFC states "Once container ID is stored locally in the tracer,
                 # it must be sent to the Agent every time traces are sent."
@@ -126,22 +126,22 @@ class Test_TraceHeaders:
                         f"in request {data['log_filename']}"
                     )
 
-        interfaces.library.add_traces_validation(validator, success_by_default=True)
+        interfaces.library.validate_all_traces(validator, allow_no_trace=True)
 
 
-@features.data_integrity
+@features.trace_data_integrity
 class Test_LibraryHeaders:
     """Misc test around headers sent by libraries"""
 
     def test_datadog_container_id(self):
         """Datadog-Container-ID header is not empty if present"""
 
-        def validator(data):
+        def validator(data: dict):
             for header, value in data["request"]["headers"]:
                 if header.lower() == "datadog-container-id":
                     assert value, "Datadog-Container-ID header is empty"
 
-        interfaces.library.validate(validator, success_by_default=True)
+        interfaces.library.validate_all(validator, allow_no_data=True)
 
     @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
@@ -152,7 +152,7 @@ class Test_LibraryHeaders:
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
-        def validator(data):
+        def validator(data: dict):
             if _empty_request(data):
                 # Go sends an empty request content to /traces endpoint.
                 # This is a non-issue, because there are no traces to which container tags could be attached.
@@ -180,7 +180,7 @@ class Test_LibraryHeaders:
                     f"Datadog-Entity-ID header value {val} doesn't start with either 'in-', 'ci-' or 'cid-'"
                 )
 
-        interfaces.library.validate(validator, success_by_default=True)
+        interfaces.library.validate_all(validator, allow_no_data=True)
 
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
@@ -193,7 +193,7 @@ class Test_LibraryHeaders:
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
-        def validator(data):
+        def validator(data: dict):
             # Only test this when the path ens in /traces
             if not data["path"].endswith("/traces"):
                 return
@@ -211,13 +211,8 @@ class Test_LibraryHeaders:
                     item[2] == "-"
                 ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
-        interfaces.library.validate(validator, success_by_default=True)
+        interfaces.library.validate_all(validator, allow_no_data=True)
 
-
-@features.data_integrity
-@scenarios.sampling
-@scenarios.default
-class Test_Agent:
     @missing_feature(library="cpp_nginx", reason="Trace are not reported")
     @missing_feature(library="cpp_httpd")
     # we are not using dev agent, so activate this to see if it fails
@@ -230,6 +225,22 @@ class Test_Agent:
             header_value_pattern="application/json",
         )
 
+    def test_traces_coherence(self):
+        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
+
+        for data, trace in interfaces.library.get_traces():
+            assert data["response"]["status_code"] == 200
+            trace_id = trace[0]["trace_id"]
+            assert isinstance(trace_id, int)
+            assert trace_id > 0
+            for span in trace:
+                assert span["trace_id"] == trace_id
+
+
+@features.agent_data_integrity
+@scenarios.sampling
+@scenarios.default
+class Test_Agent:
     def test_agent_do_not_drop_traces(self):
         """Agent does not drop traces"""
 
@@ -238,7 +249,7 @@ class Test_Agent:
         for _, span in interfaces.agent.get_spans():
             trace_ids_reported_by_agent.add(int(span["traceID"]))
 
-        def get_span_with_sampling_data(trace):
+        def get_span_with_sampling_data(trace: list):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This isthe same logic found on the trace-agent.
@@ -275,17 +286,6 @@ class Test_Agent:
             logger.info(f"Agent reported {len(trace_ids_reported_by_agent)} traces")
             raise ValueError("Some traces have not been reported by the agent. See logs for more details")
 
-    def test_traces_coherence(self):
-        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
 
-        for data, trace in interfaces.library.get_traces():
-            assert data["response"]["status_code"] == 200
-            trace_id = trace[0]["trace_id"]
-            assert isinstance(trace_id, int)
-            assert trace_id > 0
-            for span in trace:
-                assert span["trace_id"] == trace_id
-
-
-def _empty_request(data):
+def _empty_request(data: dict):
     return "content" not in data["request"] or not data["request"]["content"]

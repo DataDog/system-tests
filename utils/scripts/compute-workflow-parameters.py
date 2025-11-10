@@ -1,5 +1,6 @@
 import argparse
 import json
+import secrets
 import sys
 
 from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
@@ -47,18 +48,21 @@ class CiData:
         #  the value is also a dict, where the key/value pair is the parameter name/value.
         self.data: dict[str, dict] = {"miscs": {}}
         self.language = library
+        self.unique_id = secrets.token_hex(8)
+        self.binaries_artifact = ""
 
         if ci_environment is not None:
             self.ci_environment = ci_environment
         elif system_tests_dev_mode:
             self.ci_environment = "dev"
-            self.data["miscs"]["binaries_artifact"] = f"binaries_dev_{library}"
+            self.binaries_artifact = f"binaries_dev_{library}"
         elif len(explicit_binaries_artifact) != 0:
             self.ci_environment = "custom"
-            self.data["miscs"]["binaries_artifact"] = explicit_binaries_artifact
+            self.binaries_artifact = explicit_binaries_artifact
         else:
             self.ci_environment = "prod"
 
+        self.data["miscs"]["binaries_artifact"] = self.binaries_artifact
         self.data["miscs"]["ci_environment"] = self.ci_environment
 
         # clean input parameters
@@ -80,6 +84,8 @@ class CiData:
             self.ci_environment,
             desired_execution_time,
             maximum_parallel_jobs=256,
+            unique_id=self.unique_id,
+            binaries_artifact=self.binaries_artifact,
         )
 
         self.data["parametric"] = {
@@ -87,10 +93,9 @@ class CiData:
             "job_matrix": list(range(1, parametric_job_count + 1)),
             "enable": len(scenario_map["parametric"]) > 0
             and "otel" not in library
-            and library not in ("cpp_nginx", "cpp_httpd"),
+            and library not in ("cpp_nginx", "cpp_httpd", "python_lambda"),
         }
 
-        self.data["externalprocessing"] = {"scenarios": scenario_map.get("externalprocessing", [])}
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
             "utils/scripts/ci_orchestrators/k8s_ssi.json",
             scenario_map.get("libinjection", []),
@@ -123,7 +128,7 @@ class CiData:
         legacy_scenarios, legacy_weblogs = set(), set()
 
         for item in self.data["endtoend_defs"]["parallel_weblogs"]:
-            legacy_weblogs.add(item)
+            legacy_weblogs.add(item["name"])
 
         for job in self.data["endtoend_defs"]["parallel_jobs"]:
             for scenario in job["scenarios"]:
@@ -156,6 +161,7 @@ class CiData:
 
         # github action is not able to handle aws_ssi, so nothing to do
 
+        result.append(f"unique_id={self.unique_id}")
         self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
@@ -218,25 +224,28 @@ class CiData:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-ci-parameters", description="Get scenarios and weblogs to run")
+    parser = argparse.ArgumentParser(prog="compute-workflow-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
         "library",
         type=str,
         help="One of the supported Datadog library",
         choices=[
-            "cpp",
             "cpp_httpd",
             "cpp_nginx",
+            "cpp",
             "dotnet",
+            "golang",
+            "java_otel",
+            "java",
+            "nodejs_otel",
+            "nodejs",
+            "otel_collector",
+            "php",
+            "python_lambda",
+            "python_otel",
             "python",
             "ruby",
-            "golang",
-            "java",
-            "nodejs",
-            "php",
-            "java_otel",
-            "nodejs_otel",
-            "python_otel",
+            "rust",
         ],
     )
 

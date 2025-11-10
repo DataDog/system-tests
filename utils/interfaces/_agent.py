@@ -11,7 +11,7 @@ import threading
 from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils._weblog import HttpResponse
 
 
@@ -53,9 +53,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
-    def validate_profiling(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
-
     def validate_appsec(self, request: HttpResponse, validator: Callable):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
             if validator(data, payload, chunk, span, appsec_data):
@@ -93,35 +90,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
+        """Assert that a header is present on all requests"""
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
-
-    def assert_headers_match(
-        self,
-        path_filter: list[str] | str | None,
-        request_headers: dict | None = None,
-        response_headers: dict | None = None,
-        check_condition: Callable | None = None,
-    ):
-        validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
-
-    def validate_telemetry(self, validator: Callable, *, success_by_default: bool = False):
-        def validator_skip_onboarding_event(data: dict):
-            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
-                return None
-            return validator(data)
-
-        self.validate(
-            validator=validator_skip_onboarding_event,
-            success_by_default=success_by_default,
-            path_filters="/api/v2/apmtelemetry",
-        )
-
-    def add_traces_validation(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(
-            validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
-        )
+        self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
     def get_spans(self, request: HttpResponse | None = None):
         """Attempts to fetch the spans the agent will submit to the backend.
@@ -146,6 +117,34 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         if rid is None or get_rid_from_span(span) == rid:
                             yield data, span
 
+    def get_chunks_v1(self, request: HttpResponse | None = None):
+        """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
+
+        When a valid request is given, then we filter the chunks to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = request.get_rid() if request else None
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "idxTracerPayloads" not in data["request"]["content"]:
+                continue
+
+            # logger.debug(f"Looking at agent data {data}")
+            content = data["request"]["content"]["idxTracerPayloads"]
+
+            for payload in content:
+                # logger.debug(f"Looking at agent payload {payload}")
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        logger.debug(f"Looking at agent span {span}")
+                        if rid is None or get_rid_from_span(span) == rid:
+                            logger.debug(f"Found a span in {data['log_filename']}")
+                            yield data, chunk
+                            break
+
     def get_spans_list(self, request: HttpResponse):
         return [span for _, span in self.get_spans(request)]
 
@@ -153,12 +152,18 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         """Attempts to fetch the metrics the agent will submit to the backend."""
 
         for data in self.get_data(path_filters="/api/v2/series"):
-            if "series" not in data["request"]["content"]:
-                raise ValueError("series property is missing in agent payload")
+            content = data["request"]["content"]
+            assert isinstance(content, dict), f"content is not a dict in {data['log_filename']}"
 
-            content = data["request"]["content"]["series"]
+            if len(content) == 0:
+                continue
 
-            for point in content:
+            if "series" not in content:
+                raise ValueError(f"series property is missing in agent payload in {data['log_filename']}")
+
+            series = data["request"]["content"]["series"]
+
+            for point in series:
                 yield data, point
 
     def get_sketches(self):
@@ -167,13 +172,11 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         all_data = self.get_data(path_filters="/api/beta/sketches")
 
         for data in all_data:
-            if "sketches" not in data["request"]["content"]:
-                raise ValueError("sketches property is missing in agent payload")
+            if "sketches" in data["request"]["content"]:
+                content = data["request"]["content"]["sketches"]
 
-            content = data["request"]["content"]["sketches"]
-
-            for point in content:
-                yield data, point
+                for point in content:
+                    yield data, point
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")

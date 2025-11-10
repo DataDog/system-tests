@@ -3,11 +3,14 @@
 # Copyright 2022 Datadog, Inc.
 
 from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
+from utils._weblog import HttpResponse
 
 
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -34,9 +37,10 @@ class Test_StandardTagsMethod:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
@@ -166,9 +170,11 @@ class Test_StandardTagsUrl:
         )
 
 
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -231,9 +237,11 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
@@ -342,7 +350,7 @@ class Test_StandardTagsClientIp:
             assert tag in meta, f"missing {tag} tag"
             assert meta[tag] == value
 
-    def _get_root_span_meta(self, request):
+    def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})
 
@@ -406,6 +414,6 @@ class Test_StandardTagsReferrerHostname:
                     meta["http.referrer_hostname"] == expected_hostname
                 ), f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
 
-    def _get_root_span_meta(self, request):
+    def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})

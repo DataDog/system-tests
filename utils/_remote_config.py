@@ -8,6 +8,7 @@ import json
 import os
 import re
 import time
+import uuid
 from typing import Any
 from collections.abc import Mapping
 
@@ -260,11 +261,14 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
 
 def build_apm_tracing_command(
     version: int,
+    prev_payloads: list[dict[str, Any]],
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
 ):
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
@@ -287,9 +291,15 @@ def build_apm_tracing_command(
         "schema_version": "v1.0.0",
         "action": "enable",
         "lib_config": lib_config,
+        "service_target": {"service": service_name, "env": env},
     }
 
-    path_payloads = {"datadog/2/APM_TRACING/config_overrides/config": config}
+    path_payloads = {}
+    for _config in prev_payloads:
+        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = _config
+
+    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = config
+    prev_payloads.append(config)
     return _build_base_command(path_payloads, version)
 
 
@@ -299,15 +309,24 @@ def send_apm_tracing_command(
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
+    prev_payloads: list[dict[str, Any]] | None = None,
     version: int = 1,
 ) -> RemoteConfigStateResults:
+    if prev_payloads is None:
+        prev_payloads = []
+
     raw_payload = build_apm_tracing_command(
         version=version,
+        prev_payloads=prev_payloads,
         dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
         exception_replay_enabled=exception_replay_enabled,
         live_debugging_enabled=live_debugging_enabled,
         code_origin_enabled=code_origin_enabled,
         dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
     )
 
     return send_state(raw_payload)

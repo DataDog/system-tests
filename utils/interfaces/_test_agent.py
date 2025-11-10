@@ -134,9 +134,9 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 continue
             # Convert all telemetry payloads to the the message-batch format. This simplifies configuration extraction
             events = (
-                request["payload"]
+                request.get("payload")
                 if request["request_type"] == "message-batch"
-                else [{"payload": request.get("payload", {}), "request_type": request["request_type"]}]
+                else [{"payload": request.get("payload"), "request_type": request["request_type"]}]
             )
             logger.debug("Found teleemtry events: %s", events)
             for event in events:

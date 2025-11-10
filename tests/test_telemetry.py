@@ -1,5 +1,7 @@
 import json
+from typing import Any
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
@@ -11,38 +13,38 @@ INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
 
 
-def get_header(data, origin, name):
+def get_header(data: dict, origin: str, name: str):
     for h in data[origin]["headers"]:
         if h[0].lower() == name:
             return h[1]
     return None
 
 
-def get_request_content(data):
+def get_request_content(data: dict):
     return data["request"]["content"]
 
 
-def get_request_type(data):
+def get_request_type(data: dict):
     return get_request_content(data).get("request_type")
 
 
-def get_configurations(data):
+def get_configurations(data: dict):
     return get_request_content(data)["payload"].get("configuration")
 
 
-def get_service_name(data):
+def get_service_name(data: dict):
     return get_request_content(data)["application"].get("service_name")
 
 
-def not_onboarding_event(data):
+def not_onboarding_event(data: dict):
     return get_request_type(data) != "apm-onboarding-event"
 
 
-def is_v2_payload(data):
+def is_v2_payload(data: dict):
     return get_request_content(data).get("api_version") == "v2"
 
 
-def is_v1_payload(data):
+def is_v1_payload(data: dict):
     return get_request_content(data).get("api_version") == "v1"
 
 
@@ -55,19 +57,21 @@ class Test_Telemetry:
     library_requests: dict[tuple[str, str], dict] = {}
     agent_requests: dict[tuple[str, str], dict] = {}
 
-    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
+    def validate_library_telemetry_data(self, validator: Callable[[dict], None], *, allow_no_data: bool = False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
-        if len(telemetry_data) == 0 and not success_by_default:
+        if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, *, flatten_message_batches=True, success_by_default=False):
+    def validate_agent_telemetry_data(
+        self, validator: Callable[[dict], None], *, flatten_message_batches: bool = True, allow_no_data: bool = False
+    ):
         telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
-        if len(telemetry_data) == 0 and not success_by_default:
+        if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
@@ -76,7 +80,7 @@ class Test_Telemetry:
     def test_telemetry_message_data_size(self):
         """Test telemetry message data size"""
 
-        def validator(data):
+        def validator(data: dict):
             if data["request"]["length"] >= 5_000_000:
                 raise ValueError("Received message size is more than 5MB")
 
@@ -86,7 +90,7 @@ class Test_Telemetry:
     def test_status_ok(self):
         """Test that telemetry requests sent to agent are successful"""
 
-        def validator(data):
+        def validator(data: dict):
             response_code = data["response"]["status_code"]
             assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
@@ -208,21 +212,34 @@ class Test_Telemetry:
         """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
-        if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
-            first_message = telemetry_data[0]["request"]["content"]["payload"][0]
-            assert (
-                first_message.get("request_type") == "app-started"
-            ), "app-started was not the first message in the first batch"
-        else:
-            # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
-            # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
-            app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
-            assert app_started, "app-started message not found"
-            min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-            assert (
-                app_started[0]["request"]["content"]["seq_id"] == min_seq_id
-            ), "app-started is not the first message by seq_id"
+        for batch in telemetry_data:
+            if batch["request"]["content"].get("request_type") == "message-batch":
+                if all(
+                    message.get("request_type") in ["sketches", "generate-metrics", "logs"]
+                    for message in batch["request"]["content"]["payload"]
+                ):
+                    # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
+                    # If the batch contains only messages not related to app-lifecycle we can ignore it.
+                    continue
+                first_message = batch["request"]["content"]["payload"][0]
+                assert (
+                    first_message.get("request_type") == "app-started"
+                ), "app-started was not the first message in the first batch"
+                return
+            else:
+                # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
+                # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
+                telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
+                app_started = [
+                    d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"
+                ]
+                assert app_started, "app-started message not found"
+                min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
+                assert (
+                    app_started[0]["request"]["content"]["seq_id"] == min_seq_id
+                ), "app-started is not the first message by seq_id"
+                return
+        raise ValueError("app-started message not found")
 
     @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
@@ -230,18 +247,16 @@ class Test_Telemetry:
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
-        def save_data(data, container):
+        def save_data(data: dict, container: dict):
             # payloads are identifed by their seq_id/runtime_id
             if not_onboarding_event(data):
                 assert "seq_id" in data["request"]["content"], f"`seq_id` is missing in {data['log_filename']}"
                 key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
-        self.validate_library_telemetry_data(
-            lambda data: save_data(data, self.library_requests), success_by_default=False
-        )
+        self.validate_library_telemetry_data(lambda data: save_data(data, self.library_requests), allow_no_data=False)
         self.validate_agent_telemetry_data(
-            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, success_by_default=False
+            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, allow_no_data=False
         )
 
         # At the end, check that all data are consistent
@@ -367,14 +382,14 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies: dict[str, dict[str, bool]] = {
+        test_loaded_dependencies = {
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
         }
 
-        test_defined_dependencies: dict[str, dict[str, bool]] = {
+        test_defined_dependencies = {
             "dotnet": {},
             "nodejs": {
                 "body-parser": False,
@@ -457,10 +472,10 @@ class Test_Telemetry:
         and this test as no longer relevant
         """
 
-        def validator(data):
+        def validator(data: dict):
             assert is_v1_payload(data)
 
-        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
     @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
@@ -482,7 +497,7 @@ class Test_Telemetry:
         }
         configuration_map = test_configuration[context.library.name]
 
-        def validator(data):
+        def validator(data: dict):
             if get_request_type(data) == "app-started":
                 content = data["request"]["content"]
                 configurations = content["payload"]["configuration"]
@@ -503,6 +518,19 @@ class Test_Telemetry:
                         # Handle different configuration structures - some might not have 'value' key
                         if cnf.get("name") == config_name_to_check:
                             config_value = cnf.get("value")
+                            # Accept both the expected value and its float version for telemetry_heartbeat_interval
+                            if expected_config_name == "telemetry_heartbeat_interval":
+                                try:
+                                    expected_float = float(expected_value)
+                                    config_float = float(config_value)
+                                    if config_float == expected_float:
+                                        config_found = True
+                                        configurations_present.append(expected_config_name)
+                                        break
+                                except Exception as e:
+                                    logger.debug(
+                                        f"Could not compare as float for config '{expected_config_name}': {e}"
+                                    )  # fallback to string comparison below
                             if config_value is not None and str(config_value).lower() == expected_value_str:
                                 config_found = True
                                 configurations_present.append(expected_config_name)
@@ -565,179 +593,95 @@ class Test_Telemetry:
 
 
 @features.telemetry_app_started_event
-@scenarios.telemetry_app_started_config_chaining
-class Test_TelemetryConfigurationChaining:
-    """Test that configuration sources are sent with app-started event in correct precedence order.
-
-    IMPORTANT: The order of configuration entries in the telemetry payload does NOT matter.
-    What matters is that the `seq_id` values reported for each configuration reflect the correct
-    precedence order as defined in `_ORIGIN_PRECEDENCE_ORDER`. This test verifies that for each
-    configuration, the `seq_id` increases as the origin precedence increases, regardless of the
-    order in which the entries appear in the payload.
-    """
-
-    # Official configuration origin precedence order (from lowest to highest precedence)
-    # Based on Node.js tracer implementation
-    _ORIGIN_PRECEDENCE_ORDER = [
-        "default",
-        "calculated",
-        "local_stable_config",
-        "env_var",
-        "fleet_stable_config",
-        "code",
-        "remote_config",
-    ]
-
-    # Test configuration constant for config chaining tests
-    _CONFIG_CHAINING_TEST_CONFIG = {
+@scenarios.telemetry_enhanced_config_reporting
+@rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
+class Test_TelemetryEnhancedConfigReporting:
+    # Expected configuration precedence: default -> env_var -> code
+    EXPECTED_CONFIGS: dict[str, dict[str, Any]] = {
         "nodejs": {
-            "configuration": {
-                "DD_LOGS_INJECTION": [
-                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
-                ],
-            },
-        },  # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
+            "name": "DD_LOG_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
+        },
+        "python": {
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
+        },
+        "dotnet": {
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
+        },
+        "java": {
+            "name": "logs_injection_enabled",
+            "precedence": [
+                {"origin": "default", "value": "true"},
+                {
+                    "origin": "jvm_prop",
+                    "value": "true",
+                },  # File-based properties differ from sysprops, but still report with origin:jvm_prop, even though they have a lower precedence than env_var: https://github.com/DataDog/dd-trace-java/blob/5c66a150ff3b16ebf9626c0f0170fc9715461a6b/utils/config-utils/src/main/java/datadog/trace/bootstrap/config/provider/ConfigProvider.java#L507-L514
+                {"origin": "env_var", "value": "false"},
+            ],
+        },
     }
 
-    @classmethod
-    def get_origin_precedence_order(cls) -> list[str]:
-        """Get the official configuration origin precedence order (lowest to highest)
+    def test_telemetry_events_seq_id(self):
+        """Verify all configuration entries have valid seq_id."""
+        configurations = interfaces.library.get_telemetry_configurations()
+        assert configurations, "No configurations found"
 
-        Returns:
-            List of origin names in precedence order from lowest to highest
+        for config in configurations:
+            assert "seq_id" in config, f"Configuration missing seq_id: {config}"
+            assert config["seq_id"] is not None, f"Configuration has null seq_id: {config}"
 
-        """
-        return cls._ORIGIN_PRECEDENCE_ORDER.copy()
+    def test_telemetry_enhanced_config_reporting_precedence(self):
+        """Verify configuration precedence order matches expected sequence."""
+        expected_config = self.EXPECTED_CONFIGS[context.library.name]
+        config_name = expected_config["name"]
+        expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
-    @scenarios.telemetry_app_started_config_chaining
-    def test_app_started_config_chaining(self):
-        """Assert that all configuration sources read at start time are sent with the app-started event in the correct order"""
-        self._validate_config_chaining(require_seq_id=True)
+        # Get configurations from telemetry events
+        all_configs = interfaces.library.get_telemetry_configurations()
+        assert all_configs, "No configurations found"
 
-    @scenarios.telemetry_app_started_config_chaining
-    def test_app_started_config_chaining_no_seq_id(self):
-        """If for some reason the seq_id is not sent, assert that all configuration sources read at start time for a given configuration
-        are sent with the app-started event in the correct order
-        """
-        self._validate_config_chaining(require_seq_id=False)
+        matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
+        assert matching_configs, f"No configurations found for {config_name}"
 
-    def _validate_config_chaining(self, *, require_seq_id: bool = True) -> None:
-        """Common validation logic for configuration chaining tests
+        # Group configurations by origin and keep the latest (highest seq_id) for each origin
+        latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
 
-        Args:
-            require_seq_id: Whether to require and validate seq_id presence and ordering
+        # Sort latest configurations by origin by seq_id to get the effective precedence order
+        sorted_configs: list[dict[str, Any]] = sorted(latest_by_origin.values(), key=lambda x: x["seq_id"])
 
-        """
-        nodejs_expected_config = self._CONFIG_CHAINING_TEST_CONFIG["nodejs"]["configuration"]
+        # Verify that configurations for the expected number of origins were received
+        assert len(sorted_configs) == len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
 
-        def validator(data):
-            if get_request_type(data) != "app-started":
-                return
+        # Verify each configuration matches expected precedence
+        for i, expected in enumerate(expected_precedence):
+            actual = sorted_configs[i]
+            assert actual["name"] == config_name, f"Config: {actual}, Expected Name: {config_name}"
+            assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
+            assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
 
-            content = data["request"]["content"]
-            configurations = content["payload"]["configuration"]
+    def _get_latest_configs_by_origin(self, configs: list[dict]) -> dict[str, dict[str, Any]]:
+        """Group configs by origin and return the latest (highest seq_id) for each origin."""
+        latest_by_origin: dict[str, dict[str, Any]] = {}
 
-            if require_seq_id:
-                # Assert that each configuration has a seq_id
-                for cnf in configurations:
-                    assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-                    assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
-
-                # Sort configurations by seq_id in ascending order (lowest to highest precedence)
-                configurations.sort(key=lambda cnf: cnf["seq_id"])
-            else:
-                # For the no_seq_id test, configurations might not have seq_id
-                # Sort by name to have a consistent order for comparison
-                configurations.sort(key=lambda cnf: cnf.get("name", ""))
-
-            self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
-
-        self.validate_library_telemetry_data(validator)
-
-    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
-        """Reuse telemetry validation method from Test_Telemetry"""
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-
-        if len(telemetry_data) == 0 and not success_by_default:
-            raise ValueError("No telemetry data to validate on")
-
-        for data in telemetry_data:
-            validator(data)
-
-    def _validate_precedence_order(self, chain: list) -> None:
-        """Validate that a configuration chain follows the official precedence order.
-
-        Args:
-            chain: List of configuration items with 'origin' keys.
-
-        NOTE: This method is used to check that the origins in a configuration chain are in the correct
-        precedence order. In the context of this test, the actual order in the payload is not important;
-        only the relationship between origin precedence and seq_id is validated in the main test logic.
-
-        """
-        precedence_map = {origin: i for i, origin in enumerate(self._ORIGIN_PRECEDENCE_ORDER)}
-
-        for i in range(len(chain) - 1):
-            current_origin = chain[i]["origin"]
-            next_origin = chain[i + 1]["origin"]
-
-            current_precedence = precedence_map.get(current_origin, -1)
-            next_precedence = precedence_map.get(next_origin, -1)
-
-            assert current_precedence < next_precedence, (
-                f"Configuration precedence order violation: '{current_origin}' "
-                f"(precedence {current_precedence}) should come before '{next_origin}' "
-                f"(precedence {next_precedence}) according to {self._ORIGIN_PRECEDENCE_ORDER}"
-            )
-
-    def _validate_configuration_chains(
-        self, configurations: list, expected_config: dict, *, require_seq_id: bool
-    ) -> None:
-        """Validate individual configuration chains against expected values
-
-        Args:
-            configurations: Actual configurations from telemetry data
-            expected_config: Expected configuration structure
-            require_seq_id: Whether to validate seq_id ordering
-
-        """
-        for cnf_name, expected_chain in expected_config.items():
-            # Filter actual entries for this configuration name
-            actual_chain = [cnf for cnf in configurations if cnf["name"] == cnf_name]
-
-            assert len(actual_chain) == len(expected_chain), (
-                f"Config '{cnf_name}': expected {len(expected_chain)} items, " f"found {len(actual_chain)}"
-            )
-
-            # Validate that the expected chain follows precedence order
-            self._validate_precedence_order(expected_chain)
-
-            # Validate that the actual chain follows precedence order
-            self._validate_precedence_order(actual_chain)
-
-            for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain, strict=False)):
-                # Validate origin
-                assert actual["origin"] == expected["origin"], (
-                    f"Config '{cnf_name}[{i}]': origin mismatch - "
-                    f"expected '{expected['origin']}', got '{actual['origin']}'"
-                )
-
-                # Validate value
-                assert actual["value"] == expected["value"], (
-                    f"Config '{cnf_name}[{i}]': value mismatch - "
-                    f"expected {expected['value']}, got {actual['value']}"
-                )
-
-                # Validate seq_id ordering if required
-                if require_seq_id and i < len(actual_chain) - 1:
-                    next_item = actual_chain[i + 1]
-                    assert actual["seq_id"] < next_item["seq_id"], (
-                        f"Config '{cnf_name}': seq_id not in ascending order - "
-                        f"item[{i}] seq_id={actual['seq_id']} should be less than "
-                        f"item[{i+1}] seq_id={next_item['seq_id']}"
-                    )
+        for config in configs:
+            origin = config["origin"]
+            if origin not in latest_by_origin or config["seq_id"] > latest_by_origin[origin]["seq_id"]:
+                latest_by_origin[origin] = config
+        return latest_by_origin
 
 
 @features.telemetry_instrumentation
@@ -747,7 +691,7 @@ class Test_APMOnboardingInstallID:
     def test_traces_contain_install_id(self):
         """Assert that at least one trace carries APM onboarding info"""
 
-        def validate_at_least_one_span_with_tag(tag):
+        def validate_at_least_one_span_with_tag(tag: str):
             for _, span in interfaces.agent.get_spans():
                 meta = span.get("meta", {})
                 if tag in meta:
@@ -774,7 +718,7 @@ def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
     return result
 
 
-def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes: list):
     lower_key = key.lower()
     is_allowed_key = lower_key in allowed_keys
     is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
@@ -808,7 +752,8 @@ class Test_TelemetryV2:
         reason="Re-enable when this automatically updates the dd-go files.",
     )
     @irrelevant(
-        condition=True, reason="This test causes to many friction. It has been replaced by alerts on slack channels"
+        condition=context.library not in ("python",),
+        reason="This test causes to many friction. It has been replaced by alerts on slack channels",
     )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
@@ -861,7 +806,7 @@ class Test_TelemetryV2:
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
-        def validator(data):
+        def validator(data: dict):
             telemetry = data["request"]["content"]
             assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
             assert get_header(data, "request", "dd-telemetry-request-type") == telemetry.get("request_type")
@@ -869,7 +814,7 @@ class Test_TelemetryV2:
             assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
             assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validator)
 
 
 @features.telemetry_api_v2_implemented
@@ -921,6 +866,7 @@ class Test_ProductsDisabled:
     @scenarios.telemetry_app_started_products_disabled
     @missing_feature(context.library == "ruby", reason="feature not implemented")
     @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
     @irrelevant(library="golang")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
@@ -1032,7 +978,7 @@ class Test_Metric_Generation_Disabled:
 
 
 @features.telemetry_metrics_collected
-@scenarios.telemetry_metric_generation_enabled
+@scenarios.agent_supporting_span_events
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
 
@@ -1112,7 +1058,7 @@ class Test_Metric_Generation_Enabled:
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
-    def assert_count_metric(self, namespace, metric, expect_at_least):
+    def assert_count_metric(self, namespace: str, metric: str, expect_at_least: int):
         series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
         assert len(series) != 0 or expect_at_least == 0, f"No telemetry data received for metric {namespace}.{metric}"
 
@@ -1134,21 +1080,24 @@ class Test_Metric_Generation_Enabled:
 class Test_TelemetrySCAEnvVar:
     def test_telemetry_sca_propagated(self):
         target_service_name = "weblog"
-        target_request_type = "app-started"
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        target_request_type = ["app-started", "app-client-configuration-change"]
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
         events = []
 
         for t in telemetry_data:
-            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+            if get_request_type(t) in target_request_type and get_service_name(t) == target_service_name:
                 events.append(t)
 
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
-        configurations = get_configurations(events[0])
         found = False
-        for c in configurations:
-            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
-                found = True
+        for e in events:
+            configurations = get_configurations(e)
+            for c in configurations:
+                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                    found = True
+                    break
+            if found:
                 break
 
         assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

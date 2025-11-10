@@ -30,7 +30,11 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
-    @bug(context.weblog_variant == "test-app-python-alpine", reason="PROF-11296")
+    @irrelevant(
+        context.vm_name in ["Ubuntu_20_amd64", "Ubuntu_20_arm64"] and context.weblog_variant == "test-app-python",
+        reason="Python version too old",
+    )
+    @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -55,11 +59,50 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
+@features.origin_detection
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
+    ruby_bug_platforms = [
+        "AlmaLinux_9_amd64",
+        "AlmaLinux_9_arm64",
+        "Amazon_Linux_2022_amd64",
+        "Amazon_Linux_2022_arm64",
+        "Amazon_Linux_2023_amd64",
+        "Amazon_Linux_2023_arm64",
+        "Debian_11_amd64",
+        "Debian_11_arm64",
+        "Debian_12_amd64",
+        "Debian_12_arm64",
+        "OracleLinux_9_2_amd64",
+        "OracleLinux_9_2_arm64",
+        "OracleLinux_9_3_amd64",
+        "OracleLinux_9_3_arm64",
+        "RedHat_9_0_amd64",
+        "RedHat_9_0_arm64",
+        "Rocky_Linux_9_amd64",
+        "Rocky_Linux_9_arm64",
+        "Ubuntu_22_amd64",
+        "Ubuntu_22_arm64",
+        "Ubuntu_23_04_arm64",
+        "Ubuntu_23_10_arm64",
+        "Ubuntu_24_10_amd64",
+        "Ubuntu_24_10_arm64",
+        "Ubuntu_24_amd64",
+        "Ubuntu_24_arm64",
+        "Ubuntu_25_04_amd64",
+        "Ubuntu_25_04_arm64",
+    ]
+
+    @missing_feature(
+        context.vm_name in ruby_bug_platforms,
+        library="ruby",
+        reason="""Missing TCP cgroup2 support.
+        See: https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3189670032/Traces+missing+container+tags+with+cgroup+V2#Tracer-Side
+        """,
+    )
     def test_install(self):
-        self._test_install(context.virtual_machine)
+        self._test_install(context.virtual_machine, origin_detection=True)
 
 
 @features.container_auto_installation_script_profiling
@@ -70,8 +113,8 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-10783",
     )
     @bug(
-        context.weblog_variant == "test-app-python-alpine",
-        reason="PROF-11296",
+        context.weblog_variant == "test-app-nodejs-container-25",
+        reason="PROF-12765",
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
@@ -171,14 +214,22 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]...")
 
+    @irrelevant(condition=context.vm_os_branch == "windows", reason="Irrelevant on Windows")
+    def test_no_world_writeable(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
+        self._test_no_world_writeable(virtual_machine)
+        logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
+
 
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
+    @irrelevant(context.library < "python@3.0.0", reason="Avoid blocking 2.21 release pipeline")
     @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
-        reason="python 3.7 is not supported on ddtrace >= 3.x",
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
     )
     def test_install(self):
         virtual_machine = context.virtual_machine
@@ -190,10 +241,44 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
 
+    @irrelevant(condition=context.vm_os_branch == "windows", reason="Irrelevant on Windows")
+    def test_no_world_writeable(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
+        self._test_no_world_writeable(virtual_machine)
+        logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
+
+
+@features.origin_detection
+@scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
+class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
+    @irrelevant(
+        condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,
+        reason="Origin detection is not supported on host environments",
+    )
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
+    )
+    def test_origin_detection(self):
+        virtual_machine = context.virtual_machine
+        logger.info(
+            f"Launching test_origin_detection for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
+        )
+        self._test_install(virtual_machine, origin_detection=True)
+        logger.info(
+            f"Done test_origin_detection for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
+        )
+
 
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
+    )
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)

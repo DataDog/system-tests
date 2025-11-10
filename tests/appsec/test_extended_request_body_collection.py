@@ -2,22 +2,25 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, rfc, features, bug, context
+from utils import weblog, interfaces, scenarios, rfc, features, bug, context, flaky
+from utils._weblog import HttpResponse
 
 
-def assert_body_property(body, prop, expected_value) -> None:
+def assert_body_property(body: dict, prop: str, expected_value: str) -> None:
     if context.library.name == "nodejs":
         assert body.get(prop) == expected_value
     if context.library.name == "java":
-        assert body.get(prop)[0] == expected_value
+        assert body.get(prop)[0] == expected_value  # type: ignore[index]
 
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
 @features.appsec_collect_request_body
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_ExtendedRequestBodyCollection:
     @staticmethod
-    def assert_feature_is_enabled(response) -> None:
+    def assert_feature_is_enabled(response: HttpResponse) -> None:
         assert response.status_code == 403
         interfaces.library.assert_rasp_attack(
             response,
@@ -45,6 +48,7 @@ class Test_ExtendedRequestBodyCollection:
     def setup_if_rasp_event_collect_request_body(self):
         self.setup_feature_is_enabled()
 
+    @flaky(library="java", reason="APPSEC-58895")
     def test_if_rasp_event_collect_request_body(self):
         self.assert_feature_is_enabled(self.check_r)
 
@@ -52,6 +56,7 @@ class Test_ExtendedRequestBodyCollection:
         self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd" + "A" * 5000})
 
     @bug(library="java", weblog_variant="vertx3", reason="APPSEC-57811")
+    @flaky(library="java", reason="APPSEC-58895")
     def test_request_body_truncated(self):
         assert self.r.status_code == 403
         interfaces.library.assert_rasp_attack(
@@ -85,6 +90,7 @@ class Test_ExtendedRequestBodyCollection:
             },
         )
 
+    @flaky(library="java", reason="APPSEC-58895")
     def test_if_no_rasp_event_no_collect_request_body(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200

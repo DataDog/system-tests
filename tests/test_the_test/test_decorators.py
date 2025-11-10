@@ -1,6 +1,6 @@
 import sys
 import logging
-
+from typing import Any
 import pytest
 
 from utils import irrelevant, missing_feature, flaky, rfc, logger, scenarios
@@ -14,7 +14,7 @@ pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 BASE_PATH = "tests/test_the_test/test_decorators.py"
 
 
-def is_skipped(item, reason):
+def is_skipped(item: Any, reason: str):  # noqa: ANN401
     if not hasattr(item, "pytestmark"):
         logger.debug(f"{item} has not pytestmark attribute")
     else:
@@ -29,7 +29,7 @@ def is_skipped(item, reason):
     raise Exception(f"{item} is not skipped, or not with the good reason")
 
 
-def is_not_skipped(item):
+def is_not_skipped(item):  # noqa: ANN001
     if hasattr(item, "pytestmark"):
         for mark in item.pytestmark:
             if mark.name == ("skip", "xfail"):
@@ -39,7 +39,7 @@ def is_not_skipped(item):
 
 
 class Logs(list):
-    def write(self, line):
+    def write(self, line: str):
         self.append(line)
 
     def __str__(self):
@@ -78,7 +78,7 @@ class Test_Skips:
 
 
 def test_version_range():
-    def check(declaration, tested_version, should_be_skipped):
+    def check(declaration: str, tested_version: str, *, should_be_skipped: bool):
         class LocalClass:
             pass
 
@@ -92,7 +92,7 @@ def test_version_range():
             markers = decorated_class.pytestmark
             assert (
                 markers[0].kwargs["reason"]
-                == f"missing_feature for agent: declared released version is {declaration}, tested version is {tested_version}"
+                == f"missing_feature (declared version for agent is {declaration}, tested version is {tested_version})"
             )
         else:
             assert not hasattr(decorated_class, "pytestmark")
