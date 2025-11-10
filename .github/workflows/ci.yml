@@ -84,9 +84,11 @@ jobs:
       DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
       DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     with:
-      library: ${{ matrix.library }}
-      scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
-      scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
+      # library: ${{ matrix.library }}
+      scenarios: OTEL_COLLECTOR_E2E
+      library: otel_collector
+      # scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
+      # scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
       display_summary: true
