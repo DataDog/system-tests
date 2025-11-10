@@ -44,12 +44,6 @@ if ! mypy --config pyproject.toml; then
   exit 1
 fi
 
-echo "Running ruff checks..."
-if ! which ruff > /dev/null; then
-  echo "ruff is not installed, installing it (ETA 5s)"
-  ./build.sh -i runner > /dev/null
-fi
-
 echo "Running ruff formatter..."
 if [ "$COMMAND" == "fix" ]; then
   ruff format
@@ -133,11 +127,6 @@ else
 fi
 
 echo "Running yamllint checks..."
-if ! which ./venv/bin/yamllint > /dev/null; then
-  echo "yamllint is not installed, installing it (ETA 60s)"
-  ./build.sh -i runner > /dev/null
-fi
-
 if ! ./venv/bin/yamllint -s manifests/; then
   echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
@@ -150,17 +139,14 @@ if ! python ./manifests/parser/core.py; then
 fi
 
 echo "Running shellcheck checks..."
-if ! which ./venv/bin/shellcheck > /dev/null; then
-  echo "shellcheck is not installed, installing it (ETA 60s)"
-  ./build.sh -i runner > /dev/null
-fi
-
 if ! ./utils/scripts/shellcheck.sh; then
   echo "shellcheck checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
 
 echo "Running language-specific linters..."
+# This will not run if npm is not installed as written and there is no "install" step today
+# TODO: Install node as part of this script
 if which npm > /dev/null; then
   echo "Running Node.js linters"
 
