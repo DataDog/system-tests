@@ -58,6 +58,7 @@ class _ScenarioGroups:
     parametric = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     default = ScenarioGroup()
+    default_antithesis = ScenarioGroup()
     feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
