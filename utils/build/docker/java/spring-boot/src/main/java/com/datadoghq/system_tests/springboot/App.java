@@ -1325,7 +1325,7 @@ public class App {
     DistantCallResponse otelDropInBaggageApiOTel(@RequestParam String url, @RequestParam String baggage_remove, @RequestParam String baggage_set) throws Exception {
         // Insert baggage operations here
         BaggageBuilder baggageBuilder = Baggage.current().toBuilder();
-        
+
         // for each
         if (baggage_remove != null) {
             for (String key : baggage_remove.split(",")) {
@@ -1363,7 +1363,7 @@ public class App {
                     .build();
 
             Response response = client.newCall(request).execute();
-        
+
             // Save response headers and status code
             int status_code = response.code();
             HashMap<String, String> response_headers = new HashMap<String, String>();

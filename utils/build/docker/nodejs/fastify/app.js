@@ -593,7 +593,7 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
 
   const url = request.query.url
   console.log(url)
-  
+
   const parsedUrl = new URL(url)
 
   const options = {
@@ -657,7 +657,7 @@ fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
 
   const url = request.query.url
   console.log(url)
-  
+
   const parsedUrl = new URL(url)
 
   const options = {

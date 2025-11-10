@@ -170,7 +170,11 @@ class Test_Baggage_Headers_Api_OTel:
     def setup_otel_api_update(self):
         self.r = weblog.get(
             "/otel_drop_in_baggage_api_otel",
-            params={"url": "http://weblog:7777", "baggage_set": "foo=overwrite_value,new_foo=new_value", "baggage_remove": "remove_me_key"},
+            params={
+                "url": "http://weblog:7777",
+                "baggage_set": "foo=overwrite_value,new_foo=new_value",
+                "baggage_remove": "remove_me_key",
+            },
             headers={
                 "x-datadog-parent-id": "10",
                 "x-datadog-trace-id": "2",
@@ -203,7 +207,11 @@ class Test_Baggage_Headers_Api_Datadog:
     def setup_datadog_api_update(self):
         self.r = weblog.get(
             "/otel_drop_in_baggage_api_datadog",
-            params={"url": "http://weblog:7777", "baggage_set": "foo=overwrite_value,new_foo=new_value", "baggage_remove": "remove_me_key"},
+            params={
+                "url": "http://weblog:7777",
+                "baggage_set": "foo=overwrite_value,new_foo=new_value",
+                "baggage_remove": "remove_me_key",
+            },
             headers={
                 "x-datadog-parent-id": "10",
                 "x-datadog-trace-id": "2",
