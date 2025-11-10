@@ -140,7 +140,7 @@ class TestedContainer:
             self._starting_lock = RLock()
 
             Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
-            Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
+            Path(f"{self.log_folder_path}/logs").mkdir(mode=0o777, exist_ok=True, parents=True)
 
             self.image.load()
             self.image.save_image_info(self.log_folder_path)
@@ -1282,10 +1282,10 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
-        self.volumes[f"./{host_log_folder}/docker/collector/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
-
         super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
+        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
@@ -1312,6 +1312,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self.config_file).chmod(new_mode)
+
         return super().start(network)
 
 
