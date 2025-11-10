@@ -1487,7 +1487,7 @@ tests/:
   test_resource_renaming.py:
     Test_Resource_Renaming_HTTP_Endpoint_Tag:
       '*': *ref_5_77_0
-      nextjs: missing_feature # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+      nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
     Test_Resource_Renaming_Stats_Aggregation_Keys:
       '*': *ref_5_77_0
       nextjs: missing_feature
