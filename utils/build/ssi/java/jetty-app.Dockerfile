@@ -16,13 +16,18 @@ COPY lib-injection/build/docker/java/jetty-app/ .
 RUN javac -cp "jetty-classpath/*" JettyServletMain.java CrashServlet.java
 RUN mkdir -p /opt/antithesis/catalog
 RUN ln -s /workdir /opt/antithesis/catalog/app
-RUN ln -s /opt/datadog-packages/datadog-apm-library-java/1.55.0 /opt/antithesis/catalog/dd-agent
+
+# Uncomment this to use the antithesis coverage instrumentation
+#RUN ln -s /opt/datadog-packages/datadog-apm-library-java/1.55.0 /opt/antithesis/catalog/dd-agent
+
 #Antithesis need one jar in the run folder to instrument the directory. In our case we have a class file in the directory, so we need to copy one of the jars (as dummy) to the run folder.
 RUN cp $(ls jetty-classpath/*.jar | head -n 1) .
 
 # https://antithesis.com/docs/using_antithesis/sdk/go/instrumentor/#coverage-instrumentation-behavior
 #The Antithesis instrumentor will output a file ending in .sym.tsv. This file should be copied into a directory named /symbols in the root of the appropriate container image.
+COPY utils/build/ssi/java/resources/jetty/go-285b1c98f1c9.sym.tsv ../symbols/
+
 COPY utils/build/ssi/java/resources/jetty/antithesis_entry_point.sh .
 RUN mkdir -p ../symbols
-COPY utils/build/ssi/java/resources/jetty/go-285b1c98f1c9.sym.tsv ../symbols/
+
 CMD [ "./antithesis_entry_point.sh" ]
