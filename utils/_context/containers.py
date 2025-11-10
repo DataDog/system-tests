@@ -139,7 +139,7 @@ class TestedContainer:
             self.stop_previous_container()
             self._starting_lock = RLock()
 
-            Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
+            Path(self.log_folder_path).mkdir(mode=0o777, exist_ok=True, parents=True)
             Path(f"{self.log_folder_path}/logs").mkdir(mode=0o777, exist_ok=True, parents=True)
 
             self.image.load()
