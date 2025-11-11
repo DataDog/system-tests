@@ -55,6 +55,8 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         # e.g., "openai-py" -> "openai", "openai-js" -> "openai"
         framework_dir = framework.rsplit("-", 1)[0] if "-" in framework else framework
 
+        self._set_dd_trace_integrations_enabled(library)
+
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
             framework=framework,
@@ -106,6 +108,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         return self._library
 
     def _check_and_set_api_keys(self):
+        """Set the necessary provider environment variables if required."""
         if self.require_openai_api_key:
             openai_api_key = os.getenv("OPENAI_API_KEY")
             if not openai_api_key:
@@ -113,3 +116,14 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             self.environment["OPENAI_API_KEY"] = openai_api_key  # type: ignore[assignment]
         else:
             self.environment["OPENAI_API_KEY"] = "<not-a-real-key>"
+
+    def _set_dd_trace_integrations_enabled(self, library: str) -> None:
+        """Set environment variables to disable certain integrations based on the library."""
+        if library == "python":
+            self.environment["DD_PATCH_MODULES"] = "fastapi:false,starlette:false"
+        elif library == "nodejs":
+            self.environment["DD_TRACE_EXPRESS_ENABLED"] = "false"
+            self.environment["DD_TRACE_HTTP_ENABLED"] = "false"
+            self.environment["DD_TRACE_DNS_ENABLED"] = "false"
+            self.environment["DD_TRACE_NET_ENABLED"] = "false"
+            self.environment["DD_TRACE_FETCH_ENABLED"] = "false"

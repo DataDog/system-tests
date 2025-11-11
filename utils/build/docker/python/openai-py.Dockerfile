@@ -16,5 +16,4 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /integration-framework-tracer-logs
 
-ENV DD_PATCH_MODULES="fastapi:false,starlette:false"
 CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "openai"]

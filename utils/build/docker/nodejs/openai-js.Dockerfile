@@ -18,11 +18,6 @@ COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
 # docker startup
-ENV DD_TRACE_EXPRESS_ENABLED=false
-ENV DD_TRACE_HTTP_ENABLED=false
-ENV DD_TRACE_DNS_ENABLED=false
-ENV DD_TRACE_NET_ENABLED=false
-ENV DD_TRACE_FETCH_ENABLED=false
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node app.js' >> app.sh
 ENV NODE_OPTIONS="--import dd-trace/initialize.mjs"
