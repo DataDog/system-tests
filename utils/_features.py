@@ -157,7 +157,7 @@ class _Features:
 
     @staticmethod
     def b3_headers_propagation(test_object):
-        """B3 headers injection and extraction
+        """B3 Single headers injection and extraction
 
         https://feature-parity.us1.prod.dog/#/?feature=13
         """
@@ -2606,6 +2606,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=493
         """
         return _mark_test_object(test_object, feature_id=493, owner=_Owner.agent_apm)
+
+    @staticmethod
+    def b3multi_headers_propagation(test_object):
+        """B3 Multi headers injection and extraction
+
+        https://feature-parity.us1.prod.dog/#/?feature=496
+        """
+        return _mark_test_object(test_object, feature_id=496, owner=_Owner.sdk_capabilities)
 
 
 features = _Features()
