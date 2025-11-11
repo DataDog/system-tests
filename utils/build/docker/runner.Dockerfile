@@ -23,5 +23,5 @@ COPY manifests /app/manifests
 # toplevel things
 COPY conftest.py /app/
 COPY run.sh /app/
-
+COPY utils/build/docker/singleton_driver_run_system_tests /opt/antithesis/test/v1/main/singleton_driver_run_system_tests
 CMD ./run.sh

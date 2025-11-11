@@ -40,8 +40,8 @@ class DefaultAntithesisScenario(Scenario):
         self._library: ComponentVersion | None = None
 
         # Interface timeout properties (will be set based on library in configure)
-        self.library_interface_timeout = 25  # Default timeout
-        self.agent_interface_timeout = 15
+        self.library_interface_timeout = 35  # Default timeout
+        self.agent_interface_timeout = 30
         self.backend_interface_timeout = 0
 
     def pytest_configure(self, config: pytest.Config) -> None:
@@ -81,7 +81,7 @@ class DefaultAntithesisScenario(Scenario):
 
         # Set library-specific interface timeouts
         if library_name == "java":
-            self.library_interface_timeout = 25
+            self.library_interface_timeout = 35
         elif library_name in ("golang",):
             self.library_interface_timeout = 10
         elif library_name in ("nodejs", "ruby"):
