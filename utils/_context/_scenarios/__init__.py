@@ -795,8 +795,9 @@ class _Scenarios:
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
         github_workflow="aws_ssi",
@@ -809,7 +810,11 @@ class _Scenarios:
         ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -819,7 +824,11 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -926,20 +935,32 @@ class _Scenarios:
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
         doc="Kubernetes lib injection with admission controller and profiling disabled by default",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
         doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
         doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         dd_cluster_feature={
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
