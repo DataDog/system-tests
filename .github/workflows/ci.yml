@@ -66,7 +66,6 @@ jobs:
     strategy:
       matrix:
         include: ${{ fromJson(needs.compute_libraries_and_scenarios.outputs.library_matrix) }}
-
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     permissions:
@@ -87,6 +86,7 @@ jobs:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
       scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
+      excluded_scenarios: OTEL_COLLECTOR_E2E  # rely on real backend
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
       display_summary: true

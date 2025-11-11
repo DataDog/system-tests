@@ -22,46 +22,46 @@ postgresql_metrics = {
     "postgresql.rollbacks": {"data_type": "Sum", "description": "The number of rollbacks"},
     "postgresql.db_size": {"data_type": "Sum", "description": "The database disk usage"},
     "postgresql.table.count": {"data_type": "Sum", "description": "Number of user tables in a database"},
-    "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},
-    "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
-    "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
-    "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
-    "postgresql.bgwriter.duration": {
-        "data_type": "Sum",
-        "description": "Total time spent writing and syncing files to disk by checkpoints",
-    },
-    "postgresql.bgwriter.maxwritten": {
-        "data_type": "Sum",
-        "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
-    },
+    # "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},
+    # "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
+    # "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
+    # "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
+    # "postgresql.bgwriter.duration": {
+    #     "data_type": "Sum",
+    #     "description": "Total time spent writing and syncing files to disk by checkpoints",
+    # },
+    # "postgresql.bgwriter.maxwritten": {
+    #     "data_type": "Sum",
+    #     "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
+    # },
     # Optional metrics (enabled in otelcol-config-with-postgres.yaml)
-    "postgresql.blks_hit": {
-        "data_type": "Sum",
-        "description": "Number of times disk blocks were found already in the buffer cache",
-    },
-    "postgresql.blks_read": {"data_type": "Sum", "description": "Number of disk blocks read in this database"},
+    # "postgresql.blks_hit": {
+    #     "data_type": "Sum",
+    #     "description": "Number of times disk blocks were found already in the buffer cache",
+    # },
+    # "postgresql.blks_read": {"data_type": "Sum", "description": "Number of disk blocks read in this database"},
     "postgresql.database.locks": {"data_type": "Gauge", "description": "The number of database locks"},
     "postgresql.deadlocks": {"data_type": "Sum", "description": "The number of deadlocks"},
-    "postgresql.temp.io": {
-        "data_type": "Sum",
-        "description": "Total amount of data written to temporary files by queries",
-    },
+    # "postgresql.temp.io": {
+    #     "data_type": "Sum",
+    #     "description": "Total amount of data written to temporary files by queries",
+    # },
     "postgresql.temp_files": {"data_type": "Sum", "description": "The number of temp files"},
-    "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
-    "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
-    "postgresql.tup_inserted": {
-        "data_type": "Sum",
-        "description": "Number of rows inserted by queries in the database",
-    },
-    "postgresql.tup_returned": {
-        "data_type": "Sum",
-        "description": "Number of rows returned by queries in the database",
-    },
-    "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
-    "postgresql.function.calls": {
-        "data_type": "Sum",
-        "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config.",
-    },
+    # "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
+    # "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
+    # "postgresql.tup_inserted": {
+    #     "data_type": "Sum",
+    #     "description": "Number of rows inserted by queries in the database",
+    # },
+    # "postgresql.tup_returned": {
+    #     "data_type": "Sum",
+    #     "description": "Number of rows returned by queries in the database",
+    # },
+    # "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
+    # "postgresql.function.calls": {
+    #     "data_type": "Sum",
+    #     "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config.",
+    # },
     "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
     "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table."},
     "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
