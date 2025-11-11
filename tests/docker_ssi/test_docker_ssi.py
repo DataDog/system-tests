@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from tests.parametric.test_telemetry import telemetry_name_mapping
+from tests.parametric.test_telemetry import _mapped_telemetry_name
 from utils import (
     scenarios,
     features,
@@ -163,7 +163,7 @@ class TestDockerSSIFeatures:
         logger.info("Testing Docker SSI service tracking")
         # Get all captured telemetry configuration data
         configurations = interfaces.library.get_telemetry_configurations()
-        telemetry_name = telemetry_name_mapping["ssi_injection_enabled"][context.library.name]
+        telemetry_name = _mapped_telemetry_name("ssi_injection_enabled")
         found = False
         for configuration in configurations:
             if configuration["name"] == telemetry_name and configuration["value"] == "ssi":
