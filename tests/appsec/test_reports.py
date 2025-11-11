@@ -73,6 +73,7 @@ class Test_Info:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
@@ -115,6 +116,7 @@ class Test_RequestHeaders:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
@@ -146,6 +148,7 @@ class Test_TagsFromRule:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
@@ -178,6 +181,7 @@ def _get_appsec_triggers(request: HttpResponse):
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_AttackTimestamp:
     """Attack timestamp"""

@@ -38,39 +38,11 @@ class DefaultAntithesisScenario(Scenario):
             ],
         )
         self._library: ComponentVersion | None = None
-        # List of scenario names whose tests should also run in this scenario
-        self.include_scenarios_from = ["DEFAULT"]
 
         # Interface timeout properties (will be set based on library in configure)
         self.library_interface_timeout = 25  # Default timeout
-        self.agent_interface_timeout = 5
+        self.agent_interface_timeout = 15
         self.backend_interface_timeout = 0
-
-        # Tests that are incompatible with Antithesis environment
-        # These tests will be skipped when running in DEFAULT_ANTITHESIS scenario
-        self.incompatible_tests = [
-            "tests/test_data_integrity.py::Test_Agent::test_agent_do_not_drop_traces",
-            "tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag",
-            "tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment",
-            "tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message",
-            "tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding",
-            "tests/appsec/iast/source/test_uri.py::TestURI::test_source_reported",
-            "tests/appsec/iast/source/test_uri.py::TestURI::test_telemetry_metric_instrumented_source",
-            "tests/appsec/iast/source/test_uri.py::TestURI::test_telemetry_metric_executed_source",
-            "tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version::test_min_version",
-            "tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version::test_min_version",
-            "tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version::test_min_version",
-            "tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version::test_min_version",
-            "tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version::test_min_version",
-            "tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version::test_min_version",
-            "tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version::test_min_version",
-            "tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version::test_min_version",
-            "tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version::test_min_version",
-            "tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version::test_min_version",
-            "tests/appsec/waf/test_addresses.py::Test_UrlQuery::test_query_with_strict_regex",
-            "tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once",
-            "tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once_rfc1025",
-        ]
 
     def pytest_configure(self, config: pytest.Config) -> None:
         """Configure the scenario but don't delete the logs folder if it exists."""
@@ -135,6 +107,10 @@ class DefaultAntithesisScenario(Scenario):
     def host_log_folder(self) -> str:
         """Override to use 'logs' folder instead of 'logs_default_antithesis'."""
         return "logs"
+
+    @property
+    def weblog_variant(self):
+        return os.environ.get("SYSTEM_TESTS_WEBLOG_VARIANT", "")
 
     def start_interfaces_watchdog(self, interfaces_list: list[ProxyBasedInterfaceValidator]) -> None:
         """Start file system watchdog to automatically ingest interface files."""

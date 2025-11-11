@@ -105,6 +105,7 @@ class Test_Dbm:
     setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.default
+    @scenarios.default_antithesis
     # @flaky(context.library >= "dotnet@2.54.0", reason="APMAPI-930")
     def test_trace_payload_service(self):
         assert self.requests, "No requests to validate"

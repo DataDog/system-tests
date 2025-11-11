@@ -28,6 +28,7 @@ class Test_DistributedHttp:
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -129,6 +130,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -171,6 +173,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -245,6 +248,7 @@ TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.datadog_headers_propagation
 class Test_Synthetics_APM_Datadog:
     def setup_synthetics(self):

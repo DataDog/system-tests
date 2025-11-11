@@ -12,6 +12,7 @@ from utils import context, weblog, interfaces, scenarios, bug, features
 @scenarios.stream_processing_offload
 @scenarios.appsec_lambda_default
 @scenarios.default
+@scenarios.default_antithesis
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 

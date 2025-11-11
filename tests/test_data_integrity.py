@@ -240,6 +240,7 @@ class Test_LibraryHeaders:
 @features.agent_data_integrity
 @scenarios.sampling
 @scenarios.default
+@scenarios.default_antithesis
 class Test_Agent:
     def test_agent_do_not_drop_traces(self):
         """Agent does not drop traces"""

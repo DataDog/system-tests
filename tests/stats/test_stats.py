@@ -113,6 +113,7 @@ class Test_Client_Stats:
         assert root_found
 
     @scenarios.default
+    @scenarios.default_antithesis
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Stats should be disabled by default"

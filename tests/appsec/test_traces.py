@@ -18,6 +18,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -64,6 +65,7 @@ class Test_RetainTraces:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -152,6 +154,7 @@ class Test_AppSecEventSpanTags:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
@@ -308,6 +311,7 @@ class Test_AppSecObfuscator:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
@@ -340,6 +344,7 @@ class Test_CollectRespondHeaders:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
@@ -376,6 +381,7 @@ class Test_CollectDefaultRequestHeader:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):

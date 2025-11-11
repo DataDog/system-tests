@@ -348,26 +348,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             deselected.append(item)
             continue
 
-        # Check if the current scenario should run this test
-        # Either the test is marked with the current scenario name,
-        # or the current scenario includes tests from the test's scenario
-        include_test = context.scenario.name in declared_scenarios
-
-        # Check if scenario has include_scenarios_from attribute (for inheriting tests from other scenarios)
-        if not include_test and hasattr(context.scenario, "include_scenarios_from"):
-            for scenario_name in context.scenario.include_scenarios_from:
-                if scenario_name in declared_scenarios:
-                    include_test = True
-                    logger.info(f"{item.nodeid} is included via {scenario_name} inheritance")
-                    break
-
-        if include_test:
-            # Check if this test is in the scenario's incompatible_tests list
-            if hasattr(context.scenario, "incompatible_tests") and item.nodeid in context.scenario.incompatible_tests:
-                logger.info(f"{item.nodeid} is incompatible with {context.scenario} - skipping")
-                deselected.append(item)
-                continue
-
+        if context.scenario.name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 

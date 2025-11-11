@@ -159,6 +159,7 @@ optional_uds_feature = (
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -352,6 +353,7 @@ class Test_MetaDatadogTags:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.default_antithesis
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

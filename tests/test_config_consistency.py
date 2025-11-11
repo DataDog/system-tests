@@ -32,6 +32,7 @@ runtime_metrics_lang_map = {
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.trace_http_server_error_statuses
 class Test_Config_HttpServerErrorStatuses_Default:
     """Verify behavior of http clients and distributed traces"""
@@ -194,6 +195,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.trace_http_client_error_statuses
 class Test_Config_HttpClientErrorStatuses_Default:
     """Verify behavior of http clients"""
@@ -266,6 +268,7 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.trace_http_client_tag_query_string
 class Test_Config_ClientTagQueryString_Empty:
     """Verify behavior when DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING set to empty string"""
@@ -428,6 +431,7 @@ class Test_Config_UnifiedServiceTagging_CustomService:
 
 
 @scenarios.default
+@scenarios.default_antithesis
 @features.unified_service_tagging
 class Test_Config_UnifiedServiceTagging_Default:
     """Verify behavior of http clients and distributed traces"""
@@ -751,6 +755,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.default
+@scenarios.default_antithesis
 @features.runtime_metrics
 class Test_Config_RuntimeMetrics_Default:
     """Verify runtime metrics are disabled by default"""
