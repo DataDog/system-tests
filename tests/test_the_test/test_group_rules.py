@@ -67,6 +67,7 @@ def test_tracer_release():
         scenarios.multi_installer_auto_injection,
         scenarios.demo_aws,
         scenarios.otel_collector_e2e,
+        scenarios.default_antithesis,
     ]
 
     for scenario in get_all_scenarios():
