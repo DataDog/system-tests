@@ -187,7 +187,7 @@ jobs:
     name: Build end-to-end (${{ matrix.weblog.name }})
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' && needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs != '[]'}}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -249,7 +249,7 @@ jobs:
     needs:
       - compute_parameters
       - build_end_to_end
-    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ always() && needs.build_end_to_end.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
     strategy:
       matrix:
         job: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_jobs) }}
