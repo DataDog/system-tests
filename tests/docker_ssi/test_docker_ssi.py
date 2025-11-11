@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 
+from tests.parametric.test_telemetry import telemetry_name_mapping
 from utils import (
     scenarios,
     features,
@@ -10,7 +11,6 @@ from utils import (
     weblog,
     logger,
     missing_feature,
-    incomplete_test_app,
 )
 
 
@@ -147,19 +147,29 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_service_tracking
-    @incomplete_test_app(context.library == "nodejs", reason="APMAPI-12345")
-    @missing_feature(context.library < "python@3.8.0.dev", reason="Not implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
+    @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
+    @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
+    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
+    @missing_feature(context.library < "ruby@v2.19.0", reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations("payment-service")
-
-        # Check that instrumentation source is ssi
-        injection_source = configurations.get("instrumentation_source")
-        assert injection_source, f"instrumentation_source not found in configuration {configurations}"
-        assert injection_source["value"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
+        configurations = interfaces.library.get_telemetry_configurations()
+        telemetry_name = telemetry_name_mapping["ssi_injection_enabled"][context.library.name]
+        found = False
+        for configuration in configurations:
+            if configuration["name"] == telemetry_name and configuration["value"] == "ssi":
+                found = True
+                break
+        assert found, f"{telemetry_name}=ssi not found in {configurations}"
 
     def setup_injection_metadata(self):
         self._setup_all()

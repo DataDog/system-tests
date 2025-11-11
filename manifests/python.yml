@@ -1162,7 +1162,7 @@ tests/:
       Test_Stable_Configuration_Origin: v3.7.0.dev
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
-      Test_TelemetrySSIConfigs: v3.8.0.dev
+      Test_TelemetrySSIConfigs: v3.11.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
