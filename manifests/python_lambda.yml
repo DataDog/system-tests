@@ -5,29 +5,29 @@ tests/:
       test_schemas.py:
         Test_Scanners:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Request_Cookies:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Request_FormUrlEncoded_Body:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Request_Headers:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Request_Json_Body:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Request_Path_Parameters:
           "*": v8.113.0
           alb: missing_feature
@@ -35,24 +35,24 @@ tests/:
           function-url: missing_feature
         Test_Schema_Request_Query_Parameters:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Response_Body:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Response_Headers:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
         Test_Schema_Response_on_Block:
           "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
+          alb: xpass  # auto activation: might not be the earliest working version
+          alb-multi: xpass  # auto activation: might not be the earliest working version
+          function-url: xpass  # auto activation: might not be the earliest working version
     rasp/:
       test_api10.py:
         Test_API10_all: v8.117.0.dev
