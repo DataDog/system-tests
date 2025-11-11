@@ -19,11 +19,12 @@ class OtelCollectorScenario(DockerScenario):
             name,
             github_workflow="endtoend",
             doc="TODO",
-            scenario_groups=[scenario_groups.end_to_end],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
             include_postgres_db=True,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
         )
+
         self.library = ComponentVersion("otel_collector", "0.0.0")
 
         self.collector_container = OpenTelemetryCollectorContainer(

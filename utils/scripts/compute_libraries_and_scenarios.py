@@ -203,7 +203,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library != "otel_collector"
+            if "otel" not in library and library not in ("otel_collector", "python_lambda")
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]

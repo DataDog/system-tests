@@ -129,7 +129,7 @@ class Scenario:
         if remove_if_exists:
             shutil.rmtree(path, ignore_errors=True)
 
-        Path(path).mkdir(parents=True, exist_ok=True)
+        Path(path).mkdir(mode=0o777, parents=True, exist_ok=True)
 
     def __call__(self, test_object):  # noqa: ANN001 (tes_object can be a class or a class method)
         """Handles @scenarios.scenario_name"""
