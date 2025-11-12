@@ -162,7 +162,7 @@ class TestDockerSSIFeatures:
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # Get all captured telemetry configuration data
-        configurations = interfaces.library.get_telemetry_configurations()
+        configurations = interfaces.test_agent.get_telemetry_configurations()
         telemetry_name = _mapped_telemetry_name("ssi_injection_enabled")
         found = False
         for configuration in configurations:
