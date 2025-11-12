@@ -11,7 +11,6 @@ from utils import context, interfaces, missing_feature, features, scenarios
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_Events:
     """AppSec events uses events in span"""

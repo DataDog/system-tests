@@ -35,7 +35,6 @@ def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Calla
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
 
@@ -113,7 +112,6 @@ class Test_UrlField:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 class Test_EnvVar:
     """Environnement variables are not leaked"""
 

@@ -460,7 +460,6 @@ def retrieve_span_links(span: dict):
 
 
 @scenarios.default
-@scenarios.default_antithesis
 @features.context_propagation_extract_behavior
 class Test_ExtractBehavior_Default:
     def setup_single_tracecontext(self):

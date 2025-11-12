@@ -2,6 +2,8 @@
 
 from logging import FileHandler
 import os
+from pathlib import Path
+import shutil
 import pytest
 
 from watchdog.observers.polling import PollingObserver
@@ -179,6 +181,9 @@ class DefaultAntithesisScenario(Scenario):
         # Load .NET managed library data if applicable
         interfaces.library_dotnet_managed.load_data()
 
+        # Copy logs to Antithesis output directory if configured
+        self._copy_logs_to_antithesis_output_dir()
+
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int) -> None:
         """Wait for an interface to finish collecting messages.
 
@@ -190,6 +195,56 @@ class DefaultAntithesisScenario(Scenario):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
         interface.wait(timeout)
+
+    def _copy_logs_to_antithesis_output_dir(self) -> None:
+        """Copy all log folder contents to ANTITHESIS_OUTPUT_DIR if the environment variable is set.
+
+        This method is called after test execution to preserve logs for Antithesis analysis.
+        It will:
+        - Check if ANTITHESIS_OUTPUT_DIR environment variable is set
+        - Create the destination directory if needed
+        - Copy all files and directories from the log folder
+        - Log the copy operations and any errors
+
+        """
+        antithesis_output_dir = os.environ.get("ANTITHESIS_OUTPUT_DIR")
+        if not antithesis_output_dir:
+            logger.terminal.write_sep("-", "ANTITHESIS_OUTPUT_DIR is not set, nothing to copy")
+            logger.terminal.flush()
+            return
+
+        logger.terminal.write_sep("-", f"Copying logs to ANTITHESIS_OUTPUT_DIR: {antithesis_output_dir}")
+        logger.terminal.flush()
+        try:
+            # Create destination directory if it doesn't exist
+            dest_dir = Path(antithesis_output_dir)
+            dest_dir.mkdir(parents=True, exist_ok=True)
+
+            # Copy all contents from log folder to antithesis output directory
+            log_source = Path(self.host_log_folder)
+            if log_source.exists():
+                for item in log_source.iterdir():
+                    dest_path = dest_dir / item.name
+
+                    if item.is_dir():
+                        # Copy directory recursively
+                        if dest_path.exists():
+                            shutil.rmtree(dest_path)
+                        shutil.copytree(item, dest_path)
+                        logger.terminal.write(f"  Copied directory: {item.name}\n")
+                    else:
+                        # Copy file
+                        shutil.copy2(item, dest_path)
+                        logger.terminal.write(f"  Copied file: {item.name}\n")
+
+                logger.terminal.write(f"Successfully copied all logs from {log_source} to {antithesis_output_dir}\n")
+                logger.terminal.flush()
+            else:
+                logger.terminal.write(f"Log folder {log_source} does not exist, nothing to copy\n")
+                logger.terminal.flush()
+        except Exception as e:
+            logger.terminal.write(f"Failed to copy logs to ANTITHESIS_OUTPUT_DIR: {e}\n")
+            logger.terminal.flush()
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:
         """Clean up after the test session."""

@@ -12,7 +12,6 @@ from utils._weblog import HttpResponse
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
@@ -43,7 +42,6 @@ class Test_StandardTagsMethod:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -178,7 +176,6 @@ class Test_StandardTagsUrl:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
 
@@ -246,7 +243,6 @@ class Test_StandardTagsRoute:
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default
-@scenarios.default_antithesis
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
@@ -361,7 +357,6 @@ class Test_StandardTagsClientIp:
 
 @features.referrer_hostname
 @scenarios.default
-@scenarios.default_antithesis
 class Test_StandardTagsReferrerHostname:
     """Tests to verify that libraries annotate spans with correct http.referrer_hostname tags"""
 
