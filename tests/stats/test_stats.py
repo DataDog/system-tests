@@ -309,10 +309,6 @@ class Test_Transport_Headers:
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
-    @bug(
-        context.library == "java",
-        reason="LANGPLAT-755",
-    )
     def test_container_id_header(self):
         """Test that stats transport includes container id headers"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
