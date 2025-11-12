@@ -72,19 +72,24 @@ tests/:
           vertx4: v1.51.0
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Negative:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Processor_Override:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Scanner:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
