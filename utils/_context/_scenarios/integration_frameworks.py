@@ -85,6 +85,11 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         self._library = ComponentVersion(library, output.decode("utf-8"))
         logger.debug(f"Library: {library}, Framework: {framework}=={framework_version}, Version: {self._library}")
 
+    def get_warmups(self):
+        result = super().get_warmups()
+        result.append(lambda: logger.stdout(f"Library: {self.library}"))
+        return result
+
     @contextlib.contextmanager
     def get_client(
         self,

@@ -1,18 +1,8 @@
 from utils import scenarios, features
 
 import pytest
-import os
 
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
-
-
-@pytest.fixture
-def library_env() -> dict[str, str]:
-    """Pass on the real API key for cassette generation for new tests."""
-
-    return {
-        "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", "<not-a-real-key>"),
-    }
 
 
 TOOLS = [
