@@ -1,0 +1,12 @@
+{
+    "env": {
+      "OTEL_RESOURCE_ATTRIBUTES": "repo.owner=DataDog,repo.name=system-tests"
+    },
+    "permissions": {
+        "allow": [
+          "Edit(/**)",           // Allow editing and creating files anywhere
+          "Read(/**)"            // Allow reading files anywhere
+        ]
+      },
+      "defaultMode": "acceptEdits"
+  }
