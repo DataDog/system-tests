@@ -5,7 +5,7 @@ import json
 import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios, context, missing_feature
+from utils import features, scenarios, context, missing_feature, bug
 from utils._context.component_version import Version
 from .conftest import APMLibrary
 
@@ -131,6 +131,7 @@ class Test_ProcessDiscovery:
             assert_metadata_content(test_library, library_env)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @bug(context.library == "cpp", reason="APMAPI-1744")
     @pytest.mark.parametrize(
         "library_env",
         [
