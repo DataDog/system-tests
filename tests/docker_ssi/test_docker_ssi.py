@@ -93,11 +93,9 @@ class TestDockerSSIFeatures:
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
-    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime > "3.7.0")
+    @irrelevant(context.library == "python")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
-    @bug(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0", reason="INPLAT-448")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
     @irrelevant(context.library == "dotnet" and context.installed_language_runtime >= "6.0.0")
     def test_telemetry_abort(self):
