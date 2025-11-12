@@ -161,15 +161,11 @@ class TestDockerSSIFeatures:
     @missing_feature(context.library < "ruby@v2.19.0", reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
-        # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations()
+        # Get the latest (effective) configurations
         telemetry_name = _mapped_telemetry_name("instrumentation_source")
-        found = False
-        for configuration in configurations.values():
-            if configuration["name"] == telemetry_name and configuration["value"] == "ssi":
-                found = True
-                break
-        assert found, f"{telemetry_name}=ssi not found in {configurations}"
+        configurations = interfaces.test_agent.get_telemetry_configurations()
+        instrumentation_source = configurations.get(telemetry_name, {})
+        assert instrumentation_source.get("value") == "ssi", f"{telemetry_name}=ssi not found in {configurations}"
 
     def setup_injection_metadata(self):
         self._setup_all()
