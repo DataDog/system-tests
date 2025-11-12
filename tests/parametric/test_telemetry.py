@@ -16,11 +16,7 @@ from .conftest import APMLibrary
 
 
 telemetry_name_mapping = {
-    "ssi_injection_enabled": {
-        "python": "DD_INJECTION_ENABLED",
-        "java": "injection_enabled",
-        "ruby": "DD_INJECTION_ENABLED",
-    },
+    "instrumentation_source": {},
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
@@ -1073,7 +1069,7 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
-        ssi_enabled_telemetry_name = _mapped_telemetry_name("ssi_injection_enabled")
+        ssi_enabled_telemetry_name = _mapped_telemetry_name("instrumentation_source")
         inject_enabled = test_agent.get_telemetry_config_by_origin(
             configuration_by_name, ssi_enabled_telemetry_name, "env_var", fallback_to_first=(expected_value is None)
         )
