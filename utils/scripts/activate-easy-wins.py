@@ -1,15 +1,22 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import zipfile
 from enum import Enum
 from pathlib import Path
 from typing import Any
+from dataclasses import dataclass
+from utils._context.component_version import Version
+from utils.get_declaration import get_rules, match_rule, is_terminal, get_all_nodeids, update_rule
+from utils._decorators import CustomSpec
+from manifests.parser.core import _load_file
 
 import requests
 import ruamel.yaml
+ruamel.yaml.emitter.Emitter.MAX_SIMPLE_KEY_LENGTH = 1000
 from tqdm import tqdm
 
 
@@ -35,6 +42,25 @@ LIBRARIES = [
     "ruby",
     # "rust"
 ]
+
+@dataclass
+class Context:
+    library: str
+    library_version: Version
+    variant: str
+
+    @staticmethod
+    def create(library: str, library_version: str, variant: str) -> Context|None:
+        if library not in LIBRARIES or not library_version or not (library_version := Version(library_version)):
+            return None
+        return Context(library, library_version, variant)
+
+
+    def __hash__(self):
+        return hash((self.library, str(self.library_version), self.variant))
+
+
+
 
 ARTIFACT_URL = (
     "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
@@ -147,37 +173,17 @@ def parse_artifact_data(
             except FileNotFoundError:
                 continue
 
-            library = scenario_data["context"]["library_name"]
-            if library not in libraries:
+            context = Context.create(scenario_data["context"].get("library_name"), scenario_data["context"].get("library"), scenario_data["context"].get("weblog_variant"))
+
+            if not context or context.library not in libraries:
                 break
 
-            variant = scenario_data["context"]["weblog_variant"]
-
-            if not test_data.get(library):
-                test_data[library] = {}
+            if not context in test_data:
+                test_data[context] = []
 
             for test in scenario_data["tests"]:
-                test_path = test["nodeid"].split("::")[0]
-                test_class = test["nodeid"].split("::")[1]
-
-                if not test_data[library].get(test_path):
-                    test_data[library][test_path] = {}
-
-                if not test_data[library][test_path].get(test_class):
-                    test_data[library][test_path][test_class] = {}
-
-                if not test_data[library][test_path][test_class].get(variant):
-                    test_data[library][test_path][test_class][variant] = (
-                        TestClassStatus.parse(test["outcome"]),
-                        set(test["metadata"]["owners"]),
-                    )
-                else:
-                    outcome = TestClassStatus.parse(test["outcome"])
-                    previous_outcome, previous_owners = test_data[library][test_path][test_class][variant]
-                    test_data[library][test_path][test_class][variant] = (
-                        merge_update_status(outcome, previous_outcome),
-                        set(test["metadata"]["owners"]) | previous_owners,
-                    )
+                if test["outcome"] == "xpassed":
+                    test_data[context].append(test["nodeid"])
 
     return test_data
 
@@ -370,13 +376,97 @@ def update_tree(
 
 
 def update_manifest(
-    language: str,
+    library: str,
     manifest: ruamel.yaml.CommentedMap,
     test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],  # type: ignore[type-arg]
     versions: dict[str, str],
     excluded_owners: set[str],
 ) -> list[tuple[list[str], str, str, set[str]]]:
-    return update_tree(manifest, manifest, language, manifest, test_data, [], versions, excluded_owners)
+    updates = {}
+    parsed_manifest = _load_file(f"manifests/{library}.yml", library)
+    for context, nodeids in test_data.items():
+        rules = get_rules(context.library, context.library_version, context.variant)
+        for nodeid in nodeids:
+            for rule, declarations in rules.items():
+                if not match_rule(rule, nodeid):
+                    continue
+                if "flaky" in declarations or "irrelevant" in declarations: # wrong TODO
+                    continue
+                if not rule in updates:
+                    updates[rule] = set()
+                updates[rule].add((nodeid, context))
+
+    additions = {}
+    updated = {}
+    for rule, targets in updates.items():
+        nodeids = set([target[0][:target[0].find("[")%(len(target[0]) + 1)] for target in targets])
+        contexts = set([target[1] for target in targets])
+        updated[rule] = parsed_manifest[rule]
+        update_rule(updated[rule], contexts, manifest["manifest"][rule])
+        if is_terminal(rule):
+            # updated[rule] = "modified"
+            continue
+        all_targets = set(get_all_nodeids(rule))
+        if all_targets == nodeids:
+            # updated[rule] = "modified"
+            continue
+        
+        # updated[rule] = "modified"
+        for nodeid in all_targets - nodeids:
+            new_val = manifest["manifest"][rule]
+            if isinstance(new_val, str):
+                new_val = [new_val]
+            else:
+                # new_val = copy.deepcopy(manifest["manifest"][rule])
+                new_val = manifest["manifest"][rule]
+            if nodeid not in additions:
+                additions[nodeid] = new_val
+            else:
+                additions[nodeid] += new_val
+
+        for nodeid in nodeids:
+            manifest["manifest"][nodeid] = f">={max(context.library_version for context in contexts)}"
+        
+    for k, vs in additions.items():
+        for v in vs:
+            if isinstance(v, str):
+                additions[k] = v
+
+    # for k, vs in additions.items():
+    #     print(f"{k}:")
+    #     for v in vs:
+    #         print(f"    {type(v)}")
+    # print(len(additions))
+
+    for k, v in additions.items():
+        if isinstance(v, str) and isinstance(manifest["manifest"].get(k), str):
+            continue
+        if isinstance(v, str):
+            manifest["manifest"][k] = v
+            continue
+        if isinstance(manifest["manifest"].get(k), ruamel.yaml.comments.CommentedSeq):
+            manifest["manifest"][k].append(v)
+            continue
+        manifest["manifest"][k] = v
+    for k, v in updated.items():
+        # if len(v) == 1 and len(v[0]) == 2:
+        #     manifest["manifest"][k] = v[0]["declaration"]
+        #     continue
+        manifest["manifest"][k] = []
+        # print(k, manifest["manifest"][k])
+        for condition in v:
+            manifest["manifest"][k].append({})
+            for clause_name, clause_val in condition.items():
+                if clause_name == "library":
+                    continue
+                if isinstance(clause_val, CustomSpec):
+                    clause_val = str(clause_val)
+                if isinstance(clause_val, list):
+                    clause_val = ruamel.yaml.CommentedSeq(clause_val)
+                    clause_val.fa.set_flow_style()
+                manifest["manifest"][k][-1][clause_name] = clause_val
+
+    return updates
 
 
 def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
@@ -453,11 +543,12 @@ def main() -> None:
 
     yaml = ruamel.yaml.YAML()
     yaml.explicit_start = True
-
-    yaml.width = 4096
-    yaml.comment_column = 120
+    yaml.width = 10000
+    yaml.comment_column = 10000
+    yaml.allow_unicode = True
+    yaml.default_flow_style = False
     yaml.preserve_quotes = True
-    yaml.indent(mapping=2, sequence=2, offset=2)
+    yaml.indent(mapping=2, sequence=4, offset=2)
 
     path_root = str(Path(__file__).parents[2])
     path_data_root = args.data_path if args.data_path else f"{path_root}/data"
@@ -491,13 +582,13 @@ def main() -> None:
             if updates:
                 verb = "Would update" if args.dry_run else "Found"
                 print(f"✅ {verb} {len(updates)} updates:")
-                for path, old_status, new_version, owners in updates:
-                    search_result = build_search(path)
-                    test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
-                    owners_str = ", ".join(sorted(owners)) if owners else "No owners"
-                    print(f"   • {test_path}")
-                    print(f"     {old_status} → {new_version}")
-                    print(f"     Owners: {owners_str}")
+                # for path, old_status, new_version, owners in updates:
+                #     search_result = build_search(path)
+                #     test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
+                #     owners_str = ", ".join(sorted(owners)) if owners else "No owners"
+                #     print(f"   • {test_path}")
+                #     print(f"     {old_status} → {new_version}")
+                #     print(f"     Owners: {owners_str}")
             else:
                 message = "No updates would be needed" if args.dry_run else "No updates needed"
                 print(f"   {message}")
