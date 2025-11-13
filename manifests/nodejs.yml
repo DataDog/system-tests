@@ -1154,6 +1154,9 @@ tests/:
       Test_Debugger_Telemetry:
         '*': *ref_5_39_0
         nextjs: irrelevant
+  integration_frameworks/:
+    test_openai.py:
+      TestOpenAiAPM: *ref_5_76_0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
