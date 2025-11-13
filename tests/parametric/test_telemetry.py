@@ -83,6 +83,7 @@ telemetry_name_mapping = {
         "java": "trace_debug",
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
+        "golang": "DD_TRACE_DEBUG",  # Before v2.4.0, the telemetry name was "trace_debug_enabled" — see _mapped_telemetry_name
     },
     "tags": {
         "java": "trace_tags",
@@ -101,6 +102,12 @@ def _mapped_telemetry_name(apm_telemetry_name: str):
     if apm_telemetry_name in telemetry_name_mapping:
         mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.name)
         if mapped_name is not None:
+            if (
+                apm_telemetry_name == "trace_debug_enabled"
+                and context.library.name == "golang"
+                and context.library <= "golang@2.4.0"
+            ):
+                return "trace_debug_enabled"
             return mapped_name
     return apm_telemetry_name
 
