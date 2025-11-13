@@ -112,7 +112,7 @@ def field_processing(
 
 
 def process_lib_version(n: str, _: object, e: dict[str, Any]) -> None:
-    e[n] = Declaration(e[n]).value
+    e[n] = Declaration(str(e[n])).value
 
 
 def _load_file(file: str, component: str):
