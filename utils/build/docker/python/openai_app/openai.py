@@ -1,4 +1,4 @@
-import ddtrace.auto
+from typing import Union
 
 import os
 
@@ -25,18 +25,75 @@ class ChatCompletionRequest(BaseModel):
     parameters: dict
 
 
+class CompletionRequest(BaseModel):
+    model: str
+    prompt: str
+    parameters: dict
+
+
+class EmbeddingsRequest(BaseModel):
+    model: str
+    input: str
+
+
+class ResponsesCreateRequest(BaseModel):
+    model: str
+    input: Union[str, list[dict]]
+    parameters: dict
+
+
 @app.post("/chat/completions")
 def chat_completions(request: ChatCompletionRequest):
-    stream = request.parameters.pop("stream", False)
     response = client.chat.completions.create(
         model=request.model,
         messages=request.messages,
-        stream=stream,
         **request.parameters,
     )
 
-    if stream:
-        for _ in response:
-            pass
+    if request.parameters.get("stream", False):
+        chunks = []
+        for chunk in response:
+            chunks.append(chunk)
 
-    return {}
+        response = chunks
+
+    return {"response": response}
+
+
+@app.post("/completions")
+def completions(request: CompletionRequest):
+    response = client.completions.create(
+        model=request.model,
+        prompt=request.prompt,
+        **request.parameters,
+    )
+
+    return {"response": response}
+
+
+@app.post("/embeddings")
+def embeddings(request: EmbeddingsRequest):
+    response = client.embeddings.create(
+        model=request.model,
+        input=request.input,
+    )
+
+    return {"response": response}
+
+
+@app.post("/responses/create")
+def responses_create(request: ResponsesCreateRequest):
+    response = client.responses.create(
+        model=request.model,
+        input=request.input,
+        **request.parameters,
+    )
+
+    if request.parameters.get("stream", False):
+        chunks = []
+        for chunk in response:
+            chunks.append(chunk)
+
+        response = chunks
+
+    return {"response": response}
