@@ -682,7 +682,7 @@ class Test_FR11_Telemetry:
                 config, dict
             ), f"No configuration found for '{expected_env}', configurations: {configurations_by_name}"
             assert (
-                config.get("value", "") == expected_value.lower()
+                str(config.get("value", "")).lower() == expected_value.lower()
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
     @pytest.mark.parametrize(

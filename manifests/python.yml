@@ -1112,11 +1112,11 @@ tests/:
       Test_FR03_Resource_Attributes: v3.18.0.dev
       Test_FR04_Trace_Span_IDs: v3.18.0.dev
       Test_FR05_Custom_Endpoints: missing_feature
-      Test_FR06_OTLP_Protocols: v3.18.0.dev
+      Test_FR06_OTLP_Protocols: missing_feature
       Test_FR07_Host_Name: v3.18.0.dev
-      Test_FR08_Custom_Headers: v3.18.0.dev
-      Test_FR09_Log_Injection: v3.18.0.dev
-      Test_FR10_Timeout_Configuration: v3.18.0.dev
+      Test_FR08_Custom_Headers: missing_feature
+      Test_FR09_Log_Injection: missing_feature
+      Test_FR10_Timeout_Configuration: missing_feature
       Test_FR11_Telemetry: missing_feature
     test_otel_metrics.py:
       Test_Otel_Metrics_Api_Instrument: v3.16.0.dev
