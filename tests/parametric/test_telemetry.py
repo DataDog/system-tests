@@ -1045,7 +1045,7 @@ class Test_TelemetrySSIConfigs:
                     "DD_SERVICE": "service_test",
                     "DD_INJECTION_ENABLED": "tracer",
                 },
-                "ssi" if context.library.name == "nodejs" else "tracer",
+                "tracer",
             ),
             (
                 {
@@ -1053,7 +1053,7 @@ class Test_TelemetrySSIConfigs:
                     "DD_SERVICE": "service_test",
                     "DD_INJECTION_ENABLED": "service_test,profiler,false",
                 },
-                "ssi" if context.library.name == "nodejs" else "service_test,profiler,false",
+                "service_test,profiler,false",
             ),
         ],
     )
