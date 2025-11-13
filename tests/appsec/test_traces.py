@@ -66,6 +66,7 @@ class Test_RetainTraces:
 @scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.default_antithesis
+@scenarios.default_antithesis_debug
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""

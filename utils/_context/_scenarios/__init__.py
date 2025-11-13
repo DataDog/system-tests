@@ -39,6 +39,7 @@ class _Scenarios:
 
     default = DefaultScenario("DEFAULT")
     default_antithesis = DefaultAntithesisScenario("DEFAULT_ANTITHESIS")
+    default_antithesis_debug = DefaultScenario("DEFAULT_ANTITHESIS_DEBUG")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
