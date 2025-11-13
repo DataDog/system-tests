@@ -29,22 +29,6 @@ Read and follow these rules in EVERY interaction:
 
 ---
 
-## Setup Commands
-
-```bash
-# First-time setup (REQUIRED before first run)
-./build.sh
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run a scenario
-./run.sh <scenario_name>
-
-# Format code (REQUIRED before commit)
-./format.sh
-```
-
 ## Quick Reference
 
 - **Project**: System tests for Datadog tracer libraries (Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, Rust)
