@@ -3,6 +3,9 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import find_only_span
 from utils import scenarios, features
+from utils.docker_fixtures import TestAgentAPI
+
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
@@ -34,16 +37,16 @@ def enable_none_invalid() -> pytest.MarkDecorator:
 @features.datadog_headers_propagation
 class Test_Headers_None:
     @enable_none()
-    def test_headers_none_extract(self, test_agent, test_library):
+    def test_headers_none_extract(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that no distributed tracing headers are extracted."""
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-origin", "synthetics"],
-                    ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-origin", "synthetics"),
+                    ("x-datadog-tags", "_dd.p.dm=-4"),
                 ],
             )
 
@@ -55,7 +58,9 @@ class Test_Headers_None:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) != 2
 
     @enable_none_invalid()
-    def test_headers_none_extract_with_other_propagators(self, test_agent, test_library):
+    def test_headers_none_extract_with_other_propagators(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure that the 'none' propagator is ignored when other propagators are present.
         In this case, ensure that the Datadog distributed tracing headers are extracted
         and activated properly.
@@ -63,11 +68,11 @@ class Test_Headers_None:
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-origin", "synthetics"],
-                    ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-origin", "synthetics"),
+                    ("x-datadog-tags", "_dd.p.dm=-4"),
                 ],
             )
 
@@ -79,7 +84,7 @@ class Test_Headers_None:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     @enable_none()
-    def test_headers_none_inject(self, test_agent, test_library):
+    def test_headers_none_inject(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are injected.
         """
@@ -95,7 +100,9 @@ class Test_Headers_None:
         assert "x-datadog-tags" not in headers
 
     @enable_none_invalid()
-    def test_headers_none_inject_with_other_propagators(self, test_agent, test_library):
+    def test_headers_none_inject_with_other_propagators(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
         """Ensure that the 'none' propagator is ignored when other propagators are present.
         In this case, ensure that the Datadog distributed tracing headers are injected properly.
         """
@@ -108,18 +115,18 @@ class Test_Headers_None:
         assert int(headers["x-datadog-sampling-priority"]) == span["metrics"].get(SAMPLING_PRIORITY_KEY)
 
     @enable_none()
-    def test_headers_none_propagate(self, test_agent, test_library):
+    def test_headers_none_propagate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are extracted or injected.
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-origin", "synthetics"],
-                    ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-origin", "synthetics"),
+                    ("x-datadog-tags", "_dd.p.dm=-4"),
                 ],
             )
 
@@ -139,18 +146,18 @@ class Test_Headers_None:
         assert "x-datadog-tags" not in headers
 
     @enable_none_single_key()
-    def test_headers_none_single_key_propagate(self, test_agent, test_library):
+    def test_headers_none_single_key_propagate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are extracted or injected.
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "2"],
-                    ["x-datadog-origin", "synthetics"],
-                    ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "2"),
+                    ("x-datadog-origin", "synthetics"),
+                    ("x-datadog-tags", "_dd.p.dm=-4"),
                 ],
             )
 

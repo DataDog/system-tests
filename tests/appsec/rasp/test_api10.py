@@ -25,7 +25,7 @@ API10_TAGS = [
 class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
 
-    def validate(self, span):
+    def validate(self, span: dict):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -41,7 +41,7 @@ class API10:
 
         return True
 
-    def validate_metric(self, span):
+    def validate_metric(self, span: dict):
         for tag, expected in self.TAGS_EXPECTED:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
@@ -59,6 +59,7 @@ class API10:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_headers(API10):
     """API 10 for request headers"""
@@ -80,6 +81,7 @@ class Test_API10_request_headers(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_method(API10):
     """API 10 for request method"""
@@ -100,6 +102,7 @@ class Test_API10_request_method(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_body(API10):
     """API 10 for request body"""
@@ -123,6 +126,7 @@ class Test_API10_request_body(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_status(API10):
     """API 10 for response status"""
@@ -144,6 +148,7 @@ class Test_API10_response_status(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_headers(API10):
     """API 10 for response headers."""
@@ -165,6 +170,7 @@ class Test_API10_response_headers(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_body(API10):
     """API 10 for response body."""
@@ -188,6 +194,7 @@ class Test_API10_response_body(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_all(API10):
     """API 10 for all addresses at the same time."""
@@ -288,7 +295,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span):
+    def validate_absence(self, span: dict):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -319,7 +326,7 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span):
+    def validate_absence(self, span: dict):
         if span.get("parent_id") not in (0, None):
             return None
 

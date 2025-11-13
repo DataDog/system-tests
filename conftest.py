@@ -127,6 +127,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="An file containing a valid Github token to perform API calls",
     )
 
+    # Integration frameworks scenario options
+    parser.addoption(
+        "--weblog",
+        type=str,
+        action="store",
+        default=None,
+        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
+    )
+
     # report data to feature parity dashboard
     parser.addoption(
         "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report"

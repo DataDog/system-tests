@@ -7,6 +7,8 @@ from utils.parametric.spec.trace import find_only_span, find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
 from utils.parametric.spec.trace import MANUAL_KEEP_KEY
 from utils import rfc, scenarios, missing_feature, flaky, features, bug, context
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 
 @features.trace_sampling
@@ -44,9 +46,9 @@ class Test_Trace_Sampling_Basic:
             },
         ],
     )
-    def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent, test_library):
+    def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the exact matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -65,9 +67,9 @@ class Test_Trace_Sampling_Basic:
             }
         ],
     )
-    def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
+    def test_trace_dropped_by_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -85,7 +87,7 @@ class Test_Trace_Sampling_Basic:
             }
         ],
     )
-    def test_trace_kept_in_spite_trace_sampling_rule(self, test_agent, test_library):
+    def test_trace_kept_in_spite_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is being kept with manual.keep despite of the matching defined trace sampling rule"""
         with test_library, test_library.dd_start_span(name="web.request", service="webserver") as s1:
             s1.set_meta(MANUAL_KEEP_KEY, "1")
@@ -127,9 +129,9 @@ class Test_Trace_Sampling_Globs:
             },
         ],
     )
-    def test_trace_sampled_by_trace_sampling_rule_glob_match(self, test_agent, test_library):
+    def test_trace_sampled_by_trace_sampling_rule_glob_match(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the glob matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -163,13 +165,13 @@ class Test_Trace_Sampling_Globs:
     )
     @bug(library="cpp", reason="APMAPI-908")
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
-    def test_field_case_insensitivity(self, test_agent, test_library):
+    def test_field_case_insensitivity(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that sampling rule field values are case insensitive"""
         with (
             test_library,
             test_library.dd_start_span(
                 name="web.request", service="webserver", resource="/random", tags=[("key", "value")]
-            ) as span,
+            ),
         ):
             pass
 
@@ -188,9 +190,9 @@ class Test_Trace_Sampling_Globs:
             }
         ],
     )
-    def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
+    def test_trace_dropped_by_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching defined trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -230,9 +232,11 @@ class Test_Trace_Sampling_Globs_Feb2024_Revision:
             },
         ],
     )
-    def test_trace_sampled_by_trace_sampling_rule_insensitive_glob_match(self, test_agent, test_library):
+    def test_trace_sampled_by_trace_sampling_rule_insensitive_glob_match(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Test that a trace is sampled by the glob matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -302,9 +306,9 @@ class Test_Trace_Sampling_Resource:
             },
         ],
     )
-    def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent, test_library):
+    def test_trace_sampled_by_trace_sampling_rule_exact_match(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the exact matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -328,9 +332,9 @@ class Test_Trace_Sampling_Resource:
             }
         ],
     )
-    def test_trace_dropped_by_trace_sampling_rule(self, test_agent, test_library):
+    def test_trace_dropped_by_trace_sampling_rule(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
+        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -390,11 +394,14 @@ class Test_Trace_Sampling_Tags:
             },
         ],
     )
-    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
+    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
-            span.set_meta("tag1", "val1")
-            span.set_meta("tag2", "val2")
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as main_span,
+        ):
+            main_span.set_meta("tag1", "val1")
+            main_span.set_meta("tag2", "val2")
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
@@ -415,18 +422,21 @@ class Test_Trace_Sampling_Tags:
             },
         ],
     )
-    def test_trace_dropped_by_trace_sampling_rule_tags(self, test_agent, test_library):
+    def test_trace_dropped_by_trace_sampling_rule_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is dropped by the matching trace sampling rule"""
-        with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
-            span.set_meta("tag1", "val1")
-            span.set_meta("tag2", "val2")
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as main_span,
+        ):
+            main_span.set_meta("tag1", "val1")
+            main_span.set_meta("tag2", "val2")
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
 
 
-def tag_sampling_env(tag_glob_pattern):
+def tag_sampling_env(tag_glob_pattern: str) -> dict:
     return {
         "DD_TRACE_SAMPLE_RATE": 0,
         "DD_TRACE_SAMPLING_RULES": json.dumps(
@@ -441,7 +451,9 @@ def tag_sampling_env(tag_glob_pattern):
 @features.trace_sampling
 @features.adaptive_sampling
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
-    def assert_matching_span(self, test_agent, trace_id, span_id, name: str | None = None, service: str | None = None):
+    def assert_matching_span(
+        self, test_agent: TestAgentAPI, trace_id: int, span_id: int, name: str | None = None, service: str | None = None
+    ):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
@@ -454,7 +466,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             assert matching_span["service"] == service
 
     def assert_mismatching_span(
-        self, test_agent, trace_id, span_id, name: str | None = None, service: str | None = None
+        self, test_agent: TestAgentAPI, trace_id: int, span_id: int, name: str | None = None, service: str | None = None
     ):
         mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
@@ -479,7 +491,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
             tag_sampling_env("**"),
         ],
     )
-    def test_globs_same_casing(self, test_agent, test_library):
+    def test_globs_same_casing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test tag matching with string of matching case"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_meta("tag", "foo")
@@ -491,7 +503,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
-    def test_globs_different_casing(self, test_agent, test_library):
+    def test_globs_different_casing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test tag matching with string of matching case"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_meta("tag", "foo")
@@ -499,7 +511,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("[abc]")])
-    def test_no_set_support(self, test_agent, test_library):
+    def test_no_set_support(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test verifying that common glob set extension is NOT supported"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_meta("tag", "[abc]")
@@ -507,7 +519,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("[a-c]")])
-    def test_no_range_support(self, test_agent, test_library):
+    def test_no_range_support(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test verifying that common glob range extension is NOT supported"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_meta("tag", "[a-c]")
@@ -515,7 +527,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("^(foo|bar)[]\\$")])
-    def test_regex_special_chars(self, test_agent, test_library):
+    def test_regex_special_chars(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test verifying that regex special chars doesn't break glob matching"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_meta("tag", "^(foo|bar)[]\\$")
@@ -523,7 +535,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
-    def test_meta_existence(self, test_agent, test_library):
+    def test_meta_existence(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any patterns are equivalent to an existence check for meta"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_meta("tag", random.choice(["foo", "bar", "baz", "quux"]))
@@ -535,7 +547,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @missing_feature(library="cpp", reason="No metric interface")
     @flaky(library="golang", reason="APMAPI-932")
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
-    def test_metric_existence(self, test_agent, test_library, tag_value):
+    def test_metric_existence(self, test_agent: TestAgentAPI, test_library: APMLibrary, tag_value: float):
         """Tests that any patterns are equivalent to an existence check for metrics"""
 
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
@@ -548,7 +560,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     )
     @missing_feature(library="cpp", reason="No metric interface")
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
-    def test_metric_matching(self, test_agent, test_library):
+    def test_metric_matching(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
             span.set_metric("tag", 20.0)
@@ -557,7 +569,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?")])
     @bug(context.library == "python", reason="APMAPI-1689")
-    def test_metric_mismatch_non_integer(self, test_agent, test_library):
+    def test_metric_mismatch_non_integer(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any non-integer metrics mismatch patterns -- other than any patterns"""
         with test_library, test_library.dd_start_span(name="mismatching-span", service="test") as span:
             span.set_metric("tag", 20.1)
@@ -585,14 +597,14 @@ class Test_Trace_Sampling_With_W3C:
             },
         ],
     )
-    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent, test_library):
+    def test_trace_sampled_by_trace_sampling_rule_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a trace is sampled by the rule and the sampling decision is locked"""
 
         with (
             test_library,
             test_library.dd_start_span(
-                name="web.request", service="webserver", resource="/bar", tags=[["tag0", "val0"]]
-            ) as span,
+                name="web.request", service="webserver", resource="/bar", tags=[("tag0", "val0")]
+            ) as main_span,
         ):
             # based on the Tag("tag0", "val0") start span option, span sampling would be 'drop',
 
@@ -600,12 +612,12 @@ class Test_Trace_Sampling_With_W3C:
             # but injecting headers does. In such case, headers will reflect the state
             # after new pair of tags was set
             # based on the Tag("tag1", "val1"), span sampling would be 'keep'
-            span.set_meta("tag1", "val1")
-            headers = {k.lower(): v for k, v in test_library.dd_inject_headers(span.span_id)}
+            main_span.set_meta("tag1", "val1")
+            headers = {k.lower(): v for k, v in test_library.dd_inject_headers(main_span.span_id)}
 
             # based on the Tag("tag2", "val2"), span sampling would be usually 'drop',
             # but since headers were injected already, the sampling priority won't change
-            span.set_meta("tag2", "val2")
+            main_span.set_meta("tag2", "val2")
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -623,17 +635,17 @@ class Test_Trace_Sampling_With_W3C:
         ],
     )
     @bug(context.library in ("cpp", "golang", "ruby"), reason="APMAPI-1563")
-    def test_distributed_headers_synthetics_sampling_decision(self, test_agent, test_library):
+    def test_distributed_headers_synthetics_sampling_decision(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that trace sampling rules does not override sampling priority from distributed headers
         even when sampling priority is set via synthetics.
         """
         with test_library:
             test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "0"],
-                    ["x-datadog-sampling-priority", "1"],
-                    ["x-datadog-origin", "synthetics;=web,z"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "0"),
+                    ("x-datadog-sampling-priority", "1"),
+                    ("x-datadog-origin", "synthetics;=web,z"),
                 ],
             )
 

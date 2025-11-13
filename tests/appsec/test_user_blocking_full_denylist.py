@@ -15,7 +15,7 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         self.r_nonblock = weblog.get("/users", params={"user": self.NOT_BLOCKED_USER})
 
     def test_nonblocking_test(self):
-        def validate_nonblock_user(span):
+        def validate_nonblock_user(span: dict):
             assert span["meta"]["usr.id"] == self.NOT_BLOCKED_USER
             return True
 

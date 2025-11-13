@@ -35,7 +35,7 @@ LOGIN_SAFE = "login_safe"
 LOGIN_IN_RULE = "login_unsafe"
 
 
-def validate_metric_type_and_version(event_type, version, metric):
+def validate_metric_type_and_version(event_type: str, version: str, metric: dict):
     return (
         metric.get("type") == "count"
         and f"event_type:{event_type}" in metric.get("tags", ())
@@ -43,7 +43,9 @@ def validate_metric_type_and_version(event_type, version, metric):
     )
 
 
-def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected_metadata):
+def validate_tags_and_metadata(
+    span: dict, prefix: str, expected_tags: dict, metadata: dict | None, unexpected_metadata: list[str] | None
+):
     if metadata is not None:
         for key, value in metadata.items():
             expected_tags[prefix + "." + key] = value
@@ -65,8 +67,10 @@ def validate_tags_and_metadata(span, prefix, expected_tags, metadata, unexpected
 class BaseUserLoginSuccessEventV2Tags:
     """Test tags created in User Login Success Event SDK v2"""
 
-    def get_user_login_success_tags_validator(self, login, user_id, metadata=None, unexpected_metadata=None):
-        def validate(span):
+    def get_user_login_success_tags_validator(
+        self, login: str, user_id: str, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
+    ):
+        def validate(span: dict):
             expected_tags = {
                 "appsec.events.users.login.success.usr.login": login,
                 "appsec.events.users.login.success.usr.id": user_id,
@@ -221,7 +225,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span):
+        def validate_user_login_success_header_collection(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -241,7 +245,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
     def test_user_login_success_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_success_header_collection(span):
+        def validate_user_login_success_header_collection(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -335,8 +339,10 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
 class BaseUserLoginFailureEventV2Tags:
     """Test created tags in AppSec User Login Failure Event SDK v2"""
 
-    def get_user_login_failure_tags_validator(self, login, exists, metadata=None, unexpected_metadata=None):
-        def validate(span):
+    def get_user_login_failure_tags_validator(
+        self, login: str, *, exists: bool, metadata: dict | None = None, unexpected_metadata: list[str] | None = None
+    ):
+        def validate(span: dict):
             expected_tags = {
                 "appsec.events.users.login.failure.usr.login": login,
                 "appsec.events.users.login.failure.usr.exists": "true" if exists else "false",
@@ -481,7 +487,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span):
+        def validate_user_login_failure_header_collection(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -501,7 +507,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
 
-        def validate_user_login_failure_header_collection(span):
+        def validate_user_login_failure_header_collection(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 

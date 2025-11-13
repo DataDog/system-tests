@@ -4,13 +4,14 @@
 
 from utils import features, rfc, weblog, irrelevant
 from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, assert_metric
+from utils._weblog import HttpResponse
 
 
 @features.iast_security_controls
 @rfc("https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0")
 class TestSecurityControls:
     @staticmethod
-    def assert_iast_is_enabled(request) -> None:
+    def assert_iast_is_enabled(request: HttpResponse) -> None:
         assert_metric(request, "_dd.iast.enabled", expected=True)
 
     def setup_iast_is_enabled(self):

@@ -27,7 +27,7 @@ class Test_NoError:
     """A library should apply with no error all remote config payload."""
 
     def test_no_error(self):
-        def no_error(data):
+        def no_error(data: dict):
             config_states = (
                 data.get("request", {}).get("content", {}).get("client", {}).get("state", {}).get("config_states", {})
             )
@@ -46,14 +46,14 @@ class RemoteConfigurationFieldsBasicTests:
     """Misc tests on fields and values on remote configuration requests"""
 
     @staticmethod
-    def response_has_been_overwritten(data) -> bool:
+    def response_has_been_overwritten(data: dict) -> bool:
         # For legacy API send_sequential_commands
         return any(name == "st-proxy-overwrite-rc-response" for name, _ in data["response"]["headers"])
 
     def assert_client_fields(self):
         """Ensure that the Client field is appropriately filled out in update requests"""
 
-        def validator(data):
+        def validator(data: dict):
             client = data["request"]["content"]["client"]
             client_tracer = client["client_tracer"]
 
@@ -78,7 +78,7 @@ def dict_is_included(sub_dict: dict, main_dict: dict):
     return True
 
 
-def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields=True):
+def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields: bool = True):
     """Returns true is needle is contained in haystack.
     If allow_additional_field is true, needle can contains less field than the one in haystack
     """
@@ -91,7 +91,7 @@ def dict_is_in_array(needle: dict, haystack: list, *, allow_additional_fields=Tr
     return False
 
 
-def rc_check_request(data, expected, caching):
+def rc_check_request(data: dict, expected: dict, *, caching: bool):
     content = data["request"]["content"]
     client_state = content["client"]["state"]
     expected_client_state = expected["client"]["state"]
@@ -206,7 +206,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         self.assert_client_fields()
 
-        def validate(data) -> bool:
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -242,7 +242,7 @@ class Test_RemoteConfigurationExtraServices:
     def setup_tracer_extra_services(self):
         self.r_outgoing = weblog.get("/createextraservice?serviceName=extraVegetables")
 
-        def remote_config_asm_extra_services_available(data):
+        def remote_config_asm_extra_services_available(data: dict):
             if data["path"] == "/v0.7/config":
                 client_tracer = data.get("request", {}).get("content", {}).get("client", {}).get("client_tracer", {})
                 if "extra_services" in client_tracer:
@@ -308,7 +308,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         self.assert_client_fields()
 
-        def validate(data) -> bool:
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -358,7 +358,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
             asm_dd_expected_requests = json.load(f)
 
-        def validate(data) -> bool:
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -405,7 +405,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
         self.assert_client_fields()
 
-        def validate(data) -> bool:
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -450,7 +450,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
             asm_dd_expected_requests = json.load(f)
 
-        def validate(data) -> bool:
+        def validate(data: dict) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):

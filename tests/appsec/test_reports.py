@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, context, interfaces, bug, scenarios, rfc, features
+from utils._weblog import HttpResponse
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -17,13 +18,13 @@ class Test_StatusCode:
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(self.r)
 
-        def check_http_code_legacy(event):
+        def check_http_code_legacy(event: dict):
             status_code = event["context"]["http"]["response"]["status"]
             assert status_code == 404, f"404 should have been reported, not {status_code}"
 
             return True
 
-        def check_http_code(span, appsec_data):  # noqa: ARG001
+        def check_http_code(span: dict, appsec_data: dict):  # noqa: ARG001
             status_code = span["meta"]["http.status_code"]
             assert status_code == "404", f"404 should have been reported, not {status_code}"
 
@@ -45,7 +46,7 @@ class Test_Info:
     def test_service(self):
         """Appsec reports the service information"""
 
-        def _check_service_legacy(event):
+        def _check_service_legacy(event: dict):
             name = event["context"]["service"]["name"]
             environment = event["context"]["service"]["environment"]
             assert name == "weblog", f"weblog should have been reported, not {name}"
@@ -53,7 +54,7 @@ class Test_Info:
 
             return True
 
-        def _check_service(span, appsec_data):  # noqa: ARG001
+        def _check_service(span: dict, appsec_data: dict):  # noqa: ARG001
             name = span.get("service")
             environment = span.get("meta", {}).get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"
@@ -158,7 +159,7 @@ class Test_ExtraTagsFromRule:
             assert "tool_name" in trigger["rule"]["tags"]
 
 
-def _get_appsec_triggers(request):
+def _get_appsec_triggers(request: HttpResponse):
     datas = [appsec_data for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=request)]
     assert datas, "No AppSec events found"
     triggers = []

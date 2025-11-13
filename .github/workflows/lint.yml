@@ -13,7 +13,11 @@ jobs:
         uses: ./.github/actions/install_runner
       - run: source venv/bin/activate
         shell: bash
-      - name: Black, pylint, tailing whitespaces, and yaml checks
+      - name: Install node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+      - name: Black, pylint, tailing whitespaces, yaml, shellcheck, and language-specific checks
         shell: bash
         run: ./format.sh --check
       - if: ${{ failure() }}
@@ -24,25 +28,3 @@ jobs:
           exit 1
 
           '
-      - name: 'Install shellcheck'
-        shell: bash
-        run: sudo apt-get install -y shellcheck
-      - name: 'Run shellcheck'
-        shell: bash
-        run: ./utils/scripts/shellcheck.sh
-      - name: Install node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          node-version: 20
-      - name: 'Run nodejs express lint'
-        shell: bash
-        working-directory: ./utils/build/docker/nodejs/express
-        run: |
-          npm install
-          npm run lint
-      - name: 'Run nodejs fastify lint'
-        shell: bash
-        working-directory: ./utils/build/docker/nodejs/fastify
-        run: |
-          npm install
-          npm run lint

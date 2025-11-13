@@ -24,7 +24,8 @@ from .external_processing import ExternalProcessingScenario
 from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
-from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
+from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -700,7 +701,8 @@ class _Scenarios:
     debugger_exception_replay = DebuggerScenario(
         "DEBUGGER_EXCEPTION_REPLAY",
         weblog_env={
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         doc="Check exception replay",
@@ -733,7 +735,7 @@ class _Scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
         library_interface_timeout=5,
@@ -793,8 +795,9 @@ class _Scenarios:
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
         github_workflow="aws_ssi",
@@ -807,7 +810,11 @@ class _Scenarios:
         ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -817,7 +824,11 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -924,20 +935,32 @@ class _Scenarios:
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
         doc="Kubernetes lib injection with admission controller and profiling disabled by default",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
         doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
         doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         dd_cluster_feature={
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
@@ -1119,8 +1142,14 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+    appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
+    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
+
+    integration_frameworks = IntegrationFrameworksScenario(
+        "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
 
 
 scenarios = _Scenarios()

@@ -16,7 +16,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         self,
         probes_name: str,
         request_path: str,
-        lines,
+        lines: list | None,
         probe_type: str = "log",
     ):
         self.initialize_weblog_remote_config()

@@ -35,6 +35,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         reason="Python version too old",
     )
     @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
+    @bug(context.library >= "java@1.5.0", reason="SCP-962")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -227,6 +228,10 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @irrelevant(context.library < "python@3.0.0", reason="Avoid blocking 2.21 release pipeline")
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
+    )
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(
@@ -254,8 +259,8 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
         reason="Origin detection is not supported on host environments",
     )
     @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
-        reason="python 3.7 is not supported on ddtrace >= 3.x",
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
     )
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
@@ -271,6 +276,10 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
+    )
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)

@@ -53,9 +53,13 @@ except ImportError:
     track_user_sdk = TUS()
 
 try:
-    from ddtrace.trace import Pin, tracer
+    from ddtrace._trace.pin import Pin
+    from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import tracer, Pin
+    try:
+        from ddtrace.trace import Pin, tracer
+    except ImportError:
+        from ddtrace import tracer, Pin
 
 
 ddtrace.patch_all(urllib3=True)
@@ -545,7 +549,8 @@ def view_iast_xss_secure(request):
 
 @csrf_exempt
 def view_iast_stacktraceleak_insecure(request):
-    return HttpResponse("""
+    return HttpResponse(
+        """
   Traceback (most recent call last):
   File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
     result = complex_calculation(data)
@@ -568,7 +573,8 @@ def view_iast_stacktraceleak_insecure(request):
 ValueError: Constraint violation at step 9
 
 Lorem Ipsum Foobar
-""")
+"""
+    )
 
 
 @csrf_exempt

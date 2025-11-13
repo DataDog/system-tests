@@ -38,11 +38,15 @@ import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 ddtrace.patch_all(urllib3=True)
 
@@ -1076,7 +1080,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     if parsed_url.hostname not in allowed_domains:
         return PlainTextResponse("Forbidden", status_code=403)
     try:
-        requests.get(parsed_url.geturl())
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 

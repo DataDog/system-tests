@@ -72,7 +72,7 @@ class Test_ConfigurationVariables:
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -90,7 +90,7 @@ class Test_ConfigurationVariables:
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -117,7 +117,7 @@ class Test_ConfigurationVariables_New_Obfuscation:
     def test_partial_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"

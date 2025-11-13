@@ -104,11 +104,15 @@ from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -250,23 +254,27 @@ def check_and_create_users_table():
     cur = postgres_db.cursor()
 
     # Check if 'users' exists
-    cur.execute("""
+    cur.execute(
+        """
         SELECT EXISTS (
             SELECT FROM information_schema.tables
             WHERE table_name = 'users'
         );
-    """)
+    """
+    )
     table_exists = cur.fetchone()[0]
 
     if not table_exists:
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE users (
                 id VARCHAR(255) PRIMARY KEY,
                 username VARCHAR(255),
                 email VARCHAR(255),
                 password VARCHAR(255)
             );
-        """)
+        """
+        )
         postgres_db.commit()
 
         users_data = [

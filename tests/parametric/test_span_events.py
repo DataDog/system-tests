@@ -3,13 +3,17 @@ import pytest
 
 from utils import scenarios, features, rfc, irrelevant
 from utils.parametric.spec.trace import find_span, find_trace
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
 @scenarios.parametric
 @features.span_events
 class Test_Span_Events:
-    def _test_span_with_native_event(self, _library_env, test_agent, test_library):
+    def _test_span_with_native_event(
+        self, _library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Test adding a span event, with attributes, to an active span.
         Assumes native format where all values are serialized according to their original type.
         """
@@ -84,7 +88,9 @@ class Test_Span_Events:
         assert event["attributes"].get("double") == {"type": 3, "double_value": 0.0}
         assert isinstance(event["attributes"].get("double").get("double_value"), float)
 
-    def _test_span_with_meta_event(self, _library_env, test_agent, test_library):
+    def _test_span_with_meta_event(
+        self, _library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Test adding a span event, with attributes, to an active span.
         Assumes meta format where all values are strings.
         """
@@ -142,20 +148,20 @@ class Test_Span_Events:
 
     @irrelevant(library="ruby", reason="Does not support v0.7")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.7", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
-    def test_span_with_event_v07(self, library_env, test_agent, test_library):
+    def test_span_with_event_v07(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event in the v0.7 format, which support the native attribute representation."""
 
         self._test_span_with_native_event(library_env, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
-    def test_span_with_event_v04(self, library_env, test_agent, test_library):
+    def test_span_with_event_v04(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event in the v0.4 format, which support the native attribute representation."""
 
         self._test_span_with_native_event(library_env, test_agent, test_library)
 
     @irrelevant(library="ruby", reason="Does not support v0.5")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
-    def test_span_with_event_v05(self, library_env, test_agent, test_library):
+    def test_span_with_event_v05(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event in the v0.5 format, which does not support the native attribute representation.
         Thus span events are serialized as span tags, and attribute values all strings.
         """
@@ -163,7 +169,9 @@ class Test_Span_Events:
         self._test_span_with_meta_event(library_env, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
-    def test_span_with_invalid_event_attributes(self, library_env, test_agent, test_library):
+    def test_span_with_invalid_event_attributes(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Test adding a span event, with invalid attributes, to an active span.
         Span events with invalid attributes should be discarded.
         Valid attributes should be kept.

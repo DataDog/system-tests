@@ -272,7 +272,9 @@ class Test_BodyXml:
     ATTACK = '<vmlframe src="xss">'
     ENCODED_ATTACK = "&lt;vmlframe src=&quot;xss&quot;&gt;"
 
-    def weblog_post(self, path="/", params=None, data=None, headers=None):
+    def weblog_post(
+        self, path: str = "/", params: dict | None = None, data: str | None = None, headers: dict | None = None
+    ):
         headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
@@ -384,7 +386,7 @@ class Test_GraphQL:
         assert self.r_no_attack.status_code == 200  # There is no attack here!
         interfaces.library.assert_no_appsec_event(self.r_no_attack)
 
-    def base_test_request_monitor_attack(self, resolvers_key_path, all_resolvers_key_path):
+    def base_test_request_monitor_attack(self, resolvers_key_path: list[str], all_resolvers_key_path: list[str]):
         """Verify that the request triggered a directive attack event"""
 
         assert self.r_attack.status_code == 200  # This attack is never blocking
@@ -460,7 +462,7 @@ class Test_GraphQL:
 class Test_GrpcServerMethod:
     """Test as a custom rule until we have official rules for the address"""
 
-    def validate_span(self, span, appsec_data):
+    def validate_span(self, span: dict, appsec_data: dict):
         tag = "rpc.grpc.full_method"
         if tag not in span["meta"]:
             logger.info(f"Can't find '{tag}' in span's meta")
