@@ -1154,6 +1154,10 @@ tests/:
       Test_Debugger_Telemetry:
         '*': *ref_5_39_0
         nextjs: irrelevant
+  integration_frameworks/:
+    test_openai.py:
+      TestOpenAiAPM: *ref_5_76_0
+      TestOpenAiLlmObs: bug (MLOB-12345)  # nodejs does not report response model before input model
   integrations/:
     crossed_integrations/:
       test_kafka.py:

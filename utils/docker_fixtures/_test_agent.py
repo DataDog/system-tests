@@ -476,13 +476,10 @@ class TestAgentAPI:
             else:
                 num_received = len(llmobs_requests)
                 if num_received == num:
+                    llmobs_events = [span for request in llmobs_requests for span in request]
                     if sort_by_start:
-                        for trace in llmobs_requests:
-                            # The testagent may receive spans and trace chunks in any order,
-                            # so we sort the spans by start time if needed
-                            trace.sort(key=lambda x: x["start_ns"])
-                        return sorted(llmobs_requests, key=lambda t: t[0]["start_ns"])
-                    return llmobs_requests
+                        return sorted([event["spans"][0] for event in llmobs_events], key=lambda t: t["start_ns"])
+                    return llmobs_events
             time.sleep(0.1)
         raise ValueError(
             f"Number ({num}) of traces not available from test agent, got {num_received}:\n{llmobs_requests}"

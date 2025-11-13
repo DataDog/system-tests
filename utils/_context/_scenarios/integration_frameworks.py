@@ -21,12 +21,14 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="endtoend",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.38.0",
         )
 
         self.environment = {
             "DD_TRACE_DEBUG": "true",
             "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_LLMOBS_ENABLED": "true",  # TODO: should this be configurable elsewhere? different scenario?
+            "DD_LLMOBS_ML_APP": "test-app",  # TODO: should this be configurable somehow?
         }
 
     def configure(self, config: pytest.Config):

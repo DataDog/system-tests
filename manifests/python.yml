@@ -911,6 +911,10 @@ tests/:
         uwsgi-poc: v2.11.0
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: v2.11.0
+  integration_frameworks/:
+    test_openai.py:
+      TestOpenAiAPM: v3.13.0
+      TestOpenAiLlmObs: v3.13.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
