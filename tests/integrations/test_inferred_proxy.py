@@ -173,7 +173,7 @@ def assert_api_gateway_span(
     # assert on HTTP tags
     assert "http.method" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.method'"
     assert span["meta"]["http.method"] == "GET", "Inferred AWS API Gateway span meta expected HTTP method to be 'GET'"
-    
+
     # Skip http.url and http.status_code assertions for Java (language='jvm') - these fields are not properly set
     is_java = span["meta"].get("language") == "jvm" or span["meta"].get("language") == "java"
     if not is_java:
