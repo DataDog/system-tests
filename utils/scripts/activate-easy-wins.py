@@ -116,47 +116,6 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
     with zipfile.ZipFile(f"{path_root}/data.zip") as z:
         z.extractall(path_data_root)
 
-
-class TestClassStatus(Enum):
-    ACTIVATE = 1
-    CACTIVATE = 2
-    NOEDIT = 3
-
-    @staticmethod
-    def parse(test_status: str) -> TestClassStatus:
-        match test_status:
-            case "passed":
-                return TestClassStatus.CACTIVATE
-            case "xpassed":
-                return TestClassStatus.ACTIVATE
-            case "failed":
-                return TestClassStatus.NOEDIT
-            case "xfailed":
-                return TestClassStatus.NOEDIT
-            case "skipped":
-                return TestClassStatus.NOEDIT
-            case _:
-                raise UnexpectedStatusError(f"Unexpected status: {test_status}")
-
-
-def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> TestClassStatus:
-    match (status1, status2):
-        case (TestClassStatus.ACTIVATE, TestClassStatus.ACTIVATE):
-            return TestClassStatus.ACTIVATE
-        case (TestClassStatus.CACTIVATE, TestClassStatus.ACTIVATE):
-            return TestClassStatus.CACTIVATE
-        case (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
-            return TestClassStatus.CACTIVATE
-        case (TestClassStatus.CACTIVATE, TestClassStatus.CACTIVATE):
-            return TestClassStatus.CACTIVATE
-        case (TestClassStatus.NOEDIT, _):
-            return TestClassStatus.NOEDIT
-        case (_, TestClassStatus.NOEDIT):
-            return TestClassStatus.NOEDIT
-        case _:
-            raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
-
-
 def parse_artifact_data(
     path_data_opt: str, libraries: list[str]
 ) -> dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]]:
@@ -198,188 +157,10 @@ def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str, yaml: 
         yaml.dump(manifest, outfile)
 
 
-def build_search(path: list[str]) -> list[str | None]:
-    ret: list[str | None] = ["", None, None]
-    field_count = 1
-    for level in path:
-        if len(level) == 0 or level[-1] == "/" or level[-3:] == ".py":
-            if isinstance(ret[0], str):
-                ret[0] += level
-        else:
-            ret[field_count] = level
-            field_count += 1
-    return ret
-
-
-def get_global_update_status(root: Any, current: TestClassStatus, owners: set[str]) -> tuple[TestClassStatus, set[str]]:  # type: ignore[misc]  # noqa: ANN401
-    if current == TestClassStatus.NOEDIT:
-        return TestClassStatus.NOEDIT, set()
-    if isinstance(root, dict):
-        for branch in root.values():
-            current = merge_update_status(current, get_global_update_status(branch, current, owners)[0])
-    else:
-        current = merge_update_status(current, root[0])
-        owners |= root[1]
-    return current, owners
-
-
-def build_updated_subtree(
-    test_data_root: Any,  # type: ignore[misc]  # noqa: ANN401
-    original_value: str,
-    version: str,
-    *,
-    is_file_level: bool = False,
-) -> ruamel.yaml.CommentedMap | None:  # type: ignore[type-arg]
-    """Build an updated subtree containing both activated and non-activated parts."""
-
-    def _collect_all_paths_with_status(
-        root: Any,  # noqa: ANN401
-        path: list[str],
-    ) -> list[tuple[list[str], tuple[TestClassStatus, set[str]]]]:  # type: ignore[misc]
-        all_paths = []
-
-        if isinstance(root, dict):
-            for key, branch in root.items():
-                branch_paths = _collect_all_paths_with_status(branch, [*path, key])
-                all_paths.extend(branch_paths)
-        # Leaf node - return path with its status
-        elif len(path) > 1 and "parametric" in path[-1]:
-            all_paths.append((path[:-1], root))
-        else:
-            all_paths.append((path, root))
-
-        return all_paths
-
-    all_paths = _collect_all_paths_with_status(test_data_root, [])
-    activable_paths = [
-        path for path, status in all_paths if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
-    ]
-
-    if not activable_paths:
-        return original_value
-
-    # For test class-level entries, only build subtree if partial activation is needed
-    if len(activable_paths) == len(all_paths) and not is_file_level:
-        return version
-
-    # Build subtree structure with both activated and non-activated paths
-    # Sort paths to ensure lexicographic key ordering
-    sorted_paths = sorted(all_paths, key=lambda x: x[0])
-
-    subtree = ruamel.yaml.CommentedMap()
-
-    for path, status in sorted_paths:
-        current = subtree
-        for part in path[:-1]:
-            if part not in current:
-                current[part] = ruamel.yaml.CommentedMap()
-            current = current[part]
-
-        # Set value based on whether this path should be activated
-        if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
-            current[path[-1]] = version  # New version for activated paths
-            current.yaml_add_eol_comment("auto activation: might not be the earliest working version", path[-1])
-        else:
-            current[path[-1]] = original_value  # Keep original value for non-activated paths
-
-    return subtree
-
-
-def update_entry(
-    language: str,
-    _manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],
-    search: list[str | None],
-    root_path: list[str],
-    ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    versions: dict[str, str],
-    excluded_owners: set[str],
-) -> tuple[str, set[str]] | None:
-    try:
-        if search[2] and isinstance(search[0], str) and isinstance(search[1], str):
-            test_data_root = test_data[language][search[0]][search[1]][search[2]]
-        elif search[1] and isinstance(search[0], str) and isinstance(search[1], str):
-            test_data_root: Any = test_data[language][search[0]][search[1]]  # type: ignore[misc]
-        elif isinstance(search[0], str):
-            test_data_root: Any = test_data[language][search[0]]  # type: ignore[misc]
-        else:
-            return None
-        update_status, owners = get_global_update_status(test_data_root, TestClassStatus.ACTIVATE, set())
-
-        current_value = ancestor[root_path[-1]]
-        should_activate = (
-            "bug" in current_value or "missing_feature" in current_value or "incomplete_test_app" in current_value
-        )
-
-        if (
-            should_activate
-            and update_status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
-            and not owners & excluded_owners
-        ):
-            ret = (ancestor[root_path[-1]], owners)
-
-            # Determine if this is a file-level entry (search[1] is None) or test class-level (search[1] is set)
-            is_file_level = search[1] is None
-
-            # Try to build a subtree for partial activation
-            subtree = build_updated_subtree(
-                test_data_root, current_value, versions[language], is_file_level=is_file_level
-            )
-
-            if subtree is not None:
-                # Partial activation or file-level activation
-                ancestor[root_path[-1]] = subtree
-            elif update_status == TestClassStatus.ACTIVATE:
-                # Full activation for test class level
-                ancestor[root_path[-1]] = versions[language]
-            else:
-                return None
-
-            # Remove comments from updated entry
-            if hasattr(ancestor, "ca") and hasattr(ancestor.ca, "items") and root_path[-1] in ancestor.ca.items:
-                del ancestor.ca.items[root_path[-1]]
-
-            # Add comment for activated entries
-            ancestor.yaml_add_eol_comment("auto activation: might not be the earliest working version", root_path[-1])
-
-            return ret
-
-        return None
-    except KeyError:
-        return None
-
-
-def update_tree(
-    root: ruamel.yaml.CommentedMap | str,  # type: ignore[type-arg]
-    ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    language: str,
-    manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],
-    root_path: list[str],
-    versions: dict[str, str],
-    excluded_owners: set[str],
-) -> list[tuple[list[str], str, str, set[str]]]:
-    updates = []
-    if isinstance(root, ruamel.yaml.comments.CommentedMap):
-        for branch_path, branch in root.items():
-            ret = update_tree(
-                branch, root, language, manifest, test_data, [*root_path, branch_path], versions, excluded_owners
-            )
-            updates += ret
-    else:
-        search = build_search(root_path)
-        result = update_entry(language, manifest, test_data, search, root_path, ancestor, versions, excluded_owners)
-        if result:
-            old_status, owners = result
-            updates.append((root_path, old_status, versions[language], owners))
-    return updates
-
-
 def update_manifest(
     library: str,
     manifest: ruamel.yaml.CommentedMap,
     test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],  # type: ignore[type-arg]
-    versions: dict[str, str],
     excluded_owners: set[str],
 ) -> list[tuple[list[str], str, str, set[str]]]:
     updates = {}
@@ -469,47 +250,6 @@ def update_manifest(
     return updates
 
 
-def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
-    versions = {}
-    for library in libraries:
-        found_version = False
-
-        for variant in os.listdir(path_data_opt):
-            if found_version:
-                break
-            if library not in variant or "_dev_" in variant:
-                continue
-            if "dev" in variant:
-                continue
-
-            for scenario in os.listdir(f"{path_data_opt}/{variant}"):
-                if found_version:
-                    break
-
-                try:
-                    with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
-                        data = json.load(file)
-                    if data["context"]["library_name"] == library:
-                        versions[library] = f"{data['context']['library']}"
-                        found_version = True
-                except (FileNotFoundError, KeyError):
-                    continue
-
-        if not found_version:
-            versions[library] = "xpass"
-            continue
-
-        if library == "cpp_httpd" and versions[library] == "99.99.99":
-            with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
-                versions[library] = resp_runs.json()[0]["tag_name"]
-        elif library == "cpp":
-            versions[library] = ">=" + versions[library]
-        else:
-            versions[library] = "v" + versions[library]
-
-    return versions
-
-
 def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
@@ -561,7 +301,6 @@ def main() -> None:
 
     print("Parsing test results")
     test_data = parse_artifact_data(path_data_opt, args.libraries)
-    versions = get_versions(path_data_opt, args.libraries)
 
     if args.dry_run and not args.summary_only:
         print("🔍 DRY RUN MODE - No files will be modified\n")
@@ -572,7 +311,7 @@ def main() -> None:
 
     for library in args.libraries:
         manifest = parse_manifest(library, path_root, yaml)
-        updates = update_manifest(library, manifest, test_data, versions, excluded_owners)
+        updates = update_manifest(library, manifest, test_data, excluded_owners)
         library_counts[library] = len(updates)
 
         if not args.summary_only:
