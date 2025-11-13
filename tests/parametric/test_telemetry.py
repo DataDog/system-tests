@@ -16,7 +16,11 @@ from .conftest import APMLibrary
 
 
 telemetry_name_mapping = {
-    "instrumentation_source": {},
+    "ssi_injection_enabled": {
+        "python": "DD_INJECTION_ENABLED",
+        "java": "injection_enabled",
+        "ruby": "DD_INJECTION_ENABLED",
+    },
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
@@ -1041,7 +1045,7 @@ class Test_TelemetrySSIConfigs:
                     "DD_SERVICE": "service_test",
                     "DD_INJECTION_ENABLED": "tracer",
                 },
-                "tracer",
+                "ssi" if context.library.name == "nodejs" else "tracer",
             ),
             (
                 {
@@ -1049,14 +1053,14 @@ class Test_TelemetrySSIConfigs:
                     "DD_SERVICE": "service_test",
                     "DD_INJECTION_ENABLED": "service_test,profiler,false",
                 },
-                "service_test,profiler,false",
+                "ssi" if context.library.name == "nodejs" else "service_test,profiler,false",
             ),
         ],
     )
     def test_injection_enabled(
         self,
         library_env: dict[str, str],
-        expected_value: str | None,
+        expected_value: str,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1069,7 +1073,7 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
-        ssi_enabled_telemetry_name = _mapped_telemetry_name("instrumentation_source")
+        ssi_enabled_telemetry_name = _mapped_telemetry_name("ssi_injection_enabled")
         inject_enabled = test_agent.get_telemetry_config_by_origin(
             configuration_by_name, ssi_enabled_telemetry_name, "env_var", fallback_to_first=(expected_value is None)
         )
