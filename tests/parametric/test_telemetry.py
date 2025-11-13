@@ -24,6 +24,7 @@ telemetry_name_mapping = {
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
+        "java": "inject_force",
     },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
@@ -1104,7 +1105,6 @@ class Test_TelemetrySSIConfigs:
             ),
         ],
     )
-    @bug(context.library == "java", reason="APMAPI-12345")  # java does not send this telemetry config
     def test_inject_force(
         self, library_env: dict[str, str], expected_value: str, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
