@@ -2,12 +2,13 @@ from utils import scenarios, features, bug, context
 
 import pytest
 from unittest import mock
+from typing import Any
 
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 from utils.llm_observability_utils import assert_llmobs_span_event
 
 
-TOOLS = [
+TOOLS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {
@@ -36,28 +37,6 @@ def tool_to_tool_definition(tool: dict) -> dict:
         "description": function["description"],
         "schema": function["parameters"],
     }
-
-
-TOOLS = [
-    {
-        "type": "function",
-        "function": {
-            "name": "extract_student_info",
-            "description": "Get the student information from the body of the input text",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string", "description": "Name of the person"},
-                    "major": {"type": "string", "description": "Major subject."},
-                    "school": {
-                        "type": "string",
-                        "description": "The university name.",
-                    },
-                },
-            },
-        },
-    }
-]
 
 
 @features.llm_observability
@@ -534,7 +513,7 @@ class TestOpenAiLlmObs:
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_error(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
-    ):  # TODO: regenerate cassette for this
+    ):
         with test_agent.vcr_context(stream=stream):
             test_client.request(
                 "POST",
@@ -573,16 +552,205 @@ class TestOpenAiLlmObs:
     def test_responses_create_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
     ):
-        pass
+        with test_agent.vcr_context(stream=stream):
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    model="gpt-4.1",
+                    input="Bob is a student at Stanford University. He is studying computer science.",
+                    parameters=dict(
+                        max_output_tokens=50,
+                        temperature=0.1,
+                        stream=stream,
+                        tools=[{"type": "function", **TOOLS[0]["function"]}],  # different format for responses tools
+                    ),
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        llm_span_event = span_events[0]
+        assert_llmobs_span_event(
+            llm_span_event,
+            integration="openai",
+            name="OpenAI.createResponse",
+            model_name="gpt-4.1-2025-04-14",
+            model_provider="openai",
+            span_kind="llm",
+            input_messages=[
+                {"role": "user", "content": "Bob is a student at Stanford University. He is studying computer science."}
+            ],
+            output_messages=[
+                {
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "name": "extract_student_info",
+                            "arguments": {
+                                "name": "Bob",
+                                "major": "computer science",
+                                "school": "Stanford University",
+                            },
+                            "tool_id": mock.ANY,
+                            "type": "function_call",
+                        }
+                    ],
+                }
+            ],
+            tool_definitions=[tool_to_tool_definition(TOOLS[0])],
+            metadata={
+                "max_output_tokens": 50,
+                "temperature": 0.1,
+                "top_p": 1.0,
+                "tool_choice": "auto",
+                "truncation": "disabled",
+                "text": {"format": {"type": "text"}, "verbosity": "medium"},
+                "reasoning_tokens": 0,
+                "stream": stream,
+            },
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+            },
+        )
 
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_reasoning(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
     ):
-        pass
+        with test_agent.vcr_context(stream=stream):
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    model="o4-mini",
+                    input="If one plus a number is 10, what is the number?",
+                    parameters=dict(reasoning={"effort": "medium", "summary": "detailed"}, stream=stream),
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        llm_span_event = span_events[0]
+        assert_llmobs_span_event(
+            llm_span_event,
+            integration="openai",
+            name="OpenAI.createResponse",
+            model_name="o4-mini-2025-04-16",
+            model_provider="openai",
+            span_kind="llm",
+            input_messages=[{"role": "user", "content": "If one plus a number is 10, what is the number?"}],
+            output_messages=[
+                {"role": "reasoning", "content": mock.ANY},  # TODO: assert content
+                {"role": "assistant", "content": mock.ANY},  # TODO: assert content
+            ],
+            metadata=dict(
+                reasoning={"effort": "medium", "summary": "detailed"},
+                temperature=1.0,
+                top_p=1.0,
+                tool_choice="auto",
+                truncation="disabled",
+                text={"format": {"type": "text"}, "verbosity": "medium"},
+                reasoning_tokens=mock.ANY,
+                stream=stream,
+            ),
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+            },
+        )
 
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_tool_input(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
     ):
-        pass
+        input_messages = [
+            {"role": "user", "content": "What's the weather like in San Francisco?"},
+            {
+                "type": "function_call",
+                "call_id": "call_123",
+                "name": "get_weather",
+                "arguments": '{"location": "San Francisco, CA"}',
+            },
+            {
+                "type": "function_call_output",
+                "call_id": "call_123",
+                "output": '{"temperature": "72°F", "conditions": "sunny", "humidity": "65%"}',
+            },
+        ]
+
+        with test_agent.vcr_context(stream=stream):
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    model="gpt-4.1",
+                    input=input_messages,
+                    parameters=dict(temperature=0.1, stream=stream),
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        expected_metadata = dict(
+            temperature=0.1,
+            top_p=1.0,
+            tool_choice="auto",
+            truncation="disabled",
+            text={"format": {"type": "text"}, "verbosity": "medium"},
+            reasoning_tokens=0,
+            stream=stream,
+        )
+
+        llm_span_event = span_events[0]
+        assert_llmobs_span_event(
+            llm_span_event,
+            integration="openai",
+            name="OpenAI.createResponse",
+            model_name="gpt-4.1-2025-04-14",
+            model_provider="openai",
+            span_kind="llm",
+            input_messages=[
+                {"role": "user", "content": "What's the weather like in San Francisco?"},
+                {
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "tool_id": "call_123",
+                            "name": "get_weather",
+                            "arguments": {"location": "San Francisco, CA"},
+                            "type": "function_call",
+                        }
+                    ],
+                },
+                {
+                    "role": "user",
+                    "tool_results": [
+                        {
+                            "tool_id": "call_123",
+                            "result": '{"temperature": "72°F", "conditions": "sunny", "humidity": "65%"}',
+                            "type": "function_call_output",
+                            "name": "",  # since it was omitted above in the input
+                        }
+                    ],
+                },
+            ],
+            output_messages=[
+                {"role": "assistant", "content": mock.ANY},  # TODO: assert content
+            ],
+            metadata=expected_metadata,
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+                "cache_read_input_tokens": mock.ANY,
+            },
+        )
