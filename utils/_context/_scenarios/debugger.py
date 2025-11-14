@@ -1,5 +1,7 @@
 import pytest
 
+from utils._logger import logger
+
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
@@ -58,3 +60,21 @@ class DebuggerScenario(EndToEndScenario):
             weblog_env = self.weblog_container.environment
             self.agent_container.environment["DD_TRACE_AGENT_PORT"] = weblog_env["DD_TRACE_AGENT_PORT"]
             self.agent_container.environment["DD_AGENT_HOST"] = weblog_env["DD_AGENT_HOST"]
+
+        if not self.replay:
+            self.warmups.append(self._wait_for_agent_debugging)
+
+    def _wait_for_agent_debugging(self) -> None:
+        logger.stdout("Wait for /debugger/v1/diagnostics endpoint on agent")
+
+        container = self.agent_container
+        exit_code, output = container.execute_command(
+            "curl "
+            "--fail --silent --show-error --max-time 2 "
+            '-X POST -H "Content-Type: application/json" '
+            "-d '[]' "
+            f"http://localhost:{container.apm_receiver_port}/debugger/v1/diagnostics"
+        )
+        if exit_code != 0:
+            logger.stdout(f"Agent debugger endpoint Healthcheck failed:\n{output}")
+            pytest.exit("Agent failed to start")

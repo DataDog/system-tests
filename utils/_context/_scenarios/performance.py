@@ -1,6 +1,8 @@
 import os
 import time
 
+import pytest
+
 from .endtoend import EndToEndScenario
 
 
@@ -18,11 +20,10 @@ class PerformanceScenario(EndToEndScenario):
     def host_log_folder(self):
         return "logs_with_appsec" if self.appsec_enabled else "logs_without_appsec"
 
-    def get_warmups(self):
-        result = super().get_warmups()
-        result.append(self._extra_weblog_warmup)
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
 
-        return result
+        self.warmups.append(self._extra_weblog_warmup)
 
     def _extra_weblog_warmup(self):
         from utils import weblog

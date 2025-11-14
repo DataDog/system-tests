@@ -246,6 +246,7 @@ tests/:
           TestHeaderInjection_StackTrace:
             '*': missing_feature
             spring-boot: v1.47.0
+            spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
             spring-boot-jetty: v1.47.0
             spring-boot-openliberty: v1.47.0
             spring-boot-payara: v1.47.0
@@ -2086,13 +2087,13 @@ tests/:
     test_inferred_proxy.py:  # Moved this block here
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        spring-boot: missing_feature (feature not completed yet)
+        spring-boot: v1.56.0-SNAPSHOT
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        spring-boot: missing_feature (feature not completed yet)
+        spring-boot: v1.56.0-SNAPSHOT
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        spring-boot: missing_feature (feature not completed yet)
+        spring-boot: v1.56.0-SNAPSHOT
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
