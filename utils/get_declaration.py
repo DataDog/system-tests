@@ -32,6 +32,8 @@ def match_condition(
         ret = True
     if condition.get("library_version"):
         ret &= ref_version in condition["library_version"]
+    if condition.get("excluded_library_version"):
+        ret &= ref_version not in condition["excluded_library_version"]
     if condition.get("variant"):
         if isinstance(condition["variant"], list):
             ret &= variant in condition["variant"]

@@ -20,7 +20,7 @@ class Declaration:
     skip_declaration_regex = rf"(bug|flaky|incomplete_test_app|irrelevant|missing_feature){reason_regex}"
     version_regex = r"(?:\d+\.\d+\.\d+|\d+\.\d+|\d+)[.+-]?[.\w+-]*"
     simple_regex = rf"(>|>=|v)?({version_regex}){reason_regex}"
-    full_regex = rf"([^()]*){reason_regex}"
+    full_regex = rf"(v)?([^()]*){reason_regex}"
 
     def __init__(
         self, raw_declaration: str, *, is_inline: bool = False, semver_factory: type[SemverRange] = SemverRange
@@ -74,22 +74,17 @@ class Declaration:
                 self.reason = elements[2]
             return
 
-        if self.is_inline:
-            elements = re.fullmatch(self.simple_regex, self.raw, re.ASCII)
-        else:
-            elements = re.fullmatch(self.full_regex, self.raw, re.ASCII)
+        elements = re.fullmatch(self.full_regex, self.raw, re.ASCII)
 
         if not elements:
             raise ValueError(f"Wrong version format: {self.raw} (is inline: {self.is_inline})")
 
         self.is_skip = False
+        raw_version = elements.group(2)
         if self.is_inline:
-            if elements.group(1) == ">":
-                sanitized_version = f"<={Declaration.sanitize_version(elements.group(2))}"
-            else:
-                sanitized_version = f"<{Declaration.sanitize_version(elements.group(2))}"
-        else:
-            sanitized_version = Declaration.sanitize_version(elements.group(1))
+            if elements.group(1) == "v":
+                raw_version = f">={raw_version}"
+        sanitized_version = Declaration.sanitize_version(raw_version)
 
         self.value = self.semver_factory(sanitized_version)
         if elements.group(len(elements.groups()) - 1):
@@ -108,11 +103,33 @@ def field_processing(
     entry: dict[str, Any],
 ) -> None:
     if name in entry:
-        transformation(name, value, entry)
+        return transformation(name, value, entry) or ([], True)
+    return [], True
 
 
 def process_lib_version(n: str, _: object, e: dict[str, Any]) -> None:
     e[n] = Declaration(e[n]).value
+
+def process_variant_declaration(n: str, v: object, e: dict[str, Any]) -> None:
+    new_entries = []
+    all_variants = []
+    for variant, _ in e[n].items():
+        if variant != "*":
+            all_variants.append(variant)
+    for variant, raw_declaration in e[n].items():
+        new_entry = {}
+        if variant == "*":
+            new_entry["excluded_variant"] = all_variants
+        else:
+            new_entry["variant"] = variant
+        declaration = Declaration(raw_declaration, is_inline=True)
+        if declaration.is_skip:
+            new_entry["declaration"] = str(declaration)
+        else:
+            new_entry["excluded_library_version"] = declaration.value
+            new_entry["declaration"] = "missing_feature"
+        new_entries.append(new_entry)
+    return new_entries, False
 
 
 def _load_file(file: str, component: str):
@@ -122,7 +139,11 @@ def _load_file(file: str, component: str):
     except FileNotFoundError:
         return {}
 
-    field_processors = [("library_version", process_lib_version)]
+    field_processors = [
+            ("library_version", process_lib_version),
+            ("excluded_library_version", process_lib_version),
+            ("variant_declaration", process_variant_declaration),
+            ]
 
     ret = {}
     for nodeid, raw_value in data["manifest"].items():
@@ -132,19 +153,25 @@ def _load_file(file: str, component: str):
             if declaration.is_skip:
                 value["declaration"] = str(declaration)
             else:
-                value["library_version"] = declaration.value
+                value["excluded_library_version"] = declaration.value
                 value["declaration"] = "missing_feature"
             value["library"] = component
             value = [value]
         else:
-            value = raw_value
             if not isinstance(raw_value, list):
-                value = [raw_value]
-            for entry in value:
+                raw_value = [raw_value]
+            value = []
+            for entry in raw_value:
                 for field_processor in field_processors:
-                    field_processing(field_processor[0], field_processor[1], value, entry)
-                entry["library"] = component
+                    new_entries, keep_entry = field_processing(field_processor[0], field_processor[1], raw_value, entry)
+                    value += new_entries
+                if keep_entry:
+                    value.append(entry)
 
+        for entry in value:
+            entry["library"] = component
+        if "Test_PhpCodeInjection" in nodeid and value[0]["library"] == "golang":
+            print(nodeid, value)
         ret[nodeid] = value
 
     return ret
