@@ -246,6 +246,7 @@ tests/:
           TestHeaderInjection_StackTrace:
             '*': missing_feature
             spring-boot: v1.47.0
+            spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
             spring-boot-jetty: v1.47.0
             spring-boot-openliberty: v1.47.0
             spring-boot-payara: v1.47.0
