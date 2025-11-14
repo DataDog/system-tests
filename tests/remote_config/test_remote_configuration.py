@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import itertools
 import json
 from collections import defaultdict
 import semantic_version
@@ -259,7 +260,6 @@ class Test_RemoteConfigurationExtraServices:
 
     def test_tracer_extra_services(self):
         """Test extra services field"""
-        import itertools
 
         # filter extra services
         extra_services = []

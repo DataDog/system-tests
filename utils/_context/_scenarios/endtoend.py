@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from http import HTTPStatus
 import os
-import sys
 import pytest
 from _pytest.reports import TestReport
 
@@ -485,20 +484,7 @@ class EndToEndScenario(DockerScenario):
 
     def _set_weblog_domain(self):
         if self.enable_ipv6:
-            from utils import weblog  # TODO better interface
-
-            if sys.platform == "linux":
-                # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
-                # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
-                weblog.domain = self.weblog_container.network_ip(self._network)
-                logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
-
-            elif sys.platform == "darwin":
-                # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
-                # as they are on an network intermal to the docker VM. But we can still use localhost.
-                logger.info("Mac => Using localhost as weblog domain")
-            else:
-                pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+            self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
