@@ -1,8 +1,9 @@
 from urllib.parse import urlparse
 import requests
 import time
-from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context
+from utils import scenarios, weblog, features
 from utils import logger
+
 
 @features.profiling
 @scenarios.docker_ssi_profiling
@@ -13,11 +14,8 @@ class TestDockerSSIAppsecFeatures:
 
     def setup_profiling(self):
         parsed_url = urlparse(scenarios.docker_ssi_profiling.weblog_url)
-        self.r = weblog.request(
-                "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
-            )
+        self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
         logger.info(f"Setup Docker SSI profiling installation {self.r}")
-
 
     def test_profiling(self):
         agent_port = scenarios.docker_ssi_profiling.agent_port
@@ -37,4 +35,3 @@ class TestDockerSSIAppsecFeatures:
                     profiling_request_found = True
             time.sleep(1)
         assert profiling_request_found, "No profiling request found"
-

@@ -37,7 +37,13 @@ class DockerSSIScenario(Scenario):
     _network: Network = None
 
     def __init__(
-        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None, appsec_enabled=None, profiling_enabled=None
+        self,
+        name,
+        doc,
+        extra_env_vars: dict | None = None,
+        scenario_groups=None,
+        appsec_enabled=None,
+        profiling_enabled=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
@@ -328,6 +334,7 @@ class DockerSSIImageBuilder:
         self._custom_injector_version = custom_injector_version
         self._appsec_enabled = appsec_enabled
         self._profiling_enabled = profiling_enabled
+
     @property
     def dd_lang(self) -> str:
         return "js" if self._library == "nodejs" else self._library
