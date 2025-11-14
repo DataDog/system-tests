@@ -59,6 +59,7 @@ refs:
   - &ref_5_52_0 '>=5.52.0'
   - &ref_5_54_0 '>=5.54.0'
   - &ref_5_55_0 '>=5.55.0'
+  - &ref_5_55_0_5_77_0 '5.55.0 - 5.77.0'
   - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
   - &ref_5_59_0 '>=5.59.0'
@@ -1087,8 +1088,8 @@ tests/:
       Test_RuntimeDeactivation: *ref_3_9_0
     test_service_activation_metric.py:
       TestServiceActivationEnvVarConfigurationMetric: *ref_5_55_0  # real version unknown
-      TestServiceActivationEnvVarMetric: *ref_5_55_0
-      TestServiceActivationRemoteConfigMetric: *ref_5_55_0
+      TestServiceActivationEnvVarMetric: *ref_5_55_0_5_77_0
+      TestServiceActivationRemoteConfigMetric: *ref_5_55_0_5_77_0
       TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
@@ -1154,6 +1155,9 @@ tests/:
       Test_Debugger_Telemetry:
         '*': *ref_5_39_0
         nextjs: irrelevant
+  integration_frameworks/:
+    test_openai.py:
+      TestOpenAiAPM: *ref_5_76_0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1362,7 +1366,7 @@ tests/:
       Test_Stable_Configuration_Origin: *ref_5_41_0
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
-      Test_TelemetrySSIConfigs: missing_feature
+      Test_TelemetrySSIConfigs: *ref_5_59_0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown

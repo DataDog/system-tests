@@ -2,6 +2,10 @@ from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import pytest
 from utils._logger import logger, get_log_formatter
@@ -120,6 +124,8 @@ class Scenario:
             assert isinstance(group, ScenarioGroup), f"Invalid scenario group {group} for {self.name}"
             group.scenarios.append(self)
 
+        self.warmups: list[Callable] = []
+
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:
             return
@@ -160,6 +166,9 @@ class Scenario:
 
             self._create_log_subfolder("", remove_if_exists=True)
 
+            self.warmups.append(lambda: logger.stdout(f"Scenario: {self.name}"))
+            self.warmups.append(lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"))
+
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
         handler.setFormatter(get_log_formatter())
 
@@ -175,18 +184,12 @@ class Scenario:
         logger.terminal.write_sep("=", "test context", bold=True)
 
         try:
-            for warmup in self.get_warmups():
+            for warmup in self.warmups:
                 logger.info(f"Executing warmup {warmup}")
                 warmup()
         except:
             self.close_targets()
             raise
-
-    def get_warmups(self):
-        return [
-            lambda: logger.stdout(f"Scenario: {self.name}"),
-            lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
-        ]
 
     def post_setup(self, session: pytest.Session):
         """Called after test setup"""

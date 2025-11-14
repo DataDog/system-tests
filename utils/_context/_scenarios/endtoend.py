@@ -142,9 +142,14 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            self.warmups.append(self._create_network)
+            self.warmups.append(self._start_containers)
 
         for container in reversed(self._required_containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
+
+        for container in self._required_containers:
+            self.warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -200,20 +205,8 @@ class DockerScenario(Scenario):
         else:
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(self._create_network)
-            warmups.append(self._start_containers)
-
-        for container in self._required_containers:
-            warmups.append(container.post_start)
-
-        return warmups
-
     def _start_containers(self):
+        logger.stdout("Starting containers...")
         threads = []
 
         for container in self._required_containers:
@@ -461,6 +454,13 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
+        if not self.replay:
+            self.warmups.insert(1, self._start_interfaces_watchdog)
+            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self._wait_for_app_readiness)
+            self.warmups.append(self._set_weblog_domain)
+            self.warmups.append(self._set_components)
+
     def _get_weblog_system_info(self):
         try:
             code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
@@ -503,18 +503,6 @@ class EndToEndScenario(DockerScenario):
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(1, self._start_interfaces_watchdog)
-            warmups.append(self._get_weblog_system_info)
-            warmups.append(self._wait_for_app_readiness)
-            warmups.append(self._set_weblog_domain)
-            warmups.append(self._set_components)
-
-        return warmups
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:

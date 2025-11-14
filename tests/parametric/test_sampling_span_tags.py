@@ -21,6 +21,9 @@ class AnyRatio:
         assert isinstance(other, (int, float))
         return 0 <= other <= 1
 
+    def __hash__(self):
+        return hash("AnyRatio")
+
 
 def _get_spans(test_agent: TestAgentAPI, test_library: APMLibrary, child_span_tag: str | None = None):
     with (
