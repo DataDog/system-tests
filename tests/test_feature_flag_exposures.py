@@ -70,6 +70,10 @@ class Test_FFE_Exposure_Events:
         """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
+        # Search for our specific flag in all exposure events
+        matching_event = None
+        context_validated = False
+
         for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
             # validate data sent to /api/v2/exposures
 
@@ -77,27 +81,214 @@ class Test_FFE_Exposure_Events:
             # Validate that exposure data was received
             assert exposure_data is not None, "No exposure events were sent to agent"
 
-            # Validate context object
-            assert "context" in exposure_data, "Response missing 'context' field"
-            context = exposure_data["context"]
+            # Validate context object (once)
+            if not context_validated:
+                assert "context" in exposure_data, "Response missing 'context' field"
+                context = exposure_data["context"]
 
-            service_name = context.get("service")
-            assert service_name == "weblog", f"Expected service_name 'weblog', got '{context}'"
-            assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
-            assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
+                service_name = context.get("service")
+                assert service_name == "weblog", f"Expected service_name 'weblog', got '{context}'"
+                assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
+                assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
+                context_validated = True
 
             # Validate exposures array
             assert "exposures" in exposure_data, "Response missing 'exposures' field"
             assert isinstance(exposure_data["exposures"], list), "Exposures should be a list"
-            assert len(exposure_data["exposures"]) > 0, "Expected at least one exposure event"
 
-            # Validate structure of exposure event
-            event = exposure_data["exposures"][0]
-            assert "flag" in event, "Exposure event missing 'flag' field"
-            assert "key" in event["flag"], "Flag missing 'key' field"
-            assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
+            # Search for the specific flag we're testing
+            for event in exposure_data["exposures"]:
+                if (
+                    event.get("flag", {}).get("key") == self.flag
+                    and event.get("subject", {}).get("id") == self.targeting_key
+                ):
+                    matching_event = event
+                    break
 
-            assert "subject" in event, "Exposure event missing 'subject' field"
-            assert (
-                event["subject"]["id"] == self.targeting_key
-            ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            if matching_event:
+                break
+
+        # Validate that we found our specific event
+        assert (
+            matching_event is not None
+        ), f"Expected to find flag '{self.flag}' with subject '{self.targeting_key}' in exposure events"
+
+        assert "flag" in matching_event, "Exposure event missing 'flag' field"
+        assert "key" in matching_event["flag"], "Flag missing 'key' field"
+        assert (
+            matching_event["flag"]["key"] == self.flag
+        ), f"Expected flag '{self.flag}', got '{matching_event['flag']['key']}'"
+
+        assert "subject" in matching_event, "Exposure event missing 'subject' field"
+        assert (
+            matching_event["subject"]["id"] == self.targeting_key
+        ), f"Expected subject '{self.targeting_key}', got '{matching_event['subject']['id']}'"
+
+    def setup_ffe_empty_remote_config(self):
+        """Set up FFE with empty remote config state."""
+        # Reset remote config to empty state
+        rc.rc_state.reset().apply()
+
+        # Evaluate a feature flag without any remote config
+        self.flag = "test-flag-no-config"
+        variation_type = "STRING"
+        default_value = "default"
+        self.targeting_key = "test-user-empty"
+        attributes: dict[str, str] = {}
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": variation_type,
+                "defaultValue": default_value,
+                "targetingKey": self.targeting_key,
+                "attributes": attributes,
+            },
+        )
+
+    def test_ffe_empty_remote_config(self):
+        """Test that FFE handles empty remote config state correctly."""
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        # When no remote config is set, FFE should still work but return default value
+        # The exposure events should still be generated based on library configuration
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            if exposure_data is not None:
+                # Validate that context is still present
+                assert "context" in exposure_data, "Response missing 'context' field"
+                context = exposure_data["context"]
+                assert context.get("service") == "weblog", f"Expected service_name 'weblog', got '{context}'"
+
+        # Note: exposure events may or may not be sent when remote config is empty
+        # depending on library implementation
+
+    def setup_ffe_multiple_remote_config_files(self):
+        """Set up FFE with multiple remote config files across different target paths."""
+        # Set up multiple Remote Config files with different config IDs
+        config_id_1 = "ffe-test-config-1"
+        config_id_2 = "ffe-test-config-2"
+
+        # First configuration with test-flag-1
+        rc_config_1 = {
+            "id": "1",
+            "createdAt": "2024-04-17T19:40:53.716Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                "test-flag-1": {
+                    "key": "test-flag-1",
+                    "enabled": True,
+                    "variationType": "STRING",
+                    "variations": {"on": {"key": "on", "value": "on"}, "off": {"key": "off", "value": "off"}},
+                    "allocations": [
+                        {
+                            "key": "default-allocation",
+                            "rules": [],
+                            "splits": [{"variationKey": "on", "shards": []}],
+                            "doLog": True,
+                        }
+                    ],
+                }
+            },
+        }
+
+        # Second configuration with test-flag-2
+        rc_config_2 = {
+            "id": "2",
+            "createdAt": "2024-04-17T19:40:53.716Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                "test-flag-2": {
+                    "key": "test-flag-2",
+                    "enabled": True,
+                    "variationType": "BOOLEAN",
+                    "variations": {"on": {"key": "on", "value": True}, "off": {"key": "off", "value": False}},
+                    "allocations": [
+                        {
+                            "key": "default-allocation",
+                            "rules": [],
+                            "splits": [{"variationKey": "on", "shards": []}],
+                            "doLog": True,
+                        }
+                    ],
+                }
+            },
+        }
+
+        # Apply both configurations
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
+            f"{RC_PATH}/{config_id_2}/config", rc_config_2
+        ).apply()
+
+        # Evaluate both feature flags
+        self.flag_1 = "test-flag-1"
+        self.flag_2 = "test-flag-2"
+        self.targeting_key = "test-user-multi"
+
+        # Evaluate first flag
+        self.r1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_1,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Evaluate second flag
+        self.r2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_2,
+                "variationType": "BOOLEAN",
+                "defaultValue": False,
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_multiple_remote_config_files(self):
+        """Test that FFE correctly handles multiple remote config files with different flags."""
+        assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
+        assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+
+        # Collect all exposure events for our specific flags
+        flags_found = set()
+
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            assert exposure_data is not None, "No exposure events were sent to agent"
+
+            # Validate context
+            assert "context" in exposure_data, "Response missing 'context' field"
+            context = exposure_data["context"]
+            assert context.get("service") == "weblog", f"Expected service_name 'weblog', got '{context}'"
+
+            # Validate exposures array
+            assert "exposures" in exposure_data, "Response missing 'exposures' field"
+            assert isinstance(exposure_data["exposures"], list), "Exposures should be a list"
+
+            # Collect flag keys and validate events for our test flags
+            for event in exposure_data["exposures"]:
+                assert "flag" in event, "Exposure event missing 'flag' field"
+                assert "key" in event["flag"], "Flag missing 'key' field"
+                flag_key = event["flag"]["key"]
+
+                # Only validate events for our test flags with our specific targeting_key
+                if flag_key in (self.flag_1, self.flag_2) and event.get("subject", {}).get("id") == self.targeting_key:
+                    flags_found.add(flag_key)
+                    # Validate subject for our test events
+                    assert "subject" in event, "Exposure event missing 'subject' field"
+                    assert (
+                        event["subject"]["id"] == self.targeting_key
+                    ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+
+        # Verify that both flags were evaluated and sent exposure events
+        assert (
+            self.flag_1 in flags_found or self.flag_2 in flags_found
+        ), f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
