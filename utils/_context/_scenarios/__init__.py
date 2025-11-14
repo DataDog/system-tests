@@ -518,9 +518,18 @@ class _Scenarios:
     # APM tracing end-to-end scenarios
     apm_tracing_e2e_otel = EndToEndScenario(
         "APM_TRACING_E2E_OTEL",
-        weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
+        weblog_env={
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "DD_TRACE_ENABLED_METERS": "ApmTestApi",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
+            "OTEL_EXPORTER_OTLP_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
+        },
         backend_interface_timeout=5,
         require_api_key=True,
+        use_proxy_for_open_telemetry=True,
         doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(

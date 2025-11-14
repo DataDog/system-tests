@@ -8,6 +8,8 @@ using Serilog;
 using Serilog.Formatting.Compact;
 using weblog.IdentityStores;
 using weblog.ModelBinders;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Metrics;
 
 namespace weblog
 {

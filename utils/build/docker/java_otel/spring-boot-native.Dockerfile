@@ -10,7 +10,7 @@ WORKDIR /app
 COPY ./utils/build/docker/java_otel/spring-boot-native/pom.xml .
 COPY ./utils/build/docker/java_otel/spring-boot-native/src ./src
 
-ENV OTEL_VERSION="1.26.0"
+ENV OTEL_VERSION="1.38.0"
 # Compile application
 RUN mvn clean package
 

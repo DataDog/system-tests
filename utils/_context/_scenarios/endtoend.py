@@ -287,8 +287,10 @@ class EndToEndScenario(DockerScenario):
         additional_trace_header_tags: tuple[str, ...] = (),
         library_interface_timeout: int | None = None,
         agent_interface_timeout: int = 5,
+        open_telemetry_interface_timeout: int = 5,
         use_proxy_for_weblog: bool = True,
         use_proxy_for_agent: bool = True,
+        use_proxy_for_open_telemetry: bool = True,
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
@@ -319,7 +321,7 @@ class EndToEndScenario(DockerScenario):
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
             enable_ipv6=enable_ipv6,
-            use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
+            use_proxy=use_proxy_for_agent or use_proxy_for_weblog or use_proxy_for_open_telemetry,
             rc_api_enabled=rc_api_enabled,
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
@@ -336,6 +338,7 @@ class EndToEndScenario(DockerScenario):
 
         self._use_proxy_for_agent = use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
+        self._use_proxy_for_open_telemetry = use_proxy_for_open_telemetry
 
         self._require_api_key = require_api_key
 
@@ -415,6 +418,7 @@ class EndToEndScenario(DockerScenario):
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
+        self.open_telemetry_interface_timeout = open_telemetry_interface_timeout
         self._library_interface_timeout = library_interface_timeout
 
     def configure(self, config: pytest.Config):
@@ -438,6 +442,7 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
+        interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
             container.interface.configure(self.host_log_folder, replay=self.replay)
@@ -480,7 +485,8 @@ class EndToEndScenario(DockerScenario):
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog(
-            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+            [interfaces.library, interfaces.agent, interfaces.open_telemetry]
+            + [container.interface for container in self.buddies]
         )
 
     def _set_weblog_domain(self):
@@ -536,6 +542,9 @@ class EndToEndScenario(DockerScenario):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
+        # Explicitly do not wait for the open telemetry interface to be ready.
+        # It's possible it is only invoked during the test run, and not during the warmup.
+
     def post_setup(self, session: pytest.Session):
         # if no test are run, skip interface tomeouts
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
@@ -561,6 +570,9 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.agent.load_data_from_logs()
             interfaces.agent.check_deserialization_errors()
+
+            interfaces.open_telemetry.load_data_from_logs()
+            interfaces.open_telemetry.check_deserialization_errors()
 
             interfaces.backend.load_data_from_logs()
 
@@ -603,6 +615,11 @@ class EndToEndScenario(DockerScenario):
             self._wait_interface(
                 interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
             )
+            self._wait_interface(
+                interfaces.open_telemetry,
+                0 if force_interface_timout_to_zero else self.open_telemetry_interface_timeout,
+            )
+            interfaces.open_telemetry.check_deserialization_errors()
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
