@@ -1335,7 +1335,6 @@ async def ffe(request: Request):
     # Build context
     context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
     # Evaluate based on variation type
-    value = None
     if variation_type == "BOOLEAN":
         value = openfeature_client.get_boolean_value(flag, default_value, context)
     elif variation_type == "STRING":

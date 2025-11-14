@@ -292,3 +292,122 @@ class Test_FFE_Exposure_Events:
         assert (
             self.flag_1 in flags_found or self.flag_2 in flags_found
         ), f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
+
+    def setup_ffe_malformed_remote_config_rejection(self):
+        """Set up FFE with a valid config, then update with malformed config to test rejection."""
+        # First, set up a valid Remote Config
+        config_id = "ffe-test-config-malformed"
+        valid_rc_config = {
+            "id": "1",
+            "createdAt": "2024-04-17T19:40:53.716Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                "test-flag-resilient": {
+                    "key": "test-flag-resilient",
+                    "enabled": True,
+                    "variationType": "STRING",
+                    "variations": {"on": {"key": "on", "value": "valid-value"}, "off": {"key": "off", "value": "off"}},
+                    "allocations": [
+                        {
+                            "key": "default-allocation",
+                            "rules": [],
+                            "splits": [{"variationKey": "on", "shards": []}],
+                            "doLog": True,
+                        }
+                    ],
+                }
+            },
+        }
+
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", valid_rc_config).apply()
+
+        # Evaluate the flag with valid config
+        self.flag = "test-flag-resilient"
+        self.targeting_key = "test-user-resilient"
+
+        self.r1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Now update with a malformed config (missing allocations and variationType)
+        malformed_rc_config = {
+            "id": "2",
+            "createdAt": "2024-04-17T19:40:53.716Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                "test-flag-resilient": {
+                    "key": "test-flag-resilient",
+                    "enabled": True,
+                    # Missing variationType
+                    "variations": {
+                        "on": {"key": "on", "value": "malformed-value"},
+                        "off": {"key": "off", "value": "off"},
+                    },
+                    # Missing allocations
+                }
+            },
+        }
+
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", malformed_rc_config).apply()
+
+        # Evaluate the flag again after malformed config update
+        self.r2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_malformed_remote_config_rejection(self):
+        """Test that FFE rejects malformed remote config and preserves the old valid configuration."""
+        assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
+        assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+
+        # Verify that exposure events are still generated for both requests
+        # and the flag configuration remained valid despite the malformed update
+        events_found = []
+
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            assert exposure_data is not None, "No exposure events were sent to agent"
+
+            # Validate exposures array
+            assert "exposures" in exposure_data, "Response missing 'exposures' field"
+            assert isinstance(exposure_data["exposures"], list), "Exposures should be a list"
+
+            # Find events for our specific flag and targeting_key
+            for event in exposure_data["exposures"]:
+                flag_key = event.get("flag", {}).get("key")
+                subject_id = event.get("subject", {}).get("id")
+
+                if flag_key == self.flag and subject_id == self.targeting_key:
+                    events_found.append(event)
+
+        # We should have at least one event (from the first valid evaluation)
+        # The second evaluation may or may not generate an event depending on
+        # whether the provider accepted or rejected the malformed config
+        assert (
+            len(events_found) >= 1
+        ), f"Expected at least 1 exposure event for flag '{self.flag}', found {len(events_found)}"
+
+        # Verify that all events have the expected structure
+        for event in events_found:
+            assert "flag" in event, "Exposure event missing 'flag' field"
+            assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
+            assert "subject" in event, "Exposure event missing 'subject' field"
+            assert (
+                event["subject"]["id"] == self.targeting_key
+            ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"

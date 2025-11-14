@@ -1215,7 +1215,6 @@ async def ffe(request: Request) -> JSONResponse:
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
         # Evaluate based on variation type
-        value = None
         if variation_type == "BOOLEAN":
             value = openfeature_client.get_boolean_value(flag, default_value, context)
         elif variation_type == "STRING":
@@ -1285,11 +1284,32 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         except Exception:
             value = default_value
             reason = "ERROR"
-        print(f"!!!!!!!!!!!!!!!!!!!!FFE value: {value}, reason: {reason}")
-        print(value)
+
         return JSONResponse({"value": value, "reason": reason}, status_code=200)
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/rc/stop", response_class=JSONResponse)
+async def rc_stop() -> JSONResponse:
+    try:
+        from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+        remoteconfig_poller.stop()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/rc/start", response_class=JSONResponse)
+async def rc_start() -> JSONResponse:
+    try:
+        from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+        remoteconfig_poller.enable()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 

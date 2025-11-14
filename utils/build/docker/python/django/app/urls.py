@@ -71,17 +71,12 @@ except ImportError:
 
 tracer.trace("init.service").finish()
 
-# Initialize OpenFeature client if FFE is enabled
-openfeature_client = None
-if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
-    try:
-        from openfeature import api
-        from ddtrace.openfeature import DataDogProvider
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
 
-        api.set_provider(DataDogProvider())
-        openfeature_client = api.get_client()
-    except ImportError:
-        pass
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
 
 
 from app.models import CustomUser
@@ -1132,101 +1127,28 @@ def external_request(request):
 @csrf_exempt
 def ffe(request):
     """OpenFeature evaluation endpoint."""
-    if not openfeature_client:
-        return JsonResponse({"error": "FFE provider not initialized"}, status=500)
+    body = json.loads(request.body)
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
 
-    try:
-        body = json.loads(request.body)
-        flag = body.get("flag")
-        variation_type = body.get("variationType")
-        default_value = body.get("defaultValue")
-        targeting_key = body.get("targetingKey")
-        attributes = body.get("attributes", {})
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
 
-        # Build context
-        context = {"targetingKey": targeting_key, **attributes} if targeting_key else attributes
-
-        # Evaluate based on variation type
-        value = None
-        if variation_type == "BOOLEAN":
-            value = openfeature_client.get_boolean_value(flag, default_value, context)
-        elif variation_type == "STRING":
-            value = openfeature_client.get_string_value(flag, default_value, context)
-        elif variation_type in ["INTEGER", "NUMERIC"]:
-            value = openfeature_client.get_integer_value(flag, default_value, context)
-        elif variation_type == "JSON":
-            value = openfeature_client.get_object_value(flag, default_value, context)
-        else:
-            return JsonResponse({"error": f"Unknown variation type: {variation_type}"}, status=400)
-
-        return JsonResponse({"value": value}, status=200)
-    except Exception as e:
-        import logging
-
-        logging.error(f"[FFE] Error: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-@csrf_exempt
-def ffe_start(request):
-    """Initialize OpenFeature provider."""
-    global openfeature_client
-    try:
-        from openfeature import api
-        from ddtrace.openfeature import DataDogProvider
-
-        api.set_provider(DataDogProvider())
-        openfeature_client = api.get_client()
-        return JsonResponse({}, status=200)
-    except Exception as e:
-        import logging
-
-        logging.error(f"[FFE] Error starting provider: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
-
-
-@csrf_exempt
-def ffe_evaluate(request):
-    """Evaluate feature flag."""
-    if not openfeature_client:
-        return JsonResponse({"error": "FFE provider not initialized"}, status=500)
-
-    try:
-        body = json.loads(request.body)
-        flag = body.get("flag")
-        variation_type = body.get("variationType")
-        default_value = body.get("defaultValue")
-        targeting_key = body.get("targetingKey")
-        attributes = body.get("attributes", {})
-
-        # Build context
-        context = {"targetingKey": targeting_key, **attributes} if targeting_key else attributes
-
-        # Evaluate based on variation type
-        value = default_value
-        reason = "DEFAULT"
-
-        try:
-            if variation_type == "BOOLEAN":
-                value = openfeature_client.get_boolean_value(flag, default_value, context)
-            elif variation_type == "STRING":
-                value = openfeature_client.get_string_value(flag, default_value, context)
-            elif variation_type in ["INTEGER", "NUMERIC"]:
-                value = openfeature_client.get_integer_value(flag, default_value, context)
-            elif variation_type == "JSON":
-                value = openfeature_client.get_object_value(flag, default_value, context)
-            else:
-                value = default_value
-        except Exception:
-            value = default_value
-            reason = "ERROR"
-
-        return JsonResponse({"value": value, "reason": reason}, status=200)
-    except Exception as e:
-        import logging
-
-        logging.error(f"[FFE] Error evaluating flag: {e}")
-        return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"value": value}, status=200)
 
 
 urlpatterns = [
@@ -1327,6 +1249,4 @@ urlpatterns = [
     path("mock_s3/multipart_upload", s3_multipart_upload),
     path("external_request", external_request),
     path("ffe", ffe),
-    path("ffe/start", ffe_start),
-    path("ffe/evaluate", ffe_evaluate),
 ]
