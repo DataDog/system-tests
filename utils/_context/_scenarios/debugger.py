@@ -61,13 +61,8 @@ class DebuggerScenario(EndToEndScenario):
             self.agent_container.environment["DD_TRACE_AGENT_PORT"] = weblog_env["DD_TRACE_AGENT_PORT"]
             self.agent_container.environment["DD_AGENT_HOST"] = weblog_env["DD_AGENT_HOST"]
 
-    def get_warmups(self) -> list:
-        warmups = super().get_warmups()
-
         if not self.replay:
-            warmups.append(self._wait_for_agent_debugging)
-
-        return warmups
+            self.warmups.append(self._wait_for_agent_debugging)
 
     def _wait_for_agent_debugging(self) -> None:
         logger.stdout("Wait for /debugger/v1/diagnostics endpoint on agent")
