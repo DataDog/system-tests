@@ -25,7 +25,7 @@ class OtelCollectorScenario(DockerScenario):
             mocked_backend=mocked_backend,
         )
 
-        self.library = ComponentVersion("otel_collector", "0.0.0")
+        self.library = ComponentVersion("generic", "0.0.0")
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
@@ -65,7 +65,7 @@ class OtelCollectorScenario(DockerScenario):
 
         interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
         self.library = ComponentVersion(
-            "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
+            "generic", self.collector_container.image.labels["org.opencontainers.image.version"]
         )
 
         self.warmups.append(self._print_otel_collector_version)
