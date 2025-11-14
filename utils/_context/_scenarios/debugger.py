@@ -63,7 +63,9 @@ class DebuggerScenario(EndToEndScenario):
 
     def get_warmups(self) -> list:
         warmups = super().get_warmups()
-        warmups.append(self._wait_for_agent_debugging)
+
+        if not self.replay:
+            warmups.append(self._wait_for_agent_debugging)
 
         return warmups
 
