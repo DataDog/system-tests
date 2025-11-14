@@ -185,6 +185,8 @@ patterns:
         scenario_groups: lambda_end_to_end
     utils/_context/_scenarios/auto_injection.py:
         scenario_groups: onboarding
+    utils/_context/_scenarios/debugger.py:
+        scenario_groups: debugger
     utils/_context/_scenarios/default.py:
         scenario_groups: default
     utils/_context/_scenarios/_docker_fixtures.py:
