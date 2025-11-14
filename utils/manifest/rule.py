@@ -64,6 +64,7 @@ def match_rule(rule: str, nodeid: str) -> bool:
 
 
 def get_rules(
+    manifest,
     library: str,
     library_version: Version | None = None,
     variant: str | None = None,
@@ -71,12 +72,9 @@ def get_rules(
     dd_apm_inject_version: Version | None = None,
     k8s_cluster_agent_version: Version | None = None,
 ) -> dict[str, list[tuple[_TestDeclaration, str | None]]]:
-    from manifests.parser.core import load as load_manifests
-
     rules: dict[str, list[tuple[_TestDeclaration, str | None]]] = {}
 
-    manifests = load_manifests()
-    for rule, conditions in manifests.items():
+    for rule, conditions in manifest.items():
         for condition in conditions:
             if not match_condition(
                 condition,

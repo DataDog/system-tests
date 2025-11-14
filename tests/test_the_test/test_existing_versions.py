@@ -3,7 +3,7 @@ import requests
 import pytest
 from utils import scenarios, logger
 from utils._context.component_version import ComponentVersion, Version
-from manifests.parser.core import load as load_manifests
+from utils.manifest import Manifest
 
 
 @scenarios.test_the_test
@@ -34,7 +34,7 @@ def test_existing_version(component: str, github_repo: str):
 
     declared_versions = ComponentVersion.known_versions[component].copy()  # copy to avoid modifying the original
 
-    manifests = load_manifests()
+    manifests = Manifest.parse()
 
     for component_versions in manifests.values():  # the key is nodid, we ignore it
         if component not in component_versions:

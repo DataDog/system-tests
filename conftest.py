@@ -25,7 +25,7 @@ from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
-from utils.get_declaration import get_rules, match_rule
+from utils.manifest import Manifest
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -321,7 +321,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
 
-    rules = get_rules(
+    manifest = Manifest(
         context.library.name,
         context.library.version,
         context.weblog_variant,
@@ -330,11 +330,9 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         context.k8s_cluster_agent_version,
     )
     for item in items:
-        for rule, declarations in rules.items():
-            if not match_rule(rule, item.nodeid):
-                continue
-            for declaration in declarations:
-                add_pytest_marker(item, declaration[0], declaration[1])
+        declarations = manifest.get_declarations(item.nodeid)
+        for declaration in declarations:
+            add_pytest_marker(item, declaration[0], declaration[1])
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
