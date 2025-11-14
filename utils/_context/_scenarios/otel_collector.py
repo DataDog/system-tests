@@ -31,7 +31,7 @@ class OtelCollectorScenario(DockerScenario):
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
             environment={
                 "DD_API_KEY": "0123",
-                "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
+                "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
             },
