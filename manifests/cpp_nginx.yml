@@ -7,7 +7,7 @@
 # For example, if the latest release is `v1.0.0` and a feature like Baggage
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
-manifest:
+manifest:  
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v1.8.0"
@@ -154,7 +154,12 @@ manifest:
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: "missing_feature"
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: "missing_feature"
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation: "missing_feature (Endpoint not implemented)"
-  tests/integrations/crossed_integrations/test_sqs.py: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+    - variant_declaration:
+        "*": "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "missing_feature (Endpoint not implemented)"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"

@@ -1,22 +1,18 @@
 ---
-manifest:
+manifest:  
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v2.18.0"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v2.18.0"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: "v2.18.0"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths:
-    - excluded_variant: [rack]
-      library_version: "<2.18.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant (rack does not have path parameters support)
+    - variant_declaration:
+        "*": "v2.18.0"
+        rack: "irrelevant (rack does not have path parameters support)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status:
-    - excluded_variant: [rack]
-      library_version: "<2.18.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant (rack does not have path parameters support)
+    - variant_declaration:
+        "*": "v2.18.0"
+        rack: "irrelevant (rack does not have path parameters support)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: "irrelevant"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: "v2.18.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: "missing_feature"
@@ -24,54 +20,38 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: "v2.21.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "v2.21.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "v2.21.0"
-  tests/appsec/api_security/test_endpoint_discovery.py:
-    - variant: [graphql23, rails52, rails61, rails72, rails80, uds-rails]
-      library_version: "<2.22.0.dev"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant (rack does not have a router)
-    - variant: rails42
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: missing_feature
-    - variant: sinatra22
-      declaration: missing_feature
-    - variant: sinatra32
-      declaration: missing_feature
-    - variant: sinatra41
-      declaration: missing_feature
-    - variant: uds-sinatra
-      declaration: missing_feature
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
+    - variant_declaration:
+        "*": "v2.22.0.dev"
+        rack: "irrelevant (rack does not have a router)"
+        rails42: "irrelevant"
+        sinatra14: "missing_feature"
+        sinatra22: "missing_feature"
+        sinatra32: "missing_feature"
+        sinatra41: "missing_feature"
+        uds-sinatra: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Scanners: "v2.19.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - excluded_variant: [rack]
-      library_version: "<1.15.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant (rack does not have path parameters support)
+    - variant_declaration:
+        "*": "v1.15.0"
+        rack: "irrelevant (rack does not have path parameters support)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - excluded_variant: [graphql23, rack]
-      library_version: "<2.20.0-dev"
-      declaration: missing_feature
-    - variant: graphql23
-      declaration: missing_feature (no way to separate request paths)
-    - variant: rack
-      declaration: missing_feature (performance impact of JSON parsing)
+    - variant_declaration:
+        "*": "v2.20.0-dev"
+        graphql23: "missing_feature (no way to separate request paths)"
+        rack: "missing_feature (performance impact of JSON parsing)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: "missing_feature (performance impact of JSON parsing)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
-    - excluded_variant: [graphql23, rack]
-      library_version: "<2.20.0-dev"
-      declaration: missing_feature
-    - variant: graphql23
-      declaration: missing_feature (no way to separate request paths)
-    - variant: rack
-      declaration: missing_feature (performance impact of JSON parsing)
+    - variant_declaration:
+        "*": "v2.20.0-dev"
+        graphql23: "missing_feature (no way to separate request paths)"
+        rack: "missing_feature (performance impact of JSON parsing)"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: "missing_feature"
@@ -201,136 +181,80 @@ manifest:
   tests/appsec/rasp/test_lfi.py: "missing_feature"
   tests/appsec/rasp/test_shi.py: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.12.3"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.12.3"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.14.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.14.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: "irrelevant (XML not natively supported)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.15.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.15.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.14.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.14.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.14.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.14.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: "missing_feature (relies on Telemetry V2)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.14.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.14.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.14.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.14.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.14.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.14.0"
+        rack: "irrelevant"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: "missing_feature (relies on Telemetry V2)"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: "v2.14.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: "v2.14.0"
@@ -350,21 +274,14 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: "v2.13.0"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.20.0-dev"
-      declaration: missing_feature
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+    - variant_declaration:
+        "*": "v2.20.0-dev"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: "v2.20.0-dev"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: "v2.20.0-dev"
   tests/appsec/test_automated_login_events.py::Test_Login_Events: "irrelevant"
@@ -374,79 +291,60 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "v2.23.1-dev"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.13.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+    - variant_declaration:
+        "*": "v2.13.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.13.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+    - variant_declaration:
+        "*": "v2.13.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.13.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+    - variant_declaration:
+        "*": "v2.13.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: "irrelevant"
-  tests/appsec/test_automated_user_and_session_tracking.py:
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.16.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v2.16.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.13.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v2.13.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.13.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v2.13.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: "v2.4.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: "v1.0.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: "v2.23.0.dev"
@@ -457,11 +355,9 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: "v1.0.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: "v1.12.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - excluded_variant: [rack]
-      library_version: "<1.0.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.0.0"
+        rack: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: "v1.0.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: "v1.0.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: "v1.0.0"
@@ -510,38 +406,24 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.16.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+    - variant_declaration:
+        "*": "v2.16.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
-    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.16.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra14
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra22
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra32
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: sinatra41
-      declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-    - variant: uds-sinatra
-      declaration: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
+    - variant_declaration:
+        "*": "v2.16.0"
+        rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra22: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
+        uds-sinatra: "missing_feature (no instrument of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_identify.py::Test_Basic: "v1.0.0"
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: "v2.9.0"
   tests/appsec/test_logs.py::Test_Standardization: "missing_feature"
@@ -585,25 +467,17 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: "v2.3.0"
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers:
-    - excluded_variant: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<0.54.2"
-      declaration: missing_feature
-    - variant: sinatra14
-      declaration: missing_feature (endpoint not implemented)
-    - variant: sinatra22
-      declaration: missing_feature (endpoint not implemented)
-    - variant: sinatra32
-      declaration: missing_feature (endpoint not implemented)
-    - variant: sinatra41
-      declaration: missing_feature (endpoint not implemented)
-    - variant: uds-sinatra
-      declaration: missing_feature (endpoint not implemented)
+    - variant_declaration:
+        "*": "v0.54.2"
+        sinatra14: "missing_feature (endpoint not implemented)"
+        sinatra22: "missing_feature (endpoint not implemented)"
+        sinatra32: "missing_feature (endpoint not implemented)"
+        sinatra41: "missing_feature (endpoint not implemented)"
+        uds-sinatra: "missing_feature (endpoint not implemented)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - excluded_variant: [rack]
-      library_version: "<1.8.0"
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.8.0"
+        rack: "irrelevant"
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: "v1.10.0"
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: "v0.54.2"
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: "v1.0.0"
@@ -616,250 +490,179 @@ manifest:
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: "missing_feature"
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: "v1.12.0"
-  tests/appsec/waf/test_exclusions.py:
-    - excluded_variant: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<1.11.0"
-      declaration: missing_feature
-    - variant: sinatra14
-      library_version: "<2.21.0"
-      declaration: missing_feature
-    - variant: sinatra22
-      library_version: "<2.21.0"
-      declaration: missing_feature
-    - variant: sinatra32
-      library_version: "<2.21.0"
-      declaration: missing_feature
-    - variant: sinatra41
-      library_version: "<2.21.0"
-      declaration: missing_feature
-    - variant: uds-sinatra
-      library_version: "<2.21.0"
-      declaration: missing_feature
+  tests/appsec/waf/test_exclusions.py::Test_Exclusions:
+    - variant_declaration:
+        "*": "v1.11.0"
+        sinatra14: "v2.21.0"
+        sinatra22: "v2.21.0"
+        sinatra32: "v2.21.0"
+        sinatra41: "v2.21.0"
+        uds-sinatra: "v2.21.0"
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: "v0.54.2"
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: "v1.0.0.beta1"
   tests/appsec/waf/test_reports.py::Test_Monitoring: "v1.8.0"
   tests/appsec/waf/test_rules.py::Test_NoSqli: "v1.8.0"
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: "missing_feature"
   tests/appsec/waf/test_truncation.py::Test_Truncation: "missing_feature"
-  tests/debugger/test_debugger_code_origins.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (feature not implemented)
-    - variant: rails80
-      declaration: missing_feature (feature not implemented)
-    - variant: uds-rails
-      declaration: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (feature not implemented)"
+        rails80: "missing_feature (feature not implemented)"
+        uds-rails: "missing_feature (feature not implemented)"
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: "missing_feature (feature not implemented)"
-  tests/debugger/test_debugger_expression_language.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      library_version: "<2.20.0"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.20.0"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.20.0"
-      declaration: missing_feature
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.20.0"
+        rails80: "v2.20.0"
+        uds-rails: "v2.20.0"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: "missing_feature"
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.12.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.8.0"
+        rails80: "v2.8.0"
+        uds-rails: "v2.12.0"
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: "missing_feature"
-  tests/debugger/test_debugger_probe_budgets.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (feature not implemented)
-    - variant: rails80
-      declaration: missing_feature (feature not implemented)
-    - variant: uds-rails
-      declaration: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_snapshot.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (feature not implemented)"
+        rails80: "missing_feature (feature not implemented)"
+        uds-rails: "missing_feature (feature not implemented)"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
-    - variant: rails72
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.12.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.8.0"
+        rails80: "v2.8.0"
+        uds-rails: "v2.12.0"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
-    - variant: rails72
-      library_version: "<2.17.1"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.17.1"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.17.1"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.17.1"
+        rails80: "v2.17.1"
+        uds-rails: "v2.17.1"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
-    - variant: rails72
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.12.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.8.0"
+        rails80: "v2.8.0"
+        uds-rails: "v2.12.0"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
-    - variant: rails72
-      library_version: "<2.17.1"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.17.1"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.17.1"
-      declaration: missing_feature
-  tests/debugger/test_debugger_probe_status.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.8.0"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.12.0"
-      declaration: missing_feature
-  tests/debugger/test_debugger_symdb.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (feature not implemented)
-    - variant: rails80
-      declaration: missing_feature (feature not implemented)
-    - variant: uds-rails
-      declaration: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_telemetry.py:
-    - excluded_variant: [rails72, rails80, uds-rails]
-      declaration: irrelevant
-    - variant: rails72
-      library_version: "<2.16.0"
-      declaration: missing_feature
-    - variant: rails80
-      library_version: "<2.16.0"
-      declaration: missing_feature
-    - variant: uds-rails
-      library_version: "<2.16.0"
-      declaration: missing_feature
-  tests/integrations/crossed_integrations/test_kafka.py:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (ruby-kafka does not set the kafka topic on spans)
-  tests/integrations/crossed_integrations/test_kinesis.py:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature
-  tests/integrations/crossed_integrations/test_rabbitmq.py:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
-  tests/integrations/crossed_integrations/test_sns_to_sqs.py:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
-  tests/integrations/crossed_integrations/test_sqs.py:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.17.1"
+        rails80: "v2.17.1"
+        uds-rails: "v2.17.1"
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.8.0"
+        rails80: "v2.8.0"
+        uds-rails: "v2.12.0"
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.8.0"
+        rails80: "v2.8.0"
+        uds-rails: "v2.12.0"
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (feature not implemented)"
+        rails80: "missing_feature (feature not implemented)"
+        uds-rails: "missing_feature (feature not implemented)"
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "v2.16.0"
+        rails80: "v2.16.0"
+        uds-rails: "v2.16.0"
+  tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (ruby-kafka does not set the kafka topic on spans)"
+  tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature"
+  tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
   tests/integrations/test_dbm.py::Test_Dbm: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmKafka:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmKinesis:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmSNS:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmSQS:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
-    - excluded_variant: [rails72]
-      declaration: irrelevant
-    - variant: rails72
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_inferred_proxy.py: "missing_feature"
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: "missing_feature"
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: "missing_feature"
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: "missing_feature"
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault: "missing_feature"
-  tests/otel/test_context_propagation.py:
-    - excluded_variant: [rails72]
-      declaration: incomplete_test_app (endpoint not implemented)
-    - variant: rails72
-      library_version: "<2.0.0"
-      declaration: missing_feature
+  tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
+    - variant_declaration:
+        "*": "incomplete_test_app (endpoint not implemented)"
+        rails72: "v2.0.0"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: "v1.17.0"
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: "missing_feature"
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: "v2.0.0"
@@ -941,41 +744,30 @@ manifest:
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: "v2.0.0"
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: "v2.23.0-dev"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False:
-    - excluded_variant: [rails72]
-      declaration: irrelevant (endpoint not implemented)
-    - variant: rails72
-      library_version: "<2.0.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant (endpoint not implemented)"
+        rails72: "v2.0.0"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True:
-    - excluded_variant: [rails72]
-      declaration: irrelevant (endpoint not implemented)
-    - variant: rails72
-      library_version: "<2.14.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant (endpoint not implemented)"
+        rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
-    - excluded_variant: [rails72]
-      declaration: irrelevant (endpoint not implemented)
-    - variant: rails72
-      library_version: "<2.14.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant (endpoint not implemented)"
+        rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:
-    - excluded_variant: [rails72]
-      declaration: irrelevant (endpoint not implemented)
-    - variant: rails72
-      library_version: "<2.14.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant (endpoint not implemented)"
+        rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: "incomplete_test_app (endpoint not implemented)"
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
-    - excluded_variant: [rails72]
-      declaration: irrelevant (endpoint not implemented)
-    - variant: rails72
-      declaration: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
+    - variant_declaration:
+        "*": "irrelevant (endpoint not implemented)"
+        rails72: "irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)"
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled:
-    - excluded_variant: [rails72]
-      declaration: irrelevant (endpoint not implemented)
-    - variant: rails72
-      library_version: "<2.14.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant (endpoint not implemented)"
+        rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: "missing_feature"
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: "bug (APMAPI-1013)"
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: "missing_feature (environment variable is not supported)"
@@ -989,16 +781,14 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: "missing_feature"
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
-  tests/test_graphql.py:
-    - excluded_variant: [graphql23]
-      declaration: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - variant: graphql23
-      library_version: "<2.22.1-dev"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "missing_feature"
+        graphql23: "v2.22.1-dev"
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - variant: graphql23
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "missing_feature"
+        graphql23: "missing_feature"
   tests/test_identify.py::Test_Basic: "v1.0.0"
   tests/test_identify.py::Test_Propagate: "missing_feature"
   tests/test_identify.py::Test_Propagate_Legacy: "missing_feature"
@@ -1022,19 +812,13 @@ manifest:
   tests/test_profiling.py::Test_Profile: "missing_feature (temporary fix, scenario not working on dd-trace-rb CI)"
   tests/test_protobuf.py: "missing_feature"
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
-    - excluded_variant: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
-      library_version: "<2.23.0.dev"
-      declaration: missing_feature
-    - variant: sinatra14
-      declaration: irrelevant
-    - variant: sinatra22
-      declaration: irrelevant
-    - variant: sinatra32
-      declaration: irrelevant
-    - variant: sinatra41
-      declaration: irrelevant
-    - variant: uds-sinatra
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v2.23.0.dev"
+        sinatra14: "irrelevant"
+        sinatra22: "irrelevant"
+        sinatra32: "irrelevant"
+        sinatra41: "irrelevant"
+        uds-sinatra: "irrelevant"
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: "missing_feature"
   tests/test_sampling_rates.py::Test_SampleRateFunction: "v2.15.0"
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v2.12.1"
@@ -1046,20 +830,21 @@ manifest:
   tests/test_semantic_conventions.py::Test_Meta: "v1.7.0"
   tests/test_semantic_conventions.py::Test_MetaDatadogTags: "v1.9.0"
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: "v1.7.0"
-  tests/test_span_events.py:
-    - excluded_variant: [rack]
-      declaration: irrelevant
-    - variant: rack
-      library_version: "<2.10.0"
-      declaration: missing_feature
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
+    - variant_declaration:
+        "*": "irrelevant"
+        rack: "v2.10.0"
+  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
+    - variant_declaration:
+        "*": "irrelevant"
+        rack: "v2.10.0"
   tests/test_standard_tags.py::Test_StandardTagsClientIp: "v1.10.1"
   tests/test_standard_tags.py::Test_StandardTagsMethod: "v1.8.0"
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsRoute:
-    - excluded_variant: [rack]
-      declaration: missing_feature
-    - variant: rack
-      declaration: irrelevant (rack can not access route pattern)
+    - variant_declaration:
+        "*": "missing_feature"
+        rack: "irrelevant (rack can not access route pattern)"
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: "v1.8.0"
   tests/test_standard_tags.py::Test_StandardTagsUrl: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: "v1.8.0"

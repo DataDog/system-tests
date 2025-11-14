@@ -176,7 +176,7 @@ def add_refs(file_path: str, output_file: str) -> None:
     with open(output_file, "w") as f:
         for line in data:
             if line.startswith("tests/:"):
-                f.write("manifest:" + "\n")
+                f.write("manifest:")
                 return
             f.write(line)
 

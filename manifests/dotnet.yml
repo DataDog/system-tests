@@ -1,5 +1,5 @@
 ---
-manifest:
+manifest:  
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v2.50.0"
@@ -79,7 +79,9 @@ manifest:
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection: "v2.48.0"
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace: "v3.3.0"
-  tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection: "v2.23.0"
+  tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
+    - variant_declaration:
+        "*": "v2.23.0"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: "v3.3.0"
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF: "v2.36.0"
@@ -127,7 +129,9 @@ manifest:
   tests/appsec/iast/source/test_cookie_value.py::TestCookieValue: "v2.42.0"
   tests/appsec/iast/source/test_graphql_resolver.py::TestGraphqlResolverArgument: "missing_feature"
   tests/appsec/iast/source/test_header_name.py::TestHeaderName: "missing_feature"
-  tests/appsec/iast/source/test_header_value.py: "v2.39.0"
+  tests/appsec/iast/source/test_header_value.py::TestHeaderValue:
+    - variant_declaration:
+        "*": "v2.39.0"
   tests/appsec/iast/source/test_kafka_key.py::TestKafkaKey: "missing_feature"
   tests/appsec/iast/source/test_kafka_value.py::TestKafkaValue: "missing_feature"
   tests/appsec/iast/source/test_multipart.py::TestMultipart: "missing_feature"
@@ -393,8 +397,12 @@ manifest:
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: "missing_feature"
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: "v2.0.0-prerelease"
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation: "missing_feature (Endpoint not implemented)"
-  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: "v0.1"
-  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: "v2.48.0"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+    - variant_declaration:
+        "*": "v0.1"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "v2.48.0"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
@@ -515,7 +523,12 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: "v3.26.3"
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
-  tests/test_graphql.py: "missing_feature"
+  tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
+    - variant_declaration:
+        "*": "missing_feature"
+  tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
+    - variant_declaration:
+        "*": "missing_feature"
   tests/test_identify.py::Test_Basic: "v2.7.0"
   tests/test_identify.py::Test_Propagate: "v2.27.0"
   tests/test_identify.py::Test_Propagate_Legacy: "v2.26.0"
@@ -536,12 +549,10 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: "v2.1.0"
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: "missing_feature"
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: "missing_feature"
-  tests/test_profiling.py:
-    - excluded_variant: [uds]
-      library_version: "<1.0"
-      declaration: missing_feature
-    - variant: uds
-      declaration: missing_feature (to be confirmed)
+  tests/test_profiling.py::Test_Profile:
+    - variant_declaration:
+        "*": "v1.0"
+        uds: "missing_feature (to be confirmed)"
   tests/test_protobuf.py::Test_Protobuf: "v3.15.0"
   tests/test_resource_renaming.py: "missing_feature"
   tests/test_sampling_rates.py::Test_SampleRateFunction: "v3.11.1"

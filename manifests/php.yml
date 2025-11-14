@@ -1,5 +1,5 @@
 ---
-manifest:
+manifest:  
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v1.6.2"
@@ -16,25 +16,16 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "missing_feature"
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
-    - excluded_variant: [apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts]
-      library_version: "<1.11.0-dev"
-      declaration: missing_feature
-    - variant: apache-mod-7.0
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.0-zts
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.1
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.1-zts
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.2
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.2-zts
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.3
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
-    - variant: apache-mod-7.3-zts
-      declaration: missing_feature (Needs configuring apache to use auth_digest)
+    - variant_declaration:
+        "*": "v1.11.0-dev"
+        apache-mod-7.0: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.0-zts: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.1: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.1-zts: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.2: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.2-zts: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.3: "missing_feature (Needs configuring apache to use auth_digest)"
+        apache-mod-7.3-zts: "missing_feature (Needs configuring apache to use auth_digest)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: "v0.94.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: "v0.94.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: "v0.94.0"
@@ -138,7 +129,9 @@ manifest:
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection: "missing_feature"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_StackTrace: "missing_feature"
-  tests/appsec/iast/sink/test_xss.py::TestXSS: "missing_feature"
+  tests/appsec/iast/sink/test_xss.py::TestXSS:
+    - variant_declaration:
+        "*": "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace: "missing_feature"
   tests/appsec/iast/source/test_body.py::TestRequestBody: "missing_feature"
@@ -389,19 +382,28 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: "missing_feature"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: "missing_feature"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: "missing_feature"
-  tests/debugger/test_debugger_probe_status.py:
-    - excluded_variant: [apache-mod-8.0]
-      declaration: missing_feature
-    - variant: apache-mod-8.0
-      library_version: "<1.8.3"
-      declaration: missing_feature
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
+    - variant_declaration:
+        "*": "missing_feature"
+        apache-mod-8.0: "v1.8.3"
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
+    - variant_declaration:
+        "*": "missing_feature"
+        apache-mod-8.0: "v1.8.3"
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: "missing_feature"
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: "missing_feature"
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: "missing_feature"
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: "missing_feature"
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: "missing_feature"
-  tests/integrations/crossed_integrations/test_sns_to_sqs.py: "missing_feature"
-  tests/integrations/crossed_integrations/test_sqs.py: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
+    - variant_declaration:
+        "*": "missing_feature"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+    - variant_declaration:
+        "*": "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "missing_feature (Endpoint not implemented)"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
@@ -524,7 +526,12 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: "missing_feature"
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
-  tests/test_graphql.py: "missing_feature"
+  tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
+    - variant_declaration:
+        "*": "missing_feature"
+  tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
+    - variant_declaration:
+        "*": "missing_feature"
   tests/test_identify.py::Test_Basic: "v0.85.0"
   tests/test_identify.py::Test_Propagate: "v0.85.0"
   tests/test_identify.py::Test_Propagate_Legacy: "v0.85.0"

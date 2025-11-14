@@ -1,30 +1,23 @@
 ---
-manifest:
-  tests/apm_tracing_e2e/test_otel.py:
-    - excluded_variant: [net-http]
-      declaration: missing_feature (missing /e2e_otel_span endpoint on weblog)
-    - variant: net-http
-      library_version: "<0.1"
-      declaration: missing_feature
-  tests/apm_tracing_e2e/test_single_span.py:
-    - excluded_variant: [chi]
-      declaration: missing_feature (missing /e2e_otel_span endpoint on weblog)
-    - variant: chi
-      library_version: "<0.1"
-      declaration: missing_feature
+manifest:  
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
+    - variant_declaration:
+        "*": "missing_feature (missing /e2e_otel_span endpoint on weblog)"
+        net-http: "v0.1"
+  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
+    - variant_declaration:
+        "*": "missing_feature (missing /e2e_otel_span endpoint on weblog)"
+        chi: "v0.1"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v2.0.0"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v2.0.0"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: "missing_feature"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: "missing_feature"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: "missing_feature"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.60.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant (net-http doesn't handle path params)
-    - variant: net-http-orchestrion
-      declaration: irrelevant (net-http doesn't handle path params)
+    - variant_declaration:
+        "*": "v1.60.0"
+        net-http: "irrelevant (net-http doesn't handle path params)"
+        net-http-orchestrion: "irrelevant (net-http doesn't handle path params)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: "missing_feature"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: "v2.4.0-dev"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: "v2.4.0-dev"
@@ -38,13 +31,10 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: "v1.60.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: "v1.60.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.60.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant (net-http cannot list path params)
-    - variant: net-http-orchestrion
-      declaration: irrelevant (net-http cannot list path params)
+    - variant_declaration:
+        "*": "v1.60.0"
+        net-http: "irrelevant (net-http cannot list path params)"
+        net-http-orchestrion: "irrelevant (net-http cannot list path params)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: "v1.60.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: "v2.0.0"
@@ -143,7 +133,9 @@ manifest:
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection: "missing_feature"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_StackTrace: "missing_feature"
-  tests/appsec/iast/sink/test_xss.py::TestXSS: "missing_feature"
+  tests/appsec/iast/sink/test_xss.py::TestXSS:
+    - variant_declaration:
+        "*": "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace: "missing_feature"
   tests/appsec/iast/source/test_body.py::TestRequestBody: "missing_feature"
@@ -188,12 +180,62 @@ manifest:
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: "v2.3.0-dev"
-  tests/appsec/rasp/test_lfi.py:
-    - excluded_variant: [net-http-orchestrion]
-      declaration: irrelevant (LFi detection requires orchestrion)
-    - variant: net-http-orchestrion
-      library_version: "<2.0.0"
-      declaration: missing_feature
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version:
+    - variant_declaration:
+        "*": "irrelevant (LFi detection requires orchestrion)"
+        net-http-orchestrion: "v2.0.0"
   tests/appsec/rasp/test_shi.py: "irrelevant (there is no equivalent to system(3) in go)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: "v1.66.0"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded: "v1.66.0"
@@ -219,19 +261,12 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: "v2.0.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: "v1.65.1"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: "v2.0.0"
-  tests/appsec/test_alpha.py:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+  tests/appsec/test_alpha.py::Test_Basic:
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: "v1.73.0-dev"
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: "missing_feature"
@@ -240,10 +275,9 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: "missing_feature"
   tests/appsec/test_automated_login_events.py::Test_Login_Events:
-    - excluded_variant: [net-http-orchestrion]
-      declaration: irrelevant (Go only supports SDK events)
-    - variant: net-http-orchestrion
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant (Go only supports SDK events)"
+        net-http-orchestrion: "missing_feature"
   tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: "irrelevant (Go only supports SDK events)"
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: "irrelevant (Go only supports SDK events)"
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: "irrelevant (Go only supports SDK events)"
@@ -263,62 +297,42 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: "irrelevant (Body blocking happens through SDK)"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.51.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant
-    - variant: net-http-orchestrion
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.51.0"
+        net-http: "irrelevant"
+        net-http-orchestrion: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.51.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant
-    - variant: net-http-orchestrion
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.51.0"
+        net-http: "irrelevant"
+        net-http-orchestrion: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.51.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant
-    - variant: net-http-orchestrion
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.51.0"
+        net-http: "irrelevant"
+        net-http-orchestrion: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.51.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant
-    - variant: net-http-orchestrion
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.51.0"
+        net-http: "irrelevant"
+        net-http-orchestrion: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.51.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant
-    - variant: net-http-orchestrion
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.51.0"
+        net-http: "irrelevant"
+        net-http-orchestrion: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      library_version: "<1.51.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant
-    - variant: net-http-orchestrion
-      declaration: irrelevant
+    - variant_declaration:
+        "*": "v1.51.0"
+        net-http: "irrelevant"
+        net-http-orchestrion: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: "v1.51.0"
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
-    - excluded_variant: [net-http-orchestrion]
-      library_version: "<2.3.0-dev"
-      declaration: missing_feature
-    - variant: net-http-orchestrion
-      declaration: missing_feature (path params are not supported)
+    - variant_declaration:
+        "*": "v2.3.0-dev"
+        net-http-orchestrion: "missing_feature (path params are not supported)"
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: "v1.44.1"
   tests/appsec/test_conf.py::Test_ConfigurationVariables: "v2.0.0"
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: "v2.1.0-dev"
@@ -361,7 +375,9 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: "v1.69.0"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: "v1.69.0"
   tests/appsec/test_identify.py::Test_Basic: "v1.37.0"
-  tests/appsec/test_ip_blocking_full_denylist.py: "v1.47.0"
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
+    - variant_declaration:
+        "*": "v1.47.0"
   tests/appsec/test_logs.py::Test_Standardization: "missing_feature"
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: "missing_feature"
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: "v1.72.0"
@@ -375,40 +391,25 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: "v1.69.0"
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: "v1.69.0"
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: "v2.0.0"
-  tests/appsec/test_reports.py::Test_ExtraTagsFromRule: "v1.62.0"
+  tests/appsec/test_reports.py::Test_ExtraTagsFromRule:
+    - variant_declaration:
+        "*": "v1.62.0"
   tests/appsec/test_reports.py::Test_Info:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/test_reports.py::Test_RequestHeaders:
-    - excluded_variant: [echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/test_reports.py::Test_StatusCode:
-    - excluded_variant: [echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: "v1.50.0-rc.1"
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: "v1.69.0"
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: "v1.69.0"
@@ -421,115 +422,70 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: "v2.1.0-dev"
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: "v2.1.0-dev"
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
-    - excluded_variant: [gin]
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/test_traces.py::Test_AppSecObfuscator: "v1.38.0"
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
-    - excluded_variant: [gin]
-      library_version: "<1.36.2"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.2"
+        gin: "v1.37.0"
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
-    - excluded_variant: [gin]
-      library_version: "<1.36.2"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.2"
+        gin: "v1.37.0"
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: "v1.63.0"
   tests/appsec/test_traces.py::Test_RetainTraces:
-    - excluded_variant: [gin]
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: "v1.48.0"
-  tests/appsec/test_versions.py:
-    - excluded_variant: [gin]
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+  tests/appsec/test_versions.py::Test_Events:
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_BodyJson: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_BodyRaw: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_BodyXml: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_Cookies:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: "missing_feature"
-  tests/appsec/waf/test_addresses.py::Test_GraphQL: "v1.60.0"
+  tests/appsec/waf/test_addresses.py::Test_GraphQL:
+    - variant_declaration:
+        "*": "v1.60.0"
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "v1.62.0"
   tests/appsec/waf/test_addresses.py::Test_Headers:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - excluded_variant: [gin, net-http, net-http-orchestrion]
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
-    - variant: net-http
-      declaration: irrelevant (net-http doesn't handle path params)
-    - variant: net-http-orchestrion
-      declaration: irrelevant (net-http doesn't handle path params)
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
+        net-http: "irrelevant (net-http doesn't handle path params)"
+        net-http-orchestrion: "irrelevant (net-http doesn't handle path params)"
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus:
-    - excluded_variant: [gin]
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_UrlQuery:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: "v1.38.1"
   tests/appsec/waf/test_addresses.py::Test_UrlRaw:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_addresses.py::Test_gRPC: "v1.36.0"
   tests/appsec/waf/test_blocking.py::Test_Blocking: "v1.50.0-rc.1"
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: "missing_feature"
@@ -540,98 +496,80 @@ manifest:
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: "missing_feature"
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: "v1.51.0"
   tests/appsec/waf/test_exclusions.py::Test_Exclusions: "v1.53.0"
-  tests/appsec/waf/test_miscs.py:
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
   tests/appsec/waf/test_miscs.py::Test_404:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
-    - excluded_variant: [chi, echo, gin]
-      library_version: "<1.34.0"
-      declaration: missing_feature
-    - variant: chi
-      library_version: "<1.36.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.34.0"
+        chi: "v1.36.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight:
-    - excluded_variant: [gin]
-      library_version: "<1.36.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_reports.py::Test_Monitoring: "v1.38.0"
-  tests/appsec/waf/test_rules.py:
-    - variant: gin
-      library_version: "<1.37.0"
-      declaration: missing_feature
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_DiscoveryScan:
-    - excluded_variant: [gin]
-      library_version: "<1.36.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_HttpProtocol:
-    - excluded_variant: [gin]
-      library_version: "<1.36.1"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.36.1"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_JavaCodeInjection:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_JsInjection:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_LFI:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_NoSqli:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_PhpCodeInjection:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_RFI:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_SQLI:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_SSRF:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_Scanners:
-    - excluded_variant: [gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_rules.py::Test_XSS:
-    - excluded_variant: [echo, gin]
-      library_version: "<1.35.0"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.36.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "v1.35.0"
+        echo: "v1.36.0"
+        gin: "v1.37.0"
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: "v2.0.0"
   tests/appsec/waf/test_truncation.py::Test_Truncation: "v2.0.0"
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: "missing_feature (feature not implemented)"
@@ -651,144 +589,121 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: "v2.2.3"
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: "v2.2.3"
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: "missing_feature"
-  tests/integrations/crossed_integrations/test_kafka.py:
-    - excluded_variant: [net-http]
-      declaration: irrelevant
-    - variant: net-http
-      library_version: "<0.1"
-      declaration: missing_feature
-  tests/integrations/crossed_integrations/test_kinesis.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
-  tests/integrations/crossed_integrations/test_rabbitmq.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
-  tests/integrations/crossed_integrations/test_sns_to_sqs.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
-  tests/integrations/crossed_integrations/test_sqs.py:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+  tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "v0.1"
+  tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
   tests/integrations/test_dbm.py::Test_Dbm: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
-    - excluded_variant: [net-http]
-      declaration: irrelevant
-    - variant: net-http
-      library_version: "<0.1"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "v0.1"
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
-    - excluded_variant: [net-http]
-      declaration: irrelevant
-    - variant: net-http
-      library_version: "<0.1"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "v0.1"
   tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmKafka:
-    - excluded_variant: [net-http]
-      declaration: irrelevant
-    - variant: net-http
-      library_version: "<0.1"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "v0.1"
   tests/integrations/test_dsm.py::Test_DsmKinesis:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmSNS:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmSQS:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
-    - excluded_variant: [net-http, net-http-orchestrion]
-      declaration: irrelevant
-    - variant: net-http
-      declaration: missing_feature (Endpoint not implemented)
-    - variant: net-http-orchestrion
-      declaration: missing_feature (Endpoint not implemented)
-  tests/integrations/test_inferred_proxy.py:
-    - variant: [gqlgen, graph-gophers, graphql-go, uds-echo]
-      declaration: irrelevant
-    - variant: chi
-      library_version: "<1.72.1"
-      declaration: missing_feature
-    - variant: echo
-      library_version: "<1.72.1"
-      declaration: missing_feature
-    - variant: gin
-      library_version: "<1.72.1"
-      declaration: missing_feature
-    - variant: net-http
-      library_version: "<1.72.1"
-      declaration: missing_feature
-    - variant: net-http-orchestrion
-      library_version: "<1.72.1"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "missing_feature (Endpoint not implemented)"
+        net-http-orchestrion: "missing_feature (Endpoint not implemented)"
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
+    - variant_declaration:
+        "*": "irrelevant"
+        chi: "v1.72.1"
+        echo: "v1.72.1"
+        gin: "v1.72.1"
+        net-http: "v1.72.1"
+        net-http-orchestrion: "v1.72.1"
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+    - variant_declaration:
+        "*": "irrelevant"
+        chi: "v1.72.1"
+        echo: "v1.72.1"
+        gin: "v1.72.1"
+        net-http: "v1.72.1"
+        net-http-orchestrion: "v1.72.1"
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+    - variant_declaration:
+        "*": "irrelevant"
+        chi: "v1.72.1"
+        echo: "v1.72.1"
+        gin: "v1.72.1"
+        net-http: "v1.72.1"
+        net-http-orchestrion: "v1.72.1"
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: "missing_feature"
-  tests/otel/test_context_propagation.py:
-    - excluded_variant: [net-http]
-      declaration: incomplete_test_app (endpoint not implemented)
-    - variant: net-http
-      library_version: "<1.70.1"
-      declaration: missing_feature
+  tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
+    - variant_declaration:
+        "*": "incomplete_test_app (endpoint not implemented)"
+        net-http: "v1.70.1"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: "v1.50.0"
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: "v1.72.0-dev"
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: "v1.67.0"
@@ -891,26 +806,17 @@ manifest:
   tests/test_distributed.py::Test_Synthetics_APM_Datadog: "bug (APMAPI-901)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - excluded_variant: [gqlgen, graph-gophers, graphql-go]
-      declaration: irrelevant
-    - variant: gqlgen
-      library_version: "<1.73.0"
-      declaration: missing_feature
-    - variant: graph-gophers
-      library_version: "<1.73.0"
-      declaration: missing_feature
-    - variant: graphql-go
-      library_version: "<1.73.0"
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "irrelevant"
+        gqlgen: "v1.73.0"
+        graph-gophers: "v1.73.0"
+        graphql-go: "v1.73.0"
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - excluded_variant: [gqlgen, graph-gophers, graphql-go]
-      declaration: missing_feature
-    - variant: gqlgen
-      declaration: missing_feature
-    - variant: graph-gophers
-      declaration: missing_feature
-    - variant: graphql-go
-      declaration: missing_feature
+    - variant_declaration:
+        "*": "missing_feature"
+        gqlgen: "missing_feature"
+        graph-gophers: "missing_feature"
+        graphql-go: "missing_feature"
   tests/test_identify.py::Test_Basic: "v1.37.0"
   tests/test_identify.py::Test_Propagate: "v1.48.0-rc.1"
   tests/test_identify.py::Test_Propagate_Legacy: "v1.41.0"
@@ -939,12 +845,14 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates: "v1.36.2"
   tests/test_scrubbing.py::Test_UrlQuery: "v1.40.0"
   tests/test_semantic_conventions.py::Test_Meta: "v1.45.0"
-  tests/test_span_events.py:
-    - excluded_variant: [net-http]
-      declaration: irrelevant
-    - variant: net-http
-      library_version: "<1.73.0"
-      declaration: missing_feature
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "v1.73.0"
+  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
+    - variant_declaration:
+        "*": "irrelevant"
+        net-http: "v1.73.0"
   tests/test_standard_tags.py::Test_StandardTagsClientIp: "v1.46.0"
   tests/test_standard_tags.py::Test_StandardTagsMethod: "v1.39.0"
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: "missing_feature"
