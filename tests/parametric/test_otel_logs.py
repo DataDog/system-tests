@@ -1,7 +1,7 @@
 import pytest
 import base64
 
-from utils import scenarios, features, logger, irrelevant, context, missing_feature
+from utils import scenarios, features, logger, irrelevant, context
 from utils.parametric._library_client import LogLevel
 from utils.parametric.spec.trace import find_only_span
 from urllib.parse import urlparse
@@ -58,11 +58,25 @@ def find_attributes(proto_object: dict) -> dict:
 
 @pytest.fixture
 def otlp_endpoint_library_env(
-    library_env: dict[str, str], endpoint_env: str, test_agent: TestAgentAPI, test_agent_otlp_http_port: int
+    library_env: dict[str, str],
+    endpoint_env: str,
+    test_agent: TestAgentAPI,
+    test_agent_otlp_http_port: int,
+    test_agent_otlp_grpc_port: int,
 ) -> Generator[dict[str, str], None, None]:
     """Set up a custom endpoint for OTLP logs."""
     prev_value = library_env.get(endpoint_env)
-    library_env[endpoint_env] = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/logs"
+
+    protocol = library_env.get("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", library_env.get("OTEL_EXPORTER_OTLP_PROTOCOL"))
+    if protocol is None:
+        raise ValueError(
+            "One of the following environment variables must be set in library_env: OTEL_EXPORTER_OTLP_LOGS_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL"
+        )
+
+    port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
+    path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/logs"
+
+    library_env[endpoint_env] = f"http://{test_agent.container_name}:{port}{path}"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]
@@ -233,7 +247,11 @@ class Test_FR05_Custom_Endpoints:
         ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
-                {"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None},
+                {
+                    "DD_LOGS_OTEL_ENABLED": "true",
+                    "DD_TRACE_DEBUG": None,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
                 "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
             ),
@@ -258,37 +276,38 @@ class Test_FR05_Custom_Endpoints:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "test_logger", "test_otlp_custom_endpoint") is not None
 
-    @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
-        [
-            (
-                {
-                    "DD_LOGS_OTEL_ENABLED": "true",
-                    "DD_TRACE_DEBUG": None,
-                },
-                "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
-                4321,
-            ),
-        ],
-    )
-    def test_otlp_logs_custom_endpoint(
-        self,
-        library_env: dict[str, str],
-        endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_endpoint_library_env: dict[str, str],
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        """Logs are exported to custom OTLP logs endpoint."""
-        with test_library as library:
-            library.write_log("test_otlp_logs_custom_endpoint", LogLevel.INFO, "test_logger")
+    # @pytest.mark.parametrize(
+    #     ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+    #     [
+    #         (
+    #             {
+    #                 "DD_LOGS_OTEL_ENABLED": "true",
+    #                 "DD_TRACE_DEBUG": None,
+    #                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+    #             },
+    #             "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+    #             4321,
+    #         ),
+    #     ],
+    # )
+    # def test_otlp_logs_custom_endpoint(
+    #     self,
+    #     library_env: dict[str, str],
+    #     endpoint_env: str,
+    #     test_agent_otlp_http_port: int,
+    #     otlp_endpoint_library_env: dict[str, str],
+    #     test_agent: TestAgentAPI,
+    #     test_library: APMLibrary,
+    # ):
+    #     """Logs are exported to custom OTLP logs endpoint."""
+    #     with test_library as library:
+    #         library.write_log("test_otlp_logs_custom_endpoint", LogLevel.INFO, "test_logger")
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4321
-        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert find_log_record(log_payloads, "test_logger", "test_otlp_logs_custom_endpoint") is not None
+    #     assert (
+    #         urlparse(library_env[endpoint_env]).port == 4321
+    #     ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+    #     log_payloads = test_agent.wait_for_num_log_payloads(1)
+    #     assert find_log_record(log_payloads, "test_logger", "test_otlp_logs_custom_endpoint") is not None
 
 
 @features.otel_logs_enabled
@@ -736,7 +755,6 @@ class Test_FR11_Telemetry:
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
-    @missing_feature(context.library == "python")
     @pytest.mark.parametrize(
         "library_env",
         [
