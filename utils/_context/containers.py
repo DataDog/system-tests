@@ -1401,7 +1401,7 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
-            environment=cast(dict[str, str | None], environment),
+            environment=cast("dict[str, str | None]", environment),
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
