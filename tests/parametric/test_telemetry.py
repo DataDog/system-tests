@@ -453,7 +453,7 @@ class Test_Environment:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_PORT": -1,
+                "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TRACE_OTEL_ENABLED": 1,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
@@ -549,7 +549,7 @@ class Test_Environment:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_PORT": -1,
+                "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
                 "OTEL_SERVICE_NAME": "otel_service",
@@ -560,7 +560,7 @@ class Test_Environment:
                 "OTEL_METRICS_EXPORTER": "foo",
                 "OTEL_RESOURCE_ATTRIBUTES": "foo",
                 "OTEL_PROPAGATORS": "foo",
-                "OTEL_LOGS_EXPORTER": "foo" if context.library != "python" else None,
+                "OTEL_LOGS_EXPORTER": "foo",
                 "DD_TRACE_OTEL_ENABLED": None,
                 "DD_TRACE_DEBUG": None,
                 "OTEL_SDK_DISABLED": "foo",
