@@ -1,4 +1,4 @@
-from utils import bug, scenarios, weblog, interfaces, features
+from utils import bug, scenarios, weblog, interfaces, features, missing_feature, context
 from utils._weblog import HttpResponse
 
 
@@ -35,6 +35,15 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
         assert get_endpoint_tag(self.r_param_hex_id) == "/resource_renaming/hex_id/{param:hex_id}"
         assert get_endpoint_tag(self.r_param_str) == "/resource_renaming/files/{param:str}"
         assert get_endpoint_tag(self.r_param_str_2) == "/resource_renaming/files/{param:str}"
+
+    def setup_http_endpoint_root(self):
+        """Setup requests for root endpoint testing"""
+        self.r_root = weblog.get("/")
+
+    @missing_feature(context.weblog_variant == "fastify", reason="Fasitfy root route is always '/' not empty string")
+    def test_http_endpoint_root(self):
+        """Test that root endpoint is handled correctly"""
+        assert get_endpoint_tag(self.r_root) == "/"
 
     def setup_http_endpoint_edge_cases(self):
         """Setup requests for edge case testing"""
