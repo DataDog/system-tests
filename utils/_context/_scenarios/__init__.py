@@ -974,9 +974,17 @@ class _Scenarios:
         appsec_enabled="true",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
+    docker_ssi_profiling = DockerSSIScenario(
+        "DOCKER_SSI_PROFILING",
+        doc="Validates the crashtracking for ssi on a docker environment",
+        extra_env_vars={"DD_PROFILING_UPLOAD_PERIOD": "2", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1000"},
+        profiling_enabled="auto",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
+
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
 
