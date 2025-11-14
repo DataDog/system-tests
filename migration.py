@@ -131,11 +131,14 @@ def flatten(
     elif end:
         output += f"\n{root}:"
         for var in data.items():
+            var_name = var[0]
+            if var[0] == "*":
+                var_name = f'"{var[0]}"'
             if refs and var[1] in refs:
                 data_str = f"*{refs[var[1]]}"
             else:
                 data_str = f'"{var[1]}"'
-            output += f"\n    {var[0]}: {data_str}"
+            output += f"\n    {var_name}: {data_str}"
 
     else:
         if root.endswith(".py"):
