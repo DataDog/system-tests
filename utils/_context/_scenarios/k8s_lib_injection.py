@@ -229,6 +229,7 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
             self.k8s_cluster_provider.get_cluster_info(), weblog_env=self.weblog_env, dd_cluster_uds=self.use_uds
         )
 
+        self.warmups = []  # re-write entirely warmups
         self.warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         self.warmups.append(self.k8s_cluster_provider.ensure_cluster)
         self.warmups.append(self.k8s_datadog.deploy_test_agent)
@@ -303,6 +304,7 @@ class K8sSparkScenario(K8sScenario):
             service_account="spark",
         )
 
+        self.warmups = []  # re-write warmups
         self.warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         self.warmups.append(self.k8s_cluster_provider.ensure_cluster)
         self.warmups.append(self.k8s_cluster_provider.create_spak_service_account)
