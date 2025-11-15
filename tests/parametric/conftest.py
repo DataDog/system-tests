@@ -1,8 +1,9 @@
 import base64
 from collections.abc import Generator
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
+import uuid
 
 import pytest
 import yaml
@@ -19,8 +20,6 @@ default_subprocess_run_timeout = 300
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    import uuid
-
     result = str(uuid.uuid4())[0:6]
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result
