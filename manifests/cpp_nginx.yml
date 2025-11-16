@@ -281,7 +281,9 @@ tests/:
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag: v1.10.0
+    Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature (dd-trace-cpp doesn't support stats)
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.0.0  # real version unknown
     Test_SamplingDecisionAdded: v1.0.0  # real version unknown
