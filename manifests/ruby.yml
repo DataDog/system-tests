@@ -21,7 +21,7 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Capabilities: v2.23.0.dev
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Negative: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Processor_Override: v2.21.0  # auto activation: might not be the earliest working version

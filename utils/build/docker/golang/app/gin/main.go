@@ -343,6 +343,7 @@ func main() {
 
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
+	r.Any("/ffe", ginHandleFunc(common.FFeEval()))
 
 	var d DebuggerController
 	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
