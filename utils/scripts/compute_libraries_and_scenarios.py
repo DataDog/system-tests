@@ -292,8 +292,8 @@ class Inputs:
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
-        new_manifests: str = "manifests/",
-        old_manifests: str = "original/manifests/",
+        # new_manifests: str = "manifests/",
+        # old_manifests: str = "original/manifests/",
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()
