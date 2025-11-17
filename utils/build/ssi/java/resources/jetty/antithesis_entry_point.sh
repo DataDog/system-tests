@@ -20,6 +20,7 @@ ls -la /workdir/*.jar
 
 #Use this command line to run the app with the antithesis coverage instrumentation for the tracer (Currently not working)
 #exec java -Xbootclasspath/a:"$BOOT_EXTRA" -cp "/workdir/*:/workdir/jetty-classpath/*:." -Ddd.trace.classes.exclude=com.antithesis.*,com.antithesis.ffi.* JettyServletMain
+exec java -cp "/workdir/*:/workdir/jetty-classpath/*:$LIB_DIR/*:." JettyServletMain
 
 #Use this command line to run the app without the antithesis coverage instrumentation for the tracer
-exec java -cp "/workdir/*:/workdir/jetty-classpath/*:." JettyServletMain
+#exec java -cp "/workdir/*:/workdir/jetty-classpath/*:." JettyServletMain

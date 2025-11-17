@@ -39,8 +39,8 @@ RUN unzip -q antithesis-ffi-1.4.4.jar -d /tmp/antithesis-unzipped
 RUN echo "Contents of antithesis jar:" && find /tmp/antithesis-unzipped -type f
 
 # Copy com directory and all .so files from antithesis into dd-agent
-RUN if [ -d /tmp/antithesis-unzipped/com ]; then cp -r /tmp/antithesis-unzipped/com /tmp/dd-agent-unzipped/; fi && \
-    find /tmp/antithesis-unzipped -name "*.so" -exec cp {} /tmp/dd-agent-unzipped/ \;
+RUN cp -r /tmp/antithesis-unzipped/com /tmp/dd-agent-unzipped/
+RUN cp /tmp/antithesis-unzipped/libFfiWrapper.so /tmp/dd-agent-unzipped/
 
 # Re-zip the modified dd-java-agent.jar
 RUN cd /tmp/dd-agent-unzipped && \
