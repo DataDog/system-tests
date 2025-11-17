@@ -16,7 +16,14 @@ fi
 
 if [ -e /binaries/dd-trace-rs ]; then
     cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry
-    cargo add --path /binaries/dd-trace-rs/dd-trace
+
+    # TODO: remove once new dd-trace-rs version is merged
+    if [ -e /binaries/dd-trace-rs/dd-trace ]; then
+        # Replace datadog_opentelemetry::core:: with dd_trace::
+        sed -i 's/datadog_opentelemetry::core::/dd_trace::/g' src/main.rs
+
+        cargo add --path /binaries/dd-trace-rs/dd-trace
+    fi
 
     echo "install from /binaries/dd-trace-rs"
 else
