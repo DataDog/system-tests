@@ -1,5 +1,4 @@
 import yaml
-from semantic_version import Version
 
 variants = {
     "agent": set(),
@@ -117,9 +116,8 @@ def flatten(
     refs: dict,
     root: str = "tests/",
     end: bool = False,  # noqa: FBT001, FBT002
-    leaves: set | None = None,
+    _leaves: set | None = None,
 ) -> set | None:
-
     global output  # noqa: PLW0603
 
     if isinstance(data, str):
@@ -134,10 +132,7 @@ def flatten(
             var_name = var[0]
             if var[0] == "*":
                 var_name = f'"{var[0]}"'
-            if refs and var[1] in refs:
-                data_str = f"*{refs[var[1]]}"
-            else:
-                data_str = f'"{var[1]}"'
+            data_str = f"*{refs[var[1]]}" if refs and var[1] in refs else f'"{var[1]}"'
             output += f"\n    {var_name}: {data_str}"
 
     else:
@@ -147,7 +142,6 @@ def flatten(
 
         for item in data.items():
             flatten(item[1], lib, refs, root + item[0], end)
-
 
 
 def yml_sort(output_file: str) -> None:
@@ -188,7 +182,7 @@ def get_refs(file_path: str) -> None:
         lines = f.readlines()
 
     refs = {}
-    for iline, line in enumerate(lines):
+    for _iline, line in enumerate(lines):
         if line.startswith("tests"):
             break
         if "refs:" in line or "---" in line:

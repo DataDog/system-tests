@@ -3,6 +3,7 @@ from collections.abc import Callable
 from typing import Any
 import re
 
+
 class Declaration:
     reason_regex = r" ?(?:\((.*)\))?"
     skip_declaration_regex = rf"(bug|flaky|incomplete_test_app|irrelevant|missing_feature){reason_regex}"
@@ -11,7 +12,11 @@ class Declaration:
     full_regex = rf"(v)?([^()]*){reason_regex}"
 
     def __init__(
-        self, raw_declaration: str, *, is_inline: bool = False, semver_factory: type[SemverRange] = SemverRange
+        self,
+        raw_declaration: str,
+        *,
+        is_inline: bool = False,
+        semver_factory: type[SemverRange] | Callable[[str], Any] = SemverRange,
     ) -> None:
         if not raw_declaration:
             raise ValueError("raw_declaration must not be None or an empty string")
@@ -39,7 +44,7 @@ class Declaration:
             version += ".0"
         return version
 
-    transformations = [fix_separator, fix_missing_minor_patch]
+    transformations: list[Callable[[str], str]] = [fix_separator, fix_missing_minor_patch]
 
     @staticmethod
     def sanitize_version(version: str, transformations: list[Callable[[str], str]] | None = None) -> str:

@@ -1,13 +1,16 @@
 import json
-from semantic_version import Version
 from jsonschema import validate
 import yaml
 import os
 from pathlib import Path
-from utils.manifest.declaration import Declaration
-from utils.manifest.rule import match_rule
 import ast
+from typing import TYPE_CHECKING
+
 from utils.manifest.parser import _load_file
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 
 def assert_key_order(obj: dict, path: str = "") -> list[str]:
     obj = obj["manifest"]
@@ -62,31 +65,31 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
     return errors
 
 
-def assert_increasing_versions(obj: dict) -> list[str]:
-    obj = obj["manifest"]
-    stack = []
-    errors = []
-    for key, val in obj.items():
-        if not isinstance(val, str):
-            continue
-
-        while stack and not match_rule(stack[-1][0], key):
-            stack.pop()
-
-        declaration = Declaration(val, is_inline=True, semver_factory=lambda v: Version(v.strip("<").strip("=")))
-        if declaration.is_skip:
-            continue
-        version = declaration.value
-
-        if not stack:
-            stack.append((key, version))
-            continue
-
-        if stack[-1][1] >= version:
-            errors.append(f"{stack[-1][0]} version ({stack[-1][1]}) should be lower than {key} version ({version})")
-        stack.append((key, val))
-
-    return errors
+# def assert_increasing_versions(obj: dict) -> list[str]:
+#     obj = obj["manifest"]
+#     stack = []
+#     errors = []
+#     for key, val in obj.items():
+#         if not isinstance(val, str):
+#             continue
+#
+#         while stack and not match_rule(stack[-1][0], key):
+#             stack.pop()
+#
+#         declaration = Declaration(val, is_inline=True, semver_factory=lambda v: Version(v.strip("<").strip("=")))
+#         if declaration.is_skip:
+#             continue
+#         version = declaration.value
+#
+#         if not stack:
+#             stack.append((key, version))
+#             continue
+#
+#         if stack[-1][1] >= version:
+#             errors.append(f"{stack[-1][0]} version ({stack[-1][1]}) should be lower than {key} version ({version})")
+#         stack.append((key, val))
+#
+#     return errors
 
 
 def pretty(name: str, errors: dict[str, list]) -> str:
@@ -100,18 +103,18 @@ def pretty(name: str, errors: dict[str, list]) -> str:
     return ret
 
 
-def validate_manifest_files(path: str= "manifests/") -> None:
+def validate_manifest_files(path: str = "manifests/") -> None:
     with open("utils/manifest/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
-    validations = [
-        ("Syntax validation errors", lambda d: validate(d, schema)),
+    validations: list[tuple[str, Callable]] = [
+        ("Syntax validation errors", lambda d: [] if validate(d, schema) is None else []),
         ("Key order errors", assert_key_order),
         ("Node ID errors", assert_nodeids_exist),
         # ("Version order errors", assert_increasing_versions),
     ]
 
-    all_errors = {}
+    all_errors: dict[str, dict[str, list[BaseException]]] = {}
 
     for file in os.listdir(path):
         if file.endswith(".yml"):
@@ -140,6 +143,7 @@ def validate_manifest_files(path: str= "manifests/") -> None:
         message += pretty(name, errors)
 
     assert not message, message
+
 
 if __name__ == "__main__":
     validate_manifest_files()

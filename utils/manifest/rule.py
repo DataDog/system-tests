@@ -64,7 +64,7 @@ def match_rule(rule: str, nodeid: str) -> bool:
 
 
 def get_rules(
-    manifest,
+    manifest: dict[str, list[dict[str, Any]]],
     library: str,
     library_version: Version | None = None,
     variant: str | None = None,

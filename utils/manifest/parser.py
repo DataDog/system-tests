@@ -4,28 +4,31 @@ from collections import defaultdict
 import yaml
 from utils.manifest.declaration import Declaration
 
+
 def field_processing(
     name: str,
-    transformation: Callable[[str, list[dict[str, Any]], dict[str, Any]], None],
+    transformation: Callable[[str, list[dict[str, Any]], dict[str, Any]], tuple[list[dict[str, Any]], bool] | None],
     value: list[dict[str, Any]],
     entry: dict[str, Any],
-) -> None:
+) -> tuple[list[dict[str, Any]], bool]:
     if name in entry:
         return transformation(name, value, entry) or ([], True)
     return [], True
 
 
-def process_lib_version(n: str, _: object, e: dict[str, Any]) -> None:
+def process_lib_version(n: str, _: object, e: dict[str, Any]) -> tuple[list[dict[str, Any]], bool] | None:
     e[n] = Declaration(e[n]).value
+    return None
 
-def process_variant_declaration(n: str, v: object, e: dict[str, Any]) -> None:
-    new_entries = []
-    all_variants = []
-    for variant, _ in e[n].items():
+
+def process_variant_declaration(n: str, _v: object, e: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
+    new_entries: list[dict[str, Any]] = []
+    all_variants: list[str] = []
+    for variant in e[n]:
         if variant != "*":
             all_variants.append(variant)
     for variant, raw_declaration in e[n].items():
-        new_entry = {}
+        new_entry: dict[str, Any] = {}
         if variant == "*":
             new_entry["excluded_variant"] = all_variants
         else:
@@ -40,7 +43,7 @@ def process_variant_declaration(n: str, v: object, e: dict[str, Any]) -> None:
     return new_entries, False
 
 
-def _load_file(file: str, component: str):
+def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -48,12 +51,12 @@ def _load_file(file: str, component: str):
         return {}
 
     field_processors = [
-            ("library_version", process_lib_version),
-            ("excluded_library_version", process_lib_version),
-            ("variant_declaration", process_variant_declaration),
-            ]
+        ("library_version", process_lib_version),
+        ("excluded_library_version", process_lib_version),
+        ("variant_declaration", process_variant_declaration),
+    ]
 
-    ret = {}
+    ret: dict[str, list[dict[str, Any]]] = {}
     for nodeid, raw_value in data["manifest"].items():
         if isinstance(raw_value, str):
             declaration = Declaration(raw_value, is_inline=True)
@@ -64,27 +67,28 @@ def _load_file(file: str, component: str):
                 value["excluded_library_version"] = declaration.value
                 value["declaration"] = "missing_feature"
             value["library"] = component
-            value = [value]
+            value_list = [value]
         else:
-            if not isinstance(raw_value, list):
-                raw_value = [raw_value]
-            value = []
-            for entry in raw_value:
+            raw_value_list = raw_value if isinstance(raw_value, list) else [raw_value]
+            value_list = []
+            for entry in raw_value_list:
                 for field_processor in field_processors:
-                    new_entries, keep_entry = field_processing(field_processor[0], field_processor[1], raw_value, entry)
-                    value += new_entries
+                    new_entries, keep_entry = field_processing(
+                        field_processor[0], field_processor[1], raw_value_list, entry
+                    )
+                    value_list += new_entries
                 if keep_entry:
-                    value.append(entry)
+                    value_list.append(entry)
 
-        for entry in value:
+        for entry in value_list:
             entry["library"] = component
-        ret[nodeid] = value
+        ret[nodeid] = value_list
 
     return ret
 
 
 # @lru_cache
-def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
+def load(base_dir: str = "manifests/") -> dict[str, list[dict[str, Any]]]:
     """Returns a dict of nodeid, value are another dict where the key is the component
         and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
@@ -99,7 +103,7 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     }
     """
 
-    result = defaultdict(dict)
+    result: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for component in (
         "agent",
