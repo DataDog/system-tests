@@ -123,8 +123,14 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         return self._library
 
     def _check_and_set_api_keys(self):
-        """Set the necessary provider environment variables if required."""
-        if self.require_openai_api_key:
+        """
+        Set the necessary provider environment variables if required.
+
+        Does not check the API key when running in CI.
+        """
+        is_ci = "GITLAB_CI" in os.environ
+
+        if self.require_openai_api_key and not is_ci:
             openai_api_key = os.getenv("OPENAI_API_KEY")
             if not openai_api_key:
                 pytest.exit("OPENAI_API_KEY environment variable is required but not set", 1)
