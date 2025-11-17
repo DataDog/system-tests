@@ -51,8 +51,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                     buffer: list[str] = []
                     for raw_line in f:
                         line = raw_line
-                        if line.endswith("\n"):
-                            line = line[:-1]  # remove tailing \n
+                        line = line.removesuffix("\n")
                         line = self._clean_line(line)
 
                         if self._is_skipped_line(line):
@@ -190,10 +189,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._parsers.append(re.compile(p("message", r".*")))
 
     def _clean_line(self, line: str):
-        if line.startswith("weblog_1         | "):
-            line = line[19:]
-
-        return line
+        return line.removeprefix("weblog_1         | ")
 
     def _get_standardized_level(self, level: str):
         if self.library in ("php", "cpp_nginx"):
@@ -308,24 +304,3 @@ class _LogAbsence:
 
             logger.error(json.dumps(data["raw"], indent=2))
             raise ValueError("Found unexpected log")
-
-
-class Test:
-    def test_main(self):
-        """Test example"""
-
-        from utils._context._scenarios import scenarios
-        from utils import context
-
-        context.scenario = scenarios.default
-
-        i = _PostgresStdout()
-        i.configure(scenarios.default.host_log_folder, replay=True)
-        i.load_data()
-
-        for item in i.get_data():
-            print(item)  # noqa: T201
-
-
-if __name__ == "__main__":
-    Test().test_main()

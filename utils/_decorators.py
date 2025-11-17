@@ -151,12 +151,12 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
 
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
+    *,
     declaration: _TestDeclaration,
     condition: bool | None,
     library: str | None,
     weblog_variant: str | None,
     declaration_details: str | None,
-    *,
     force_skip: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)

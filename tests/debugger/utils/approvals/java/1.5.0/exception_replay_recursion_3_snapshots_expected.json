@@ -20,6 +20,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "org.springframework.web.server.ResponseStatusException",
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
           "stacktrace": [
             {
@@ -44,13 +45,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
+          ]
         }
       }
     },
@@ -73,7 +73,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
@@ -106,6 +106,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "org.springframework.web.server.ResponseStatusException",
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
           "stacktrace": [
             {
@@ -130,13 +131,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
+          ]
         }
       }
     },
@@ -175,7 +175,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
@@ -208,6 +208,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "org.springframework.web.server.ResponseStatusException",
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
           "stacktrace": [
             {
@@ -232,13 +233,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
+          ]
         }
       }
     },
@@ -273,7 +273,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
@@ -306,6 +306,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "org.springframework.web.server.ResponseStatusException",
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
           "stacktrace": [
             {
@@ -330,13 +331,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
+          ]
         }
       }
     },
@@ -367,7 +367,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
@@ -400,6 +400,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "org.springframework.web.server.ResponseStatusException",
           "message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
           "stacktrace": [
             {
@@ -424,13 +425,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
+          ]
         }
       }
     },
@@ -457,7 +457,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
