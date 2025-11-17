@@ -16,6 +16,7 @@ fi
 
 if [ -e /binaries/dd-trace-rs ]; then
     cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry
+    cargo add --path /binaries/dd-trace-rs/dd-trace
 
     echo "install from /binaries/dd-trace-rs"
 else
