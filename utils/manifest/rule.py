@@ -8,7 +8,7 @@ def match_condition(
     condition: dict[str, Any],
     library: str | None = None,
     library_version: Version | None = None,
-    variant: str | None = None,
+    weblog: str | None = None,
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
     k8s_cluster_agent_version: Version | None = None,
@@ -34,16 +34,16 @@ def match_condition(
         ret &= ref_version in condition["library_version"]
     if condition.get("excluded_library_version"):
         ret &= ref_version not in condition["excluded_library_version"]
-    if condition.get("variant"):
-        if isinstance(condition["variant"], list):
-            ret &= variant in condition["variant"]
+    if condition.get("weblog"):
+        if isinstance(condition["weblog"], list):
+            ret &= weblog in condition["weblog"]
         else:
-            ret &= variant == condition["variant"]
-    if condition.get("excluded_variant"):
-        if isinstance(condition["excluded_variant"], list):
-            ret &= variant not in condition["excluded_variant"]
+            ret &= weblog == condition["weblog"]
+    if condition.get("excluded_weblog"):
+        if isinstance(condition["excluded_weblog"], list):
+            ret &= weblog not in condition["excluded_weblog"]
         else:
-            ret &= variant != condition["excluded_variant"]
+            ret &= weblog != condition["excluded_weblog"]
     return ret
 
 
@@ -67,7 +67,7 @@ def get_rules(
     manifest: dict[str, list[dict[str, Any]]],
     library: str,
     library_version: Version | None = None,
-    variant: str | None = None,
+    weblog: str | None = None,
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
     k8s_cluster_agent_version: Version | None = None,
@@ -80,7 +80,7 @@ def get_rules(
                 condition,
                 library,
                 library_version,
-                variant,
+                weblog,
                 agent_version,
                 dd_apm_inject_version,
                 k8s_cluster_agent_version,

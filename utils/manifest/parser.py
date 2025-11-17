@@ -21,18 +21,18 @@ def process_lib_version(n: str, _: object, e: dict[str, Any]) -> tuple[list[dict
     return None
 
 
-def process_variant_declaration(n: str, _v: object, e: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
+def process_weblog_declaration(n: str, _v: object, e: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
     new_entries: list[dict[str, Any]] = []
-    all_variants: list[str] = []
-    for variant in e[n]:
-        if variant != "*":
-            all_variants.append(variant)
-    for variant, raw_declaration in e[n].items():
+    all_weblogs: list[str] = []
+    for weblog in e[n]:
+        if weblog != "*":
+            all_weblogs.append(weblog)
+    for weblog, raw_declaration in e[n].items():
         new_entry: dict[str, Any] = {}
-        if variant == "*":
-            new_entry["excluded_variant"] = all_variants
+        if weblog == "*":
+            new_entry["excluded_weblog"] = all_weblogs
         else:
-            new_entry["variant"] = variant
+            new_entry["weblog"] = weblog
         declaration = Declaration(raw_declaration, is_inline=True)
         if declaration.is_skip:
             new_entry["declaration"] = str(declaration)
@@ -53,7 +53,7 @@ def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
     field_processors = [
         ("library_version", process_lib_version),
         ("excluded_library_version", process_lib_version),
-        ("variant_declaration", process_variant_declaration),
+        ("weblog_declaration", process_weblog_declaration),
     ]
 
     ret: dict[str, list[dict[str, Any]]] = {}

@@ -158,7 +158,7 @@ def yml_sort(output_file: str) -> None:
         for entry in data:
             f.write("  " + entry[0] + "\n")
             if entry[1]:
-                f.write("    - variant_declaration:\n")
+                f.write("    - weblog_declaration:\n")
             for line in entry[1]:
                 f.write("    " + line + "\n")
 

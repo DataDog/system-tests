@@ -6,11 +6,11 @@ manifest:
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v2.18.0"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: "v2.18.0"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.18.0"
         rack: "irrelevant (rack does not have path parameters support)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.18.0"
         rack: "irrelevant (rack does not have path parameters support)"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: "irrelevant"
@@ -21,7 +21,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "v2.21.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "v2.21.0"
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.22.0.dev"
         rack: "irrelevant (rack does not have a router)"
         rails42: "irrelevant"
@@ -36,19 +36,19 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v1.15.0"
         rack: "irrelevant (rack does not have path parameters support)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.20.0-dev"
         graphql23: "missing_feature (no way to separate request paths)"
         rack: "missing_feature (performance impact of JSON parsing)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: "missing_feature (performance impact of JSON parsing)"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: "v1.15.0"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.20.0-dev"
         graphql23: "missing_feature (no way to separate request paths)"
         rack: "missing_feature (performance impact of JSON parsing)"
@@ -181,7 +181,7 @@ manifest:
   tests/appsec/rasp/test_lfi.py: "missing_feature"
   tests/appsec/rasp/test_shi.py: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.12.3"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -190,7 +190,7 @@ manifest:
         sinatra41: "irrelevant"
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.14.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -200,7 +200,7 @@ manifest:
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: "irrelevant (XML not natively supported)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.15.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -209,7 +209,7 @@ manifest:
         sinatra41: "irrelevant"
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.14.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -218,7 +218,7 @@ manifest:
         sinatra41: "irrelevant"
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.14.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -228,7 +228,7 @@ manifest:
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: "missing_feature (relies on Telemetry V2)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.14.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -237,7 +237,7 @@ manifest:
         sinatra41: "irrelevant"
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.14.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -247,7 +247,7 @@ manifest:
         uds-sinatra: "irrelevant"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.14.0"
         rack: "irrelevant"
         sinatra14: "irrelevant"
@@ -274,7 +274,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: "v2.13.0"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.20.0-dev"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -291,7 +291,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "v2.23.1-dev"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.13.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -300,7 +300,7 @@ manifest:
         sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.13.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -309,7 +309,7 @@ manifest:
         sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.13.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -319,7 +319,7 @@ manifest:
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: "irrelevant"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.16.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -328,7 +328,7 @@ manifest:
         sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.13.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -337,7 +337,7 @@ manifest:
         sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.13.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -355,7 +355,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: "v1.0.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: "v1.12.0"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v1.0.0"
         rack: "irrelevant"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: "v1.0.0"
@@ -406,7 +406,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.16.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -416,7 +416,7 @@ manifest:
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.16.0"
         rack: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra14: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
@@ -467,7 +467,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: "v2.3.0"
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v0.54.2"
         sinatra14: "missing_feature (endpoint not implemented)"
         sinatra22: "missing_feature (endpoint not implemented)"
@@ -475,7 +475,7 @@ manifest:
         sinatra41: "missing_feature (endpoint not implemented)"
         uds-sinatra: "missing_feature (endpoint not implemented)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v1.8.0"
         rack: "irrelevant"
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: "v1.10.0"
@@ -491,7 +491,7 @@ manifest:
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: "missing_feature"
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: "v1.12.0"
   tests/appsec/waf/test_exclusions.py::Test_Exclusions:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v1.11.0"
         sinatra14: "v2.21.0"
         sinatra22: "v2.21.0"
@@ -505,14 +505,14 @@ manifest:
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: "missing_feature"
   tests/appsec/waf/test_truncation.py::Test_Truncation: "missing_feature"
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (feature not implemented)"
         rails80: "missing_feature (feature not implemented)"
         uds-rails: "missing_feature (feature not implemented)"
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: "missing_feature (feature not implemented)"
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.20.0"
         rails80: "v2.20.0"
@@ -521,88 +521,88 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: "missing_feature"
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.8.0"
         rails80: "v2.8.0"
         uds-rails: "v2.12.0"
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: "missing_feature"
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (feature not implemented)"
         rails80: "missing_feature (feature not implemented)"
         uds-rails: "missing_feature (feature not implemented)"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.8.0"
         rails80: "v2.8.0"
         uds-rails: "v2.12.0"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.17.1"
         rails80: "v2.17.1"
         uds-rails: "v2.17.1"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.8.0"
         rails80: "v2.8.0"
         uds-rails: "v2.12.0"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.17.1"
         rails80: "v2.17.1"
         uds-rails: "v2.17.1"
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.8.0"
         rails80: "v2.8.0"
         uds-rails: "v2.12.0"
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.8.0"
         rails80: "v2.8.0"
         uds-rails: "v2.12.0"
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (feature not implemented)"
         rails80: "missing_feature (feature not implemented)"
         uds-rails: "missing_feature (feature not implemented)"
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "v2.16.0"
         rails80: "v2.16.0"
         uds-rails: "v2.16.0"
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (ruby-kafka does not set the kafka topic on spans)"
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature"
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
@@ -610,48 +610,48 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
   tests/integrations/test_dbm.py::Test_Dbm: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmKafka:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmKinesis:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmSNS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_DsmSQS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rails72: "missing_feature (Endpoint not implemented)"
   tests/integrations/test_inferred_proxy.py: "missing_feature"
@@ -660,7 +660,7 @@ manifest:
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: "missing_feature"
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault: "missing_feature"
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "incomplete_test_app (endpoint not implemented)"
         rails72: "v2.0.0"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: "v1.17.0"
@@ -744,28 +744,28 @@ manifest:
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: "v2.0.0"
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: "v2.23.0-dev"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant (endpoint not implemented)"
         rails72: "v2.0.0"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant (endpoint not implemented)"
         rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant (endpoint not implemented)"
         rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant (endpoint not implemented)"
         rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: "incomplete_test_app (endpoint not implemented)"
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant (endpoint not implemented)"
         rails72: "irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)"
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant (endpoint not implemented)"
         rails72: "v2.14.0"
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: "missing_feature"
@@ -782,11 +782,11 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         graphql23: "v2.22.1-dev"
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         graphql23: "missing_feature"
   tests/test_identify.py::Test_Basic: "v1.0.0"
@@ -812,7 +812,7 @@ manifest:
   tests/test_profiling.py::Test_Profile: "missing_feature (temporary fix, scenario not working on dd-trace-rb CI)"
   tests/test_protobuf.py: "missing_feature"
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.23.0.dev"
         sinatra14: "irrelevant"
         sinatra22: "irrelevant"
@@ -831,18 +831,18 @@ manifest:
   tests/test_semantic_conventions.py::Test_MetaDatadogTags: "v1.9.0"
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: "v1.7.0"
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rack: "v2.10.0"
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         rack: "v2.10.0"
   tests/test_standard_tags.py::Test_StandardTagsClientIp: "v1.10.1"
   tests/test_standard_tags.py::Test_StandardTagsMethod: "v1.8.0"
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsRoute:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         rack: "irrelevant (rack can not access route pattern)"
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: "v1.8.0"

@@ -80,11 +80,11 @@ manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_3_0
         fastify: *ref_5_57_0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_3_0
         fastify: *ref_5_57_0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: *ref_5_27_0
@@ -98,40 +98,40 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: *ref_5_76_0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: *ref_5_76_0
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_74_0
         fastify: *ref_5_64_0
         nextjs: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_21_0
         fastify: *ref_5_57_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_21_0
         fastify: *ref_5_57_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_21_0
         fastify: *ref_5_57_0
         nextjs: *ref_5_3_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: *ref_4_21_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_21_0
         fastify: *ref_5_57_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_21_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_21_0
         fastify: *ref_5_57_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_3_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
@@ -140,32 +140,32 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: *ref_4_21_0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_20_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_11_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
@@ -173,40 +173,40 @@ manifest:
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_13_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_18_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_11_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_header_injection.py: "irrelevant (Header Injection detection was removed)"
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_8_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
@@ -215,107 +215,107 @@ manifest:
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_1_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_1_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_17_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
@@ -323,43 +323,43 @@ manifest:
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_11_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_1_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: "missing_feature"
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_26_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
@@ -367,47 +367,47 @@ manifest:
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_32_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
@@ -415,62 +415,62 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_6_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_11_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_11_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_1_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_8_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_ExtendedLocation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
@@ -482,65 +482,65 @@ manifest:
   tests/appsec/iast/sink/test_xss.py::TestXSS_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace: "missing_feature"
   tests/appsec/iast/source/test_body.py::TestRequestBody:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName: "missing_feature"
   tests/appsec/iast/source/test_cookie_value.py::TestCookieValue:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/source/test_graphql_resolver.py::TestGraphqlResolverArgument:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_4_0
         express5: "missing_feature"
         nextjs: "irrelevant"
   tests/appsec/iast/source/test_header_name.py::TestHeaderName: "missing_feature"
   tests/appsec/iast/source/test_header_value.py::TestHeaderValue:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_3_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/source/test_kafka_key.py::TestKafkaKey:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_4_0
         fastify: *ref_5_61_0
         nextjs: "irrelevant"
   tests/appsec/iast/source/test_kafka_value.py::TestKafkaValue:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_4_0
         fastify: *ref_5_61_0
         nextjs: "irrelevant"
   tests/appsec/iast/source/test_multipart.py::TestMultipart: "missing_feature"
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName: "missing_feature"
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/source/test_path.py::TestPath: "missing_feature"
   tests/appsec/iast/source/test_path_parameter.py::TestPathParameter:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_4_0
         express5: *ref_5_29_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/source/test_sql_row.py::TestSqlRow:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_29_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/source/test_uri.py::TestURI: "missing_feature"
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_54_0
         fastify: *ref_5_61_0
         nextjs: "missing_feature"
   tests/appsec/iast/test_security_controls.py::TestSecurityControls:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: "flaky (APPSEC-58724)"
         nextjs: "missing_feature"
@@ -556,240 +556,240 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: "missing_feature"
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: *ref_5_30_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: *ref_5_30_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: *ref_5_30_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability: *ref_5_24_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: *ref_5_26_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Capability: *ref_5_25_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: *ref_5_24_0
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_30_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability: *ref_5_23_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: *ref_5_25_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_23_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: *ref_5_25_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_20_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_20_0
         fastify: *ref_5_66_0
         nextjs: "missing_feature"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: *ref_5_23_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_18_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_18_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: *ref_5_25_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_20_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_22_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_46_0
         fastify: *ref_5_66_0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_20_0
         express5: *ref_5_29_0
         fastify: *ref_5_66_0
@@ -802,16 +802,16 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_40_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_40_0
         nextjs: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_automated_login_events.py::Test_Login_Events: "irrelevant"
@@ -821,42 +821,42 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: *ref_5_29_0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_29_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_29_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_29_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_29_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_35_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_35_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_22_0
         express5: "missing_feature"
         nextjs: "irrelevant"
@@ -864,30 +864,30 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: *ref_5_66_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         fastify: *ref_5_59_0
         nextjs: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_16_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: *ref_3_19_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
@@ -896,11 +896,11 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: *ref_5_17_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: *ref_5_17_0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         nextjs: "missing_feature"
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
@@ -913,88 +913,88 @@ manifest:
   tests/appsec/test_customconf.py::Test_MissingRules: "v2.0.0"
   tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: "v2.4.0"
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_13_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_45_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_13_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_45_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_13_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_45_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Libddwaf:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "missing_feature"
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: *ref_5_71_0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_71_0
         fastify: *ref_5_73_0
         nextjs: *ref_5_73_0
@@ -1002,20 +1002,20 @@ manifest:
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: *ref_5_71_0
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: *ref_5_54_0
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_54_0
         fastify: "missing_feature"
         nextjs: "missing_feature"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_24_0
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: *ref_5_24_0
@@ -1023,16 +1023,16 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: *ref_5_24_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_57_0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
@@ -1057,7 +1057,7 @@ manifest:
   tests/appsec/test_reports.py::Test_RequestHeaders: "v2.0.0"
   tests/appsec/test_reports.py::Test_StatusCode: "v2.0.0"
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
@@ -1074,62 +1074,62 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: *ref_5_60_0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: "v2.0.0"
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.6.0"
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: *ref_5_18_0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: *ref_5_7_0
   tests/appsec/test_traces.py::Test_RetainTraces: "v2.0.0"
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_15_0
         nextjs: "missing_feature (block method not implemented for nextjs yet)"
   tests/appsec/test_versions.py::Test_Events: "v2.0.0"
   tests/appsec/waf/test_addresses.py::Test_BodyJson:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.2.0"
         fastify: *ref_5_57_0
         nextjs: *ref_4_17_0
   tests/appsec/waf/test_addresses.py::Test_BodyRaw: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.2.0"
         fastify: *ref_5_57_0
         nextjs: *ref_5_3_0
   tests/appsec/waf/test_addresses.py::Test_BodyXml:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.2.0"
         fastify: *ref_5_57_0
         nextjs: "irrelevant"
   tests/appsec/waf/test_addresses.py::Test_Cookies:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_GraphQL:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_22_0
         express5: "missing_feature"
         nextjs: "irrelevant"
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers: "v2.0.0"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         express5: *ref_5_29_0
         fastify: *ref_5_57_0
         nextjs: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: "v2.0.0"
   tests/appsec/waf/test_addresses.py::Test_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
         nextjs: *ref_4_17_0
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.6.0"
         fastify: *ref_5_57_0
         nextjs: *ref_4_17_0
@@ -1143,273 +1143,273 @@ manifest:
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: "missing_feature"
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_4_1_0
         fastify: *ref_5_57_0
   tests/appsec/waf/test_exclusions.py::Test_Exclusions:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
   tests/appsec/waf/test_miscs.py::Test_404: "v2.0.0"
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_19_0
         fastify: *ref_5_57_0
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_reports.py::Test_Monitoring:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.8.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_DiscoveryScan: "v2.0.0"
   tests/appsec/waf/test_rules.py::Test_HttpProtocol:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_JavaCodeInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_JsInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_LFI:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_NoSqli: "v2.0.0"
   tests/appsec/waf/test_rules.py::Test_PhpCodeInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_RFI:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_SQLI:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_SSRF:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_Scanners:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_rules.py::Test_XSS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.0.0"
         fastify: *ref_5_57_0
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: *ref_4_17_0
   tests/appsec/waf/test_truncation.py::Test_Truncation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_43_0
         fastify: *ref_5_57_0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: "missing_feature (only Fastify is supported)"
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: "missing_feature (feature not implented)"
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_48_0
         nextjs: "irrelevant"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: "missing_feature"
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: "missing_feature"
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: "irrelevant"
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: "irrelevant"
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: "missing_feature"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: "irrelevant"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: "irrelevant"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: "missing_feature"
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: "irrelevant"
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: "missing_feature"
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: "missing_feature (feature not implented)"
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: "irrelevant"
   tests/integration_frameworks/test_openai.py::TestOpenAiAPM: *ref_5_76_0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: "v0.1"
         express5: "v0.1"
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_3_0
         express5: *ref_5_3_0
         fastify: *ref_5_3_0
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: "v0.1"
         express5: "v0.1"
         fastify: "v0.1"
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_20_0
         express5: *ref_5_20_0
         fastify: *ref_5_20_0
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: "v0.1"
         express5: "v0.1"
         fastify: "v0.1"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: "v0.1"
         express5: "v0.1"
         fastify: "v0.1"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         express4: "v1.0.0"
         express5: "v1.0.0"
         fastify: "v1.0.0"
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         express4: "v1.0.0"
         express5: "v1.0.0"
         fastify: "v1.0.0"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         express4: "v1.0.0"
         express5: "v1.0.0"
         fastify: "v1.0.0"
   tests/integrations/test_dbm.py::Test_Dbm: "missing_feature"
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature (Missing on weblog)"
         express4: *ref_5_13_0
         express5: *ref_5_13_0
         fastify: *ref_5_13_0
         uds-express4: *ref_5_13_0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature (Missing on weblog)"
         express4: *ref_5_13_0
         express5: *ref_5_13_0
         fastify: *ref_5_13_0
         uds-express4: *ref_5_13_0
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmKafka:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_62_0
         nextjs: "missing_feature (missing endpoint)"
   tests/integrations/test_dsm.py::Test_DsmKinesis:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: "missing_feature"
         express5: "missing_feature"
         fastify: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: "missing_feature"
         express5: "missing_feature"
         fastify: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmSNS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_DsmSQS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_62_0
         express5: *ref_5_62_0
         fastify: *ref_5_62_0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_37_0
         express5: *ref_5_37_0
         fastify: *ref_5_37_0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_37_0
         express5: *ref_5_37_0
         fastify: *ref_5_37_0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_37_0
         express5: *ref_5_37_0
         fastify: *ref_5_37_0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: "missing_feature"
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "incomplete_test_app (endpoint not implemented)"
         express4: *ref_5_26_0
         express5: *ref_5_26_0
@@ -1505,32 +1505,32 @@ manifest:
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: "missing_feature"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         express4-typescript: "incomplete_test_app"
         nextjs: "incomplete_test_app"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         express4-typescript: "incomplete_test_app"
         nextjs: "incomplete_test_app"
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_15_0
         express4-typescript: "incomplete_test_app (endpoint not implemented)"
         nextjs: "incomplete_test_app (endpoint not implemented)"
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_38_0
         express4-typescript: "incomplete_test_app (endpoint not implemented)"
         nextjs: "incomplete_test_app (endpoint not implemented)"
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_57_0
         express4-typescript: "incomplete_test_app (endpoint not implemented)"
         nextjs: "incomplete_test_app (endpoint not implemented)"
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_0_0
         express4-typescript: "incomplete_test_app (endpoint not implemented)"
         nextjs: "incomplete_test_app (endpoint not implemented)"
@@ -1548,19 +1548,19 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: *ref_5_27_0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_5_25_0
         nextjs: "bug (APMAPI-939)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "incomplete_test_app"
         express4: *ref_5_77_0
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_37_0
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         express4: "missing_feature"
   tests/test_identify.py::Test_Basic: "v2.4.0"
@@ -1592,34 +1592,34 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates: *ref_5_17_0
   tests/test_scrubbing.py::Test_UrlField: *ref_3_13_1
   tests/test_scrubbing.py::Test_UrlQuery:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_0_0
         nextjs: *ref_4_17_0
   tests/test_semantic_conventions.py::Test_Meta:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_13_1
         nextjs: "missing_feature"
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: *ref_3_13_1
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_43_0
         express5: *ref_5_43_0
         fastify: *ref_5_43_0
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_17_0
         express5: *ref_5_17_0
         fastify: *ref_5_17_0
   tests/test_standard_tags.py::Test_StandardTagsClientIp:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_6_0
         nextjs: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsMethod: "v2.11.0"
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsRoute:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.11.0"
         nextjs: "missing_feature"
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: "v2.11.0"
@@ -1632,12 +1632,12 @@ manifest:
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: "missing_feature"
   tests/test_telemetry.py::Test_ProductsDisabled: *ref_4_21_0
   tests/test_telemetry.py::Test_Telemetry:
-    - variant_declaration:
+    - weblog_declaration:
         "*": *ref_3_2_0
         nextjs: "missing_feature"
         uds-express4: *ref_3_7_0
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "irrelevant"
         express4: *ref_5_56_0
         express5: *ref_5_56_0

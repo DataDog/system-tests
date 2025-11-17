@@ -10,7 +10,7 @@ class Manifest:
         self,
         library: str,
         library_version: Version | None = None,
-        variant: str | None = None,
+        weblog: str | None = None,
         agent_version: Version | None = None,
         dd_apm_inject_version: Version | None = None,
         k8s_cluster_agent_version: Version | None = None,
@@ -18,7 +18,7 @@ class Manifest:
     ):
         data = load(path)
         self.rules = get_rules(
-            data, library, library_version, variant, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
+            data, library, library_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
         )
 
     @staticmethod

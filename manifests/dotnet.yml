@@ -80,7 +80,7 @@ manifest:
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace: "v3.3.0"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.23.0"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: "v3.3.0"
@@ -130,7 +130,7 @@ manifest:
   tests/appsec/iast/source/test_graphql_resolver.py::TestGraphqlResolverArgument: "missing_feature"
   tests/appsec/iast/source/test_header_name.py::TestHeaderName: "missing_feature"
   tests/appsec/iast/source/test_header_value.py::TestHeaderValue:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.39.0"
   tests/appsec/iast/source/test_kafka_key.py::TestKafkaKey: "missing_feature"
   tests/appsec/iast/source/test_kafka_value.py::TestKafkaValue: "missing_feature"
@@ -398,10 +398,10 @@ manifest:
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: "v2.0.0-prerelease"
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation: "missing_feature (Endpoint not implemented)"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v0.1"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v2.48.0"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
@@ -524,10 +524,10 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
   tests/test_identify.py::Test_Basic: "v2.7.0"
   tests/test_identify.py::Test_Propagate: "v2.27.0"
@@ -550,7 +550,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: "missing_feature"
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: "missing_feature"
   tests/test_profiling.py::Test_Profile:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v1.0"
         uds: "missing_feature (to be confirmed)"
   tests/test_protobuf.py::Test_Protobuf: "v3.15.0"

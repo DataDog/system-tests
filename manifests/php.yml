@@ -16,7 +16,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "missing_feature"
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: "missing_feature"
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "v1.11.0-dev"
         apache-mod-7.0: "missing_feature (Needs configuring apache to use auth_digest)"
         apache-mod-7.0-zts: "missing_feature (Needs configuring apache to use auth_digest)"
@@ -130,7 +130,7 @@ manifest:
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_StackTrace: "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_ExtendedLocation: "missing_feature"
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace: "missing_feature"
@@ -383,11 +383,11 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: "missing_feature"
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: "missing_feature"
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         apache-mod-8.0: "v1.8.3"
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
         apache-mod-8.0: "v1.8.3"
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: "missing_feature"
@@ -396,13 +396,13 @@ manifest:
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: "missing_feature"
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: "missing_feature"
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature (Endpoint not implemented)"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature (Endpoint not implemented)"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
@@ -527,10 +527,10 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
   tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - variant_declaration:
+    - weblog_declaration:
         "*": "missing_feature"
   tests/test_identify.py::Test_Basic: "v0.85.0"
   tests/test_identify.py::Test_Propagate: "v0.85.0"
