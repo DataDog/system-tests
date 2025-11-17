@@ -857,7 +857,9 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: v2.1.0-dev
+    Test_Config_LogInjection_128Bit_TraceId_Disabled:
+      '*': v2.1.0-dev
+      net-http-orchestrion: bug (APMLP-659)
     Test_Config_LogInjection_128Bit_TraceId_Enabled: bug (APMLP-659)
     Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Default_Unstructured: incomplete_test_app (weblog endpoint not implemented)
