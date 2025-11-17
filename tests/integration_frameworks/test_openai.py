@@ -1,4 +1,5 @@
-from utils import scenarios, features, bug, context
+import json
+from utils import context, missing_feature, scenarios, features
 
 import pytest
 from unittest import mock
@@ -202,7 +203,7 @@ class TestOpenAiLlmObs:
             model_provider="openai",
             span_kind="llm",
             input_messages=[{"role": "user", "content": "Hello OpenAI!"}],
-            output_messages=mock.ANY,  # TODO: assert content
+            output_messages=[{"role": "assistant", "content": "Hello! How can I assist you today?"}],
             metadata=expected_metadata,
             metrics={
                 "input_tokens": mock.ANY,
@@ -251,12 +252,11 @@ class TestOpenAiLlmObs:
             model_provider="openai",
             span_kind="llm",
             input_messages=[{"role": "user", "content": "Hello OpenAI!"}],
-            output_messages=mock.ANY,  # TODO: assert content
             metadata=expected_metadata,
             error=True,
+            ignore_values=["meta.output.messages"],
         )
 
-    @bug(context.library == "python", reason="MLOB-12345")  # python does not set user role for input messages
     def test_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
@@ -282,8 +282,8 @@ class TestOpenAiLlmObs:
             model_name="gpt-3.5-turbo-instruct:20230824-v2",
             model_provider="openai",
             span_kind="llm",
-            input_messages=[{"role": "user", "content": "Hello OpenAI!"}],
-            output_messages=mock.ANY,  # TODO: assert content
+            input_messages=[{"role": "", "content": "Hello OpenAI!"}],
+            output_messages=[{"role": "", "content": "\n\nHello there! What can I assist you with?"}],
             metadata={"max_tokens": 35},
             metrics={
                 "input_tokens": mock.ANY,
@@ -292,7 +292,6 @@ class TestOpenAiLlmObs:
             },
         )
 
-    @bug(context.library == "python", reason="MLOB-12345")  # python does not set user role for input messages
     def test_completion_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
@@ -316,13 +315,13 @@ class TestOpenAiLlmObs:
             llm_span_event,
             integration="openai",
             name="OpenAI.createCompletion",
-            model_name="gpt-3.5-turbo-instruct",  # should use input model name for error
+            model_name="gpt-3.5-turbo",  # should use input model name for error
             model_provider="openai",
             span_kind="llm",
-            input_messages=[{"role": "user", "content": "Hello OpenAI!"}],
-            output_messages=mock.ANY,  # TODO: assert content
+            input_messages=[{"role": "", "content": "Hello OpenAI!"}],
             metadata={"max_tokens": 35},
             error=True,
+            ignore_values=["meta.output.messages"],
         )
 
     def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -350,7 +349,7 @@ class TestOpenAiLlmObs:
             input_messages=None,
             input_documents=[{"text": "Hello OpenAI!"}],
             output_value="[1 embedding(s) returned with size 1536]",
-            metadata=mock.ANY,  # TODO: assert content
+            metadata={"encoding_format": "float"},
             metrics={
                 "input_tokens": mock.ANY,
                 "output_tokens": mock.ANY,
@@ -387,6 +386,10 @@ class TestOpenAiLlmObs:
             has_output=False,
         )
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="Node.js LLM Observability OpenAI integration does not submit tool definitions",
+    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -441,9 +444,9 @@ class TestOpenAiLlmObs:
                         {
                             "name": "extract_student_info",
                             "arguments": {
-                                "name": mock.ANY,
-                                "major": mock.ANY,
-                                "school": mock.ANY,
+                                "name": "Bob",
+                                "major": "computer science",
+                                "school": "Stanford University",
                             },
                             "tool_id": mock.ANY,
                             "type": "function",
@@ -479,7 +482,13 @@ class TestOpenAiLlmObs:
         span_events = test_agent.wait_for_llmobs_requests(num=1)
         assert len(span_events) == 1
 
+        if stream:
+            expected_output = "Ah, ya lookin’ for a Dunkies, huh? Classic! In Boston, ya can’t throw a rock without hittin’ a Dunkin’. Just head down the street, take a left at the rotary, and ya should see one"  # noqa: RUF001
+        else:
+            expected_output = "Ah, ya lookin’ for a Dunkin’, huh? Classic! In Boston, ya can’t throw a rock without hittin’ a Dunkin’ Donuts. There’s prob’ly one on the next street ovah, right next"  # noqa: RUF001
+
         llm_span_event = span_events[0]
+
         assert_llmobs_span_event(
             llm_span_event,
             integration="openai",
@@ -491,7 +500,7 @@ class TestOpenAiLlmObs:
                 {"role": "system", "content": "Talk with a Boston accent."},
                 {"role": "user", "content": "Where is the nearest Dunkin' Donuts?"},
             ],
-            output_messages=mock.ANY,  # TODO: assert content
+            output_messages=[{"role": "assistant", "content": expected_output}],
             metadata={
                 "max_output_tokens": 50,
                 "temperature": 0.1,
@@ -543,11 +552,15 @@ class TestOpenAiLlmObs:
                 {"role": "system", "content": "Talk with a Boston accent."},
                 {"role": "user", "content": "Where is the nearest Dunkin' Donuts?"},
             ],
-            output_messages=mock.ANY,
             metadata=mock.ANY,
             error=True,
+            ignore_values=["meta.output.messages"],
         )
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="Node.js LLM Observability OpenAI integration does not submit tool definitions",
+    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -637,6 +650,12 @@ class TestOpenAiLlmObs:
         assert len(span_events) == 1
 
         llm_span_event = span_events[0]
+
+        if stream:
+            expected_assistant_output = "The number is 9, since 1 + x = 10 ⇒ x = 10 − 1 = 9."  # noqa: RUF001
+        else:
+            expected_assistant_output = "The number is 9, since 1 + x = 10 implies x = 10 − 1 = 9."  # noqa: RUF001
+
         assert_llmobs_span_event(
             llm_span_event,
             integration="openai",
@@ -646,8 +665,8 @@ class TestOpenAiLlmObs:
             span_kind="llm",
             input_messages=[{"role": "user", "content": "If one plus a number is 10, what is the number?"}],
             output_messages=[
-                {"role": "reasoning", "content": mock.ANY},  # TODO: assert content
-                {"role": "assistant", "content": mock.ANY},  # TODO: assert content
+                {"role": "reasoning", "content": mock.ANY},
+                {"role": "assistant", "content": expected_assistant_output},
             ],
             metadata=dict(
                 reasoning={"effort": "medium", "summary": "detailed"},
@@ -666,6 +685,14 @@ class TestOpenAiLlmObs:
                 "cache_read_input_tokens": mock.ANY,
             },
         )
+
+        assert json.loads(llm_span_event["meta"]["output"]["messages"][0]["content"]) == {
+            "summary": [],
+            "encrypted_content": None,
+            "id": "rs_01cc995e72aafb3301691629ccc508819fa65e0ba65aa355b7"
+            if stream
+            else "rs_0c11158be1f235a601691629d64884819e8c24cf7e973aa7aa",
+        }
 
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_tool_input(
@@ -710,6 +737,11 @@ class TestOpenAiLlmObs:
             stream=stream,
         )
 
+        if stream:
+            expected_output = "The current weather in San Francisco is sunny with a temperature of 72°F and a humidity level of 65%. Let me know if you need a forecast or more details!"
+        else:
+            expected_output = "The current weather in San Francisco is sunny with a temperature of 72°F and a humidity level of 65%. Let me know if you need a forecast for the next few days or more details!"
+
         llm_span_event = span_events[0]
         assert_llmobs_span_event(
             llm_span_event,
@@ -744,7 +776,7 @@ class TestOpenAiLlmObs:
                 },
             ],
             output_messages=[
-                {"role": "assistant", "content": mock.ANY},  # TODO: assert content
+                {"role": "assistant", "content": expected_output},
             ],
             metadata=expected_metadata,
             metrics={
