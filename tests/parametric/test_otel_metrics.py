@@ -937,7 +937,9 @@ class Test_Otel_Metrics_Api_Instrument:
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @missing_feature(context.library == "php", reason="min max bug in otel php", force_skip=True)
-    def test_otel_histogram_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+    def test_otel_histogram_add_non_negative_values_with_different_tags(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         non_negative_value1 = 42
         non_negative_value2 = 21
         name = f"histogram-{non_negative_value1}-{non_negative_value2}-different-tags"
