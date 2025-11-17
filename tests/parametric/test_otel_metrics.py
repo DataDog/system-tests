@@ -194,13 +194,12 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
     - DD_METRICS_OTEL_ENABLED
@@ -266,13 +265,12 @@ class Test_Otel_Metrics_Configuration_Enabled:
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_MeterProvider:
     """Tests the OpenTelemetry MeterProvider API functionality.
 
@@ -340,13 +338,12 @@ class Test_Otel_Metrics_Api_MeterProvider:
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Meter:
     """Tests the OpenTelemetry Meter API functionality.
 
@@ -562,13 +559,12 @@ class Test_Otel_Metrics_Api_Meter:
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Instrument:
     """Tests the OpenTelemetry Instrument API functionality.
 
@@ -1107,13 +1103,12 @@ class Test_Otel_Metrics_Api_Instrument:
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Bug in otel php sdk, #1766", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Temporality_Preference:
     """Tests the OpenTelemetry metrics aggregation temporality preference configuration.
 
@@ -1301,13 +1296,12 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """Tests the OpenTelemetry OTLP exporter metrics endpoint configuration.
 
@@ -1461,13 +1455,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 
 @features.otel_metrics_api
 @scenarios.parametric
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
 
@@ -1544,13 +1537,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 
 @features.otel_metrics_api
 @scenarios.parametric
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
     """Tests the OpenTelemetry OTLP exporter metrics protocol configuration.
 
@@ -1622,14 +1614,13 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 
 @features.otel_metrics_api
 @scenarios.parametric
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
 
@@ -1740,13 +1731,12 @@ class Test_Otel_Metrics_Host_Name:
 
 @scenarios.parametric
 @features.otel_metrics_api
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Resource_Attributes:
     """Tests the OpenTelemetry metrics resource attributes configuration.
 
@@ -1907,13 +1897,13 @@ class Test_Otel_Metrics_Resource_Attributes:
 
 @features.otel_metrics_api
 @scenarios.parametric
-# @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Telemetry:
     """Tests the OpenTelemetry metrics telemetry configuration reporting.
 
