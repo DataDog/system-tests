@@ -6,7 +6,6 @@
 
 from collections.abc import Callable
 import json
-import os
 from pathlib import Path
 import re
 
@@ -221,15 +220,13 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         result = []
 
         try:
-            files = os.listdir(f"{self.host_log_folder}/docker/weblog/logs/")
+            files = list(Path(f"{self.host_log_folder}/docker/weblog/logs/").iterdir())
         except FileNotFoundError:
             files = []
 
-        for f in files:
-            filename = os.path.join(f"{self.host_log_folder}/docker/weblog/logs/", f)
-
-            if Path(filename).is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
-                result.append(filename)
+        for file in files:
+            if file.is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", file.name):
+                result.append(file.name)
 
         return result
 

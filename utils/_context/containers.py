@@ -985,6 +985,18 @@ class WeblogContainer(TestedContainer):
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
+    def warmup_request(self, timeout: int = 10):
+        weblog.get("/", timeout=timeout)
+
+    def flush(self) -> None:
+        # for weblogs who supports it, call the flush endpoint
+        try:
+            r = weblog.get("/flush", timeout=10)
+            assert r.status_code == HTTPStatus.OK
+        except:
+            self.healthy = False
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log")
+
     def set_weblog_domain_for_ipv6(self, network: Network):
         if sys.platform == "linux":
             # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from http import HTTPStatus
 import os
 import pytest
 from _pytest.reports import TestReport
@@ -547,17 +546,7 @@ class EndToEndScenario(DockerScenario):
                 "nodejs",
                 "ruby",
             ):
-                from utils import weblog  # TODO better interface
-
-                # for weblogs who supports it, call the flush endpoint
-                try:
-                    r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == HTTPStatus.OK
-                except:
-                    self.weblog_container.healthy = False
-                    logger.stdout(
-                        f"Warning: Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
-                    )
+                self.weblog_container.flush()
 
             self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
