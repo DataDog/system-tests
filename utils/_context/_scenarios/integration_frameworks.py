@@ -14,6 +14,7 @@ from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from ._docker_fixtures import DockerFixturesScenario
+from .parametric import get_node_volumes
 
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
@@ -59,12 +60,19 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         self._set_dd_trace_integrations_enabled(library)
 
+        # Setup container volumes with app code
+        container_volumes = {f"./utils/build/docker/{library}/{framework_dir}_app": "/app/integration_frameworks"}
+
+        # Add nodejs-load-from-local volume support if needed
+        if library == "nodejs":
+            container_volumes.update(get_node_volumes())
+
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
             framework=framework,
             framework_version=framework_version,
             container_env=self.environment,
-            container_volumes={f"./utils/build/docker/{library}/{framework_dir}_app": "/app/integration_frameworks"},
+            container_volumes=container_volumes,
         )
 
         self._test_agent_factory.configure(self.host_log_folder)

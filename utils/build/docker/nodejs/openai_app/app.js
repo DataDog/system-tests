@@ -1,3 +1,8 @@
+const tracer = require('dd-trace').init({
+  debug: true,
+  flushInterval: 5000
+})
+
 const express = require('express');
 
 const app = express();
