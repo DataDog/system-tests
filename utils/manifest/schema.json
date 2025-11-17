@@ -20,15 +20,14 @@
 
   "$defs": {
     "test_declaration": {
-      "anyOf": [
-        { "$ref": "#/$defs/simple_declaration" },
-        { "$ref": "#/$defs/complex_declaration" }
-      ]
+      "if": { "type": "string" },
+      "then": { "$ref": "#/$defs/simple_declaration" },
+      "else": { "$ref": "#/$defs/complex_declaration" }
     },
 
     "simple_declaration": {
       "type": "string",
-      "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$|^(v[0-9]|<|>|<=|>=|[0-9]).*"
+      "pattern": "^(v[0-9]|<|>|<=|>=|[0-9]).*|^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$"
     },
 
     "complex_declaration": {
@@ -37,16 +36,14 @@
         "type": "object",
         "properties": {
           "excluded_variant": {
-            "anyOf": [
-              { "type": "string" },
-              { "type": "array", "items": { "type": "string" } }
-            ]
+            "if": { "type": "string" },
+            "then": { "type": "string" },
+            "else": { "type": "array", "items": { "type": "string" } }
           },
           "variant": {
-            "anyOf": [
-              { "type": "string" },
-              { "type": "array", "items": { "type": "string" } }
-            ]
+            "if": { "type": "string" },
+            "then": { "type": "string" },
+            "else": { "type": "array", "items": { "type": "string" } }
           },
           "library_version": {
             "type": "string",
@@ -55,6 +52,15 @@
           "declaration": {
             "type": "string",
             "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$"
+          },
+          "variant_declaration": {
+            "type": "object",
+            "patternProperties": {
+              "^.*$": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false,
