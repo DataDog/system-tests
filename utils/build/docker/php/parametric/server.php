@@ -3,6 +3,9 @@
 ini_set("datadog.trace.generate_root_span", "0");
 ini_set("datadog.trace.revolt_enabled", "0");
 
+// Set metrics exporter before autoload
+putenv('OTEL_PHP_AUTOLOAD_ENABLED=true');
+
 require __DIR__ . "/vendor/autoload.php";
 
 use Amp\ByteStream;
@@ -26,6 +29,8 @@ use OpenTelemetry\API\Trace\StatusCode;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\SDK\Metrics\ObserverInterface;
 use function Amp\trapSignal;
 
 $logHandler = new StreamHandler(ByteStream\getStdout());
@@ -107,6 +112,19 @@ $scopes = [];
 $activeSpan = null;
 /** @var array[] $spansDistributedTracingHeaders */
 $spansDistributedTracingHeaders = [];
+/** @var array $otelMeters */
+$otelMeters = [];
+/** @var array $otelMeterInstruments */
+$otelMeterInstruments = [];
+
+function normalizeInstrumentName($name) {
+    // Instrument names are case-insensitive per OpenTelemetry spec
+    return strtolower(trim($name));
+}
+
+function createInstrumentKey($meterName, $name, $kind, $unit, $description) {
+    return implode(',', [$meterName, normalizeInstrumentName($name), $kind, $unit, $description]);
+}
 
 $router = new Router($server, $logger, $errorHandler);
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
@@ -535,10 +553,322 @@ $router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Req
     return jsonResponse([]);
 }));
 
+// OpenTelemetry Metrics API endpoints
+$router->addRoute('POST', '/metrics/otel/get_meter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters) {
+    $name = arg($req, 'name');
+    $version = arg($req, 'version');
+    $schemaUrl = arg($req, 'schema_url');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$name])) {
+        $meterProvider = Globals::meterProvider();
+        $otelMeters[$name] = $meterProvider->getMeter(
+            $name,
+            $version,
+            $schemaUrl,
+            $attributes
+        );
+    }
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_counter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $counter = $meter->createCounter($normalizedName, $unit, $description);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'counter', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $counter;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/counter_add', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'counter', $unit, $description);
+
+    if (!isset($otelMeterInstruments[$instrumentKey])) {
+        throw new \Exception("Instrument with identifying fields Name=$name,Kind=Counter,Unit=$unit,Description=$description not found in registered instruments for Meter=$meterName");
+    }
+
+    $counter = $otelMeterInstruments[$instrumentKey];
+    $counter->add($value, $attributes);
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_updowncounter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $counter = $meter->createUpDownCounter($normalizedName, $unit, $description);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'updowncounter', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $counter;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/updowncounter_add', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'updowncounter', $unit, $description);
+
+    if (!isset($otelMeterInstruments[$instrumentKey])) {
+        throw new \Exception("Instrument with identifying fields Name=$name,Kind=UpDownCounter,Unit=$unit,Description=$description not found in registered instruments for Meter=$meterName");
+    }
+
+    $counter = $otelMeterInstruments[$instrumentKey];
+    $counter->add($value, $attributes);
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_gauge', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $gauge = $meter->createGauge($normalizedName, $unit, $description);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'gauge', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $gauge;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/gauge_record', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'gauge', $unit, $description);
+
+    if (!isset($otelMeterInstruments[$instrumentKey])) {
+        throw new \Exception("Instrument with identifying fields Name=$name,Kind=Gauge,Unit=$unit,Description=$description not found in registered instruments for Meter=$meterName");
+    }
+
+    $gauge = $otelMeterInstruments[$instrumentKey];
+    $gauge->record($value, $attributes);
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_histogram', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $histogram = $meter->createHistogram($normalizedName, $unit, $description);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'histogram', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $histogram;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/histogram_record', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'histogram', $unit, $description);
+
+    if (!isset($otelMeterInstruments[$instrumentKey])) {
+        throw new \Exception("Instrument with identifying fields Name=$name,Kind=Histogram,Unit=$unit,Description=$description not found in registered instruments for Meter=$meterName");
+    }
+
+    $histogram = $otelMeterInstruments[$instrumentKey];
+    $histogram->record($value, $attributes);
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_asynchronous_counter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+
+    // Create a callback function that returns the constant value
+    // Note: The observer parameter is not type-hinted to avoid type mismatch with MultiObserver
+    $callback = function ($observer) use ($value, $attributes) {
+        $observer->observe($value, $attributes);
+    };
+
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $observableCounter = $meter->createObservableCounter($normalizedName, $unit, $description, [], $callback);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'observable_counter', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $observableCounter;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_asynchronous_updowncounter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+
+    // Create a callback function that returns the constant value
+    // Note: The observer parameter is not type-hinted to avoid type mismatch with MultiObserver
+    $callback = function ($observer) use ($value, $attributes) {
+        $observer->observe($value, $attributes);
+    };
+
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $observableUpDownCounter = $meter->createObservableUpDownCounter($normalizedName, $unit, $description, [], $callback);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'observable_updowncounter', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $observableUpDownCounter;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/create_asynchronous_gauge', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMeterInstruments) {
+    $meterName = arg($req, 'meter_name');
+    $name = arg($req, 'name');
+    $description = arg($req, 'description');
+    $unit = arg($req, 'unit');
+    $value = arg($req, 'value');
+    $attributes = arg($req, 'attributes');
+
+    if (!isset($otelMeters[$meterName])) {
+        throw new \Exception("Meter name $meterName not found in registered meters");
+    }
+
+    $meter = $otelMeters[$meterName];
+
+    // Create a callback function that returns the constant value
+    // Note: The observer parameter is not type-hinted to avoid type mismatch with MultiObserver
+    $callback = function ($observer) use ($value, $attributes) {
+        $observer->observe($value, $attributes);
+    };
+
+    // Normalize instrument name (case-insensitive per OpenTelemetry spec)
+    $normalizedName = normalizeInstrumentName($name);
+    $observableGauge = $meter->createObservableGauge($normalizedName, $unit, $description, [], $callback);
+
+    $instrumentKey = createInstrumentKey($meterName, $name, 'observable_gauge', $unit, $description);
+    $otelMeterInstruments[$instrumentKey] = $observableGauge;
+
+    return jsonResponse([]);
+}));
+
+$router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function (Request $req) {
+    $meterProvider = Globals::meterProvider();
+
+    // Since force_flush is not part of the public API, we check if the
+    // meter provider has a forceFlush method.
+    // If OpenTelemetry metrics is disabled, the meter provider will be
+    // a default proxy provided by the API which does not have the method.
+    try {
+        if (method_exists($meterProvider, 'forceFlush')) {
+            error_log("flushing metrics");
+            $meterProvider->forceFlush();
+        }
+
+        // Also flush telemetry (including OTel configurations)
+        // PHP telemetry is sent at request shutdown, so we need to manually trigger it
+        \dd_trace_internal_fn('finalize_telemetry');
+
+        return jsonResponse(['success' => true]);
+    } catch (exception $e) {
+        print $e;
+    }
+}));
+
 $middleware = new class implements Middleware {
     public function handleRequest(Request $request, RequestHandler $next): Response {
         $response = $next->handleRequest($request);
-        dd_trace_internal_fn("finalize_telemetry");
         return $response;
     }
 };

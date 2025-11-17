@@ -1,10 +1,10 @@
 
-FROM datadog/dd-trace-ci:php-8.2_buster
+FROM datadog/dd-trace-ci:php-8.2_bookworm-5
 RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD utils/build/docker/php/parametric/composer.json .
-ADD utils/build/docker/php/parametric/composer.lock .
+RUN echo "extension=grpc" > "$(php-config --ini-dir)/grpc.ini"
 RUN composer install
 ADD utils/build/docker/php/parametric/../common/install_ddtrace.sh .
 COPY binaries /binaries
