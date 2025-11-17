@@ -709,7 +709,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: "v2.18.0"
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: "missing_feature"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "v2.1.0"
-  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "missing_feature"
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "v2.18.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.0.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: "v2.0.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: "v2.0.0"

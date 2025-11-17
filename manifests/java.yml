@@ -2051,7 +2051,9 @@ manifest:
         uds-spring-boot: "v1.38.0"
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - variant_declaration:
-        "*": "irrelevant"
+        "*": "missing_feature"
+        spring-boot: "v1.56.0-SNAPSHOT"
+        uds-spring-boot: "v1.56.0-SNAPSHOT"
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - variant_declaration:
         "*": "missing_feature"
@@ -2349,7 +2351,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: "v1.47.0-SNAPSHOT"
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: "v1.27.0"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "v1.34.0"
-  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "missing_feature"
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "v1.51.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v0.111.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: "v1.25.1"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: "v1.30.0"
