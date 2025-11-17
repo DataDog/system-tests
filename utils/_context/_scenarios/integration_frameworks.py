@@ -123,8 +123,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         return self._library
 
     def _check_and_set_api_keys(self):
-        """
-        Set the necessary provider environment variables if required.
+        """Set the necessary provider environment variables if required.
 
         Does not check the API key when running in CI.
         """
