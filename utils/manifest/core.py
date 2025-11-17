@@ -22,8 +22,8 @@ class Manifest:
         )
 
     @staticmethod
-    def parse(_path: str = "manifests/") -> dict[str, list[dict[str, Any]]]:
-        return load()
+    def parse(path: str = "manifests/") -> dict[str, list[dict[str, Any]]]:
+        return load(path)
 
     @staticmethod
     def validate(path: str = "manifests/") -> None:
