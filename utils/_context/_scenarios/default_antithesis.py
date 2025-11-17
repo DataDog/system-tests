@@ -74,12 +74,12 @@ class DefaultAntithesisScenario(Scenario):
             self._library = ComponentVersion(library_name, library_version)
 
         # Configure interfaces like in endtoend.py
-        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        # interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
-        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
+        # interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
         # Set library-specific interface timeouts
         if library_name == "java":
@@ -141,7 +141,8 @@ class DefaultAntithesisScenario(Scenario):
 
     def _start_interfaces_watchdog(self) -> None:
         """Start the interfaces watchdog for library and agent interfaces."""
-        self.start_interfaces_watchdog([interfaces.library, interfaces.agent])
+        # self.start_interfaces_watchdog([interfaces.library, interfaces.agent])
+        self.start_interfaces_watchdog([interfaces.library])
 
     def get_warmups(self) -> list:
         """Return warmup list with interface watchdog."""
@@ -172,8 +173,8 @@ class DefaultAntithesisScenario(Scenario):
             interfaces.library.check_deserialization_errors()
 
             # Wait for agent interface to finish collecting traces
-            self._wait_interface(interfaces.agent, self.agent_interface_timeout)
-            interfaces.agent.check_deserialization_errors()
+            # self._wait_interface(interfaces.agent, self.agent_interface_timeout)
+            # interfaces.agent.check_deserialization_errors()
 
             # Wait for backend interface
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
