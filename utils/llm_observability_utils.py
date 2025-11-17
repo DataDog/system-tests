@@ -40,6 +40,7 @@ def assert_llmobs_span_event(
     model_name: str | None = None,
     model_provider: str | None = None,
     tool_definitions: list[dict] | None = None,
+    ignore_values: list[str] | None = None,
     *,
     error: bool = False,
     has_output: bool = True,
@@ -68,8 +69,12 @@ def assert_llmobs_span_event(
     }
 
     if has_output:
-        # we sometimes might not set output in case of errors
         expected_meta["output"] = {}
+    else:
+        #  output can either not exist or be an empty object
+        #  different llmobs sdks do this differently
+        output = actual_span_event.get("meta", {}).pop("output", None)
+        assert output is None or output == {}
 
     if input_messages is not None:
         expected_meta["input"]["messages"] = input_messages
@@ -109,7 +114,23 @@ def assert_llmobs_span_event(
         "_dd": mock.ANY,
     }
 
+    _strip_ignore_values(expected_span_event, ignore_values)
+
     assert actual_span_event == expected_span_event
+
+
+def _strip_ignore_values(expected_span_event: dict, ignore_values: list[str] | None) -> None:
+    if ignore_values is None:
+        return
+
+    for key in ignore_values:
+        path = key.split(".")
+
+        # iterate over path and set the value at the end of the path to mock.ANY
+        current = expected_span_event
+        for p in path[:-1]:
+            current = current[p]
+        current[path[-1]] = mock.ANY
 
 
 def _assert_tags_span_event_tags(
