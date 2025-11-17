@@ -219,6 +219,7 @@ class TestedContainer:
             privileged=self.privileged,
             ulimits=self.ulimits,
             pid_mode=self.pid_mode,
+            cgroupns="private",
         )
 
         self.healthy = self.wait_for_health()
