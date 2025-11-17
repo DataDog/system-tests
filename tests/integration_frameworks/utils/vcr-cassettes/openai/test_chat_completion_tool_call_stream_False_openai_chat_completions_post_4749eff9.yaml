@@ -1,0 +1,151 @@
+interactions:
+- request:
+    body: '{"messages":[{"role":"user","content":"Bob is a student at Stanford University.
+      He is studying computer science."}],"model":"gpt-3.5-turbo","stream":false,"tool_choice":"auto","tools":[{"type":"function","function":{"name":"extract_student_info","description":"Get
+      the student information from the body of the input text","parameters":{"type":"object","properties":{"name":{"type":"string","description":"Name
+      of the person"},"major":{"type":"string","description":"Major subject."},"school":{"type":"string","description":"The
+      university name."}}}}}]}'
+    headers:
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept-Encoding
+      : - gzip, deflate
+      ? !!python/object/apply:multidict._multidict.istr
+      - Connection
+      : - keep-alive
+      Content-Length:
+      - '552'
+      ? !!python/object/apply:multidict._multidict.istr
+      - Content-Type
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - User-Agent
+      : - OpenAI/Python 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Arch
+      : - arm64
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Async
+      : - 'false'
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Lang
+      : - python
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-OS
+      : - Linux
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Package-Version
+      : - 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime
+      : - CPython
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime-Version
+      : - 3.11.14
+      ? !!python/object/apply:multidict._multidict.istr
+      - traceparent
+      : - 00-690387d2000000009b2ae74e2f766311-ee56b38d5979ebbb-01
+      ? !!python/object/apply:multidict._multidict.istr
+      - tracestate
+      : - dd=p:ee56b38d5979ebbb;s:1;t.dm:-0;t.tid:690387d200000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-parent-id
+      : - '17174111648696888251'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-sampling-priority
+      : - '1'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-tags
+      : - _dd.p.dm=-0,_dd.p.tid=690387d200000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-trace-id
+      : - '11181003347890430737'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-read-timeout
+      : - '600'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-retry-count
+      : - '0'
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-CWP6wV08GAHnVDMKFlJ4cJRhDfKFk\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1761839058,\n  \"model\": \"gpt-3.5-turbo-0125\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": null,\n        \"tool_calls\": [\n          {\n
+        \           \"id\": \"call_NTfbbrlRcX5kit5NaOuTfus0\",\n            \"type\":
+        \"function\",\n            \"function\": {\n              \"name\": \"extract_student_info\",\n
+        \             \"arguments\": \"{\\\"name\\\":\\\"Bob\\\",\\\"major\\\":\\\"computer
+        science\\\",\\\"school\\\":\\\"Stanford University\\\"}\"\n            }\n
+        \         }\n        ],\n        \"refusal\": null,\n        \"annotations\":
+        []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"tool_calls\"\n
+        \   }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 89,\n    \"completion_tokens\":
+        26,\n    \"total_tokens\": 115,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\":
+        0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": null\n}\n"
+    headers:
+      CF-RAY:
+      - 996c08852f10a727-IAD
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 30 Oct 2025 15:44:19 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=8jPLjv2n_MfY.zQNcG7Z2aRBsX2eT6rWqW9qnuMNbNg-1761839059-1.0.1.1-wb1UHj1O.9vcyWPcgqfIefd1gl7kUmVcBkUpwwTgvJBVxRfCBQ3o4G3a_L58789JYwcCGK9WWA2WW6APwTnkiWXVHt0Q0qaHBJmURBGm7jg;
+        path=/; expires=Thu, 30-Oct-25 16:14:19 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=7YrUcOQDRksbPfjg5DHdb3aKp8bctN3UrnVLV40ucd0-1761839059451-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - datadog-staging
+      openai-processing-ms:
+      - '611'
+      openai-project:
+      - proj_gt6TQZPRbZfoY2J9AQlEJMpd
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '630'
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '10000'
+      x-ratelimit-limit-tokens:
+      - '50000000'
+      x-ratelimit-remaining-requests:
+      - '9999'
+      x-ratelimit-remaining-tokens:
+      - '49999978'
+      x-ratelimit-reset-requests:
+      - 6ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_99380165a72947f8a764d916c422b0be
+    status:
+      code: 200
+      message: OK
+version: 1

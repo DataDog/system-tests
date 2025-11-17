@@ -138,15 +138,9 @@ Then run the tests from the repo root folder:
 
 ## Python library
 
-1. Add a file `binaries/python-load-from-pip`, the content will be installed by pip. Content example:
-  * `ddtrace @ git+https://github.com/DataDog/dd-trace-py.git`
-2. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
-3. Clone the dd-trace-py repo inside `binaries`
+1. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
+2. Clone the dd-trace-py repo inside `binaries`
 
-You can also run:
-```bash
-echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-branch>” > binaries/python-load-from-pip
-```
 
 ## Ruby library
 

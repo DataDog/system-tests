@@ -1,6 +1,7 @@
 import os
 import re
 import stat
+import sys
 import json
 from typing import cast
 from http import HTTPStatus
@@ -19,6 +20,7 @@ from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
 from utils._logger import logger
+from utils._weblog import weblog
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
@@ -139,8 +141,8 @@ class TestedContainer:
             self.stop_previous_container()
             self._starting_lock = RLock()
 
-            Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
-            Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
+            Path(self.log_folder_path).mkdir(mode=0o777, exist_ok=True, parents=True)
+            Path(f"{self.log_folder_path}/logs").mkdir(mode=0o777, exist_ok=True, parents=True)
 
             self.image.load()
             self.image.save_image_info(self.log_folder_path)
@@ -598,8 +600,6 @@ class LambdaProxyContainer(TestedContainer):
         lambda_weblog_host: str,
         lambda_weblog_port: str,
     ) -> None:
-        from utils import weblog
-
         self.host_port = weblog.port
         self.container_port = "7777"
 
@@ -775,8 +775,6 @@ class WeblogContainer(TestedContainer):
         use_proxy: bool = True,
         volumes: dict | None = None,
     ) -> None:
-        from utils import weblog
-
         self.host_port = weblog.port
         self.container_port = 7777
 
@@ -920,6 +918,11 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
+        # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
+        # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
+        if self.weblog_variant == "uwsgi-poc":
+            weblog.set_request_default_retry(5)
+
         self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
@@ -982,9 +985,21 @@ class WeblogContainer(TestedContainer):
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
-    def post_start(self):
-        from utils import weblog
+    def set_weblog_domain_for_ipv6(self, network: Network):
+        if sys.platform == "linux":
+            # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
+            # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
+            weblog.domain = self.network_ip(network)
+            logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
 
+        elif sys.platform == "darwin":
+            # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
+            # as they are on an network intermal to the docker VM. But we can still use localhost.
+            logger.info("Mac => Using localhost as weblog domain")
+        else:
+            pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+
+    def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
 
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -1279,13 +1294,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             environment=environment,
             volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
+            user=f"{os.getuid()}:{os.getgid()}",
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
-        self.volumes[f"./{host_log_folder}/docker/collector/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
-
         super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
+        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
@@ -1312,6 +1328,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
             Path(self.config_file).chmod(new_mode)
+
         return super().start(network)
 
 
@@ -1399,7 +1416,7 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
-            environment=cast(dict[str, str | None], environment),
+            environment=cast("dict[str, str | None]", environment),
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
@@ -1441,8 +1458,6 @@ class InternalServerContainer(TestedContainer):
 
 class EnvoyContainer(TestedContainer):
     def __init__(self) -> None:
-        from utils import weblog
-
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
@@ -1513,8 +1528,6 @@ class ExternalProcessingContainer(TestedContainer):
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
-        from utils import weblog
-
         super().__init__(
             image_name="haproxy:3.2",
             name="haproxy",

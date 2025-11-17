@@ -242,6 +242,7 @@ class BaseDebuggerTest:
 
     def send_rc_apm_tracing(
         self,
+        *,
         dynamic_instrumentation_enabled: bool | None = None,
         exception_replay_enabled: bool | None = None,
         live_debugging_enabled: bool | None = None,
@@ -249,7 +250,6 @@ class BaseDebuggerTest:
         dynamic_sampling_enabled: bool | None = None,
         service_name: str | None = "weblog",
         env: str | None = "system-tests",
-        *,
         reset: bool = True,
     ) -> None:
         BaseDebuggerTest._rc_version += 1

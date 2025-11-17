@@ -262,6 +262,7 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
 def build_apm_tracing_command(
     version: int,
     prev_payloads: list[dict[str, Any]],
+    *,
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
@@ -304,6 +305,7 @@ def build_apm_tracing_command(
 
 
 def send_apm_tracing_command(
+    *,
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,

@@ -684,10 +684,11 @@ class Test_Otel_Span_Methods:
     )
     def test_otel_span_basic_reserved_attributes_overrides_analytics_event(
         self,
-        analytics_event_value: bool | str,
-        expected_metric_value: int,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
+        *,
+        analytics_event_value: bool | str,
+        expected_metric_value: int,
     ):
         """Tests the analytics.event reserved attribute override with basic inputs"""
         run_otel_span_reserved_attributes_overrides_analytics_event(
@@ -980,10 +981,11 @@ def run_operation_name_test(
 
 
 def run_otel_span_reserved_attributes_overrides_analytics_event(
-    analytics_event_value: bool | str,
-    expected_metric_value: int | None,
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
+    *,
+    analytics_event_value: bool | str,
+    expected_metric_value: int | None,
 ):
     with test_library, test_library.otel_start_span("operation", span_kind=SpanKind.SERVER) as otel_span:
         otel_span.set_attributes({"analytics.event": analytics_event_value})

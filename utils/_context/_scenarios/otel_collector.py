@@ -19,18 +19,19 @@ class OtelCollectorScenario(DockerScenario):
             name,
             github_workflow="endtoend",
             doc="TODO",
-            scenario_groups=[scenario_groups.end_to_end],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
             include_postgres_db=True,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
         )
+
         self.library = ComponentVersion("otel_collector", "0.0.0")
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
             environment={
                 "DD_API_KEY": "0123",
-                "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
+                "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
             },
@@ -66,6 +67,11 @@ class OtelCollectorScenario(DockerScenario):
         self.library = ComponentVersion(
             "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
         )
+
+        self.warmups.append(self._print_otel_collector_version)
+
+        if not self.replay:
+            self.warmups.insert(1, self._start_interfaces_watchdog)
 
     def customize_feature_parity_dashboard(self, result: dict) -> None:
         result["configuration"]["collector_version"] = str(self.library.version)
@@ -119,16 +125,6 @@ class OtelCollectorScenario(DockerScenario):
 
     def _print_otel_collector_version(self):
         logger.stdout(f"Otel collector: {self.library}")
-
-    def get_warmups(self) -> list:
-        warmups = super().get_warmups()
-
-        warmups.append(self._print_otel_collector_version)
-
-        if not self.replay:
-            warmups.insert(1, self._start_interfaces_watchdog)
-
-        return warmups
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
         # if no test are run, skip interface timeouts

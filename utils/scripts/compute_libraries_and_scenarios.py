@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
+scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
 LIBRARIES = {
@@ -43,77 +44,61 @@ OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
 ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
 
 
-def check_scenario(val: Any) -> bool:  # noqa: ANN401
-    match val:
-        case set():
-            return True
-        case str():
-            return hasattr(scenario_groups, val)
-        case list():
-            return all(hasattr(scenario_groups, scenario) for scenario in val)
-        case _:
-            return False
+def check_scenarios(scenarios: set[str]) -> bool:
+    return all(name in scenario_names for name in scenarios)
 
 
-def check_libraries(val: Any) -> bool:  # noqa: ANN401
-    match val:
-        case set():
-            return True
-        case str():
-            return val in ALL_LIBRARIES
-        case list():
-            return all(library in ALL_LIBRARIES for library in val)
-        case _:
-            return False
+def check_scenario_groups(val: set[str]) -> bool:
+    return all(hasattr(all_scenario_groups, scenario) for scenario in val)
+
+
+def check_libraries(val: set[str]) -> bool:
+    return all(library in ALL_LIBRARIES for library in val)
+
+
+def _setify(value: list[str] | set[str] | str | None) -> set[str]:
+    if isinstance(value, set):
+        return value
+
+    if isinstance(value, list):
+        return {*value}
+
+    if isinstance(value, str):
+        return {value}
+
+    assert value is None
+
+    return set()
 
 
 class Param:
-    def __init__(self):
-        self.libraries: set[str] = LIBRARIES
-        self.scenario_groups: set[str] = {scenario_groups.all.name}
+    def __init__(
+        self,
+        pattern: str,
+        parameters: dict,
+    ):
+        self.libraries = _setify(parameters.get("libraries", LIBRARIES))
 
-    def tup(self) -> tuple[set[str], set[str]]:
-        return self.scenario_groups, self.libraries
-
-
-def parse(inputs: Inputs) -> dict[str, Param]:
-    ret = OrderedDict()
-    if inputs.raw_impacts is None:
-        raise ValueError("raw_impacts is None")
-    for pattern, param in inputs.raw_impacts.items():
-        if param:
-            libraries = param.get("libraries", LIBRARIES) or set()
-            scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
+        if "scenario_groups" not in parameters and "scenario" not in parameters:  # no instruction -> run all
+            self.scenario_groups = {all_scenario_groups.all.name}
+            self.scenarios = set()
         else:
-            libraries = LIBRARIES
-            scenario_group_set = scenario_groups.all.name
+            self.scenario_groups = _setify(parameters.get("scenario_groups"))
+            self.scenarios = _setify(parameters.get("scenario"))
 
-        if not check_libraries(libraries):
-            raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")
-        if not check_scenario(scenario_group_set):
-            raise ValueError(f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}")
-
-        if pattern not in ret:
-            ret[pattern] = Param()
-
-        if isinstance(libraries, str):
-            ret[pattern].libraries = {libraries}
-        else:
-            ret[pattern].libraries = set(libraries)
-
-        if isinstance(scenario_group_set, str):
-            ret[pattern].scenario_groups = {scenario_group_set}
-        else:
-            ret[pattern].scenario_groups = set(scenario_group_set)
-
-    return ret
+        if not check_libraries(self.libraries):
+            raise ValueError(f"One or more of the libraries for {pattern} does not exist: {self.libraries}")
+        if not check_scenario_groups(self.scenario_groups):
+            raise ValueError(f"One or more of the scenario groups for {pattern} does not exist: {self.scenario_groups}")
+        if not check_scenarios(self.scenarios):
+            raise ValueError(f"Scenario {self.scenarios} for {pattern} does not exist")
 
 
-def match_patterns(modified_file: str, impacts: dict[str, Param]) -> tuple[set[str], set[str]] | None:
+def match_patterns(modified_file: str, impacts: dict[str, Param]) -> Param | None:
     for pattern, requirement in impacts.items():
         if fnmatch(modified_file, pattern):
             logger.debug(f"Matched file {modified_file} with pattern {pattern}")
-            return requirement.tup()
+            return requirement
     logger.debug(f"No match found for file {modified_file}")
     return None
 
@@ -157,11 +142,11 @@ class LibraryProcessor:
                     "=> user library selection will be enforced without checks"
                 )
 
-    def compute_impacted(self, modified_file: str, requirement: set[str] | None) -> None:
+    def compute_impacted(self, modified_file: str, param: Param | None) -> None:
         self.impacted = set()
 
-        if requirement is not None:
-            self.impacted |= requirement
+        if param is not None:
+            self.impacted |= param.libraries
             return
 
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
@@ -184,8 +169,8 @@ class LibraryProcessor:
                     Please remove the PR title prefix [{self.user_choice}]"""
         )
 
-    def add(self, file: str, requirement: set[str] | None) -> None:
-        self.compute_impacted(file, requirement)
+    def add(self, file: str, param: Param | None) -> None:
+        self.compute_impacted(file, param)
         if not self.is_manual(file):
             self.selected |= self.impacted
 
@@ -202,7 +187,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library != "otel_collector"
+            if "otel" not in library and library not in ("otel_collector", "python_lambda")
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
@@ -276,21 +261,22 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self.scenarios |= scenario_names
 
-    def process_regular_file(self, file: str, requirement: set[str] | None) -> None:
-        if requirement is not None:
-            self.scenario_groups |= requirement
+    def process_regular_file(self, file: str, param: Param | None) -> None:
+        if param is not None:
+            self.scenario_groups |= param.scenario_groups
+            self.scenarios |= param.scenarios
 
         else:
             logger.warning(f"Unknown file {file} was detected, activating all scenario groups.")
-            self.scenario_groups.add(scenario_groups.all.name)
+            self.scenario_groups.add(all_scenario_groups.all.name)
 
         # now get known scenarios executed in this file
         if file in self.scenarios_by_files:
             self.scenarios |= self.scenarios_by_files[file]
 
-    def add(self, file: str, requirement: set[str] | None) -> None:
+    def add(self, file: str, param: Param | None) -> None:
         self.process_test_files(file)
-        self.process_regular_file(file, requirement)
+        self.process_regular_file(file, param)
 
     def get_outputs(self) -> dict[str, str]:
         return {
@@ -300,6 +286,8 @@ class ScenarioProcessor:
 
 
 class Inputs:
+    impacts: dict[str, Param]
+
     def __init__(
         self,
         output: str | None = None,
@@ -341,8 +329,16 @@ class Inputs:
     def load_raw_impacts(self) -> None:
         # Gets the raw pattern matching data that maps file to impacted
         # libraries/scenario groups
+
+        default_param = Param(".*", {"libraries": LIBRARIES, "scenario_groups": all_scenario_groups.all.name})
+        self.impacts: dict[str, Param] = OrderedDict()
+
         with open(self.mapping_file, "r", encoding="utf-8") as file:
-            self.raw_impacts = yaml.safe_load(file)["patterns"]
+            raw_impacts = yaml.safe_load(file)["patterns"]
+            assert isinstance(raw_impacts, dict), "patterns property of {self.mapping_file} must be a dict"
+
+            for pattern, parameters in raw_impacts.items():
+                self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
     def load_modified_files(self) -> None:
         # Gets the modified files. Computed with gh in a previous ci step.
@@ -384,7 +380,6 @@ def print_outputs(strings_out: list[str], inputs: Inputs) -> None:
 
 def process(inputs: Inputs) -> list[str]:
     outputs: dict[str, Any] = {}
-    impacts = parse(inputs)
     if inputs.is_gitlab:
         outputs |= extra_gitlab_output(inputs)
         logging.disable()
@@ -392,7 +387,7 @@ def process(inputs: Inputs) -> list[str]:
     rebuild_lambda_proxy = False
 
     if inputs.event_name not in ("pull_request", "push") or inputs.ref == "refs/heads/main":
-        scenario_processor = ScenarioProcessor({scenario_groups.all.name})
+        scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
         library_processor = LibraryProcessor(LIBRARIES)
 
     else:
@@ -406,9 +401,9 @@ def process(inputs: Inputs) -> list[str]:
 
         assert inputs.modified_files is not None
         for file in inputs.modified_files:
-            new_scenario_groups, new_libraries = match_patterns(file, impacts) or (None, None)
-            scenario_processor.add(file, new_scenario_groups)
-            library_processor.add(file, new_libraries)
+            param = match_patterns(file, inputs.impacts)
+            scenario_processor.add(file, param)
+            library_processor.add(file, param)
 
             if file in (
                 "utils/build/docker/lambda_proxy/pyproject.toml",

@@ -274,7 +274,8 @@ def _get_endtoend_weblogs(
     result: list[Weblog] = []
 
     integration_frameworks_weblogs = {
-        "openai": ["2.0.0"]  # python
+        "openai-py": ["2.0.0"],
+        "openai-js": ["6.0.0"],
     }
 
     folder = f"utils/build/docker/{library}"

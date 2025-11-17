@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from http import HTTPStatus
 import os
-import sys
 import pytest
 from _pytest.reports import TestReport
 
@@ -142,9 +141,14 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            self.warmups.append(self._create_network)
+            self.warmups.append(self._start_containers)
 
         for container in reversed(self._required_containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
+
+        for container in self._required_containers:
+            self.warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -200,20 +204,8 @@ class DockerScenario(Scenario):
         else:
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(self._create_network)
-            warmups.append(self._start_containers)
-
-        for container in self._required_containers:
-            warmups.append(container.post_start)
-
-        return warmups
-
     def _start_containers(self):
+        logger.stdout("Starting containers...")
         threads = []
 
         for container in self._required_containers:
@@ -461,6 +453,13 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
+        if not self.replay:
+            self.warmups.insert(1, self._start_interfaces_watchdog)
+            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self._wait_for_app_readiness)
+            self.warmups.append(self._set_weblog_domain)
+            self.warmups.append(self._set_components)
+
     def _get_weblog_system_info(self):
         try:
             code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
@@ -485,36 +484,11 @@ class EndToEndScenario(DockerScenario):
 
     def _set_weblog_domain(self):
         if self.enable_ipv6:
-            from utils import weblog  # TODO better interface
-
-            if sys.platform == "linux":
-                # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
-                # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
-                weblog.domain = self.weblog_container.network_ip(self._network)
-                logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
-
-            elif sys.platform == "darwin":
-                # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
-                # as they are on an network intermal to the docker VM. But we can still use localhost.
-                logger.info("Mac => Using localhost as weblog domain")
-            else:
-                pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+            self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(1, self._start_interfaces_watchdog)
-            warmups.append(self._get_weblog_system_info)
-            warmups.append(self._wait_for_app_readiness)
-            warmups.append(self._set_weblog_domain)
-            warmups.append(self._set_components)
-
-        return warmups
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
