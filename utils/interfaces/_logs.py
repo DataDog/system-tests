@@ -304,24 +304,3 @@ class _LogAbsence:
 
             logger.error(json.dumps(data["raw"], indent=2))
             raise ValueError("Found unexpected log")
-
-
-class Test:
-    def test_main(self):
-        """Test example"""
-
-        from utils._context._scenarios import scenarios
-        from utils import context
-
-        context.scenario = scenarios.default
-
-        i = _PostgresStdout()
-        i.configure(scenarios.default.host_log_folder, replay=True)
-        i.load_data()
-
-        for item in i.get_data():
-            print(item)  # noqa: T201
-
-
-if __name__ == "__main__":
-    Test().test_main()

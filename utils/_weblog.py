@@ -125,6 +125,11 @@ class _Weblog:
         # to the same thread in the weblog webserver
         self._session = session
 
+        self._default_retries = 1
+
+    def set_request_default_retry(self, value: int) -> None:
+        self._retries = value
+
     def get(
         self,
         path: str = "/",
@@ -182,11 +187,6 @@ class _Weblog:
     ):
         return self.request("TRACE", path, params=params, data=data, headers=headers, timeout=timeout)
 
-    def get_weblog_variant(self) -> str:
-        from utils import context
-
-        return context.weblog_variant
-
     def request(
         self,
         method: str,
@@ -228,12 +228,8 @@ class _Weblog:
         status_code = None
         response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
         text = None
-        # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
-        # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
-        retries = 1
-        if self.get_weblog_variant() == "uwsgi-poc":
-            retries = 5
-        for retry in range(retries):
+
+        for retry in range(self._default_retries):
             try:
                 req = requests.Request(
                     method,
@@ -259,7 +255,7 @@ class _Weblog:
                 if (
                     isinstance(e.args[0], urllib3.exceptions.ProtocolError)
                     and e.args[0].args[0] == "Connection aborted."
-                    and retry < retries - 1
+                    and retry < self._default_retries - 1
                 ):
                     logger.warning("Remote disconnected, retrying...")
                     time.sleep(0.25)  # wait before retrying

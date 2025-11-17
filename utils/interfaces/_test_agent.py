@@ -1,6 +1,9 @@
 import pathlib
 import threading
 import json
+
+import ddapm_test_agent.client as agent_client
+
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
 from utils._weblog import HttpResponse
@@ -15,8 +18,6 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         self._data_telemetry_list = []
 
     def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126):
-        import ddapm_test_agent.client as agent_client
-
         logger.debug("Collecting data from test agent")
         client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
         self._data_traces_list = client.traces(clear=False)
