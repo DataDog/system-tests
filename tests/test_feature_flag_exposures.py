@@ -124,46 +124,6 @@ class Test_FFE_Exposure_Events:
             matching_event["subject"]["id"] == self.targeting_key
         ), f"Expected subject '{self.targeting_key}', got '{matching_event['subject']['id']}'"
 
-    def setup_ffe_empty_remote_config(self):
-        """Set up FFE with empty remote config state."""
-        # Reset remote config to empty state
-        rc.rc_state.reset().apply()
-
-        # Evaluate a feature flag without any remote config
-        self.flag = "test-flag-no-config"
-        variation_type = "STRING"
-        default_value = "default"
-        self.targeting_key = "test-user-empty"
-        attributes: dict[str, str] = {}
-
-        self.r = weblog.post(
-            "/ffe",
-            json={
-                "flag": self.flag,
-                "variationType": variation_type,
-                "defaultValue": default_value,
-                "targetingKey": self.targeting_key,
-                "attributes": attributes,
-            },
-        )
-
-    def test_ffe_empty_remote_config(self):
-        """Test that FFE handles empty remote config state correctly."""
-        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
-
-        # When no remote config is set, FFE should still work but return default value
-        # The exposure events should still be generated based on library configuration
-        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
-            exposure_data = data["request"]["content"]
-            if exposure_data is not None:
-                # Validate that context is still present
-                assert "context" in exposure_data, "Response missing 'context' field"
-                context = exposure_data["context"]
-                assert context.get("service") == "weblog", f"Expected service_name 'weblog', got '{context}'"
-
-        # Note: exposure events may or may not be sent when remote config is empty
-        # depending on library implementation
-
     def setup_ffe_multiple_remote_config_files(self):
         """Set up FFE with multiple remote config files across different target paths."""
         # Set up multiple Remote Config files with different config IDs
@@ -293,6 +253,54 @@ class Test_FFE_Exposure_Events:
             self.flag_1 in flags_found or self.flag_2 in flags_found
         ), f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
 
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Events_Empty:
+    def setup_ffe_empty_remote_config(self):
+        """Set up FFE with empty remote config state."""
+        # Reset remote config to empty state
+        rc.rc_state.reset().apply()
+
+        # Evaluate a feature flag without any remote config
+        self.flag = "test-flag-no-config"
+        variation_type = "STRING"
+        default_value = "default"
+        self.targeting_key = "test-user-empty"
+        attributes: dict[str, str] = {}
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": variation_type,
+                "defaultValue": default_value,
+                "targetingKey": self.targeting_key,
+                "attributes": attributes,
+            },
+        )
+
+    def test_ffe_empty_remote_config(self):
+        """Test that FFE handles empty remote config state correctly."""
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        # When no remote config is set, FFE should still work but return default value
+        # The exposure events should still be generated based on library configuration
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            if exposure_data is not None:
+                # Validate that context is still present
+                assert "context" in exposure_data, "Response missing 'context' field"
+                context = exposure_data["context"]
+                assert context.get("service") == "weblog", f"Expected service_name 'weblog', got '{context}'"
+
+        # Note: exposure events may or may not be sent when remote config is empty
+        # depending on library implementation
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Events_Errors:
     def setup_ffe_malformed_remote_config_rejection(self):
         """Set up FFE with a valid config, then update with malformed config to test rejection."""
         # First, set up a valid Remote Config
