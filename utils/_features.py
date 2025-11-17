@@ -2615,5 +2615,12 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=496, owner=_Owner.sdk_capabilities)
 
+    @staticmethod
+    def postgres_receiver_metrics(test_object):
+        """OpenTelemetry semantic conventions for Postgres receiver metrics
+
+        https://feature-parity.us1.prod.dog/#/?feature=498
+        """
+        return _mark_test_object(test_object, feature_id=498, owner=_Owner.idm)
 
 features = _Features()
