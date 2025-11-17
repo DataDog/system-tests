@@ -630,7 +630,7 @@ class _Scenarios:
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
         },
-        appsec_enabled=True,
+        appsec_enabled=False,
         doc="",
         scenario_groups=[scenario_groups.tracing_config],
     )
