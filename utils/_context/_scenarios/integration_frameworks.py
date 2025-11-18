@@ -127,7 +127,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         Does not check the API key when running in CI.
         """
-        is_ci = "GITLAB_CI" in os.environ
+        is_ci = "GITLAB_CI" in os.environ or "GITHUB_EVENT_NAME" in os.environ
 
         if self.require_openai_api_key and not is_ci:
             openai_api_key = os.getenv("OPENAI_API_KEY")
