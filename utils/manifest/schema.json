@@ -45,7 +45,7 @@
             "then": { "type": "string" },
             "else": { "type": "array", "items": { "type": "string" } }
           },
-          "library_version": {
+          "component_version": {
             "type": "string",
             "pattern": "^(v[0-9]|<|>|<=|>=|[0-9]).*"
           },

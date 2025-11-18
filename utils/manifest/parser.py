@@ -35,10 +35,10 @@ def process_weblog_declaration(n: str, _v: object, e: dict[str, Any]) -> tuple[l
             new_entry["weblog"] = weblog
         declaration = Declaration(raw_declaration, is_inline=True)
         if declaration.is_skip:
-            new_entry["declaration"] = str(declaration)
+            new_entry["declaration"] = declaration
         else:
-            new_entry["excluded_library_version"] = declaration.value
-            new_entry["declaration"] = "missing_feature"
+            new_entry["excluded_component_version"] = declaration.value
+            new_entry["declaration"] = Declaration("missing_feature")
         new_entries.append(new_entry)
     return new_entries, False
 
@@ -51,8 +51,8 @@ def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
         return {}
 
     field_processors = [
-        ("library_version", process_lib_version),
-        ("excluded_library_version", process_lib_version),
+        ("component_version", process_lib_version),
+        ("excluded_component_version", process_lib_version),
         ("weblog_declaration", process_weblog_declaration),
     ]
 
@@ -62,11 +62,11 @@ def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
             declaration = Declaration(raw_value, is_inline=True)
             value = {}
             if declaration.is_skip:
-                value["declaration"] = str(declaration)
+                value["declaration"] = declaration
             else:
-                value["excluded_library_version"] = declaration.value
-                value["declaration"] = "missing_feature"
-            value["library"] = component
+                value["excluded_component_version"] = declaration.value
+                value["declaration"] = Declaration("missing_feature")
+            value["component"] = component
             value_list = [value]
         else:
             raw_value_list = raw_value if isinstance(raw_value, list) else [raw_value]
@@ -81,7 +81,7 @@ def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
                     value_list.append(entry)
 
         for entry in value_list:
-            entry["library"] = component
+            entry["component"] = component
         ret[nodeid] = value_list
 
     return ret

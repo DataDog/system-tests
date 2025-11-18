@@ -1,4 +1,5 @@
 from utils._decorators import CustomSpec as SemverRange
+from utils._decorators import parse_skip_declaration
 from collections.abc import Callable
 from typing import Any
 import re
@@ -62,9 +63,10 @@ class Declaration:
         elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
-            self.value = elements[1]
+            skip_declaration = parse_skip_declaration(self.raw)
+            self.value = skip_declaration[0]
             if elements[1]:
-                self.reason = elements[2]
+                self.reason = skip_declaration[1]
             return
 
         elements = re.fullmatch(self.full_regex, self.raw, re.ASCII)

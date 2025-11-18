@@ -1,6 +1,6 @@
 import yaml
 
-variants = {
+weblogs = {
     "agent": set(),
     "cpp_httpd": set(),
     "cpp_nginx": set(),
@@ -197,7 +197,7 @@ def get_refs(file_path: str) -> None:
 
 def main() -> None:
     global output  # noqa: PLW0603
-    for lib in variants:
+    for lib in weblogs:
         output = ""
         file_path = f"./manifests/{lib}.yml"
         output_file = f"./new.manifests/{lib}.yml"

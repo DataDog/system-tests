@@ -6,8 +6,8 @@ from utils._decorators import _TestDeclaration, parse_skip_declaration
 
 def match_condition(
     condition: dict[str, Any],
-    library: str | None = None,
-    library_version: Version | None = None,
+    component: str | None = None,
+    component_version: Version | None = None,
     weblog: str | None = None,
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
@@ -15,7 +15,7 @@ def match_condition(
 ) -> bool:
     ret = False
 
-    match condition["library"]:
+    match condition["component"]:
         case "agent":
             ref_version = agent_version
         case "k8s_cluster_agent":
@@ -23,17 +23,17 @@ def match_condition(
         case "dd_apm_inject":
             ref_version = dd_apm_inject_version
         case _:
-            ref_version = library_version
+            ref_version = component_version
 
     if not ref_version:
         return True
 
-    if condition["library"] == library or library in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
+    if condition["component"] == component or component in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
-    if condition.get("library_version"):
-        ret &= ref_version in condition["library_version"]
-    if condition.get("excluded_library_version"):
-        ret &= ref_version not in condition["excluded_library_version"]
+    if condition.get("component_version"):
+        ret &= ref_version in condition["component_version"]
+    if condition.get("excluded_component_version"):
+        ret &= ref_version not in condition["excluded_component_version"]
     if condition.get("weblog"):
         if isinstance(condition["weblog"], list):
             ret &= weblog in condition["weblog"]
@@ -65,8 +65,8 @@ def match_rule(rule: str, nodeid: str) -> bool:
 
 def get_rules(
     manifest: dict[str, list[dict[str, Any]]],
-    library: str,
-    library_version: Version | None = None,
+    component: str,
+    component_version: Version | None = None,
     weblog: str | None = None,
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
@@ -78,8 +78,8 @@ def get_rules(
         for condition in conditions:
             if not match_condition(
                 condition,
-                library,
-                library_version,
+                component,
+                component_version,
                 weblog,
                 agent_version,
                 dd_apm_inject_version,
@@ -89,7 +89,6 @@ def get_rules(
 
             if rule not in rules:
                 rules[rule] = []
-            declaration_tuple = parse_skip_declaration(condition["declaration"])
-            rules[rule].append(declaration_tuple)
+            rules[rule].append((condition["declaration"].value, condition["declaration"].reason))
 
     return rules

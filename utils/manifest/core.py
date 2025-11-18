@@ -8,8 +8,8 @@ from utils.manifest.validate import validate_manifest_files as validate
 class Manifest:
     def __init__(
         self,
-        library: str,
-        library_version: Version | None = None,
+        component: str,
+        component_version: Version | None = None,
         weblog: str | None = None,
         agent_version: Version | None = None,
         dd_apm_inject_version: Version | None = None,
@@ -18,7 +18,7 @@ class Manifest:
     ):
         data = load(path)
         self.rules = get_rules(
-            data, library, library_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
+            data, component, component_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
         )
 
     @staticmethod
