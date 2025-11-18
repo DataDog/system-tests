@@ -68,6 +68,8 @@ class Declaration:
             if elements[1]:
                 self.reason = skip_declaration[1]
             return
+        if not self.is_inline:
+            raise ValueError(f"Wrong declaration format: {self.raw} (is inline: {self.is_inline})")
 
         elements = re.fullmatch(self.full_regex, self.raw, re.ASCII)
 
@@ -76,9 +78,8 @@ class Declaration:
 
         self.is_skip = False
         raw_version = elements.group(2)
-        if self.is_inline:
-            if elements.group(1) == "v":
-                raw_version = f">={raw_version}"
+        if elements.group(1) == "v":
+            raw_version = f">={raw_version}"
         sanitized_version = Declaration.sanitize_version(raw_version)
 
         self.value = self.semver_factory(sanitized_version)
@@ -89,3 +90,10 @@ class Declaration:
         if self.reason:
             return f"{self.value} ({self.reason})"
         return f"{self.value}"
+
+    def __eq__(self, o):
+        if self.reason:
+            if not o.reason:
+                return False
+            return self.value == o.value and self.reason == o.reason
+        return self.value == o.value
