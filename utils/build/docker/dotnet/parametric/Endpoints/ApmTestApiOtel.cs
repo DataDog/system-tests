@@ -523,10 +523,13 @@ public abstract class ApmTestApiOtel : ApmTestApi
         {
             // Convert attributes to TagList for the Meter constructor
             var tags = ConvertToTagList(attributes);
+            _logger?.LogInformation("OtelGetMeterReturn: Creating new meter {name} with version {version} and tags {tags}", name, version, tags);
             OtelMeters[name] = new Meter(name, version, tags);
         }
-
-        _logger?.LogInformation("OtelGetMeterReturn");
+        else
+        {
+            _logger?.LogInformation("OtelGetMeterReturn: Meter {name} already exists, skipping creation", name);
+        }
     }
 
     private static async Task OtelCreateCounter(HttpRequest request)
@@ -821,7 +824,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         // Force flush via Datadog.Trace.OTelMetrics.MetricsRuntime
         try
         {
-            var metricsRuntimeType = Type.GetType("Datadog.Trace.OTelMetrics.MetricsRuntime, Datadog.Trace");
+            var metricsRuntimeType = Type.GetType("Datadog.Trace.OpenTelemetry.Metrics.MetricsRuntime, Datadog.Trace");
             if (metricsRuntimeType != null)
             {
                 var forceFlushMethod = metricsRuntimeType.GetMethod("ForceFlushAsync", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
