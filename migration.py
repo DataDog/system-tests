@@ -1,4 +1,4 @@
-import yaml
+import ruamel.yaml
 
 weblogs = {
     "agent": set(),
@@ -110,6 +110,23 @@ weblogs = {
 output = ""
 
 
+def get_comment(commented_obj: dict, key: str) -> str:
+    """Extract EOL comment from ruamel.yaml CommentedMap for a given key."""
+    if not hasattr(commented_obj, "ca"):
+        return ""
+    ca = commented_obj.ca
+    if not ca or not hasattr(ca, "items"):
+        return ""
+    items = ca.items
+    if key not in items or len(items[key]) < 3:  # noqa: PLR2004
+        return ""
+    comment_token = items[key][2]  # EOL comment is at index 2
+    if comment_token:
+        comment_str = comment_token.value.strip()
+        return f"  {comment_str}" if comment_str else ""
+    return ""
+
+
 def flatten(
     data: dict | str,
     lib: str,
@@ -117,23 +134,42 @@ def flatten(
     root: str = "tests/",
     end: bool = False,  # noqa: FBT001, FBT002
     _leaves: set | None = None,
+    commented_data: dict | None = None,
+    current_key: str | None = None,
 ) -> set | None:
     global output  # noqa: PLW0603
 
     if isinstance(data, str):
+        comment = ""
+        if commented_data and current_key and hasattr(commented_data, "ca"):
+            comment = get_comment(commented_data, current_key)
         if refs and data in refs:
             data_str = f"*{refs[data]}"
-            output += f"\n{root}: {data_str}"
+            line = f"\n{root}: {data_str}"
+            if comment:
+                line += comment
+            output += line
         else:
-            output += f'\n{root}: "{data}"'
+            line = f'\n{root}: "{data}"'
+            if comment:
+                line += comment
+            output += line
     elif end:
         output += f"\n{root}:"
+        # For variant declarations, data itself is the CommentedMap containing the variants
+        variant_commented = data if isinstance(data, dict) and hasattr(data, "ca") else commented_data
         for var in data.items():
             var_name = var[0]
             if var[0] == "*":
                 var_name = f'"{var[0]}"'
             data_str = f"*{refs[var[1]]}" if refs and var[1] in refs else f'"{var[1]}"'
-            output += f"\n    {var_name}: {data_str}"
+            comment = ""
+            if variant_commented and hasattr(variant_commented, "ca"):
+                comment = get_comment(variant_commented, var[0])
+            line = f"\n    {var_name}: {data_str}"
+            if comment:
+                line += comment
+            output += line
 
     else:
         if root.endswith(".py"):
@@ -141,7 +177,10 @@ def flatten(
             end = True
 
         for item in data.items():
-            flatten(item[1], lib, refs, root + item[0], end)
+            key = item[0]
+            # Pass the current level's CommentedMap as parent, and current key
+            sub_commented = data if isinstance(data, dict) and hasattr(data, "ca") else commented_data
+            flatten(item[1], lib, refs, root + key, end, commented_data=sub_commented, current_key=key)
 
 
 def yml_sort(output_file: str) -> None:
@@ -205,9 +244,13 @@ def main() -> None:
         refs = get_refs(file_path)
 
         add_refs(file_path, output_file)
-        with open(file_path) as f:
-            data = yaml.safe_load(f)
-            flatten(data["tests/"], lib, refs)
+        with open(file_path) as file:
+            yaml = ruamel.yaml.YAML()
+            yaml.preserve_quotes = True
+            data = yaml.load(file)
+            tests_data = data.get("tests/") or data.get("manifest")
+            if tests_data:
+                flatten(tests_data, lib, refs, commented_data=tests_data)
 
         yml_sort(output_file)
 
