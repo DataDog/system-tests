@@ -3,11 +3,11 @@ manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": "missing_feature (missing /e2e_otel_span endpoint on weblog)"
-        net-http: "v0.1"
+        net-http: "v0.1"  # real version not known
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
     - weblog_declaration:
         "*": "missing_feature (missing /e2e_otel_span endpoint on weblog)"
-        chi: "v0.1"
+        chi: "v0.1"  # real version not known
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v2.0.0"
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v2.0.0"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: "missing_feature"
@@ -155,7 +155,7 @@ manifest:
   tests/appsec/iast/source/test_uri.py::TestURI: "missing_feature"
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: "missing_feature"
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: "missing_feature"
-  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: "v0.0.0"
+  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: "v0.0.0"  # Compliant because no IAST support
   tests/appsec/rasp/test_api10.py::Test_API10_all: "v2.4.0"
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: "missing_feature"
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: "v2.4.0"
@@ -173,13 +173,13 @@ manifest:
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: "missing_feature"
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: "v2.3.0-dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: "v2.3.0-dev"  # Possibly earlier
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: "missing_feature"
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: "missing_feature"
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: "v2.3.0-dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: "v2.3.0-dev"  # Possibly earlier
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
     - weblog_declaration:
         "*": "irrelevant (LFi detection requires orchestrion)"
@@ -344,15 +344,15 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: "v2.1.0-dev"
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent: "v1.47.0"
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: "v2.1.0-dev"
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: "v2.2.0-dev"
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: "v2.2.0-dev"
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: "v2.2.0-dev"  # LANGPLAT-583
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: "v2.2.0-dev"  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf: "v2.1.0-dev"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: "v2.1.0-dev"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: "v2.1.0-dev"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled: "v2.1.0-dev"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: "v2.1.0-dev"
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: "v2.2.0-dev"
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: "v2.2.0-dev"
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: "v2.2.0-dev"  # LANGPLAT-583
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: "v2.2.0-dev"  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Libddwaf: "v2.1.0-dev"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: "v2.1.0-dev"
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: "v2.1.0-dev"
@@ -592,7 +592,7 @@ manifest:
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": "irrelevant"
-        net-http: "v0.1"
+        net-http: "v0.1"  # real version not known
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": "irrelevant"
@@ -625,16 +625,16 @@ manifest:
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": "irrelevant"
-        net-http: "v0.1"
+        net-http: "v0.1"  # real version unknown
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
     - weblog_declaration:
         "*": "irrelevant"
-        net-http: "v0.1"
+        net-http: "v0.1"  # real version unknown
   tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmKafka:
     - weblog_declaration:
         "*": "irrelevant"
-        net-http: "v0.1"
+        net-http: "v0.1"  # real version unknown
   tests/integrations/test_dsm.py::Test_DsmKinesis:
     - weblog_declaration:
         "*": "irrelevant"
@@ -735,8 +735,8 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: "missing_feature (crash endpoint is not implemented)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: "missing_feature (spans are stored in a local context, there is no global current span in the go tracer)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: "v2.5.0-dev"
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: "bug (APMAPI-778)"
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: "bug (APMAPI-778)"
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: "bug (APMAPI-778)"  # The set_name endpoint should set the resouce name (not the span name)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: "bug (APMAPI-778)"  # String attributes are incorrectly stored/serialized in a list
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: "missing_feature (otel baggage is not supported)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: "missing_feature (otel current span endpoint is not defined)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: "missing_feature"
@@ -751,7 +751,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: "missing_feature"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "v1.63.0-rc.1"
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "missing_feature"
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.37.0"
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.37.0"  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: "v1.60.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: "v1.64.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: "v1.60.0"
@@ -806,7 +806,7 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: "v2.2.3"
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
-  tests/test_distributed.py::Test_Synthetics_APM_Datadog: "bug (APMAPI-901)"
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog: "bug (APMAPI-901)"  # the incoming headers are considered invalid
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: "v2.5.0-dev"
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
@@ -841,10 +841,10 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: "missing_feature"
   tests/test_protobuf.py: "missing_feature"
   tests/test_resource_renaming.py: "missing_feature"
-  tests/test_sampling_rates.py::Test_SampleRateFunction: "v1.72.1"
-  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v1.72.1"
-  tests/test_sampling_rates.py::Test_SamplingDecisions: "v1.72.1"
-  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v1.72.1"
+  tests/test_sampling_rates.py::Test_SampleRateFunction: "v1.72.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v1.72.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDecisions: "v1.72.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v1.72.1"  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingRates: "v1.36.2"
   tests/test_scrubbing.py::Test_UrlQuery: "v1.40.0"
   tests/test_semantic_conventions.py::Test_Meta: "v1.45.0"

@@ -945,7 +945,7 @@ manifest:
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation:
     - weblog_declaration:
         "*": "irrelevant"
-        flask-poc: "v0.1"
+        flask-poc: "v0.1"  # actual version unknown
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation:
     - weblog_declaration:
         "*": "irrelevant"
@@ -953,7 +953,7 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
     - weblog_declaration:
         "*": "irrelevant"
-        flask-poc: "v0.1"
+        flask-poc: "v0.1"  # actual version unknown
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": "irrelevant"
@@ -1112,13 +1112,13 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: "v2.12.2"
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: "missing_feature"
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: "v2.12.2"
-  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: "v3.12.0.dev"
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: "v3.12.0.dev"  # default value of log injection changed in v3.12.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: "missing_feature"
   tests/parametric/test_crashtracking.py::Test_Crashtracking: "v2.11.2"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: "v2.9.0"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: "flaky (APMAPI-734)"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: "missing_feature (failure 2.8.0)"
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: "v2.18.1"
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: "v2.18.1"  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: "missing_feature (failure 2.8.0)"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: "v2.0.0"
   tests/parametric/test_feature_flag_exposure/test_feature_flag_exposure.py::Test_Feature_Flag_Exposure: "missing_feature"
@@ -1176,7 +1176,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: "v2.5.0"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "v2.9.0"
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "v3.11.0"
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.9.0"
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.9.0"  # actual version unknown
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: "v2.8.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: "v2.8.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: "v2.8.0"
@@ -1283,7 +1283,7 @@ manifest:
   tests/test_distributed.py::Test_DistributedHttp:
     - weblog_declaration:
         "*": "missing_feature (Missing on weblog)"
-        flask-poc: "v1.5.0-rc2"
+        flask-poc: "v1.5.0-rc2"  # actual version unknown
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: "v2.17.0"
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
@@ -1304,7 +1304,7 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: "v2.20.0"
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: "v2.20.0"
   tests/test_library_conf.py::Test_HeaderTags: "v0.53"
-  tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: "v1.2.1"
+  tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: "v1.2.1"  # actual version unknown
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: "v2.8.0"
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: "flaky (APMAPI-734)"
   tests/test_library_conf.py::Test_HeaderTags_Long: "v1.2.1"
@@ -1317,7 +1317,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: "missing_feature"
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
-        "*": "v0.1"
+        "*": "v0.1"  # actual version unknown
         django-py3.13: "missing_feature (python 3.13 not supported yet)"
         python3.12: "v2.1.0"
   tests/test_protobuf.py: "missing_feature"

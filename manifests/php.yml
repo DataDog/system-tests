@@ -309,7 +309,7 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: "v1.6.2"
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: "v1.6.2"
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: "v0.88.0"
-  tests/appsec/test_reports.py::Test_Info: "v0.68.3"
+  tests/appsec/test_reports.py::Test_Info: "v0.68.3"  # probably 0.68.2, but was flaky
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: "v1.6.2"
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: "v1.6.2"
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: "v1.6.2"
@@ -324,7 +324,7 @@ manifest:
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: "v1.0.0"
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: "v1.0.0"
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: "v0.86.3"
-  tests/appsec/waf/test_addresses.py::Test_BodyJson: "v0.98.1"
+  tests/appsec/waf/test_addresses.py::Test_BodyJson: "v0.98.1"  # TODO what is the earliest version?
   tests/appsec/waf/test_addresses.py::Test_BodyRaw: "v0.68.3"
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: "v0.68.3"
   tests/appsec/waf/test_addresses.py::Test_BodyXml: "v0.98.0"
@@ -336,11 +336,11 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_PathParams: "v0.71.0"
   tests/appsec/waf/test_addresses.py::Test_UrlQuery: "v0.68.3"
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: "v0.74.0"
-  tests/appsec/waf/test_addresses.py::Test_UrlRaw: "v0.68.3"
+  tests/appsec/waf/test_addresses.py::Test_UrlRaw: "v0.68.3"  # probably sooner, but was flaky
   tests/appsec/waf/test_addresses.py::Test_gRPC: "missing_feature"
-  tests/appsec/waf/test_blocking.py::Test_Blocking: "missing_feature"
+  tests/appsec/waf/test_blocking.py::Test_Blocking: "missing_feature"  # v0.86.0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: "missing_feature"
-  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: "missing_feature"
+  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: "missing_feature"  # v0.86.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: "missing_feature"
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: "missing_feature"
@@ -433,7 +433,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: "v1.5.0"
   tests/parametric/test_config_consistency.py::Test_Config_Tags: "v1.9.0"
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: "v1.4.0"
-  tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: "v1.3.0"
+  tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: "v1.3.0"  # Unknown initial version
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: "missing_feature"
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: "v1.5.0"
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: "v1.8.0"
@@ -458,10 +458,10 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: "v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: "v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: "missing_feature (baggage is not supported)"
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: "bug (APMAPI-778)"
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: "bug (APMAPI-778)"  # current span endpoint should return span and trace id of zero if no span is "active"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: "missing_feature"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: "missing_feature (otel baggage is not supported)"
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: "bug (APMAPI-778)"
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: "bug (APMAPI-778)"  # otel current span endpoint should return a span and trace id of zero if no span is "active"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: "missing_feature"
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: "missing_feature"
   tests/parametric/test_process_discovery.py: "missing_feature"
@@ -474,9 +474,9 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: "missing_feature"
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: "v1.9.0"
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: "missing_feature"
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "missing_feature"
-  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "missing_feature"
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v0.68.3"
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "missing_feature"  # should be: v0.99.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "missing_feature"  # Implemented in v1.11.0, but parametric tests don't use a real SSI environment
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v0.68.3"  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: "v0.96.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: "v0.96.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: "v0.96.0"
@@ -505,7 +505,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: "v1.2.0"
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: "missing_feature"
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: "missing_feature"
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: "v1.3.0"
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: "v1.3.0"  # Unknown initial version
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: "v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False: "v1.4.0"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: "v1.4.0"
@@ -555,10 +555,10 @@ manifest:
   tests/test_protobuf.py: "missing_feature"
   tests/test_resource_renaming.py: "missing_feature"
   tests/test_sampling_rates.py::Test_SampleRateFunction: "v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7"
-  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v1.7.2"
+  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v1.7.2"  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: "v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7"
-  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v1.7.2"
-  tests/test_sampling_rates.py::Test_SamplingRates: "v1.7.2"
+  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v1.7.2"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingRates: "v1.7.2"  # real version unknown
   tests/test_scrubbing.py::Test_UrlQuery: "v0.76.0"
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: "v0.83.1"
   tests/test_span_events.py: "incomplete_test_app (Weblog `/add_event` not implemented)"

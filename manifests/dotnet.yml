@@ -399,14 +399,14 @@ manifest:
   tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation: "missing_feature (Endpoint not implemented)"
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
     - weblog_declaration:
-        "*": "v0.1"
+        "*": "v0.1"  # version unknown
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": "v2.48.0"
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
-  tests/integrations/test_dbm.py::Test_Dbm: "v0.1"
+  tests/integrations/test_dbm.py::Test_Dbm: "v0.1"  # missing version
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: "missing_feature"
   tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
@@ -551,15 +551,15 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: "missing_feature"
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
-        "*": "v1.0"
+        "*": "v1.0"  # real version not known
         uds: "missing_feature (to be confirmed)"
   tests/test_protobuf.py::Test_Protobuf: "v3.15.0"
   tests/test_resource_renaming.py: "missing_feature"
-  tests/test_sampling_rates.py::Test_SampleRateFunction: "v3.11.1"
-  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v3.11.1"
-  tests/test_sampling_rates.py::Test_SamplingDecisions: "v3.11.1"
-  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v3.11.1"
-  tests/test_sampling_rates.py::Test_SamplingRates: "v3.11.1"
+  tests/test_sampling_rates.py::Test_SampleRateFunction: "v3.11.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v3.11.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDecisions: "v3.11.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v3.11.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingRates: "v3.11.1"  # real version unknown
   tests/test_scrubbing.py::Test_UrlField: "v2.29.0"
   tests/test_scrubbing.py::Test_UrlQuery: "v2.13.0"
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: "v2.6.0"

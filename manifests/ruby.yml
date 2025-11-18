@@ -16,10 +16,10 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: "irrelevant"
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: "v2.18.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: "v2.23.0.dev"
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: "v2.21.0"
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: "v2.21.0"
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "v2.21.0"
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "v2.21.0"
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: "v2.21.0"  # auto activation: might not be the earliest working version
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: "v2.21.0"  # auto activation: might not be the earliest working version
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "v2.21.0"  # auto activation: might not be the earliest working version
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "v2.21.0"  # auto activation: might not be the earliest working version
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": "v2.22.0.dev"
@@ -258,16 +258,16 @@ manifest:
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: "missing_feature (relies on Telemetry V2)"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: "v2.14.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: "v2.14.0"
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: "irrelevant"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: "irrelevant"  # xml body not natively supported
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: "v2.15.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: "v2.14.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: "v2.14.0"
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: "missing_feature"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: "missing_feature"  # requires Telemetry V2
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: "v2.14.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: "v2.14.0"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: "v2.14.0"
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: "missing_feature"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: "missing_feature"  # requires Telemetry V2
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: "v2.18.0"
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: "v2.13.0"
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: "v2.13.0"
@@ -289,7 +289,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant"
-  tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "v2.23.1-dev"
+  tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "v2.23.1-dev"  # auto activation: might not be the earliest working version
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
     - weblog_declaration:
         "*": "v2.13.0"
@@ -399,12 +399,12 @@ manifest:
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: "missing_feature"
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: "missing_feature"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint: "v2.15.0"
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: "v2.23.1-dev"
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: "v2.23.1-dev"  # auto activation: might not be the earliest working version
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor: "v2.16.0"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: "v2.15.0"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: "v2.16.0"
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: "v2.23.1-dev"
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: "v2.23.1-dev"
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: "v2.23.1-dev"  # auto activation: might not be the earliest working version
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: "v2.23.1-dev"  # auto activation: might not be the earliest working version
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
     - weblog_declaration:
         "*": "v2.16.0"
@@ -414,7 +414,7 @@ manifest:
         sinatra32: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         sinatra41: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
         uds-sinatra: "missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)"
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: "v2.23.1-dev"
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: "v2.23.1-dev"  # auto activation: might not be the earliest working version
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
     - weblog_declaration:
         "*": "v2.16.0"
@@ -468,7 +468,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers:
     - weblog_declaration:
-        "*": "v0.54.2"
+        "*": "v0.54.2"  # assumed as the oldest supported version
         sinatra14: "missing_feature (endpoint not implemented)"
         sinatra22: "missing_feature (endpoint not implemented)"
         sinatra32: "missing_feature (endpoint not implemented)"
@@ -493,11 +493,11 @@ manifest:
   tests/appsec/waf/test_exclusions.py::Test_Exclusions:
     - weblog_declaration:
         "*": "v1.11.0"
-        sinatra14: "v2.21.0"
-        sinatra22: "v2.21.0"
-        sinatra32: "v2.21.0"
-        sinatra41: "v2.21.0"
-        uds-sinatra: "v2.21.0"
+        sinatra14: "v2.21.0"  # auto activation: might not be the earliest working version
+        sinatra22: "v2.21.0"  # auto activation: might not be the earliest working version
+        sinatra32: "v2.21.0"  # auto activation: might not be the earliest working version
+        sinatra41: "v2.21.0"  # auto activation: might not be the earliest working version
+        uds-sinatra: "v2.21.0"  # auto activation: might not be the earliest working version
   tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: "v0.54.2"
   tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: "v1.0.0.beta1"
   tests/appsec/waf/test_reports.py::Test_Monitoring: "v1.8.0"
@@ -676,8 +676,8 @@ manifest:
   tests/parametric/test_crashtracking.py::Test_Crashtracking: "v2.3.0"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: "v2.0.0"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: "missing_feature"
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: "bug (APMAPI-867)"
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: "v2.8.0"
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: "bug (APMAPI-867)"  # theorical version is v1.13.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: "v2.8.0"  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: "missing_feature"
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: "missing_feature"
   tests/parametric/test_feature_flag_exposure/test_feature_flag_exposure.py::Test_Feature_Flag_Exposure: "missing_feature"
@@ -693,7 +693,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: "missing_feature (baggage is not supported)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: "incomplete_test_app (current span endpoint is not supported)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: "missing_feature"
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: "bug (APMAPI-778)"
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: "bug (APMAPI-778)"  # set_name endpoint should set the resource name on a span (not the operation name)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: "missing_feature (otel baggage is not supported)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: "incomplete_test_app (otel current span endpoint is not supported)"
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: "missing_feature"
@@ -710,7 +710,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: "missing_feature"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: "v2.1.0"
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: "v2.18.0"
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.0.0"
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: "v1.0.0"  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: "v2.0.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: "v2.0.0"
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: "v2.0.0"
@@ -800,7 +800,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: "v1.13.0"
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: "v1.13.0"
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: "v1.13.0"
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: "bug (APMAPI-867)"
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: "bug (APMAPI-867)"  # theorical version is v2.0.0
   tests/test_library_conf.py::Test_HeaderTags_Long: "v1.13.0"
   tests/test_library_conf.py::Test_HeaderTags_Short: "v1.13.0"
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: "v1.13.0"
@@ -820,11 +820,11 @@ manifest:
         sinatra41: "irrelevant"
         uds-sinatra: "irrelevant"
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: "missing_feature"
-  tests/test_sampling_rates.py::Test_SampleRateFunction: "v2.15.0"
-  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v2.12.1"
-  tests/test_sampling_rates.py::Test_SamplingDecisions: "v2.15.0"
-  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v2.12.1"
-  tests/test_sampling_rates.py::Test_SamplingRates: "v2.15.0"
+  tests/test_sampling_rates.py::Test_SampleRateFunction: "v2.15.0"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v2.12.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDecisions: "v2.15.0"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v2.12.1"  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingRates: "v2.15.0"  # real version unknown
   tests/test_scrubbing.py::Test_UrlField: "missing_feature (Needs weblog endpoint)"
   tests/test_scrubbing.py::Test_UrlQuery: "v1.0.0"
   tests/test_semantic_conventions.py::Test_Meta: "v1.7.0"
