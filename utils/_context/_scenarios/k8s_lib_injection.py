@@ -117,6 +117,17 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             self.k8s_cluster_provider.get_cluster_info(), weblog_env=self.weblog_env, dd_cluster_uds=self.use_uds
         )
 
+        self.warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
+        self.warmups.append(self.k8s_cluster_provider.ensure_cluster)
+
+        if not self.with_datadog_operator:
+            self.warmups.append(self.k8s_datadog.deploy_test_agent)
+            self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
+            self.warmups.append(self.test_weblog.install_weblog_pod)
+        else:
+            self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
+            self.warmups.append(self.test_weblog.install_weblog_pod)
+
     def print_context(self):
         logger.stdout(f".:: K8s Lib injection test components ::.")
         logger.stdout(f"Weblog: {self.k8s_weblog}")
@@ -127,21 +138,6 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         logger.stdout(f"Cluster agent image: {self.k8s_cluster_img.registry_url}")
         logger.stdout(f"Injector version: {self._datadog_apm_inject_version}")
         logger.stdout(f"Injector image: {self.k8s_injector_img.registry_url}")
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
-        warmups.append(self.k8s_cluster_provider.ensure_cluster)
-
-        if not self.with_datadog_operator:
-            warmups.append(self.k8s_datadog.deploy_test_agent)
-            warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
-            warmups.append(self.test_weblog.install_weblog_pod)
-        else:
-            warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
-            warmups.append(self.test_weblog.install_weblog_pod)
-
-        return warmups
 
     def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
         self.close_targets()
@@ -233,19 +229,17 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
             self.k8s_cluster_provider.get_cluster_info(), weblog_env=self.weblog_env, dd_cluster_uds=self.use_uds
         )
 
+        self.warmups = []  # re-write entirely warmups
+        self.warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
+        self.warmups.append(self.k8s_cluster_provider.ensure_cluster)
+        self.warmups.append(self.k8s_datadog.deploy_test_agent)
+        self.warmups.append(self.test_weblog.install_weblog_pod_with_manual_inject)
+
     def print_context(self):
         logger.stdout(f"K8s Weblog: {self.k8s_weblog}")
         logger.stdout(f"K8s Weblog image: {self.k8s_weblog_img.registry_url}")
         logger.stdout(f"Library: {self._library}")
         logger.stdout(f"K8s Lib init image: {self.k8s_lib_init_img.registry_url}")
-
-    def get_warmups(self):
-        warmups = []
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
-        warmups.append(self.k8s_cluster_provider.ensure_cluster)
-        warmups.append(self.k8s_datadog.deploy_test_agent)
-        warmups.append(self.test_weblog.install_weblog_pod_with_manual_inject)
-        return warmups
 
     def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
         self.close_targets()
@@ -310,16 +304,13 @@ class K8sSparkScenario(K8sScenario):
             service_account="spark",
         )
 
-    def get_warmups(self):
-        warmups = []
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
-        warmups.append(self.k8s_cluster_provider.ensure_cluster)
-        warmups.append(self.k8s_cluster_provider.create_spak_service_account)
-        warmups.append(self.k8s_datadog.deploy_test_agent)
-        warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
-        warmups.append(self.test_weblog.install_weblog_pod)
-
-        return warmups
+        self.warmups = []  # re-write warmups
+        self.warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
+        self.warmups.append(self.k8s_cluster_provider.ensure_cluster)
+        self.warmups.append(self.k8s_cluster_provider.create_spak_service_account)
+        self.warmups.append(self.k8s_datadog.deploy_test_agent)
+        self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
+        self.warmups.append(self.test_weblog.install_weblog_pod)
 
 
 class WeblogInjectionScenario(Scenario):
@@ -351,21 +342,16 @@ class WeblogInjectionScenario(Scenario):
         for container in self._required_containers:
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
+        self.warmups.append(self._create_network)
+        self.warmups.append(create_inject_volume)
+        self.warmups.append(self._start_containers)
+
     def _create_network(self):
         self._network = create_network()
 
     def _start_containers(self):
         for container in self._required_containers:
             container.start(self._network)
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        warmups.append(self._create_network)
-        warmups.append(create_inject_volume)
-        warmups.append(self._start_containers)
-
-        return warmups
 
     def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
         self.close_targets()

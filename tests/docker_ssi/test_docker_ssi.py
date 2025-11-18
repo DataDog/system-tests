@@ -1,6 +1,17 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger, missing_feature
+from tests.parametric.test_telemetry import _mapped_telemetry_name
+from utils import (
+    scenarios,
+    features,
+    context,
+    irrelevant,
+    bug,
+    interfaces,
+    weblog,
+    logger,
+    missing_feature,
+)
 
 
 @scenarios.docker_ssi
@@ -93,7 +104,7 @@ class TestDockerSSIFeatures:
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
-    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library == "python")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
@@ -131,25 +142,25 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_service_tracking
-    @missing_feature(context.library in ("nodejs", "dotnet", "java", "ruby"), reason="Not implemented yet")
-    @missing_feature(context.library < "python@3.8.0.dev", reason="Not implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
+    @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
+    @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
+    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
+    @missing_feature(context.library < "ruby@v2.19.0", reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
-        # There are traces related with the request
-        root_span = interfaces.test_agent.get_traces(request=self.r)
-        assert root_span, f"No traces found for request {self.r.get_rid()}"
-        assert "service" in root_span, f"No service name found in root_span: {root_span}"
-        # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations(
-            root_span["service"], root_span["meta"]["runtime-id"]
-        )
-
-        # Check that instrumentation source is ssi
-        injection_source = configurations.get("instrumentation_source")
-        assert injection_source, f"instrumentation_source not found in configuration {configurations}"
-        assert injection_source["value"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
+        # Get the latest (effective) configurations
+        telemetry_name = _mapped_telemetry_name("instrumentation_source")
+        configurations = interfaces.test_agent.get_telemetry_configurations()
+        instrumentation_source = configurations.get(telemetry_name, {})
+        assert instrumentation_source.get("value") == "ssi", f"{telemetry_name}=ssi not found in {configurations}"
 
     def setup_injection_metadata(self):
         self._setup_all()

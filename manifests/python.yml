@@ -1120,8 +1120,8 @@ tests/:
       Test_FR07_Host_Name: v3.13.0.dev
       Test_FR08_Custom_Headers: v3.13.0.dev
       Test_FR09_Log_Injection: v3.13.0.dev
-      Test_FR10_Timeout_Configuration: v3.14.0.dev
-      Test_FR11_Telemetry: v3.14.0.dev
+      Test_FR10_Timeout_Configuration: v3.13.0.dev
+      Test_FR11_Telemetry: v3.15.0
     test_otel_metrics.py:
       Test_Otel_Metrics_Api_Instrument: v3.16.0.dev
       Test_Otel_Metrics_Api_Meter: v3.16.0.dev
@@ -1166,7 +1166,7 @@ tests/:
       Test_Stable_Configuration_Origin: v3.7.0.dev
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
-      Test_TelemetrySSIConfigs: v3.8.0.dev
+      Test_TelemetrySSIConfigs: v3.11.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0

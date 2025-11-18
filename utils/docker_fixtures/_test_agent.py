@@ -208,7 +208,7 @@ class TestAgentAPI:
             self.clear()
         resp_json = resp.json()
         self._write_log("metrics", resp_json)
-        return cast(list[Any], resp_json)
+        return cast("list[Any]", resp_json)
 
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
@@ -606,7 +606,7 @@ class TestAgentAPI:
                         if config_name not in configurations:
                             configurations[config_name] = []
                         configurations[config_name].append(config)
-        if len(configurations):
+        if configurations:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configurations))
             if "seq_id" in configurations[sample_key][0]:
@@ -804,7 +804,7 @@ class TestAgentAPI:
     def logs(self) -> list[Any]:
         url = self._otlp_url("/test/session/logs")
         resp = self._session.get(url)
-        return cast(list[Any], resp.json())
+        return cast("list[Any]", resp.json())
 
     def wait_for_num_log_payloads(self, num: int, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` logs to be received from the test agent."""
