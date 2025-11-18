@@ -26,7 +26,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         self.timeout = 0
         self._data_list: list[dict] = []
 
-    def _get_files(self):
+    def _get_files(self) -> list[Path]:
         raise NotImplementedError
 
     def _clean_line(self, line: str):
@@ -42,11 +42,11 @@ class _LogsInterfaceValidator(InterfaceValidator):
         return level
 
     def _read(self):
-        for filename in self._get_files():
-            logger.info(f"For {self}, reading {filename}")
+        for file in self._get_files():
+            logger.info(f"For {self}, reading {file!s}")
             log_count = 0
             try:
-                with open(filename, encoding="utf-8") as f:
+                with file.open(encoding="utf-8") as f:
                     buffer: list[str] = []
                     for raw_line in f:
                         line = raw_line
@@ -66,9 +66,9 @@ class _LogsInterfaceValidator(InterfaceValidator):
                     log_count += 1
                     yield "\n".join(buffer) + "\n"
 
-                logger.info(f"Reading {filename} is finished, {log_count} has been treated")
+                logger.info(f"Reading {file!s} is finished, {log_count} has been treated")
             except FileNotFoundError:
-                logger.debug(f"File not found, skipping it: {filename}")
+                logger.debug(f"File not found, skipping it: {file!s}")
 
     def load_data(self):
         logger.debug(f"Load data for log interface {self.name}")
@@ -123,10 +123,10 @@ class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
         super().__init__(f"{container_name} stdout", new_log_line_pattern=new_log_line_pattern)
         self.container_name = container_name
 
-    def _get_files(self):
+    def _get_files(self) -> list[Path]:
         return [
-            f"{self.host_log_folder}/docker/{self.container_name}/stdout.log",
-            f"{self.host_log_folder}/docker/{self.container_name}/stderr.log",
+            Path(f"{self.host_log_folder}/docker/{self.container_name}/stdout.log"),
+            Path(f"{self.host_log_folder}/docker/{self.container_name}/stderr.log"),
         ]
 
 
@@ -216,7 +216,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         message = p("message", r".*")
         self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {message}"))
 
-    def _get_files(self):
+    def _get_files(self) -> list[Path]:
         result = []
 
         try:
@@ -226,7 +226,7 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
 
         for file in files:
             if file.is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", file.name):
-                result.append(file.name)
+                result.append(file)
 
         return result
 
