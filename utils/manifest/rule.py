@@ -6,8 +6,8 @@ from utils._decorators import _TestDeclaration
 
 def match_condition(
     condition: dict[str, Any],
-    component: str | None = None,
-    component_version: Version | None = None,
+    library: str | None = None,
+    library_version: Version | None = None,
     weblog: str | None = None,
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
@@ -23,12 +23,12 @@ def match_condition(
         case "dd_apm_inject":
             ref_version = dd_apm_inject_version
         case _:
-            ref_version = component_version
+            ref_version = library_version
 
     if not ref_version:
         return True
 
-    if condition["component"] == component or component in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
+    if condition["component"] == library or condition["component"] in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
     if condition.get("component_version"):
         ret &= ref_version in condition["component_version"]
@@ -65,8 +65,8 @@ def match_rule(rule: str, nodeid: str) -> bool:
 
 def get_rules(
     manifest: dict[str, list[dict[str, Any]]],
-    component: str,
-    component_version: Version | None = None,
+    library: str,
+    library_version: Version | None = None,
     weblog: str | None = None,
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
@@ -78,8 +78,8 @@ def get_rules(
         for condition in conditions:
             if not match_condition(
                 condition,
-                component,
-                component_version,
+                library,
+                library_version,
                 weblog,
                 agent_version,
                 dd_apm_inject_version,

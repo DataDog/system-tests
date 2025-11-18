@@ -20,7 +20,10 @@ class TestManifest:
                     "declaration": Declaration("missing_feature"),
                     "component": "java",
                 },
-                {"declaration": Declaration("missing_feature (missing /e2e_otel_span endpoint on weblog)"), "component": "python"},
+                {
+                    "declaration": Declaration("missing_feature (missing /e2e_otel_span endpoint on weblog)"),
+                    "component": "python",
+                },
             ],
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners": [
                 {"declaration": Declaration("missing_feature"), "component": "java"},
