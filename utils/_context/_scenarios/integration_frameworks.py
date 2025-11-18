@@ -14,13 +14,12 @@ from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from ._docker_fixtures import DockerFixturesScenario
-from .parametric import get_node_volumes
 
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
 
-    def __init__(self, name: str, doc: str, *, require_openai_api_key: bool = False) -> None:
+    def __init__(self, name: str, doc: str) -> None:
         super().__init__(
             name,
             doc=doc,
@@ -33,12 +32,16 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             "DD_TRACE_OTEL_ENABLED": "true",
             "DD_LLMOBS_ENABLED": "true",  # TODO: should this be configurable elsewhere? different scenario?
             "DD_LLMOBS_ML_APP": "test-app",  # TODO: should this be configurable somehow?
+            "OPENAI_API_KEY": os.getenv(
+                "OPENAI_API_KEY", "<not-a-real-key>"
+            ),  # see TODO below for removing this logic later
         }
 
-        self.require_openai_api_key = require_openai_api_key
-
     def configure(self, config: pytest.Config):
-        self._check_and_set_api_keys()
+        # TODO(sabrenner): once everything else is cleaned up, add an
+        # --update-cassettes option or something to require an API key
+        # this will run the scenario but not care about the test assertions for the
+        # related tests (openai for now, but others in the future, not just LLM ones)
 
         library: str = config.option.library
         weblog: str = config.option.weblog
@@ -51,6 +54,9 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         if "@" not in weblog:
             pytest.exit("Weblog must be of the form : openai@2.0.0.", 1)
+
+        if config.option.force_dd_trace_debug:
+            self.environment["DD_TRACE_DEBUG"] = "true"
 
         framework, framework_version = weblog.split("@", 1)
 
@@ -65,7 +71,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         # Add nodejs-load-from-local volume support if needed
         if library == "nodejs":
-            container_volumes.update(get_node_volumes())
+            container_volumes.update(DockerFixturesScenario.get_node_volumes())
 
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
@@ -118,21 +124,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     @property
     def library(self):
         return self._library
-
-    def _check_and_set_api_keys(self):
-        """Set the necessary provider environment variables if required.
-
-        Does not check the API key when running in CI.
-        """
-        is_ci = "GITLAB_CI" in os.environ or "GITHUB_EVENT_NAME" in os.environ
-
-        if self.require_openai_api_key and not is_ci:
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-            if not openai_api_key:
-                pytest.exit("OPENAI_API_KEY environment variable is required but not set", 1)
-            self.environment["OPENAI_API_KEY"] = openai_api_key  # type: ignore[assignment]
-        else:
-            self.environment["OPENAI_API_KEY"] = "<not-a-real-key>"
 
     def _set_dd_trace_integrations_enabled(self, library: str) -> None:
         """Set environment variables to disable certain integrations based on the library."""

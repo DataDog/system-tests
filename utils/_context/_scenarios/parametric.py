@@ -82,7 +82,7 @@ class ParametricScenario(DockerFixturesScenario):
 
         volumes = {
             "golang": {"./utils/build/docker/golang/parametric": "/client"},
-            "nodejs": get_node_volumes(),
+            "nodejs": DockerFixturesScenario.get_node_volumes(),
             "php": {"./utils/build/docker/php/parametric/server.php": "/client/server.php"},
             "python": {"./utils/build/docker/python/parametric/apm_test_client": "/app/apm_test_client"},
         }
@@ -179,21 +179,3 @@ class ParametricScenario(DockerFixturesScenario):
         request.node.add_report_section(
             "teardown", f"{self.library.name.capitalize()} Library Output", f"Log file:\n./{log_path}"
         )
-
-
-def _get_base_directory() -> str:
-    return str(Path.cwd())
-
-
-def get_node_volumes() -> dict[str, str]:
-    volumes = {}
-
-    try:
-        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
-            path = f.read().strip(" \r\n")
-            source = os.path.join(_get_base_directory(), path)
-            volumes[str(Path(source).resolve())] = "/volumes/dd-trace-js"
-    except FileNotFoundError:
-        logger.info("No local dd-trace-js found, do not mount any volume")
-
-    return volumes
