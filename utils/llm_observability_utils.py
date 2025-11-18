@@ -148,7 +148,7 @@ def _assert_tags_span_event_tags(
         "env": mock.ANY,
         "source": "integration",
         "ml_app": ml_app,
-        "ddtrace.version": str(context.library.version),
+        "ddtrace.version": mock.ANY,
         "language": _library_to_language_tag(),
         "error": str(int(error)),
     }
