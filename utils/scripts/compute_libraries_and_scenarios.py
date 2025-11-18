@@ -14,6 +14,7 @@ import yaml
 
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios
 from utils._logger import logger
+from utils.manifest import Manifest
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -205,8 +206,9 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
-        self.scenario_groups |= {all_scenario_groups.all.name}
-        return
+        if "nccatoni/manifest-migration" in inputs.ref:
+            self.scenario_groups |= {all_scenario_groups.all.name}
+            return
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
@@ -292,21 +294,22 @@ class Inputs:
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
-        # new_manifests: str = "manifests/",
-        # old_manifests: str = "original/manifests/",
+        new_manifests: str = "manifests/",
+        old_manifests: str = "original/manifests/",
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        # self.new_manifests = load_manifests(new_manifests)
-        # self.old_manifests = load_manifests(old_manifests)
+        if "nccatoni/manifest-migration" not in self.ref:
+            self.new_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(new_manifests)
+            self.old_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(old_manifests)
 
-        # if not self.new_manifests:
-        #     raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
-        # if not self.old_manifests:
-        #     raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
+            if not self.new_manifests:
+                raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
+            if not self.old_manifests:
+                raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
 
         self.load_raw_impacts()
         self.load_scenario_mappings()
