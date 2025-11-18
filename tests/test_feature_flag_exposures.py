@@ -185,7 +185,7 @@ class Test_FFE_Exposure_Events:
         }
 
         # Apply both configurations
-        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
             f"{RC_PATH}/{config_id_2}/config", rc_config_2
         ).apply()
 
