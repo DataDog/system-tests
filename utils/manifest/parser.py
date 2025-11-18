@@ -60,7 +60,7 @@ def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
     for nodeid, raw_value in data["manifest"].items():
         if isinstance(raw_value, str):
             declaration = Declaration(raw_value, is_inline=True)
-            value = {}
+            value: dict[str, Any] = {}
             if declaration.is_skip:
                 value["declaration"] = declaration
             else:

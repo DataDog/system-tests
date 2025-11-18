@@ -1,7 +1,7 @@
 from typing import Any
 
 from utils._context.component_version import Version
-from utils._decorators import _TestDeclaration, parse_skip_declaration
+from utils._decorators import _TestDeclaration
 
 
 def match_condition(
