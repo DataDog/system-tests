@@ -4,7 +4,7 @@ import yaml
 from pathlib import Path
 
 from utils import interfaces
-from utils._context.component_version import ComponentVersion
+from utils._context.component_version import Version
 from utils._context.containers import OpenTelemetryCollectorContainer
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
@@ -14,6 +14,8 @@ from .endtoend import DockerScenario
 
 
 class OtelCollectorScenario(DockerScenario):
+    otel_collector_version: Version
+
     def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
         super().__init__(
             name,
@@ -24,8 +26,6 @@ class OtelCollectorScenario(DockerScenario):
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
         )
-
-        self.library = ComponentVersion("generic", "0.0.0")
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
@@ -64,9 +64,13 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container.environment["DOCKER_IMAGE_TAG"] = docker_image_tag
 
         interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
-        self.library = ComponentVersion(
-            "generic", self.collector_container.image.labels["org.opencontainers.image.version"]
-        )
+        self.otel_collector_version = Version(self.collector_container.image.labels["org.opencontainers.image.version"])
+
+        self.components["otel_collector"] = str(self.otel_collector_version)
+        # Extract version from image name
+        image_name = self.postgres_container.image.name
+        postgres_version = image_name.split(":", 1)[1] if ":" in image_name else "unknown"
+        self.components["postgresql"] = postgres_version
 
         self.warmups.append(self._print_otel_collector_version)
 
@@ -74,7 +78,7 @@ class OtelCollectorScenario(DockerScenario):
             self.warmups.insert(1, self._start_interfaces_watchdog)
 
     def customize_feature_parity_dashboard(self, result: dict) -> None:
-        result["configuration"]["collector_version"] = str(self.library.version)
+        result["configuration"]["collector_version"] = str(self.otel_collector_version)
         result["configuration"]["collector_image"] = self.collector_container.image.name
 
         # Extract image commit/revision if available from labels
@@ -114,17 +118,11 @@ class OtelCollectorScenario(DockerScenario):
         except Exception as e:
             pytest.exit(f"Failed to parse OTel collector config: {e}", 1)
 
-        # Extract version from image name
-        image_name = self.postgres_container.image.name
-        postgres_version = image_name.split(":", 1)[1] if ":" in image_name else "unknown"
-
-        result["testedDependencies"].append({"name": "postgresql", "version": postgres_version})
-
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])
 
     def _print_otel_collector_version(self):
-        logger.stdout(f"Otel collector: {self.library}")
+        logger.stdout(f"Otel collector: {self.otel_collector_version}")
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
         # if no test are run, skip interface timeouts
@@ -153,12 +151,3 @@ class OtelCollectorScenario(DockerScenario):
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         self.test_schemas(session, interfaces.otel_collector, [])
         super().pytest_sessionfinish(session, exitstatus)
-
-    def get_junit_properties(self) -> dict[str, str]:
-        result = super().get_junit_properties()
-
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = "n/a"
-
-        return result
