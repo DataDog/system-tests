@@ -281,9 +281,6 @@ class _Weblog:
             }
         )
 
-    def warmup_request(self, timeout: int = 10):
-        requests.get(self._get_url("/"), timeout=timeout)
-
     def _get_url(self, path: str, domain: str | None = None, port: int | None = None, query: dict | None = None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative

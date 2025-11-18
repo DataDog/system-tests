@@ -26,13 +26,11 @@ class PerformanceScenario(EndToEndScenario):
         self.warmups.append(self._extra_weblog_warmup)
 
     def _extra_weblog_warmup(self):
-        from utils import weblog
-
         WARMUP_REQUEST_COUNT = 10  # noqa: N806
         WARMUP_LAST_SLEEP_DURATION = 3  # noqa: N806
 
         for _ in range(WARMUP_REQUEST_COUNT):
-            weblog.warmup_request(timeout=10)
+            self.weblog_container.warmup_request(timeout=10)
             time.sleep(0.6)
 
         time.sleep(WARMUP_LAST_SLEEP_DURATION)
