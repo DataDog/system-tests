@@ -43,6 +43,9 @@ UFC_FIXTURE_DATA = {
 class Test_FFE_Exposure_Events:
     def setup_ffe_exposure_event_generation(self):
         """Set up FFE exposure event generation."""
+        # Reset remote config to empty state
+        rc.rc_state.reset().apply()
+
         # Set up Remote Config
         config_id = "ffe-test-config"
         rc_config = UFC_FIXTURE_DATA
@@ -126,6 +129,9 @@ class Test_FFE_Exposure_Events:
 
     def setup_ffe_multiple_remote_config_files(self):
         """Set up FFE with multiple remote config files across different target paths."""
+        # Reset remote config to empty state
+        rc.rc_state.reset().apply()
+
         # Set up multiple Remote Config files with different config IDs
         config_id_1 = "ffe-test-config-1"
         config_id_2 = "ffe-test-config-2"
@@ -303,6 +309,9 @@ class Test_FFE_Exposure_Events_Empty:
 class Test_FFE_Exposure_Events_Errors:
     def setup_ffe_malformed_remote_config_rejection(self):
         """Set up FFE with a valid config, then update with malformed config to test rejection."""
+        # Reset remote config to empty state
+        rc.rc_state.reset().apply()
+
         # First, set up a valid Remote Config
         config_id = "ffe-test-config-malformed"
         valid_rc_config = {
