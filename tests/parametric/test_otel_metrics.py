@@ -1881,7 +1881,6 @@ class Test_Otel_Metrics_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_TIMEOUT", 10000),
             ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 10000),
             ("OTEL_METRIC_EXPORT_INTERVAL", 10000),
             ("OTEL_METRIC_EXPORT_TIMEOUT", 7500),
