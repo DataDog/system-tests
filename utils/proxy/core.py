@@ -179,7 +179,7 @@ class _RequestLogger:
             elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
                 interface = "agent"
             else:
-                raise ValueError(f"Unknown port provenance for {flow.request}: {port}") # noqa: TRY301
+                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")  # noqa: TRY301
 
             # extract url info
             if "?" in flow.request.path:
