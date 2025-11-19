@@ -92,6 +92,7 @@ def _run_comprehensive_flag_evaluations(
 
     Returns:
         Dictionary mapping test case index to evaluation results and metadata
+
     """
     results = {}
     for i, test_case in enumerate(test_cases):
@@ -133,10 +134,7 @@ def _run_comprehensive_flag_evaluations(
 
 
 def _verify_cached_evaluations(
-    test_library: APMLibrary,
-    reference_results: dict[int, dict],
-    test_case_file: str,
-    phase_name: str
+    test_library: APMLibrary, reference_results: dict[int, dict], test_case_file: str, phase_name: str
 ) -> None:
     """Verify that cached flag evaluations match reference results.
 
@@ -145,6 +143,7 @@ def _verify_cached_evaluations(
         reference_results: Reference results to compare against (from happy path)
         test_case_file: Name of the test case file (for error reporting)
         phase_name: Descriptive name of the phase (for error reporting)
+
     """
     for i, stored_case in reference_results.items():
         cached_result = test_library.ffe_evaluate(
@@ -175,20 +174,19 @@ def _verify_cached_evaluations(
 def _verify_evaluation_consistency(
     test_library: APMLibrary,
     reference_results: dict[int, dict],
-    test_case_file: str,
     phase_name: str,
     num_rounds: int = 3,
-    num_cases: int = 3
+    num_cases: int = 3,
 ) -> None:
     """Verify that multiple flag evaluations remain consistent.
 
     Args:
         test_library: The APM library instance for FFE operations
         reference_results: Reference results to compare against
-        test_case_file: Name of the test case file (for error reporting)
         phase_name: Descriptive name of the phase (for error reporting)
         num_rounds: Number of consistency check rounds to run
         num_cases: Number of test cases to check (from the beginning)
+
     """
     # Use a subset of test cases to verify multiple evaluations remain consistent
     sample_cases = list(reference_results.items())[:num_cases]
@@ -202,9 +200,9 @@ def _verify_evaluation_consistency(
                 targeting_key=stored_case["targeting_key"],
                 attributes=stored_case["attributes"],
             )
-            assert "value" in consistency_result, (
-                f"FFE consistency check round {consistency_round} case {i} should work during {phase_name}"
-            )
+            assert (
+                "value" in consistency_result
+            ), f"FFE consistency check round {consistency_round} case {i} should work during {phase_name}"
             consistency_value = consistency_result["value"]
             assert consistency_value == stored_case["actual_result"], (
                 f"{phase_name} consistency round {consistency_round} should be stable for case {i}: "
@@ -218,6 +216,7 @@ def _setup_ffe_test_environment(test_agent: _TestAgentAPI, test_library: APMLibr
     Args:
         test_agent: Test agent API instance
         test_library: APM library instance
+
     """
     # Set up UFC Remote Config and wait for it to be applied
     apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
@@ -249,7 +248,6 @@ class Test_Feature_Flag_Exposure:
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
-
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
     def test_ffe_remote_config_resilience(
@@ -280,9 +278,7 @@ class Test_Feature_Flag_Exposure:
         _setup_ffe_test_environment(test_agent, test_library)
 
         # Phase 2: Happy Path - Run comprehensive flag evaluation when RC is available
-        happy_path_results = _run_comprehensive_flag_evaluations(
-            test_library, test_cases, test_case_file, "Happy path"
-        )
+        happy_path_results = _run_comprehensive_flag_evaluations(test_library, test_cases, test_case_file, "Happy path")
 
         # Phase 3: Simulate RC becoming unavailable by introducing network delays
         # This simulates RC service being down or unreachable due to network issues
@@ -335,9 +331,7 @@ class Test_Feature_Flag_Exposure:
         _setup_ffe_test_environment(test_agent, test_library)
 
         # Phase 2: Happy Path - Run comprehensive flag evaluation when agent is available
-        happy_path_results = _run_comprehensive_flag_evaluations(
-            test_library, test_cases, test_case_file, "Happy path"
-        )
+        happy_path_results = _run_comprehensive_flag_evaluations(test_library, test_cases, test_case_file, "Happy path")
 
         # Phase 3: Simulate agent going down by stopping the test agent container
         # This preserves the library's cache while making agent truly unreachable
@@ -355,7 +349,7 @@ class Test_Feature_Flag_Exposure:
         _verify_cached_evaluations(test_library, happy_path_results, test_case_file, "agent downtime")
 
         # Phase 5: Test multiple evaluations to ensure consistency with cache
-        _verify_evaluation_consistency(test_library, happy_path_results, test_case_file, "agent downtime")
+        _verify_evaluation_consistency(test_library, happy_path_results, "agent downtime")
 
         # Phase 6: Restart agent container for cleanup
         # This ensures subsequent tests have a working agent
@@ -407,9 +401,7 @@ class Test_Feature_Flag_Exposure:
         _setup_ffe_test_environment(test_agent, test_library)
 
         # Phase 2: Happy Path - Run comprehensive flag evaluation when RC is available
-        happy_path_results = _run_comprehensive_flag_evaluations(
-            test_library, test_cases, test_case_file, "Happy path"
-        )
+        happy_path_results = _run_comprehensive_flag_evaluations(test_library, test_cases, test_case_file, "Happy path")
 
         # Phase 3: Simulate RC service downtime with network delays
         import time
@@ -443,4 +435,4 @@ class Test_Feature_Flag_Exposure:
         _verify_cached_evaluations(test_library, happy_path_results, test_case_file, "post-recovery")
 
         # Phase 7: Verify system is functioning normally after recovery with consistency checks
-        _verify_evaluation_consistency(test_library, happy_path_results, test_case_file, "post-recovery")
+        _verify_evaluation_consistency(test_library, happy_path_results, "post-recovery")
