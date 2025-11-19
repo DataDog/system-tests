@@ -22,6 +22,7 @@ if context.library > "python_lambda@8.117.0":
         pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
     ]
 
+
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp

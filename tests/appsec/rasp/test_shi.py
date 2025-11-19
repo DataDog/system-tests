@@ -23,6 +23,7 @@ if context.library > "python_lambda@8.117.0":
         pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
     ]
 
+
 class Test_Shi_Base:
     def get_shell_value(self):
         # This is a workaround for java as command injection is not supporting String commands yet, we need to use the shell injection heuristics
