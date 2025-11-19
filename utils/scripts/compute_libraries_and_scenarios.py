@@ -303,6 +303,7 @@ class Inputs:
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
         if "nccatoni/manifest-migration" not in self.ref:
+            print(self.ref)
             self.new_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(new_manifests)
             self.old_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(old_manifests)
 
