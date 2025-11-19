@@ -83,7 +83,7 @@ telemetry_name_mapping = {
         "java": "trace_debug",
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
-        "golang": "DD_TRACE_DEBUG",  # Before v2.4.0, the telemetry name was "trace_debug_enabled" — see _mapped_telemetry_name
+        "golang": "DD_TRACE_DEBUG",  # Before v2.5.0-dev, the telemetry name was "trace_debug_enabled" — see _mapped_telemetry_name
     },
     "tags": {
         "java": "trace_tags",
@@ -105,7 +105,7 @@ def _mapped_telemetry_name(apm_telemetry_name: str):
             if (
                 apm_telemetry_name == "trace_debug_enabled"
                 and context.library.name == "golang"
-                and context.library <= "golang@2.4.0"
+                and context.library <= "golang@2.5.0-dev"
             ):
                 return "trace_debug_enabled"
             return mapped_name
@@ -723,6 +723,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
+    # This is the specific test that's currently failing, but any test that calls _mapped_telemetry_name for debug mode, for golang, would fail.
     def test_stable_configuration_config_id(
         self,
         local_cfg: dict[str, bool],
