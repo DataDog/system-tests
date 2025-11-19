@@ -95,7 +95,6 @@ def generate_default_counter_data_point(test_library: APMLibrary, instrument_nam
 
 def assert_scope_metric(
     scope_metric: dict[str, dict],
-    library: str,
     meter_name: str,
     meter_version: str,
     schema_url: str,
@@ -107,7 +106,9 @@ def assert_scope_metric(
         expected_scope_attributes.items()
         == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
     )
-    assert scope_metric["schema_url"] == schema_url if library != "dotnet" else True  # .NET does not support schema_url
+
+    if context.library != "dotnet":  # .NET does not support schema_url
+        assert scope_metric["schema_url"] == schema_url
 
 
 def assert_metric_info(metric: dict, name: str, unit: str, description: str):
@@ -342,7 +343,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
             )
             assert_scope_metric(
                 scope_metric,
-                context.library.name,
                 scope_metric["scope"]["name"],
                 DEFAULT_METER_VERSION,
                 DEFAULT_SCHEMA_URL,
@@ -487,7 +487,6 @@ class Test_Otel_Metrics_Api_Meter:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -640,7 +639,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -692,7 +690,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -751,7 +748,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -805,7 +801,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -862,7 +857,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -908,7 +902,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -964,7 +957,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -1023,7 +1015,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -1081,7 +1072,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -1123,7 +1113,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
@@ -1163,7 +1152,6 @@ class Test_Otel_Metrics_Api_Instrument:
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(
             scope_metrics[0],
-            context.library.name,
             DEFAULT_METER_NAME,
             DEFAULT_METER_VERSION,
             DEFAULT_SCHEMA_URL,
