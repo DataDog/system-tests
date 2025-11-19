@@ -75,6 +75,44 @@ def extract_metrics_summary(metadata: Dict[str, Any]) -> Dict[str, Dict[str, str
     return summary
 
 
+def extract_disabled_metrics(metadata: Dict[str, Any]) -> list[str]:
+    """
+    Extract metrics that have enabled: false by default.
+    
+    Args:
+        metadata: Full metadata dictionary
+    
+    Returns:
+        List of metric names that are disabled by default
+    """
+    metrics = metadata.get("metrics", {})
+    disabled = []
+    
+    for name, config in metrics.items():
+        if config.get("enabled", True) is False:
+            disabled.append(name)
+    
+    return sorted(disabled)
+
+
+def generate_yaml_config(disabled_metrics: list[str]) -> str:
+    """
+    Generate YAML configuration snippet for disabled metrics.
+    
+    Args:
+        disabled_metrics: List of metric names that are disabled by default
+    
+    Returns:
+        YAML string to be added to otelcol-config-with-postgres.yaml
+    """
+    yaml_lines = ["    metrics:"]
+    for metric in disabled_metrics:
+        yaml_lines.append(f"      {metric}:")
+        yaml_lines.append("        enabled: true")
+    
+    return "\n".join(yaml_lines)
+
+
 def save_metrics(metrics: Dict[str, Any], output_path: Path) -> None:
     """Save metrics to JSON file."""
     with open(output_path, "w") as f:
@@ -114,6 +152,21 @@ def main() -> None:
         print(f"    description: {info['description']}")
         if i < 2:
             print()
+    
+    # Generate YAML config for disabled metrics for otelcol-config-with-postgres.yaml
+    print("\n" + "=" * 80)
+    print("Generating YAML config for disabled metrics")
+    print("=" * 80)
+    
+    disabled_metrics = extract_disabled_metrics(metadata)
+    print(f"✓ Found {len(disabled_metrics)} metrics that are disabled by default")
+    
+    yaml_config = generate_yaml_config(disabled_metrics)
+    print("\n📝 Copy this to otelcol-config-with-postgres.yaml:")
+    print("\n" + "-" * 80)
+    print(yaml_config)
+    print("-" * 80)
+    
 
 
 if __name__ == "__main__":

@@ -81,8 +81,14 @@ if TYPE_CHECKING:
 # }
 
 def _read_metrics_file() -> dict:
-# Load PostgreSQL metrics from OpenTelemetry
-# TODO: extend this to other types of metrics
+    """Load PostgreSQL metrics from OpenTelemetry.
+    
+    TODO: extend this to other types of metrics
+    TODO: Parse the OTel collector config file (utils/build/docker/otelcol-config-with-postgres.yaml)
+          to dynamically determine which metrics are enabled via the 'metrics' section under
+          'receivers.postgresql'. This would allow filtering metrics based on 'enabled: true'
+          instead of hardcoding exclusions.
+    """
     metrics_file = Path(__file__).parent / "postgres_metrics.json"
     if not metrics_file.exists():
         raise FileNotFoundError(f"PostgreSQL metrics file not found: {metrics_file}")
@@ -90,6 +96,7 @@ def _read_metrics_file() -> dict:
         metrics = json.load(f)
     
     # Exclude metrics that require a replica database
+    # These metrics are enabled in the config but won't appear without a replica setup
     excluded_metrics = {
         "postgresql.wal.delay",
         "postgresql.wal.age",
