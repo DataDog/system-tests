@@ -7,6 +7,7 @@ from typing import Any
 
 from utils import (
     features,
+    logger,
     scenarios,
 )
 from utils.dd_constants import RemoteConfigApplyState
@@ -308,8 +309,7 @@ class Test_Feature_Flag_Exposure:
                 time.sleep(3.0)
             except Exception:
                 # Log the issue but don't fail the test - pytest cleanup will handle it
-                print(f"Warning: Could not restart test agent container: {e}")
-                pass
+                logger.warning(f"Could not restart test agent container: {e}")
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_ffe_rc_recovery_resilience(
