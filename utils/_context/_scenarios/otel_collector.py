@@ -107,7 +107,7 @@ class OtelCollectorScenario(DockerScenario):
 
             if "exporters" in otel_config:
                 otel_config_keys = otel_config["exporters"].keys()
-                result["configuration"]["exporters"] = ", ".join(otel_config_keys) 
+                result["configuration"]["exporters"] = ", ".join(otel_config_keys)
 
             if "service" in otel_config and "pipelines" in otel_config["service"]:
                 result["configuration"]["pipelines"] = ", ".join(otel_config["service"]["pipelines"].keys())
