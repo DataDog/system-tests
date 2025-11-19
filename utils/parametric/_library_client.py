@@ -106,8 +106,8 @@ class APMLibraryClient:
     def crash(self) -> None:
         try:
             self._session.get(self._url("/trace/crash"))
-        except:
-            logger.info("Expected exception when calling /trace/crash")
+        except BaseException as e:
+            logger.info(f"Expected exception when calling /trace/crash: {e}")
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:

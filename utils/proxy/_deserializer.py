@@ -226,8 +226,8 @@ def deserialize_http_message(
                 try:
                     with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
                         content = gz_file.read()
-                except:
-                    item["system-tests-error"] = "Can't decompress gzip data"
+                except BaseException as e:
+                    item["system-tests-error"] = f"Can't decompress gzip data: {e}"
                     continue
 
                 _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, content)
@@ -355,7 +355,7 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
-    except:
+    except BaseException:
         status_code: int = data[key]["status_code"]
         if key == "response" and status_code in (
             HTTPStatus.INTERNAL_SERVER_ERROR,

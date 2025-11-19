@@ -361,8 +361,8 @@ class WeblogInjectionScenario(Scenario):
             try:
                 container.remove()
                 logger.info(f"Removing container {container}")
-            except:
-                logger.exception(f"Failed to remove container {container}")
+            except BaseException as e:
+                logger.exception(f"Failed to remove container {container} ({e})")
 
     @property
     def library(self):

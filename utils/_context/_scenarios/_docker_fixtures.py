@@ -60,11 +60,11 @@ class DockerFixturesScenario(Scenario):
         finally:
             try:
                 network.remove()
-            except:
+            except BaseException as e:
                 # It's possible (why?) of having some container not stopped.
                 # If it happens, failing here makes stdout tough to understand.
                 # Let's ignore this, later calls will clean the mess
-                logger.info("Failed to remove network, ignoring the error")
+                logger.info(f"Failed to remove network, ignoring the error: {e}")
 
     @contextlib.contextmanager
     def get_test_agent_api(

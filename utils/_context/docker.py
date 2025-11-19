@@ -26,8 +26,8 @@ def get_docker_client() -> docker.DockerClient:
                 text=True,
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("No more success with docker contexts")
+        except BaseException as e:
+            logger.exception(f"No more success with docker contexts: {e}")
 
         if "Error while fetching server API version: ('Connection aborted.'" in str(e):
             pytest.exit("Connection refused to docker daemon, is it running?", 1)

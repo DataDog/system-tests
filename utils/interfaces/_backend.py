@@ -247,7 +247,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         try:
             response_content = r.json()
-        except:
+        except BaseException:
             response_content = r.text
 
         data = {
