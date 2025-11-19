@@ -224,7 +224,7 @@ class DockerScenario(Scenario):
         for container in reversed(self._required_containers):
             try:
                 container.remove()
-            except:
+            except BaseException:
                 logger.exception(f"Failed to remove container {container}")
 
     def test_schemas(

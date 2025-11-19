@@ -12,7 +12,7 @@ def is_ip(value: str):
     try:
         socket.inet_aton(value)
         return True
-    except:
+    except BaseException:
         return False
 
 

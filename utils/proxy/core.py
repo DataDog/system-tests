@@ -179,7 +179,7 @@ class _RequestLogger:
             elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
                 interface = "agent"
             else:
-                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
+                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")  # noqa: TRY301
 
             # extract url info
             if "?" in flow.request.path:
@@ -236,7 +236,7 @@ class _RequestLogger:
             with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
-        except:
+        except BaseException:
             logger.exception("Unexpected error")
 
     def _modify_response(self, flow: Flow):

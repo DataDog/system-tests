@@ -523,8 +523,8 @@ def pytest_json_modifyreport(json_report: dict) -> None:
 
         logger.debug("Modifying JSON report finished")
 
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    except BaseException as e:
+        logger.error(f"Fail to modify json report: {e}", exc_info=True)
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
