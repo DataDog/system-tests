@@ -346,7 +346,7 @@ tests/:
         Test_Blocking_strip_response_headers: v1.13.0
         Test_CustomBlockingResponse: v1.15.0
       test_blocking_security_response_id.py:
-        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_Custom_Redirect: v2.23.0.dev
         Test_SecurityResponseId_HTML_Response: v2.23.0.dev
         Test_SecurityResponseId_In_Span_Triggers: v2.23.0.dev
         Test_SecurityResponseId_JSON_Response: v2.23.0.dev
@@ -879,6 +879,8 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events: missing_feature
+    Test_FFE_Exposure_Events_Empty: missing_feature
+    Test_FFE_Exposure_Events_Errors: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       "*": missing_feature
