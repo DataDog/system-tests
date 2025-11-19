@@ -1,25 +1,26 @@
 import os
 import re
 import stat
+import sys
 import json
 from typing import cast
 from http import HTTPStatus
 from pathlib import Path
-from subprocess import run
 import time
-from functools import lru_cache
 from threading import RLock, Thread
 
 import docker
-from docker.errors import APIError, DockerException
+from docker.errors import APIError
 from docker.models.containers import Container, ExecResult
 from docker.models.networks import Network
 import pytest
 import requests
 
 from utils._context.component_version import ComponentVersion
+from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
 from utils._logger import logger
+from utils._weblog import weblog
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
@@ -28,43 +29,17 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 # fake key of length 32
 _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
-
-@lru_cache
-def _get_client():
-    try:
-        return docker.DockerClient.from_env()
-    except DockerException as e:
-        # Failed to start the default Docker client... Let's see if we have
-        # better luck with docker contexts...
-        try:
-            ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
-            endpoint = run(
-                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("Fail to get docker client with context")
-
-        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
-            pytest.exit("Connection refused to docker daemon, is it running?", 1)
-
-        raise
-
-
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network() -> Network:
-    for network in _get_client().networks.list(names=[_NETWORK_NAME]):
+    for network in get_docker_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
         return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return get_docker_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
@@ -72,7 +47,7 @@ _VOLUME_INJECTOR_NAME = "volume-inject"
 
 def create_inject_volume():
     logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
-    _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
+    get_docker_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
 class TestedContainer:
@@ -166,8 +141,8 @@ class TestedContainer:
             self.stop_previous_container()
             self._starting_lock = RLock()
 
-            Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
-            Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
+            Path(self.log_folder_path).mkdir(mode=0o777, exist_ok=True, parents=True)
+            Path(f"{self.log_folder_path}/logs").mkdir(mode=0o777, exist_ok=True, parents=True)
 
             self.image.load()
             self.image.save_image_info(self.log_folder_path)
@@ -188,7 +163,7 @@ class TestedContainer:
         return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
-        for container in _get_client().containers.list(all=True, filters={"name": self.container_name}):
+        for container in get_docker_client().containers.list(all=True, filters={"name": self.container_name}):
             if container.name == self.container_name:
                 logger.debug(f"Container {self.container_name} found")
                 return container
@@ -226,7 +201,7 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = _get_client().containers.run(
+        self._container = get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -529,18 +504,18 @@ class ImageInfo:
 
     def load(self):
         try:
-            self._image = _get_client().images.get(self.name)
+            self._image = get_docker_client().images.get(self.name)
         except docker.errors.ImageNotFound:
             if self.local_image_only:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
             try:
-                self._image = _get_client().images.pull(self.name)
+                self._image = get_docker_client().images.pull(self.name)
             except docker.errors.ImageNotFound:
                 # Sometimes pull returns ImageNotFound, internal race?
                 time.sleep(5)
-                self._image = _get_client().images.pull(self.name)
+                self._image = get_docker_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
 
@@ -611,6 +586,8 @@ class ProxyContainer(TestedContainer):
             },
         )
 
+        self.mocked_backend = mocked_backend
+
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
         self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
@@ -623,8 +600,6 @@ class LambdaProxyContainer(TestedContainer):
         lambda_weblog_host: str,
         lambda_weblog_port: str,
     ) -> None:
-        from utils import weblog
-
         self.host_port = weblog.port
         self.container_port = "7777"
 
@@ -800,8 +775,6 @@ class WeblogContainer(TestedContainer):
         use_proxy: bool = True,
         volumes: dict | None = None,
     ) -> None:
-        from utils import weblog
-
         self.host_port = weblog.port
         self.container_port = 7777
 
@@ -945,6 +918,11 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
+        # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
+        # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
+        if self.weblog_variant == "uwsgi-poc":
+            weblog.set_request_default_retry(5)
+
         self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
@@ -1007,9 +985,33 @@ class WeblogContainer(TestedContainer):
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
-    def post_start(self):
-        from utils import weblog
+    def warmup_request(self, timeout: int = 10):
+        weblog.get("/", timeout=timeout)
 
+    def flush(self) -> None:
+        # for weblogs who supports it, call the flush endpoint
+        try:
+            r = weblog.get("/flush", timeout=10)
+            assert r.status_code == HTTPStatus.OK
+        except:
+            self.healthy = False
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log")
+
+    def set_weblog_domain_for_ipv6(self, network: Network):
+        if sys.platform == "linux":
+            # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
+            # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
+            weblog.domain = self.network_ip(network)
+            logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
+
+        elif sys.platform == "darwin":
+            # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
+            # as they are on an network intermal to the docker VM. But we can still use localhost.
+            logger.info("Mac => Using localhost as weblog domain")
+        else:
+            pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+
+    def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
 
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -1285,8 +1287,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
     ) -> None:
-        # Allow custom config file via environment variable
-        self._otel_config_host_path = config_file
+        self.config_file = config_file
 
         if "DOCKER_HOST" in os.environ:
             m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
@@ -1305,13 +1306,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             environment=environment,
             volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
+            user=f"{os.getuid()}:{os.getgid()}",
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
-        self.volumes[f"./{host_log_folder}/docker/collector/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self._otel_config_host_path] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
-
         super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
+        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
@@ -1331,13 +1333,14 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         return False
 
     def start(self, network: Network) -> Container:
-        # _otel_config_host_path is mounted in the container, and depending on umask,
+        # config_file is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = Path(self._otel_config_host_path).stat().st_mode
+        prev_mode = Path(self.config_file).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
-            Path(self._otel_config_host_path).chmod(new_mode)
+            Path(self.config_file).chmod(new_mode)
+
         return super().start(network)
 
 
@@ -1386,7 +1389,7 @@ class MountInjectionVolume(TestedContainer):
 
     def remove(self):
         super().remove()
-        _get_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
+        get_docker_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
 
 
 class WeblogInjectionInitContainer(TestedContainer):
@@ -1425,7 +1428,7 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
-            environment=cast(dict[str, str | None], environment),
+            environment=cast("dict[str, str | None]", environment),
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
@@ -1467,8 +1470,6 @@ class InternalServerContainer(TestedContainer):
 
 class EnvoyContainer(TestedContainer):
     def __init__(self) -> None:
-        from utils import weblog
-
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
@@ -1539,8 +1540,6 @@ class ExternalProcessingContainer(TestedContainer):
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
-        from utils import weblog
-
         super().__init__(
             image_name="haproxy:3.2",
             name="haproxy",

@@ -438,7 +438,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             return current_version
 
         language = self.get_tracer()["language"]
-        approvals_dir = Path(__file__).parent / "approvals"
+        approvals_dir = Path(__file__).parent / "utils" / "approvals"
         language_dir = approvals_dir / language
 
         current_ver = version.parse(current_version)

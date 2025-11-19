@@ -80,14 +80,14 @@ class Test_Otel_Span:
         assert len(spans) == 3
 
 
-def _get_span_by_name(spans, span_name):
+def _get_span_by_name(spans: list[dict], span_name: str):
     for s in spans:
         if s["name"] == span_name:
             return s
     return {}
 
 
-def _get_span_by_resource(spans, resource_name):
+def _get_span_by_resource(spans: list[dict], resource_name: str):
     for s in spans:
         if s["resource"] == resource_name:
             return s

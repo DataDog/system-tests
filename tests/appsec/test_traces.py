@@ -35,7 +35,7 @@ class Test_RetainTraces:
         _sampling_priority_v1 tags
         """
 
-        def validate_appsec_event_span_tags(span):
+        def validate_appsec_event_span_tags(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -55,7 +55,7 @@ class Test_RetainTraces:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_appsec_event_span_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_appsec_event_span_tags)
 
 
 @features.envoy_external_processing
@@ -180,14 +180,14 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_key, allow_no_data=True)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -233,14 +233,14 @@ class Test_AppSecObfuscator:
         # The following payload will be sent as a raw encoded string via the request params
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_value, allow_no_data=True)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -260,14 +260,14 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_custom, allow_no_data=True)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -289,7 +289,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True
             ), "Sensitive cookie is not obfuscated"
@@ -298,7 +298,7 @@ class Test_AppSecObfuscator:
             ), "Non-sensitive cookie is not reported"
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_cookies_custom, allow_no_data=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -321,16 +321,16 @@ class Test_CollectRespondHeaders:
     )
     @bug(library="python_lambda", reason="APPSEC-58202")
     def test_header_collection(self):
-        def assert_header_in_span_meta(span, header):
+        def assert_header_in_span_meta(span: dict, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_response_headers(span):
+        def validate_response_headers(span: dict):
             for header in ["content-type", "content-length", "content-language"]:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_response_headers)
+        interfaces.library.validate_one_span(self.r, validator=validate_response_headers)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -396,11 +396,11 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assert_header_in_span_meta(span, header):
+        def assert_header_in_span_meta(span: dict, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_request_headers(span):
+        def validate_request_headers(span: dict):
             for header in [
                 "x-amzn-trace-id",
                 "cloudfront-viewer-ja3-fingerprint",
@@ -414,4 +414,4 @@ class Test_ExternalWafRequestsIdentification:
                 assert_header_in_span_meta(span, f"http.request.headers.{header}")
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_request_headers)
+        interfaces.library.validate_one_span(self.r, validator=validate_request_headers)

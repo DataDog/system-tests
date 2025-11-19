@@ -363,8 +363,8 @@ def validate_extended_location_data(
         assert location_match, f"location not found in stack trace, location={location}, stack_trace={stack_trace}"
 
 
-def get_hardcoded_vulnerabilities(vulnerability_type: str) -> list:
-    spans = [s for _, s in interfaces.library.get_root_spans()]
+def get_hardcoded_vulnerabilities(vulnerability_type: str, request: HttpResponse | None = None) -> list:
+    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
     assert spans, "No spans found"
     spans_meta = [span.get("meta") for span in spans]
     assert spans_meta, "No spans meta found"

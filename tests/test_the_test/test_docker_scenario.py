@@ -7,14 +7,14 @@ from utils import scenarios
 
 
 class FakeContainer(_TestedContainer):
-    def __init__(self, name, events=None) -> None:
+    def __init__(self, name: str, events: list | None = None) -> None:
         super().__init__(name=name, image_name=name)
         self._test_events = events if events is not None else []
 
-    def configure(self, *, host_log_folder, replay):  # noqa: ARG002
+    def configure(self, *, host_log_folder: str, replay: bool):  # noqa: ARG002
         self._starting_lock = RLock()
 
-    def start(self, network):  # noqa: ARG002
+    def start(self, network):  # noqa: ARG002, ANN001
         self._test_events.append(f"start {self.name}")
         self.healthy = True
 
@@ -67,6 +67,7 @@ def test_recursive():
             self._required_containers = [container_a, container_b, container_c]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)
 
@@ -98,5 +99,6 @@ def test_recursive_2():
             self._required_containers = [container_a]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)

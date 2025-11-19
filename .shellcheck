@@ -33,4 +33,5 @@ TODO=(
   utils/interfaces/schemas/serve.sh
   build.sh
   format.sh
+  *node_modules*
 )

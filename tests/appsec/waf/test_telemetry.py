@@ -183,7 +183,7 @@ class Test_TelemetryMetrics:
             total_requests_metric == request_count
         ), "Number of requests in traces do not match waf.requests metric total"
 
-    def _find_series(self, request_type, namespace, metric):
+    def _find_series(self, request_type: str, namespace: str, metric: str):
         series = []
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -198,7 +198,7 @@ class Test_TelemetryMetrics:
                     series.append(serie)
         return series
 
-    def _assert_valid_tags(self, full_tags, valid_prefixes, mandatory_prefixes):
+    def _assert_valid_tags(self, full_tags: set, valid_prefixes: set[str], mandatory_prefixes: set[str]):
         full_tags = set(full_tags)
         tag_prefixes = {t.split(":")[0] for t in full_tags}
 
@@ -222,7 +222,7 @@ class Test_TelemetryMetrics:
         return mandatory_tag_prefixes
 
 
-def _validate_headers(headers, request_type):
+def _validate_headers(headers: list[list[str]], request_type: str):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
 
     expected_language = context.library.name

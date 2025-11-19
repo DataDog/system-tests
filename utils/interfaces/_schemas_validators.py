@@ -185,13 +185,13 @@ class SchemaValidator:
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        folders = [folder for folder in os.listdir(".") if Path(folder).is_dir() and folder.startswith("logs")]
+        folders = [folder for folder in Path().iterdir() if folder.is_dir() and str(folder).startswith("logs")]
         for folder in folders:
-            path = f"{folder}/interfaces/{interface}"
+            path = folder / f"/interfaces/{interface}"
 
             if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if Path(os.path.join(path, file)).is_file()]
+            files = [file for file in path.iterdir() if file.is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)

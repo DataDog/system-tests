@@ -3,7 +3,8 @@ import pytest
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
 from utils import missing_feature, irrelevant, context, scenarios, features
-
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -17,7 +18,7 @@ pytestmark = pytest.mark.parametrize(
 @features.open_tracing_api
 class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    def test_otel_simple_trace(self, test_agent, test_library):
+    def test_otel_simple_trace(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Perform two traces"""
         with test_library:
             with test_library.otel_start_span("root_one") as parent1:
@@ -54,10 +55,10 @@ class Test_Otel_Tracer:
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    def test_otel_force_flush(self, test_agent, test_library):
+    def test_otel_force_flush(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Verify that force flush flushed the spans"""
         with test_library:
-            with test_library.otel_start_span(name="test_span") as span:
+            with test_library.otel_start_span(name="test_span") as otel_span:
                 pass
 
             # force flush with 5 second time out
@@ -65,6 +66,6 @@ class Test_Otel_Tracer:
             assert flushed, "ForceFlush error"
             # check if trace is flushed
             traces = test_agent.wait_for_num_traces(1)
-            trace = find_trace(traces, span.trace_id)
-            span = find_span(trace, span.span_id)
+            trace = find_trace(traces, otel_span.trace_id)
+            span = find_span(trace, otel_span.span_id)
             assert span.get("name") == "internal"

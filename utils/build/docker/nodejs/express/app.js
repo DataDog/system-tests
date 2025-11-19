@@ -677,6 +677,53 @@ const startServer = () => {
 }
 
 // apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
+
+// Initialize OpenFeature provider if FFE is enabled
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  const { openfeature } = tracer
+  OpenFeature.setProvider(openfeature)
+  openFeatureClient = OpenFeature.getClient()
+}
+
+// Single FFE endpoint that evaluates feature flags
+app.post('/ffe', async (req, res) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
+
+    if (!openFeatureClient) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const context = { targetingKey, ...attributes }
+
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break
+      case 'INTEGER':
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break
+      default:
+        return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+    }
+
+    res.status(200).json({ value })
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
 const initGraphQL = () => {
   return graphQLEnabled
     ? require('./graphql')(app)

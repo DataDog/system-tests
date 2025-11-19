@@ -14,8 +14,8 @@ from utils._context.containers import (
     DockerSSIContainer,
     APMTestAgentContainer,
     TestedContainer,
-    _get_client as get_docker_client,
 )
+from utils._context.docker import get_docker_client
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
@@ -132,23 +132,18 @@ class DockerSSIScenario(Scenario):
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
 
+        self.warmups.append(self._create_network)
+        self.warmups.append(self._start_containers)
+
+        if "GITLAB_CI" in os.environ:
+            self.warmups.append(self.fix_gitlab_network)
+
     def _create_network(self):
         self._network = create_network()
 
     def _start_containers(self):
         for container in self._required_containers:
             container.start(self._network)
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        warmups.append(self._create_network)
-        warmups.append(self._start_containers)
-
-        if "GITLAB_CI" in os.environ:
-            warmups.append(self.fix_gitlab_network)
-
-        return warmups
 
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url

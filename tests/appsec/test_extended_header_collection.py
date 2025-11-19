@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, rfc, features, missing_feature, context
+from utils._weblog import HttpResponse
 
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
@@ -10,7 +11,7 @@ from utils import weblog, interfaces, scenarios, rfc, features, missing_feature,
 @scenarios.appsec_standalone
 class Test_ExtendedHeaderCollection:
     @staticmethod
-    def assert_feature_is_enabled(response) -> None:
+    def assert_feature_is_enabled(response: HttpResponse) -> None:
         assert response.status_code == 200
         span = interfaces.library.get_root_span(request=response)
         meta = span.get("meta", {})

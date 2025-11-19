@@ -278,7 +278,7 @@ class AWSPulumiProvider(VmProvider):
         """
 
         ec2_ids = self._print_running_instances()
-        if len(ec2_ids) > 700:
+        if len(ec2_ids) > 1200:
             logger.stdout(f"THERE ARE TOO MANY EC2 INSTANCES RUNNING. Waiting for the instances to be destroyed")
             raise Exception("Too many ec2 instances running")
 

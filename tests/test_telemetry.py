@@ -1,6 +1,7 @@
 import json
 from typing import Any
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
@@ -12,38 +13,38 @@ INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
 
 
-def get_header(data, origin, name):
+def get_header(data: dict, origin: str, name: str):
     for h in data[origin]["headers"]:
         if h[0].lower() == name:
             return h[1]
     return None
 
 
-def get_request_content(data):
+def get_request_content(data: dict):
     return data["request"]["content"]
 
 
-def get_request_type(data):
+def get_request_type(data: dict):
     return get_request_content(data).get("request_type")
 
 
-def get_configurations(data):
+def get_configurations(data: dict):
     return get_request_content(data)["payload"].get("configuration")
 
 
-def get_service_name(data):
+def get_service_name(data: dict):
     return get_request_content(data)["application"].get("service_name")
 
 
-def not_onboarding_event(data):
+def not_onboarding_event(data: dict):
     return get_request_type(data) != "apm-onboarding-event"
 
 
-def is_v2_payload(data):
+def is_v2_payload(data: dict):
     return get_request_content(data).get("api_version") == "v2"
 
 
-def is_v1_payload(data):
+def is_v1_payload(data: dict):
     return get_request_content(data).get("api_version") == "v1"
 
 
@@ -56,19 +57,21 @@ class Test_Telemetry:
     library_requests: dict[tuple[str, str], dict] = {}
     agent_requests: dict[tuple[str, str], dict] = {}
 
-    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
+    def validate_library_telemetry_data(self, validator: Callable[[dict], None], *, allow_no_data: bool = False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
-        if len(telemetry_data) == 0 and not success_by_default:
+        if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, *, flatten_message_batches=True, success_by_default=False):
+    def validate_agent_telemetry_data(
+        self, validator: Callable[[dict], None], *, flatten_message_batches: bool = True, allow_no_data: bool = False
+    ):
         telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
-        if len(telemetry_data) == 0 and not success_by_default:
+        if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
@@ -77,7 +80,7 @@ class Test_Telemetry:
     def test_telemetry_message_data_size(self):
         """Test telemetry message data size"""
 
-        def validator(data):
+        def validator(data: dict):
             if data["request"]["length"] >= 5_000_000:
                 raise ValueError("Received message size is more than 5MB")
 
@@ -87,7 +90,7 @@ class Test_Telemetry:
     def test_status_ok(self):
         """Test that telemetry requests sent to agent are successful"""
 
-        def validator(data):
+        def validator(data: dict):
             response_code = data["response"]["status_code"]
             assert 200 <= response_code < 300, f"Got response code {response_code} in {data['log_filename']}"
 
@@ -209,21 +212,34 @@ class Test_Telemetry:
         """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
-        if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
-            first_message = telemetry_data[0]["request"]["content"]["payload"][0]
-            assert (
-                first_message.get("request_type") == "app-started"
-            ), "app-started was not the first message in the first batch"
-        else:
-            # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
-            # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
-            app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
-            assert app_started, "app-started message not found"
-            min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-            assert (
-                app_started[0]["request"]["content"]["seq_id"] == min_seq_id
-            ), "app-started is not the first message by seq_id"
+        for batch in telemetry_data:
+            if batch["request"]["content"].get("request_type") == "message-batch":
+                if all(
+                    message.get("request_type") in ["sketches", "generate-metrics", "logs"]
+                    for message in batch["request"]["content"]["payload"]
+                ):
+                    # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
+                    # If the batch contains only messages not related to app-lifecycle we can ignore it.
+                    continue
+                first_message = batch["request"]["content"]["payload"][0]
+                assert (
+                    first_message.get("request_type") == "app-started"
+                ), "app-started was not the first message in the first batch"
+                return
+            else:
+                # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
+                # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
+                telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
+                app_started = [
+                    d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"
+                ]
+                assert app_started, "app-started message not found"
+                min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
+                assert (
+                    app_started[0]["request"]["content"]["seq_id"] == min_seq_id
+                ), "app-started is not the first message by seq_id"
+                return
+        raise ValueError("app-started message not found")
 
     @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
@@ -231,18 +247,16 @@ class Test_Telemetry:
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
-        def save_data(data, container):
+        def save_data(data: dict, container: dict):
             # payloads are identifed by their seq_id/runtime_id
             if not_onboarding_event(data):
                 assert "seq_id" in data["request"]["content"], f"`seq_id` is missing in {data['log_filename']}"
                 key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
-        self.validate_library_telemetry_data(
-            lambda data: save_data(data, self.library_requests), success_by_default=False
-        )
+        self.validate_library_telemetry_data(lambda data: save_data(data, self.library_requests), allow_no_data=False)
         self.validate_agent_telemetry_data(
-            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, success_by_default=False
+            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, allow_no_data=False
         )
 
         # At the end, check that all data are consistent
@@ -458,10 +472,10 @@ class Test_Telemetry:
         and this test as no longer relevant
         """
 
-        def validator(data):
+        def validator(data: dict):
             assert is_v1_payload(data)
 
-        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
     @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
@@ -483,7 +497,7 @@ class Test_Telemetry:
         }
         configuration_map = test_configuration[context.library.name]
 
-        def validator(data):
+        def validator(data: dict):
             if get_request_type(data) == "app-started":
                 content = data["request"]["content"]
                 configurations = content["payload"]["configuration"]
@@ -677,7 +691,7 @@ class Test_APMOnboardingInstallID:
     def test_traces_contain_install_id(self):
         """Assert that at least one trace carries APM onboarding info"""
 
-        def validate_at_least_one_span_with_tag(tag):
+        def validate_at_least_one_span_with_tag(tag: str):
             for _, span in interfaces.agent.get_spans():
                 meta = span.get("meta", {})
                 if tag in meta:
@@ -704,7 +718,7 @@ def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
     return result
 
 
-def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes: list):
     lower_key = key.lower()
     is_allowed_key = lower_key in allowed_keys
     is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
@@ -792,7 +806,7 @@ class Test_TelemetryV2:
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
-        def validator(data):
+        def validator(data: dict):
             telemetry = data["request"]["content"]
             assert get_header(data, "request", "dd-telemetry-api-version") == telemetry.get("api_version")
             assert get_header(data, "request", "dd-telemetry-request-type") == telemetry.get("request_type")
@@ -800,7 +814,7 @@ class Test_TelemetryV2:
             assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
             assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validator)
 
 
 @features.telemetry_api_v2_implemented
@@ -852,6 +866,7 @@ class Test_ProductsDisabled:
     @scenarios.telemetry_app_started_products_disabled
     @missing_feature(context.library == "ruby", reason="feature not implemented")
     @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
     @irrelevant(library="golang")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
@@ -1043,7 +1058,7 @@ class Test_Metric_Generation_Enabled:
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 
-    def assert_count_metric(self, namespace, metric, expect_at_least):
+    def assert_count_metric(self, namespace: str, metric: str, expect_at_least: int):
         series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
         assert len(series) != 0 or expect_at_least == 0, f"No telemetry data received for metric {namespace}.{metric}"
 

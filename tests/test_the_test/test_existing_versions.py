@@ -3,6 +3,7 @@ import requests
 import pytest
 from utils import scenarios, logger
 from utils._context.component_version import ComponentVersion, Version
+from utils._decorators import SKIP_DECLARATIONS
 from manifests.parser.core import load as load_manifests
 
 
@@ -30,7 +31,6 @@ def test_existing_version(component: str, github_repo: str):
     # Prevent form using a version that does not exist
     # This use case leads to test not being activated
     # and thus not being run, which is not what we want.
-    from utils._decorators import SKIP_DECLARATIONS
 
     declared_versions = ComponentVersion.known_versions[component].copy()  # copy to avoid modifying the original
 
@@ -96,7 +96,7 @@ def all_declared_exist(declared: list[Version], existing: list[Version]) -> bool
     return contains_error
 
 
-def get_github_releases(owner, repo) -> list[Version]:
+def get_github_releases(owner: str, repo: str) -> list[Version]:
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
     headers = {}
     if "GITHUB_TOKEN" in os.environ:

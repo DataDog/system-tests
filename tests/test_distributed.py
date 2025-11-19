@@ -211,7 +211,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         assert link1.get("tracestate") is None
 
 
-def _retrieve_span_links(span):
+def _retrieve_span_links(span: dict):
     if span.get("span_links") is not None:
         return span["span_links"]
 

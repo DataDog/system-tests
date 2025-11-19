@@ -4,6 +4,13 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "articles#index"
 
+  class ResourceRenamingRackApp
+    def call(_env)
+      [200, {'Content-Type' => 'text/plain'}, ['OK']]
+    end
+  end
+  mount ResourceRenamingRackApp.new => '/resource_renaming'
+
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 
@@ -60,6 +67,11 @@ Rails.application.routes.draw do
   get '/debugger/pii' => 'debugger#pii'
   get '/debugger/log' => 'debugger#log_probe'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
+  get '/debugger/snapshot/limits' => 'debugger#snapshot_limits'
+  get '/debugger/expression' => 'debugger#expression'
+  %w(operators strings collections null exception).each do |sub|
+    get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
+  end
 
   get '/rasp/sqli' => 'rasp_sqli#show'
   post '/rasp/sqli' => 'rasp_sqli#show'

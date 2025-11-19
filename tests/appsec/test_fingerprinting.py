@@ -7,12 +7,13 @@ from utils import scenarios
 from utils import weblog
 from utils import missing_feature
 from utils import context
+from utils._weblog import HttpResponse
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
 
 
-def get_span_meta(r):
+def get_span_meta(r: HttpResponse):
     res = [span.get("meta", {}) for _, _, span in interfaces.library.get_spans(request=r)]
     assert res, f"no spans found in {r}"
     return res

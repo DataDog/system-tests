@@ -56,6 +56,7 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
 
     download_url = None
     page = 0
+    print(f'CI workflow URL: {runs_data["workflow_runs"][0]["html_url"]}')
     while not download_url:
         page += 1
         artifacts_url = runs_data["workflow_runs"][0]["artifacts_url"] + f"?page={page}"
@@ -136,7 +137,7 @@ def parse_artifact_data(
     test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]] = {}
 
     for directory in os.listdir(path_data_opt):
-        if "dev" in directory:
+        if "_dev_" in directory:
             continue
 
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
@@ -386,7 +387,9 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
         for variant in os.listdir(path_data_opt):
             if found_version:
                 break
-            if library not in variant:
+            if library not in variant or "_dev_" in variant:
+                continue
+            if "dev" in variant:
                 continue
 
             for scenario in os.listdir(f"{path_data_opt}/{variant}"):

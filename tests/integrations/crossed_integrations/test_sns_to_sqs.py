@@ -17,7 +17,14 @@ class _BaseSNS:
     unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, topic, operation) -> dict | None:
+    def get_span(
+        cls,
+        interface: interfaces.LibraryInterfaceValidator,
+        span_kind: list[str],
+        queue: str,
+        topic: str,
+        operation: str,
+    ) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -67,7 +74,7 @@ class _BaseSNS:
         return None
 
     @staticmethod
-    def get_queue(span) -> str | None:
+    def get_queue(span: dict) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
@@ -83,7 +90,7 @@ class _BaseSNS:
         return queue
 
     @staticmethod
-    def get_topic(span) -> str | None:
+    def get_topic(span: dict) -> str | None:
         """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("topicname", None)  # this is in nodejs, java, python
 
@@ -217,7 +224,13 @@ class _BaseSNS:
         assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_sns_spans(self, producer_interface, consumer_interface, queue, topic):
+    def validate_sns_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        queue: str,
+        topic: str,
+    ):
         """Validates production/consumption of sns message.
         It works the same for both test_produce and test_consume
         """

@@ -15,7 +15,7 @@ NC='\033[0m'
 # Retry configuration
 MAX_RETRIES=${MAX_RETRIES:-3}
 INITIAL_DELAY=${INITIAL_DELAY:-5}
-BUILD_TIMEOUT=${BUILD_TIMEOUT:-600}  # 10 minutes timeout in seconds
+BUILD_TIMEOUT=${BUILD_TIMEOUT:-1200}  # 20 minutes timeout in seconds
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"

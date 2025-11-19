@@ -2,13 +2,13 @@ import time
 import requests
 
 from utils import scenarios, features, bug, context
-from tests.k8s_lib_injection.utils import get_cluster_info
+from tests.k8s_lib_injection.utils import get_cluster_info, K8sClusterInfo
 
 
 class _TestK8sLibInjectionProfiling:
     """Test profiling activation with the admission controller."""
 
-    def _check_profiling_request_sent(self, k8s_cluster_info, timeout=90):
+    def _check_profiling_request_sent(self, k8s_cluster_info: K8sClusterInfo, timeout: int = 90):
         """Use test agent profiling endpoint to check if the profiling data has been sent by the injectect library.
         Checks the request made to the profiling endpoint (/profiling/v1/input).
         The profiling post data can take between 12 and 90 seconds (12 if the library supports both env vars, 90 if it supports neither.
