@@ -1,5 +1,3 @@
 ---
-tests/:
-  integrations/:
-    test_open_telemetry.py:
-      Test_MsSql: missing_feature
+manifest:
+  tests/integrations/test_open_telemetry.py::Test_MsSql: "missing_feature"
