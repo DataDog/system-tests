@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+import pytest
 
 from utils import (
     bug,
@@ -17,6 +18,12 @@ from utils import (
     features,
     HttpResponse,
 )
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 def _assert_custom_event_tag_presence(expected_value: str):
