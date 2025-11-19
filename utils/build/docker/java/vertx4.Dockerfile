@@ -1,5 +1,8 @@
 FROM maven:3.6-jdk-11 as build
 
+# Install required utilities for install_ddtrace.sh (unzip, zip, wget)
+RUN apt-get update && apt-get install -y unzip zip wget && rm -rf /var/lib/apt/lists/*
+
 ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
