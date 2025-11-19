@@ -206,7 +206,7 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
-        if "nccatoni/manifest-migration" in inputs.ref:
+        if "refs/pull/5575/merge" == inputs.ref:
             self.scenario_groups |= {all_scenario_groups.all.name}
             return
         modified_nodeids = set()
@@ -302,8 +302,7 @@ class Inputs:
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        if "nccatoni/manifest-migration" not in self.ref:
-            print(self.ref)
+        if "refs/pull/5575/merge" != self.ref:
             self.new_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(new_manifests)
             self.old_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(old_manifests)
 
