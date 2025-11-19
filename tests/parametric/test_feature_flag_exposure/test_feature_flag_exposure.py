@@ -79,6 +79,156 @@ def _set_and_wait_ffe_rc(
     return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
+def _run_comprehensive_flag_evaluations(
+    test_library: APMLibrary, test_cases: list[dict], test_case_file: str, phase_name: str
+) -> dict[int, dict]:
+    """Run comprehensive flag evaluations and return results for comparison.
+
+    Args:
+        test_library: The APM library instance for FFE operations
+        test_cases: List of test case dictionaries loaded from JSON
+        test_case_file: Name of the test case file (for error reporting)
+        phase_name: Descriptive name of the phase (for error reporting)
+
+    Returns:
+        Dictionary mapping test case index to evaluation results and metadata
+    """
+    results = {}
+    for i, test_case in enumerate(test_cases):
+        flag = test_case["flag"]
+        variation_type = test_case["variationType"]
+        default_value = test_case["defaultValue"]
+        targeting_key = test_case["targetingKey"]
+        attributes = test_case.get("attributes", {})
+        expected_result = test_case["result"]["value"]
+
+        result = test_library.ffe_evaluate(
+            flag=flag,
+            variation_type=variation_type,
+            default_value=default_value,
+            targeting_key=targeting_key,
+            attributes=attributes,
+        )
+        actual_value = result.get("value")
+
+        # Assert the evaluation result matches expected value
+        assert actual_value == expected_result, (
+            f"{phase_name} test case {i} in {test_case_file} failed: "
+            f"flag='{flag}', targetingKey='{targeting_key}', "
+            f"expected={expected_result}, actual={actual_value}"
+        )
+
+        # Store results for comparison during resilience testing
+        results[i] = {
+            "flag": flag,
+            "variation_type": variation_type,
+            "default_value": default_value,
+            "targeting_key": targeting_key,
+            "attributes": attributes,
+            "expected_result": expected_result,
+            "actual_result": actual_value,
+        }
+
+    return results
+
+
+def _verify_cached_evaluations(
+    test_library: APMLibrary,
+    reference_results: dict[int, dict],
+    test_case_file: str,
+    phase_name: str
+) -> None:
+    """Verify that cached flag evaluations match reference results.
+
+    Args:
+        test_library: The APM library instance for FFE operations
+        reference_results: Reference results to compare against (from happy path)
+        test_case_file: Name of the test case file (for error reporting)
+        phase_name: Descriptive name of the phase (for error reporting)
+    """
+    for i, stored_case in reference_results.items():
+        cached_result = test_library.ffe_evaluate(
+            flag=stored_case["flag"],
+            variation_type=stored_case["variation_type"],
+            default_value=stored_case["default_value"],
+            targeting_key=stored_case["targeting_key"],
+            attributes=stored_case["attributes"],
+        )
+
+        # FFE should still work using cached configuration
+        assert "value" in cached_result, (
+            f"FFE should work with cached config during {phase_name} for test case {i} "
+            f"in {test_case_file}, flag='{stored_case['flag']}'"
+        )
+
+        cached_value = cached_result["value"]
+
+        # The cached result should match the reference result since we're using
+        # the same evaluation context and the cache should preserve the same targeting logic
+        assert cached_value == stored_case["actual_result"], (
+            f"Cached evaluation during {phase_name} should match reference for test case {i} in {test_case_file}: "
+            f"flag='{stored_case['flag']}', targetingKey='{stored_case['targeting_key']}', "
+            f"reference={stored_case['actual_result']}, cached={cached_value}"
+        )
+
+
+def _verify_evaluation_consistency(
+    test_library: APMLibrary,
+    reference_results: dict[int, dict],
+    test_case_file: str,
+    phase_name: str,
+    num_rounds: int = 3,
+    num_cases: int = 3
+) -> None:
+    """Verify that multiple flag evaluations remain consistent.
+
+    Args:
+        test_library: The APM library instance for FFE operations
+        reference_results: Reference results to compare against
+        test_case_file: Name of the test case file (for error reporting)
+        phase_name: Descriptive name of the phase (for error reporting)
+        num_rounds: Number of consistency check rounds to run
+        num_cases: Number of test cases to check (from the beginning)
+    """
+    # Use a subset of test cases to verify multiple evaluations remain consistent
+    sample_cases = list(reference_results.items())[:num_cases]
+
+    for consistency_round in range(num_rounds):
+        for i, stored_case in sample_cases:
+            consistency_result = test_library.ffe_evaluate(
+                flag=stored_case["flag"],
+                variation_type=stored_case["variation_type"],
+                default_value=stored_case["default_value"],
+                targeting_key=stored_case["targeting_key"],
+                attributes=stored_case["attributes"],
+            )
+            assert "value" in consistency_result, (
+                f"FFE consistency check round {consistency_round} case {i} should work during {phase_name}"
+            )
+            consistency_value = consistency_result["value"]
+            assert consistency_value == stored_case["actual_result"], (
+                f"{phase_name} consistency round {consistency_round} should be stable for case {i}: "
+                f"expected={stored_case['actual_result']}, actual={consistency_value}"
+            )
+
+
+def _setup_ffe_test_environment(test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
+    """Set up the standard FFE test environment with RC and provider initialization.
+
+    Args:
+        test_agent: Test agent API instance
+        test_library: APM library instance
+    """
+    # Set up UFC Remote Config and wait for it to be applied
+    apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+    assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+    assert apply_state["product"] == RC_PRODUCT
+
+    # Initialize FFE provider
+    success = test_library.ffe_start()
+    assert success, "Failed to start FFE provider"
+
+
 @scenarios.parametric
 @features.feature_flag_exposure
 class Test_Feature_Flag_Exposure:
@@ -99,19 +249,23 @@ class Test_Feature_Flag_Exposure:
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
+
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(
+    def test_ffe_remote_config_resilience(
         self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """Test FFE flag evaluation logic with various targeting scenarios.
+        """Test FFE flag evaluation with resilience when Remote Config becomes unavailable.
 
-        This is the core FFE test that validates the OpenFeature provider correctly:
-        1. Loads flag configurations from Remote Config (UFC format)
-        2. Evaluates flags based on targeting rules and evaluation context
-        3. Returns correct variation values for different variation types
-        4. Handles user targeting, attribute matching, and rollout percentages
+        This comprehensive test verifies that:
+        1. FFE flag evaluation works normally when RC is available (happy path)
+        2. FFE continues to work with cached config when RC goes down (resilience)
+        3. All flag evaluation scenarios work during both normal and degraded states
+        4. Flag evaluations use cached values consistently when RC is unavailable
 
+        This test combines the comprehensive flag evaluation logic from the original
+        test_ffe_flag_evaluation with resilience testing to ensure cached flag
+        evaluations remain functional when the agent is down.
         """
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
@@ -122,72 +276,15 @@ class Test_Feature_Flag_Exposure:
         with test_case_path.open() as f:
             test_cases = json.load(f)
 
-        # Set up UFC Remote Config and wait for it to be applied
-        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        # Phase 1: Setup FFE test environment
+        _setup_ffe_test_environment(test_agent, test_library)
 
-        # Initialize FFE provider
-        success = test_library.ffe_start()
-        assert success, "Failed to start FFE provider"
-
-        # Run each test case
-        for i, test_case in enumerate(test_cases):
-            flag = test_case["flag"]
-            variation_type = test_case["variationType"]
-            default_value = test_case["defaultValue"]
-            targeting_key = test_case["targetingKey"]
-            attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]["value"]
-
-            result = test_library.ffe_evaluate(
-                flag=flag,
-                variation_type=variation_type,
-                default_value=default_value,
-                targeting_key=targeting_key,
-                attributes=attributes,
-            )
-            actual_value = result.get("value")
-
-            # Assert the evaluation result matches expected value
-            assert actual_value == expected_result, (
-                f"Test case {i} in {test_case_file} failed: "
-                f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={actual_value}"
-            )
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_remote_config_resilience(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        """Test FFE resilience when Remote Config becomes unavailable.
-
-        This test verifies that:
-        1. FFE works normally when RC is available
-        2. FFE continues to work with cached config when RC goes down
-        3. Flag evaluations use the local cache when RC is unavailable
-
-        """
-        # Phase 1: Normal operation - Set up UFC Remote Config and verify it works
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-        assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
-        assert apply_state["product"] == RC_PRODUCT
-
-        # Initialize FFE provider
-        success = test_library.ffe_start()
-        assert success, "Failed to start FFE provider"
-
-        # Test flag evaluation works normally (using first test case from fixture)
-        test_flag = "flag-1"
-        test_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
+        # Phase 2: Happy Path - Run comprehensive flag evaluation when RC is available
+        happy_path_results = _run_comprehensive_flag_evaluations(
+            test_library, test_cases, test_case_file, "Happy path"
         )
-        # Verify evaluation works (exact value depends on test fixture)
-        assert "value" in test_result, "Flag evaluation should return a value"
 
-        # Phase 2: Simulate RC becoming unavailable by introducing network delays
+        # Phase 3: Simulate RC becoming unavailable by introducing network delays
         # This simulates RC service being down or unreachable due to network issues
         import time
 
@@ -198,65 +295,51 @@ class Test_Feature_Flag_Exposure:
         # Give some time for the delay to take effect
         time.sleep(1.0)
 
-        # Phase 3: Verify FFE continues working with cached config
-        # The library should continue to work using the previously cached config
-        cached_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
-        )
+        # Phase 4: Resilience Path - Verify FFE continues working with cached config
+        _verify_cached_evaluations(test_library, happy_path_results, test_case_file, "RC downtime")
 
-        # FFE should still work using cached configuration
-        assert "value" in cached_result, "FFE should work with cached config when RC is down"
-
-        # The result should be consistent with the cached config
-        # (The exact behavior may vary by implementation - some may return cached values,
-        # others may fall back to defaults)
-        cached_value = cached_result["value"]
-        assert cached_value is not None, "FFE should return a valid value even when RC is down"
-
-        # Phase 4: Restore normal operation - reset delay for cleanup
+        # Phase 5: Restore normal operation - reset delay for cleanup
         test_agent.set_trace_delay(0)  # Reset delay to restore normal operation
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
     def test_ffe_agent_resilience(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """Test FFE resilience when the agent becomes unavailable.
+        """Test FFE flag evaluation with resilience when the agent becomes unavailable.
 
-        This test verifies that:
-        1. FFE works normally when agent is available
+        This comprehensive test verifies that:
+        1. FFE flag evaluation works normally when agent is available (happy path)
         2. FFE continues to work when agent has connectivity issues (using local cache)
-        3. Flag evaluations work correctly with preserved local caching
-        4. Multiple evaluations remain consistent during agent connectivity issues
+        3. All flag evaluation scenarios work during both normal and agent-down states
+        4. Flag evaluations work correctly with preserved local caching
+        5. Multiple evaluations remain consistent during agent connectivity issues
 
-        Note: Uses network delays to simulate agent issues in parametric test environment.
-        This approach preserves library cache while testing resilience behavior.
+        This test combines comprehensive flag evaluation logic with agent resilience
+        testing to ensure cached flag evaluations remain functional when the agent
+        is completely unavailable.
 
+        Note: Uses Docker container stop/start to simulate real agent unavailability.
+        This approach preserves library cache while testing true resilience behavior.
         """
-        # Phase 1: Normal operation - Set up UFC Remote Config and verify it works
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-        assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
-        assert apply_state["product"] == RC_PRODUCT
+        # Load the test case file
+        test_case_path = Path(__file__).parent / test_case_file
 
-        # Initialize FFE provider
-        success = test_library.ffe_start()
-        assert success, "Failed to start FFE provider"
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
 
-        # Test flag evaluation works normally
-        test_flag = "flag-1"
-        test_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Phase 1: Setup FFE test environment
+        _setup_ffe_test_environment(test_agent, test_library)
+
+        # Phase 2: Happy Path - Run comprehensive flag evaluation when agent is available
+        happy_path_results = _run_comprehensive_flag_evaluations(
+            test_library, test_cases, test_case_file, "Happy path"
         )
-        assert "value" in test_result, "Flag evaluation should return a value"
 
-        # Phase 2: Simulate agent going down by stopping the test agent container
+        # Phase 3: Simulate agent going down by stopping the test agent container
         # This preserves the library's cache while making agent truly unreachable
         import time
 
@@ -268,34 +351,13 @@ class Test_Feature_Flag_Exposure:
         # Give some time for connections to be dropped
         time.sleep(2.0)
 
-        # Phase 3: Verify FFE continues working with cached config while agent is down
-        # The library should fall back to cached configurations
-        cached_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
-        )
+        # Phase 4: Resilience Path - Verify FFE continues working with cached config
+        _verify_cached_evaluations(test_library, happy_path_results, test_case_file, "agent downtime")
 
-        # FFE should still work using cached configuration
-        assert "value" in cached_result, "FFE should work with cached config when agent is down"
+        # Phase 5: Test multiple evaluations to ensure consistency with cache
+        _verify_evaluation_consistency(test_library, happy_path_results, test_case_file, "agent downtime")
 
-        cached_value = cached_result["value"]
-        assert cached_value is not None, "FFE should return a valid value even when agent is down"
-
-        # Test multiple evaluations to ensure consistency with cache
-        for i in range(3):
-            repeat_result = test_library.ffe_evaluate(
-                flag=test_flag,
-                variation_type="bool",
-                default_value=False,
-                targeting_key=f"cached-user-{i}",
-                attributes={},
-            )
-            assert "value" in repeat_result, f"FFE evaluation {i} should work with cached config"
-
-        # Phase 4: Restart agent container for cleanup
+        # Phase 6: Restart agent container for cleanup
         # This ensures subsequent tests have a working agent
         try:
             agent_container.start()
@@ -312,56 +374,54 @@ class Test_Feature_Flag_Exposure:
                 logger.warning(f"Could not restart test agent container: {e}")
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
     def test_ffe_rc_recovery_resilience(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """Test FFE resilience and recovery when Remote Config becomes available again.
+        """Test FFE flag evaluation with resilience and recovery when Remote Config becomes available again.
 
-        This test verifies the complete recovery cycle:
-        1. FFE works normally when RC is available
+        This comprehensive test verifies the complete recovery cycle:
+        1. FFE flag evaluation works normally when RC is available (happy path)
         2. FFE continues to work when RC has brief issues (cached config)
-        3. FFE recovers and updates when RC stabilizes
-        4. New flag configurations are properly applied after recovery
+        3. All flag evaluation scenarios work during both normal and degraded states
+        4. FFE recovers and updates when RC stabilizes
+        5. Flag evaluations remain consistent throughout the recovery process
+        6. New flag configurations are properly applied after recovery
+
+        This test combines comprehensive flag evaluation logic with RC recovery
+        resilience testing to ensure cached flag evaluations work during outages
+        and recover correctly when service is restored.
 
         Note: Uses shorter delays to avoid RC client timeout issues.
-
         """
-        # Phase 1: Initial setup with RC available
-        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-        assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+        # Load the test case file
+        test_case_path = Path(__file__).parent / test_case_file
 
-        success = test_library.ffe_start()
-        assert success, "Failed to start FFE provider"
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
 
-        # Test initial flag evaluation
-        test_flag = "flag-1"
-        initial_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Phase 1: Setup FFE test environment
+        _setup_ffe_test_environment(test_agent, test_library)
+
+        # Phase 2: Happy Path - Run comprehensive flag evaluation when RC is available
+        happy_path_results = _run_comprehensive_flag_evaluations(
+            test_library, test_cases, test_case_file, "Happy path"
         )
-        assert "value" in initial_result, "Initial flag evaluation should work"
 
-        # Phase 2: Simulate RC service downtime with network delays
+        # Phase 3: Simulate RC service downtime with network delays
         import time
 
         # Simulate RC service downtime by introducing moderate delays
         test_agent.set_trace_delay(3000)  # 3 second delay simulates network issues/downtime
         time.sleep(1.0)
 
-        # Verify FFE still works with cache
-        cached_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
-        )
-        assert "value" in cached_result, "FFE should work during RC downtime"
+        # Phase 4: Resilience Path - Verify FFE continues working with comprehensive cached config
+        _verify_cached_evaluations(test_library, happy_path_results, test_case_file, "RC downtime")
 
-        # Phase 3: RC service recovery - restore normal operation
+        # Phase 5: RC service recovery - restore normal operation
         # First remove the delay to simulate service recovery
         test_agent.set_trace_delay(0)  # Remove delay to restore normal RC operation
 
@@ -379,23 +439,8 @@ class Test_Feature_Flag_Exposure:
         # Allow time for the library to pick up the new config
         time.sleep(1.5)
 
-        # Phase 4: Verify recovery and new config application
-        recovery_result = test_library.ffe_evaluate(
-            flag=test_flag,
-            variation_type="bool",
-            default_value=False,
-            targeting_key="user-1",
-            attributes={},
-        )
-        assert "value" in recovery_result, "FFE should work after RC recovery"
+        # Phase 6: Post-Recovery Path - Verify comprehensive flag evaluation works after recovery
+        _verify_cached_evaluations(test_library, happy_path_results, test_case_file, "post-recovery")
 
-        # Verify system is functioning normally after recovery
-        for i in range(3):
-            consistency_result = test_library.ffe_evaluate(
-                flag=test_flag,
-                variation_type="bool",
-                default_value=False,
-                targeting_key=f"recovery-user-{i}",
-                attributes={},
-            )
-            assert "value" in consistency_result, f"FFE evaluation {i} should work consistently after recovery"
+        # Phase 7: Verify system is functioning normally after recovery with consistency checks
+        _verify_evaluation_consistency(test_library, happy_path_results, test_case_file, "post-recovery")
