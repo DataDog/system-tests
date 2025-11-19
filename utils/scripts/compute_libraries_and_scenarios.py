@@ -398,20 +398,17 @@ def process(inputs: Inputs) -> list[str]:
 
         library_processor.process_pr_title(inputs)
 
-        if inputs.modified_files:
-            for file in inputs.modified_files:
-                param = match_patterns(file, inputs.impacts)
-                scenario_processor.add(file, param)
-                library_processor.add(file, param)
+        assert inputs.modified_files is not None
+        for file in inputs.modified_files:
+            param = match_patterns(file, inputs.impacts)
+            scenario_processor.add(file, param)
+            library_processor.add(file, param)
 
-                if file in (
-                    "utils/build/docker/lambda_proxy/pyproject.toml",
-                    "utils/build/docker/lambda-proxy.Dockerfile",
-                ):
-                    rebuild_lambda_proxy = True
-        else:
-            scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
-            library_processor = LibraryProcessor(LIBRARIES)
+            if file in (
+                "utils/build/docker/lambda_proxy/pyproject.toml",
+                "utils/build/docker/lambda-proxy.Dockerfile",
+            ):
+                rebuild_lambda_proxy = True
 
     if inputs.is_gitlab:
         outputs |= scenario_processor.get_outputs()
