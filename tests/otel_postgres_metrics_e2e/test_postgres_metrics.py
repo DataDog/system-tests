@@ -11,75 +11,108 @@ if TYPE_CHECKING:
 
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
-postgresql_metrics = {
-    # Default metrics
-    "postgresql.connection.max": {
-        "data_type": "Gauge",
-        "description": "Configured maximum number of client connections allowed",
-    },
-    "postgresql.database.count": {"data_type": "Sum", "description": "Number of user databases"},
-    "postgresql.commits": {"data_type": "Sum", "description": "The number of commits"},
-    "postgresql.rollbacks": {"data_type": "Sum", "description": "The number of rollbacks"},
-    "postgresql.db_size": {"data_type": "Sum", "description": "The database disk usage"},
-    "postgresql.table.count": {"data_type": "Sum", "description": "Number of user tables in a database"},
-    "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},
-    "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
-    "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
-    "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
-    "postgresql.bgwriter.duration": {
-        "data_type": "Sum",
-        "description": "Total time spent writing and syncing files to disk by checkpoints",
-    },
-    "postgresql.bgwriter.maxwritten": {
-        "data_type": "Sum",
-        "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
-    },
-    # Optional metrics (enabled in otelcol-config-with-postgres.yaml)
-    "postgresql.blks_hit": {
-        "data_type": "Sum",
-        "description": "Number of times disk blocks were found already in the buffer cache",
-    },
-    "postgresql.blks_read": {"data_type": "Sum", "description": "Number of disk blocks read in this database"},
-    "postgresql.database.locks": {"data_type": "Gauge", "description": "The number of database locks"},
-    "postgresql.deadlocks": {"data_type": "Sum", "description": "The number of deadlocks"},
-    "postgresql.temp.io": {
-        "data_type": "Sum",
-        "description": "Total amount of data written to temporary files by queries",
-    },
-    "postgresql.temp_files": {"data_type": "Sum", "description": "The number of temp files"},
-    "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
-    "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
-    "postgresql.tup_inserted": {
-        "data_type": "Sum",
-        "description": "Number of rows inserted by queries in the database",
-    },
-    "postgresql.tup_returned": {
-        "data_type": "Sum",
-        "description": "Number of rows returned by queries in the database",
-    },
-    "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
-    "postgresql.function.calls": {
-        "data_type": "Sum",
-        "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config.",
-    },
-    "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
-    "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table."},
-    "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
-    "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},
-    "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"},
-    "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk."},
-    "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
-    "postgresql.table.vacuum.count": {
-        "data_type": "Sum",
-        "description": "Number of times a table has manually been vacuumed",
-    },
-    # Metrics not yet appearing due to needing a replica db
-    # "postgresql.wal.delay": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification that the standby server has completed an operation with it"},
-    # "postgresql.wal.age": {"data_type": "Gauge", "description": "Age of the oldest WAL file"},
-    # "postgresql.replication.data_delay": {"data_type": "Gauge", "description": "The amount of data delayed in replication"},
-    # "postgresql.wal.lag": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification"},
+# postgresql_metrics = {
+#     # Default metrics
+#     "postgresql.connection.max": {
+#         "data_type": "Gauge",
+#         "description": "Configured maximum number of client connections allowed",
+#     },
+#     "postgresql.database.count": {"data_type": "Sum", "description": "Number of user databases"},
+#     "postgresql.commits": {"data_type": "Sum", "description": "The number of commits"},
+#     "postgresql.rollbacks": {"data_type": "Sum", "description": "The number of rollbacks"},
+#     "postgresql.db_size": {"data_type": "Sum", "description": "The database disk usage"},
+#     "postgresql.table.count": {"data_type": "Sum", "description": "Number of user tables in a database"},
+#     "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},
+#     "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
+#     "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
+#     "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
+#     "postgresql.bgwriter.duration": {
+#         "data_type": "Sum",
+#         "description": "Total time spent writing and syncing files to disk by checkpoints",
+#     },
+#     "postgresql.bgwriter.maxwritten": {
+#         "data_type": "Sum",
+#         "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
+#     },
+#     # Optional metrics (enabled in otelcol-config-with-postgres.yaml)
+#     "postgresql.blks_hit": {
+#         "data_type": "Sum",
+#         "description": "Number of times disk blocks were found already in the buffer cache",
+#     },
+#     "postgresql.blks_read": {"data_type": "Sum", "description": "Number of disk blocks read in this database"},
+#     "postgresql.database.locks": {"data_type": "Gauge", "description": "The number of database locks"},
+#     "postgresql.deadlocks": {"data_type": "Sum", "description": "The number of deadlocks"},
+#     "postgresql.temp.io": {
+#         "data_type": "Sum",
+#         "description": "Total amount of data written to temporary files by queries",
+#     },
+#     "postgresql.temp_files": {"data_type": "Sum", "description": "The number of temp files"},
+#     "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
+#     "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
+#     "postgresql.tup_inserted": {
+#         "data_type": "Sum",
+#         "description": "Number of rows inserted by queries in the database",
+#     },
+#     "postgresql.tup_returned": {
+#         "data_type": "Sum",
+#         "description": "Number of rows returned by queries in the database",
+#     },
+#     "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
+#     "postgresql.function.calls": {
+#         "data_type": "Sum",
+#         "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config.",
+#     },
+#     "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
+#     "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table."},
+#     "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
+#     "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},
+#     "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"},
+#     "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk."},
+#     "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
+#     "postgresql.table.vacuum.count": {
+#         "data_type": "Sum",
+#         "description": "Number of times a table has manually been vacuumed",
+#     },
+#     # Metrics not yet appearing due to needing a replica db
+#     # "postgresql.wal.delay": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification that the standby server has completed an operation with it"},
+#     # "postgresql.wal.age": {"data_type": "Gauge", "description": "Age of the oldest WAL file"},
+#     # "postgresql.replication.data_delay": {"data_type": "Gauge", "description": "The amount of data delayed in replication"},
+#     # "postgresql.wal.lag": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification"},
+# }
+
+# Load PostgreSQL metrics from the OTel metadata service
+# To update: cd utils/tools/otel_metadata_service && python update_postgres_metrics.py
+_metrics_file = Path(__file__).parent.parent.parent / "utils/tools/otel_metadata_service/postgres_metrics.json"
+
+if not _metrics_file.exists():
+    raise FileNotFoundError(
+        f"PostgreSQL metrics file not found: {_metrics_file}\n"
+        f"\n"
+        f"Please generate it by running:\n"
+        f"  cd utils/tools/otel_metadata_service\n"
+        f"  python main.py &  # Start the service\n"
+        f"  python update_postgres_metrics.py\n"
+        f"\n"
+        f"Or use the helper script:\n"
+        f"  cd tests/otel_postgres_metrics_e2e\n"
+        f"  ./update_metrics.sh\n"
+    )
+
+with open(_metrics_file) as f:
+    _all_metrics = json.load(f)
+
+# Exclude metrics that require a replica database setup
+_excluded_metrics = {
+    "postgresql.wal.delay",
+    "postgresql.wal.age", 
+    "postgresql.replication.data_delay",
+    "postgresql.wal.lag",
 }
 
+postgresql_metrics = {
+    name: info for name, info in _all_metrics.items() 
+    if name not in _excluded_metrics
+}
 
 def _get_metrics() -> list[dict]:
     scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
