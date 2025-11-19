@@ -57,7 +57,7 @@ tests/:
           vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Status:
           '*': v1.48.0
-          akka-http: bug (APPSEC-56888)
+          akka-http: missing_feature
           play: v1.51.0
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
           vertx3: v1.51.0
