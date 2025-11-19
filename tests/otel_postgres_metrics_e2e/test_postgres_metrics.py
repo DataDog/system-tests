@@ -98,7 +98,7 @@ def _get_metrics() -> list[dict]:
 
 @scenarios.otel_collector
 @scenarios.otel_collector_e2e
-@features.otel_postgres_support
+@features.postgres_receiver_metrics
 class Test_PostgreSQLMetricsCollection:
     def _process_metrics_data(self, data: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
         if "resourceMetrics" not in data:
@@ -198,7 +198,7 @@ class Test_PostgreSQLMetricsCollection:
 
 
 @scenarios.otel_collector_e2e
-@features.otel_postgres_support
+@features.postgres_receiver_metrics
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
         """The goal of this test is to validate that the metrics can actually be queried, meaning they
@@ -256,7 +256,7 @@ class Test_BackendValidity:
 
 @scenarios.otel_collector
 @scenarios.otel_collector_e2e
-@features.otel_postgres_support
+@features.postgres_receiver_metrics
 class Test_Smoke:
     def setup_main(self):
         """When the postgres container spins up, we need some activity:
