@@ -39,6 +39,7 @@ def test_tracer_release():
         scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
         scenarios.docker_ssi_servicenaming,
+        scenarios.docker_ssi_profiling,
         scenarios.external_processing_blocking,  # need to declare a white list of library in get-workflow-parameters
         scenarios.external_processing,  # need to declare a white list of library in get-workflow-parameters
         scenarios.stream_processing_offload_blocking,  # need to declare a white list of library in get-workflow-parameters
