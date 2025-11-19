@@ -343,9 +343,10 @@ class Inputs:
                 self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
     def load_modified_files(self) -> None:
-        # Gets the modified files. Computed with gh in a previous ci step.
-        with open("modified_files.txt", "r", encoding="utf-8") as f:
-            self.modified_files = [line.strip() for line in f]
+        if self.ref != "refs/heads/main":
+            # Gets the modified files. Computed with gh in a previous ci step.
+            with open("modified_files.txt", "r", encoding="utf-8") as f:
+                self.modified_files = [line.strip() for line in f]
 
     def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):
