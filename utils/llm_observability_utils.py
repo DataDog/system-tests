@@ -169,9 +169,9 @@ def _assert_tags_span_event_tags(
 
     assert len(actual_tags_parsed) == len(expected_tags)
     for key, value in expected_tags.items():
-        assert (
-            actual_tags_parsed[key] == value
-        ), f"Tag '{key}' expected value '{value}', got '{actual_tags_parsed[key]}'"
+        assert actual_tags_parsed[key] == value, (
+            f"Tag '{key}' expected value '{value}', got '{actual_tags_parsed[key]}'"
+        )
 
 
 def _library_to_language_tag() -> str:
