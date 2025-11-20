@@ -260,7 +260,7 @@ def _collect_item_metadata(item: pytest.Item):
 
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Unselect items that are not included in the current scenario"""
+    """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
 
