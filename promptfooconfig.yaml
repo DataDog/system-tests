@@ -15,4 +15,7 @@ providers:
   - id: 'file://.promptfoo/local_cursor_provider.py'
     label: 'Local Cursor Provider' # Optional display label for this provider
 
-
+ # - id: anthropic:messages:claude-sonnet-4-5-20250929
+ #   config:
+ #     temperature: 0
+ #     max_tokens: 4000
