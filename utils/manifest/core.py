@@ -2,7 +2,9 @@ from typing import Any
 from utils.manifest.parser import load
 from utils._context.component_version import Version
 from utils.manifest.rule import get_rules, match_rule
+from utils.manifest.types import ManifestData
 from utils.manifest.validate import validate_manifest_files as validate
+import utils.manifest._const as const
 
 
 class Manifest:
@@ -14,7 +16,7 @@ class Manifest:
         agent_version: Version | None = None,
         dd_apm_inject_version: Version | None = None,
         k8s_cluster_agent_version: Version | None = None,
-        path: str = "manifests/",
+        path: str = const.default_manifests_path,
     ):
         data = load(path)
         self.rules = get_rules(
@@ -22,11 +24,11 @@ class Manifest:
         )
 
     @staticmethod
-    def parse(path: str = "manifests/") -> dict[str, list[dict[str, Any]]]:
+    def parse(path: str = const.default_manifests_path) -> ManifestData:
         return load(path)
 
     @staticmethod
-    def validate(path: str = "manifests/") -> None:
+    def validate(path: str = const.default_manifests_path) -> None:
         validate(path)
 
     def get_declarations(self, nodeid: str) -> list[tuple[Any, str | None]]:

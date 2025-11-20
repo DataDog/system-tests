@@ -1,94 +1,146 @@
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import Any
-from collections import defaultdict
+
 import yaml
+
+from utils._decorators import CustomSpec as SemverRange
+from utils._decorators import _TestDeclaration
 from utils.manifest.declaration import Declaration
+from utils.manifest.types import Condition, ManifestData, SkipDeclaration
 
 
-def field_processing(
-    name: str,
-    transformation: Callable[[str, list[dict[str, Any]], dict[str, Any]], tuple[list[dict[str, Any]], bool] | None],
-    value: list[dict[str, Any]],
-    entry: dict[str, Any],
-) -> tuple[list[dict[str, Any]], bool]:
-    if name in entry:
-        return transformation(name, value, entry) or ([], True)
-    return [], True
+def process_inline(raw_declaration: str, component: str) -> Condition:
+    declaration = Declaration(raw_declaration, is_inline=True)
+    if declaration.is_skip:
+        assert isinstance(declaration.value, _TestDeclaration)
+        condition: Condition = {
+            "component": component,
+            "declaration": SkipDeclaration(declaration.value, declaration.reason),
+        }
+    else:
+        assert isinstance(declaration.value, SemverRange)
+        condition: Condition = {
+            "declaration": SkipDeclaration(_TestDeclaration("missing_feature"), None),
+            "excluded_component_version": declaration.value,
+            "component": component,
+        }
+    return condition
 
 
-def process_lib_version(n: str, _: object, e: dict[str, Any]) -> tuple[list[dict[str, Any]], bool] | None:
-    e[n] = Declaration(e[n]).value
-    return None
+def cast_to_condition(entry: dict, component: str) -> Condition:
+    if not isinstance(entry["declaration"], SkipDeclaration):
+        raise TypeError(f"Wrong value for declaration: {entry['declaration']}")
+    condition: Condition = {"component": component, "declaration": entry["declaration"]}
+
+    if entry["component_version"]:
+        assert isinstance(
+            entry["component_version"], SemverRange
+        ), f"Wrong value for declaration: {entry['declaration']}"
+        condition["component_version"] = entry["component_version"]
+
+    if entry["excluded_component_version"]:
+        assert isinstance(
+            entry["excluded_component_version"], SemverRange
+        ), f"Wrong value for declaration: {entry['declaration']}"
+        condition["excluded_component_version"] = entry["excluded_component_version"]
+
+    if entry["weblog"]:
+        assert isinstance(entry["weblog"], str | list), f"Wrong value for declaration: {entry['declaration']}"
+        condition["weblog"] = entry["weblog"]
+
+    if entry["excluded_weblog"]:
+        assert isinstance(entry["excluded_weblog"], str | list), f"Wrong value for declaration: {entry['declaration']}"
+        condition["excluded_weblog"] = entry["excluded_weblog"]
+
+    return condition
 
 
-def process_weblog_declaration(n: str, _v: object, e: dict[str, Any]) -> tuple[list[dict[str, Any]], bool]:
-    new_entries: list[dict[str, Any]] = []
-    all_weblogs: list[str] = []
-    for weblog in e[n]:
-        if weblog != "*":
-            all_weblogs.append(weblog)
-    for weblog, raw_declaration in e[n].items():
-        new_entry: dict[str, Any] = {}
-        if weblog == "*":
-            new_entry["excluded_weblog"] = all_weblogs
-        else:
-            new_entry["weblog"] = weblog
-        declaration = Declaration(raw_declaration, is_inline=True)
-        if declaration.is_skip:
-            new_entry["declaration"] = declaration
-        else:
-            new_entry["excluded_component_version"] = declaration.value
-            new_entry["declaration"] = Declaration("missing_feature")
-        new_entries.append(new_entry)
-    return new_entries, False
+class FieldProcessor:
+    @dataclass
+    class Return:
+        """Return type for all field processor.
+        new_conditions -- conditions that are derived by the processed item
+        rule_entry_is_condition -- specifies if, based on the item processed, the entry should be parsed to a condition
+        """
+
+        new_conditions: list[Condition] = field(default_factory=list)
+        rule_entry_is_condition: bool = True
+
+        def __iter__(self):
+            yield self.new_conditions
+            yield self.rule_entry_is_condition
+
+    @staticmethod
+    def processor(
+        transformation: Callable[[str, dict[str, Any], str], Return | None],
+    ) -> Callable:
+        def field_processing(key: str, entry: dict[str, Any], component: str):
+            if key in entry:
+                return transformation(key, entry, component) or FieldProcessor.Return()
+            return FieldProcessor.Return()
+
+        return field_processing
+
+    @staticmethod
+    @processor
+    def lib_version(n: str, e: dict[str, Any], _component: str) -> None:
+        e[n] = Declaration(e[n]).value
+
+    @staticmethod
+    @processor
+    def weblog_declaration(n: str, e: dict[str, Any], component: str) -> Return:
+        new_entries: list[Condition] = []
+        all_weblogs: list[str] = []
+        for weblog in e[n]:
+            if weblog != "*":
+                all_weblogs.append(weblog)
+        for weblog, raw_declaration in e[n].items():
+            condition = process_inline(raw_declaration, component)
+            if weblog == "*":
+                condition["excluded_weblog"] = all_weblogs
+            else:
+                condition["weblog"] = weblog
+            new_entries.append(condition)
+        return FieldProcessor.Return(new_entries, rule_entry_is_condition=False)
 
 
-def _load_file(file: str, component: str) -> dict[str, list[dict[str, Any]]]:
+def _load_file(file: str, component: str) -> ManifestData:
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except FileNotFoundError:
-        return {}
+        return ManifestData()
 
     field_processors = [
-        ("component_version", process_lib_version),
-        ("excluded_component_version", process_lib_version),
-        ("weblog_declaration", process_weblog_declaration),
+        ("component_version", FieldProcessor.lib_version),
+        ("excluded_component_version", FieldProcessor.lib_version),
+        ("weblog_declaration", FieldProcessor.weblog_declaration),
     ]
 
-    ret: dict[str, list[dict[str, Any]]] = {}
+    ret: ManifestData = ManifestData()
     for nodeid, raw_value in data["manifest"].items():
+        condition_list: list[Condition]
         if isinstance(raw_value, str):
-            declaration = Declaration(raw_value, is_inline=True)
-            value: dict[str, Any] = {}
-            if declaration.is_skip:
-                value["declaration"] = declaration
-            else:
-                value["excluded_component_version"] = declaration.value
-                value["declaration"] = Declaration("missing_feature")
-            value["component"] = component
-            value_list = [value]
+            condition_list = [process_inline(raw_value, component)]
         else:
-            raw_value_list = raw_value if isinstance(raw_value, list) else [raw_value]
-            value_list = []
-            for entry in raw_value_list:
-                for field_processor in field_processors:
-                    new_entries, keep_entry = field_processing(
-                        field_processor[0], field_processor[1], raw_value_list, entry
-                    )
-                    value_list += new_entries
+            condition_list = []
+            for entry in raw_value:
+                keep_entry = True
+                for key, func in field_processors:
+                    processor_return = func(key, entry, component)
+                    keep_entry &= processor_return.rule_entry_is_condition
+                    condition_list += processor_return.new_conditions
                 if keep_entry:
-                    value_list.append(entry)
+                    condition_list.append(cast_to_condition(entry, component))
 
-        for entry in value_list:
-            entry["component"] = component
-        ret[nodeid] = value_list
+        ret[nodeid] = condition_list
 
     return ret
 
 
 # @lru_cache
-def load(base_dir: str = "manifests/") -> dict[str, list[dict[str, Any]]]:
+def load(base_dir: str = "manifests/") -> ManifestData:
     """Returns a dict of nodeid, value are another dict where the key is the component
         and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
@@ -103,7 +155,7 @@ def load(base_dir: str = "manifests/") -> dict[str, list[dict[str, Any]]]:
     }
     """
 
-    result: defaultdict[str, list[dict[str, Any]]] = defaultdict(list)
+    result: ManifestData = ManifestData()
 
     for component in (
         "agent",

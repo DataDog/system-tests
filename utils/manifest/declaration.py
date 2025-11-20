@@ -2,22 +2,24 @@ from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import parse_skip_declaration
 from collections.abc import Callable
 from typing import Any
+from utils._decorators import _TestDeclaration
+import utils.manifest._const as const
 import re
 
 
 class Declaration:
-    reason_regex = r" ?(?:\((.*)\))?"
-    skip_declaration_regex = rf"(bug|flaky|incomplete_test_app|irrelevant|missing_feature){reason_regex}"
-    version_regex = r"(?:\d+\.\d+\.\d+|\d+\.\d+|\d+)[.+-]?[.\w+-]*"
-    simple_regex = rf"(>|>=|v)?({version_regex}){reason_regex}"
-    full_regex = rf"(v)?([^()]*){reason_regex}"
+    raw: str
+    is_inline: bool
+    semver_factory: Callable[[str], Any]
+    value: SemverRange | _TestDeclaration
+    reason: str | None
 
     def __init__(
         self,
         raw_declaration: str,
         *,
         is_inline: bool = False,
-        semver_factory: type[SemverRange] | Callable[[str], Any] = SemverRange,
+        semver_factory: Callable[[str], Any] = SemverRange,
     ) -> None:
         if not raw_declaration:
             raise ValueError("raw_declaration must not be None or an empty string")
@@ -51,16 +53,16 @@ class Declaration:
     def sanitize_version(version: str, transformations: list[Callable[[str], str]] | None = None) -> str:
         if transformations is None:
             transformations = Declaration.transformations
-        matches = re.finditer(Declaration.version_regex, version)
+        matches = re.finditer(const.version_regex, version)
         for match in matches:
             matched_section = version[match.start() : match.end()]
             for transformation in transformations:
                 matched_section = transformation(matched_section)
-            version = f"{version[:match.start()]}{matched_section}{version[match.end():]}"
+            version = f"{version[: match.start()]}{matched_section}{version[match.end() :]}"
         return version
 
     def parse_declaration(self) -> None:
-        elements = re.fullmatch(self.skip_declaration_regex, self.raw, re.ASCII)
+        elements = re.fullmatch(const.skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
             skip_declaration = parse_skip_declaration(self.raw)
@@ -71,7 +73,7 @@ class Declaration:
         if not self.is_inline:
             raise ValueError(f"Wrong declaration format: {self.raw} (is inline: {self.is_inline})")
 
-        elements = re.fullmatch(self.full_regex, self.raw, re.ASCII)
+        elements = re.fullmatch(const.full_regex, self.raw, re.ASCII)
 
         if not elements:
             raise ValueError(f"Wrong version format: {self.raw} (is inline: {self.is_inline})")

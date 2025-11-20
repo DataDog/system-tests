@@ -1,11 +1,10 @@
-from typing import Any
-
 from utils._context.component_version import Version
 from utils._decorators import _TestDeclaration
+from utils.manifest.types import ManifestData, Condition
 
 
 def match_condition(
-    condition: dict[str, Any],
+    condition: Condition,
     library: str | None = None,
     library_version: Version | None = None,
     weblog: str | None = None,
@@ -31,8 +30,10 @@ def match_condition(
     if condition["component"] == library or condition["component"] in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
     if condition.get("component_version"):
+        assert condition["component_version"]  # To reassure mypy
         ret &= ref_version in condition["component_version"]
     if condition.get("excluded_component_version"):
+        assert condition["excluded_component_version"]  # To reassure mypy
         ret &= ref_version not in condition["excluded_component_version"]
     if condition.get("weblog"):
         if isinstance(condition["weblog"], list):
@@ -64,7 +65,7 @@ def match_rule(rule: str, nodeid: str) -> bool:
 
 
 def get_rules(
-    manifest: dict[str, list[dict[str, Any]]],
+    manifest: ManifestData,
     library: str,
     library_version: Version | None = None,
     weblog: str | None = None,
@@ -89,6 +90,6 @@ def get_rules(
 
             if rule not in rules:
                 rules[rule] = []
-            rules[rule].append((condition["declaration"].value, condition["declaration"].reason))
+            rules[rule].append((condition["declaration"].declaration, condition["declaration"].details))
 
     return rules

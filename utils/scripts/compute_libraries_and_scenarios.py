@@ -17,6 +17,7 @@ from utils._logger import logger
 from utils.manifest import Manifest
 
 if TYPE_CHECKING:
+    from utils.manifest.types import ManifestData
     from collections.abc import Iterable
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
@@ -166,7 +167,7 @@ class LibraryProcessor:
             return True
         # only acceptable use case : impacted library exactly matches user choice
         raise ValueError(
-            f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
+            f"""File {file} is modified, and it may impact {", ".join(self.impacted)}.
                     Please remove the PR title prefix [{self.user_choice}]"""
         )
 
@@ -206,7 +207,7 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
-        if inputs.ref == "refs/pull/5575/merge" or inputs.ref == "nccatoni/manifest-migration":
+        if inputs.ref in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
             self.scenario_groups |= {all_scenario_groups.all.name}
             return
         modified_nodeids = set()
@@ -302,9 +303,9 @@ class Inputs:
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        if self.ref != "refs/pull/5575/merge" and self.ref != "nccatoni/manifest-migration":
-            self.new_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(new_manifests)
-            self.old_manifests: dict[str, list[dict[str, Any]]] = Manifest.parse(old_manifests)
+        if self.ref not in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
+            self.new_manifests: ManifestData = Manifest.parse(new_manifests)
+            self.old_manifests: ManifestData = Manifest.parse(old_manifests)
 
             if not self.new_manifests:
                 raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
