@@ -275,7 +275,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     for item in items:
         declarations = manifest.get_declarations(item.nodeid)
         for declaration in declarations:
-            add_pytest_marker(item, declaration[0], declaration[1])
+            add_pytest_marker(item, declaration.value, declaration.details)
 
     selected = []
     deselected = []

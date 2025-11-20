@@ -1,6 +1,5 @@
 from utils._context.component_version import Version
-from utils._decorators import _TestDeclaration
-from utils.manifest.types import ManifestData, Condition
+from utils.manifest.types import ManifestData, Condition, SkipDeclaration
 
 
 def match_condition(
@@ -78,8 +77,8 @@ def get_rules(
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
     k8s_cluster_agent_version: Version | None = None,
-) -> dict[str, list[tuple[_TestDeclaration, str | None]]]:
-    rules: dict[str, list[tuple[_TestDeclaration, str | None]]] = {}
+) -> dict[str, list[SkipDeclaration]]:
+    rules: dict[str, list[SkipDeclaration]] = {}
 
     for rule, conditions in manifest.items():
         for condition in conditions:
@@ -96,6 +95,6 @@ def get_rules(
 
             if rule not in rules:
                 rules[rule] = []
-            rules[rule].append((condition["declaration"].declaration, condition["declaration"].details))
+            rules[rule].append(condition["declaration"])
 
     return rules
