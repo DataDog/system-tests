@@ -1,34 +1,22 @@
 import json
-from utils import context, missing_feature, scenarios, features
+from utils import context, features, missing_feature, scenarios
 
 import pytest
 from unittest import mock
-from typing import Any
 
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 from utils.llm_observability_utils import assert_llmobs_span_event
 
 
-TOOLS: list[dict[str, Any]] = [
-    {
-        "type": "function",
-        "function": {
-            "name": "extract_student_info",
-            "description": "Get the student information from the body of the input text",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string", "description": "Name of the person"},
-                    "major": {"type": "string", "description": "Major subject."},
-                    "school": {
-                        "type": "string",
-                        "description": "The university name.",
-                    },
-                },
-            },
-        },
+from .util import TOOLS
+
+
+@pytest.fixture
+def library_env() -> dict[str, str]:
+    return {
+        "DD_LLMOBS_ENABLED": "true",
+        "DD_LLMOBS_ML_APP": "test-app",
     }
-]
 
 
 def tool_to_tool_definition(tool: dict) -> dict:
@@ -40,132 +28,9 @@ def tool_to_tool_definition(tool: dict) -> dict:
     }
 
 
-@features.llm_observability
+@features.llm_observability_openai_llm_interactions
 @scenarios.integration_frameworks
-class TestOpenAiAPM:
-    @pytest.mark.parametrize("stream", [True, False])
-    def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
-        with test_agent.vcr_context(stream=stream):
-            test_client.request(
-                "POST",
-                "/chat/completions",
-                dict(
-                    model="gpt-3.5-turbo",
-                    messages=[dict(role="user", content="Hello OpenAI!")],
-                    parameters=dict(
-                        max_tokens=35,
-                        stream=stream,
-                    ),
-                ),
-            )
-
-        traces = test_agent.wait_for_num_traces(num=1)
-        span = traces[0][0]
-
-        assert span["name"] == "openai.request"
-        assert span["resource"] in ("createChatCompletion", "chat.completions.create")
-        assert span["meta"]["openai.request.model"] == "gpt-3.5-turbo"
-
-    def test_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        with test_agent.vcr_context():
-            test_client.request(
-                "POST",
-                "/completions",
-                dict(
-                    model="gpt-3.5-turbo-instruct",
-                    prompt="Hello OpenAI!",
-                    parameters=dict(
-                        max_tokens=35,
-                    ),
-                ),
-            )
-
-        traces = test_agent.wait_for_num_traces(num=1)
-        span = traces[0][0]
-
-        assert span["name"] == "openai.request"
-        assert span["resource"] in ("createCompletion", "completions.create")
-        assert span["meta"]["openai.request.model"] == "gpt-3.5-turbo-instruct"
-
-    def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        with test_agent.vcr_context():
-            test_client.request(
-                "POST",
-                "/embeddings",
-                dict(
-                    model="text-embedding-ada-002",
-                    input="Hello OpenAI!",
-                ),
-            )
-
-        traces = test_agent.wait_for_num_traces(num=1)
-        span = traces[0][0]
-
-        assert span["name"] == "openai.request"
-        assert span["resource"] in ("createEmbedding", "embeddings.create")
-        assert span["meta"]["openai.request.model"] == "text-embedding-ada-002"
-
-    @pytest.mark.parametrize("stream", [True, False])
-    def test_chat_completion_tool_call(
-        self,
-        test_client: FrameworkTestClientApi,
-        test_agent: TestAgentAPI,
-        *,
-        stream: bool,
-    ):
-        with test_agent.vcr_context(stream=stream):
-            test_client.request(
-                "POST",
-                "/chat/completions",
-                dict(
-                    messages=[
-                        dict(
-                            role="user",
-                            content="Bob is a student at Stanford University. He is studying computer science.",
-                        )
-                    ],
-                    model="gpt-3.5-turbo",
-                    parameters={
-                        "stream": stream,
-                        "tool_choice": "auto",
-                        "tools": TOOLS,
-                    },
-                ),
-            )
-
-        traces = test_agent.wait_for_num_traces(num=1)
-        span = traces[0][0]
-
-        assert span["name"] == "openai.request"
-        assert span["resource"] in ("chat.completions.create", "createChatCompletion")
-        assert span["meta"]["openai.request.model"] == "gpt-3.5-turbo"
-
-    @pytest.mark.parametrize("stream", [True, False])
-    def test_responses_create(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
-        with test_agent.vcr_context(stream=stream):
-            test_client.request(
-                "POST",
-                "/responses/create",
-                dict(
-                    model="gpt-4.1",
-                    input="Where is the nearest Dunkin' Donuts?",
-                    parameters=dict(
-                        max_output_tokens=50, temperature=0.1, stream=stream, instructions="Talk with a Boston accent."
-                    ),
-                ),
-            )
-
-        traces = test_agent.wait_for_num_traces(num=1)
-        span = traces[0][0]
-
-        assert span["name"] == "openai.request"
-        assert span["resource"] in ("responses.create", "createResponse")
-        assert span["meta"]["openai.request.model"] == "gpt-4.1"
-
-
-@features.llm_observability
-@scenarios.integration_frameworks
-class TestOpenAiLlmObs:
+class TestOpenAiLlmInteractions:
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):
@@ -322,68 +187,6 @@ class TestOpenAiLlmObs:
             metadata={"max_tokens": 35},
             error=True,
             ignore_values=["meta.output.messages"],
-        )
-
-    def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        with test_agent.vcr_context():
-            test_client.request(
-                "POST",
-                "/embeddings",
-                dict(
-                    model="text-embedding-ada-002",
-                    input="Hello OpenAI!",
-                ),
-            )
-
-        span_events = test_agent.wait_for_llmobs_requests(num=1)
-        assert len(span_events) == 1
-
-        llm_span_event = span_events[0]
-        assert_llmobs_span_event(
-            llm_span_event,
-            integration="openai",
-            name="OpenAI.createEmbedding",
-            model_name="text-embedding-ada-002-v2",
-            model_provider="openai",
-            span_kind="embedding",
-            input_messages=None,
-            input_documents=[{"text": "Hello OpenAI!"}],
-            output_value="[1 embedding(s) returned with size 1536]",
-            metadata={"encoding_format": "float"},
-            metrics={
-                "input_tokens": mock.ANY,
-                "output_tokens": mock.ANY,
-                "total_tokens": mock.ANY,
-            },
-        )
-
-    def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        with test_agent.vcr_context():
-            test_client.request(
-                "POST",
-                "/embeddings",
-                dict(
-                    model="text-embedding-ada-001",  # using a bad model
-                    input="Hello OpenAI!",
-                ),
-                raise_for_status=False,  # we expect an error
-            )
-
-        span_events = test_agent.wait_for_llmobs_requests(num=1)
-        assert len(span_events) == 1
-
-        llm_span_event = span_events[0]
-        assert_llmobs_span_event(
-            llm_span_event,
-            integration="openai",
-            name="OpenAI.createEmbedding",
-            model_name="text-embedding-ada-001",  # should use input model name for error
-            model_provider="openai",
-            input_documents=[{"text": "Hello OpenAI!"}],
-            span_kind="embedding",
-            metadata=mock.ANY,
-            error=True,
-            has_output=False,
         )
 
     @missing_feature(
@@ -786,3 +589,75 @@ class TestOpenAiLlmObs:
                 "cache_read_input_tokens": mock.ANY,
             },
         )
+
+
+@features.llm_observability_openai_embeddings
+@scenarios.integration_frameworks
+class TestOpenAiEmbeddingInteractions:
+    def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/embeddings",
+                dict(
+                    model="text-embedding-ada-002",
+                    input="Hello OpenAI!",
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        llm_span_event = span_events[0]
+        assert_llmobs_span_event(
+            llm_span_event,
+            integration="openai",
+            name="OpenAI.createEmbedding",
+            model_name="text-embedding-ada-002-v2",
+            model_provider="openai",
+            span_kind="embedding",
+            input_messages=None,
+            input_documents=[{"text": "Hello OpenAI!"}],
+            output_value="[1 embedding(s) returned with size 1536]",
+            metadata={"encoding_format": "float"},
+            metrics={
+                "input_tokens": mock.ANY,
+                "output_tokens": mock.ANY,
+                "total_tokens": mock.ANY,
+            },
+        )
+
+    def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/embeddings",
+                dict(
+                    model="text-embedding-ada-001",  # using a bad model
+                    input="Hello OpenAI!",
+                ),
+                raise_for_status=False,  # we expect an error
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        llm_span_event = span_events[0]
+        assert_llmobs_span_event(
+            llm_span_event,
+            integration="openai",
+            name="OpenAI.createEmbedding",
+            model_name="text-embedding-ada-001",  # should use input model name for error
+            model_provider="openai",
+            input_documents=[{"text": "Hello OpenAI!"}],
+            span_kind="embedding",
+            metadata=mock.ANY,
+            error=True,
+            has_output=False,
+        )
+
+
+@features.llm_observability_prompts
+@scenarios.integration_frameworks
+class TestOpenAiPromptsInteractions:
+    pass  # TODO: add these tests from shared tests

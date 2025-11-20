@@ -30,8 +30,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         self.environment = {
             "DD_TRACE_DEBUG": "true",
             "DD_TRACE_OTEL_ENABLED": "true",
-            "DD_LLMOBS_ENABLED": "true",  # TODO: should this be configurable elsewhere? different scenario?
-            "DD_LLMOBS_ML_APP": "test-app",  # TODO: should this be configurable somehow?
             "OPENAI_API_KEY": os.getenv(
                 "OPENAI_API_KEY", "<not-a-real-key>"
             ),  # see TODO below for removing this logic later

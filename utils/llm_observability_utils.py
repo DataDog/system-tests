@@ -175,7 +175,7 @@ def _assert_tags_span_event_tags(
 
 
 def _library_to_language_tag() -> str:
-    if context.library.name == "nodejs":
+    if context.library == "nodejs":
         return "javascript"
 
     return context.library.name
