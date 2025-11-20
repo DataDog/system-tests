@@ -6,8 +6,8 @@ import yaml
 
 from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import _TestDeclaration
-from utils.manifest.declaration import Declaration
-from utils.manifest.types import Condition, ManifestData, SkipDeclaration
+from utils.manifest._declaration import Declaration
+from utils.manifest._types import Condition, ManifestData, SkipDeclaration
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:

@@ -6,7 +6,7 @@ from pathlib import Path
 import ast
 from typing import TYPE_CHECKING
 
-from utils.manifest.parser import _load_file
+from utils.manifest._parser import _load_file
 
 if TYPE_CHECKING:
     from collections.abc import Callable

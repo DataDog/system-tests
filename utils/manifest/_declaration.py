@@ -101,3 +101,6 @@ class Declaration:
                 return False
             return self.value == o.value and self.reason == o.reason
         return self.value == o.value
+
+    def __hash__(self) -> int:
+        return hash(str(self))

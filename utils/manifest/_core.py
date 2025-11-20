@@ -1,8 +1,8 @@
-from utils.manifest.parser import load
+from utils.manifest._parser import load
 from utils._context.component_version import Version
-from utils.manifest.rule import get_rules, match_rule
-from utils.manifest.types import ManifestData, SkipDeclaration
-from utils.manifest.validate import validate_manifest_files as validate
+from utils.manifest._rule import get_rules, match_rule
+from utils.manifest._types import ManifestData, SkipDeclaration
+from utils.manifest._validate import validate_manifest_files as validate
 import utils.manifest._const as const
 
 
