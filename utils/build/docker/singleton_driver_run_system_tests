@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+echo 'Starting system tests with pytest...'
+cd /app
+venv/bin/pytest -S DEFAULT_ANTITHESIS -p no:warnings
+echo 'System tests completed'
+
