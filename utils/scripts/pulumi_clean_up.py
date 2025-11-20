@@ -44,7 +44,7 @@ def get_last_launched_time(ami_id: str) -> datetime:
         )
         data = json.loads(result.stdout)
         if data:
-            last_launched_time:str = data.get("LastLaunchedTime").get("Value", None)
+            last_launched_time: str = data.get("LastLaunchedTime").get("Value", None)
 
             if last_launched_time:
                 return datetime.fromisoformat(last_launched_time)

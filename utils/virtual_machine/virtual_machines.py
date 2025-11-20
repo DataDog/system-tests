@@ -135,9 +135,9 @@ class _VirtualMachine:
         return self.ssh_config.hostname
 
     def _check_provsion_install_error(self):
-        assert (
-            self.provision_install_error is None
-        ), f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
+        assert self.provision_install_error is None, (
+            f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
+        )
 
     def add_provision(self, provision):
         self._vm_provision = provision
