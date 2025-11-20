@@ -32,7 +32,7 @@ def load_telemetry_json(filename: str):
         return _lowercase_obj(json.load(fh))
 
 
-def _lowercase_obj(obj: dict | list | str | float | bool | None):
+def _lowercase_obj(obj: dict | list | str | float | bool | None):  # noqa: FBT001
     if isinstance(obj, dict):
         return {k.lower() if isinstance(k, str) else k: _lowercase_obj(v) for k, v in obj.items()}
     if isinstance(obj, list):

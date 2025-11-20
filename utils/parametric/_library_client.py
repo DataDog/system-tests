@@ -198,7 +198,7 @@ class APMLibraryClient:
             json={"span_id": span_id, "resource": resource},
         )
 
-    def span_set_meta(self, span_id: int, key: str, value: str | bool | list[str | list[str]] | None) -> None:
+    def span_set_meta(self, span_id: int, key: str, *, value: str | bool | list[str | list[str]] | None) -> None:
         self._session.post(
             self._url("/trace/span/set_meta"),
             json={"span_id": span_id, "key": key, "value": value},
@@ -469,6 +469,7 @@ class APMLibraryClient:
 
     def ffe_evaluate(
         self,
+        *,
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
@@ -651,8 +652,8 @@ class _TestSpan:
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
 
-    def set_meta(self, key: str, val: str | bool | list[str | list[str]] | None):
-        self._client.span_set_meta(self.span_id, key, val)
+    def set_meta(self, key: str, val: str | bool | list[str | list[str]] | None):  # noqa: FBT001
+        self._client.span_set_meta(self.span_id, key, value=val)
 
     def set_metric(self, key: str, val: float | list[int] | None):
         self._client.span_set_metric(self.span_id, key, val)
@@ -931,6 +932,7 @@ class APMLibrary:
 
     def ffe_evaluate(
         self,
+        *,
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
@@ -938,4 +940,10 @@ class APMLibrary:
         attributes: dict | None = None,
     ) -> dict:
         """Evaluate a feature flag."""
-        return self._client.ffe_evaluate(flag, variation_type, default_value, targeting_key, attributes)
+        return self._client.ffe_evaluate(
+            flag=flag,
+            variation_type=variation_type,
+            default_value=default_value,
+            targeting_key=targeting_key,
+            attributes=attributes,
+        )

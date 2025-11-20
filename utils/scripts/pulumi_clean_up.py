@@ -44,10 +44,10 @@ def get_last_launched_time(ami_id: str) -> datetime:
         )
         data = json.loads(result.stdout)
         if data:
-            last_launched_time = data.get("LastLaunchedTime").get("Value", None)
+            last_launched_time:str = data.get("LastLaunchedTime").get("Value", None)
 
             if last_launched_time:
-                return datetime.fromisoformat(last_launched_time.replace("Z", "+00:00"))
+                return datetime.fromisoformat(last_launched_time)
     except Exception as e:
         print(f"⚠️ Failed to fetch last launched time for AMI {ami_id}: {e}")
 
@@ -213,7 +213,7 @@ async def clean_up_amis() -> None:
             owners=["self"],
             most_recent=True,
         )
-        creation_date = datetime.fromisoformat(ami.creation_date.replace("Z", "+00:00"))
+        creation_date = datetime.fromisoformat(ami.creation_date)
 
         # Fetch last launched time using AWS CLI
         last_launched_date = get_last_launched_time(ami_id)
