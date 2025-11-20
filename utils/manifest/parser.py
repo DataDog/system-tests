@@ -139,7 +139,6 @@ def _load_file(file: str, component: str) -> ManifestData:
     return ret
 
 
-# @lru_cache
 def load(base_dir: str = "manifests/") -> ManifestData:
     """Returns a dict of nodeid, value are another dict where the key is the component
         and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
