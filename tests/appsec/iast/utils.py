@@ -206,17 +206,17 @@ def validate_stack_traces(request: HttpResponse) -> None:
     assert iast["vulnerabilities"], "Expected at least one vulnerability"
 
     assert "meta_struct" in span, "'meta_struct' not found in span"
-    assert (
-        "_dd.stack" in span["meta_struct"]
-    ), "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
+    assert "_dd.stack" in span["meta_struct"], (
+        "'_dd.stack' not found in 'meta_struct'. Please check if the test should be marked as irrelevant (not expected to have a stack trace)"
+    )
     stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
     stack_trace = stack_traces[0]
     vulns = [
         i for i in iast["vulnerabilities"] if i.get("location") and i["location"].get("stackId") == stack_trace["id"]
     ]
-    assert (
-        len(vulns) >= 1
-    ), f"Expected at least one vulnerability per stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
+    assert len(vulns) >= 1, (
+        f"Expected at least one vulnerability per stack trace Id.\nVulnerabilities: {vulns}\nStack trace: {stack_traces}"
+    )
     vuln = vulns[0]
 
     assert vuln["location"], "no 'location' present'"
@@ -511,16 +511,16 @@ class BaseSourceTest:
             sources = [s for s in sources if s["origin"] == source_type]
         if self.source_names:
             assert isinstance(self.source_names, list)
-            assert any(
-                x in self.source_names for x in {s.get("name") for s in sources}
-            ), f"Source {self.source_names} not in {sources}"
+            assert any(x in self.source_names for x in {s.get("name") for s in sources}), (
+                f"Source {self.source_names} not in {sources}"
+            )
             sources = [s for s in sources if s["name"] in self.source_names]
         if self.source_value:
             assert self.source_value in {s.get("value") for s in sources}
             sources = [s for s in sources if s["value"] == self.source_value]
-        assert (
-            sources
-        ), f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
+        assert sources, (
+            f"No source found with origin={source_type}, name={self.source_names}, value={self.source_value}"
+        )
         assert len(sources) == 1, "Expected a single source with the matching criteria"
 
     setup_telemetry_metric_instrumented_source = setup_source_reported

@@ -263,9 +263,9 @@ def retrieve_span_events(span: Span) -> list | None:
                 if isinstance(value, dict):
                     # Flatten attributes dict into a single key-value pair
                     # This is for native span events
-                    assert (
-                        len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE
-                    ), f"native span event has unexpected number of values: {event}"
+                    assert len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE, (
+                        f"native span event has unexpected number of values: {event}"
+                    )
                     value.pop("type")
                     event["attributes"][key] = next(iter(value.values()))
                 else:
