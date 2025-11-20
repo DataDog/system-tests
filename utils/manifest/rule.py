@@ -29,22 +29,28 @@ def match_condition(
 
     if condition["component"] == library or condition["component"] in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
-    if condition.get("component_version"):
-        assert condition["component_version"]  # To reassure mypy
-        ret &= ref_version in condition["component_version"]
-    if condition.get("excluded_component_version"):
-        assert condition["excluded_component_version"]  # To reassure mypy
-        ret &= ref_version not in condition["excluded_component_version"]
-    if condition.get("weblog"):
-        if isinstance(condition["weblog"], list):
-            ret &= weblog in condition["weblog"]
+
+    component_version = condition.get("component_version")
+    if component_version:
+        ret &= ref_version in component_version
+
+    excluded_component_version = condition.get("excluded_component_version")
+    if excluded_component_version:
+        ret &= ref_version not in excluded_component_version
+
+    weblog_entry = condition.get("weblog")
+    if weblog_entry:
+        if isinstance(weblog_entry, list):
+            ret &= weblog in weblog_entry
         else:
-            ret &= weblog == condition["weblog"]
-    if condition.get("excluded_weblog"):
-        if isinstance(condition["excluded_weblog"], list):
-            ret &= weblog not in condition["excluded_weblog"]
+            ret &= weblog == weblog_entry
+
+    excluded_weblog = condition.get("excluded_weblog")
+    if excluded_weblog:
+        if isinstance(excluded_weblog, list):
+            ret &= weblog not in excluded_weblog
         else:
-            ret &= weblog != condition["excluded_weblog"]
+            ret &= weblog != excluded_weblog
     return ret
 
 
@@ -52,12 +58,12 @@ def match_rule(rule: str, nodeid: str) -> bool:
     path = rule.split("/")
     path = [part for part in path if part]
     rest = rule.split("::")
-    rule_elements = path[:-1] + [path[-1].split("::")[0]] + rest[1:]
+    rule_elements = [*path[:-1], path[-1].split("::")[0], *rest[1:]]
 
     nodeid = nodeid[: nodeid.find("[") % len(nodeid) + 1]
     path = nodeid.split("/")
     rest = nodeid.split("::")
-    nodeid_elements = path[:-1] + [path[-1].split("::")[0]] + rest[1:]
+    nodeid_elements = [*path[:-1], path[-1].split("::")[0], *rest[1:]]
 
     if len(rule_elements) > len(nodeid_elements):
         return False
