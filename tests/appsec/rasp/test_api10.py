@@ -4,13 +4,20 @@
 
 import json
 import urllib.parse
+import pytest
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 
 from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant_v2,
 )
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 API10_TAGS = [
     "_dd.appsec.trace.req_headers",
