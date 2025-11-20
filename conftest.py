@@ -264,6 +264,19 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     logger.debug("pytest_collection_modifyitems")
 
+    manifest = Manifest(
+        context.library.name,
+        context.library.version,
+        context.weblog_variant,
+        context.agent_version,
+        context.dd_apm_inject_version,
+        context.k8s_cluster_agent_version,
+    )
+    for item in items:
+        declarations = manifest.get_declarations(item.nodeid)
+        for declaration in declarations:
+            add_pytest_marker(item, declaration[0], declaration[1])
+
     selected = []
     deselected = []
 
@@ -320,19 +333,6 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
-
-    manifest = Manifest(
-        context.library.name,
-        context.library.version,
-        context.weblog_variant,
-        context.agent_version,
-        context.dd_apm_inject_version,
-        context.k8s_cluster_agent_version,
-    )
-    for item in items:
-        declarations = manifest.get_declarations(item.nodeid)
-        for declaration in declarations:
-            add_pytest_marker(item, declaration[0], declaration[1])
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
