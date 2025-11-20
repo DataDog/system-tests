@@ -112,20 +112,20 @@ class Test_FFE_Exposure_Events:
                 break
 
         # Validate that we found our specific event
-        assert (
-            matching_event is not None
-        ), f"Expected to find flag '{self.flag}' with subject '{self.targeting_key}' in exposure events"
+        assert matching_event is not None, (
+            f"Expected to find flag '{self.flag}' with subject '{self.targeting_key}' in exposure events"
+        )
 
         assert "flag" in matching_event, "Exposure event missing 'flag' field"
         assert "key" in matching_event["flag"], "Flag missing 'key' field"
-        assert (
-            matching_event["flag"]["key"] == self.flag
-        ), f"Expected flag '{self.flag}', got '{matching_event['flag']['key']}'"
+        assert matching_event["flag"]["key"] == self.flag, (
+            f"Expected flag '{self.flag}', got '{matching_event['flag']['key']}'"
+        )
 
         assert "subject" in matching_event, "Exposure event missing 'subject' field"
-        assert (
-            matching_event["subject"]["id"] == self.targeting_key
-        ), f"Expected subject '{self.targeting_key}', got '{matching_event['subject']['id']}'"
+        assert matching_event["subject"]["id"] == self.targeting_key, (
+            f"Expected subject '{self.targeting_key}', got '{matching_event['subject']['id']}'"
+        )
 
     def setup_ffe_multiple_remote_config_files(self):
         """Set up FFE with multiple remote config files across different target paths."""
@@ -250,14 +250,14 @@ class Test_FFE_Exposure_Events:
                     flags_found.add(flag_key)
                     # Validate subject for our test events
                     assert "subject" in event, "Exposure event missing 'subject' field"
-                    assert (
-                        event["subject"]["id"] == self.targeting_key
-                    ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+                    assert event["subject"]["id"] == self.targeting_key, (
+                        f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+                    )
 
         # Verify that both flags were evaluated and sent exposure events
-        assert (
-            self.flag_1 in flags_found or self.flag_2 in flags_found
-        ), f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
+        assert self.flag_1 in flags_found or self.flag_2 in flags_found, (
+            f"Expected to find flags '{self.flag_1}' or '{self.flag_2}' in exposure events, found: {flags_found}"
+        )
 
 
 @scenarios.feature_flag_exposure
@@ -416,15 +416,15 @@ class Test_FFE_Exposure_Events_Errors:
         # We should have at least one event (from the first valid evaluation)
         # The second evaluation may or may not generate an event depending on
         # whether the provider accepted or rejected the malformed config
-        assert (
-            len(events_found) >= 1
-        ), f"Expected at least 1 exposure event for flag '{self.flag}', found {len(events_found)}"
+        assert len(events_found) >= 1, (
+            f"Expected at least 1 exposure event for flag '{self.flag}', found {len(events_found)}"
+        )
 
         # Verify that all events have the expected structure
         for event in events_found:
             assert "flag" in event, "Exposure event missing 'flag' field"
             assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
             assert "subject" in event, "Exposure event missing 'subject' field"
-            assert (
-                event["subject"]["id"] == self.targeting_key
-            ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            assert event["subject"]["id"] == self.targeting_key, (
+                f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            )

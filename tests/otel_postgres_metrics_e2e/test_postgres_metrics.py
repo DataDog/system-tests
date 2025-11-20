@@ -280,7 +280,7 @@ class Test_Smoke:
         )
 
         r = container.exec_run(
-            "psql -U system_tests_user -d system_tests_dbname -c " '"INSERT INTO test_table DEFAULT VALUES;"'
+            'psql -U system_tests_user -d system_tests_dbname -c "INSERT INTO test_table DEFAULT VALUES;"'
         )
         logger.info(r.output)
 
