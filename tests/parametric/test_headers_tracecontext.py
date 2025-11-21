@@ -10,8 +10,8 @@
 
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures.spec.tracecontext import get_tracecontext
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils import missing_feature, context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 

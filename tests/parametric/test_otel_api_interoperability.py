@@ -2,7 +2,7 @@ import pytest
 
 from utils import scenarios, features
 from opentelemetry.trace import SpanKind
-from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
+from utils.docker_fixtures.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 

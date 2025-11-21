@@ -15,7 +15,7 @@ from ddsketch.store import CollapsingLowestDenseStore
 from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
-from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
+from utils.docker_fixtures.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 
 
 # Key used in the meta map to indicate the span origin
