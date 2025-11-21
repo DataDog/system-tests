@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+from typing import TextIO
 
 from docker.models.images import Image
 import pytest
@@ -110,3 +111,9 @@ class TestClientFactory:
     @property
     def command(self) -> list[str]:
         return self.image.attrs["Config"]["Cmd"]
+
+    def get_client_log_file(self, request: pytest.FixtureRequest) -> TextIO:
+        log_path = Path(f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log")
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+
+        return log_path.open("w+", encoding="utf-8")
