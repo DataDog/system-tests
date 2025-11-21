@@ -11,9 +11,9 @@ import requests
 
 from utils._logger import logger
 
-from ._core import docker_run, get_host_port
-from ._test_agent import TestAgentAPI
-from ._test_client import TestClientFactory
+from utils.docker_fixtures._core import docker_run, get_host_port
+from utils.docker_fixtures._test_agent import TestAgentAPI
+from ._core import TestClientFactory
 
 
 class FrameworkTestClientFactory(TestClientFactory):
