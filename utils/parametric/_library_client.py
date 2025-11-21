@@ -570,8 +570,8 @@ class ParametricTestClientApi:
             remote=resp["remote"],
         )
 
-    def otel_flush(self, timeout: int) -> bool:
-        resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
+    def otel_flush(self, timeout_sec: int) -> bool:
+        resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout_sec}).json()
         return resp["success"]
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):
