@@ -1,9 +1,9 @@
-from utils.manifest._parser import load
+from .parser import load
 from utils._context.component_version import Version
-from utils.manifest._rule import get_rules, match_rule
-from utils.manifest._types import ManifestData, SkipDeclaration
-from utils.manifest._validate import validate_manifest_files as validate
-import utils.manifest._const as const
+from .rule import get_rules, match_rule
+from .types import ManifestData, SkipDeclaration
+from .validate import validate_manifest_files as validate
+from .const import default_manifests_path
 
 
 class Manifest:
@@ -15,7 +15,7 @@ class Manifest:
         agent_version: Version | None = None,
         dd_apm_inject_version: Version | None = None,
         k8s_cluster_agent_version: Version | None = None,
-        path: str = const.default_manifests_path,
+        path: str = default_manifests_path,
     ):
         data = load(path)
         self.rules = get_rules(
@@ -23,11 +23,11 @@ class Manifest:
         )
 
     @staticmethod
-    def parse(path: str = const.default_manifests_path) -> ManifestData:
+    def parse(path: str = default_manifests_path) -> ManifestData:
         return load(path)
 
     @staticmethod
-    def validate(path: str = const.default_manifests_path) -> None:
+    def validate(path: str = default_manifests_path) -> None:
         validate(path)
 
     def get_declarations(self, nodeid: str) -> list[SkipDeclaration]:

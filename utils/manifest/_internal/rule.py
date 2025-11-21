@@ -1,5 +1,5 @@
 from utils._context.component_version import Version
-from utils.manifest._types import ManifestData, Condition, SkipDeclaration
+from .types import ManifestData, Condition, SkipDeclaration
 
 
 def match_condition(

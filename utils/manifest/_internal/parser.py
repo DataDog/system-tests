@@ -6,8 +6,8 @@ import yaml
 
 from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import _TestDeclaration
-from utils.manifest._declaration import Declaration
-from utils.manifest._types import Condition, ManifestData, SkipDeclaration
+from .declaration import Declaration
+from .types import Condition, ManifestData, SkipDeclaration
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:
@@ -21,7 +21,7 @@ def process_inline(raw_declaration: str, component: str) -> Condition:
     else:
         assert isinstance(declaration.value, SemverRange)
         condition: Condition = {
-            "declaration": SkipDeclaration(_TestDeclaration("missing_feature"), None),
+            "declaration": SkipDeclaration("missing_feature"),
             "excluded_component_version": declaration.value,
             "component": component,
         }
@@ -34,15 +34,15 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
     condition: Condition = {"component": component, "declaration": entry["declaration"]}
 
     if entry["component_version"]:
-        assert isinstance(
-            entry["component_version"], SemverRange
-        ), f"Wrong value for declaration: {entry['declaration']}"
+        assert isinstance(entry["component_version"], SemverRange), (
+            f"Wrong value for declaration: {entry['declaration']}"
+        )
         condition["component_version"] = entry["component_version"]
 
     if entry["excluded_component_version"]:
-        assert isinstance(
-            entry["excluded_component_version"], SemverRange
-        ), f"Wrong value for declaration: {entry['declaration']}"
+        assert isinstance(entry["excluded_component_version"], SemverRange), (
+            f"Wrong value for declaration: {entry['declaration']}"
+        )
         condition["excluded_component_version"] = entry["excluded_component_version"]
 
     if entry["weblog"]:

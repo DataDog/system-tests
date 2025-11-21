@@ -7,7 +7,11 @@ from utils._decorators import _TestDeclaration
 @dataclass
 class SkipDeclaration:
     value: _TestDeclaration
-    details: str | None
+    details: str | None = None
+
+    def __init__(self, value: str, details: str | None = None):
+        self.value = _TestDeclaration(value)
+        self.details = details
 
 
 class Condition(TypedDict):

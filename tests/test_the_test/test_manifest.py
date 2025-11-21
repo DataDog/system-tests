@@ -1,9 +1,8 @@
-from utils._decorators import _TestDeclaration as TestDeclaration
-from utils._decorators import CustomSpec
-from utils._context.component_version import Version
-from utils.manifest import Manifest
-from utils.manifest.declaration import Declaration
 from utils import scenarios
+from utils._context.component_version import Version
+from utils._decorators import CustomSpec
+from utils._decorators import _TestDeclaration as TestDeclaration
+from utils.manifest import Manifest, SkipDeclaration
 
 
 @scenarios.test_the_test
@@ -17,19 +16,19 @@ class TestManifest:
             "tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span": [
                 {
                     "excluded_component_version": CustomSpec(">=3.4.5"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "java",
                 },
                 {
-                    "declaration": Declaration("missing_feature (missing /e2e_otel_span endpoint on weblog)"),
+                    "declaration": SkipDeclaration("missing_feature (missing /e2e_otel_span endpoint on weblog)"),
                     "component": "python",
                 },
             ],
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners": [
-                {"declaration": Declaration("missing_feature"), "component": "java"},
+                {"declaration": SkipDeclaration("missing_feature"), "component": "java"},
                 {
                     "excluded_component_version": CustomSpec(">=2.6.0"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
             ],
@@ -37,31 +36,31 @@ class TestManifest:
                 {
                     "excluded_weblog": ["spring-boot"],
                     "excluded_component_version": CustomSpec(">=1.2.3"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "java",
                 },
-                {"weblog": "spring-boot", "declaration": Declaration("missing_feature"), "component": "java"},
+                {"weblog": "spring-boot", "declaration": SkipDeclaration("missing_feature"), "component": "java"},
                 {
                     "excluded_weblog": ["django-poc", "django-py3.13", "python3.12"],
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
                 {
                     "weblog": "django-poc",
                     "excluded_component_version": CustomSpec(">=3.12.0-dev"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
                 {
                     "weblog": "django-py3.13",
                     "excluded_component_version": CustomSpec(">=3.12.0-dev"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
                 {
                     "weblog": "python3.12",
                     "excluded_component_version": CustomSpec(">=3.12.0-dev"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
             ],
@@ -69,30 +68,30 @@ class TestManifest:
                 {
                     "excluded_weblog": ["fastapi"],
                     "excluded_component_version": CustomSpec(">=2.4.0"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
-                {"weblog": "fastapi", "declaration": Declaration("missing_feature"), "component": "python"},
+                {"weblog": "fastapi", "declaration": SkipDeclaration("missing_feature"), "component": "python"},
             ],
             "tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies": [
                 {
                     "excluded_weblog": ["fastapi"],
                     "excluded_component_version": CustomSpec(">=2.1.0"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
                 {
                     "weblog": "fastapi",
                     "excluded_component_version": CustomSpec(">=2.5.0"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
             ],
-            "tests/appsec/iast/sink": [{"declaration": Declaration("missing_feature"), "component": "python"}],
+            "tests/appsec/iast/sink": [{"declaration": SkipDeclaration("missing_feature"), "component": "python"}],
             "tests/appsec/iast": [
                 {
                     "excluded_component_version": CustomSpec(">=2.1.0"),
-                    "declaration": Declaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 }
             ],

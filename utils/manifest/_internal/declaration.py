@@ -3,7 +3,7 @@ from utils._decorators import parse_skip_declaration
 from collections.abc import Callable
 from typing import Any
 from utils._decorators import _TestDeclaration
-import utils.manifest._const as const
+from .const import version_regex, skip_declaration_regex, full_regex
 import re
 
 
@@ -53,7 +53,7 @@ class Declaration:
     def sanitize_version(version: str, transformations: list[Callable[[str], str]] | None = None) -> str:
         if transformations is None:
             transformations = Declaration.transformations
-        matches = re.finditer(const.version_regex, version)
+        matches = re.finditer(version_regex, version)
         for match in matches:
             matched_section = version[match.start() : match.end()]
             for transformation in transformations:
@@ -62,7 +62,7 @@ class Declaration:
         return version
 
     def parse_declaration(self) -> None:
-        elements = re.fullmatch(const.skip_declaration_regex, self.raw, re.ASCII)
+        elements = re.fullmatch(skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
             skip_declaration = parse_skip_declaration(self.raw)
@@ -73,7 +73,7 @@ class Declaration:
         if not self.is_inline:
             raise ValueError(f"Wrong declaration format: {self.raw} (is inline: {self.is_inline})")
 
-        elements = re.fullmatch(const.full_regex, self.raw, re.ASCII)
+        elements = re.fullmatch(full_regex, self.raw, re.ASCII)
 
         if not elements:
             raise ValueError(f"Wrong version format: {self.raw} (is inline: {self.is_inline})")
