@@ -152,3 +152,436 @@ class Test_Feature_Flag_Exposure:
                 f"flag='{flag}', targetingKey='{targeting_key}', "
                 f"expected={expected_result}, actual={actual_value}"
             )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_agent_empty_response_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when agent returns empty responses.
+
+        This test verifies that when the agent returns empty responses,
+        FFE continues to work with cached configuration data.
+        """
+        from utils._context._scenarios.ffe_agent_empty_response import ffe_agent_empty_response
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup FFE provider and set initial RC config
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        # Run happy path evaluations first
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+            # Verify happy path result
+            expected = test_case["result"]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Happy path failed for flag {test_case['flag']}"
+
+        # Configure agent to return empty responses
+        ffe_agent_empty_response.configure_agent_empty_responses(test_agent)
+
+        # Run evaluations during agent failure - should use cached values
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            # During failure, should return same values as happy path
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal responses
+        ffe_agent_empty_response.restore_agent_normal_responses(test_agent)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_agent_5xx_error_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when agent returns 5xx server errors."""
+        from utils._context._scenarios.ffe_agent_5xx_error import ffe_agent_5xx_error
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Configure agent to return 5xx errors
+        ffe_agent_5xx_error.configure_agent_5xx_responses(test_agent)
+
+        # Test resilience during 5xx errors
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal responses
+        ffe_agent_5xx_error.restore_agent_normal_responses(test_agent)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_agent_timeout_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when agent requests time out."""
+        from utils._context._scenarios.ffe_agent_timeout import ffe_agent_timeout
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Configure agent timeouts
+        ffe_agent_timeout.configure_agent_timeouts(test_agent)
+
+        # Test resilience during timeouts
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal timing
+        ffe_agent_timeout.restore_agent_normal_timing(test_agent)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_agent_connection_refused_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when agent connection is refused."""
+        from utils._context._scenarios.ffe_agent_connection_refused import ffe_agent_connection_refused
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Stop agent container
+        ffe_agent_connection_refused.stop_agent_container(test_agent)
+
+        # Test resilience during connection refused
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restart agent container
+        ffe_agent_connection_refused.restart_agent_container(test_agent)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_rc_endpoint_error_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when Remote Config endpoint returns errors."""
+        from utils._context._scenarios.ffe_rc_endpoint_error import ffe_rc_endpoint_error
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Configure RC endpoint errors
+        ffe_rc_endpoint_error.configure_rc_endpoint_errors(test_agent)
+
+        # Test resilience during RC errors
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal RC responses
+        ffe_rc_endpoint_error.restore_rc_normal_responses(test_agent)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_rc_network_delay_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when Remote Config requests are delayed."""
+        from utils._context._scenarios.ffe_rc_network_delay import ffe_rc_network_delay
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Configure RC network delays
+        ffe_rc_network_delay.configure_rc_network_delays(test_agent)
+
+        # Test resilience during network delays
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal RC timing
+        ffe_rc_network_delay.restore_rc_normal_timing(test_agent)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_rc_empty_config_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when Remote Config returns empty configuration."""
+        from utils._context._scenarios.ffe_rc_empty_config import ffe_rc_empty_config
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Configure empty RC config
+        empty_config = ffe_rc_empty_config.configure_empty_rc_config(test_agent)
+        _set_and_wait_ffe_rc(test_agent, empty_config)
+
+        # Test resilience with empty config - should fallback to cached values
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal config
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_rc_malformed_response_resilience(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE resilience when Remote Config returns malformed data."""
+        from utils._context._scenarios.ffe_rc_malformed_response import ffe_rc_malformed_response
+
+        # Load test case data
+        test_case_path = Path(__file__).parent / test_case_file
+        if not test_case_path.exists():
+            pytest.skip(f"Test case file not found: {test_case_path}")
+
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+
+        # Setup and run happy path
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        happy_results = []
+        for test_case in test_cases:
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+            happy_results.append(result)
+
+        # Configure malformed RC config
+        malformed_config = ffe_rc_malformed_response.create_malformed_rc_config()
+        try:
+            _set_and_wait_ffe_rc(test_agent, malformed_config)
+        except Exception:
+            # Expected to fail with malformed data, continue with cached config
+            pass
+
+        # Test resilience with malformed config - should use cached values
+        for i, test_case in enumerate(test_cases):
+            result = test_library.ffe_evaluate(
+                flag=test_case["flag"],
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=test_case["targetingKey"],
+                attributes=test_case.get("attributes", {}),
+            )
+
+            expected = happy_results[i]["value"]
+            actual = result.get("value")
+            assert actual == expected, f"Resilience failed for flag {test_case['flag']}"
+
+        # Restore normal config
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)

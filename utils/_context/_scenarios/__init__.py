@@ -27,6 +27,16 @@ from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
+# FFE Resilience Scenarios
+from .ffe_agent_empty_response import ffe_agent_empty_response
+from .ffe_agent_5xx_error import ffe_agent_5xx_error
+from .ffe_agent_timeout import ffe_agent_timeout
+from .ffe_agent_connection_refused import ffe_agent_connection_refused
+from .ffe_rc_endpoint_error import ffe_rc_endpoint_error
+from .ffe_rc_network_delay import ffe_rc_network_delay
+from .ffe_rc_empty_config import ffe_rc_empty_config
+from .ffe_rc_malformed_response import ffe_rc_malformed_response
+
 update_environ_with_local_env()
 
 
@@ -1154,6 +1164,16 @@ class _Scenarios:
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )
+
+    # FFE Resilience Scenarios
+    ffe_agent_empty_response = ffe_agent_empty_response
+    ffe_agent_5xx_error = ffe_agent_5xx_error
+    ffe_agent_timeout = ffe_agent_timeout
+    ffe_agent_connection_refused = ffe_agent_connection_refused
+    ffe_rc_endpoint_error = ffe_rc_endpoint_error
+    ffe_rc_network_delay = ffe_rc_network_delay
+    ffe_rc_empty_config = ffe_rc_empty_config
+    ffe_rc_malformed_response = ffe_rc_malformed_response
 
 
 scenarios = _Scenarios()
