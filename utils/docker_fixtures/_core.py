@@ -9,6 +9,17 @@ import pytest
 from utils._logger import logger
 from utils._context.docker import get_docker_client
 
+import os
+
+def append_pytest_test_name(env: dict[str, str]) -> dict[str, str]:
+    """Add PYTEST_CURRENT_TEST to container environment if available"""
+    test_name = os.getenv("PYTEST_CURRENT_TEST")
+    if test_name:
+        logger.debug(f"Adding PYTEST_CURRENT_TEST to container: {test_name}")
+        env["PYTEST_CURRENT_TEST"] = test_name
+    else:
+        logger.debug("PYTEST_CURRENT_TEST not available in environment")
+    return env
 
 def get_host_port(worker_id: str, base_port: int) -> int:
     """Deterministic port allocation for each worker"""
@@ -51,7 +62,7 @@ def docker_run(
     command: list[str] | None = None,
 ) -> Generator[Container, None, None]:
     logger.info(f"Run container {name} from image {image} with ports {ports}")
-
+    env = append_pytest_test_name(env)
     try:
         container: Container = get_docker_client().containers.run(
             image,

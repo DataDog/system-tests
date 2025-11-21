@@ -74,6 +74,15 @@ class ParametricScenario(DockerFixturesScenario):
     def parametrized_tests_metadata(self):
         return self._parametric_tests_confs
 
+    def append_pytest_test_name(self, env: dict[str, str]) -> dict[str, str]:
+        """Add PYTEST_CURRENT_TEST to container environment if available"""
+        test_name = os.getenv("PYTEST_CURRENT_TEST")
+        if test_name:
+            logger.debug(f"Adding PYTEST_CURRENT_TEST to container: {test_name}")
+            env["PYTEST_CURRENT_TEST"] = test_name
+        else:
+            logger.debug("PYTEST_CURRENT_TEST not available in environment")
+        return env
     def configure(self, config: pytest.Config):
         if not config.option.library:
             pytest.exit("No library specified, please set -L option or use TEST_LIBRARY env var", 1)
@@ -112,6 +121,7 @@ class ParametricScenario(DockerFixturesScenario):
         if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
             output = get_docker_client().containers.run(
                 self._test_client_factory.tag,
+                environment=self.append_pytest_test_name({}),
                 remove=True,
                 command=["./system_tests_library_version.sh"],
                 volumes=compute_volumes(self._test_client_factory.container_volumes),
@@ -119,6 +129,7 @@ class ParametricScenario(DockerFixturesScenario):
         else:
             output = get_docker_client().containers.run(
                 self._test_client_factory.tag,
+                environment=self.append_pytest_test_name({}),
                 remove=True,
                 command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
             )

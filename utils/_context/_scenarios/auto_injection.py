@@ -99,7 +99,15 @@ class _VirtualMachineScenario(Scenario):
             )
         )
         self.virtual_machine.add_agent_env(self.agent_env)
-        self.virtual_machine.add_app_env(self.app_env)
+        
+        # Add PYTEST_CURRENT_TEST to app_env if available
+        app_env = self.app_env or {}
+        test_name = os.getenv("PYTEST_CURRENT_TEST")
+        if test_name:
+            app_env["PYTEST_CURRENT_TEST"] = test_name
+            logger.debug(f"Adding PYTEST_CURRENT_TEST to VM app environment: {test_name}")
+        
+        self.virtual_machine.add_app_env(app_env)
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))

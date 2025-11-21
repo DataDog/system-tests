@@ -619,3 +619,14 @@ def fixture_session(request: pytest.FixtureRequest) -> pytest.Session:
 @pytest.fixture(scope="session", name="deselected_items")
 def fixture_deselected_items() -> list[pytest.Item]:
     return _deselected_items
+
+
+@pytest.fixture(scope="function", autouse=True)
+def set_test_name_env(request: pytest.FixtureRequest) -> Generator[None, None, None]:
+    """Automatically set PYTEST_CURRENT_TEST environment variable for all tests"""
+    test_name = request.node.nodeid
+    os.environ["PYTEST_CURRENT_TEST"] = test_name
+    logger.debug(f"Set PYTEST_CURRENT_TEST={test_name}")
+    yield
+    # Let pytest handle the cleanup of PYTEST_CURRENT_TEST
+    # Don't delete it here as pytest's own teardown will handle it

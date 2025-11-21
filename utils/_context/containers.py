@@ -178,6 +178,17 @@ class TestedContainer:
             logger.debug(f"Kill old container {self.container_name}")
             old_container.remove(force=True)
 
+
+    def append_pytest_test_name(self, env: dict[str, str | None]) -> dict[str, str | None]:
+        """Add PYTEST_CURRENT_TEST to container environment if available"""
+        test_name = os.environ.get('PYTEST_CURRENT_TEST')
+        if test_name:
+            logger.debug(f"Adding PYTEST_CURRENT_TEST to container: {test_name}")
+            env["PYTEST_CURRENT_TEST"] = test_name
+        else:
+            logger.debug("PYTEST_CURRENT_TEST not available in environment")
+        return env
+
     def start(self, network: Network) -> Container:
         """Start the actual underlying Docker container directly"""
 
@@ -199,8 +210,14 @@ class TestedContainer:
 
         self._fix_host_pwd_in_volumes()
 
+        # Update environment with test name if available
+        self.environment = self.append_pytest_test_name(self.environment)
+        
+        # Fallback to container name if test name is not available
+        if "PYTEST_CURRENT_TEST" not in self.environment:
+            self.environment["PYTEST_CURRENT_TEST"] = self.container_name
+            
         logger.info(f"Start container {self.container_name}")
-
         self._container = get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,

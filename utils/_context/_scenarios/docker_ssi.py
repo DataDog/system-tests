@@ -504,6 +504,15 @@ class DockerSSIImageBuilder:
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
             raise BuildError("Failed to build weblog docker image", e.build_log) from e
+    def append_pytest_test_name(self, env: dict[str, str]) -> dict[str, str]:
+        """Add PYTEST_CURRENT_TEST to container environment if available"""
+        test_name = os.getenv("PYTEST_CURRENT_TEST")
+        if test_name:
+            logger.debug(f"Adding PYTEST_CURRENT_TEST to container: {test_name}")
+            env["PYTEST_CURRENT_TEST"] = test_name
+        else:
+            logger.debug("PYTEST_CURRENT_TEST not available in environment")
+        return env
 
     def tested_components(self):
         """Extract weblog versions of lang runtime, agent, installer, tracer.
