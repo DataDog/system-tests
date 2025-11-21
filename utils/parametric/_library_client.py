@@ -54,7 +54,7 @@ class Event(TypedDict):
 
 
 class _TestSpan:
-    def __init__(self, client: "APMLibraryClient", span_id: int, trace_id: int):
+    def __init__(self, client: "ParametricTestClientApi", span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -97,7 +97,7 @@ class _TestSpan:
 
 
 class _TestOtelSpan:
-    def __init__(self, client: "APMLibraryClient", span_id: int, trace_id: int):
+    def __init__(self, client: "ParametricTestClientApi", span_id: int, trace_id: int):
         self._client = client
         self.span_id = span_id
         self.trace_id = trace_id
@@ -135,7 +135,11 @@ class _TestOtelSpan:
         self._client.otel_set_baggage(self.span_id, key, value)
 
 
-class APMLibraryClient:
+class ParametricTestClientApi:
+    """API to interact with the tracer+framework server running in a docker container for
+    PARAMETRIC scenarios.
+    """
+
     def __init__(self, library: str, url: str, timeout: int, container: Container):
         self.library = library
         self._base_url = url
@@ -784,7 +788,7 @@ class APMLibraryClient:
 
 
 class APMLibrary:
-    def __init__(self, client: APMLibraryClient, lang: str):
+    def __init__(self, client: ParametricTestClientApi, lang: str):
         self._client = client
         self.lang = lang
 

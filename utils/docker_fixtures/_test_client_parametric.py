@@ -2,7 +2,7 @@ from collections.abc import Generator
 import contextlib
 from typing import TextIO
 
-from utils.parametric._library_client import APMLibrary, APMLibraryClient
+from utils.parametric._library_client import APMLibrary, ParametricTestClientApi
 
 
 from ._core import get_host_port, docker_run
@@ -68,7 +68,7 @@ class ParametricTestClientFactory(TestClientFactory):
         ) as container:
             test_server_timeout = 60
 
-            client = APMLibraryClient(
+            client = ParametricTestClientApi(
                 self.library,
                 f"http://localhost:{host_port}",
                 test_server_timeout,
