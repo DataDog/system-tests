@@ -44,7 +44,7 @@ class Test_Crashtracking:
 
         try:
             # container.wait will throw if the application doesn't exit in time
-            test_library._client.container.wait(timeout=10)  # noqa: SLF001
+            test_library.container.wait(timeout=10)
         finally:
             test_agent.set_trace_delay(0)
 
