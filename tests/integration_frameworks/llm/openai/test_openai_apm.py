@@ -1,5 +1,5 @@
 from utils import features, scenarios
-from .util import TOOLS
+from .utils import TOOLS
 
 import pytest
 

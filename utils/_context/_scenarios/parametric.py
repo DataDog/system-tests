@@ -82,7 +82,7 @@ class ParametricScenario(DockerFixturesScenario):
 
         volumes = {
             "golang": {"./utils/build/docker/golang/parametric": "/client"},
-            "nodejs": DockerFixturesScenario.get_node_volumes(),
+            "nodejs": self.get_node_volumes(),
             "php": {"./utils/build/docker/php/parametric/server.php": "/client/server.php"},
             "python": {"./utils/build/docker/python/parametric/apm_test_client": "/app/apm_test_client"},
         }

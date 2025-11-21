@@ -8,7 +8,7 @@ from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 from utils.llm_observability_utils import assert_llmobs_span_event
 
 
-from .util import TOOLS
+from .utils import TOOLS
 
 
 @pytest.fixture

@@ -69,7 +69,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         # Add nodejs-load-from-local volume support if needed
         if library == "nodejs":
-            container_volumes.update(DockerFixturesScenario.get_node_volumes())
+            container_volumes.update(self.get_node_volumes())
 
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
