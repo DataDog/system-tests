@@ -2,16 +2,16 @@ import time
 
 import pytest
 
-from utils.parametric._library_client import Link
 from opentelemetry.trace import StatusCode
 from opentelemetry.trace import SpanKind
+from utils.docker_fixtures.parametric import Link
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
-from utils import bug, features, missing_feature, irrelevant, context, scenarios
 from utils.docker_fixtures import TestAgentAPI
+from utils import bug, features, missing_feature, irrelevant, context, scenarios
 from .conftest import APMLibrary
 
 # this global mark applies to all tests in this file.

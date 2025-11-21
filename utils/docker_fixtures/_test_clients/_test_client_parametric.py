@@ -1,10 +1,9 @@
 from collections.abc import Generator, Iterable
 import contextlib
-from enum import Enum
 from http import HTTPStatus
 import time
 from types import TracebackType
-from typing import TextIO, TypedDict, NotRequired
+from typing import TextIO, TypedDict
 import urllib.parse
 
 from _pytest.outcomes import Failed
@@ -16,6 +15,7 @@ import requests
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
+from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
 
 from ._core import TestClientFactory
@@ -89,13 +89,6 @@ class ParametricTestClientFactory(TestClientFactory):
             yield client
 
 
-class LogLevel(Enum):
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-
-
 def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
@@ -110,11 +103,6 @@ class StartSpanResponse(TypedDict):
 class SpanResponse(TypedDict):
     span_id: int
     trace_id: int
-
-
-class Link(TypedDict):
-    parent_id: int
-    attributes: NotRequired[dict]
 
 
 class Event(TypedDict):
