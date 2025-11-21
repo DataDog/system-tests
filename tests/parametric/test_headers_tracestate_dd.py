@@ -1,6 +1,6 @@
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary

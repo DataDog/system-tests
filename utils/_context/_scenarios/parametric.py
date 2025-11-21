@@ -15,8 +15,8 @@ from utils.docker_fixtures import (
     TestAgentAPI,
     compute_volumes,
     ParametricTestClientFactory,
+    ParametricTestClientApi,
 )
-from utils.parametric._library_client import APMLibrary
 
 from .core import scenario_groups
 from ._docker_fixtures import DockerFixturesScenario
@@ -159,7 +159,7 @@ class ParametricScenario(DockerFixturesScenario):
         test_agent: TestAgentAPI,
         library_env: dict,
         library_extra_command_arguments: list[str],
-    ) -> Generator[APMLibrary, None, None]:
+    ) -> Generator[ParametricTestClientApi, None, None]:
         log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
 
