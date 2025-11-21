@@ -5,8 +5,7 @@ import json
 import pytest
 
 from utils import bug, features, scenarios, logger
-from utils.parametric._library_client import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
 @scenarios.parametric
