@@ -3,7 +3,7 @@ import contextlib
 from http import HTTPStatus
 import time
 from types import TracebackType
-from typing import TextIO, TypedDict
+from typing import TypedDict
 import urllib.parse
 
 from _pytest.outcomes import Failed
@@ -31,12 +31,12 @@ class ParametricTestClientFactory(TestClientFactory):
     @contextlib.contextmanager
     def get_apm_library(
         self,
+        request: pytest.FixtureRequest,
         worker_id: str,
         test_id: str,
         test_agent: TestAgentAPI,
         library_env: dict,
         library_extra_command_arguments: list[str],
-        test_server_log_file: TextIO,
     ) -> Generator["ParametricTestClientApi", None, None]:
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
@@ -67,16 +67,19 @@ class ParametricTestClientFactory(TestClientFactory):
                 # temporary workaround for the test server to be able to run the command
                 env["SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS"] = " ".join(library_extra_command_arguments)
 
-        with docker_run(
-            image=self.tag,
-            name=f"{self.container_name}-{test_id}",
-            command=command,
-            env=env,
-            ports={f"{container_port}/tcp": host_port},
-            volumes=self.container_volumes,
-            log_file=test_server_log_file,
-            network=test_agent.network,
-        ) as container:
+        with (
+            self.get_client_log_file(request) as log_file,
+            docker_run(
+                image=self.tag,
+                name=f"{self.container_name}-{test_id}",
+                command=command,
+                env=env,
+                ports={f"{container_port}/tcp": host_port},
+                volumes=self.container_volumes,
+                log_file=log_file,
+                network=test_agent.network,
+            ) as container,
+        ):
             test_server_timeout = 60
 
             client = ParametricTestClientApi(
@@ -87,6 +90,10 @@ class ParametricTestClientFactory(TestClientFactory):
             )
 
             yield client
+
+        request.node.add_report_section(
+            "teardown", f"{self.library.capitalize()} Library Output", f"Log file:\n./{log_file.name}"
+        )
 
 
 def _fail(message: str):
