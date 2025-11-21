@@ -2055,3 +2055,12 @@ def external_request():
             )
     except urllib.error.HTTPError as e:
         return jsonify({"status": int(e.status), "error": repr(e)})
+
+
+@app.route("/crashme", methods=["GET"])
+def crashme():
+    """Endpoint that causes a segmentation fault for crash tracking tests"""
+    import ctypes
+
+    ctypes.string_at(0)  # This will cause a segmentation fault (SIGSEGV)
+    return "This should never be reached"
