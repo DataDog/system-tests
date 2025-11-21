@@ -15,10 +15,10 @@ import requests
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils._logger import logger
 
 from ._core import TestClientFactory
-from ._parametric_spec.otel_trace import OtelSpanContext
 
 
 class ParametricTestClientFactory(TestClientFactory):

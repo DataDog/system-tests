@@ -1,14 +1,14 @@
 import time
 import json
 import pytest
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
-from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
-from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
-from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
-from utils.parametric.spec.trace import MANUAL_DROP_KEY
-from utils.parametric.spec.trace import USER_KEEP
-from utils.parametric.spec.trace import (
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
+from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
+from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_RATE
+from utils.docker_fixtures.spec.trace import MANUAL_DROP_KEY
+from utils.docker_fixtures.spec.trace import USER_KEEP
+from utils.docker_fixtures.spec.trace import (
     find_span_in_traces,
     find_trace,
     find_span,

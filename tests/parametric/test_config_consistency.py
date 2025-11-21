@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import pytest
 import yaml
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary, StableConfigWriter
 

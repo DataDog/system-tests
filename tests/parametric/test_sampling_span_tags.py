@@ -2,14 +2,14 @@ import json
 
 import pytest
 from utils import bug, context, scenarios, features
-from utils.parametric.spec.trace import MANUAL_DROP_KEY
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
-from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
-from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
-from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
-from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures.spec.trace import MANUAL_DROP_KEY
+from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import SAMPLING_DECISION_MAKER_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_RULE_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 

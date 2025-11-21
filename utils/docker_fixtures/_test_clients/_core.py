@@ -8,7 +8,7 @@ import pytest
 
 from utils._logger import logger
 
-from utils.docker_fictures._core import get_docker_client
+from utils.docker_fixtures._core import get_docker_client
 
 
 class TestClientFactory:
