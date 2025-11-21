@@ -191,7 +191,7 @@ cd binaries/
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    TARGET_BRANCH="alejandro.gonzalez/APPSEC-57815"
 
     curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
 
