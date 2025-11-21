@@ -9,8 +9,7 @@ import pytest
 import yaml
 
 from utils import scenarios, logger
-from utils.parametric._library_client import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
 # Max timeout in seconds to keep a container running

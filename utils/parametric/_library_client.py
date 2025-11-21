@@ -142,6 +142,7 @@ class ParametricTestClientApi:
 
     def __init__(self, library: str, url: str, timeout: int, container: Container):
         self.library = library
+        self.lang = library  # TODO remove
         self._base_url = url
         self._session = requests.Session()
         self.container = container
@@ -149,6 +150,24 @@ class ParametricTestClientApi:
 
         # wait for server to start
         self._wait(timeout)
+
+    def __enter__(self) -> "ParametricTestClientApi":
+        return self
+
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> bool | None:
+        # Only attempt a flush if there was no exception raised.
+        if exc_type is None:
+            self.dd_flush()
+            if self.lang != "cpp":
+                # C++ does not have an otel/flush endpoint
+                self.otel_flush(1)
+                # Logs flush endpoint is not implemented in all parametric apps
+                # TODO: otel_flush should return False if the logs flush fails
+                self.otel_logs_flush()
+
+        return None
 
     def _wait(self, timeout: float):
         delay = 0.01
@@ -555,7 +574,7 @@ class ParametricTestClientApi:
         resp = self._session.post(self._url("/trace/otel/flush"), json={"seconds": timeout}).json()
         return resp["success"]
 
-    def otel_set_baggage(self, span_id: int, key: str, value: str) -> None:
+    def otel_set_baggage(self, span_id: int, key: str, value: str):
         resp = self._session.post(
             self._url("/trace/otel/otel_set_baggage"),
             json={"span_id": span_id, "key": key, "value": value},

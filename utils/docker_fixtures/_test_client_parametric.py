@@ -2,7 +2,7 @@ from collections.abc import Generator
 import contextlib
 from typing import TextIO
 
-from utils.parametric._library_client import APMLibrary, ParametricTestClientApi
+from utils.parametric._library_client import ParametricTestClientApi
 
 
 from ._core import get_host_port, docker_run
@@ -26,7 +26,7 @@ class ParametricTestClientFactory(TestClientFactory):
         library_env: dict,
         library_extra_command_arguments: list[str],
         test_server_log_file: TextIO,
-    ) -> Generator["APMLibrary", None, None]:
+    ) -> Generator["ParametricTestClientApi", None, None]:
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
 
@@ -75,5 +75,4 @@ class ParametricTestClientFactory(TestClientFactory):
                 container,
             )
 
-            tracer = APMLibrary(client, self.library)
-            yield tracer
+            yield client
