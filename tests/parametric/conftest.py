@@ -8,11 +8,10 @@ import uuid
 import pytest
 import yaml
 
-from utils.parametric._library_client import APMLibrary
-
 from utils import scenarios, logger
+from utils.parametric._library_client import APMLibrary
+from utils.docker_fixtures import TestAgentAPI
 
-from utils.docker_fixtures import TestAgentAPI as _TestAgentAPI
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
@@ -77,7 +76,7 @@ def test_agent(
     request: pytest.FixtureRequest,
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
-) -> Generator[_TestAgentAPI, None, None]:
+) -> Generator[TestAgentAPI, None, None]:
     with scenarios.parametric.get_test_agent_api(
         request=request,
         worker_id=worker_id,
@@ -93,7 +92,7 @@ def test_library(
     worker_id: str,
     request: pytest.FixtureRequest,
     test_id: str,
-    test_agent: _TestAgentAPI,
+    test_agent: TestAgentAPI,
     library_env: dict[str, str],
     library_extra_command_arguments: list[str],
 ) -> Generator[APMLibrary, None, None]:

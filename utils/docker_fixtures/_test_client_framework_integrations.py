@@ -93,6 +93,10 @@ class FrameworkTestClientFactory(TestClientFactory):
 
 
 class FrameworkTestClientApi:
+    """API to interact with the tracer+framework server running in a docker container for
+    INTEGRATIONS_FRAMEWORK scenarios.
+    """
+
     def __init__(self, url: str, timeout: int, container: Container):
         self._base_url = url
         self._session = requests.Session()

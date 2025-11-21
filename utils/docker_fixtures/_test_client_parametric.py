@@ -11,6 +11,12 @@ from ._test_client import TestClientFactory
 
 
 class ParametricTestClientFactory(TestClientFactory):
+    """Abstracts the docker image/container that ship the tested tracer for PARAMETRIC scenario.
+    # This class is responsible to:
+    # * build the image
+    # * expose a ready to call function that runs the container and returns the client that will be used in tests
+    """
+
     @contextlib.contextmanager
     def get_apm_library(
         self,
