@@ -110,6 +110,12 @@ weblogs = {
 output = ""
 
 
+def quotes(string: str) -> str:
+    if ">" in string or ":" in string:
+        return f'"{string}"'
+    return string
+
+
 def get_comment(commented_obj: dict, key: str) -> str:
     """Extract EOL comment from ruamel.yaml CommentedMap for a given key."""
     if not hasattr(commented_obj, "ca"):
@@ -150,7 +156,8 @@ def flatten(
                 line += comment
             output += line
         else:
-            line = f'\n{root}: "{data}"'
+            line = f"\n{root}: {quotes(data)}"
+            print(data)
             if comment:
                 line += comment
             output += line
@@ -162,11 +169,12 @@ def flatten(
             var_name = var[0]
             if var[0] == "*":
                 var_name = f'"{var[0]}"'
-            data_str = f"*{refs[var[1]]}" if refs and var[1] in refs else f'"{var[1]}"'
+            data_str = f"*{refs[var[1]]}" if refs and var[1] in refs else f"{quotes(var[1])}"
             comment = ""
             if variant_commented and hasattr(variant_commented, "ca"):
                 comment = get_comment(variant_commented, var[0])
             line = f"\n    {var_name}: {data_str}"
+            print(data_str)
             if comment:
                 line += comment
             output += line
