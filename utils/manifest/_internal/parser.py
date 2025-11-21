@@ -1,11 +1,13 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from textwrap import dedent
 from typing import Any
 
 import yaml
 
 from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import _TestDeclaration
+
 from .declaration import Declaration
 from .types import Condition, ManifestData, SkipDeclaration
 
@@ -29,39 +31,72 @@ def process_inline(raw_declaration: str, component: str) -> Condition:
 
 
 def cast_to_condition(entry: dict, component: str) -> Condition:
+    """Transforms a regular dict to a Condition doing type checking. More involved
+    transformations should be made in a FieldProcessor function.
+    """
     if not isinstance(entry["declaration"], SkipDeclaration):
-        raise TypeError(f"Wrong value for declaration: {entry['declaration']}")
+        raise TypeError(f"Wrong type for declaration: {type(entry['declaration'])}")
     condition: Condition = {"component": component, "declaration": entry["declaration"]}
 
-    if entry["component_version"]:
-        assert isinstance(entry["component_version"], SemverRange), (
-            f"Wrong value for declaration: {entry['declaration']}"
-        )
+    if entry.get("component_version"):
+        assert isinstance(
+            entry["component_version"], SemverRange
+        ), f"Wrong type for declaration: {type(entry['component_version'])}"
         condition["component_version"] = entry["component_version"]
 
-    if entry["excluded_component_version"]:
-        assert isinstance(entry["excluded_component_version"], SemverRange), (
-            f"Wrong value for declaration: {entry['declaration']}"
-        )
+    if entry.get("excluded_component_version"):
+        assert isinstance(
+            entry["excluded_component_version"], SemverRange
+        ), f"Wrong type for declaration: {type(entry['excluded_component_version'])}"
         condition["excluded_component_version"] = entry["excluded_component_version"]
 
-    if entry["weblog"]:
-        assert isinstance(entry["weblog"], str | list), f"Wrong value for declaration: {entry['declaration']}"
+    if entry.get("weblog"):
+        assert isinstance(entry["weblog"], str | list), f"Wrong type for declaration: {type(entry['weblog'])}"
         condition["weblog"] = entry["weblog"]
 
-    if entry["excluded_weblog"]:
-        assert isinstance(entry["excluded_weblog"], str | list), f"Wrong value for declaration: {entry['declaration']}"
+    if entry.get("excluded_weblog"):
+        assert isinstance(
+            entry["excluded_weblog"], str | list
+        ), f"Wrong type for declaration: {type(entry['excluded_weblog'])}"
         condition["excluded_weblog"] = entry["excluded_weblog"]
+
+    for key in entry:
+        if key not in ["declaration", "component_version", "excluded_component_version", "weblog", "excluded_weblog"]:
+            raise ValueError(f"Field {key} unknown")
 
     return condition
 
 
 class FieldProcessor:
+    """Contains all processing functions that should be applied to raw fields from
+    the manifest files.
+
+    To process a new field you should add the appropriate processing function
+    implementing the following interface:
+        @staticmethod
+        @processor
+        def my_processor(key: str, entry: dict[str, Any], component: str):
+            ...
+    Where:
+        key (str): the field name that the processor is applied to
+        entry (dict[str, Any]): the raw entry that was read from the manifest file
+        component (str): the manifest component name
+
+    You should then add it to the field_processors alongside the target field name.
+    If you are looking to add support for a new field type you should also make sure
+    to check if cast to condition needs to be updated.
+    """
+
     @dataclass
     class Return:
         """Return type for all field processor.
-        new_conditions -- conditions that are derived by the processed item
-        rule_entry_is_condition -- specifies if, based on the item processed, the entry should be parsed to a condition
+
+        Args:
+            new_conditions (list[Condition]): conditions that are derived by the
+                processed item and should be added to the rule
+            rule_entry_is_condition (bool): specifies if, based on the item processed,
+                the raw entry should be parsed to a condition
+
         """
 
         new_conditions: list[Condition] = field(default_factory=list)
@@ -84,8 +119,15 @@ class FieldProcessor:
 
     @staticmethod
     @processor
-    def lib_version(n: str, e: dict[str, Any], _component: str) -> None:
-        e[n] = Declaration(e[n]).value
+    def component_version(n: str, e: dict[str, Any], _component: str) -> None:
+        e[n] = Declaration(e[n], is_inline=True).value
+
+    @staticmethod
+    @processor
+    def declaration(n: str, e: dict[str, Any], _component: str) -> None:
+        declaration = Declaration(e[n])
+        assert isinstance(declaration.value, _TestDeclaration)
+        e[n] = SkipDeclaration(declaration.value, declaration.reason)
 
     @staticmethod
     @processor
@@ -104,6 +146,13 @@ class FieldProcessor:
             new_entries.append(condition)
         return FieldProcessor.Return(new_entries, rule_entry_is_condition=False)
 
+    field_processors = [
+        ("component_version", component_version),
+        ("excluded_component_version", component_version),
+        ("weblog_declaration", weblog_declaration),
+        ("declaration", declaration),
+    ]
+
 
 def _load_file(file: str, component: str) -> ManifestData:
     try:
@@ -112,11 +161,7 @@ def _load_file(file: str, component: str) -> ManifestData:
     except FileNotFoundError:
         return ManifestData()
 
-    field_processors = [
-        ("component_version", FieldProcessor.lib_version),
-        ("excluded_component_version", FieldProcessor.lib_version),
-        ("weblog_declaration", FieldProcessor.weblog_declaration),
-    ]
+    field_processors = FieldProcessor.field_processors
 
     ret: ManifestData = ManifestData()
     for nodeid, raw_value in data["manifest"].items():
@@ -132,7 +177,36 @@ def _load_file(file: str, component: str) -> ManifestData:
                     keep_entry &= processor_return.rule_entry_is_condition
                     condition_list += processor_return.new_conditions
                 if keep_entry:
-                    condition_list.append(cast_to_condition(entry, component))
+                    try:
+                        condition_list.append(cast_to_condition(entry, component))
+                    except KeyError as e:
+                        raise ValueError(
+                            dedent(f"""
+                            Error while casting
+                                {nodeid}:
+                                    {entry}
+                            to Condition in {component} manifest. Field {e} is missing.
+                            """)
+                        ) from e
+                    except ValueError as e:
+                        raise ValueError(
+                            dedent(f"""
+                            Error while casting
+                                {nodeid}:
+                                    {entry}
+                            to Condition in {component} manifest.
+                            """)
+                        ) from e
+                    except TypeError as e:
+                        raise TypeError(
+                            dedent(f"""
+                            Error while casting
+                                {nodeid}:
+                                    {entry}
+                            to Condition in {component} manifest.
+                            Make sure you are not missing a FieldProcessor
+                            """)
+                        ) from e
 
         ret[nodeid] = condition_list
 
@@ -140,18 +214,28 @@ def _load_file(file: str, component: str) -> ManifestData:
 
 
 def load(base_dir: str = "manifests/") -> ManifestData:
-    """Returns a dict of nodeid, value are another dict where the key is the component
-        and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
-
-    Data example:
-
-    {
-        "tests/test_x.py::Test_feature":
-        {
-            "agent": "v1.0",
-            "php": "missing_feature"
-        }
-    }
+    """Transforms the following raw manifest data:
+    ----------------------------------------------------------------------------
+    nodeid:                                                                    |
+    ---------------------------------------------------------------------------| rule (str)
+        - weblog: weblog1            field (str: Any) | entry (dict[str, Any]) |
+          component_version: <4.3.5                   |                        |
+          declaration: missing_feature                |                        |
+    ----------------------------------------------------------------------------
+    Into:
+    -----------------------------------------------------------------------------
+    {                                                                           |
+        "nodeid": [                                                             |
+    -----------------------------------------------------------------           |
+            {                                                       |           |
+                "component_version": SemverRange("<4.3.5"),         |           |
+                "weblog: weblog1",                                  | Condition | rule
+                "declaration": SkipDeclaration("missing_feature")   |           |
+            }                                                       |           |
+    -----------------------------------------------------------------           |
+        ]                                                                       |
+    }                                                                           |
+    -----------------------------------------------------------------------------
     """
 
     result: ManifestData = ManifestData()

@@ -20,7 +20,7 @@ class TestManifest:
                     "component": "java",
                 },
                 {
-                    "declaration": SkipDeclaration("missing_feature (missing /e2e_otel_span endpoint on weblog)"),
+                    "declaration": SkipDeclaration("missing_feature", "missing /e2e_otel_span endpoint on weblog"),
                     "component": "python",
                 },
             ],
@@ -102,7 +102,7 @@ class TestManifest:
             "python", Version("3.12.0"), "django-poc", path="tests/test_the_test/manifests/manifests_parser_test/"
         )
         assert manifest.get_declarations("tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_function") == [
-            (TestDeclaration.MISSING_FEATURE, "missing /e2e_otel_span endpoint on weblog")
+            SkipDeclaration(TestDeclaration.MISSING_FEATURE, "missing /e2e_otel_span endpoint on weblog")
         ]
 
     def test_variant_conditions(self):
@@ -134,7 +134,7 @@ class TestManifest:
         )
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery"
-        ) == [(TestDeclaration.MISSING_FEATURE, None)]
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)]
 
     def test_variant_lower_version(self):
         manifest = Manifest(
@@ -142,8 +142,8 @@ class TestManifest:
         )
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners"
-        ) == [(TestDeclaration.MISSING_FEATURE, None)]
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)]
         assert manifest.get_declarations("tests/appsec/api_security/test_schemas.py::Test_Scanners") == []
         assert manifest.get_declarations("tests/appsec/iast/sink/file.py::Class::function") == [
-            (TestDeclaration.MISSING_FEATURE, None)
+            SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)
         ]

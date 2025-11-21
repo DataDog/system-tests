@@ -8,6 +8,8 @@ import re
 
 
 class Declaration:
+    """Parsing and validation of raw declaration objects."""
+
     raw: str
     is_inline: bool
     semver_factory: Callable[[str], Any]
@@ -21,6 +23,15 @@ class Declaration:
         is_inline: bool = False,
         semver_factory: Callable[[str], Any] = SemverRange,
     ) -> None:
+        """Parses raw declaration strings.
+
+        Args:
+            raw_declaration (str): raw declaration string from the manifest file
+            is_inline (bool): True is the declaration is inline (ex:nodeid: declaration).
+                In this case it can be either a skip declaration or a version.
+            semver_factory (Callable[[str], Any]): function to use to create version ranges
+
+        """
         if not raw_declaration:
             raise ValueError("raw_declaration must not be None or an empty string")
         self.raw = raw_declaration.strip()
@@ -92,15 +103,3 @@ class Declaration:
         if self.reason:
             return f"{self.value} ({self.reason})"
         return f"{self.value}"
-
-    def __eq__(self, o: object) -> bool:
-        if not isinstance(o, Declaration):
-            return False
-        if self.reason:
-            if not o.reason:
-                return False
-            return self.value == o.value and self.reason == o.reason
-        return self.value == o.value
-
-    def __hash__(self) -> int:
-        return hash(str(self))
