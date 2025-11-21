@@ -74,7 +74,7 @@ def _get_path(test_name: str, suffix: str, version: str) -> str:
     return os.path.join(_CUR_DIR, "utils", "approvals", language, version, filename)
 
 
-def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
+def write_approval(data: list | dict, test_name: str, suffix: str, version: str) -> None:
     path = _get_path(test_name, suffix, version)
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:

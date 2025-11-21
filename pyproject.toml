@@ -175,9 +175,6 @@ ignore = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
 ]
 
-"tests/debugger/test_debugger_exception_replay.py" = [
-    "ANN001",    # missing-type-function-argument: TODO
-]
 "tests/*" = [
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO

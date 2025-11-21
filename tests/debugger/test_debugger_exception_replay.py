@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections.abc import Callable
 import re
 import os
 import tests.debugger.utils as debugger
@@ -11,7 +12,7 @@ from packaging import version
 from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
 
 
-def get_env_bool(env_var_name, *, default=False) -> bool:
+def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
 
@@ -33,11 +34,11 @@ _timeout_next = 30
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @irrelevant(context.library <= "dotnet@3.28.0", reason="DEBUG-4582")
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
-    snapshots: dict = {}
+    snapshots: list[dict] = []
     spans: dict = {}
 
     ############ setup ############
-    def _setup(self, request_path, exception_message):
+    def _setup(self, request_path: str, exception_message: str):
         self.weblog_responses = []
 
         retries = 0
@@ -54,7 +55,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             retries += 1
 
     ############ assert ############
-    def _assert(self, test_name, expected_exception_messages):
+    def _assert(self, test_name: str, expected_exception_messages: list[str]):
         def __filter_contents_by_message():
             filtered_contents = []
 
@@ -65,9 +66,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         if expected_exception_message in exception_message:
                             filtered_contents.append((exception_message, content))
 
-            def get_sort_key(content_tuple):
+            def get_sort_key(content_tuple: tuple[str, dict]):
                 message, content = content_tuple
-                snapshot = content["debugger"]["snapshot"]
+                snapshot: dict = content["debugger"]["snapshot"]
 
                 method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
                 line_number = snapshot.get("probe", {}).get("location", {}).get("lines", [])
@@ -86,7 +87,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             return [snapshot for _, snapshot in filtered_contents]
 
-        def __filter_spans_by_snapshot_id(snapshots):
+        def __filter_spans_by_snapshot_id(snapshots: list[dict]):
             filtered_spans = {}
 
             for snapshot in snapshots:
@@ -103,7 +104,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             return filtered_spans
 
-        def __filter_spans_by_span_id(contents):
+        def __filter_spans_by_span_id(contents: list[dict]):
             filtered_spans = {}
             for content in contents:
                 span_id = content.get("dd", {}).get("span_id") or content.get("dd.span_id")
@@ -131,8 +132,13 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             spans = __filter_spans_by_snapshot_id(snapshots)
         self._validate_spans(test_name, spans)
 
-    def _validate_exception_replay_snapshots(self, test_name, snapshots):
-        def __scrub(data):
+    def _validate_exception_replay_snapshots(self, test_name: str, snapshots: list[dict]):
+        def __scrub_dict(data: dict) -> dict:
+            result = __scrub(data)
+            assert isinstance(result, dict)
+            return result
+
+        def __scrub(data: dict | list | str) -> dict | list | str:
             if isinstance(data, dict):
                 scrubbed_data = {}
                 for key, value in data.items():
@@ -149,10 +155,10 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             else:
                 return data
 
-        def __scrub_java(key, value, parent):
+        def __scrub_java(key: str, value: dict | list, parent: dict):
             runtime = ("jdk.", "org.", "java")
 
-            def skip_runtime(value, skip_condition, del_filename=None):
+            def skip_runtime(value: list, skip_condition: Callable, del_filename: Callable | None = None):
                 scrubbed = []
 
                 for entry in value:
@@ -175,9 +181,11 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     return "<scrubbed>"
 
                 if parent["type"] == "java.lang.Object[]":
+                    assert isinstance(value, list)
                     return skip_runtime(value, lambda e: "value" in e and e["value"].startswith(runtime))
 
                 if parent["type"] == "java.lang.StackTraceElement[]":
+                    assert isinstance(value, list)
                     return skip_runtime(value, lambda e: e["fields"]["declaringClass"]["value"].startswith(runtime))
 
                 return __scrub(value)
@@ -185,19 +193,21 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             elif key == "moduleVersion":
                 return "<scrubbed>"
             elif key in ["stacktrace", "stack"]:
+                assert isinstance(value, list)
                 return skip_runtime(
                     value, lambda e: "function" in e and e["function"].startswith(runtime), lambda e: "fileName" in e
                 )
 
             return __scrub(value)
 
-        def __scrub_dotnet(key, value, parent):  # noqa: ARG001
+        def __scrub_dotnet(key: str, value: dict | list | str, parent: dict):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
                 return value
             elif key == "function":
+                assert isinstance(value, str)
                 if "lambda_" in value:
                     value = re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", value)
                 if re.search(r"<[^>]+>", value):
@@ -205,6 +215,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 return value
             elif key in ["stacktrace", "stack"]:
                 scrubbed = []
+                assert isinstance(value, list)
                 for entry in value:
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
                     if entry["function"].startswith(("Microsoft", "System", "Unknown")):
@@ -216,8 +227,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):  # noqa: ARG001
+        def __scrub_python(key: str, value: dict | list, parent: dict):  # noqa: ARG001
             if key == "@exception":
+                assert isinstance(value, dict)
                 value["fields"] = "<scrubbed>"
                 return value
 
@@ -241,7 +253,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             return __scrub(value)
 
-        def __scrub_none(key, value, parent):  # noqa: ARG001
+        def __scrub_none(key: str, value: dict | list, parent: dict):  # noqa: ARG001
             return __scrub(value)
 
         if self.get_tracer()["language"] == "java":
@@ -253,7 +265,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         else:
             scrub_language = __scrub_none
 
-        def __approve(snapshots):
+        def __approve(snapshots: list):
             self._write_approval(snapshots, test_name, "snapshots_received")
 
             if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
@@ -268,14 +280,14 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         assert snapshots, "Snapshots not found"
 
         if not _SKIP_SCRUB:
-            snapshots = [__scrub(snapshot) for snapshot in snapshots]
+            snapshots = [__scrub_dict(snapshot) for snapshot in snapshots]
 
         self.snapshots = snapshots
         __approve(snapshots)
 
-    def _validate_spans(self, test_name: str, spans):
-        def __scrub(data):
-            def scrub_span(key, value):
+    def _validate_spans(self, test_name: str, spans: dict[str, dict]):
+        def __scrub(data: dict[str, dict]) -> dict[str, dict]:
+            def scrub_span(key: str, value: dict | list):
                 if key in {"traceID", "spanID", "parentID", "start", "duration", "metrics"}:
                     return "<scrubbed>"
 
@@ -320,7 +332,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             return scrubbed_spans
 
-        def __approve(spans):
+        def __approve(spans: dict[str, dict]):
             self._write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
@@ -356,7 +368,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self.spans = spans
         __approve(spans)
 
-    def _validate_recursion_snapshots(self, snapshots, limit):
+    def _validate_recursion_snapshots(self, snapshots: list[dict], limit: int):
         assert len(snapshots) == limit + 1, (
             f"Expected {limit + 1} snapshots for recursion limit {limit}, got {len(snapshots)}"
         )
@@ -364,7 +376,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         entry_method = "exceptionReplayRecursion"
         helper_method = "exceptionReplayRecursionHelper"
 
-        def get_frames(snapshot):
+        def get_frames(snapshot: dict) -> list[dict]:
             if self.get_tracer()["language"] in ["java", "dotnet"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
@@ -375,7 +387,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         found_top = False
         found_lowest = False
 
-        def check_frames(frames):
+        def check_frames(frames: list[dict]):
             nonlocal found_top, found_lowest
 
             for frame in frames:
@@ -453,7 +465,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         compatible_versions.sort(key=lambda x: version.parse(x), reverse=True)
         return compatible_versions[0]
 
-    def _write_approval(self, data: list, test_name: str, suffix: str) -> None:
+    def _write_approval(self, data: list | dict, test_name: str, suffix: str) -> None:
         """Write approval data to version-aware path."""
         version = self._get_approval_version()
         debugger.write_approval(data, test_name, suffix, version)
