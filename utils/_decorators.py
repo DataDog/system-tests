@@ -85,7 +85,7 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
 
 
 def add_pytest_marker(
-    item: pytest.Item,
+    item: pytest.Module | pytest.Function | FunctionType | MethodType,
     declaration: _TestDeclaration,
     declaration_details: str | None,
     *,

@@ -273,6 +273,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         context.k8s_cluster_agent_version,
     )
     for item in items:
+        assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
         for declaration in declarations:
             add_pytest_marker(item, declaration.value, declaration.details)
