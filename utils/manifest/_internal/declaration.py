@@ -28,7 +28,7 @@ class Declaration:
         Args:
             raw_declaration (str): raw declaration string from the manifest file
             is_inline (bool): True is the declaration is inline (ex:nodeid: declaration).
-                In this case it can be either a skip declaration or a version.
+                In this case raw_declaration can be either a skip declaration or a version.
             semver_factory (Callable[[str], Any]): function to use to create version ranges
 
         """

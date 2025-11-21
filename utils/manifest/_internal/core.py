@@ -7,6 +7,8 @@ from .const import default_manifests_path
 
 
 class Manifest:
+    """Provides a simple way to get information from the manifests"""
+
     def __init__(
         self,
         library: str,
@@ -17,6 +19,9 @@ class Manifest:
         k8s_cluster_agent_version: Version | None = None,
         path: str = default_manifests_path,
     ):
+        """Parses all the manifest files on creation and filters the results based on
+        the information provided
+        """
         data = load(path)
         self.rules = get_rules(
             data, library, library_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
@@ -24,13 +29,35 @@ class Manifest:
 
     @staticmethod
     def parse(path: str = default_manifests_path) -> ManifestData:
+        """Returns a manifest containing the parsed data from all manifests files in path
+
+        Args:
+            path (str): Path to the manifest directory. Defaults to 'manifests/'
+
+        """
         return load(path)
 
     @staticmethod
     def validate(path: str = default_manifests_path) -> None:
+        """Runs a series of checks on the manifest files including:
+        - nodeids exist
+        - manifests are sorted
+        - manifests can be parsed without errors
+
+        Args:
+            path (str, optional): Path to the manifest directory. Defaults to 'manifests/'
+
+        """
         validate(path)
 
     def get_declarations(self, nodeid: str) -> list[SkipDeclaration]:
+        """Returns a dict containing all the SkipDeclarations that should be applied
+        to the nodeid provided
+
+        Args:
+            nodeid (str): The nodeid for which to get the SkipDeclarations
+
+        """
         ret: list[SkipDeclaration] = []
         for rule, declarations in self.rules.items():
             if not match_rule(rule, nodeid):
