@@ -663,6 +663,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
+    @bug(context.library <= "ruby@2.22.0", reason="APMAPI-1774")
     def test_invalid_files(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, library_env: dict[str, str]
     ):
