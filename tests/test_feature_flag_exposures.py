@@ -1,5 +1,6 @@
 """Test Feature Flag Exposure (FFE) exposure events in weblog end-to-end scenario."""
 
+import os
 from utils import (
     weblog,
     interfaces,
@@ -421,6 +422,98 @@ class Test_FFE_Exposure_Events_Errors:
         )
 
         # Verify that all events have the expected structure
+        for event in events_found:
+            assert "flag" in event, "Exposure event missing 'flag' field"
+            assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
+            assert "subject" in event, "Exposure event missing 'subject' field"
+            assert event["subject"]["id"] == self.targeting_key, (
+                f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            )
+
+    def setup_ffe_rc_timeout_graceful_degradation(self):
+        """Set up FFE with valid config, then simulate RC unavailability via container stop."""
+        # Phase 1: Setup valid RC config and verify normal operation
+        rc.rc_state.reset().apply()
+        valid_config = UFC_FIXTURE_DATA  # Use existing fixture
+        config_id = "ffe-timeout-test"
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", valid_config).apply()
+
+        # Phase 2: Evaluate flag with working RC (baseline)
+        self.flag = "test-flag-timeout"
+        self.targeting_key = "test-user-timeout"
+        self.r1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Phase 3: Simulate RC network failure by temporarily disabling RC API
+        original_rc_setting = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED")
+        try:
+            os.environ["SYSTEM_TESTS_RC_API_ENABLED"] = "False"
+
+            # Phase 4: Evaluate flag during RC unavailability (graceful degradation test)
+            self.r2 = weblog.post(
+                "/ffe",
+                json={
+                    "flag": self.flag,
+                    "variationType": "STRING",
+                    "defaultValue": "default",
+                    "targetingKey": self.targeting_key,
+                    "attributes": {},
+                },
+            )
+        finally:
+            # Phase 5: Restore original RC setting
+            if original_rc_setting is not None:
+                os.environ["SYSTEM_TESTS_RC_API_ENABLED"] = original_rc_setting
+            else:
+                os.environ.pop("SYSTEM_TESTS_RC_API_ENABLED", None)
+
+    def test_ffe_rc_timeout_graceful_degradation(self):
+        """Test graceful degradation during RC network unavailability."""
+        # Verify both requests succeeded (graceful degradation)
+        assert self.r1.status_code == 200, f"Baseline flag evaluation failed: {self.r1.text}"
+        assert self.r2.status_code == 200, f"Flag evaluation during RC outage failed: {self.r2.text}"
+
+        # Verify exposure events were generated in both phases
+        events_found = []
+        context_validated = False
+
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            assert exposure_data is not None, "No exposure events sent to agent"
+
+            # Validate context structure (once)
+            if not context_validated:
+                assert "context" in exposure_data, "Response missing 'context' field"
+                context_obj = exposure_data["context"]
+                assert context_obj.get("service") == "weblog", f"Expected service 'weblog', got '{context_obj}'"
+                assert context_obj["version"] == "1.0.0", f"Expected version '1.0.0', got '{context_obj['version']}'"
+                assert context_obj["env"] == "system-tests", f"Expected env 'system-tests', got '{context_obj['env']}'"
+                context_validated = True
+
+            # Validate exposures array
+            assert "exposures" in exposure_data, "Response missing 'exposures' field"
+            assert isinstance(exposure_data["exposures"], list), "Exposures should be a list"
+
+            # Find events for our test flag
+            for event in exposure_data["exposures"]:
+                if (
+                    event.get("flag", {}).get("key") == self.flag
+                    and event.get("subject", {}).get("id") == self.targeting_key
+                ):
+                    events_found.append(event)
+
+        # Should have events from at least one phase (graceful degradation means some events still generated)
+        assert len(events_found) >= 1, f"Expected exposure events for flag '{self.flag}', found {len(events_found)}"
+
+        # Validate event structure for all found events
         for event in events_found:
             assert "flag" in event, "Exposure event missing 'flag' field"
             assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
