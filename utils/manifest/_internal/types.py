@@ -29,7 +29,7 @@ class SkipDeclaration:
 
 
 class Condition(TypedDict):
-    """Type for deactivation condition"""
+    """Type for deactivation conditions"""
 
     component: str
     component_version: NotRequired[SemverRange]
