@@ -25,10 +25,6 @@ class OtelMetricsValidator:
     def __init__(self, metrics_spec: dict[str, dict[str, str]]) -> None:
         """
         Initialize the validator with a metrics specification.
-
-        Args:
-            metrics_spec: Dictionary mapping metric names to their specifications.
-                         Each spec should have 'data_type' and 'description' keys.
         """
         self.metrics_spec = metrics_spec
 
@@ -37,17 +33,8 @@ class OtelMetricsValidator:
         metrics_file: Path, excluded_metrics: Optional[set[str]] = None
     ) -> dict[str, dict[str, str]]:
         """
-        Load metric specifications from a JSON file.
-
-        Args:
-            metrics_file: Path to the JSON file containing metric specifications
-            excluded_metrics: Optional set of metric names to exclude (e.g., metrics requiring replicas)
-
-        Returns:
-            Dictionary of metric specifications
-
-        Raises:
-            FileNotFoundError: If the metrics file doesn't exist
+        Load metric specifications from a JSON file, excluding excluded_metrics (if provided).
+        Return transformed metrics
         """
         if not metrics_file.exists():
             raise FileNotFoundError(f"Metrics file not found: {metrics_file}")
@@ -64,15 +51,7 @@ class OtelMetricsValidator:
     def get_collector_metrics(collector_log_path: str) -> list[dict[str, Any]]:
         """
         Retrieve metrics from the OTel Collector's file exporter logs.
-
-        Args:
-            collector_log_path: Path to the collector's metrics log file
-
-        Returns:
-            List of metric batch dictionaries
-
-        Raises:
-            AssertionError: If the log file doesn't exist
+        Given path to the collector's metrics log file, returns list of metric batch dictionaries
         """
         assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
 
@@ -88,13 +67,8 @@ class OtelMetricsValidator:
         self, metrics_batch: list[dict[str, Any]]
     ) -> tuple[set[str], set[str], list[str], list[str]]:
         """
-        Process metrics batch and validate against specifications.
-
-        Args:
-            metrics_batch: List of metric batch dictionaries from collector logs
-
-        Returns:
-            Tuple of (found_metrics, metrics_dont_match_spec, validation_results, failed_validations)
+        Process metrics batch and validate against specifications from backend.
+        Returns (found_metrics, metrics_dont_match_spec, validation_results, failed_validations)
         """
         found_metrics: set[str] = set()
         metrics_dont_match_spec: set[str] = set()
@@ -201,16 +175,7 @@ class OtelMetricsValidator:
     ) -> tuple[list[str], list[str]]:
         """
         Query the Datadog backend to validate metrics were received.
-
-        Args:
-            metric_names: List of metric names to query
-            query_tags: Dictionary of tags to include in the query (e.g., {"rid": "...", "host": "..."})
-            lookback_seconds: How far back to look for metrics
-            retries: Number of retries for backend queries
-            initial_delay_s: Initial delay between retries
-
-        Returns:
-            Tuple of (validated_metrics, failed_metrics)
+        Returns (validated_metrics, failed_metrics)
         """
         end_time = int(time.time())
         start_time = end_time - lookback_seconds
@@ -227,8 +192,11 @@ class OtelMetricsValidator:
                 start_time_ms = start_time * 1000
                 end_time_ms = end_time * 1000
 
+                query_str = f"avg:{metric_name}{{{tag_string}}}"
+                logger.info(f"Query: {query_str}, time range: {start_time_ms} to {end_time_ms} ({lookback_seconds}s)")
+
                 metric_data = interfaces.backend.query_ui_timeseries(
-                    query=f"avg:{metric_name}{{{tag_string}}}",
+                    query=query_str,
                     start=start_time_ms,
                     end=end_time_ms,
                     semantic_mode="combined",
@@ -264,12 +232,7 @@ class OtelMetricsValidator:
 def get_collector_metrics_from_scenario(scenario: "OtelCollectorScenario") -> list[dict[str, Any]]:
     """
     Helper function to get metrics from an OtelCollectorScenario.
-
-    Args:
-        scenario: The OtelCollectorScenario instance
-
-    Returns:
-        List of metric batch dictionaries
+    Returns a list of metric batch dictionaries
     """
     collector_log_path = f"{scenario.collector_container.log_folder_path}/logs/metrics.json"
     return OtelMetricsValidator.get_collector_metrics(collector_log_path)

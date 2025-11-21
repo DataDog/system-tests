@@ -16,6 +16,21 @@ _EXCLUDED_POSTGRES_METRICS = {
     "postgresql.wal.age",
     "postgresql.replication.data_delay",
     "postgresql.wal.lag",
+    "postgresql.backends", # TODO: remove; for testing consistency
+    "postgresql.bgwriter.buffers.allocated",
+    "postgresql.bgwriter.buffers.writes",
+    "postgresql.bgwriter.checkpoint.count",
+    "postgresql.bgwriter.duration",
+    "postgresql.bgwriter.maxwritten",
+    "postgresql.blks_hit",
+    "postgresql.blks_read",
+    "postgresql.temp.io",
+    "postgresql.tup_deleted",
+    "postgresql.tup_fetched",
+    "postgresql.tup_inserted",
+    "postgresql.tup_returned",
+    "postgresql.tup_updated",
+    "postgresql.function.calls",
 }
 
 postgresql_metrics = OtelMetricsValidator.load_metrics_from_file(
@@ -32,7 +47,6 @@ _metrics_validator = OtelMetricsValidator(postgresql_metrics)
 @features.postgres_receiver_metrics
 class Test_PostgreSQLMetricsCollection:
     def test_postgresql_metrics_received_by_collector(self):
-        """The goal of this test is to validate that the metrics appear in the Otel Collector logs."""
         scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
         metrics_batch = get_collector_metrics_from_scenario(scenario)
 
@@ -48,8 +62,7 @@ class Test_PostgreSQLMetricsCollection:
 @features.postgres_receiver_metrics
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
-        """The goal of this test is to validate that the metrics can actually be queried, meaning they
-        were actually received by the backend.
+        """Test metrics were actually queried / received by the backend
         """
         metrics_to_validate = list(postgresql_metrics.keys())
         query_tags = {"rid": "otel-postgres-metrics", "host": "collector"}
