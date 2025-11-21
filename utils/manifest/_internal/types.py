@@ -6,6 +6,8 @@ from utils._decorators import _TestDeclaration
 
 @dataclass
 class SkipDeclaration:
+    """Type for skip declarations. Unlike _TestDeclaration it also contains the details"""
+
     value: _TestDeclaration
     details: str | None = None
 
@@ -27,6 +29,8 @@ class SkipDeclaration:
 
 
 class Condition(TypedDict):
+    """Type for deactivation condition"""
+
     component: str
     component_version: NotRequired[SemverRange]
     excluded_component_version: NotRequired[SemverRange]
@@ -36,4 +40,21 @@ class Condition(TypedDict):
 
 
 class ManifestData(dict[str, list[Condition]]):
-    pass
+    """A named dict[str, list[Condition]] to store manifest data
+    Mapping with raw manifest data:
+    --------------------------------------------------------
+    -------------------------------------------------      |
+    tests/dir/file.py::Class:                       |      |
+    ------------------------------------            | rule |
+        - weblog: weblog1              | Condition  |      |
+          component_version: <4.3.5    |            |      |
+          declaration: missing_feature |            |      | ManifestData
+    -------------------------------------------------      |
+    tests/dir/file.py::Class::func:                 |      |
+    ------------------------------------            | rule |
+        - weblog: weblog1              | Condition  |      |
+          component_version: <4.3.5    |            |      |
+          declaration: missing_feature |            |      |
+    -------------------------------------------------      |
+    --------------------------------------------------------
+    """
