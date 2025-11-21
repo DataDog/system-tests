@@ -76,7 +76,7 @@ refs:
   - &ref_5_76_0 '>=5.76.0'
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
-manifest:  
+manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:

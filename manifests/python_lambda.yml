@@ -1,5 +1,5 @@
 ---
-manifest:  
+manifest:
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v8.113.0

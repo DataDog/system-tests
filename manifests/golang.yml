@@ -1,5 +1,5 @@
 ---
-manifest:  
+manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)

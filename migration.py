@@ -157,7 +157,6 @@ def flatten(
             output += line
         else:
             line = f"\n{root}: {quotes(data)}"
-            print(data)
             if comment:
                 line += comment
             output += line
@@ -174,7 +173,6 @@ def flatten(
             if variant_commented and hasattr(variant_commented, "ca"):
                 comment = get_comment(variant_commented, var[0])
             line = f"\n    {var_name}: {data_str}"
-            print(data_str)
             if comment:
                 line += comment
             output += line

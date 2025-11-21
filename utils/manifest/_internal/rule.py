@@ -66,7 +66,7 @@ def match_rule(rule: str, nodeid: str) -> bool:
 
     if len(rule_elements) > len(nodeid_elements):
         return False
-    return all(elements[0] == elements[1] for elements in zip(rule_elements, nodeid_elements, strict=False))
+    return nodeid_elements[: len(rule_elements)] == rule_elements
 
 
 def get_rules(
