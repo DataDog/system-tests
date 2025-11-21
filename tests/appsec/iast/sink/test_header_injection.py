@@ -84,6 +84,7 @@ class TestHeaderInjection_StackTrace:
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
 
+    @flaky(context.library >= "java@1.56.0", reason="APPSEC-59975")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 
