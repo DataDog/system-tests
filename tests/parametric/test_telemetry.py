@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 
-from .conftest import StableConfigWriter, _TestAgentAPI
+from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
 from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger, bug
@@ -1166,7 +1166,7 @@ class Test_TelemetrySCAEnvVar:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     def test_telemetry_sca_enabled_propagated(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
         self._assert_telemetry_sca_enabled_propagated(
             library_env,
@@ -1187,7 +1187,7 @@ class Test_TelemetrySCAEnvVar:
     @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     @irrelevant(context.library not in ("python", "golang"))
     def test_telemetry_sca_enabled_propagated_specifics(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
         self._assert_telemetry_sca_enabled_propagated(
             library_env,
@@ -1197,7 +1197,7 @@ class Test_TelemetrySCAEnvVar:
         )
 
     def _assert_telemetry_sca_enabled_propagated(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)

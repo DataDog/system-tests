@@ -45,7 +45,11 @@ class AgentRequestV06Stats(AgentRequest):
 
 
 class TestAgentFactory:
-    """Handle everything to create the TestAgentApi"""
+    """Handle everything to create the TestAgentApi
+    This class is responsible to:
+    * build the image
+    * expose a ready to call function that runs the container and returns the client that will be used in tests
+    """
 
     def __init__(self, image: str):
         self.image = image
@@ -156,6 +160,8 @@ class TestAgentFactory:
 
 
 class TestAgentAPI:
+    """API to interact with the test agent server running in a docker container."""
+
     __test__ = False  # pytest must not collect it
 
     def __init__(

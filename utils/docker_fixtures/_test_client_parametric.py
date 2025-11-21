@@ -2,7 +2,7 @@ from collections.abc import Generator
 import contextlib
 from typing import TextIO
 
-from utils.parametric._library_client import APMLibrary, APMLibraryClient
+from utils.parametric._library_client import ParametricTestClientApi
 
 
 from ._core import get_host_port, docker_run
@@ -11,6 +11,12 @@ from ._test_client import TestClientFactory
 
 
 class ParametricTestClientFactory(TestClientFactory):
+    """Abstracts the docker image/container that ship the tested tracer for PARAMETRIC scenario.
+    # This class is responsible to:
+    # * build the image
+    # * expose a ready to call function that runs the container and returns the client that will be used in tests
+    """
+
     @contextlib.contextmanager
     def get_apm_library(
         self,
@@ -20,7 +26,7 @@ class ParametricTestClientFactory(TestClientFactory):
         library_env: dict,
         library_extra_command_arguments: list[str],
         test_server_log_file: TextIO,
-    ) -> Generator["APMLibrary", None, None]:
+    ) -> Generator["ParametricTestClientApi", None, None]:
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
 
@@ -62,12 +68,11 @@ class ParametricTestClientFactory(TestClientFactory):
         ) as container:
             test_server_timeout = 60
 
-            client = APMLibraryClient(
+            client = ParametricTestClientApi(
                 self.library,
                 f"http://localhost:{host_port}",
                 test_server_timeout,
                 container,
             )
 
-            tracer = APMLibrary(client, self.library)
-            yield tracer
+            yield client

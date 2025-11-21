@@ -3,8 +3,7 @@ import pytest
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils.docker_fixtures import TestAgentAPI
-from utils.parametric._library_client import APMLibrary
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 from utils import missing_feature, context, scenarios, features, irrelevant, logger
 
 parametrize = pytest.mark.parametrize
