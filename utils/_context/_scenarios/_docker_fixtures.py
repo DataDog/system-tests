@@ -1,5 +1,7 @@
 import contextlib
 from collections.abc import Generator
+import os
+from pathlib import Path
 
 import pytest
 
@@ -87,3 +89,17 @@ class DockerFixturesScenario(Scenario):
             ) as result,
         ):
             yield result
+
+    @staticmethod
+    def get_node_volumes() -> dict[str, str]:
+        volumes = {}
+
+        try:
+            with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
+                path = f.read().strip(" \r\n")
+                source = os.path.join(str(Path.cwd()), path)
+                volumes[str(Path(source).resolve())] = "/volumes/dd-trace-js"
+        except FileNotFoundError:
+            logger.info("No local dd-trace-js found, do not mount any volume")
+
+        return volumes

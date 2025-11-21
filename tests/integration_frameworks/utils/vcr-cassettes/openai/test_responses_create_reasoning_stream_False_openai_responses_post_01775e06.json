@@ -1,0 +1,62 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "145",
+      "x-datadog-trace-id": "6277970421058594693",
+      "x-datadog-parent-id": "4903768583828307407",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=10594355494528422504,_dd.p.llmobs_trace_id=139684018305011810579695967634799325654,_dd.p.tid=691629d200000000",
+      "traceparent": "00-691629d200000000571fd4d5f99b6785-440daf8bb3ce7dcf-01",
+      "tracestate": "dd=p:440daf8bb3ce7dcf;s:1;t.dm:-0;t.llmobs_parent_id:10594355494528422504;t.llmobs_trace_id:139684018305011810579695967634799325654;t.tid:691629d200000000"
+    },
+    "body": "{\"input\":\"If one plus a number is 10, what is the number?\",\"model\":\"o4-mini\",\"reasoning\":{\"effort\":\"medium\",\"summary\":\"detailed\"},\"stream\":false}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Thu, 13 Nov 2025 18:56:23 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999772",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_60acfa835a294995ba0c43c43e375d9f",
+      "openai-processing-ms": "5353",
+      "x-envoy-upstream-service-time": "5358",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=S2b1nzOFAVdhYThK78picRhqECMdXOxIspDFnU3DX48-1763060183-1.0.1.1-xd2mAMugqlFO6xRszgKE4fo4lJKy7809sU0rJi4eHXmTYLPXZLD5tvrlfU7fS_c5sx18KM39MtnxGvk3EqgPtEYDWZ65yMUuEKOPS1omwlA; path=/; expires=Thu, 13-Nov-25 19:26:23 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=mQ2WP1H7528pJQXJ9t60Fh1m4jN3jpKl6rDPv.gT7sM-1763060183992-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "99e07d018a0c0816-IAD",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"resp_0c11158be1f235a601691629d29e08819ea0ea1d979567d986\",\n  \"object\": \"response\",\n  \"created_at\": 1763060178,\n  \"status\": \"completed\",\n  \"background\": false,\n  \"billing\": {\n    \"payer\": \"developer\"\n  },\n  \"error\": null,\n  \"incomplete_details\": null,\n  \"instructions\": null,\n  \"max_output_tokens\": null,\n  \"max_tool_calls\": null,\n  \"model\": \"o4-mini-2025-04-16\",\n  \"output\": [\n    {\n      \"id\": \"rs_0c11158be1f235a601691629d64884819e8c24cf7e973aa7aa\",\n      \"type\": \"reasoning\",\n      \"summary\": []\n    },\n    {\n      \"id\": \"msg_0c11158be1f235a601691629d78860819eb84c1c4107d07b15\",\n      \"type\": \"message\",\n      \"status\": \"completed\",\n      \"content\": [\n        {\n          \"type\": \"output_text\",\n          \"annotations\": [],\n          \"logprobs\": [],\n          \"text\": \"The number is 9, since 1 + x = 10 implies x = 10 \\u2212 1 = 9.\"\n        }\n      ],\n      \"role\": \"assistant\"\n    }\n  ],\n  \"parallel_tool_calls\": true,\n  \"previous_response_id\": null,\n  \"prompt_cache_key\": null,\n  \"prompt_cache_retention\": null,\n  \"reasoning\": {\n    \"effort\": \"medium\",\n    \"summary\": \"detailed\"\n  },\n  \"safety_identifier\": null,\n  \"service_tier\": \"default\",\n  \"store\": false,\n  \"temperature\": 1.0,\n  \"text\": {\n    \"format\": {\n      \"type\": \"text\"\n    },\n    \"verbosity\": \"medium\"\n  },\n  \"tool_choice\": \"auto\",\n  \"tools\": [],\n  \"top_logprobs\": 0,\n  \"top_p\": 1.0,\n  \"truncation\": \"disabled\",\n  \"usage\": {\n    \"input_tokens\": 20,\n    \"input_tokens_details\": {\n      \"cached_tokens\": 0\n    },\n    \"output_tokens\": 102,\n    \"output_tokens_details\": {\n      \"reasoning_tokens\": 64\n    },\n    \"total_tokens\": 122\n  },\n  \"user\": null,\n  \"metadata\": {}\n}"
+  }
+}
