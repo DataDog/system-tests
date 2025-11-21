@@ -6,19 +6,20 @@ agent and Remote Config failure conditions.
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import pytest
 
 from utils.dd_constants import RemoteConfigApplyState
-from utils.parametric._library_client import APMLibrary
 from utils.docker_fixtures._test_agent import TestAgentAPI
 
-from .parametric import ParametricScenario
-from .core import scenario_groups
+from .core import Scenario, scenario_groups
+
+if TYPE_CHECKING:
+    from utils.docker_fixtures import ParametricTestClientApi as APMLibrary
 
 
-class FFEResilienceScenarioBase(ParametricScenario):
+class FFEResilienceScenarioBase(Scenario):
     """Base class for FFE resilience testing scenarios.
 
     Provides common functionality for testing FFE behavior during
@@ -26,11 +27,21 @@ class FFEResilienceScenarioBase(ParametricScenario):
     """
 
     def __init__(self, name: str, doc: str) -> None:
-        super().__init__(name, doc)
-        # Add to feature_flag_exposure scenario group
-        self.scenario_groups.append(scenario_groups.feature_flag_exposure)
+        super().__init__(
+            name=name,
+            doc=doc,
+            github_workflow="endtoend",  # Use endtoend workflow
+            scenario_groups=[scenario_groups.feature_flag_exposure],
+        )
 
-    def setup_ffe_test_environment(self, test_agent: TestAgentAPI, test_library: APMLibrary, ufc_data: dict) -> None:
+        # Set properties that FFE tests need
+        self.rc_api_enabled = True
+        self.weblog_env = {
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+        }
+
+    def setup_ffe_test_environment(self, test_agent: TestAgentAPI, test_library: "APMLibrary", ufc_data: dict) -> None:
         """Set up the standard FFE test environment with RC and provider initialization.
 
         Args:
@@ -79,7 +90,7 @@ class FFEResilienceScenarioBase(ParametricScenario):
         return test_agent.wait_for_rc_apply_state("FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
     def run_comprehensive_flag_evaluations(
-        self, test_library: APMLibrary, test_cases: list[dict], test_case_file: str, phase_name: str
+        self, test_library: "APMLibrary", test_cases: list[dict], test_case_file: str, phase_name: str
     ) -> dict[int, dict]:
         """Run comprehensive flag evaluations and return results for comparison.
 
@@ -131,7 +142,7 @@ class FFEResilienceScenarioBase(ParametricScenario):
         return results
 
     def verify_cached_evaluations(
-        self, test_library: APMLibrary, reference_results: dict[int, dict], test_case_file: str, phase_name: str
+        self, test_library: "APMLibrary", reference_results: dict[int, dict], test_case_file: str, phase_name: str
     ) -> None:
         """Verify that cached flag evaluations match reference results.
 
@@ -167,7 +178,7 @@ class FFEResilienceScenarioBase(ParametricScenario):
             )
 
     def verify_evaluation_consistency(
-        self, test_library: APMLibrary, reference_results: dict[int, dict], phase_name: str, num_rounds: int = 3, num_cases: int = 3
+        self, test_library: "APMLibrary", reference_results: dict[int, dict], phase_name: str, num_rounds: int = 3, num_cases: int = 3
     ) -> None:
         """Verify that multiple flag evaluations remain consistent.
 

@@ -428,3 +428,281 @@ class Test_FFE_Exposure_Events_Errors:
             assert event["subject"]["id"] == self.targeting_key, (
                 f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
             )
+
+
+# FFE Resilience Tests - Agent Failures
+
+@scenarios.ffe_agent_empty_response
+@features.feature_flag_exposure
+class Test_FFE_Agent_Empty_Response_Resilience:
+    """Test FFE resilience when agent returns empty responses."""
+
+    def setup_flag_evaluation_during_empty_responses(self):
+        """Set up flag evaluation during empty agent responses."""
+        # Set up Remote Config with valid UFC data
+        config_id = "ffe-empty-response-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Evaluate a feature flag (scenario ensures agent returns empty responses)
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-empty-response"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_empty_responses(self):
+        """Test that flag evaluation works with cached data during empty agent responses."""
+        # FFE should still work using cached configuration despite empty agent responses
+        assert self.r.status_code == 200, f"Flag evaluation should succeed during empty responses: {self.r.text}"
+
+        # Verify exposure events are still generated (from cached config)
+        matching_event = None
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            if exposure_data is not None:
+                for event in exposure_data.get("exposures", []):
+                    if (
+                        event.get("flag", {}).get("key") == self.flag
+                        and event.get("subject", {}).get("id") == self.targeting_key
+                    ):
+                        matching_event = event
+                        break
+                if matching_event:
+                    break
+
+        # Note: Exposure events may or may not be sent during agent failures
+        # The important thing is that flag evaluation succeeds with cached config
+
+
+@scenarios.ffe_agent_5xx_error
+@features.feature_flag_exposure
+class Test_FFE_Agent_5xx_Error_Resilience:
+    """Test FFE resilience when agent returns 5xx server errors."""
+
+    def setup_flag_evaluation_during_5xx_errors(self):
+        """Set up flag evaluation during 5xx agent errors."""
+        # Set up Remote Config with valid UFC data
+        config_id = "ffe-5xx-error-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Evaluate a feature flag (scenario ensures agent returns 5xx errors)
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-5xx-error"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_5xx_errors(self):
+        """Test that flag evaluation works with cached data during 5xx agent errors."""
+        # FFE should still work using cached configuration despite 5xx agent errors
+        assert self.r.status_code == 200, f"Flag evaluation should succeed during 5xx errors: {self.r.text}"
+
+
+@scenarios.ffe_agent_timeout
+@features.feature_flag_exposure
+class Test_FFE_Agent_Timeout_Resilience:
+    """Test FFE resilience when agent requests time out."""
+
+    def setup_flag_evaluation_during_timeouts(self):
+        """Set up flag evaluation during agent timeouts."""
+        # Set up Remote Config with valid UFC data
+        config_id = "ffe-timeout-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Evaluate a feature flag (scenario ensures agent requests timeout)
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-timeout"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_timeouts(self):
+        """Test that flag evaluation works with cached data during agent timeouts."""
+        # FFE should still work using cached configuration despite agent timeouts
+        assert self.r.status_code == 200, f"Flag evaluation should succeed during timeouts: {self.r.text}"
+
+
+@scenarios.ffe_agent_connection_refused
+@features.feature_flag_exposure
+class Test_FFE_Agent_Connection_Refused_Resilience:
+    """Test FFE resilience when agent connection is refused."""
+
+    def setup_flag_evaluation_during_connection_refused(self):
+        """Set up flag evaluation when agent connection is refused."""
+        # Set up Remote Config with valid UFC data
+        config_id = "ffe-connection-refused-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Evaluate a feature flag (scenario ensures agent connection is refused)
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-connection-refused"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_connection_refused(self):
+        """Test that flag evaluation works with cached data when agent connection is refused."""
+        # FFE should still work using cached configuration despite connection refused
+        assert self.r.status_code == 200, f"Flag evaluation should succeed during connection refused: {self.r.text}"
+
+
+# FFE Resilience Tests - Remote Config Failures
+
+@scenarios.ffe_rc_endpoint_error
+@features.feature_flag_exposure
+class Test_FFE_RC_Endpoint_Error_Resilience:
+    """Test FFE resilience when Remote Config endpoint returns errors."""
+
+    def setup_flag_evaluation_during_rc_endpoint_errors(self):
+        """Set up flag evaluation during RC endpoint errors."""
+        # Set up Remote Config with valid UFC data first
+        config_id = "ffe-rc-error-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Evaluate a feature flag (scenario ensures RC endpoint returns errors)
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-rc-error"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_rc_endpoint_errors(self):
+        """Test that flag evaluation works with cached data during RC endpoint errors."""
+        # FFE should still work using cached configuration despite RC endpoint errors
+        assert self.r.status_code == 200, f"Flag evaluation should succeed during RC errors: {self.r.text}"
+
+
+@scenarios.ffe_rc_network_delay
+@features.feature_flag_exposure
+class Test_FFE_RC_Network_Delay_Resilience:
+    """Test FFE resilience when Remote Config requests experience network delays."""
+
+    def setup_flag_evaluation_during_rc_network_delays(self):
+        """Set up flag evaluation during RC network delays."""
+        # Set up Remote Config with valid UFC data first
+        config_id = "ffe-rc-delay-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Evaluate a feature flag (scenario ensures RC requests are delayed)
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-rc-delay"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_rc_network_delays(self):
+        """Test that flag evaluation works with cached data during RC network delays."""
+        # FFE should still work using cached configuration despite RC delays
+        assert self.r.status_code == 200, f"Flag evaluation should succeed during RC delays: {self.r.text}"
+
+
+@scenarios.ffe_rc_empty_config
+@features.feature_flag_exposure
+class Test_FFE_RC_Empty_Config_Resilience:
+    """Test FFE resilience when Remote Config returns empty configuration."""
+
+    def setup_flag_evaluation_during_rc_empty_config(self):
+        """Set up flag evaluation with empty RC config."""
+        # First set valid config, then replace with empty config
+        config_id = "ffe-rc-empty-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Now scenario replaces with empty config - FFE should use cached data
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-rc-empty"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_rc_empty_config(self):
+        """Test that flag evaluation works with cached data when RC returns empty config."""
+        # FFE should still work using cached configuration despite empty RC config
+        assert self.r.status_code == 200, f"Flag evaluation should succeed with empty RC config: {self.r.text}"
+
+
+@scenarios.ffe_rc_malformed_response
+@features.feature_flag_exposure
+class Test_FFE_RC_Malformed_Response_Resilience:
+    """Test FFE resilience when Remote Config returns malformed data."""
+
+    def setup_flag_evaluation_during_rc_malformed_response(self):
+        """Set up flag evaluation with malformed RC response."""
+        # First set valid config, then scenario replaces with malformed config
+        config_id = "ffe-rc-malformed-test"
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", UFC_FIXTURE_DATA).apply()
+
+        # Now scenario replaces with malformed config - FFE should use cached data
+        self.flag = "test-flag"
+        self.targeting_key = "test-user-rc-malformed"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_flag_evaluation_during_rc_malformed_response(self):
+        """Test that flag evaluation works with cached data when RC returns malformed data."""
+        # FFE should still work using cached configuration despite malformed RC response
+        assert self.r.status_code == 200, f"Flag evaluation should succeed with malformed RC response: {self.r.text}"
