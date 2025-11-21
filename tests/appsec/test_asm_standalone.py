@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger, flaky
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
 
 USER = "test"
 NEW_USER = "testnew"
@@ -960,7 +960,6 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
                 session.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
             ]
 
-    @flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
     def test_different_endpoints(self):
         # First requests to different endpoints retained with schema
         assert self.request1.status_code == 200
