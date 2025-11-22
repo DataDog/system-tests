@@ -628,7 +628,7 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
-            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
         },
         appsec_enabled=False,
         doc="",

@@ -412,9 +412,29 @@ app.get('/set_cookie', (req: Request, res: Response) => {
 
 require('./rasp')(app)
 
-require('./graphql')(app).then(() => {
-  app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => {})
-    console.log('listening')
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
+      if (req.url?.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve(true)
+    })
   })
-})
+}
+
+require('./graphql')(app)
+  .then(startServer)
+  .catch((error: Error) => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })
