@@ -1,5 +1,6 @@
 """Test Feature Flag Exposure (FFE) exposure events in weblog end-to-end scenario."""
 
+import json
 import os
 from utils import (
     weblog,
@@ -519,7 +520,7 @@ class Test_FFE_Exposure_Events_Errors:
         assert self.r2.status_code == 200, f"Flag evaluation during RC outage failed: {self.r2.text}"
 
         # Parse response bodies to validate flag values
-        r2_json = self.r2.json() if self.r2.text else {}
+        r2_json = json.loads(self.r2.text) if self.r2.text else {}
 
         # Critical validation: Verify RC disabling is working by checking flag values
         # r2 should get fallback_default (not new_flag_configured_value) if RC is properly disabled
