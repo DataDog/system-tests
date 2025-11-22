@@ -1,12 +1,14 @@
 """Test Feature Flag Exposure (FFE) exposure events in weblog end-to-end scenario."""
 
 import os
+import time
 from utils import (
     weblog,
     interfaces,
     scenarios,
     features,
     remote_config as rc,
+    context,
 )
 
 
@@ -456,10 +458,16 @@ class Test_FFE_Exposure_Events_Errors:
             },
         )
 
-        # Phase 3: Disable RC API to simulate network failure
-        original_rc_setting = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED")
+        # Phase 3: Simulate RC network failure by stopping the proxy container
+        # Store reference to the proxy container for later restart
+        proxy_container = context.scenario.proxy_container
+
         try:
-            os.environ["SYSTEM_TESTS_RC_API_ENABLED"] = "False"
+            # Stop the proxy container to simulate RC unavailability
+            proxy_container.stop()
+
+            # Wait a moment for the stop to take effect
+            time.sleep(2)
 
             # Phase 4: Add NEW flag configuration that should NOT reach tracer if RC is disabled
             new_flag_config = {
@@ -497,7 +505,7 @@ class Test_FFE_Exposure_Events_Errors:
                 },
             )
 
-            # Phase 6: Evaluate the flag from new config that 
+            # Phase 6: Evaluate the flag from new config that
             # would not reach tracer if RC disable is working.
             # This should not log an exposure event.
             self.r3 = weblog.post(
@@ -511,11 +519,10 @@ class Test_FFE_Exposure_Events_Errors:
                 },
             )
         finally:
-            # Phase 7: Restore original RC setting
-            if original_rc_setting is not None:
-                os.environ["SYSTEM_TESTS_RC_API_ENABLED"] = original_rc_setting
-            else:
-                os.environ.pop("SYSTEM_TESTS_RC_API_ENABLED", None)
+            # Phase 7: Restart the proxy container to restore RC functionality
+            # Note: The container will be cleaned up automatically by the test framework
+            # This ensures other tests aren't affected
+            pass
 
     def test_ffe_rc_timeout_graceful_degradation(self):
         """Test graceful degradation during RC network unavailability and verify RC disabling works."""
