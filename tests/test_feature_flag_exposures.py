@@ -437,17 +437,18 @@ class Test_FFE_Exposure_Events_Errors:
 
         self.targeting_key = "test-user"
         self.targeting_key_after_outage = "test-user-after-outage"
+        self.new_flag = "test-flag-after-outage"
 
         initial_config = UFC_FIXTURE_DATA  # Use existing fixture
         config_id = "ffe-timeout-test"
         rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
 
         # Phase 2: Evaluate flag with working RC (baseline)
-        self.flag1 = "test-flag"  # Use existing flag from UFC_FIXTURE_DATA
+        self.delivered_flag = "test-flag"  # Use existing flag from UFC_FIXTURE_DATA
         self.r1 = weblog.post(
             "/ffe",
             json={
-                "flag": self.flag1,
+                "flag": self.delivered_flag,
                 "variationType": "STRING",
                 "defaultValue": "baseline_default",
                 "targetingKey": self.targeting_key,
@@ -463,8 +464,8 @@ class Test_FFE_Exposure_Events_Errors:
             # Phase 4: Add NEW flag configuration that should NOT reach tracer if RC is disabled
             new_flag_config = {
                 "flags": {
-                    "test-flag-after-outage": {
-                        "key": "test-flag-after-disable",
+                    self.new_flag: {
+                        "key": self.new_flag,
                         "enabled": True,
                         "variationType": "STRING",
                         "variations": {"on": {"key": "on", "value": "on"}, "off": {"key": "off", "value": "off"}},
@@ -483,12 +484,12 @@ class Test_FFE_Exposure_Events_Errors:
             # Set the new config (this should not reach tracer if RC is properly disabled)
             rc.rc_state.set_config(f"{RC_PATH}/new-config-after-disable/config", new_flag_config).apply()
 
-            # Phase 5: Evaluate the same flag with different targeting key during RC disable
-            # We expect this to log an exposure event
+            # Phase 5: Evaluate the flag from delivered config with different targeting key during RC disable
+            # We expect this to log an exposure event because the flag configuration was delivered.
             self.r2 = weblog.post(
                 "/ffe",
                 json={
-                    "flag": "test-flag",
+                    "flag": self.delivered_flag,
                     "variationType": "STRING",
                     "defaultValue": "fallback_default",  # Should get this if RC disabled
                     "targetingKey": self.targeting_key_after_outage,
@@ -496,12 +497,13 @@ class Test_FFE_Exposure_Events_Errors:
                 },
             )
 
-            # Phase 5: Evaluate the flag that would not reach tracer if RC disable is working.
+            # Phase 6: Evaluate the flag from new config that 
+            # would not reach tracer if RC disable is working.
             # This should not log an exposure event.
             self.r3 = weblog.post(
                 "/ffe",
                 json={
-                    "flag": "test-flag-after-outage",
+                    "flag": self.new_flag,
                     "variationType": "STRING",
                     "defaultValue": "fallback_default",  # Should get this if RC disabled
                     "targetingKey": self.targeting_key_after_outage,
@@ -509,7 +511,7 @@ class Test_FFE_Exposure_Events_Errors:
                 },
             )
         finally:
-            # Phase 6: Restore original RC setting
+            # Phase 7: Restore original RC setting
             if original_rc_setting is not None:
                 os.environ["SYSTEM_TESTS_RC_API_ENABLED"] = original_rc_setting
             else:
@@ -547,14 +549,14 @@ class Test_FFE_Exposure_Events_Errors:
             for event in exposure_data["exposures"]:
                 flag_key = event.get("flag", {}).get("key")
                 subject_id = event.get("subject", {}).get("id")
-                if flag_key in [self.flag1] and subject_id in [self.targeting_key, self.targeting_key_after_outage]:
+                if flag_key in [self.delivered_flag] and subject_id in [self.targeting_key, self.targeting_key_after_outage]:
                     events_found.append(event)
 
         # Should have exactly 2 events: r1 and r2 should generate events, but r3 should not
         # This validates RC disabling - the third evaluation shouldn't generate exposure events
         # because the flag configuration wasn't delivered due to RC being disabled
         assert len(events_found) == 2, (
-            f"Expected exactly 2 exposure events for flag '{self.flag1}' (r1 and r2), found {len(events_found)}. "
+            f"Expected exactly 2 exposure events for flag '{self.delivered_flag}' (r1 and r2), found {len(events_found)}. "
             f"r3 should not generate an event because the flag config wasn't delivered when RC was disabled."
         )
 
@@ -569,7 +571,7 @@ class Test_FFE_Exposure_Events_Errors:
         for event in events_found:
             assert "flag" in event, "Exposure event missing 'flag' field"
             flag_key = event["flag"]["key"]
-            assert flag_key == self.flag1, f"Expected flag '{self.flag1}', got '{flag_key}'"
+            assert flag_key == self.delivered_flag, f"Expected flag '{self.delivered_flag}', got '{flag_key}'"
             assert "subject" in event, "Exposure event missing 'subject' field"
             subject_id = event["subject"]["id"]
             assert subject_id in [self.targeting_key, self.targeting_key_after_outage], (
