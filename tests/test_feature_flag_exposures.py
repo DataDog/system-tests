@@ -468,18 +468,24 @@ class Test_FFE_Exposure_Events_Errors:
                             }
                         },
                         "defaultVariant": "control",
-                        "targeting": [{
-                            "gate": {
-                                "rules": [{
-                                    "conditions": [{
-                                        "operation": "EQUALS",
-                                        "attribute": "targetingKey",
-                                        "value": self.targeting_key
-                                    }]
-                                }]
-                            },
-                            "variant": "control"
-                        }]
+                        "targeting": [
+                            {
+                                "gate": {
+                                    "rules": [
+                                        {
+                                            "conditions": [
+                                                {
+                                                    "operation": "EQUALS",
+                                                    "attribute": "targetingKey",
+                                                    "value": self.targeting_key,
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "variant": "control",
+                            }
+                        ],
                     }
                 }
             }
@@ -513,7 +519,6 @@ class Test_FFE_Exposure_Events_Errors:
         assert self.r2.status_code == 200, f"Flag evaluation during RC outage failed: {self.r2.text}"
 
         # Parse response bodies to validate flag values
-        r1_json = self.r1.json() if self.r1.text else {}
         r2_json = self.r2.json() if self.r2.text else {}
 
         # Critical validation: Verify RC disabling is working by checking flag values
@@ -549,20 +554,21 @@ class Test_FFE_Exposure_Events_Errors:
             # Find events for our test flags
             for event in exposure_data["exposures"]:
                 flag_key = event.get("flag", {}).get("key")
-                if (
-                    flag_key in [self.flag1, self.flag2]
-                    and event.get("subject", {}).get("id") == self.targeting_key
-                ):
+                if flag_key in [self.flag1, self.flag2] and event.get("subject", {}).get("id") == self.targeting_key:
                     events_found.append(event)
 
         # Should have events from both phases (graceful degradation means events still generated)
-        assert len(events_found) >= 2, f"Expected exposure events for both flags '{self.flag1}' and '{self.flag2}', found {len(events_found)}"
+        assert len(events_found) >= 2, (
+            f"Expected exposure events for both flags '{self.flag1}' and '{self.flag2}', found {len(events_found)}"
+        )
 
         # Validate event structure for all found events
         for event in events_found:
             assert "flag" in event, "Exposure event missing 'flag' field"
             flag_key = event["flag"]["key"]
-            assert flag_key in [self.flag1, self.flag2], f"Expected flag '{self.flag1}' or '{self.flag2}', got '{flag_key}'"
+            assert flag_key in [self.flag1, self.flag2], (
+                f"Expected flag '{self.flag1}' or '{self.flag2}', got '{flag_key}'"
+            )
             assert "subject" in event, "Exposure event missing 'subject' field"
             assert event["subject"]["id"] == self.targeting_key, (
                 f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
