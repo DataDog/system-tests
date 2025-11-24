@@ -214,7 +214,7 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: v2.4.0
-        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_request_tag: v2.5.0-dev
         Test_API10_downstream_ssrf_telemetry: v2.4.0
         Test_API10_request_body: v2.4.0
         Test_API10_request_headers: v2.4.0
@@ -351,10 +351,10 @@ tests/:
         Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: v1.63.0
       test_blocking_security_response_id.py:
-        Test_SecurityResponseId_Custom_Redirect: missing_feature
-        Test_SecurityResponseId_HTML_Response: missing_feature
-        Test_SecurityResponseId_In_Span_Triggers: missing_feature
-        Test_SecurityResponseId_JSON_Response: missing_feature
+        Test_SecurityResponseId_Custom_Redirect: v2.5.0-dev
+        Test_SecurityResponseId_HTML_Response: v2.5.0-dev
+        Test_SecurityResponseId_In_Span_Triggers: v2.5.0-dev
+        Test_SecurityResponseId_JSON_Response: v2.5.0-dev
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
