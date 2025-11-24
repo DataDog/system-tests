@@ -1,5 +1,4 @@
-"""
-Utility module for validating OpenTelemetry integration metrics.
+"""Utility module for validating OpenTelemetry integration metrics.
 
 This module provides reusable components for testing OTel receiver metrics:
 - Loading metric specifications from JSON files
@@ -11,7 +10,7 @@ This module provides reusable components for testing OTel receiver metrics:
 import json
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from utils import interfaces, logger
 
@@ -23,17 +22,14 @@ class OtelMetricsValidator:
     """Base class for validating OTel integration metrics."""
 
     def __init__(self, metrics_spec: dict[str, dict[str, str]]) -> None:
-        """
-        Initialize the validator with a metrics specification.
-        """
+        """Initialize the validator with a metrics specification."""
         self.metrics_spec = metrics_spec
 
     @staticmethod
     def load_metrics_from_file(
-        metrics_file: Path, excluded_metrics: Optional[set[str]] = None
+        metrics_file: Path, excluded_metrics: set[str] | None = None
     ) -> dict[str, dict[str, str]]:
-        """
-        Load metric specifications from a JSON file, excluding excluded_metrics (if provided).
+        """Load metric specifications from a JSON file, excluding excluded_metrics (if provided).
         Return transformed metrics
         """
         if not metrics_file.exists():
@@ -49,8 +45,7 @@ class OtelMetricsValidator:
 
     @staticmethod
     def get_collector_metrics(collector_log_path: str) -> list[dict[str, Any]]:
-        """
-        Retrieve metrics from the OTel Collector's file exporter logs.
+        """Retrieve metrics from the OTel Collector's file exporter logs.
         Given path to the collector's metrics log file, returns list of metric batch dictionaries
         """
         assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
@@ -66,8 +61,7 @@ class OtelMetricsValidator:
     def process_and_validate_metrics(
         self, metrics_batch: list[dict[str, Any]]
     ) -> tuple[set[str], set[str], list[str], list[str]]:
-        """
-        Process metrics batch and validate against specifications from backend.
+        """Process metrics batch and validate against specifications from backend.
         Returns (found_metrics, metrics_dont_match_spec, validation_results, failed_validations)
         """
         found_metrics: set[str] = set()
@@ -173,8 +167,7 @@ class OtelMetricsValidator:
         retries: int = 3,
         initial_delay_s: float = 15.0,
     ) -> tuple[list[str], list[str]]:
-        """
-        Query the Datadog backend to validate metrics were received.
+        """Query the Datadog backend to validate metrics were received.
         Returns (validated_metrics, failed_metrics)
         """
         end_time = int(time.time())
@@ -230,10 +223,8 @@ class OtelMetricsValidator:
 
 
 def get_collector_metrics_from_scenario(scenario: "OtelCollectorScenario") -> list[dict[str, Any]]:
-    """
-    Helper function to get metrics from an OtelCollectorScenario.
+    """Helper function to get metrics from an OtelCollectorScenario.
     Returns a list of metric batch dictionaries
     """
     collector_log_path = f"{scenario.collector_container.log_folder_path}/logs/metrics.json"
     return OtelMetricsValidator.get_collector_metrics(collector_log_path)
-

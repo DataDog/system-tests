@@ -16,7 +16,7 @@ _EXCLUDED_POSTGRES_METRICS = {
     "postgresql.wal.age",
     "postgresql.replication.data_delay",
     "postgresql.wal.lag",
-    "postgresql.backends", # TODO: remove; for testing consistency
+    "postgresql.backends",  # TODO: remove; for testing consistency
     "postgresql.bgwriter.buffers.allocated",
     "postgresql.bgwriter.buffers.writes",
     "postgresql.bgwriter.checkpoint.count",
@@ -50,7 +50,7 @@ class Test_PostgreSQLMetricsCollection:
         scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
         metrics_batch = get_collector_metrics_from_scenario(scenario)
 
-        _, _, validation_results, failed_validations = _metrics_validator.process_and_validate_metrics(metrics_batch)
+        _, _, _validation_results, failed_validations = _metrics_validator.process_and_validate_metrics(metrics_batch)
 
         assert len(failed_validations) == 0, (
             f"Error: {len(failed_validations)} metrics failed the expected behavior!\n"
@@ -62,12 +62,11 @@ class Test_PostgreSQLMetricsCollection:
 @features.postgres_receiver_metrics
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
-        """Test metrics were actually queried / received by the backend
-        """
+        """Test metrics were actually queried / received by the backend"""
         metrics_to_validate = list(postgresql_metrics.keys())
         query_tags = {"rid": "otel-postgres-metrics", "host": "collector"}
 
-        validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
+        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
             metric_names=metrics_to_validate,
             query_tags=query_tags,
             lookback_seconds=300,
@@ -83,8 +82,7 @@ class Test_BackendValidity:
 @scenarios.otel_collector_e2e
 @features.postgres_receiver_metrics
 class Test_Smoke:
-    """
-    PostgreSQL-specific smoke test to generate database activity.
+    """PostgreSQL-specific smoke test to generate database activity.
     This test validates that basic PostgreSQL metrics are collected after database operations.
     """
 
