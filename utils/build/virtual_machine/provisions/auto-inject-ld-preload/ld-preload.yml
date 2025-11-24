@@ -18,7 +18,12 @@
 
 - os_type: linux
   os_distro: rpm
-
+  os_branch: oracle_linux
+  remote-command: |
+    echo "Oracle Linux is not supported for chaos testing."
+    
+- os_type: linux
+  os_distro: rpm
   copy_files:
       - name: copy-helloworld-cpp
         local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
@@ -30,11 +35,7 @@
     sudo mv main.so /usr/local/lib/
     sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
 
-- os_type: linux
-  os_distro: rpm
-  os_branch: oracle_linux
-  remote-command: |
-    echo "Oracle Linux is not supported for chaos testing."
+
 
 - os_type: windows
   remote-command: |
