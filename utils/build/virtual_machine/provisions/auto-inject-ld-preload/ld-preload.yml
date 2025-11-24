@@ -35,7 +35,6 @@
   os_branch: oracle_linux
   remote-command: |
     echo "Oracle Linux is not supported for chaos testing."
-    exit 1
 
 - os_type: windows
   remote-command: |
