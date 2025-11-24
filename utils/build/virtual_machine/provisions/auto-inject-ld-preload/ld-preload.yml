@@ -30,6 +30,13 @@
     sudo mv main.so /usr/local/lib/
     sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
 
+- os_type: linux
+  os_distro: rpm
+  os_branch: oracle_linux
+  remote-command: |
+    echo "Oracle Linux is not supported for chaos testing."
+    exit 1
+
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for chaos testing."
