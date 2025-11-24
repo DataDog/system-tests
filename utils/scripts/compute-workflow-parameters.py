@@ -91,7 +91,7 @@ class CiData:
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": True  # len(scenario_map["parametric"]) > 0
+            "enable": len(scenario_map["parametric"]) > 0
             and "otel" not in library
             and library not in ("cpp_nginx", "cpp_httpd", "python_lambda"),
         }
