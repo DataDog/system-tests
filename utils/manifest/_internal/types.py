@@ -34,8 +34,8 @@ class Condition(TypedDict):
     component: str
     component_version: NotRequired[SemverRange]
     excluded_component_version: NotRequired[SemverRange]
-    weblog: NotRequired[str | list[str]]
-    excluded_weblog: NotRequired[str | list[str]]
+    weblog: NotRequired[list[str]]
+    excluded_weblog: NotRequired[list[str]]
     declaration: SkipDeclaration
 
 

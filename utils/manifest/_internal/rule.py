@@ -38,14 +38,14 @@ def match_condition(
         ret &= ref_version not in excluded_component_version
 
     weblog_entry = condition.get("weblog")
-    if weblog_entry:
+    if weblog_entry and weblog:
         if isinstance(weblog_entry, list):
             ret &= weblog in weblog_entry
         else:
             ret &= weblog == weblog_entry
 
     excluded_weblog = condition.get("excluded_weblog")
-    if excluded_weblog:
+    if excluded_weblog and weblog:
         if isinstance(excluded_weblog, list):
             ret &= weblog not in excluded_weblog
         else:
@@ -54,15 +54,9 @@ def match_condition(
 
 
 def match_rule(rule: str, nodeid: str) -> bool:
-    path = rule.split("/")
-    path = [part for part in path if part]
-    rest = rule.split("::")
-    rule_elements = [*path[:-1], path[-1].split("::")[0], *rest[1:]]
+    rule_elements = rule.replace("::", "/").split("/")
 
-    nodeid = nodeid[: nodeid.find("[") % len(nodeid) + 1]
-    path = nodeid.split("/")
-    rest = nodeid.split("::")
-    nodeid_elements = [*path[:-1], path[-1].split("::")[0], *rest[1:]]
+    nodeid_elements = nodeid.replace("::", "/").split("/")
 
     if len(rule_elements) > len(nodeid_elements):
         return False

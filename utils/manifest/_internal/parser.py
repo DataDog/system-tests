@@ -52,13 +52,19 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
 
     if entry.get("weblog"):
         assert isinstance(entry["weblog"], str | list), f"Wrong type for declaration: {type(entry['weblog'])}"
-        condition["weblog"] = entry["weblog"]
+        if isinstance(entry["weblog"], list):
+            condition["weblog"] = entry["weblog"]
+        else:
+            condition["weblog"] = [entry["weblog"]]
 
     if entry.get("excluded_weblog"):
         assert isinstance(
             entry["excluded_weblog"], str | list
         ), f"Wrong type for declaration: {type(entry['excluded_weblog'])}"
-        condition["excluded_weblog"] = entry["excluded_weblog"]
+        if isinstance(entry["excluded_weblog"], list):
+            condition["excluded_weblog"] = entry["excluded_weblog"]
+        else:
+            condition["excluded_weblog"] = [entry["excluded_weblog"]]
 
     for key in entry:
         if key not in ["declaration", "component_version", "excluded_component_version", "weblog", "excluded_weblog"]:
