@@ -87,8 +87,16 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
     @irrelevant(
-        context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
-        reason="LD library failures impact on the docker engine, causes flakiness",
+        context.vm_name
+        in [
+            "Amazon_Linux_2023_amd64",
+            "Amazon_Linux_2023_arm64",
+            "OracleLinux_9_2_amd64",
+            "OracleLinux_9_2_arm64",
+            "OracleLinux_9_3_amd64",
+            "OracleLinux_9_3_arm64",
+        ],
+        reason="LD library failures impact on the docker engine, causes flakiness or cpp compilation issues",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
@@ -108,6 +116,11 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]
         and context.weblog_variant == "test-app-python",
         reason="Flaky machine with python and the ld preload changes",
+    )
+    @irrelevant(
+        context.vm_name
+        in ["OracleLinux_9_2_amd64", "OracleLinux_9_2_arm64", "OracleLinux_9_3_amd64", "OracleLinux_9_3_arm64"],
+        reason="Cpp compilation issues",
     )
     def test_remove_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
