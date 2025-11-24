@@ -110,10 +110,30 @@ class Test_Smoke:
         r = container.exec_run(
             'psql -U system_tests_user -d system_tests_dbname -c "INSERT INTO test_table DEFAULT VALUES;"'
         )
-        logger.info(r.output)
 
-        # Run a basic query
         r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
+
+        # Rollback
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c "BEGIN; INSERT INTO test_table DEFAULT VALUES; ROLLBACK;"'
+        )
+
+        # Vacuums and forces a read block (FULL activates the blocks_read metric)
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "VACUUM FULL test_table;"')
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "VACUUM test_table;"')
+
+        # Forces an index scan with the two sets of psql commands
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c '
+            '"INSERT INTO test_table DEFAULT VALUES FROM generate_series(1, 800);"'
+        )
+
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c '
+            '"SET enable_seqscan = off; SET enable_bitmapscan = off; '
+            'SELECT * FROM test_table WHERE id = 300;"'
+        )
+
         logger.info(r.output)
 
     def test_main(self) -> None:
