@@ -40,31 +40,3 @@ echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
-
-
-
-#Install Antithesis coverage instrumentation
-mkdir -p /opt/antithesis/catalog
-ln -s /dd-tracer /opt/antithesis/catalog
-ln -s /app /opt/antithesis/catalog
-
-wget https://repo1.maven.org/maven2/com/antithesis/ffi/1.4.4/ffi-1.4.4.jar -O antithesis-ffi-1.4.4.jar
-
-# Unzip dd-java-agent.jar
-unzip -q /dd-tracer/dd-java-agent.jar -d /tmp/dd-agent-unzipped
-
-# Unzip antithesis-ffi jar
-unzip -q antithesis-ffi-1.4.4.jar -d /tmp/antithesis-unzipped
-
-# Copy com directory and all .so files from antithesis into dd-agent
-cp -r /tmp/antithesis-unzipped/com /tmp/dd-agent-unzipped/
-cp /tmp/antithesis-unzipped/libFfiWrapper.so /tmp/dd-agent-unzipped/
-
-# Re-zip the modified dd-java-agent.jar
-cd /tmp/dd-agent-unzipped && \
-    zip -qr /dd-tracer/dd-java-agent.jar .
-
-# Clean up temporary directories
-rm -rf /tmp/dd-agent-unzipped /tmp/antithesis-unzipped antithesis-ffi-1.4.4.jar
-
-echo "Installed Antithesis coverage instrumentation"

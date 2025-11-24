@@ -47,11 +47,3 @@ else
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
 fi
-mkdir -p /opt/antithesis/catalog
-ln -s /opt/datadog /opt/antithesis/catalog
-ln -s /opt/datadog/net6.0/ /opt/antithesis/catalog
-ln -s /opt/datadog/netcoreapp3.1/ /opt/antithesis/catalog
-ln -s /opt/datadog/netstandard2.0/ /opt/antithesis/catalog
-ln -s /opt/datadog/continuousprofiler/ /opt/antithesis/catalog
-ln -s /opt/datadog/linux-arm64/ /opt/antithesis/catalog || true
-ln -s /opt/datadog/linux-x64/ /opt/antithesis/catalog || true
