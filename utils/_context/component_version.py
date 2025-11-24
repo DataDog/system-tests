@@ -17,6 +17,8 @@ class Version(version_module.Version):
         patch: str | None = None,
         prerelease: str | tuple[str, ...] | None = None,
         build: str | None = None,
+        *,
+        coerce: bool = False,
     ):
         if version is not None:
             # remove any leading "v"
@@ -25,7 +27,7 @@ class Version(version_module.Version):
             version = version[: version.find(" ") % (len(version) + 1)]
 
             # and use partial = True to allow partial version numbers
-            x = version_module.Version(version, partial=True)
+            x = version_module.Version.coerce(version) if coerce else version_module.Version(version, partial=True)
             major = x.major or 0
             minor = x.minor or 0
             patch = x.patch or 0
@@ -106,7 +108,7 @@ class ComponentVersion:
                 # the we can hack to move it to the built part:
                 version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
-            self.version = Version(version)
+            self.version = Version(version, coerce=True)
 
             if name == "ruby":
                 if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
@@ -123,6 +125,7 @@ class ComponentVersion:
                         patch=self.version.patch + 1,
                         prerelease=self.version.prerelease,
                         build=self.version.build,
+                        coerce=True,
                     )
 
                     if not self.version.prerelease:
@@ -132,6 +135,7 @@ class ComponentVersion:
                             patch=self.version.patch,
                             prerelease=("z",),
                             build=self.version.build,
+                            coerce=True,
                         )
 
             self.add_known_version(self.version)
