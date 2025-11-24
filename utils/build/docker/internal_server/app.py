@@ -31,6 +31,15 @@ async def mirror(status: int, request: fastapi.Request):
     return fastapi.responses.JSONResponse({"status": "OK", "payload": body}, status_code=status, headers=query)
 
 
+@app.get("/redirect", response_class=fastapi.responses.RedirectResponse)
+async def redirect(request: fastapi.Request):
+    """Redirect endpoint for testing API 10 with redirects"""
+    query = request.query_params
+    redirect_to = query.get("redirect_to", "/mirror/200")
+
+    return fastapi.responses.RedirectResponse(url=redirect_to, status_code=302)
+
+
 @app.get("/shutdown")
 async def shutdown():
     os.kill(os.getpid(), signal.SIGTERM)
