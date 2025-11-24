@@ -5,8 +5,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
+import dev.openfeature.sdk.FeatureProvider;
 import dev.openfeature.sdk.MutableContext;
+import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
+import dev.openfeature.sdk.ProviderState;
 import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
 import org.slf4j.Logger;
@@ -34,7 +37,19 @@ public class FeatureFlagEvaluatorController {
         @Bean
         public Client client() {
             final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-            api.setProviderAndWait(new Provider());
+            final String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
+            final FeatureProvider provider;
+            if (Boolean.parseBoolean(envProperty)) {
+                provider = new Provider();
+            } else {
+                provider = new NoOpProvider() {
+                    @Override
+                    public ProviderState getState() {
+                        return ProviderState.READY;
+                    }
+                };
+            }
+            api.setProviderAndWait(provider);
             return api.getClient();
         }
     }
