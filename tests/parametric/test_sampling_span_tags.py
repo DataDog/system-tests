@@ -2,14 +2,14 @@ import json
 
 import pytest
 from utils import bug, context, scenarios, features
-from utils.parametric.spec.trace import MANUAL_DROP_KEY
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
-from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
-from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
-from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
-from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures.spec.trace import MANUAL_DROP_KEY
+from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import SAMPLING_DECISION_MAKER_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_RULE_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -75,9 +75,9 @@ def _assert_sampling_tags(
             _assert_equal(parent_span.get("metrics", {}).get(rate_key), None, description=description)
         assert rate_key not in child_span.get("metrics", {}), "non-root spans should never include _dd.*_psr tags"
     if child_span != first_span:
-        assert (
-            child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
-        ), "non-root spans that are not first in a chunk should never includ the _dd.p.dm tag"
+        assert child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None, (
+            "non-root spans that are not first in a chunk should never includ the _dd.p.dm tag"
+        )
 
 
 @scenarios.parametric

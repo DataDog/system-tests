@@ -2173,7 +2173,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        from utils import context
+        from utils import context  # noqa: PLC0415
 
         return _mark_test_object(
             test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
@@ -2529,7 +2529,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=489
         """
-        from utils import context
+        from utils import context  # noqa: PLC0415
 
         return _mark_test_object(
             test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm

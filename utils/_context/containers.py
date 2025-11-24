@@ -623,7 +623,7 @@ class LambdaProxyContainer(TestedContainer):
     def post_start(self):
         super().post_start()
 
-        logger.stdout(f"Proxied event type: {self.environment.get("LAMBDA_EVENT_TYPE")}")
+        logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
 class AgentContainer(TestedContainer):
@@ -940,7 +940,7 @@ class WeblogContainer(TestedContainer):
             self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
-            header_tags += f',{",".join(self.additional_trace_header_tags)}'
+            header_tags += f",{','.join(self.additional_trace_header_tags)}"
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
 

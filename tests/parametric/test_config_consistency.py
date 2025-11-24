@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import pytest
 import yaml
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary, StableConfigWriter
 
@@ -31,9 +31,9 @@ class Test_Config_TraceEnabled:
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
         with test_library, test_library.dd_start_span("allowed"):
             pass
-        assert test_agent.wait_for_num_traces(
-            num=1
-        ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+        assert test_agent.wait_for_num_traces(num=1), (
+            "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+        )
 
     @enable_tracing_disabled()
     def test_tracing_disabled(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -300,13 +300,13 @@ class Test_Config_RateLimit:
         with test_library:
             # Generate three traces to demonstrate rate limiting in PHP's backfill model
             for i in range(3):
-                with test_library.dd_start_span(name=f"s{i+1}"):
+                with test_library.dd_start_span(name=f"s{i + 1}"):
                     pass
 
         traces = test_agent.wait_for_num_traces(3)
-        assert any(
-            trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces
-        ), "Expected at least one trace to be rate-limited with sampling priority -1."
+        assert any(trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces), (
+            "Expected at least one trace to be rate-limited with sampling priority -1."
+        )
 
 
 tag_scenarios: dict = {
@@ -663,6 +663,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
+    @bug(context.library <= "ruby@2.22.0", reason="APMAPI-1774")
     def test_invalid_files(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, library_env: dict[str, str]
     ):
@@ -780,9 +781,9 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            assert (
-                config["dd_service"] == "my-service"
-            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+            assert config["dd_service"] == "my-service", (
+                f"Service name is '{config['dd_service']}' instead of 'my-service'"
+            )
 
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
@@ -813,6 +814,6 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             self.write_stable_config_content(stable_config_content, path, test_library)
             test_library.container_restart()
             lib_config = test_library.config()
-            assert (
-                lib_config["dd_service"] == "value"
-            ), f"Service name is '{lib_config["dd_service"]}' instead of 'value'"
+            assert lib_config["dd_service"] == "value", (
+                f"Service name is '{lib_config['dd_service']}' instead of 'value'"
+            )

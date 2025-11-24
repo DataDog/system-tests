@@ -249,7 +249,7 @@ jobs:
     needs:
       - compute_parameters
       - build_end_to_end
-    if: ${{ always() && needs.build_end_to_end.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    if: ${{ always() && needs.build_end_to_end.result != 'failure' && needs.compute_parameters.result != 'failure' && needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
     strategy:
       matrix:
         job: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_jobs) }}

@@ -96,24 +96,21 @@ class OtelCollectorScenario(DockerScenario):
                 otel_config = yaml.safe_load(f)
 
             if "receivers" in otel_config:
-                result["configuration"]["receivers"] = list(otel_config["receivers"].keys())
+                otel_config_keys = otel_config["receivers"].keys()
+                result["configuration"]["receivers"] = ", ".join(otel_config_keys)
                 if "postgresql" in otel_config["receivers"]:
                     pg_config = otel_config["receivers"]["postgresql"]
-                    result["configuration"]["postgresql_receiver"] = {
-                        "endpoint": pg_config.get("endpoint"),
-                        "databases": pg_config.get("databases", []),
-                    }
+                    result["configuration"]["postgresql_receiver_endpoint"] = pg_config.get("endpoint")
+                    databases = pg_config.get("databases", [])
+                    if databases:
+                        result["configuration"]["postgresql_receiver_databases"] = ", ".join(databases)
 
             if "exporters" in otel_config:
-                result["configuration"]["exporters"] = list(otel_config["exporters"].keys())
-                if "datadog" in otel_config["exporters"]:
-                    dd_exporter_config = otel_config["exporters"]["datadog"]
-                    result["configuration"]["datadog_exporter_config"] = {
-                        "metrics": dd_exporter_config.get("metrics", {}),
-                    }
+                otel_config_keys = otel_config["exporters"].keys()
+                result["configuration"]["exporters"] = ", ".join(otel_config_keys)
 
             if "service" in otel_config and "pipelines" in otel_config["service"]:
-                result["configuration"]["pipelines"] = list(otel_config["service"]["pipelines"].keys())
+                result["configuration"]["pipelines"] = ", ".join(otel_config["service"]["pipelines"].keys())
 
         except Exception as e:
             pytest.exit(f"Failed to parse OTel collector config: {e}", 1)

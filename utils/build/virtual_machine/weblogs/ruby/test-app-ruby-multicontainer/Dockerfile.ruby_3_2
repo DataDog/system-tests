@@ -25,8 +25,8 @@ RUN set -ex && \
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
 # Upgrade RubyGems and Bundler
-RUN gem update --system 3.4.1
-
+RUN gem update --system 3.4.22
+RUN gem install bundler -v '~> 2.4.22'
 RUN mkdir -p "$GEM_HOME" && chmod -R 777 "$GEM_HOME"
 ENV BUNDLE_SILENCE_ROOT_WARNING 1
 
