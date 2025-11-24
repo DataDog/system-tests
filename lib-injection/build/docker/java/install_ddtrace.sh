@@ -5,8 +5,10 @@ set -eu
 BINARIES_DIR=$1 #/binaries
 
 if [ $(ls $BINARIES_DIR/dd-java-agent*.jar | wc -l) = 0 ]; then
-    BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
-    echo "install from Github release: $BUILD_URL"
+    # TEMPORARY: Force using the PR branch instead of latest release
+    TARGET_BRANCH="alejandro.gonzalez/APPSEC-57815"
+    BUILD_URL="https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
+    echo "install from S3 branch ${TARGET_BRANCH}: $BUILD_URL"
     curl  -Lf -o $BINARIES_DIR/dd-java-agent.jar $BUILD_URL
 
 elif [ $(ls $BINARIES_DIR/dd-java-agent*.jar | wc -l) = 1 ]; then

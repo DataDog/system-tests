@@ -18,8 +18,11 @@ fi
 # Look for custom dd-java-agent jar in custom binaries folder
 CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)
 if [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 0 ]; then
-    echo "Using latest dd-java-agent"
-    wget -O /client/tracer/dd-java-agent.jar --no-cache https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar
+    # TEMPORARY: Force using the PR branch instead of latest release
+    TARGET_BRANCH="alejandro.gonzalez/APPSEC-57815"
+    BUILD_URL="https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
+    echo "Using dd-java-agent from S3 branch ${TARGET_BRANCH}"
+    wget -O /client/tracer/dd-java-agent.jar --no-cache "$BUILD_URL"
 elif [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 1 ]; then
     CUSTOM_DD_JAVA_AGENT=$(find /binaries/dd-java-agent*.jar)
     echo "Using custom dd-java-agent: ${CUSTOM_DD_JAVA_AGENT}"
