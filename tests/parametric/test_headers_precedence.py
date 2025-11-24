@@ -221,7 +221,7 @@ class Test_Headers_Precedence:
     @irrelevant(context.library >= "nodejs@4.0.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
+    @irrelevant(context.library >= "golang@1.61.0-dev", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library > "dotnet@2.47.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")

@@ -61,10 +61,10 @@ def test_library_version_comparizon():
     assert ComponentVersion("x", "v1.34.1") > "x@1.31.1"
     assert ComponentVersion("x", "1.31.1") < ComponentVersion("x", "v1.34.1")
 
-    assert ComponentVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
-    assert ComponentVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
+    assert ComponentVersion("python", "1.1.0-rc2.dev15+gc41d325d") >= "python@1.1.0-rc2.dev"
+    assert ComponentVersion("python", "1.1.0") > "python@1.1.0-rc2.dev"
 
-    assert ComponentVersion("python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
+    assert ComponentVersion("python", "2.1.0-dev") < "python@2.1.0-dev83+gac1037728"
     assert ComponentVersion("python", "2.1.0-dev") < "python@2.1.0"
 
     assert ComponentVersion("nodejs", "6.0.0-pre") > "nodejs@5.0.0"
@@ -162,7 +162,7 @@ def test_library_version():
     assert (v >= "u@1.0") is False
 
     v = ComponentVersion("python", "0.53.0.dev70+g494e6dc0")
-    assert v == "python@0.53.0.dev70+g494e6dc0"
+    assert v == "python@0.53.0-dev70+g494e6dc0"
 
     v = ComponentVersion("java", "0.94.1~dde6877139")
     assert v == "java@0.94.1+dde6877139"

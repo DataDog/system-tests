@@ -21,12 +21,14 @@ class Version(version_module.Version):
         if version is not None:
             # remove any leading "v"
             version = version.removeprefix("v")
+            # removes everything after the space to allow for v1.2.3 (reason)
+            version = version[: version.find(" ") % (len(version) + 1)]
 
-            # and use coerce to allow the wide variaty of version strings
-            x = version_module.Version.coerce(version)
-            major = x.major
-            minor = x.minor
-            patch = x.patch
+            # and use partial = True to allow partial version numbers
+            x = version_module.Version(version, partial=True)
+            major = x.major or 0
+            minor = x.minor or 0
+            patch = x.patch or 0
             prerelease = x.prerelease
             build = x.build
 

@@ -119,7 +119,7 @@ class Test_Otel_Span_Methods:
         context.library == "java",
         reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
     )
-    @irrelevant(context.library >= "golang@v1.59.0.dev0", reason="New span naming introduced in v1.59.0")
+    @irrelevant(context.library >= "golang@v1.59.0-dev0", reason="New span naming introduced in v1.59.0")
     @irrelevant(context.library == "ruby", reason="Old array encoding no longer supported")
     @irrelevant(context.library == "php", reason="Old array encoding no longer supported")
     @missing_feature(context.library > "dotnet@2.52.0", reason="Old array encoding no longer supported")

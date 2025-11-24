@@ -597,7 +597,7 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=self.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0-dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
@@ -678,7 +678,7 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=self.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0-dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(

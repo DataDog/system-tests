@@ -873,7 +873,7 @@ tests/:
     Test_Config_UnifiedServiceTagging_CustomService: v1.67.0
     Test_Config_UnifiedServiceTagging_Default: v1.67.0
   test_data_integrity.py:
-    Test_LibraryHeaders: v1.60.0.dev0
+    Test_LibraryHeaders: v1.60.0-dev0
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)

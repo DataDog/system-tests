@@ -89,7 +89,7 @@ class Test_StandardTagsUrl:
 
     # when tracer is updated, add (for example)
     @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
-    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
+    @irrelevant(context.library >= "python@1.18.0-rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
     @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string_legacy(self):
@@ -142,7 +142,7 @@ class Test_StandardTagsUrl:
 
     # when tracer is updated, add (for example)
     @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
-    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
+    @irrelevant(context.library >= "python@1.18.0-rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
     @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring_legacy(self):

@@ -43,7 +43,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
-    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library >= "python@4.0.0-rc1" and context.installed_language_runtime < "3.9.0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
         assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
@@ -77,9 +77,9 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
-    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library >= "python@4.0.0-rc1" and context.installed_language_runtime < "3.9.0")
     @bug(context.library == "python@2.19.1", reason="INPLAT-448")
-    @bug(context.library >= "python@3.0.0dev", reason="INPLAT-448")
+    @bug(context.library >= "python@3.0.0-dev", reason="INPLAT-448")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -146,8 +146,8 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
-    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library >= "python@4.0.0-dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0-dev" and context.installed_language_runtime < "3.8.0")
     @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
     @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
     @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
@@ -170,7 +170,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
-    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library >= "python@4.0.0-rc1" and context.installed_language_runtime < "3.9.0")
     @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
     @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
     @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")

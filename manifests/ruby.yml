@@ -21,14 +21,14 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: v2.23.0.dev
+        Test_API_Security_Custom_Data_Classification_Capabilities: v2.23.0-dev
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Negative: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Processor_Override: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Scanner: v2.21.0  # auto activation: might not be the earliest working version
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
-          "*": v2.22.0.dev
+          "*": v2.22.0-dev
           rack: irrelevant (rack does not have a router)
           rails42: irrelevant
           sinatra14: missing_feature
@@ -346,10 +346,10 @@ tests/:
         Test_Blocking_strip_response_headers: v1.13.0
         Test_CustomBlockingResponse: v1.15.0
       test_blocking_security_response_id.py:
-        Test_SecurityResponseId_Custom_Redirect: v2.23.0.dev
-        Test_SecurityResponseId_HTML_Response: v2.23.0.dev
-        Test_SecurityResponseId_In_Span_Triggers: v2.23.0.dev
-        Test_SecurityResponseId_JSON_Response: v2.23.0.dev
+        Test_SecurityResponseId_Custom_Redirect: v2.23.0-dev
+        Test_SecurityResponseId_HTML_Response: v2.23.0-dev
+        Test_SecurityResponseId_In_Span_Triggers: v2.23.0-dev
+        Test_SecurityResponseId_JSON_Response: v2.23.0-dev
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
@@ -362,7 +362,7 @@ tests/:
           uds-sinatra: v2.21.0  # auto activation: might not be the earliest working version
       test_miscs.py:
         Test_MultipleAttacks: v0.54.2
-        Test_MultipleHighlight: v1.0.0.beta1
+        Test_MultipleHighlight: v1.0.0-beta1
       test_reports.py:
         Test_Monitoring: v1.8.0
       test_rules.py:
@@ -447,8 +447,8 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
-      Test_Blocking_client_ip_with_K8_private_ip: v2.23.0.dev
-      Test_Blocking_client_ip_with_forwarded: v2.22.0.dev
+      Test_Blocking_client_ip_with_K8_private_ip: v2.23.0-dev
+      Test_Blocking_client_ip_with_forwarded: v2.22.0-dev
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
       Test_Blocking_request_cookies: v1.0.0
@@ -469,11 +469,11 @@ tests/:
       Test_ConfigurationVariables: missing_feature (unknown version)
       Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
-      Test_ConfRuleSet: v1.0.0.beta2
-      Test_CorruptedRules: v1.0.0.beta2
+      Test_ConfRuleSet: v1.0.0-beta2
+      Test_CorruptedRules: v1.0.0-beta2
       Test_CorruptedRules_Telemetry: missing_feature
-      Test_MissingRules: v1.0.0.beta2
-      Test_NoLimitOnWafRules: v1.0.0.beta2
+      Test_MissingRules: v1.0.0-beta2
+      Test_NoLimitOnWafRules: v1.0.0-beta2
     test_event_tracking.py:
       Test_CustomEvent: v1.9.0
       Test_CustomEvent_Metrics: missing_feature
@@ -573,7 +573,7 @@ tests/:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
       Test_CollectDefaultRequestHeader: missing_feature
-      Test_CollectRespondHeaders: v1.0.0.beta1
+      Test_CollectRespondHeaders: v1.0.0-beta1
       Test_ExternalWafRequestsIdentification: v1.22.0
       Test_RetainTraces: v0.54.2
     test_user_blocking_full_denylist.py:
@@ -915,7 +915,7 @@ tests/:
   test_protobuf.py: missing_feature
   test_resource_renaming.py:
     Test_Resource_Renaming_HTTP_Endpoint_Tag:
-      "*": v2.23.0.dev
+      "*": v2.23.0-dev
       sinatra14: irrelevant
       sinatra22: irrelevant
       sinatra32: irrelevant
