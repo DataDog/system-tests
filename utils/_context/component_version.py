@@ -30,9 +30,9 @@ class Version(version_module.Version):
             x = version_module.Version.coerce(version) if coerce else version_module.Version(version, partial=True)
             major = x.major or 0
             minor = x.minor or 0
-            patch = x.patch or 0
+            patch = str(x.patch)
             prerelease = x.prerelease
-            build = x.build
+            build = str(x.build)
 
         super().__init__(major=major, minor=minor, patch=patch, prerelease=prerelease, build=build)
 
