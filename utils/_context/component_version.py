@@ -26,7 +26,7 @@ class Version(version_module.Version):
             # removes everything after the space to allow for v1.2.3 (reason)
             version = version[: version.find(" ") % (len(version) + 1)]
 
-            # and use partial = True to allow partial version numbers
+            # use partial = True to allow partial version numbers and coerce to adapt to tested library version
             x = version_module.Version.coerce(version) if coerce else version_module.Version(version, partial=True)
             major = x.major or 0
             minor = x.minor or 0
