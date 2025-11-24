@@ -133,7 +133,7 @@ if ! ./venv/bin/yamllint -s manifests/; then
 fi
 
 echo "Running parser checks..."
-if ! python ./utils/manifest/validate.py; then
+if ! python utils/manifest/validate.py; then
   echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
