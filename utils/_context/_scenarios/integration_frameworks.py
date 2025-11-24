@@ -30,9 +30,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         self.environment = {
             "DD_TRACE_DEBUG": "true",
             "DD_TRACE_OTEL_ENABLED": "true",
-            "OPENAI_API_KEY": os.getenv(
-                "OPENAI_API_KEY", "<not-a-real-key>"
-            ),  # see TODO below for removing this logic later
         }
 
     def configure(self, config: pytest.Config):
@@ -43,6 +40,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         library: str = config.option.library
         weblog: str = config.option.weblog
+        generate_cassettes: bool = config.option.generate_cassettes
 
         if not library:
             pytest.exit("No library specified, please set -L option", 1)
@@ -52,6 +50,14 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         if "@" not in weblog:
             pytest.exit("Weblog must be of the form : openai@2.0.0.", 1)
+
+        if generate_cassettes:
+            openai_api_key = os.getenv("OPENAI_API_KEY")
+            if not openai_api_key:
+                pytest.exit("OPENAI_API_KEY is required to generate cassettes", 1)
+            self.environment["OPENAI_API_KEY"] = openai_api_key  # type: ignore[assignment]
+        else:
+            self.environment["OPENAI_API_KEY"] = "<not-a-real-key>"  # this needs a default dummy value otherwise
 
         if config.option.force_dd_trace_debug:
             self.environment["DD_TRACE_DEBUG"] = "true"
