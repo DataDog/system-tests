@@ -15,4 +15,8 @@ RUN rm jetty-classpath/jetty-jaspi*
 COPY lib-injection/build/docker/java/jetty-app/ .
 RUN javac -cp "jetty-classpath/*" JettyServletMain.java CrashServlet.java
 
-CMD [ "java", "-cp", "jetty-classpath/*:.", "JettyServletMain" ]
+RUN mkdir -p /var/log/java
+
+CMD [ "java", "-XX:ErrorFile=/var/log/crashes/hs_err_pid%p.log", "-XX:+CreateCoredumpOnCrash", "-cp", "jetty-classpath/*:.", "JettyServletMain" ]
+
+
