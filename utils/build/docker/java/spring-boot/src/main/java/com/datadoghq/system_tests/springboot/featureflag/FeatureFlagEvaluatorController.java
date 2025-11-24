@@ -11,6 +11,10 @@ import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,15 +27,23 @@ import java.util.Map;
 @RestController
 public class FeatureFlagEvaluatorController {
 
+    @Configuration
+    public static class FeatureFlagEvaluatorConfig {
+
+        @Lazy
+        @Bean
+        public Client client() {
+            final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
+            api.setProviderAndWait(new Provider());
+            return api.getClient();
+        }
+    }
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFlagEvaluatorController.class);
 
-    private final Client client;
-
-    public FeatureFlagEvaluatorController() {
-        final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-        api.setProvider(new Provider());
-        client = api.getClient();
-    }
+    @Autowired
+    @Lazy
+    private Client client;
 
     @PostMapping(value = "/ffe", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
