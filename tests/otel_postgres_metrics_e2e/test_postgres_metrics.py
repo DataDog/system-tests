@@ -12,10 +12,10 @@ if TYPE_CHECKING:
 # Load PostgreSQL metrics specification
 # Exclude metrics that require a replica database
 _EXCLUDED_POSTGRES_METRICS = {
-    "postgresql.wal.delay", # requires replica
-    "postgresql.wal.age", # requires replica
-    "postgresql.replication.data_delay", # requires replica
-    "postgresql.wal.lag", # requires replica
+    "postgresql.wal.delay",  # requires replica
+    "postgresql.wal.age",  # requires replica
+    "postgresql.replication.data_delay",  # requires replica
+    "postgresql.wal.lag",  # requires replica
 }
 
 postgresql_metrics = OtelMetricsValidator.load_metrics_from_file(
@@ -124,33 +124,32 @@ class Test_Smoke:
 
         # Forces an index scan with the two sets of psql commands
         r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c '
+            "psql -U system_tests_user -d system_tests_dbname -c "
             '"INSERT INTO test_table DEFAULT VALUES FROM generate_series(1, 800);"'
         )
 
         r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c '
+            "psql -U system_tests_user -d system_tests_dbname -c "
             '"SET enable_seqscan = off; SET enable_bitmapscan = off; '
             'SELECT * FROM test_table WHERE id = 300;"'
         )
 
         # Forces temp files for postgresql.temp.io and postgresql.temp_files
         r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c '
-            '"SET work_mem = \'64kB\'; '
+            "psql -U system_tests_user -d system_tests_dbname -c "
+            "\"SET work_mem = '64kB'; "
             'SELECT * FROM generate_series(1, 1000000) g ORDER BY g;"'
         )
 
         # hit the buffer + max writtern
         r = container.exec_run(
             'psql -U system_tests_user -d system_tests_dbname -c "'
-            'CREATE TABLE IF NOT EXISTS bg_test AS '
-            'SELECT i, md5(random()::text) FROM generate_series(1, 2000000) g(i); '
-            'UPDATE bg_test SET i = i + 1; '
-            'UPDATE bg_test SET i = i + 1; '
+            "CREATE TABLE IF NOT EXISTS bg_test AS "
+            "SELECT i, md5(random()::text) FROM generate_series(1, 2000000) g(i); "
+            "UPDATE bg_test SET i = i + 1; "
+            "UPDATE bg_test SET i = i + 1; "
             'SELECT pg_sleep(2);"'
         )
-
 
         logger.info(r.output)
 
