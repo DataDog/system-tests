@@ -1,7 +1,6 @@
 """Test Feature Flag Exposure (FFE) exposure events in weblog end-to-end scenario."""
 
 import json
-import time
 
 from utils import (
     weblog,
@@ -453,10 +452,10 @@ class Test_FFE_Agent_Unavailable:
         # Phase 1: Setup initial RC config with agent running
         initial_config = UFC_FIXTURE_DATA
         config_id = "ffe-resilience-test"
-        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
-
-        # Allow extra time for the FFE config to be fully processed by the tracer
-        time.sleep(1)
+        self.config_state = rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
+        assert self.config_state.state == rc.ApplyState.ACKNOWLEDGED, (
+            f"RC config was not acknowledged: {self.config_state.state}"
+        )
 
         # Phase 2: Evaluate flag with working agent (baseline)
         self.baseline_eval = weblog.post(
@@ -501,7 +500,6 @@ class Test_FFE_Agent_Unavailable:
 
         # Phase 6: Restart the agent container
         scenarios.feature_flag_exposure.start_agent_container()
-        time.sleep(2)
 
     def test_ffe_agent_unavailable_graceful_degradation(self):
         """Test that cached flag configs continue working when agent is unavailable."""
