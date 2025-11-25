@@ -1465,6 +1465,9 @@ tests/:
       '*': *ref_5_25_0
       nextjs: bug (APMAPI-939)  # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_feature_flag_exposures.py:
+    Test_FFE_Agent_Unavailable:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
     Test_FFE_Exposure_Events:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4

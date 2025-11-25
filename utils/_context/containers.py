@@ -396,6 +396,17 @@ class TestedContainer:
             if not self.healthy:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
 
+    def graceful_stop(self):
+        """Stop the container without health checks - for test scenarios simulating outages."""
+        if self._container:
+            self._container.stop()
+
+    def graceful_start(self):
+        """Restart a stopped container - for test scenarios simulating recovery."""
+        if self._container:
+            self._container.start()
+            self._container.reload()
+
     def collect_logs(self):
         TAIL_LIMIT = 50  # noqa: N806
         SEP = "=" * 30  # noqa: N806
