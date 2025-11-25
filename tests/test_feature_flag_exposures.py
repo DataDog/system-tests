@@ -443,94 +443,73 @@ class Test_FFE_Agent_Unavailable:
 
     def setup_ffe_agent_unavailable_graceful_degradation(self):
         """Set up FFE with valid config, then simulate agent unavailability and verify cached config still works."""
-        # The delivered flag from UFC_FIXTURE_DATA returns "on" when evaluated
-        self.delivered_flag = "test-flag"
-        self.expected_configured_value = "on"
-        self.undelivered_flag = "test-flag-never-delivered"
+        self.flag_key = "test-flag"  # From UFC_FIXTURE_DATA, returns "on"
+        self.not_delivered_flag_key = "test-flag-not-delivered"
         self.default_value = "default_fallback"
 
-        # Phase 1: Setup initial RC config with agent running
-        initial_config = UFC_FIXTURE_DATA
-        config_id = "ffe-resilience-test"
-        self.config_state = rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
-        assert self.config_state.state == rc.ApplyState.ACKNOWLEDGED, (
-            f"RC config was not acknowledged: {self.config_state.state}"
-        )
+        config_state = rc.rc_state.reset().set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
+        assert config_state.state == rc.ApplyState.ACKNOWLEDGED, f"RC config not acknowledged: {config_state.state}"
 
-        # Phase 2: Evaluate flag with working agent (baseline)
+        # Baseline: evaluate flag with agent running
         self.baseline_eval = weblog.post(
             "/ffe",
             json={
-                "flag": self.delivered_flag,
+                "flag": self.flag_key,
                 "variationType": "STRING",
                 "defaultValue": self.default_value,
-                "targetingKey": "user-baseline",
+                "targetingKey": "user-1",
                 "attributes": {},
             },
         )
 
-        # Phase 3: Stop the agent container to simulate unavailability
+        # Stop agent container
         scenarios.feature_flag_exposure.stop_agent_container()
 
-        # Phase 4: Evaluate the cached flag while agent is unavailable
-        # This should return the configured value "on" from cache, NOT the default
-        self.cached_eval_during_outage = weblog.post(
+        # Evaluate cached flag while agent is unavailable
+        self.cached_eval = weblog.post(
             "/ffe",
             json={
-                "flag": self.delivered_flag,
+                "flag": self.flag_key,
                 "variationType": "STRING",
                 "defaultValue": self.default_value,
-                "targetingKey": "user-during-outage",
+                "targetingKey": "user-2",
                 "attributes": {},
             },
         )
 
-        # Phase 5: Evaluate a flag that was never delivered
-        # This should return the default value since no config exists for this flag
-        self.undelivered_flag_eval = weblog.post(
+        # Evaluate a flag that was not delivered via RC
+        self.not_delivered_eval = weblog.post(
             "/ffe",
             json={
-                "flag": self.undelivered_flag,
+                "flag": self.not_delivered_flag_key,
                 "variationType": "STRING",
                 "defaultValue": self.default_value,
-                "targetingKey": "user-during-outage",
+                "targetingKey": "user-3",
                 "attributes": {},
             },
         )
 
-        # Phase 6: Restart the agent container
         scenarios.feature_flag_exposure.start_agent_container()
 
     def test_ffe_agent_unavailable_graceful_degradation(self):
         """Test that cached flag configs continue working when agent is unavailable."""
-        # Verify all HTTP requests succeeded
-        assert self.baseline_eval.status_code == 200, f"Baseline evaluation request failed: {self.baseline_eval.text}"
-        assert self.cached_eval_during_outage.status_code == 200, (
-            f"Cached evaluation request during agent outage failed: {self.cached_eval_during_outage.text}"
-        )
-        assert self.undelivered_flag_eval.status_code == 200, (
-            f"Undelivered flag evaluation request failed: {self.undelivered_flag_eval.text}"
-        )
+        expected_value = "on"
 
-        # Validate baseline evaluation returned the configured value
+        assert self.baseline_eval.status_code == 200, f"Baseline request failed: {self.baseline_eval.text}"
+        assert self.cached_eval.status_code == 200, f"Cached eval request failed: {self.cached_eval.text}"
+        assert self.not_delivered_eval.status_code == 200, f"Not delivered eval failed: {self.not_delivered_eval.text}"
+
         baseline_result = json.loads(self.baseline_eval.text)
-        assert baseline_result["value"] == self.expected_configured_value, (
-            f"Baseline evaluation: expected configured value '{self.expected_configured_value}', "
-            f"got '{baseline_result['value']}'"
+        assert baseline_result["value"] == expected_value, (
+            f"Baseline: expected '{expected_value}', got '{baseline_result['value']}'"
         )
 
-        # Validate cached evaluation during agent outage still returns the configured value
-        # This is the core assertion: the cache must work when agent is down
-        cached_result = json.loads(self.cached_eval_during_outage.text)
-        assert cached_result["value"] == self.expected_configured_value, (
-            f"Cached evaluation during agent outage: expected configured value '{self.expected_configured_value}' "
-            f"from cache, got '{cached_result['value']}'. "
-            f"If this returned '{self.default_value}', the local cache is not working when agent is unavailable."
+        cached_result = json.loads(self.cached_eval.text)
+        assert cached_result["value"] == expected_value, (
+            f"Cached eval during agent outage: expected '{expected_value}' from cache, got '{cached_result['value']}'"
         )
 
-        # Validate undelivered flag returns the default value
-        undelivered_result = json.loads(self.undelivered_flag_eval.text)
-        assert undelivered_result["value"] == self.default_value, (
-            f"Undelivered flag evaluation: expected default value '{self.default_value}', "
-            f"got '{undelivered_result['value']}'"
+        not_delivered_result = json.loads(self.not_delivered_eval.text)
+        assert not_delivered_result["value"] == self.default_value, (
+            f"Not delivered flag: expected default '{self.default_value}', got '{not_delivered_result['value']}'"
         )
