@@ -541,7 +541,7 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    command_host_port = 11111  # Which port exposed to host to sent proxy commands
+    command_host_port = 11111  # TODO replace by ProxyPorts.proxy_commands
 
     def __init__(
         self,

@@ -1,9 +1,6 @@
 from enum import IntEnum
 
 
-MOCKED_RESPONSE_PATH = "/mocked_response"
-
-
 class ProxyPorts(IntEnum):
     """Proxy port are used by the proxy to determine the provenance of the request"""
 

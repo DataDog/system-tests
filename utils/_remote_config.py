@@ -5,33 +5,17 @@
 import base64
 import hashlib
 import json
-import os
 import re
 import time
 import uuid
 from typing import Any
 from collections.abc import Mapping
 
-import requests
-
 from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils._logger import logger
-from utils._context.containers import ProxyContainer
-from utils.proxy.mocked_response import StaticJsonMockedResponse
-
-
-def _post(path: str, payload: list[dict] | dict) -> None:
-    if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
-        domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
-    elif "DOCKER_HOST" in os.environ:
-        m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
-        domain = m.group(1) if m is not None else "localhost"
-    else:
-        domain = "localhost"
-
-    requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
+from utils.proxy.mocked_response import StaticJsonMockedResponse, SequentialRemoteConfigJsonMockedResponse
 
 
 class RemoteConfigStateResults:
@@ -142,7 +126,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     if len(commands) == 0:
         raise ValueError("No commands to send")
 
-    _post("/sequential_commands", commands)
+    SequentialRemoteConfigJsonMockedResponse(mocked_json_sequence=commands).send()
 
     if not wait_for_all_command:
         return
