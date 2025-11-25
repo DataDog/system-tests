@@ -36,6 +36,9 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
 
 try:
     from ddtrace._trace.pin import Pin
@@ -52,6 +55,13 @@ ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
+
+# Initialize OpenFeature client if FFE is enabled
+openfeature_client = None
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
+
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -1310,3 +1320,30 @@ async def external_request(request: Request):
 @app.get("/resource_renaming/{path:path}", response_class=PlainTextResponse)
 def resource_renaming(path: str = ""):
     return "ok"
+
+
+@app.post("/ffe", response_class=JSONResponse)
+async def ffe(request: Request):
+    """OpenFeature evaluation endpoint."""
+    body = await request.json()
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return JSONResponse({"value": value}, status_code=200)

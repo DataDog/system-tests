@@ -113,7 +113,7 @@ def get_rid_from_user_agent(user_agent: str) -> str | None:
 
 def nested_lookup(
     needle: str,
-    heystack: str | list | tuple | dict | bool | float | None,
+    heystack: str | list | tuple | dict | bool | float | None,  # noqa: FBT001
     *,
     look_in_keys: bool = False,
     exact_match: bool = False,

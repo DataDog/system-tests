@@ -71,6 +71,13 @@ except ImportError:
 
 tracer.trace("init.service").finish()
 
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
+
 
 from app.models import CustomUser
 
@@ -1117,6 +1124,33 @@ def external_request(request):
         return JsonResponse({"status": int(e.status), "error": repr(e)})
 
 
+@csrf_exempt
+def ffe(request):
+    """OpenFeature evaluation endpoint."""
+    body = json.loads(request.body)
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return JsonResponse({"value": value}, status=200)
+
+
 urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
@@ -1214,4 +1248,5 @@ urlpatterns = [
     path("mock_s3/copy_object", s3_copy_object),
     path("mock_s3/multipart_upload", s3_multipart_upload),
     path("external_request", external_request),
+    path("ffe", ffe),
 ]
