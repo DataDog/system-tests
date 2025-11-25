@@ -136,16 +136,28 @@ if the request to `internal_server` is a failure, it must return a json body wit
 
 ### GET /external_request/redirect
 
-This endpoint is used for testing HTTP redirects with downstream requests, using the fastapi application defined in `/utils/build/docker/internal_server/app.py`
+This endpoint tests HTTP redirect chains with downstream requests, using the fastapi application in `/utils/build/docker/internal_server/app.py`
 
-It must make **two GET requests**:
+Query parameters:
+- `totalRedirects`: number of redirects (default 0)
 
-1. First GET request to `http://internal_server:8089/redirect?redirect_to=/mirror/200` This will return a 302 redirect response with a Location header
-2. Second GET request to the Location header value (which will be `/mirror/200`) This will return the final 200 response
+The endpoint calls `/redirect?totalRedirects={totalRedirects}` and follows all 302 redirects until receiving a 200 response.
 
-All query parameters received must be sent as headers to both `internal_server` requests.
+How it works:
+- `/redirect` decrements `totalRedirects` and redirects to itself until `totalRedirects=0`
+- When `totalRedirects=0`, redirects to `/mirror/200` which returns 200 OK
 
-It must always return a 200 status code.
+Example with `totalRedirects=2`:
+1. `/redirect?totalRedirects=2` → 302
+2. `/redirect?totalRedirects=1` → 302
+3. `/redirect?totalRedirects=0` → 302
+4. `/mirror/200` → 200 OK
+
+Total: 4 downstream requests (totalRedirects + 2).
+
+All query parameters are sent as headers to `internal_server` requests.
+
+Returns 200 status code.
 
 ### GET /spans
 

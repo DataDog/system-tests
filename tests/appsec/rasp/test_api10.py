@@ -356,17 +356,17 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
 @scenarios.appsec_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_redirect(API10):
-    """API 10 for redirect responses with downstream request tracking"""
+    """API 10 for multiple redirect responses"""
 
     TAGS_EXPECTED = [
         ("_dd.appsec.trace.req_headers", "TAG_API10_REQ_HEADERS"),
     ]
 
     TAGS_EXPECTED_METRIC = [
-        ("_dd.appsec.downstream_request", "2"),
+        ("_dd.appsec.downstream_request", "5"),
     ]
 
-    PARAMS = {"Witness": "pwq3ojtropiw3hjtowir"}
+    PARAMS = {"Witness": "pwq3ojtropiw3hjtowir", "totalRedirects": "3"}
 
     def setup_api10_redirect(self):
         self.r = weblog.get("/external_request/redirect", params=self.PARAMS)
