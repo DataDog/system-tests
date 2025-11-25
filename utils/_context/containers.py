@@ -541,8 +541,6 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    command_host_port = 11111  # TODO replace by ProxyPorts.proxy_commands
-
     def __init__(
         self,
         *,
@@ -578,7 +576,7 @@ class ProxyContainer(TestedContainer):
             volumes={
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
+            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
             command="python -m proxy.core",
             healthcheck={
                 "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
