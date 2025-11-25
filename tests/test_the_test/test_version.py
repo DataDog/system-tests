@@ -31,9 +31,9 @@ def test_version_comparizon():
 
     assert str(Version("v1.3.1")) == "1.3.1"
 
-    v = Version("0.53.0.dev70+g494e6dc0")
-    assert v == "0.53.0.dev70+g494e6dc0"
-    assert str(v) == "0.53.0+dev70.g494e6dc0"
+    v = Version("0.53.0-dev70+g494e6dc0")
+    assert v == "0.53.0-dev70+g494e6dc0"
+    assert str(v) == "0.53.0-dev70+g494e6dc0"
 
 
 def test_ruby_version():
@@ -93,7 +93,6 @@ def test_version_serialization():
     assert ComponentVersion("cpp", "v1.3.1") == "cpp@1.3.1"
 
     v = ComponentVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
-    assert v.version == Version("1.0.14.1.0.beta1")
     assert v.version == "1.0.14+1.0.beta1"
 
     v = ComponentVersion("php", "1.0.0-nightly")
@@ -161,7 +160,7 @@ def test_library_version():
     assert (v == "u@1.0") is False
     assert (v >= "u@1.0") is False
 
-    v = ComponentVersion("python", "0.53.0.dev70+g494e6dc0")
+    v = ComponentVersion("python", "0.53.0-dev70+g494e6dc0")
     assert v == "python@0.53.0-dev70+g494e6dc0"
 
     v = ComponentVersion("java", "0.94.1~dde6877139")

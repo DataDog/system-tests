@@ -14,7 +14,7 @@ class Version(version_module.Version):
         version: str | None = None,
         major: str | int | None = None,
         minor: str | int | None = None,
-        patch: str | None = None,
+        patch: str | int | None = None,
         prerelease: str | tuple[str, ...] | None = None,
         build: str | None = None,
         *,
@@ -25,16 +25,29 @@ class Version(version_module.Version):
             version = version.removeprefix("v")
             # removes everything after the space to allow for v1.2.3 (reason)
             version = version[: version.find(" ") % (len(version) + 1)]
+            for _ in range(2):
+                if re.fullmatch(r"\d+\.\d+\.\d+.*", version):
+                    break
+                version += ".0"
 
-            # use partial = True to allow partial version numbers and coerce to adapt to tested library version
-            x = version_module.Version.coerce(version) if coerce else version_module.Version(version, partial=True)
-            major = x.major or 0
-            minor = x.minor or 0
-            patch = str(x.patch)
+        if version is not None and coerce:
+            # and use coerce to allow the wide variaty of version strings
+            x = version_module.Version.coerce(version)
+            major = x.major
+            minor = x.minor
+            patch = x.patch
             prerelease = x.prerelease
-            build = str(x.build)
+            build = x.build
+            version = None
 
-        super().__init__(major=major, minor=minor, patch=patch, prerelease=prerelease, build=build)
+        super().__init__(
+            version_string=version,
+            major=major,
+            minor=minor,
+            patch=patch,
+            prerelease=prerelease,
+            build=build,
+        )
 
     def __eq__(self, other: object) -> bool:
         return super().__eq__(_build(other))
