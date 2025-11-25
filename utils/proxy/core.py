@@ -1,5 +1,5 @@
 # keep this import in first
-import scrubber  # noqa: F401
+from . import scrubber  # noqa: F401
 
 import asyncio
 from collections import defaultdict
@@ -14,8 +14,9 @@ from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
 from mitmproxy.http import HTTPFlow, Request
 
-from _deserializer import deserialize
-from ports import ProxyPorts
+from ._deserializer import deserialize
+from .ports import ProxyPorts, MOCKED_RESPONSE_PATH
+from .mocked_response import MockedResponse
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -43,7 +44,7 @@ class _RequestLogger:
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
 
-        self.host_log_folder = "logs"
+        self.host_log_folder = "/app/logs"
 
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
@@ -56,11 +57,11 @@ class _RequestLogger:
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
         self.span_events = span_events != "False"
 
-        self.rc_api_command = None
-
         # mimic the old API
         self.rc_api_sequential_commands = None
         self.rc_api_runtime_ids_request_count: dict = {}
+
+        self.mocked_response: MockedResponse | None = None
 
         logger.info(f"rc_api_enabled: {self.rc_api_enabled}")
         logger.info(f"mocked_backend: {self.mocked_backend}")
@@ -75,15 +76,16 @@ class _RequestLogger:
         # sockname is the local address (host, port) we received this connection on.
         port = flow.client_conn.sockname[1]
 
-        logger.info(f"{flow.request.method} {flow.request.pretty_url}, using proxy port {port}")
+        logger.info(f"{flow.request.method} {flow.request.pretty_url} using proxy port {port}")
 
         if port == ProxyPorts.proxy_commands:
-            if not self.rc_api_enabled:
-                flow.response = self.get_error_response(b"RC API is not enabled")
-            elif flow.request.path == "/unique_command":
-                logger.info("Store RC command to mock")
-                self.rc_api_command = flow.request.content
+            if flow.request.path == MOCKED_RESPONSE_PATH and flow.request.method == "PUT":
+                source = json.loads(flow.request.content)
+                self.mocked_response = MockedResponse.build_from_json(source) if source else None
+                logger.info(f"Store mocked response :{self.mocked_response}")
                 flow.response = http.Response.make(200, b"Ok")
+            elif not self.rc_api_enabled:
+                flow.response = self.get_error_response(b"RC API is not enabled")
             elif flow.request.path == "/sequential_commands":
                 logger.info("Reset mocked RC sequential commands")
                 self.rc_api_sequential_commands = json.loads(flow.request.content)
@@ -239,7 +241,7 @@ class _RequestLogger:
         except:
             logger.exception("Unexpected error")
 
-    def _modify_response(self, flow: Flow):
+    def _modify_response(self, flow: HTTPFlow):
         if self.request_is_from_tracer(flow.request):
             if self.rc_api_enabled:
                 self._add_rc_capabilities_in_info_request(flow)
@@ -250,12 +252,7 @@ class _RequestLogger:
                     flow.response.content = b"{}"
                     flow.response.headers["Content-Type"] = "application/json"
 
-                    if self.rc_api_command is not None:
-                        request_content = json.loads(flow.request.content)
-                        logger.info("    => modifying rc response")
-                        flow.response.content = self.rc_api_command
-
-                    elif self.rc_api_sequential_commands is not None:
+                    if self.rc_api_sequential_commands is not None:
                         request_content = json.loads(flow.request.content)
                         runtime_id = request_content["client"]["client_tracer"]["runtime_id"]
                         nth_api_command = self.rc_api_runtime_ids_request_count[runtime_id]
@@ -274,6 +271,11 @@ class _RequestLogger:
                 self._remove_meta_structs_support(flow)
 
             self._modify_span_events_flag(flow)
+
+            if self.mocked_response is not None:
+                if self.mocked_response.path == flow.request.path:
+                    logger.info(f"    => applying {self.mocked_response}")
+                    self.mocked_response.execute(flow)
 
     def _remove_meta_structs_support(self, flow: Flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
@@ -324,7 +326,7 @@ def start_proxy() -> None:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     listen_host = "::" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "0.0.0.0"  # noqa: S104
-    opts = options.Options(mode=modes, listen_host=listen_host, confdir="utils/proxy/.mitmproxy")
+    opts = options.Options(mode=modes, listen_host=listen_host, confdir="/app/utils/proxy/.mitmproxy")
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())
     proxy.addons.add(errorcheck.ErrorCheck())

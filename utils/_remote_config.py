@@ -19,6 +19,7 @@ from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils._logger import logger
 from utils._context.containers import ProxyContainer
+from utils.proxy.mocked_response import StaticJsonMockedResponse
 
 
 def _post(path: str, payload: list[dict] | dict) -> None:
@@ -126,7 +127,8 @@ def send_state(
         current_states.state = ApplyState.ACKNOWLEDGED
         return True
 
-    _post("/unique_command", raw_payload)
+    StaticJsonMockedResponse(path="/v0.7/config", mocked_json=raw_payload).send()
+
     library.wait_for(remote_config_applied, timeout=30)
     # ensure the library has enough time to apply the config to all subprocesses
     time.sleep(2)

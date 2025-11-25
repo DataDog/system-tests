@@ -27,8 +27,8 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
-from traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
+from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
 
 
 logger = logging.getLogger(__name__)

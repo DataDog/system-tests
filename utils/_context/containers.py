@@ -574,12 +574,12 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
-            working_dir="/app",
+            working_dir="/app/utils",
             volumes={
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
-            command="python utils/proxy/core.py",
+            command="python -m proxy.core",
             healthcheck={
                 "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
                 "retries": 30,
