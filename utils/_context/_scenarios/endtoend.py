@@ -520,6 +520,14 @@ class EndToEndScenario(DockerScenario):
 
         interfaces.library_dotnet_managed.load_data()
 
+    def stop_agent_container(self):
+        """Stop the agent container to simulate agent unavailability."""
+        self.agent_container.graceful_stop()
+
+    def start_agent_container(self):
+        """Restart the agent container to restore agent availability."""
+        self.agent_container.graceful_start()
+
     def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
