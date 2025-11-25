@@ -125,6 +125,17 @@ class Test_Smoke:
             'SELECT * FROM generate_series(1, 1000000) g ORDER BY g;"'
         )
 
+        # hit the buffer + max writtern
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c "'
+            'CREATE TABLE IF NOT EXISTS bg_test AS '
+            'SELECT i, md5(random()::text) FROM generate_series(1, 2000000) g(i); '
+            'UPDATE bg_test SET i = i + 1; '
+            'UPDATE bg_test SET i = i + 1; '
+            'SELECT pg_sleep(2);"'
+        )
+
+
         logger.info(r.output)
 
     def test_main(self) -> None:
