@@ -50,12 +50,13 @@ class Test_BackendValidity:
         metrics_to_validate = list(postgresql_metrics.keys())
         query_tags = {"rid": "otel-postgres-metrics", "host": "collector"}
 
+        # sleep 15 seconds first like time.sleep(15)
         _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
             metric_names=metrics_to_validate,
             query_tags=query_tags,
             lookback_seconds=300,
             retries=3,
-            initial_delay_s=15.0,
+            initial_delay_s=0.5,
         )
 
         if failed_metrics:
