@@ -40,7 +40,7 @@ class TestDockerSSIFeatures:
     @features.ssi_guardrails
     @bug(condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
-    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0-rc1" and context.installed_language_runtime < "3.9.0")
@@ -74,7 +74,7 @@ class TestDockerSSIFeatures:
         condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="APMON-1490",
     )
-    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0-rc1" and context.installed_language_runtime < "3.9.0")
@@ -102,7 +102,7 @@ class TestDockerSSIFeatures:
         assert inject_success, "No telemetry data found for library_entrypoint.complete"
 
     @features.ssi_guardrails
-    @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
     @irrelevant(context.library == "python")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
@@ -143,7 +143,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_service_tracking
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0-dev" and context.installed_language_runtime < "3.9.0")
@@ -167,7 +167,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_injection_metadata
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
-    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0-rc1" and context.installed_language_runtime < "3.9.0")
