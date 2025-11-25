@@ -1,9 +1,8 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from utils import scenarios, interfaces, logger, features, context
-from utils.otel_metrics_validation import OtelMetricsValidator, get_collector_metrics_from_scenario
-
-from typing import TYPE_CHECKING
+from utils.otel_validators.validator_metrics import OtelMetricsValidator, get_collector_metrics_from_scenario
 
 if TYPE_CHECKING:
     from utils._context._scenarios.otel_collector import OtelCollectorScenario
@@ -16,7 +15,8 @@ _EXCLUDED_POSTGRES_METRICS = {
     "postgresql.wal.age",
     "postgresql.replication.data_delay",
     "postgresql.wal.lag",
-    "postgresql.backends",  # TODO: remove; for testing consistency
+    # Background writer metrics (require more sustained activity)
+    "postgresql.backends",
     "postgresql.bgwriter.buffers.allocated",
     "postgresql.bgwriter.buffers.writes",
     "postgresql.bgwriter.checkpoint.count",
@@ -110,9 +110,7 @@ class Test_Smoke:
         r = container.exec_run(
             'psql -U system_tests_user -d system_tests_dbname -c "INSERT INTO test_table DEFAULT VALUES;"'
         )
-        logger.info(r.output)
 
-        # Run a basic query
         r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
         logger.info(r.output)
 
