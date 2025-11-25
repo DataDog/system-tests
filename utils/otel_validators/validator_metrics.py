@@ -166,6 +166,7 @@ class OtelMetricsValidator:
         lookback_seconds: int = 300,
         retries: int = 3,
         initial_delay_s: float = 15.0,
+        semantic_mode: str = "combined",
     ) -> tuple[list[str], list[str]]:
         """Query the Datadog backend to validate metrics were received.
         Returns (validated_metrics, failed_metrics)
@@ -192,7 +193,7 @@ class OtelMetricsValidator:
                     query=query_str,
                     start=start_time_ms,
                     end=end_time_ms,
-                    semantic_mode="combined",
+                    semantic_mode=semantic_mode,
                     retries=retries,
                     initial_delay_s=initial_delay_s,
                 )
@@ -217,7 +218,7 @@ class OtelMetricsValidator:
                     failed_metrics.append(f"{metric_name}: No series data returned")
 
             except Exception as e:
-                failed_metrics.append(f"❌  {metric_name}: Failed to query - {e!s}")
+                failed_metrics.append(f"❌  {metric_name}: Failed to query semantic mode {semantic_mode} - {e!s}")
 
         return validated_metrics, failed_metrics
 

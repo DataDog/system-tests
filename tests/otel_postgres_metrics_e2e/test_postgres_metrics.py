@@ -73,10 +73,24 @@ class Test_BackendValidity:
             lookback_seconds=300,
             retries=3,
             initial_delay_s=0.5,
+            semantic_mode="combined",
         )
 
         if failed_metrics:
-            logger.error(f"\n❌ Failed validations: {failed_metrics}")
+            logger.error(f"\n❌ Failed validations for semantic mode combined: {failed_metrics}")
+        
+        # test with native mode
+        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
+            metric_names=metrics_to_validate,
+            query_tags=query_tags,
+            lookback_seconds=300,
+            retries=3,
+            initial_delay_s=0.5,
+            semantic_mode="native",
+        )
+
+        if failed_metrics:
+            logger.error(f"\n❌ Failed validations for semantic mode native: {failed_metrics}")
 
 
 @scenarios.otel_collector
