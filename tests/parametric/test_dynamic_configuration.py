@@ -17,7 +17,7 @@ from utils import (
 )
 from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
-from utils.parametric.spec.trace import (
+from utils.docker_fixtures.spec.trace import (
     Span,
     assert_trace_has_tags,
     find_trace,

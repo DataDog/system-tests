@@ -17,10 +17,10 @@ from retry import retry
 
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.parametric.spec import remoteconfig
-from utils.parametric.spec.trace import V06StatsPayload
-from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric.spec.trace import Trace
+from .spec import remoteconfig
+from .spec.trace import V06StatsPayload
+from .spec.trace import decode_v06_stats
+from .spec.trace import Trace
 
 from ._core import get_host_port, get_docker_client, docker_run
 
@@ -45,7 +45,11 @@ class AgentRequestV06Stats(AgentRequest):
 
 
 class TestAgentFactory:
-    """Handle everything to create the TestAgentApi"""
+    """Handle everything to create the TestAgentApi
+    This class is responsible to:
+    * build the image
+    * expose a ready to call function that runs the container and returns the client that will be used in tests
+    """
 
     def __init__(self, image: str):
         self.image = image
@@ -156,6 +160,8 @@ class TestAgentFactory:
 
 
 class TestAgentAPI:
+    """API to interact with the test agent server running in a docker container."""
+
     __test__ = False  # pytest must not collect it
 
     def __init__(

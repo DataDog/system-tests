@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import pytest
 import yaml
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary, StableConfigWriter
 
@@ -663,6 +663,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
+    @bug(context.library <= "ruby@2.22.0", reason="APMAPI-1774")
     def test_invalid_files(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, library_env: dict[str, str]
     ):

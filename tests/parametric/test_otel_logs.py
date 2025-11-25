@@ -1,13 +1,15 @@
-import pytest
 import base64
+from collections.abc import Generator
+from urllib.parse import urlparse
+
+import pytest
 
 from utils import scenarios, features, logger, irrelevant, context
-from utils.parametric._library_client import LogLevel
-from utils.parametric.spec.trace import find_only_span
-from urllib.parse import urlparse
+from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures.spec.trace import find_only_span
+
 from .conftest import APMLibrary
-from collections.abc import Generator
 
 
 def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:

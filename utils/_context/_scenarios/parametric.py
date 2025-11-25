@@ -15,8 +15,8 @@ from utils.docker_fixtures import (
     TestAgentAPI,
     compute_volumes,
     ParametricTestClientFactory,
+    ParametricTestClientApi,
 )
-from utils.parametric._library_client import APMLibrary
 
 from .core import scenario_groups
 from ._docker_fixtures import DockerFixturesScenario
@@ -159,26 +159,16 @@ class ParametricScenario(DockerFixturesScenario):
         test_agent: TestAgentAPI,
         library_env: dict,
         library_extra_command_arguments: list[str],
-    ) -> Generator[APMLibrary, None, None]:
-        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
-
-        with (
-            open(log_path, "w+", encoding="utf-8") as log_file,
-            self._test_client_factory.get_apm_library(
-                worker_id=worker_id,
-                test_id=test_id,
-                test_agent=test_agent,
-                library_env=library_env,
-                library_extra_command_arguments=library_extra_command_arguments,
-                test_server_log_file=log_file,
-            ) as result,
-        ):
+    ) -> Generator[ParametricTestClientApi, None, None]:
+        with self._test_client_factory.get_apm_library(
+            request=request,
+            worker_id=worker_id,
+            test_id=test_id,
+            test_agent=test_agent,
+            library_env=library_env,
+            library_extra_command_arguments=library_extra_command_arguments,
+        ) as result:
             yield result
-
-        request.node.add_report_section(
-            "teardown", f"{self.library.name.capitalize()} Library Output", f"Log file:\n./{log_path}"
-        )
 
 
 def _get_base_directory() -> str:
