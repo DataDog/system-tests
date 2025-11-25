@@ -1,9 +1,8 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from utils import scenarios, interfaces, logger, features, context
-from utils.otel_metrics_validation import OtelMetricsValidator, get_collector_metrics_from_scenario
-
-from typing import TYPE_CHECKING
+from utils.otel_validators.validator_metrics import OtelMetricsValidator, get_collector_metrics_from_scenario
 
 if TYPE_CHECKING:
     from utils._context._scenarios.otel_collector import OtelCollectorScenario
