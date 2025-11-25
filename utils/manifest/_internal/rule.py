@@ -54,7 +54,7 @@ def match_condition(
 
 
 def match_rule(rule: str, nodeid: str) -> bool:
-    rule_elements = rule.replace("::", "/").split("/")
+    rule_elements = rule.strip("/").replace("::", "/").split("/")
 
     nodeid_elements = nodeid.replace("::", "/").split("/")
 
