@@ -6,7 +6,7 @@ import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
 from utils import features, scenarios, context, missing_feature, bug
-from utils._context.component_version import Version
+from utils._context.component_version import ComponentVersion, Version
 from .conftest import APMLibrary
 
 
@@ -56,8 +56,6 @@ def get_context_tracer_version():
         else:
             patch = context.library.version.patch
         return Version(f"{major}.{minor}.{patch}")
-    elif context.library.name == "java":
-        return Version(str(context.library.version).replace("+", "-"))
     else:
         return context.library.version
 
@@ -72,7 +70,7 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
     assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
     assert tracer_metadata["service_env"] == library_env["DD_ENV"]
 
-    version = Version(tracer_metadata["tracer_version"])
+    version = ComponentVersion(lang, tracer_metadata["tracer_version"]).version
     assert version == get_context_tracer_version()
 
 
