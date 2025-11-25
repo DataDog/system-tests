@@ -12,25 +12,10 @@ if TYPE_CHECKING:
 # Load PostgreSQL metrics specification
 # Exclude metrics that require a replica database
 _EXCLUDED_POSTGRES_METRICS = {
-    "postgresql.wal.delay",
-    "postgresql.wal.age",
-    "postgresql.replication.data_delay",
-    "postgresql.wal.lag",
-    "postgresql.backends",  # TODO: remove; for testing consistency
-    "postgresql.bgwriter.buffers.allocated",
-    "postgresql.bgwriter.buffers.writes",
-    "postgresql.bgwriter.checkpoint.count",
-    "postgresql.bgwriter.duration",
-    "postgresql.bgwriter.maxwritten",
-    "postgresql.blks_hit",
-    "postgresql.blks_read",
-    "postgresql.temp.io",
-    "postgresql.tup_deleted",
-    "postgresql.tup_fetched",
-    "postgresql.tup_inserted",
-    "postgresql.tup_returned",
-    "postgresql.tup_updated",
-    "postgresql.function.calls",
+    "postgresql.wal.delay", # requires replica
+    "postgresql.wal.age", # requires replica
+    "postgresql.replication.data_delay", # requires replica
+    "postgresql.wal.lag", # requires replica
 }
 
 postgresql_metrics = OtelMetricsValidator.load_metrics_from_file(
@@ -132,6 +117,13 @@ class Test_Smoke:
             'psql -U system_tests_user -d system_tests_dbname -c '
             '"SET enable_seqscan = off; SET enable_bitmapscan = off; '
             'SELECT * FROM test_table WHERE id = 300;"'
+        )
+
+        # Forces temp files for postgresql.temp.io and postgresql.temp_files
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c '
+            '"SET work_mem = \'64kB\'; '
+            'SELECT * FROM generate_series(1, 1000000) g ORDER BY g;"'
         )
 
         logger.info(r.output)
