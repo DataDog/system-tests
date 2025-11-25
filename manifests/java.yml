@@ -2212,13 +2212,13 @@ tests/:
   test_baggage.py:
     Test_Baggage_Headers_Api_Datadog: irrelevant (no Datadog API for W3C Baggage)
     Test_Baggage_Headers_Api_OTel:
-      '*': missing_feature (OTel baggage not unified with Datadog baggage)
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      spring-boot: missing_feature (OTel baggage not unified with Datadog baggage)
+      spring-boot: v1.56.0
       spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Basic:
       '*': v1.53.0

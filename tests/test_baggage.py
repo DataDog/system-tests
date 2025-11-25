@@ -164,7 +164,8 @@ class Test_Baggage_Headers_Max_Bytes:
         assert header_size <= self.max_bytes
 
 
-@scenarios.tracing_config_empty
+# Note: This currently relies on DD_TRACE_OTEL_ENABLED=true
+@scenarios.tracing_config_nondefault_4
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Api_OTel:
     def setup_otel_api_update(self):
