@@ -1,3 +1,4 @@
+from pathlib import Path
 from .parser import load
 from utils._context.component_version import Version
 from .rule import get_rules, match_rule
@@ -17,7 +18,7 @@ class Manifest:
         agent_version: Version | None = None,
         dd_apm_inject_version: Version | None = None,
         k8s_cluster_agent_version: Version | None = None,
-        path: str = default_manifests_path,
+        path: Path = default_manifests_path,
     ):
         """Parses all the manifest files on creation and filters the results based on
         the information provided
@@ -28,7 +29,7 @@ class Manifest:
         )
 
     @staticmethod
-    def parse(path: str = default_manifests_path) -> ManifestData:
+    def parse(path: Path = default_manifests_path) -> ManifestData:
         """Returns a manifest containing the parsed data from all manifests files in path
 
         Args:
@@ -38,7 +39,7 @@ class Manifest:
         return load(path)
 
     @staticmethod
-    def validate(path: str = default_manifests_path) -> None:
+    def validate(path: Path = default_manifests_path) -> None:
         """Runs a series of checks on the manifest files including:
         - nodeids exist
         - manifests are sorted

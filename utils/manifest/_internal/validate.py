@@ -1,7 +1,6 @@
 import json
 from jsonschema import validate
 import yaml
-import os
 from pathlib import Path
 import ast
 from typing import TYPE_CHECKING
@@ -103,22 +102,24 @@ def pretty(name: str, errors: dict[str, list]) -> str:
     return ret
 
 
-def validate_manifest_files(path: str = "manifests/") -> None:
+def validate_manifest_files(path: Path = Path("manifests/")) -> None:
     with open("utils/manifest/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
     validations: list[tuple[str, Callable]] = [
-        ("Syntax validation errors", lambda d: [] if validate(d, schema) is None else []),
+        ("Syntax validation errors", lambda d: validate(d, schema) or []),
         ("Key order errors", assert_key_order),
         ("Node ID errors", assert_nodeids_exist),
         # ("Version order errors", assert_increasing_versions),
     ]
 
-    all_errors: dict[str, dict[str, list[BaseException]]] = {}
+    all_errors: dict[str, dict[Path, list[BaseException]]] = {}
 
-    for file in os.listdir(path):
-        if file.endswith(".yml"):
-            with open(f"{path}/{file}", encoding="utf-8") as f:
+    for file in path.iterdir():
+        if file.is_dir():
+            continue
+        if file.suffix == "yml":
+            with open(file, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
             for name, validation in validations:
@@ -132,7 +133,7 @@ def validate_manifest_files(path: str = "manifests/") -> None:
                     all_errors[name][file] = errors
 
             try:
-                _load_file(f"{path}/{file}", file.strip(".yml"))
+                _load_file(file, file.stem)
             except BaseException as e:
                 name = "Loading errors"
                 all_errors[name] = {}

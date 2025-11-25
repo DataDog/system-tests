@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import sys
 from collections import OrderedDict, defaultdict
@@ -17,7 +18,7 @@ from utils._logger import logger
 from utils.manifest import Manifest
 
 if TYPE_CHECKING:
-    from utils.manifest.types import ManifestData
+    from utils.manifest import ManifestData
     from collections.abc import Iterable
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
@@ -295,8 +296,8 @@ class Inputs:
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
-        new_manifests: str = "manifests/",
-        old_manifests: str = "original/manifests/",
+        new_manifests: Path = Path("manifests/"),
+        old_manifests: Path = Path("original/manifests/"),
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()

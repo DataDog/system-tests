@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from textwrap import dedent
 from typing import Any
 
@@ -39,15 +40,15 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
     condition: Condition = {"component": component, "declaration": entry["declaration"]}
 
     if entry.get("component_version"):
-        assert isinstance(
-            entry["component_version"], SemverRange
-        ), f"Wrong type for declaration: {type(entry['component_version'])}"
+        assert isinstance(entry["component_version"], SemverRange), (
+            f"Wrong type for declaration: {type(entry['component_version'])}"
+        )
         condition["component_version"] = entry["component_version"]
 
     if entry.get("excluded_component_version"):
-        assert isinstance(
-            entry["excluded_component_version"], SemverRange
-        ), f"Wrong type for declaration: {type(entry['excluded_component_version'])}"
+        assert isinstance(entry["excluded_component_version"], SemverRange), (
+            f"Wrong type for declaration: {type(entry['excluded_component_version'])}"
+        )
         condition["excluded_component_version"] = entry["excluded_component_version"]
 
     if entry.get("weblog"):
@@ -58,9 +59,9 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
             condition["weblog"] = [entry["weblog"]]
 
     if entry.get("excluded_weblog"):
-        assert isinstance(
-            entry["excluded_weblog"], str | list
-        ), f"Wrong type for declaration: {type(entry['excluded_weblog'])}"
+        assert isinstance(entry["excluded_weblog"], str | list), (
+            f"Wrong type for declaration: {type(entry['excluded_weblog'])}"
+        )
         if isinstance(entry["excluded_weblog"], list):
             condition["excluded_weblog"] = entry["excluded_weblog"]
         else:
@@ -160,7 +161,7 @@ class FieldProcessor:
     ]
 
 
-def _load_file(file: str, component: str) -> ManifestData:
+def _load_file(file: Path, component: str) -> ManifestData:
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
@@ -219,7 +220,7 @@ def _load_file(file: str, component: str) -> ManifestData:
     return ret
 
 
-def load(base_dir: str = "manifests/") -> ManifestData:
+def load(base_dir: Path = Path("manifests/")) -> ManifestData:
     """Transforms the following raw manifest data:
     --------------------------------------------------------------
     -------------------------------------------------------      |
@@ -284,7 +285,7 @@ def load(base_dir: str = "manifests/") -> ManifestData:
         "k8s_cluster_agent",
         "python_lambda",
     ):
-        data = _load_file(f"{base_dir}{component}.yml", component)
+        data = _load_file(base_dir.joinpath(f"{component}.yml"), component)
 
         for nodeid, value in data.items():
             if nodeid not in result:

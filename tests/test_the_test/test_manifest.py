@@ -1,3 +1,4 @@
+from pathlib import Path
 from utils import scenarios
 from utils._context.component_version import Version
 from utils._decorators import CustomSpec
@@ -11,7 +12,7 @@ class TestManifest:
         Manifest.validate()
 
     def test_parser(self):
-        manifest = Manifest.parse("tests/test_the_test/manifests/manifests_parser_test/")
+        manifest = Manifest.parse(Path("tests/test_the_test/manifests/manifests_parser_test/"))
         assert manifest == {
             "tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span": [
                 {
@@ -99,7 +100,7 @@ class TestManifest:
 
     def test_all_missing_feature(self):
         manifest = Manifest(
-            "python", Version("3.12.0"), "django-poc", path="tests/test_the_test/manifests/manifests_parser_test/"
+            "python", Version("3.12.0"), "django-poc", path=Path("tests/test_the_test/manifests/manifests_parser_test/")
         )
         assert manifest.get_declarations("tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_function") == [
             SkipDeclaration(TestDeclaration.MISSING_FEATURE, "missing /e2e_otel_span endpoint on weblog")
@@ -107,7 +108,7 @@ class TestManifest:
 
     def test_variant_conditions(self):
         manifest = Manifest(
-            "python", Version("3.12.0"), "django-poc", path="tests/test_the_test/manifests/manifests_parser_test/"
+            "python", Version("3.12.0"), "django-poc", path=Path("tests/test_the_test/manifests/manifests_parser_test/")
         )
         assert (
             manifest.get_declarations(
@@ -130,7 +131,10 @@ class TestManifest:
 
     def test_variant_star(self):
         manifest = Manifest(
-            "python", Version("3.12.0"), "some-variant", path="tests/test_the_test/manifests/manifests_parser_test/"
+            "python",
+            Version("3.12.0"),
+            "some-variant",
+            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
         )
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery"
@@ -138,8 +142,12 @@ class TestManifest:
 
     def test_variant_lower_version(self):
         manifest = Manifest(
-            "python", Version("2.4.0"), "some-variant", path="tests/test_the_test/manifests/manifests_parser_test/"
+            "python",
+            Version("2.4.0"),
+            "some-variant",
+            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
         )
+
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners"
         ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)]
