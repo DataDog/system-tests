@@ -17,6 +17,10 @@ RUN javac -cp "jetty-classpath/*" JettyServletMain.java CrashServlet.java
 
 RUN mkdir -p /var/log/java
 
-CMD [ "java", "-XX:ErrorFile=/var/log/crashes/hs_err_pid%p.log", "-XX:+CreateCoredumpOnCrash", "-cp", "jetty-classpath/*:.", "JettyServletMain" ]
+RUN echo '#!/bin/bash' > app.sh && \
+    echo 'java -cp "jetty-classpath/*:." JettyServletMain' >> app.sh && \
+    chmod +x app.sh
+
+CMD [ "./app.sh" ]
 
 
