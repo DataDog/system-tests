@@ -5,7 +5,6 @@ set -eu
 cd /usr/app
 
 REPO_URL=https://github.com/DataDog/dd-trace-rs
-PROD_TAG=v0.0.2
 
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
@@ -15,6 +14,8 @@ if [ -e /binaries/rust-load-from-git ]; then
 fi
 
 if [ -e /binaries/dd-trace-rs ]; then
+    echo "Install from /binaries/dd-trace-rs"
+
     cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry
 
     # TODO: remove once new dd-trace-rs version is merged
@@ -25,11 +26,8 @@ if [ -e /binaries/dd-trace-rs ]; then
         cargo add --path /binaries/dd-trace-rs/dd-trace
     fi
 
-    echo "install from /binaries/dd-trace-rs"
 else
-    # TODO: add lastest release from crates.io
-    cargo add --git "$REPO_URL" --tag "$PROD_TAG" datadog-opentelemetry
-
-    echo "install from --git $REPO_URL --tag $PROD_TAG"
+    echo "Install from crates.io"
+    cargo add datadog-opentelemetry
 fi
 
