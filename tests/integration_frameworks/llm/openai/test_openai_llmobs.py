@@ -5,7 +5,7 @@ import pytest
 from unittest import mock
 
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
-from utils.llm_observability_utils import assert_llmobs_span_event
+from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
 
 
 from .utils import TOOLS

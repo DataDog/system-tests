@@ -33,11 +33,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         }
 
     def configure(self, config: pytest.Config):
-        # TODO(sabrenner): once everything else is cleaned up, add an
-        # --update-cassettes option or something to require an API key
-        # this will run the scenario but not care about the test assertions for the
-        # related tests (openai for now, but others in the future, not just LLM ones)
-
         library: str = config.option.library
         weblog: str = config.option.weblog
         generate_cassettes: bool = config.option.generate_cassettes
