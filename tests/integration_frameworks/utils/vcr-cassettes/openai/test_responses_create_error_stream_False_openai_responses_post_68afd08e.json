@@ -1,0 +1,55 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "193",
+      "x-datadog-trace-id": "553871688320285315",
+      "x-datadog-parent-id": "15041341311418517069",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=405087408294992384,_dd.p.llmobs_trace_id=139679746956314341571920369741365539454,_dd.p.tid=6915573a00000000",
+      "traceparent": "00-6915573a0000000007afbf5db179fa83-d0bd943af482464d-01",
+      "tracestate": "dd=p:d0bd943af482464d;s:1;t.dm:-0;t.llmobs_parent_id:405087408294992384;t.llmobs_trace_id:139679746956314341571920369741365539454;t.tid:6915573a00000000"
+    },
+    "body": "{\"input\":\"Where is the nearest Dunkin' Donuts?\",\"instructions\":\"Talk with a Boston accent.\",\"max_output_tokens\":50,\"model\":\"gpt-amazing-model-doesnt-exist-1.0\",\"stream\":false,\"temperature\":0.1}"
+  },
+  "response": {
+    "status": {
+      "code": 400,
+      "message": "Bad Request"
+    },
+    "headers": {
+      "Date": "Thu, 13 Nov 2025 03:57:46 GMT",
+      "Content-Type": "application/json",
+      "Content-Length": "200",
+      "Connection": "keep-alive",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_6f327a118a9b40478acdacd05cd1f556",
+      "openai-processing-ms": "32",
+      "x-envoy-upstream-service-time": "34",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=JFa_FXZn8.UUkv6ZpEKndL3eCn9IPHxr6S0vdO8OpaM-1763006266-1.0.1.1-HC0dO9nsdVYq9iDzr2uulPs.rNI9Mt1PDP2DsdBhQj6ogRBW6XBs..guh5MmL6axsmhc6pIVYQm5TdeHn_L1VG7aXXDfXFmLHm5P3ZV8b9Y; path=/; expires=Thu, 13-Nov-25 04:27:46 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=i6yoRhAKzicI4AKJXEGl_FOiXDrNN0kXD6GgvpHUe.A-1763006266512-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "99db58cd2c015cb9-EWR",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"error\": {\n    \"message\": \"The requested model 'gpt-amazing-model-doesnt-exist-1.0' does not exist.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"model\",\n    \"code\": \"model_not_found\"\n  }\n}"
+  }
+}

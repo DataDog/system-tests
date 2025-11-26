@@ -76,6 +76,7 @@ refs:
   - &ref_5_76_0 '>=5.76.0'
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
+  - &ref_5_80_0 '>=5.80.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1158,8 +1159,16 @@ tests/:
         '*': *ref_5_39_0
         nextjs: irrelevant
   integration_frameworks/:
-    test_openai.py:
-      TestOpenAiAPM: *ref_5_76_0
+    llm/:
+      openai/:
+        test_openai_apm.py:
+          TestOpenAiApmChatCompletions: *ref_5_76_0
+          TestOpenAiApmCompletions: *ref_5_76_0
+          TestOpenAiApmEmbeddings: *ref_5_76_0
+          TestOpenAiApmResponses: *ref_5_76_0
+        test_openai_llmobs.py:
+          TestOpenAiEmbeddingInteractions: *ref_5_80_0
+          TestOpenAiLlmInteractions: *ref_5_80_0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
