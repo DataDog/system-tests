@@ -160,20 +160,14 @@ class ParametricScenario(DockerFixturesScenario):
         library_env: dict,
         library_extra_command_arguments: list[str],
     ) -> Generator[ParametricTestClientApi, None, None]:
-        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
-
-        with (
-            open(log_path, "w+", encoding="utf-8") as log_file,
-            self._test_client_factory.get_apm_library(
-                worker_id=worker_id,
-                test_id=test_id,
-                test_agent=test_agent,
-                library_env=library_env,
-                library_extra_command_arguments=library_extra_command_arguments,
-                test_server_log_file=log_file,
-            ) as result,
-        ):
+        with self._test_client_factory.get_apm_library(
+            request=request,
+            worker_id=worker_id,
+            test_id=test_id,
+            test_agent=test_agent,
+            library_env=library_env,
+            library_extra_command_arguments=library_extra_command_arguments,
+        ) as result:
             yield result
 
         request.node.add_report_section(

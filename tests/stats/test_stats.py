@@ -309,10 +309,6 @@ class Test_Transport_Headers:
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
-    @bug(
-        context.library == "java",
-        reason="LANGPLAT-755",
-    )
     def test_container_id_header(self):
         """Test that stats transport includes container id headers"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -325,8 +321,9 @@ class Test_Transport_Headers:
         logger.debug(f"Stats request headers: {headers}")
 
         # we must have at least one of the CID resolution headers
-        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
-        cid_headers = [h for h in headers if h in cid_headers_list]
+        cid_headers_list = ["datadog-entity-id", "datadog-external-env", "datadog-container-id"]
+        cid_headers = [h for h in headers if h.lower() in cid_headers_list]
+
         assert len(cid_headers) > 0, f"ContainerID resolution headers not found: {headers}"
         for h in cid_headers:
             assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
