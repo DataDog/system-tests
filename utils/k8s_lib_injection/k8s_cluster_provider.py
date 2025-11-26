@@ -121,7 +121,7 @@ class K8sClusterProvider:
         if PrivateRegistryConfig.is_configured():
             execute_command(
                 'kubectl patch serviceaccount spark -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\' '
-                '--namespace=default'
+                "--namespace=default"
             )
 
     def _create_secret_to_access_to_internal_registry(self):
@@ -160,7 +160,7 @@ class K8sClusterProvider:
                 # Patch the default service account to use the secret
                 execute_command(
                     'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\' '
-                    '--namespace=default'
+                    "--namespace=default"
                 )
                 logger.info("Successfully patched default service account")
             finally:

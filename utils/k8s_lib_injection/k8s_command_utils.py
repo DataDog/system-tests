@@ -99,6 +99,8 @@ def helm_install_chart(
     if custom_value_file:
         command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace=default"
         if upgrade:
-            command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace=default"
+            command = (
+                f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace=default"
+            )
     execute_command("kubectl config current-context")
     execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs
