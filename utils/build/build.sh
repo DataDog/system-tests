@@ -128,10 +128,18 @@ build() {
     # Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
     ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 
+    echo ARCH $ARCH
+
     case $ARCH in
     arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;
     *)             DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
     esac
+
+    case $ARCH in
+    arm64|aarch64) PLATFORM_TAG="--platform linux/arm64/v8";;
+    *)             PLATFORM_TAG="--platform linux/amd64";;
+    esac
+
 
     # Build images
     for IMAGE_NAME in $(echo $BUILD_IMAGES | sed "s/,/ /g")
@@ -239,7 +247,7 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run --platform linux/amd64 -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    docker run $PLATFORM_TAG -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
