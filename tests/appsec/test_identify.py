@@ -15,7 +15,7 @@ class Test_Basic:
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
 
-        def validate_identify_tags(span):
+        def validate_identify_tags(span: dict):
             for tag in ["id", "name", "email", "session_id", "role", "scope"]:
                 key = f"usr.{tag}"
                 assert key in span["meta"], f"Can't find {key} in span's meta"

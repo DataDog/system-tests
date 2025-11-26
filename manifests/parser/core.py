@@ -1,7 +1,7 @@
 from collections import defaultdict
 from functools import lru_cache
 import json
-import os
+from pathlib import Path
 
 from jsonschema import validate
 import yaml
@@ -99,10 +99,10 @@ def validate_manifest_files() -> None:
     with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
-    for file in os.listdir("manifests/"):
-        if file.endswith(".yml"):
+    for file in Path("manifests/").iterdir():
+        if file.name.endswith(".yml"):
             try:
-                with open(f"manifests/{file}", encoding="utf-8") as f:
+                with file.open(encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
                 # this field is only used for YAML templating

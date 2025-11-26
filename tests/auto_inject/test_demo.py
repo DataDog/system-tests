@@ -18,9 +18,9 @@ class TestDemoAws:
         weblog_url = f"http://{vm_ip}:{vm_port}/"
 
         # test assertion: the port is listenning and the request is successful
-        assert wait_for_port(
-            vm_port, vm_ip, weblog_request_timeout
-        ), "Weblog port not reachable. Is the weblog running?"
+        assert wait_for_port(vm_port, vm_ip, weblog_request_timeout), (
+            "Weblog port not reachable. Is the weblog running?"
+        )
         assert make_get_request(weblog_url) is not None, "Wrong response from weblog"
 
     def test_run_simple_command(self):

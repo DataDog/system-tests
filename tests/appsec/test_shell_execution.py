@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, interfaces, weblog, features, irrelevant, rfc
+from utils._weblog import HttpResponse
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
@@ -12,7 +13,7 @@ class Test_ShellExecution:
     """Test shell execution tracing"""
 
     @staticmethod
-    def fetch_command_execution_span(r) -> dict:
+    def fetch_command_execution_span(r: HttpResponse) -> dict:
         assert r.status_code == 200
 
         traces = [t for _, t in interfaces.library.get_traces(request=r)]

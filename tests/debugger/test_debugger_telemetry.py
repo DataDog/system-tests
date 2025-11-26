@@ -33,7 +33,7 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
         self.telemetry = Test_Debugger_Telemetry.telemetry_data
 
     ########### assert ############
-    def _assert(self, required_telemetry):
+    def _assert(self, required_telemetry: list[str]):
         """Assert that telemetry was received, that the required telemetry (after normalization) is present, and that
         the origin of the telemetry is one of the allowed origins.
         """

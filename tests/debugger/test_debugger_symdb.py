@@ -58,7 +58,7 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     def _assert_debugger_controller_exists(self):
         pattern = r"[Dd]ebugger[_]?[Cc]ontroller"
 
-        def check_scope(scope):
+        def check_scope(scope: dict):
             name = scope.get("name", "")
             if re.search(pattern, name):
                 scope_type = scope.get("scope_type", "")

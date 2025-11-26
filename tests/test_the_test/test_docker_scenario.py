@@ -67,6 +67,7 @@ def test_recursive():
             self._required_containers = [container_a, container_b, container_c]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)
 
@@ -98,5 +99,6 @@ def test_recursive_2():
             self._required_containers = [container_a]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)

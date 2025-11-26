@@ -2,10 +2,10 @@
 /* eslint-disable no-unused-vars, camelcase */
 
 const Pii = require('./pii')
+const dataGenerator = require('./data_generator')
 
 module.exports = {
   initRoutes (fastify) {
-    // Padding
     // Padding
     // Padding
     // Padding
@@ -124,6 +124,16 @@ module.exports = {
       const { intValue, strValue, boolValue } = request.query
       const pii = boolValue ? new Pii() : null
       return 'Expression probe' // This needs to be line 126
+    })
+
+    fastify.get('/debugger/snapshot/limits', async (request, reply) => {
+      const { deepObject, manyFields, largeCollection, longString } = dataGenerator({
+        depth: parseInt(request.query.depth, 10) || 0,
+        fields: parseInt(request.query.fields, 10) || 0,
+        collectionSize: parseInt(request.query.collectionSize, 10) || 0,
+        stringLength: parseInt(request.query.stringLength, 10) || 0
+      })
+      return 'Capture limits probe' // This needs to be line 136
     })
   }
 }

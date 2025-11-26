@@ -111,6 +111,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             ssh_client = virtual_machine.get_ssh_connection()
             for command in self.builtin_args_commands_injected[language]:
                 local_log_file = self._execute_remote_command(ssh_client, command)
-                assert (
-                    command_injection_skipped(command, local_log_file) is False
-                ), f"The command {command} was not instrumented, but it should be instrumented!"
+                assert command_injection_skipped(command, local_log_file) is False, (
+                    f"The command {command} was not instrumented, but it should be instrumented!"
+                )

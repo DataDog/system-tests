@@ -50,6 +50,7 @@ if __name__ == "__main__":
             "golang",
             "java",
             "nodejs",
+            "otel_collector",
             "php",
             "java_otel",
             "python_otel",

@@ -16,9 +16,9 @@ def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_sourc
     idx = 1
     for histogram_suffix in ["", ".sum", ".count"]:
         diff = list(dictdiffer.diff(metrics_1[idx], metrics_2[idx]))
-        assert (
-            len(diff) == 0
-        ), f"Diff between histogram{histogram_suffix} metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+        assert len(diff) == 0, (
+            f"Diff between histogram{histogram_suffix} metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+        )
         validate_example_histogram(metrics_1[idx], histogram_suffix)
         idx += 1
 

@@ -96,6 +96,11 @@ on:
         default: false
         required: false
         type: boolean
+      test_optimization_datadog_site:
+        description: "DataDog site to use for test optimization"
+        default: "datadoghq.com"
+        required: false
+        type: string
 
 jobs:
   main:
@@ -467,6 +472,11 @@ jobs:
     - name: Run OTEL_COLLECTOR scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
+    - name: Run OTEL_COLLECTOR_E2E scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
+      run: ./run.sh OTEL_COLLECTOR_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
@@ -513,3 +523,4 @@ jobs:
       uses: ./.github/actions/push_to_test_optim
       with:
         datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
+        datadog_site: ${{ inputs.test_optimization_datadog_site }}

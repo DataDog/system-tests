@@ -20,8 +20,7 @@ class Version(version_module.Version):
     ):
         if version is not None:
             # remove any leading "v"
-            if version.startswith("v"):
-                version = version[1:]
+            version = version.removeprefix("v")
 
             # and use coerce to allow the wide variaty of version strings
             x = version_module.Version.coerce(version)
@@ -47,6 +46,9 @@ class Version(version_module.Version):
 
     def __ge__(self, other: Union[str, "Version"]):
         return super().__ge__(_build(other))
+
+    def __hash__(self):
+        return super().__hash__()
 
 
 class ComponentVersion:
@@ -209,6 +211,9 @@ class ComponentVersion:
             "library": self.name,
             "version": str(self.version),
         }
+
+    def __hash__(self):
+        return hash((self.name, self.version))
 
 
 def _build(version: object) -> Version:

@@ -20,6 +20,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayPaper",
           "message": "Paper exception",
           "stacktrace": [
             {
@@ -28,13 +29,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayPaper"
+          ]
         }
       }
     },
@@ -57,7 +57,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
@@ -86,6 +86,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock",
           "message": "Rock exception",
           "stacktrace": [
             {
@@ -94,13 +95,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayRock"
+          ]
         }
       }
     },
@@ -123,7 +123,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"
@@ -152,6 +152,7 @@
         "locals": {},
         "staticFields": {},
         "throwable": {
+          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayScissors",
           "message": "Scissors exception",
           "stacktrace": [
             {
@@ -160,13 +161,12 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 51
+              "lineNumber": 57
             },
             {
               "<runtime>": "<scrubbed>"
             }
-          ],
-          "type": "com.datadoghq.system_tests.springboot.ExceptionReplayScissors"
+          ]
         }
       }
     },
@@ -189,7 +189,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 51
+        "lineNumber": 57
       },
       {
         "<runtime>": "<scrubbed>"

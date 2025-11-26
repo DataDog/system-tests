@@ -9,7 +9,7 @@ from urllib.parse import urlparse, parse_qs
 from utils import scenarios, weblog, rfc, features, interfaces
 
 
-def is_valid_uuid4(uuid_string):
+def is_valid_uuid4(uuid_string: str):
     """Validate UUID format: 8-4-4-4-12 hex digits"""
     if not uuid_string or not isinstance(uuid_string, str):
         return False
@@ -18,7 +18,7 @@ def is_valid_uuid4(uuid_string):
     return bool(uuid_pattern.match(uuid_string))
 
 
-def extract_security_response_id_from_json(response_body):
+def extract_security_response_id_from_json(response_body: str):
     """Extract security_response_id from JSON blocking response
 
     RFC-1070: Libraries emit security_response_id in blocking responses
@@ -32,7 +32,7 @@ def extract_security_response_id_from_json(response_body):
     return None
 
 
-def extract_security_response_id_from_html(response_body):
+def extract_security_response_id_from_html(response_body: str):
     """Extract security_response_id from HTML blocking response
 
     RFC-1070: Libraries emit security_response_id in blocking responses
@@ -52,7 +52,7 @@ def extract_security_response_id_from_html(response_body):
     return None
 
 
-def extract_security_response_id_from_redirect_url(location_url):
+def extract_security_response_id_from_redirect_url(location_url: str):
     """Extract security_response_id from custom redirect URL query parameters
 
     RFC-1070: Libraries emit security_response_id in blocking responses
@@ -91,9 +91,9 @@ class Test_SecurityResponseId_JSON_Response:
         assert security_response_id is not None, f"security_response_id not found in JSON response: {self.r_json.text}"
 
         # Validate UUID format
-        assert is_valid_uuid4(
-            security_response_id
-        ), f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        assert is_valid_uuid4(security_response_id), (
+            f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        )
 
     def setup_security_response_id_uniqueness(self):
         """Make multiple blocking requests to test uniqueness"""
@@ -116,15 +116,15 @@ class Test_SecurityResponseId_JSON_Response:
         assert security_response_id_3 is not None, "security_response_id not found in third response"
 
         # All security_response_ids should be unique
-        assert (
-            security_response_id_1 != security_response_id_2
-        ), f"security_response_ids are not unique: {security_response_id_1} == {security_response_id_2}"
-        assert (
-            security_response_id_1 != security_response_id_3
-        ), f"security_response_ids are not unique: {security_response_id_1} == {security_response_id_3}"
-        assert (
-            security_response_id_2 != security_response_id_3
-        ), f"security_response_ids are not unique: {security_response_id_2} == {security_response_id_3}"
+        assert security_response_id_1 != security_response_id_2, (
+            f"security_response_ids are not unique: {security_response_id_1} == {security_response_id_2}"
+        )
+        assert security_response_id_1 != security_response_id_3, (
+            f"security_response_ids are not unique: {security_response_id_1} == {security_response_id_3}"
+        )
+        assert security_response_id_2 != security_response_id_3, (
+            f"security_response_ids are not unique: {security_response_id_2} == {security_response_id_3}"
+        )
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
@@ -146,9 +146,9 @@ class Test_SecurityResponseId_HTML_Response:
         assert security_response_id is not None, f"security_response_id not found in HTML response: {self.r_html.text}"
 
         # Validate UUID format
-        assert is_valid_uuid4(
-            security_response_id
-        ), f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        assert is_valid_uuid4(security_response_id), (
+            f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        )
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
@@ -179,9 +179,9 @@ class Test_SecurityResponseId_Custom_Redirect:
         assert security_response_id is not None, f"security_response_id not found in redirect URL: {location}"
 
         # Validate UUID format
-        assert is_valid_uuid4(
-            security_response_id
-        ), f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        assert is_valid_uuid4(security_response_id), (
+            f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        )
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
@@ -221,6 +221,6 @@ class Test_SecurityResponseId_In_Span_Triggers:
         assert security_response_id is not None, f"security_response_id not found in trigger: {trigger}"
 
         # Validate UUID format
-        assert is_valid_uuid4(
-            security_response_id
-        ), f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        assert is_valid_uuid4(security_response_id), (
+            f"security_response_id is not a valid UUIDv4: {security_response_id}"
+        )

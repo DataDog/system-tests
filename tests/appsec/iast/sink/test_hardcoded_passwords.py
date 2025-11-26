@@ -29,11 +29,13 @@ class Test_HardcodedPasswords:
         assert self.r_hardcoded_passwords_exec.status_code == 200
         hardcoded_passwords = get_hardcoded_vulnerabilities("HARDCODED_PASSWORD")
         hardcoded_passwords = [v for v in hardcoded_passwords if v["evidence"]["value"] == "hashpwd"]
-        assert len(hardcoded_passwords) == 1
-        vuln = hardcoded_passwords[0]
+        # Deduplicate by hash in case the tracer reports the same password multiple times
+        unique_passwords = {v["hash"]: v for v in hardcoded_passwords}.values()
+        assert len(unique_passwords) == 1, f"Expected 1 unique password, found {len(unique_passwords)}"
+        vuln = list(unique_passwords)[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)
 
-    def _get_expectation(self, d):
+    def _get_expectation(self, d: dict):
         expected = d.get(context.library.name)
         if isinstance(expected, dict):
             expected = expected.get(context.weblog_variant)

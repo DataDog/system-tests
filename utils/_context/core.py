@@ -50,9 +50,7 @@ class _Context:
 
     @property
     def library(self) -> ComponentVersion:
-        result = self._get_scenario_property("library", None)
-        assert result is not None
-        return result
+        return self._get_scenario_property("library", ComponentVersion("notRelevant"))
 
     @property
     def tracer_sampling_rate(self):

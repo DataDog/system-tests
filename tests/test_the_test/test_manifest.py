@@ -1,5 +1,4 @@
 from functools import lru_cache
-import os
 from pathlib import Path
 import re
 import semantic_version as semver
@@ -12,21 +11,19 @@ from utils import scenarios
 def get_variants_map():
     result = {}
 
-    for folder in os.listdir("utils/build/docker"):
-        folder_path = os.path.join("utils/build/docker/", folder)
-        if not Path(folder_path).is_dir():
+    for folder in Path("utils/build/docker").iterdir():
+        if not folder.is_dir():
             continue
 
-        result[folder] = ["*"]
-        for file in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, file)
-            if Path(file_path).is_dir():
+        result[folder.name] = ["*"]
+        for file in folder.iterdir():
+            if file.is_dir():
                 continue
-            if not file.endswith(".Dockerfile"):
+            if not file.name.endswith(".Dockerfile"):
                 continue
 
-            variant = file[: -len(".Dockerfile")]
-            result[folder].append(variant)
+            variant = file.name.removesuffix(".Dockerfile")
+            result[folder.name].append(variant)
 
     return result
 
@@ -79,9 +76,9 @@ def test_content():
                 raise ValueError(f"In {component} manifest, file {path} is declared, but does not exists") from e
 
             if klass is not None:
-                assert (
-                    f"class {klass}" in content
-                ), f"In {component} manifest, class {klass} is declared in {path}, but does not exists"
+                assert f"class {klass}" in content, (
+                    f"In {component} manifest, class {klass} is declared in {path}, but does not exists"
+                )
 
         elif path.endswith("/"):
             assert Path(path).is_dir(), f"In {component} manifest, folder {path} is declared, but does not exists"

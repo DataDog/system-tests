@@ -11,7 +11,7 @@ from utils import bug, context, interfaces, rfc, weblog, missing_feature, featur
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
     whitelist = re.compile(whitelist_pattern) if whitelist_pattern is not None else None
 
-    def crawler(data: dict | list | tuple | str | float | bool | None) -> None:
+    def crawler(data: dict | list | tuple | str | float | bool | None) -> None:  # noqa: FBT001
         if isinstance(data, str):
             if whitelist is not None and not whitelist.match(data):
                 assert needle not in data

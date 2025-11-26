@@ -8,11 +8,10 @@ from typing import Any
 from utils import (
     features,
     scenarios,
-    missing_feature,
-    context,
 )
 from utils.dd_constants import RemoteConfigApplyState
-from tests.parametric.conftest import _TestAgentAPI, APMLibrary
+from utils.docker_fixtures import TestAgentAPI
+from tests.parametric.conftest import APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
@@ -53,7 +52,7 @@ DEFAULT_ENVVARS = {
 
 
 def _set_and_wait_ffe_rc(
-    test_agent: _TestAgentAPI, ufc_data: dict[str, Any], config_id: str | None = None
+    test_agent: TestAgentAPI, ufc_data: dict[str, Any], config_id: str | None = None
 ) -> dict[str, Any]:
     """Set FFE Remote Config and wait for it to be acknowledged.
 
@@ -79,11 +78,6 @@ def _set_and_wait_ffe_rc(
     return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
-@missing_feature(
-    context.library == "nodejs",
-    reason="Temporarily disabled while adjusting FFE implementation and system tests",
-    force_skip=True,
-)
 @scenarios.parametric
 @features.feature_flag_exposure
 class Test_Feature_Flag_Exposure:
@@ -96,7 +90,7 @@ class Test_Feature_Flag_Exposure:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_ffe_remote_config(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 
@@ -107,7 +101,7 @@ class Test_Feature_Flag_Exposure:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
     def test_ffe_flag_evaluation(
-        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """Test FFE flag evaluation logic with various targeting scenarios.
 

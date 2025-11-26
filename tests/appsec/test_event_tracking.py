@@ -26,7 +26,7 @@ HEADERS = {
 }
 
 
-def validate_metric_type_and_version(event_type, version, metric):
+def validate_metric_type_and_version(event_type: str, version: str, metric: dict):
     return (
         metric.get("type") == "count"
         and f"event_type:{event_type}" in metric.get("tags", ())
@@ -48,7 +48,7 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
-        def validate_user_login_success_tags(span):
+        def validate_user_login_success_tags(span: dict):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "usr.id": "system_tests_user",
@@ -121,7 +121,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_user_login_failure_tags(span):
+        def validate_user_login_failure_tags(span: dict):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.users.login.failure.usr.id": "system_tests_user",
@@ -150,7 +150,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
-        def validate_user_login_failure_header_collection(span):
+        def validate_user_login_failure_header_collection(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -193,7 +193,7 @@ class Test_CustomEvent:
     def test_custom_event_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_custom_event_tags(span):
+        def validate_custom_event_tags(span: dict):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.system_tests_event.track": "true",

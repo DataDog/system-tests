@@ -15,7 +15,7 @@ from ddsketch.store import CollapsingLowestDenseStore
 from ddsketch.pb.ddsketch_pb2 import DDSketch as DDSketchPb
 from ddsketch.pb.ddsketch_pb2 import Store as StorePb
 from ddsketch.pb.proto import KeyMappingProto
-from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
+from utils.docker_fixtures.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 
 
 # Key used in the meta map to indicate the span origin
@@ -263,9 +263,9 @@ def retrieve_span_events(span: Span) -> list | None:
                 if isinstance(value, dict):
                     # Flatten attributes dict into a single key-value pair
                     # This is for native span events
-                    assert (
-                        len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE
-                    ), f"native span event has unexpected number of values: {event}"
+                    assert len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE, (
+                        f"native span event has unexpected number of values: {event}"
+                    )
                     value.pop("type")
                     event["attributes"][key] = next(iter(value.values()))
                 else:

@@ -1,3 +1,4 @@
+import base64
 from enum import IntEnum
 
 import msgpack
@@ -248,8 +249,6 @@ def _deserialize_trace_id(chunk: dict):
 def _deserialize_base64_trace_id(chunk: dict):
     trace_id = chunk.get("traceID")
     if isinstance(trace_id, str):
-        import base64
-
         try:
             # Decode the base64-encoded trace_id string to bytes
             trace_id_bytes = base64.b64decode(trace_id)

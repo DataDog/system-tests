@@ -54,7 +54,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
         self._validate_diagnostics()
 
     def _validate_diagnostics(self):
-        def _check_probe_status(expected_id, expected_status: debugger.ProbeStatus):
+        def _check_probe_status(expected_id: str, expected_status: debugger.ProbeStatus):
             if expected_id not in self.probe_diagnostics:
                 return f"Probe {expected_id} was not received."
 

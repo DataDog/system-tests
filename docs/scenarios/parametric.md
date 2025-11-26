@@ -7,7 +7,7 @@ This enables us to write unit/integration-style test cases that can be shared.
 Example:
 
 ```python
-from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_first_span_in_trace_payload, find_root_span
+from utils.docker_fixtures.spec.trace import find_span, find_trace, find_span_in_traces, find_first_span_in_trace_payload, find_root_span
 
 @pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_datadog_spans(library_env, test_library, test_agent):

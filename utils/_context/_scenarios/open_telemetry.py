@@ -97,6 +97,10 @@ class OpenTelemetryScenario(DockerScenario):
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
+        if not self.replay:
+            self.warmups.insert(0, self._start_interface_watchdog)
+            self.warmups.append(self._wait_for_app_readiness)
+
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
             def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
@@ -120,15 +124,6 @@ class OpenTelemetryScenario(DockerScenario):
             observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
         observer.start()
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(0, self._start_interface_watchdog)
-            warmups.append(self._wait_for_app_readiness)
-
-        return warmups
 
     def _wait_for_app_readiness(self):
         if self.use_proxy:
@@ -158,13 +153,13 @@ class OpenTelemetryScenario(DockerScenario):
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         if self.include_intake:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")
-            ), "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
+                "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            )
         if self.include_collector:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")
-            ), "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            assert all(key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")), (
+                "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            )
 
     @property
     def library(self):

@@ -57,7 +57,7 @@ class ResponseParsingError(Exception):
 def _raise_invalid_format_error() -> None:
     """Helper function to raise invalid format error."""
     raise InvalidYAMLFormatError(
-        "Invalid YAML format - expected a list of prompt-output pairs " "or a 'responses' key containing the list"
+        "Invalid YAML format - expected a list of prompt-output pairs or a 'responses' key containing the list"
     )
 
 

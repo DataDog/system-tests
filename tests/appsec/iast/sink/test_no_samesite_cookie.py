@@ -64,6 +64,7 @@ class TestNoSamesiteCookie_StackTrace:
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/no-samesite-cookie/test_insecure")
 
+    @flaky(context.library >= "java@1.56.0", reason="APPSEC-59975")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

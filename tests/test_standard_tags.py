@@ -403,16 +403,16 @@ class Test_StandardTagsReferrerHostname:
         for i, (request, expected_hostname) in enumerate(self.test_cases, 1):
             meta = self._get_root_span_meta(request)
             if expected_hostname is None:
-                assert (
-                    "http.referrer_hostname" not in meta
-                ), f'Test case #{i}: Expected no referrer hostname, but got "{meta.get('http.referrer_hostname')}"'
+                assert "http.referrer_hostname" not in meta, (
+                    f'Test case #{i}: Expected no referrer hostname, but got "{meta.get("http.referrer_hostname")}"'
+                )
             else:
-                assert (
-                    "http.referrer_hostname" in meta
-                ), f'Test case #{i}: Missing referrer hostname, but expected "{expected_hostname}"'
-                assert (
-                    meta["http.referrer_hostname"] == expected_hostname
-                ), f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
+                assert "http.referrer_hostname" in meta, (
+                    f'Test case #{i}: Missing referrer hostname, but expected "{expected_hostname}"'
+                )
+                assert meta["http.referrer_hostname"] == expected_hostname, (
+                    f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
+                )
 
     def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
