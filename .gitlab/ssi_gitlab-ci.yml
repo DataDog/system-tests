@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/31a2ee823af8650d3e8fb14f82279441922f004a03d1141d16d9e2ac644083b8/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
