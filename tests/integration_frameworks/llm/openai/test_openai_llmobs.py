@@ -655,9 +655,3 @@ class TestOpenAiEmbeddingInteractions:
             error=True,
             has_output=False,
         )
-
-
-@features.llm_observability_prompts
-@scenarios.integration_frameworks
-class TestOpenAiPromptsInteractions:
-    pass  # TODO: add these tests from shared tests

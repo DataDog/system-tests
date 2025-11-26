@@ -923,7 +923,6 @@ tests/:
         test_openai_llmobs.py:
           TestOpenAiEmbeddingInteractions: v3.13.0
           TestOpenAiLlmInteractions: v3.13.0
-          TestOpenAiPromptsInteractions: missing_feature  # TODO update this once it releases
   integrations/:
     crossed_integrations/:
       test_kafka.py:
