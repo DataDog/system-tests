@@ -169,7 +169,3 @@ class ParametricScenario(DockerFixturesScenario):
             library_extra_command_arguments=library_extra_command_arguments,
         ) as result:
             yield result
-
-        request.node.add_report_section(
-            "teardown", f"{self.library.name.capitalize()} Library Output", f"Log file:\n./{log_path}"
-        )
