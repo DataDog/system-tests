@@ -101,6 +101,15 @@ class _VirtualMachineScenario(Scenario):
         self.virtual_machine.add_agent_env(self.agent_env)
         self.virtual_machine.add_app_env(self.app_env)
 
+        if self.is_main_worker:
+            self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+            self.warmups.append(self.vm_provider.stack_up)
+
+            self.warmups.append(self.fill_context)
+
+            if self.is_main_worker:
+                self.warmups.append(self.print_installed_components)
+
     def _check_test_environment(self):
         """Check if the test environment is correctly set"""
 
@@ -117,19 +126,6 @@ class _VirtualMachineScenario(Scenario):
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-        if self.is_main_worker:
-            warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
-            warmups.append(self.vm_provider.stack_up)
-
-            warmups.append(self.fill_context)
-
-            if self.is_main_worker:
-                warmups.append(self.print_installed_components)
-
-        return warmups
 
     def fill_context(self):
         for key in self.virtual_machine.tested_components:

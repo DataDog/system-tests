@@ -44,12 +44,6 @@ if ! mypy --config pyproject.toml; then
   exit 1
 fi
 
-echo "Running ruff checks..."
-if ! which ruff > /dev/null; then
-  echo "ruff is not installed, installing it (ETA 5s)"
-  ./build.sh -i runner > /dev/null
-fi
-
 echo "Running ruff formatter..."
 if [ "$COMMAND" == "fix" ]; then
   ruff format
@@ -133,11 +127,6 @@ else
 fi
 
 echo "Running yamllint checks..."
-if ! which ./venv/bin/yamllint > /dev/null; then
-  echo "yamllint is not installed, installing it (ETA 60s)"
-  ./build.sh -i runner > /dev/null
-fi
-
 if ! ./venv/bin/yamllint -s manifests/; then
   echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
@@ -147,6 +136,30 @@ echo "Running parser checks..."
 if ! python ./manifests/parser/core.py; then
   echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
   exit 1
+fi
+
+echo "Running shellcheck checks..."
+if ! ./utils/scripts/shellcheck.sh; then
+  echo "shellcheck checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running language-specific linters..."
+# This will not run if npm is not installed as written and there is no "install" step today
+# TODO: Install node as part of this script
+if which npm > /dev/null; then
+  echo "Running Node.js linters"
+
+  # currently only fastify requires linting
+  # this can be added later
+  nodejs_dirs=("express" "fastify")
+
+  for dir in "${nodejs_dirs[@]}"; do
+    if ! NODE_NO_WARNINGS=1 npm  --prefix ./utils/build/docker/nodejs/"$dir" install --silent && npm --prefix ./utils/build/docker/nodejs/"$dir" run --silent lint; then
+      echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
+      exit 1
+    fi
+  done
 fi
 
 

@@ -1,4 +1,5 @@
 from collections.abc import Generator
+import uuid
 
 import pytest
 
@@ -11,8 +12,6 @@ from utils import context, scenarios, logger
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    import uuid
-
     result = str(uuid.uuid4())[0:6]
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result

@@ -12,6 +12,25 @@ all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"libra
 all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
 
 
+@pytest.fixture(autouse=True)
+def set_default_env():
+    default_env = {
+        "CI_PIPELINE_SOURCE": "",
+        "CI_COMMIT_REF_NAME": "",
+        "GITHUB_EVENT_NAME": "pull_request",
+        "GITHUB_REF": "",
+        "GITHUB_PR_TITLE": "",
+    }
+    monkeypatch = pytest.MonkeyPatch()
+    try:
+        monkeypatch.delenv("GITLAB_CI", raising=False)
+        for name, value in default_env.items():
+            monkeypatch.setenv(name, value)
+        yield
+    finally:
+        monkeypatch.undo()
+
+
 def set_env(key: str, value: str):
     """Decorator to set an environment variable before test runs using monkeypatch."""
 
@@ -38,8 +57,7 @@ def build_inputs(
     if modified_files is None:
         modified_files = []
     with open("modified_files.txt", "w") as f:
-        for file in modified_files:
-            f.write(f"{file}\n")
+        f.writelines(f"{line}\n" for line in modified_files)
     inputs = Inputs(
         scenario_map_file="tests/test_the_test/scenarios.json",
         new_manifests=new_manifests,

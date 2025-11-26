@@ -375,8 +375,11 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
     def destroy_cluster(self):
         logger.info("Destroying kind cluster")
-        execute_command(f"kind delete cluster --name {self.get_cluster_info().cluster_name}")
-        execute_command(f"docker rm -f {self.get_cluster_info().cluster_name}-control-plane")
+        try:
+            execute_command(f"kind delete cluster --name {self.get_cluster_info().cluster_name}")
+            execute_command(f"docker rm -f {self.get_cluster_info().cluster_name}-control-plane")
+        except Exception as e:
+            logger.error(f"Error destroying the cluster: {e}")
 
     def _setup_kind_in_gitlab(self):
         # The build runs in a docker container:

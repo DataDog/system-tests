@@ -72,19 +72,24 @@ tests/:
           vertx4: v1.51.0
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Negative:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Processor_Override:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         Test_API_Security_Custom_Data_Classification_Scanner:
-          '*': missing_feature
+          '*': v1.55.0
+          akka-http: bug (APPSEC-56888)
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
@@ -241,6 +246,7 @@ tests/:
           TestHeaderInjection_StackTrace:
             '*': missing_feature
             spring-boot: v1.47.0
+            spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
             spring-boot-jetty: v1.47.0
             spring-boot-openliberty: v1.47.0
             spring-boot-payara: v1.47.0
@@ -777,6 +783,7 @@ tests/:
           '*': missing_feature
           vertx3: v1.54.0
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body:
           '*': missing_feature
           vertx3: v1.54.0
@@ -1862,7 +1869,9 @@ tests/:
         uds-spring-boot: v1.38.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
-        '*': irrelevant  # Temporarily disabled - updating approval snapshots
+        '*': missing_feature
+        spring-boot: v1.56.0-SNAPSHOT
+        uds-spring-boot: v1.56.0-SNAPSHOT
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -2081,13 +2090,13 @@ tests/:
     test_inferred_proxy.py:  # Moved this block here
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        spring-boot: missing_feature (feature not completed yet)
+        spring-boot: v1.56.0-SNAPSHOT
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        spring-boot: missing_feature (feature not completed yet)
+        spring-boot: v1.56.0-SNAPSHOT
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        spring-boot: missing_feature (feature not completed yet)
+        spring-boot: v1.56.0-SNAPSHOT
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
@@ -2158,7 +2167,7 @@ tests/:
       Test_Stable_Configuration_Origin: v1.47.0-SNAPSHOT
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
-      Test_TelemetrySSIConfigs: missing_feature
+      Test_TelemetrySSIConfigs: v1.51.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.1
@@ -2323,6 +2332,8 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events: missing_feature
+    Test_FFE_Exposure_Events_Empty: missing_feature
+    Test_FFE_Exposure_Events_Errors: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

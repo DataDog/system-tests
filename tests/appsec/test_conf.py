@@ -2,9 +2,19 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
+import pytest
+
 from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
+
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -73,9 +83,9 @@ class Test_ConfigurationVariables:
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+            assert not nested_lookup(self.SECRET, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
         interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_key, allow_no_data=True)
@@ -91,9 +101,9 @@ class Test_ConfigurationVariables:
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+            assert not nested_lookup(self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
         interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)
@@ -118,9 +128,9 @@ class Test_ConfigurationVariables_New_Obfuscation:
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+            assert not nested_lookup(self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         # previously, the value was obfuscated as "<Redacted>", now only the secret part is obfuscated
         interfaces.library.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
