@@ -73,7 +73,23 @@ class V1AnyValueKeys(IntEnum):
 
 # Keys that are strings so may arrive as indexes into the strings list
 _chunk_key_strings = ["origin"]
-_span_key_strings = ["service", "name_value", "resource", "type_value", "env", "version", "component", "serviceRef", "typeRef", "nameRef", "resourceRef", "envRef", "versionRef", "componentRef"]
+_span_key_strings = [
+    "service",
+    "name_value",
+    "resource",
+    "type_value",
+    "env",
+    "version",
+    "component",
+    "serviceRef",
+    "typeRef",
+    "nameRef",
+    "resourceRef",
+    "envRef",
+    "versionRef",
+    "componentRef",
+]
+
 
 def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
     uncompressed_payload = {}

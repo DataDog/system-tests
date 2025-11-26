@@ -135,7 +135,11 @@ class OpenTelemetryScenario(DockerScenario):
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
         if self.replay:
-            logger.terminal.write("\nReplay mode is not fully functional for this scenario, you may encounter errors\n", bold=True, red=True)
+            logger.terminal.write(
+                "\nReplay mode is not fully functional for this scenario, you may encounter errors\n",
+                bold=True,
+                red=True,
+            )
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
 
@@ -147,10 +151,9 @@ class OpenTelemetryScenario(DockerScenario):
                 interfaces.agent.check_deserialization_errors()
 
             interfaces.backend.load_data_from_logs()
-        else:
-            if self.use_proxy:
-                self._wait_interface(interfaces.open_telemetry, 5)
-                self._wait_interface(interfaces.backend, self.backend_interface_timeout)
+        elif self.use_proxy:
+            self._wait_interface(interfaces.open_telemetry, 5)
+            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
 

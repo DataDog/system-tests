@@ -109,7 +109,6 @@ class BaseDbIntegrationsTestClass:
 
     @staticmethod
     def get_span_from_agent(weblog_request: HttpResponse) -> dict:
-        logger.debug(f"begin search")
         for data, chunk in interfaces.agent.get_chunks_v1(weblog_request):
             logger.debug(f"Chunk found: trace id={chunk['traceID']}; ({data['log_filename']})")
 

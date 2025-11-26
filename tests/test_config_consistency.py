@@ -67,7 +67,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         assert spans[0]["attributes"]["http.status_code"] == "500"
-        assert spans[0]["error"] == True
+        assert spans[0]["error"]
 
 
 @scenarios.tracing_config_nondefault
@@ -90,7 +90,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
         assert spans[0]["typeRef"] == "web"
         assert spans[0]["attributes"]["http.status_code"] == "200"
-        assert spans[0]["error"] == True
+        assert spans[0]["error"]
 
     def setup_status_code_202(self):
         self.r = weblog.get("/status?code=202")
@@ -107,7 +107,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
         assert spans[0]["typeRef"] == "web"
         assert spans[0]["attributes"]["http.status_code"] == "202"
-        assert spans[0]["error"] == True
+        assert spans[0]["error"]
 
 
 # Tests for verifying default query string obfuscation behavior can be found in the Test_StandardTagsUrl test class

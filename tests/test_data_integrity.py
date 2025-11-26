@@ -253,7 +253,7 @@ class Test_Agent:
             trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
             trace_ids_reported_by_agent.add(trace_id)
 
-        def get_span_with_sampling_data(chunk: list):
+        def get_span_with_sampling_data(trace: list):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.
