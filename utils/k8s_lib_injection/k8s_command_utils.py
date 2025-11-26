@@ -47,8 +47,9 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
                 logger.info(f"Command: {command}")
             if process.returncode != 0:
                 output_error = process.stderr.read()
-                logger.debug(f"Command: {command} \n {output_error}")
-                raise Exception(f"Error executing command: {command} \n {output}")
+                output_error_str = str(output_error, "utf-8")
+                logger.debug(f"Command: {command} \n {output_error_str}")
+                raise Exception(f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
