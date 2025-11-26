@@ -433,16 +433,16 @@ patterns:
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
 
-    manifests/rust.yml:
-        scenario_groups: null  # already handled by the manifest comparison
-        libraries: rust
-    utils/build/docker/rust/*:
-        scenario_groups: [ end_to_end, open_telemetry]
-        libraries: rust
-    lib-injection/build/docker/rust/*:
-        libraries: rust
-    utils/build/build_rust_base_images.sh:
-        libraries: rust
+    # manifests/rust.yml:
+    #     scenario_groups: null  # already handled by the manifest comparison
+    #     libraries: rust
+    # utils/build/docker/rust/*:
+    #     scenario_groups: [ end_to_end, open_telemetry]
+    #     libraries: rust
+    # lib-injection/build/docker/rust/*:
+    #     libraries: rust
+    # utils/build/build_rust_base_images.sh:
+    #     libraries: rust
 
     manifests/python_otel.yml:
         scenario_groups: null  # already handled by the manifest comparison
