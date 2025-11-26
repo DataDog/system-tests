@@ -783,6 +783,7 @@ tests/:
           '*': missing_feature
           vertx3: v1.54.0
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body:
           '*': missing_feature
           vertx3: v1.54.0
