@@ -24,7 +24,7 @@ def process_inline(raw_declaration: str, component: str) -> Condition:
     else:
         assert isinstance(declaration.value, SemverRange)
         condition: Condition = {
-            "declaration": SkipDeclaration("missing_feature"),
+            "declaration": SkipDeclaration("missing_feature", f"declared version for {component} is {raw_declaration}"),
             "excluded_component_version": declaration.value,
             "component": component,
         }
@@ -32,40 +32,37 @@ def process_inline(raw_declaration: str, component: str) -> Condition:
 
 
 def cast_to_condition(entry: dict, component: str) -> Condition:
-    """Transforms a regular dict to a Condition doing type checking. More involved
-    transformations should be made in a FieldProcessor function.
+    """Transforms a regular dict to a Condition doing type checking. Any
+    transformation should be made in a FieldProcessor function.
     """
-    if not isinstance(entry["declaration"], SkipDeclaration):
-        raise TypeError(f"Wrong type for declaration: {type(entry['declaration'])}")
+
+    def type_check(key: str, value: Any, expected_type: type):  # noqa: ANN401
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Wrong type for {key}, expected {expected_type} got {type(value)}")
+
+    def type_check_list(key: str, value: list, inner_type: type):
+        type_check(key, value, list)
+        for e in entry[key]:
+            type_check(key, e, inner_type)
+
+    type_check("declaration", entry["declaration"], SkipDeclaration)
     condition: Condition = {"component": component, "declaration": entry["declaration"]}
 
-    if entry.get("component_version"):
-        assert isinstance(entry["component_version"], SemverRange), (
-            f"Wrong type for declaration: {type(entry['component_version'])}"
-        )
+    if "component_version" in entry:
+        type_check("component_version", entry["component_version"], SemverRange)
         condition["component_version"] = entry["component_version"]
 
-    if entry.get("excluded_component_version"):
-        assert isinstance(entry["excluded_component_version"], SemverRange), (
-            f"Wrong type for declaration: {type(entry['excluded_component_version'])}"
-        )
+    if "excluded_component_version" in entry:
+        type_check("excluded_component_version", entry["excluded_component_version"], SemverRange)
         condition["excluded_component_version"] = entry["excluded_component_version"]
 
-    if entry.get("weblog"):
-        assert isinstance(entry["weblog"], str | list), f"Wrong type for declaration: {type(entry['weblog'])}"
-        if isinstance(entry["weblog"], list):
-            condition["weblog"] = entry["weblog"]
-        else:
-            condition["weblog"] = [entry["weblog"]]
+    if "weblog" in entry:
+        type_check_list("weblog", entry["weblog"], str)
+        condition["weblog"] = entry["weblog"]
 
-    if entry.get("excluded_weblog"):
-        assert isinstance(entry["excluded_weblog"], str | list), (
-            f"Wrong type for declaration: {type(entry['excluded_weblog'])}"
-        )
-        if isinstance(entry["excluded_weblog"], list):
-            condition["excluded_weblog"] = entry["excluded_weblog"]
-        else:
-            condition["excluded_weblog"] = [entry["excluded_weblog"]]
+    if "excluded_weblog" in entry:
+        type_check_list("excluded_weblog", entry["excluded_weblog"], str)
+        condition["excluded_weblog"] = entry["excluded_weblog"]
 
     for key in entry:
         if key not in ["declaration", "component_version", "excluded_component_version", "weblog", "excluded_weblog"]:
@@ -131,6 +128,12 @@ class FieldProcessor:
 
     @staticmethod
     @processor
+    def ensure_list(n: str, e: dict[str, Any], _component: str) -> None:
+        if not isinstance(e[n], list):
+            e[n] = [e[n]]
+
+    @staticmethod
+    @processor
     def declaration(n: str, e: dict[str, Any], _component: str) -> None:
         declaration = Declaration(e[n])
         assert isinstance(declaration.value, _TestDeclaration)
@@ -158,6 +161,8 @@ class FieldProcessor:
         ("excluded_component_version", component_version),
         ("weblog_declaration", weblog_declaration),
         ("declaration", declaration),
+        ("weblog", ensure_list),
+        ("excluded_weblog", ensure_list),
     ]
 
 

@@ -27,13 +27,14 @@ class Declaration:
 
         Args:
             raw_declaration (str): raw declaration string from the manifest file
-            is_inline (bool): True is the declaration is inline (ex:nodeid: declaration).
+            is_inline (bool, optional): True is the declaration is inline (ex:nodeid: declaration).
                 In this case raw_declaration can be either a skip declaration or a version.
-            semver_factory (Callable[[str], Any]): function to use to create version ranges
+            semver_factory (Callable[[str], Any], optional): function to use to create version ranges
 
         """
         if not raw_declaration:
             raise ValueError("raw_declaration must not be None or an empty string")
+        assert isinstance(raw_declaration, str), f"Expected str got {type(raw_declaration)}. Check the manifest"
         self.raw = raw_declaration.strip()
         self.is_inline = is_inline
         self.semver_factory = semver_factory

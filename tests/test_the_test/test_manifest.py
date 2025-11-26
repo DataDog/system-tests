@@ -17,7 +17,7 @@ class TestManifest:
             "tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span": [
                 {
                     "excluded_component_version": CustomSpec(">=3.4.5"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for java is v3.4.5"),
                     "component": "java",
                 },
                 {
@@ -29,7 +29,7 @@ class TestManifest:
                 {"declaration": SkipDeclaration("missing_feature"), "component": "java"},
                 {
                     "excluded_component_version": CustomSpec(">=2.6.0"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.6.0"),
                     "component": "python",
                 },
             ],
@@ -37,7 +37,7 @@ class TestManifest:
                 {
                     "excluded_weblog": ["spring-boot"],
                     "excluded_component_version": CustomSpec(">=1.2.3"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for java is v1.2.3"),
                     "component": "java",
                 },
                 {"weblog": "spring-boot", "declaration": SkipDeclaration("missing_feature"), "component": "java"},
@@ -49,19 +49,19 @@ class TestManifest:
                 {
                     "weblog": "django-poc",
                     "excluded_component_version": CustomSpec(">=3.12.0-dev"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
                 {
                     "weblog": "django-py3.13",
                     "excluded_component_version": CustomSpec(">=3.12.0-dev"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
                 {
                     "weblog": "python3.12",
                     "excluded_component_version": CustomSpec(">=3.12.0-dev"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
             ],
@@ -69,7 +69,7 @@ class TestManifest:
                 {
                     "excluded_weblog": ["fastapi"],
                     "excluded_component_version": CustomSpec(">=2.4.0"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.4.0"),
                     "component": "python",
                 },
                 {"weblog": "fastapi", "declaration": SkipDeclaration("missing_feature"), "component": "python"},
@@ -78,13 +78,13 @@ class TestManifest:
                 {
                     "excluded_weblog": ["fastapi"],
                     "excluded_component_version": CustomSpec(">=2.1.0"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.1.0"),
                     "component": "python",
                 },
                 {
                     "weblog": "fastapi",
                     "excluded_component_version": CustomSpec(">=2.5.0"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.5.0"),
                     "component": "python",
                 },
             ],
@@ -92,7 +92,7 @@ class TestManifest:
             "tests/appsec/iast": [
                 {
                     "excluded_component_version": CustomSpec(">=2.1.0"),
-                    "declaration": SkipDeclaration("missing_feature"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.1.0"),
                     "component": "python",
                 }
             ],
@@ -150,8 +150,8 @@ class TestManifest:
 
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners"
-        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)]
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, "declared version for python is v2.6.0")]
         assert manifest.get_declarations("tests/appsec/api_security/test_schemas.py::Test_Scanners") == []
         assert manifest.get_declarations("tests/appsec/iast/sink/file.py::Class::function") == [
-            SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)
+            SkipDeclaration(TestDeclaration.MISSING_FEATURE)
         ]

@@ -39,17 +39,11 @@ def match_condition(
 
     weblog_entry = condition.get("weblog")
     if weblog_entry and weblog:
-        if isinstance(weblog_entry, list):
-            ret &= weblog in weblog_entry
-        else:
-            ret &= weblog == weblog_entry
+        ret &= weblog in weblog_entry
 
     excluded_weblog = condition.get("excluded_weblog")
     if excluded_weblog and weblog:
-        if isinstance(excluded_weblog, list):
-            ret &= weblog not in excluded_weblog
-        else:
-            ret &= weblog != excluded_weblog
+        ret &= weblog not in excluded_weblog
     return ret
 
 
