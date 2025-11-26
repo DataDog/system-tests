@@ -131,7 +131,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         else:
             path_regexes = None
 
+        logger.debug(f"Looking at {len(self._data_list)} data")
         for data in self._data_list:
+            logger.debug(f"Looking at data {data['log_filename']}")
             if path_regexes is not None and all(path.fullmatch(data["path"]) is None for path in path_regexes):
                 continue
 
