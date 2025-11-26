@@ -1160,15 +1160,15 @@ tests/:
         nextjs: irrelevant
   integration_frameworks/:
     llm/:
-    openai/:
-      test_openai_apm.py:
-        TestOpenAiApmChatCompletions: *ref_5_76_0
-        TestOpenAiApmCompletions: *ref_5_76_0
-        TestOpenAiApmEmbeddings: *ref_5_76_0
-        TestOpenAiApmResponses: *ref_5_76_0
-      test_openai_llmobs.py:
-        TestOpenAiEmbeddingInteractions: *ref_5_80_0
-        TestOpenAiLlmInteractions: *ref_5_80_0
+      openai/:
+        test_openai_apm.py:
+          TestOpenAiApmChatCompletions: *ref_5_76_0
+          TestOpenAiApmCompletions: *ref_5_76_0
+          TestOpenAiApmEmbeddings: *ref_5_76_0
+          TestOpenAiApmResponses: *ref_5_76_0
+        test_openai_llmobs.py:
+          TestOpenAiEmbeddingInteractions: *ref_5_80_0
+          TestOpenAiLlmInteractions: *ref_5_80_0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
