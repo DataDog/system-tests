@@ -12,7 +12,9 @@ datadog:
     tlsVerify: "false"
 clusterAgent:
   enabled: true
-
+  envDict:
+    DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_INIT_RESOURCES_CPU: "1000m"
+    DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_INIT_RESOURCES_MEMORY: "256Mi"
   livenessProbe:
     initialDelaySeconds: 15
     periodSeconds: 15
