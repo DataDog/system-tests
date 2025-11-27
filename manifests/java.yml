@@ -2343,6 +2343,9 @@ tests/:
     Test_FFE_RC_Unavailable:
       '*': irrelevant
       spring-boot: v1.56.0
+    Test_FFE_RC_Down_From_Start:
+      '*': irrelevant
+      spring-boot: v1.56.0
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

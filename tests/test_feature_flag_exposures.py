@@ -518,3 +518,40 @@ class Test_FFE_RC_Unavailable:
         assert not_delivered_result["value"] == self.default_value, (
             f"Not delivered flag: expected default '{self.default_value}', got '{not_delivered_result['value']}'"
         )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_RC_Down_From_Start:
+    """Test FFE behavior when RC is unavailable from application start."""
+
+    def setup_ffe_rc_down_from_start(self):
+        """Simulate RC being down from the start - no config ever delivered."""
+        StaticJsonMockedResponse(
+            path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
+        ).send()
+
+        self.flag_key = "test-flag-never-delivered"
+        self.default_value = "my-default-value"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": "user-rc-down",
+                "attributes": {},
+            },
+        )
+
+        StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}).send()
+
+    def test_ffe_rc_down_from_start(self):
+        """Test that default value is returned when RC is down from start."""
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        result = json.loads(self.r.text)
+        assert result["value"] == self.default_value, (
+            f"Expected default '{self.default_value}', got '{result['value']}'"
+        )
