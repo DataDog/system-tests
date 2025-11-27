@@ -218,7 +218,7 @@ build() {
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
-                    DOCKER_PLATFORM_ARGS="--platform linux/amd64"
+                    DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}";;
                 fi
                 # dd-trace-py compilation if required
                 if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
