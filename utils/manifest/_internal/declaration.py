@@ -1,9 +1,8 @@
+from utils._context.component_version import ComponentVersion
 from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import parse_skip_declaration
-from collections.abc import Callable
-from typing import Any
 from utils._decorators import _TestDeclaration
-from .const import version_regex, skip_declaration_regex, full_regex
+from .const import skip_declaration_regex, full_regex
 import re
 
 
@@ -12,16 +11,16 @@ class Declaration:
 
     raw: str
     is_inline: bool
-    semver_factory: Callable[[str], Any]
     value: SemverRange | _TestDeclaration
     reason: str | None
+    component: str
 
     def __init__(
         self,
         raw_declaration: str,
+        component: str,
         *,
         is_inline: bool = False,
-        semver_factory: Callable[[str], Any] = SemverRange,
     ) -> None:
         """Parses raw declaration strings.
 
@@ -29,7 +28,7 @@ class Declaration:
             raw_declaration (str): raw declaration string from the manifest file
             is_inline (bool, optional): True is the declaration is inline (ex:nodeid: declaration).
                 In this case raw_declaration can be either a skip declaration or a version.
-            semver_factory (Callable[[str], Any], optional): function to use to create version ranges
+            component (str): component name, used to find the input version format
 
         """
         if not raw_declaration:
@@ -37,41 +36,8 @@ class Declaration:
         assert isinstance(raw_declaration, str), f"Expected str got {type(raw_declaration)}. Check the manifest"
         self.raw = raw_declaration.strip()
         self.is_inline = is_inline
-        self.semver_factory = semver_factory
+        self.component = component
         self.parse_declaration()
-
-    @staticmethod
-    def fix_separator(version: str) -> str:
-        elements = re.fullmatch(r"(\d+\.\d+\.\d+)([.+-]?)([.\w+-]*)", version)
-        if not elements or not elements.group(3):
-            return version
-        if not elements.group(2) or elements.group(2) == ".":
-            sanitized_version = elements.group(1) + "-" + elements.group(3)
-        else:
-            sanitized_version = elements.group(1) + elements.group(2) + elements.group(3)
-        return sanitized_version
-
-    @staticmethod
-    def fix_missing_minor_patch(version: str) -> str:
-        for _ in range(2):
-            if re.fullmatch(r"\d+\.\d+\.\d+.*", version):
-                break
-            version += ".0"
-        return version
-
-    transformations: list[Callable[[str], str]] = [fix_separator, fix_missing_minor_patch]
-
-    @staticmethod
-    def sanitize_version(version: str, transformations: list[Callable[[str], str]] | None = None) -> str:
-        if transformations is None:
-            transformations = Declaration.transformations
-        matches = re.finditer(version_regex, version)
-        for match in matches:
-            matched_section = version[match.start() : match.end()]
-            for transformation in transformations:
-                matched_section = transformation(matched_section)
-            version = f"{version[: match.start()]}{matched_section}{version[match.end() :]}"
-        return version
 
     def parse_declaration(self) -> None:
         elements = re.fullmatch(skip_declaration_regex, self.raw, re.ASCII)
@@ -92,11 +58,11 @@ class Declaration:
 
         self.is_skip = False
         raw_version = elements.group(2)
+        sanitized_version = raw_version
         if elements.group(1) == "v":
-            raw_version = f">={raw_version}"
-        sanitized_version = Declaration.sanitize_version(raw_version)
+            sanitized_version = f">={ComponentVersion(self.component, raw_version).version}"
 
-        self.value = self.semver_factory(sanitized_version)
+        self.value = SemverRange(sanitized_version)
         if elements.group(len(elements.groups()) - 1):
             self.reason = elements.group(len(elements.groups()) - 1)
 

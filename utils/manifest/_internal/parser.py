@@ -14,7 +14,7 @@ from .types import Condition, ManifestData, SkipDeclaration
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:
-    declaration = Declaration(raw_declaration, is_inline=True)
+    declaration = Declaration(raw_declaration, component, is_inline=True)
     if declaration.is_skip:
         assert isinstance(declaration.value, _TestDeclaration)
         condition: Condition = {
@@ -123,8 +123,8 @@ class FieldProcessor:
 
     @staticmethod
     @processor
-    def component_version(n: str, e: dict[str, Any], _component: str) -> None:
-        e[n] = Declaration(e[n], is_inline=True).value
+    def component_version(n: str, e: dict[str, Any], component: str) -> None:
+        e[n] = Declaration(e[n], component, is_inline=True).value
 
     @staticmethod
     @processor
@@ -134,8 +134,8 @@ class FieldProcessor:
 
     @staticmethod
     @processor
-    def declaration(n: str, e: dict[str, Any], _component: str) -> None:
-        declaration = Declaration(e[n])
+    def declaration(n: str, e: dict[str, Any], component: str) -> None:
+        declaration = Declaration(e[n], component)
         assert isinstance(declaration.value, _TestDeclaration)
         e[n] = SkipDeclaration(declaration.value, declaration.reason)
 

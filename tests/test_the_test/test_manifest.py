@@ -48,19 +48,19 @@ class TestManifest:
                 },
                 {
                     "weblog": "django-poc",
-                    "excluded_component_version": CustomSpec(">=3.12.0-dev"),
+                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
                 {
                     "weblog": "django-py3.13",
-                    "excluded_component_version": CustomSpec(">=3.12.0-dev"),
+                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
                 {
                     "weblog": "python3.12",
-                    "excluded_component_version": CustomSpec(">=3.12.0-dev"),
+                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
