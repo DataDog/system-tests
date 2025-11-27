@@ -24,6 +24,7 @@
         <opentelemetry.version>1.45.0</opentelemetry.version>
         <!-- Latest version of public tracer APP to match latest pulled agent -->
         <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
+        <dd-openfeature.version>[1.56.0,)</dd-openfeature.version>
     </properties>
 
     <!--Enable when oss.sonatype.org is available again-->
@@ -69,6 +70,12 @@
             <artifactId>opentelemetry-api</artifactId>
             <version>${opentelemetry.version}</version>
         </dependency>
+        <!-- OpenFeature API -->
+        <dependency>
+            <groupId>com.datadoghq</groupId>
+            <artifactId>dd-openfeature</artifactId>
+            <version>${dd-openfeature.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -88,6 +95,11 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.openfeature</groupId>
+            <artifactId>sdk</artifactId>
+            <version>1.18.2</version>
         </dependency>
     </dependencies>
 
@@ -119,6 +131,23 @@
                     <version>dev</version>
                     <scope>system</scope>
                     <systemPath>${customDdTraceApi}</systemPath>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>custom-dd-openfeature</id>
+            <activation>
+                <property>
+                    <name>customDdOpenfeature</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.datadoghq</groupId>
+                    <artifactId>dd-openfeature</artifactId>
+                    <version>dev</version>
+                    <scope>system</scope>
+                    <systemPath>${customDdOpenfeature}</systemPath>
                 </dependency>
             </dependencies>
         </profile>
