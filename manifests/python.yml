@@ -3,6 +3,8 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_process_tags.py:
+      Test_Process_Tags: v4.1.0dev
     test_single_span.py:
       Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   appsec/:
