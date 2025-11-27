@@ -13,6 +13,7 @@ from docker.models.containers import Container
 import pytest
 from _pytest.outcomes import Failed
 import requests
+from requests.exceptions import RequestException
 from opentelemetry.trace import SpanKind, StatusCode
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
@@ -106,8 +107,8 @@ class APMLibraryClient:
     def crash(self) -> None:
         try:
             self._session.get(self._url("/trace/crash"))
-        except:
-            logger.info("Expected exception when calling /trace/crash")
+        except RequestException as e:
+            logger.info(f"Expected exception when calling /trace/crash: {e}")
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:

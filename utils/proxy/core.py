@@ -154,90 +154,86 @@ class _RequestLogger:
         if port == ProxyPorts.proxy_commands:
             return
 
-        try:
-            logger.info(f"    => {flow.request.pretty_url} Response {flow.response.status_code}")
+        logger.info(f"    => {flow.request.pretty_url} Response {flow.response.status_code}")
 
-            self._modify_response(flow)
+        self._modify_response(flow)
 
-            # get the interface name
-            if port == ProxyPorts.otel_collector:
-                interface = "otel_collector"
-            elif port == ProxyPorts.open_telemetry_weblog:
-                interface = "open_telemetry"
-            elif port == ProxyPorts.weblog:
-                interface = "library"
-            elif port == ProxyPorts.python_buddy:
-                interface = "python_buddy"
-            elif port == ProxyPorts.nodejs_buddy:
-                interface = "nodejs_buddy"
-            elif port == ProxyPorts.java_buddy:
-                interface = "java_buddy"
-            elif port == ProxyPorts.ruby_buddy:
-                interface = "ruby_buddy"
-            elif port == ProxyPorts.golang_buddy:
-                interface = "golang_buddy"
-            elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
-                interface = "agent"
-            else:
-                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
+        # get the interface name
+        if port == ProxyPorts.otel_collector:
+            interface = "otel_collector"
+        elif port == ProxyPorts.open_telemetry_weblog:
+            interface = "open_telemetry"
+        elif port == ProxyPorts.weblog:
+            interface = "library"
+        elif port == ProxyPorts.python_buddy:
+            interface = "python_buddy"
+        elif port == ProxyPorts.nodejs_buddy:
+            interface = "nodejs_buddy"
+        elif port == ProxyPorts.java_buddy:
+            interface = "java_buddy"
+        elif port == ProxyPorts.ruby_buddy:
+            interface = "ruby_buddy"
+        elif port == ProxyPorts.golang_buddy:
+            interface = "golang_buddy"
+        elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
+            interface = "agent"
+        else:
+            raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
 
-            # extract url info
-            if "?" in flow.request.path:
-                path, query = flow.request.path.split("?", 1)
-            else:
-                path, query = flow.request.path, ""
+        # extract url info
+        if "?" in flow.request.path:
+            path, query = flow.request.path.split("?", 1)
+        else:
+            path, query = flow.request.path, ""
 
-            # get destination
-            message_count = messages_counts[interface]
-            messages_counts[interface] += 1
-            log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
-            export_content_files_to = f"{log_foldename}/files"
-            log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
+        # get destination
+        message_count = messages_counts[interface]
+        messages_counts[interface] += 1
+        log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
+        export_content_files_to = f"{log_foldename}/files"
+        log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
-            data = {
-                "log_filename": log_filename,
-                "path": path,
-                "query": query,
-                "host": flow.request.host,
-                "port": flow.request.port,
-                "request": {
-                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
-                    "headers": list(flow.request.headers.items()),
-                    "length": len(flow.request.content) if flow.request.content else 0,
-                },
-                "response": {
-                    "status_code": flow.response.status_code,
-                    "headers": list(flow.response.headers.items()),
-                    "length": len(flow.response.content) if flow.response.content else 0,
-                },
-            }
+        data = {
+            "log_filename": log_filename,
+            "path": path,
+            "query": query,
+            "host": flow.request.host,
+            "port": flow.request.port,
+            "request": {
+                "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
+                "headers": list(flow.request.headers.items()),
+                "length": len(flow.request.content) if flow.request.content else 0,
+            },
+            "response": {
+                "status_code": flow.response.status_code,
+                "headers": list(flow.response.headers.items()),
+                "length": len(flow.response.content) if flow.response.content else 0,
+            },
+        }
 
+        deserialize(
+            data,
+            key="request",
+            content=flow.request.content,
+            interface=interface,
+            export_content_files_to=export_content_files_to,
+        )
+
+        if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
+            data["response"] = None
+        else:
             deserialize(
                 data,
-                key="request",
-                content=flow.request.content,
+                key="response",
+                content=flow.response.content,
                 interface=interface,
                 export_content_files_to=export_content_files_to,
             )
 
-            if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
-                data["response"] = None
-            else:
-                deserialize(
-                    data,
-                    key="response",
-                    content=flow.response.content,
-                    interface=interface,
-                    export_content_files_to=export_content_files_to,
-                )
+        logger.info(f"    => Saving {flow.request.pretty_url} as {log_filename}")
 
-            logger.info(f"    => Saving {flow.request.pretty_url} as {log_filename}")
-
-            with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
-                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
-
-        except:
-            logger.exception("Unexpected error")
+        with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
+            json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
     def _modify_response(self, flow: Flow):
         if self.request_is_from_tracer(flow.request):

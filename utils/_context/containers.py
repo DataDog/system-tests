@@ -427,11 +427,11 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except APIError as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-                logger.info(f"Fail to remove container {self.name}")
+                logger.info(f"Fail to remove container {self.name} ({e})")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -623,7 +623,7 @@ class LambdaProxyContainer(TestedContainer):
     def post_start(self):
         super().post_start()
 
-        logger.stdout(f"Proxied event type: {self.environment.get("LAMBDA_EVENT_TYPE")}")
+        logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
 class AgentContainer(TestedContainer):
@@ -940,7 +940,7 @@ class WeblogContainer(TestedContainer):
             self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
-            header_tags += f',{",".join(self.additional_trace_header_tags)}'
+            header_tags += f",{','.join(self.additional_trace_header_tags)}"
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
 
@@ -993,9 +993,9 @@ class WeblogContainer(TestedContainer):
         try:
             r = weblog.get("/flush", timeout=10)
             assert r.status_code == HTTPStatus.OK
-        except:
+        except BaseException as e:
             self.healthy = False
-            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log")
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log ({e})")
 
     def set_weblog_domain_for_ipv6(self, network: Network):
         if sys.platform == "linux":
