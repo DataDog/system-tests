@@ -59,7 +59,6 @@ class _ScenarioGroups:
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
-    parametric = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     default = ScenarioGroup()
     feature_flag_exposure = ScenarioGroup()
