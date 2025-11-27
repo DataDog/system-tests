@@ -96,6 +96,5 @@ def _download_folder_recursive(sftp, remote_dir, local_dir):
                 logger.info(f"Downloading file: {remote_path} -> {local_path}")
                 sftp.get(remote_path, str(local_path))
 
-    except Exception as e:
+    except Exception:
         logger.error(f"Error downloading from {remote_dir}")
-        logger.exception(e)
