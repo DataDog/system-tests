@@ -688,6 +688,7 @@ tests/:
     Test_FFE_Exposure_Events: missing_feature
     Test_FFE_Exposure_Events_Empty: missing_feature
     Test_FFE_Exposure_Events_Errors: missing_feature
+    Test_FFE_RC_Unavailable: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature
