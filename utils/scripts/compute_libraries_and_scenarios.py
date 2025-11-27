@@ -38,7 +38,7 @@ LIBRARIES = {
     "python",
     "ruby",
     "python_lambda",
-    "rust",
+    # "rust",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
