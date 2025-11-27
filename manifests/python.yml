@@ -1287,8 +1287,8 @@ tests/:
     Test_FFE_Exposure_Events: v4.0.0
     Test_FFE_Exposure_Events_Empty: v4.0.0
     Test_FFE_Exposure_Events_Errors: v4.0.0
-    Test_FFE_RC_Unavailable: missing_feature
     Test_FFE_RC_Down_From_Start: v4.0.0
+    Test_FFE_RC_Unavailable: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature
