@@ -12,6 +12,14 @@ from .ports import ProxyPorts
 MOCKED_RESPONSE_PATH = "/mocked_response"
 
 
+def _all_subclasses(cls: type["MockedResponse"]) -> list[type["MockedResponse"]]:
+    result = []
+    for subclass in cls.__subclasses__():
+        result.append(subclass)
+        result.extend(_all_subclasses(subclass))
+    return result
+
+
 class MockedResponse:
     """Instruction sent to the proxy to overwrite responses from agents"""
 
@@ -39,17 +47,14 @@ class MockedResponse:
         for key, value in self.mocked_headers.items():
             flow.response.headers[key] = value
 
-    @staticmethod
-    def build_from_json(source: dict) -> "MockedResponse":
+    @classmethod
+    def build_from_json(cls, source: dict) -> "MockedResponse":
         """Factory to create the right MockedResponse subclass from json data"""
         mocked_response_type = source.pop("type")
 
-        if mocked_response_type == StaticJsonMockedResponse.__name__:
-            return StaticJsonMockedResponse.from_json(source)
-        if mocked_response_type == MockedResponse.__name__:
-            return MockedResponse.from_json(source)
-        if mocked_response_type == SequentialRemoteConfigJsonMockedResponse.__name__:
-            return SequentialRemoteConfigJsonMockedResponse.from_json(source)
+        for klass in _all_subclasses(cls):
+            if klass.__name__ == mocked_response_type:
+                return klass.from_json(source)
 
         raise ValueError(f"Unknown MockedResponse type: {mocked_response_type}")
 
@@ -133,8 +138,15 @@ class SequentialRemoteConfigJsonMockedResponse(MockedResponse):
 
 
 class _InternalMockedResponse(MockedResponse):
+    """Mocked responses that will be applied on the entire test session"""
+
     def send(self) -> None:
         raise ValueError("This mocked response cannot be sent directly")
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+        }
 
 
 class AddRemoteConfigEndpoint(_InternalMockedResponse):
@@ -180,3 +192,9 @@ class SetSpanEventFlags(_InternalMockedResponse):
             c = json.loads(flow.response.content)
             c["span_events"] = self.span_events
             flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "span_events": self.span_events,
+        }

@@ -16,14 +16,7 @@ from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize
 from .ports import ProxyPorts
-from .mocked_response import (
-    MOCKED_RESPONSE_PATH,
-    MockedResponse,
-    AddRemoteConfigEndpoint,
-    RemoveMetaStructsSupport,
-    SetSpanEventFlags,
-    StaticJsonMockedResponse,
-)
+from .mocked_response import MOCKED_RESPONSE_PATH, MockedResponse
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -53,31 +46,19 @@ class _RequestLogger:
 
         self.host_log_folder = "/app/logs"
 
-        self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
-        self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
-        self.span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS") != "False"
 
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
         self.mocked_response: MockedResponse | None = None
+
+        with open("/app/logs/internal_mocked_responses.json", encoding="utf-8", mode="r") as f:
+            data = json.load(f)
+
         self.internal_mocked_responses: list[MockedResponse] = [
-            SetSpanEventFlags(span_events=self.span_events),
+            MockedResponse.build_from_json(source) for source in data
         ]
-
-        if self.rc_api_enabled:
-            # add the remote config endpoint on available agent endpoints
-            self.internal_mocked_responses.append(AddRemoteConfigEndpoint())
-            # mimic the default response from the agent
-            self.internal_mocked_responses.append(StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}))
-
-        if self.span_meta_structs_disabled:
-            self.internal_mocked_responses.append(RemoveMetaStructsSupport())
-
-        logger.info(f"rc_api_enabled: {self.rc_api_enabled}")
-        logger.info(f"mocked_backend: {self.mocked_backend}")
-        logger.info(f"span_meta_structs_disabled: {self.span_meta_structs_disabled}")
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
