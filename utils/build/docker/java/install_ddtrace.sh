@@ -4,19 +4,33 @@ set -eu
 
 mkdir /dd-tracer
 
+install_custom_jar() {
+    local jar_pattern="$1"
+    local artifact_id="$2"
+    local jar_count
+    jar_count=$(find /binaries/ -name "${jar_pattern}" 2>/dev/null | wc -l)
+
+    if [ "$jar_count" = 0 ]; then
+        echo "Using default $artifact_id"
+    elif [ "$jar_count" = 1 ]; then
+        [[ "$#" -lt 3 ]] && MVN_OPTS= || MVN_OPTS="$3"
+        local custom_jar
+        custom_jar=$(find /binaries/ -name "${jar_pattern}")
+        echo "Using custom $artifact_id: ${custom_jar}"
+        mvn -Dfile="$custom_jar" -DgroupId=com.datadoghq -DartifactId="$artifact_id" -Dversion=9999 -Dpackaging=jar $MVN_OPTS install:install-file
+    else
+        echo "Too many $artifact_id within binaries folder"
+        exit 1
+    fi
+}
+
+[[ "$#" -eq 0 ]] && MVN_OPTS= || MVN_OPTS="$1"
+
 # Look for custom dd-trace-api jar in custom binaries folder
-CUSTOM_DD_TRACE_API_COUNT=$(find /binaries/dd-trace-api*.jar 2>/dev/null | wc -l)
-if [ "$CUSTOM_DD_TRACE_API_COUNT" = 0 ]; then
-    echo "Using default dd-trace-api"
-elif [ "$CUSTOM_DD_TRACE_API_COUNT" = 1 ]; then
-    [[ "$#" -eq 0 ]] && MVN_OPTS= || MVN_OPTS="$1"
-    CUSTOM_DD_TRACE_API=$(find /binaries/dd-trace-api*.jar)
-    echo "Using custom dd-trace-api: ${CUSTOM_DD_TRACE_API}"
-    mvn -Dfile="$CUSTOM_DD_TRACE_API" -DgroupId=com.datadoghq -DartifactId=dd-trace-api -Dversion=9999 -Dpackaging=jar $MVN_OPTS install:install-file
-else
-    echo "Too many dd-trace-api within binaries folder"
-    exit 1
-fi
+install_custom_jar "dd-trace-api*.jar" "dd-trace-api" "$MVN_OPTS"
+
+# Look for custom dd-openfeature jar in custom binaries folder
+install_custom_jar "dd-openfeature*.jar" "dd-openfeature" "$MVN_OPTS"
 
 # Look for custom dd-trace-java jar in custom binaries folder
 if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then

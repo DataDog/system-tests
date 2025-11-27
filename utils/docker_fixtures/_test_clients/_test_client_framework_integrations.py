@@ -1,7 +1,6 @@
 from collections.abc import Generator
 import contextlib
 from http import HTTPStatus
-from pathlib import Path
 import time
 import urllib.parse
 
@@ -11,9 +10,9 @@ import requests
 
 from utils._logger import logger
 
-from ._core import docker_run, get_host_port
-from ._test_agent import TestAgentAPI
-from ._test_client import TestClientFactory
+from utils.docker_fixtures._core import docker_run, get_host_port
+from utils.docker_fixtures._test_agent import TestAgentAPI
+from ._core import TestClientFactory
 
 
 class FrameworkTestClientFactory(TestClientFactory):
@@ -67,11 +66,8 @@ class FrameworkTestClientFactory(TestClientFactory):
         # overwrite env with the one provided by the test
         environment |= library_env
 
-        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
-
         with (
-            open(log_path, "w+", encoding="utf-8") as log_file,
+            self.get_client_log_file(request) as log_file,
             docker_run(
                 image=self.tag,
                 name=f"{self.container_name}-{test_id}",
@@ -88,11 +84,15 @@ class FrameworkTestClientFactory(TestClientFactory):
             yield client
 
         request.node.add_report_section(
-            "teardown", f"{self.library.capitalize()} Library Output", f"Log file:\n./{log_path}"
+            "teardown", f"{self.library.capitalize()} Library Output", f"Log file:\n./{log_file.name}"
         )
 
 
 class FrameworkTestClientApi:
+    """API to interact with the tracer+framework server running in a docker container for
+    INTEGRATIONS_FRAMEWORK scenarios.
+    """
+
     def __init__(self, url: str, timeout: int, container: Container):
         self._base_url = url
         self._session = requests.Session()
@@ -131,9 +131,12 @@ class FrameworkTestClientApi:
             == HTTPStatus.NOT_FOUND
         )
 
-    def request(self, method: str, url: str, body: dict | None = None) -> requests.Response:
+    def request(
+        self, method: str, url: str, body: dict | None = None, *, raise_for_status: bool = True
+    ) -> requests.Response:
         resp = self._session.request(method, self._url(url), json=body)
-        resp.raise_for_status()
+        if raise_for_status:
+            resp.raise_for_status()
         return resp
 
     def _url(self, path: str) -> str:

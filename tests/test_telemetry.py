@@ -169,9 +169,9 @@ class Test_Telemetry:
                 assert curr_message_time > last_message_time
 
                 # check that the current seq_id is greater or equal than the previous one
-                assert (
-                    seq_id >= last_seq_id
-                ), f"Detected non consecutive seq_ids between {data['log_filename']} and {last_known_data['log_filename']}"
+                assert seq_id >= last_seq_id, (
+                    f"Detected non consecutive seq_ids between {data['log_filename']} and {last_known_data['log_filename']}"
+                )
 
                 if seq_id == last_seq_id:
                     # if consecutive requests sue the same number, it may be caused by a retry
@@ -222,9 +222,9 @@ class Test_Telemetry:
                     # If the batch contains only messages not related to app-lifecycle we can ignore it.
                     continue
                 first_message = batch["request"]["content"]["payload"][0]
-                assert (
-                    first_message.get("request_type") == "app-started"
-                ), "app-started was not the first message in the first batch"
+                assert first_message.get("request_type") == "app-started", (
+                    "app-started was not the first message in the first batch"
+                )
                 return
             else:
                 # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
@@ -235,9 +235,9 @@ class Test_Telemetry:
                 ]
                 assert app_started, "app-started message not found"
                 min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-                assert (
-                    app_started[0]["request"]["content"]["seq_id"] == min_seq_id
-                ), "app-started is not the first message by seq_id"
+                assert app_started[0]["request"]["content"]["seq_id"] == min_seq_id, (
+                    "app-started is not the first message by seq_id"
+                )
                 return
         raise ValueError("app-started message not found")
 
@@ -580,13 +580,13 @@ class Test_Telemetry:
                     appsec_enabled = product["appsec"]["enabled"]
                     profiler_enabled = product["profiler"]["enabled"]
                     dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
-                    assert (
-                        appsec_enabled is True
-                    ), "Product appsec Product profiler enabled was expected to be True, found False"
+                    assert appsec_enabled is True, (
+                        "Product appsec Product profiler enabled was expected to be True, found False"
+                    )
                     assert profiler_enabled is True, "Product profiler enabled was expected to be True, found False"
-                    assert (
-                        dynamic_instrumentation_enabled is False
-                    ), "Product dynamic_instrumentation enabled was expected to be False, found True"
+                    assert dynamic_instrumentation_enabled is False, (
+                        "Product dynamic_instrumentation enabled was expected to be False, found True"
+                    )
 
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
@@ -743,9 +743,9 @@ class Test_TelemetryV2:
                 continue
             if get_request_type(data) == "app-started":
                 products = data["request"]["content"]["payload"]["products"]
-                assert (
-                    "appsec" in products
-                ), "Product information is not accurately reported by telemetry on app-started event"
+                assert "appsec" in products, (
+                    "Product information is not accurately reported by telemetry on app-started event"
+                )
 
     @irrelevant(
         library="dotnet",
@@ -850,12 +850,12 @@ class Test_ProductsDisabled:
                     # to be confirmed it's the good behaviour
                     continue
 
-                assert (
-                    "enabled" in details
-                ), f"Product information expected to indicate {product} is disabled, but missing"
-                assert (
-                    details["enabled"] is False
-                ), f"Product information expected to indicate {product} is disabled, but found enabled"
+                assert "enabled" in details, (
+                    f"Product information expected to indicate {product} is disabled, but missing"
+                )
+                assert details["enabled"] is False, (
+                    f"Product information expected to indicate {product} is disabled, but found enabled"
+                )
 
         if not data_found:
             raise ValueError("No telemetry data to validate on")
@@ -1100,4 +1100,6 @@ class Test_TelemetrySCAEnvVar:
             if found:
                 break
 
-        assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+        assert found, (
+            f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
+        )

@@ -5,7 +5,7 @@ import json
 import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios, context, missing_feature
+from utils import features, scenarios, context, missing_feature, bug
 from utils._context.component_version import Version
 from .conftest import APMLibrary
 
@@ -125,12 +125,14 @@ class Test_ProcessDiscovery:
             }
         ],
     )
+    @bug(context.library >= "cpp@2.0.0", reason="APMAPI-1772")  # issue in dd-trace-cpp, the dev branch is still 2.0.0
     def test_metadata_content_without_process_tags(self, test_library: APMLibrary, library_env: dict[str, str]):
         """Verify the content of the memfd file matches the expected metadata format and structure"""
         with test_library:
             assert_metadata_content(test_library, library_env)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented")
+    @bug(context.library == "cpp", reason="APMAPI-1744")
     @pytest.mark.parametrize(
         "library_env",
         [

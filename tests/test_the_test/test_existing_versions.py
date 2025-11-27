@@ -3,6 +3,7 @@ import requests
 import pytest
 from utils import scenarios, logger
 from utils._context.component_version import ComponentVersion, Version
+from utils._decorators import SKIP_DECLARATIONS
 from manifests.parser.core import load as load_manifests
 
 
@@ -30,7 +31,6 @@ def test_existing_version(component: str, github_repo: str):
     # Prevent form using a version that does not exist
     # This use case leads to test not being activated
     # and thus not being run, which is not what we want.
-    from utils._decorators import SKIP_DECLARATIONS
 
     declared_versions = ComponentVersion.known_versions[component].copy()  # copy to avoid modifying the original
 

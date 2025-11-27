@@ -1,4 +1,5 @@
 from copy import copy
+import json
 
 
 def get_tested_apps_vms(vm):
@@ -27,7 +28,6 @@ def nginx_parser(nginx_config_file):
     TODO: Improve this uggly code
     """
     import crossplane
-    import json
 
     nginx_config = crossplane.parse(nginx_config_file)
     config_endpoints = nginx_config["config"]

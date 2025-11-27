@@ -17,7 +17,7 @@ from utils import (
 )
 from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
-from utils.parametric.spec.trace import (
+from utils.docker_fixtures.spec.trace import (
     Span,
     assert_trace_has_tags,
     find_trace,
@@ -347,9 +347,9 @@ class TestDynamicConfigTracingEnabled:
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        assert True, (
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        )
 
 
 def reverse_case(s: str) -> str:

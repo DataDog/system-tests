@@ -1,3 +1,4 @@
+import time
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -65,7 +66,8 @@ class AutoInjectBaseTest:
             validator = self._appsec_validator
         if origin_detection:
             validator = self._container_tags_validator
-
+        if profile:
+            time.sleep(6)  # Wait for the profiling to start and upload the data
         try:
             wait_backend_trace_id(request_uuid, profile=profile, validator=validator)
         except (TimeoutError, AssertionError) as e:
