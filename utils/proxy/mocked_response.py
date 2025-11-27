@@ -9,7 +9,7 @@ from mitmproxy.http import HTTPFlow
 
 from .ports import ProxyPorts
 
-MOCKED_RESPONSE_PATH = "/mocked_response"
+MOCKED_RESPONSES_PATH = "/mocked_responses"
 
 
 def _all_subclasses(cls: type["MockedResponse"]) -> list[type["MockedResponse"]]:
@@ -80,7 +80,7 @@ class MockedResponse:
             domain = "localhost"
 
         response = requests.put(
-            f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_RESPONSE_PATH}", json=self.to_json(), timeout=30
+            f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_RESPONSES_PATH}", json=[self.to_json()], timeout=30
         )
         response.raise_for_status()
 
