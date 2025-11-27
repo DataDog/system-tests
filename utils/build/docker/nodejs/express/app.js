@@ -78,6 +78,11 @@ app.get('/healthcheck', (req, res) => {
   })
 })
 
+app.get('/crashme', (req, res) => {
+  // Endpoint that causes a segmentation fault for crash tracking tests
+  process.kill(process.pid, 'SIGSEGV')
+})
+
 app.post('/waf', uploadToMemory.single('foo'), (req, res) => {
   res.send('Hello\n')
 })
