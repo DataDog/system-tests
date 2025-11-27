@@ -17,7 +17,6 @@ from utils.docker_fixtures import (
     ParametricTestClientApi,
 )
 
-from .core import scenario_groups
 from ._docker_fixtures import DockerFixturesScenario
 
 
@@ -64,7 +63,6 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=(scenario_groups.parametric,),
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.38.0",
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
