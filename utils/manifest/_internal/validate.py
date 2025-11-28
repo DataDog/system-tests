@@ -118,7 +118,7 @@ def validate_manifest_files(path: Path = Path("manifests/")) -> None:
     for file in path.iterdir():
         if file.is_dir():
             continue
-        if file.suffix == "yml":
+        if file.suffix == ".yml":
             with open(file, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
@@ -134,7 +134,7 @@ def validate_manifest_files(path: Path = Path("manifests/")) -> None:
 
             try:
                 _load_file(file, file.stem)
-            except BaseException as e:
+            except Exception as e:
                 name = "Loading errors"
                 all_errors[name] = {}
                 all_errors[name][file] = [e]

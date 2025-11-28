@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from textwrap import dedent
-from typing import Any
+from typing import Any, get_args, get_origin
 
 import yaml
 
@@ -31,41 +31,53 @@ def process_inline(raw_declaration: str, component: str) -> Condition:
     return condition
 
 
+def check_condition(condition: Condition):
+    def type_check(key: str, value: Any, expected_type: type):  # noqa: ANN401
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Wrong type for {key}, expected {expected_type} got {type(value)}")
+
+    def type_check_list(key: str, value: Any, inner_type: type):  # noqa: ANN401
+        type_check(key, value, list)
+        for e in value:
+            type_check(key, e, inner_type)
+
+    types = {
+        "declaration": SkipDeclaration,
+        "component": str,
+        "component_version": SemverRange,
+        "excluded_component_version": SemverRange,
+        "weblog": list[str],
+        "excluded_weblog": list[str],
+    }
+
+    for key, item in condition.items():
+        assert key in types, f"The type of {key} should be added to the check_condition function"
+        if get_origin(types[key]) is list:
+            (inner_type,) = get_args(types[key])
+            type_check_list(key, item, inner_type)
+        else:
+            type_check(key, item, types[key])
+
+
 def cast_to_condition(entry: dict, component: str) -> Condition:
     """Transforms a regular dict to a Condition doing type checking. Any
     transformation should be made in a FieldProcessor function.
     """
 
-    def type_check(key: str, value: Any, expected_type: type):  # noqa: ANN401
-        if not isinstance(value, expected_type):
-            raise TypeError(f"Wrong type for {key}, expected {expected_type} got {type(value)}")
-
-    def type_check_list(key: str, value: list, inner_type: type):
-        type_check(key, value, list)
-        for e in entry[key]:
-            type_check(key, e, inner_type)
-
-    type_check("declaration", entry["declaration"], SkipDeclaration)
     condition: Condition = {"component": component, "declaration": entry["declaration"]}
 
     if "component_version" in entry:
-        type_check("component_version", entry["component_version"], SemverRange)
         condition["component_version"] = entry["component_version"]
-
     if "excluded_component_version" in entry:
-        type_check("excluded_component_version", entry["excluded_component_version"], SemverRange)
         condition["excluded_component_version"] = entry["excluded_component_version"]
-
     if "weblog" in entry:
-        type_check_list("weblog", entry["weblog"], str)
         condition["weblog"] = entry["weblog"]
-
     if "excluded_weblog" in entry:
-        type_check_list("excluded_weblog", entry["excluded_weblog"], str)
         condition["excluded_weblog"] = entry["excluded_weblog"]
 
+    check_condition(condition)
     for key in entry:
-        if key not in ["declaration", "component_version", "excluded_component_version", "weblog", "excluded_weblog"]:
+        if key not in ["component_version", "excluded_component_version", "weblog", "excluded_weblog", "declaration"]:
             raise ValueError(f"Field {key} unknown")
 
     return condition
@@ -152,7 +164,7 @@ class FieldProcessor:
             if weblog == "*":
                 condition["excluded_weblog"] = all_weblogs
             else:
-                condition["weblog"] = weblog
+                condition["weblog"] = weblog if isinstance(weblog, list) else [weblog]
             new_entries.append(condition)
         return FieldProcessor.Return(new_entries, rule_entry_is_condition=False)
 
@@ -220,6 +232,11 @@ def _load_file(file: Path, component: str) -> ManifestData:
                             """)
                         ) from e
 
+        for condition in condition_list:
+            # Do not remove this check, it does run twice on some conditions but
+            # it is placed here to ensure that it runs on all conditions at least
+            # once. Unchecked conditions can lead to VERY HARD TO DETECT BUGS
+            check_condition(condition)
         ret[nodeid] = condition_list
 
     return ret
