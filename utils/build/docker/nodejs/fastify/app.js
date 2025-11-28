@@ -6,11 +6,30 @@ const tracer = require('dd-trace').init({
 })
 
 const { promisify } = require('util')
-const fastify = require('fastify')({ logger: true })
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
 const winston = require('winston')
+
+const server = http.createServer()
+
+const fastify = require('fastify')({
+  logger: true,
+  serverFactory: (handler) => {
+    server.on('request', (req, res) => {
+      if (req.url.startsWith('/resource_renaming')) {
+        // Handle resource renaming with HTTP server directly
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Fastify
+        handler(req, res)
+      }
+    })
+
+    return server
+  }
+})
 
 const iast = require('./iast')
 const dsm = require('./dsm')
