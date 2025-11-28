@@ -12,7 +12,6 @@ from requests.exceptions import RequestException
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
 import pytest
-import requests
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI

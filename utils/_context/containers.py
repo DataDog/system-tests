@@ -1013,7 +1013,7 @@ class WeblogContainer(TestedContainer):
         try:
             r = weblog.get("/flush", timeout=10)
             assert r.status_code == HTTPStatus.OK
-        except BaseException as e:
+        except Exception as e:
             self.healthy = False
             logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log ({e})")
 
