@@ -14,6 +14,7 @@ class JavaRuntimeInstallableVersions:
     JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.7-zulu")
     JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.15-zulu")
     JAVA_11 = RuntimeInstallableVersion("JAVA_11", "11.0.27-zulu")
+    JAVA_21_AMZN = RuntimeInstallableVersion("JAVA_21_AMZN", "21.0.9-amzn")
 
     @staticmethod
     def get_all_versions():
@@ -22,6 +23,7 @@ class JavaRuntimeInstallableVersions:
             JavaRuntimeInstallableVersions.JAVA_21,
             JavaRuntimeInstallableVersions.JAVA_17,
             JavaRuntimeInstallableVersions.JAVA_11,
+            JavaRuntimeInstallableVersions.JAVA_21_AMZN,
         ]
 
     @staticmethod
