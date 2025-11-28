@@ -25,6 +25,9 @@ configure_custom_jar() {
 # Look for custom dd-trace-api jar in custom binaries folder
 configure_custom_jar "dd-trace-api*.jar" "dd-trace-api" "customDdTraceApi"
 
+# Look for custom dd-openfeature jar in custom binaries folder
+configure_custom_jar "dd-openfeature*.jar" "dd-openfeature" "customDdOpenfeature"
+
 # Look for custom dd-java-agent jar in custom binaries folder
 CUSTOM_DD_JAVA_AGENT_COUNT=$(find /binaries/dd-java-agent*.jar 2>/dev/null | wc -l)
 if [ "$CUSTOM_DD_JAVA_AGENT_COUNT" = 0 ]; then

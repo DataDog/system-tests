@@ -29,6 +29,9 @@ install_custom_jar() {
 # Look for custom dd-trace-api jar in custom binaries folder
 install_custom_jar "dd-trace-api*.jar" "dd-trace-api" "$MVN_OPTS"
 
+# Look for custom dd-openfeature jar in custom binaries folder
+install_custom_jar "dd-openfeature*.jar" "dd-openfeature" "$MVN_OPTS"
+
 # Look for custom dd-trace-java jar in custom binaries folder
 if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then
     BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"

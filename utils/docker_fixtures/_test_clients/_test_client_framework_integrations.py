@@ -131,9 +131,12 @@ class FrameworkTestClientApi:
             == HTTPStatus.NOT_FOUND
         )
 
-    def request(self, method: str, url: str, body: dict | None = None) -> requests.Response:
+    def request(
+        self, method: str, url: str, body: dict | None = None, *, raise_for_status: bool = True
+    ) -> requests.Response:
         resp = self._session.request(method, self._url(url), json=body)
-        resp.raise_for_status()
+        if raise_for_status:
+            resp.raise_for_status()
         return resp
 
     def _url(self, path: str) -> str:
