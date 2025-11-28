@@ -157,12 +157,7 @@ class DockerSSIScenario(Scenario):
 
     def close_targets(self):
         for container in reversed(self._required_containers):
-            try:
-                container.remove()
-                logger.info(f"Removing container {container}")
-            except Exception as e:
-                logger.exception(f"Failed to remove container {container}")
-                raise ContainerRemovalError(f"Failed to remove container {container}") from e
+            container.remove()
         # TODO push images only if all tests pass
         # TODO At this point, tests are not yet executed. There is not official hook in the Scenario class to do that,
         # TODO we can add one : pytest_sessionstart, it will contains the test result.

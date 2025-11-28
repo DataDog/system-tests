@@ -11,6 +11,7 @@ import time
 
 import requests
 
+from requests.exceptions import JSONDecodeError
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.tools import get_rid_from_span
@@ -247,7 +248,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         try:
             response_content = r.json()
-        except:
+        except JSONDecodeError:
             response_content = r.text
 
         data = {

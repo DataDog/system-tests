@@ -12,7 +12,10 @@ def is_ip(value: str):
     try:
         socket.inet_aton(value)
         return True
-    except:
+    except OSError:
+        # Possible exceptions:
+        # - OSError: Raised when the string is not a valid IPv4 address format
+        # - TypeError: Raised if the input is not a string (despite type hint)
         return False
 
 
