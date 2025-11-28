@@ -1,6 +1,6 @@
 import pytest
 
-from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
+from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary

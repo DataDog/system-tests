@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+import pytest
 
 from utils import (
     bug,
@@ -17,6 +18,12 @@ from utils import (
     features,
     HttpResponse,
 )
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 def _assert_custom_event_tag_presence(expected_value: str):
@@ -754,8 +761,8 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""

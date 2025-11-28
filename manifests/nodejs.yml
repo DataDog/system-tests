@@ -76,6 +76,7 @@ refs:
   - &ref_5_76_0 '>=5.76.0'
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
+  - &ref_5_80_0 '>=5.80.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -516,13 +517,14 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
-          fastify: flaky (APPSEC-58724)
+          fastify: *ref_5_61_0
           nextjs: missing_feature
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
         Test_API10_downstream_request_tag: missing_feature
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -1157,8 +1159,16 @@ tests/:
         '*': *ref_5_39_0
         nextjs: irrelevant
   integration_frameworks/:
-    test_openai.py:
-      TestOpenAiAPM: *ref_5_76_0
+    llm/:
+      openai/:
+        test_openai_apm.py:
+          TestOpenAiApmChatCompletions: *ref_5_76_0
+          TestOpenAiApmCompletions: *ref_5_76_0
+          TestOpenAiApmEmbeddings: *ref_5_76_0
+          TestOpenAiApmResponses: *ref_5_76_0
+        test_openai_llmobs.py:
+          TestOpenAiEmbeddingInteractions: *ref_5_80_0
+          TestOpenAiLlmInteractions: *ref_5_80_0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1466,6 +1476,12 @@ tests/:
       nextjs: bug (APMAPI-939)  # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_Exposure_Events_Empty:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_Exposure_Events_Errors:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
   test_graphql.py:

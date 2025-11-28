@@ -1,5 +1,5 @@
 from utils._decorators import irrelevant
-from utils.parametric.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import find_only_span
 from utils import features, scenarios, context
 from utils.docker_fixtures import TestAgentAPI
 

@@ -2173,7 +2173,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        from utils import context
+        from utils import context  # noqa: PLC0415
 
         return _mark_test_object(
             test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
@@ -2529,7 +2529,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=489
         """
-        from utils import context
+        from utils import context  # noqa: PLC0415
 
         return _mark_test_object(
             test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
@@ -2592,14 +2592,6 @@ class _Features:
         return _mark_test_object(test_object, feature_id=495, owner=_Owner.agent_apm)
 
     @staticmethod
-    def llm_observability(test_object):
-        """Data integrity
-
-        https://feature-parity.us1.prod.dog/#/?feature=497
-        """
-        return _mark_test_object(test_object, feature_id=497, owner=_Owner.ml_observability)
-
-    @staticmethod
     def blocking_response_id(test_object):
         """Data integrity
 
@@ -2622,6 +2614,62 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=498
         """
         return _mark_test_object(test_object, feature_id=498, owner=_Owner.idm)
+
+    @staticmethod
+    def llm_observability_openai_llm_interactions(test_object):
+        """LLM Observability supports OpenAI LLM interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=515
+        """
+        return _mark_test_object(test_object, feature_id=515, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_openai_embeddings(test_object):
+        """LLM Observability supports OpenAI embeddings interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=521
+        """
+        return _mark_test_object(test_object, feature_id=521, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_prompts(test_object):
+        """LLM Observability supports OpenAI LLM interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=517
+        """
+        return _mark_test_object(test_object, feature_id=517, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_completions(test_object):
+        """APM supports OpenAI completions interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=516
+        """
+        return _mark_test_object(test_object, feature_id=516, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_chat_completions(test_object):
+        """APM supports OpenAI chat completions interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=518
+        """
+        return _mark_test_object(test_object, feature_id=518, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_responses(test_object):
+        """APM supports OpenAI responses interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=519
+        """
+        return _mark_test_object(test_object, feature_id=519, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_embeddings(test_object):
+        """APM supports OpenAI embeddings interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=520
+        """
+        return _mark_test_object(test_object, feature_id=520, owner=_Owner.ml_observability)
 
 
 features = _Features()

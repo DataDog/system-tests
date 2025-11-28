@@ -1,4 +1,5 @@
 from pathlib import Path
+import pytest
 
 from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
@@ -7,6 +8,13 @@ from .test_blocking_security_response_id import (
     extract_security_response_id_from_json,
     extract_security_response_id_from_html,
 )
+
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"

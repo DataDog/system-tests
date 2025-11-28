@@ -144,6 +144,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
     )
 
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
+    )
+
 
 def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
