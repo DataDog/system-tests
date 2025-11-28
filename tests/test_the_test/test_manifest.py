@@ -40,26 +40,26 @@ class TestManifest:
                     "declaration": SkipDeclaration("missing_feature", "declared version for java is v1.2.3"),
                     "component": "java",
                 },
-                {"weblog": "spring-boot", "declaration": SkipDeclaration("missing_feature"), "component": "java"},
+                {"weblog": ["spring-boot"], "declaration": SkipDeclaration("missing_feature"), "component": "java"},
                 {
                     "excluded_weblog": ["django-poc", "django-py3.13", "python3.12"],
                     "declaration": SkipDeclaration("missing_feature"),
                     "component": "python",
                 },
                 {
-                    "weblog": "django-poc",
+                    "weblog": ["django-poc"],
                     "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
                 {
-                    "weblog": "django-py3.13",
+                    "weblog": ["django-py3.13"],
                     "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
                 {
-                    "weblog": "python3.12",
+                    "weblog": ["python3.12"],
                     "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
@@ -72,7 +72,7 @@ class TestManifest:
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.4.0"),
                     "component": "python",
                 },
-                {"weblog": "fastapi", "declaration": SkipDeclaration("missing_feature"), "component": "python"},
+                {"weblog": ["fastapi"], "declaration": SkipDeclaration("missing_feature"), "component": "python"},
             ],
             "tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies": [
                 {
@@ -82,7 +82,7 @@ class TestManifest:
                     "component": "python",
                 },
                 {
-                    "weblog": "fastapi",
+                    "weblog": ["fastapi"],
                     "excluded_component_version": CustomSpec(">=2.5.0"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.5.0"),
                     "component": "python",
