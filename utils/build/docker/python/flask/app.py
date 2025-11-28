@@ -29,23 +29,6 @@ import xmltodict
 import graphene
 
 
-
-
-def monitor(fun):
-   """Decorator to monitor function calls with a trace."""
-
-
-   def wrapper(*args, **kwargs):
-       print(f"Function {fun.__name__} called with args: {args}, kwargs: {kwargs}", file=sys.stderr)
-       res = fun(*args, **kwargs)
-       print(f"Function {fun.__name__} returned: {res}\n", file=sys.stderr)
-       return res
-
-
-   return wrapper
-import ddtrace.appsec._ddwaf.waf as _myddwaf
-_myddwaf.DDWaf.run = monitor(_myddwaf.DDWaf.run)
-
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import asyncpg
     import psycopg2
@@ -2072,6 +2055,7 @@ def external_request():
             )
     except urllib.error.HTTPError as e:
         return jsonify({"status": int(e.status), "error": repr(e)})
+
 
 @app.route("/external_request/redirect", methods=["GET"])
 def external_request_redirect():

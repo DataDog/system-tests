@@ -1316,8 +1316,9 @@ async def external_request(request: Request):
     except Exception as e:
         return {"status": int(e.status), "error": repr(e)}
 
+
 @app.get("/external_request/redirect", response_class=JSONResponse, status_code=200)
-async def external_request(request: Request, totalRedirects:int):
+async def external_request(request: Request, totalRedirects: int):
     full_url = f"http://internal_server:8089/redirect?totalRedirects={totalRedirects}"
     queries = {k: str(v) for k, v in request.query_params.items()}
     try:

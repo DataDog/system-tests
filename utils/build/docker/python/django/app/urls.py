@@ -1123,6 +1123,7 @@ def external_request(request):
     except urllib.error.HTTPError as e:
         return JsonResponse({"status": int(e.status), "error": repr(e)})
 
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def external_request_redirect(request):
@@ -1144,6 +1145,7 @@ def external_request_redirect(request):
             )
     except urllib.error.HTTPError as e:
         return JsonResponse({"status": int(e.status), "error": repr(e)})
+
 
 @csrf_exempt
 def ffe(request):
