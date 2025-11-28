@@ -158,6 +158,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.18.9-aarch64-linux-gnu)
       racc (~> 1.4)
+    openfeature-sdk (0.4.0)
     opentelemetry-api (1.5.0)
     opentelemetry-common (0.22.0)
       opentelemetry-api (~> 1.0)
@@ -262,6 +263,7 @@ DEPENDENCIES
   devise (~> 4.9)
   dogstatsd-ruby
   faraday (~> 2.13.0)
+  openfeature-sdk (~> 0.4)
   opentelemetry-api (~> 1.5.0)
   opentelemetry-sdk (~> 1.8.0)
   pry-byebug
