@@ -80,6 +80,8 @@ tests/:
       Test_ProcessDiscovery: ">1.0.0"
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: ">1.0.0"
+    test_sampling_manual.py:
+      Test_Manual_Keep_Sampling: bug (APMAPI-1720)  # The manual decision does not override existing decision
     test_sampling_span_tags.py:
       Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
