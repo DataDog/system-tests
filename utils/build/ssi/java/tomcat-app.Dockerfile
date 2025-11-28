@@ -7,5 +7,5 @@ RUN mvn clean package
 
 FROM ${BASE_IMAGE}
 COPY --from=build app/payment-service/target/payment-service*.war /usr/local/tomcat/webapps/
-ENV WEBLOG_URL=http://localhost:8080/payment-service/
+ENV WEBLOG_URL=http://127.0.0.1:8080/payment-service/
 ENV DD_INSTRUMENT_SERVICE_WITH_APM=true
