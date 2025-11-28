@@ -29,6 +29,23 @@ import xmltodict
 import graphene
 
 
+
+
+def monitor(fun):
+   """Decorator to monitor function calls with a trace."""
+
+
+   def wrapper(*args, **kwargs):
+       print(f"Function {fun.__name__} called with args: {args}, kwargs: {kwargs}", file=sys.stderr)
+       res = fun(*args, **kwargs)
+       print(f"Function {fun.__name__} returned: {res}\n", file=sys.stderr)
+       return res
+
+
+   return wrapper
+import ddtrace.appsec._ddwaf.waf as _myddwaf
+_myddwaf.DDWaf.run = monitor(_myddwaf.DDWaf.run)
+
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
     import asyncpg
     import psycopg2
@@ -2046,6 +2063,27 @@ def external_request():
         method=flask_request.method,
         headers=queries,
         data=body,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})
+
+@app.route("/external_request/redirect", methods=["GET"])
+def external_request_redirect():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
+    request = urllib.request.Request(
+        full_url,
+        method="GET",
+        headers=queries,
     )
     try:
         with urllib.request.urlopen(request, timeout=10) as fp:

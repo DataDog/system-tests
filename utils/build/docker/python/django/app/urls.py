@@ -1123,6 +1123,27 @@ def external_request(request):
     except urllib.error.HTTPError as e:
         return JsonResponse({"status": int(e.status), "error": repr(e)})
 
+@csrf_exempt
+@require_http_methods(["GET"])
+def external_request_redirect(request):
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in request.GET.items()}
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
+    request = urllib.request.Request(
+        full_url,
+        method="GET",
+        headers=queries,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return JsonResponse(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return JsonResponse({"status": int(e.status), "error": repr(e)})
 
 @csrf_exempt
 def ffe(request):
@@ -1248,5 +1269,6 @@ urlpatterns = [
     path("mock_s3/copy_object", s3_copy_object),
     path("mock_s3/multipart_upload", s3_multipart_upload),
     path("external_request", external_request),
+    path("external_request/redirect", external_request_redirect),
     path("ffe", ffe),
 ]
