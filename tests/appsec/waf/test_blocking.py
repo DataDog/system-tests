@@ -180,7 +180,7 @@ class Test_Blocking:
     @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
     @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
     @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
-    @missing_feature(context.library < "python@2.11.0.dev")
+    @missing_feature(context.library < "python@2.11.0-dev")
     @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
@@ -231,7 +231,7 @@ class Test_Blocking:
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")
     @missing_feature(library="php")
-    @missing_feature(context.library < "python@2.11.0.dev")
+    @missing_feature(context.library < "python@2.11.0-dev")
     @missing_feature(library="ruby")
     def test_json_template_v1(self):
         """JSON block template is v1 minified (or v3 with security_response_id)"""
@@ -256,7 +256,7 @@ class Test_Blocking:
     @missing_feature(context.library < "nodejs@4.1.0")
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")
-    @missing_feature(context.library < "python@2.11.0.dev")
+    @missing_feature(context.library < "python@2.11.0-dev")
     @missing_feature(library="ruby")
     def test_html_template_v2(self):
         """HTML block template is v2 minified (or v3 with security_response_id)"""

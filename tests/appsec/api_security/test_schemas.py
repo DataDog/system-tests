@@ -78,7 +78,7 @@ class Test_Schema_Request_Cookies:
             "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
-    @missing_feature(context.library < "python@1.19.0.dev")
+    @missing_feature(context.library < "python@1.19.0-dev")
     @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
@@ -319,7 +319,7 @@ class Test_Scanners:
             headers={"authorization": "digest a0b1c2"},
         )
 
-    @missing_feature(context.library < "python@1.19.0.dev")
+    @missing_feature(context.library < "python@1.19.0-dev")
     @bug(context.library >= "python_lambda@8.117.0", reason="APPSEC-60014")
     def test_request_method(self):
         """Can provide request header schema"""

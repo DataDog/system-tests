@@ -204,7 +204,7 @@ class DockerSSIScenario(Scenario):
                 self.weblog_url = json_tested_components[key].lstrip(" ")
                 continue
             if key == "runtime_version" and json_tested_components[key]:
-                self._installed_language_runtime = Version(json_tested_components[key].lstrip(" "))
+                self._installed_language_runtime = ComponentVersion("", json_tested_components[key].lstrip(" ")).version
                 # Runtime version is stored as configuration not as dependency
                 del self.components[key]
                 self.configuration["runtime_version"] = f"{self._installed_language_runtime}"
