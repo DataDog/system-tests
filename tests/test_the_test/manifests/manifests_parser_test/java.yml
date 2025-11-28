@@ -1,0 +1,8 @@
+---
+manifest:
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "v3.4.5"
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "missing_feature"
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
+    - weblog_declaration:
+        "*": v1.2.3
+        spring-boot: "missing_feature"

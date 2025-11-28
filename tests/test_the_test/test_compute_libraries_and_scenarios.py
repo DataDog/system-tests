@@ -51,8 +51,8 @@ def set_env(key: str, value: str):
 
 def build_inputs(
     modified_files: list | None = None,
-    new_manifests: str = "./tests/test_the_test/manifests/manifests_ref/",
-    old_manifests: str = "./tests/test_the_test/manifests/manifests_ref/",
+    new_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
+    old_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
 ):
     if modified_files is None:
         modified_files = []
@@ -143,8 +143,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_manifest(self):
         inputs = build_inputs(
             ["manifests/python.yml"],
-            new_manifests="./tests/test_the_test/manifests/manifests_python_edit/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_python_edit/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
         strings_out = process(inputs)
 
@@ -153,15 +153,15 @@ class Test_ComputeLibrariesAndScenarios:
             'libraries_with_dev=["python"]',
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
+            'scenarios="APM_TRACING_E2E_OTEL,APPSEC_API_SECURITY,DEFAULT"',
             'scenarios_groups=""',
         ]
 
     def test_manifest_agent(self):
         inputs = build_inputs(
             ["manifests/agent.yml"],
-            new_manifests="./tests/test_the_test/manifests/manifests_agent_edit/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_agent_edit/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
         strings_out = process(inputs)
 
@@ -314,8 +314,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_manifest_no_edit(self):
         inputs = build_inputs(
             ["manifests/java.yml"],
-            new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
         strings_out = process(inputs)
 
@@ -375,14 +375,14 @@ class Test_ComputeLibrariesAndScenarios:
         with pytest.raises(FileNotFoundError):
             Inputs(
                 scenario_map_file="tests/test_the_test/scenarios.json",
-                new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-                old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+                new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+                old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
             )
 
     def test_missing_original_manifest(self):
         with pytest.raises(FileNotFoundError):
             Inputs(
                 scenario_map_file="tests/test_the_test/scenarios.json",
-                new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-                old_manifests="./wrong/path",
+                new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+                old_manifests=Path("./wrong/path"),
             )
