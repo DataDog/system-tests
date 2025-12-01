@@ -216,6 +216,7 @@ tests/:
         Test_API10_all: v2.4.0
         Test_API10_downstream_request_tag: v2.5.0-dev
         Test_API10_downstream_ssrf_telemetry: v2.4.0
+        Test_API10_redirect: missing_feature
         Test_API10_request_body: v2.4.0
         Test_API10_request_headers: v2.4.0
         Test_API10_request_method: v2.4.0
@@ -884,6 +885,7 @@ tests/:
     Test_FFE_Exposure_Events: v2.5.0-dev
     Test_FFE_Exposure_Events_Empty: v2.5.0-dev
     Test_FFE_Exposure_Events_Errors: v2.5.0-dev
+    Test_FFE_RC_Unavailable: v2.4.0
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant

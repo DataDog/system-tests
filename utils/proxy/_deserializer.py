@@ -27,8 +27,8 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
-from traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
+from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
 
 
 logger = logging.getLogger(__name__)
@@ -234,8 +234,8 @@ def deserialize_http_message(
                 try:
                     with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
                         content = gz_file.read()
-                except:
-                    item["system-tests-error"] = "Can't decompress gzip data"
+                except Exception as e:  # Many possible errors, catching all
+                    item["system-tests-error"] = f"Can't decompress gzip data: {e}"
                     continue
 
                 _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, content)
@@ -369,7 +369,7 @@ def deserialize(
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
-    except:
+    except Exception:  # Many possible errors, catching all
         status_code: int = data[key]["status_code"]
         if key == "response" and status_code in (
             HTTPStatus.INTERNAL_SERVER_ERROR,

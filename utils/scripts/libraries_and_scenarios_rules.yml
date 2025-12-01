@@ -167,7 +167,7 @@ patterns:
     .github/workflows/run-open-telemetry.yml:
         scenario_groups: open_telemetry
     .github/workflows/run-parametric.yml:
-        scenario_groups: parametric
+        scenario: PARAMETRIC
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
     .github/workflows/run-stream-processing-offload.yml:
@@ -190,7 +190,7 @@ patterns:
     utils/_context/_scenarios/default.py:
         scenario_groups: default
     utils/_context/_scenarios/_docker_fixtures.py:
-        scenario_groups: parametric
+        scenario_groups: docker_fixtures
     utils/_context/_scenarios/appsec_rasp.py:
         scenario_groups: appsec_rasp_scenario
     utils/_context/_scenarios/endtoend.py:
@@ -205,7 +205,7 @@ patterns:
         scenario_groups: open_telemetry
         libraries: *otel_libraries
     utils/_context/_scenarios/parametric.py:
-        scenario_groups: parametric
+        scenario: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
     utils/_context/_scenarios/stream_processing_offload.py:
@@ -244,7 +244,7 @@ patterns:
         scenario_groups: null
         libraries: null
     utils/scripts/parametric/*:
-        scenario_groups: parametric
+        scenario: PARAMETRIC
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
     utils/scripts/ssi_wizards/*:
@@ -263,7 +263,7 @@ patterns:
         scenario_groups: onboarding
 
     utils/docker_fixtures/*:
-        scenario_groups: parametric
+        scenario_groups: docker_fixtures
 
     utils/docker_ssi/*:
         scenario_groups: docker_ssi
@@ -275,8 +275,6 @@ patterns:
         scenario_groups: lib_injection
     utils/onboarding*:
         scenario_groups: onboarding
-    utils/parametric/*:
-        scenario_groups: parametric
     utils/telemetry/*:
         scenario_groups: telemetry
     utils/proxy/*:
@@ -295,7 +293,7 @@ patterns:
     utils/build/docker/nodejs_otel/*:
         scenario_groups: open_telemetry
     utils/build/docker/*/parametric/*:
-        scenario_groups: parametric
+        scenario: PARAMETRIC
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
@@ -433,16 +431,16 @@ patterns:
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
 
-    manifests/rust.yml:
-        scenario_groups: null  # already handled by the manifest comparison
-        libraries: rust
-    utils/build/docker/rust/*:
-        scenario_groups: [ end_to_end, open_telemetry]
-        libraries: rust
-    lib-injection/build/docker/rust/*:
-        libraries: rust
-    utils/build/build_rust_base_images.sh:
-        libraries: rust
+    # manifests/rust.yml:
+    #     scenario_groups: null  # already handled by the manifest comparison
+    #     libraries: rust
+    # utils/build/docker/rust/*:
+    #     scenario_groups: [ end_to_end, open_telemetry]
+    #     libraries: rust
+    # lib-injection/build/docker/rust/*:
+    #     libraries: rust
+    # utils/build/build_rust_base_images.sh:
+    #     libraries: rust
 
     manifests/python_otel.yml:
         scenario_groups: null  # already handled by the manifest comparison
