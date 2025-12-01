@@ -40,8 +40,6 @@ class ResponsesCreateRequest(BaseModel):
     model: Optional[str] = None
     input: Optional[Union[str, list[dict]]] = None
     parameters: Optional[dict] = None
-    prompt: Optional[dict] = None
-    include: Optional[list[str]] = None
 
 
 @app.post("/chat/completions")
@@ -85,27 +83,18 @@ def embeddings(request: EmbeddingsRequest):
 
 @app.post("/responses/create")
 def responses_create(request: ResponsesCreateRequest):
-    # Handle prompt-based flow (for reusable prompts)
-    if request.prompt:
-        kwargs = {"prompt": request.prompt}
-        if request.include:
-            kwargs["include"] = request.include
-        response = client.responses.create(**kwargs)
-        return {"response": response}
+    kwargs = {**(request.parameters or {})}
+    if request.model:
+        kwargs["model"] = request.model
+    if request.input:
+        kwargs["input"] = request.input
 
-    # Handle standard model/input flow
-    parameters = request.parameters or {}
-    response = client.responses.create(
-        model=request.model,
-        input=request.input,
-        **parameters,
-    )
+    response = client.responses.create(**kwargs)
 
-    if parameters.get("stream", False):
+    if kwargs.get("stream", False):
         chunks = []
         for chunk in response:
             chunks.append(chunk)
-
         response = chunks
 
     return {"response": response}

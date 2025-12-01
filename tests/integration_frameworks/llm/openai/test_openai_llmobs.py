@@ -657,7 +657,7 @@ class TestOpenAiEmbeddingInteractions:
         )
 
 
-@features.llm_observability_openai_prompt_tracking
+@features.llm_observability_prompts
 @scenarios.integration_frameworks
 class TestOpenAiPromptTracking:
     """Tests for OpenAI reusable prompt tracking (reverse templating).
@@ -677,11 +677,13 @@ class TestOpenAiPromptTracking:
                 "POST",
                 "/responses/create",
                 dict(
-                    prompt={
-                        "id": "pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
-                        "version": "1",
-                        "variables": {"phrase": "cat in the hat", "word": "cat"},
-                    },
+                    parameters=dict(
+                        prompt={
+                            "id": "pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
+                            "version": "1",
+                            "variables": {"phrase": "cat in the hat", "word": "cat"},
+                        },
+                    ),
                 ),
             )
 
@@ -706,11 +708,13 @@ class TestOpenAiPromptTracking:
                 "POST",
                 "/responses/create",
                 dict(
-                    prompt={
-                        "id": "pmpt_6911a954c8988190a82b11560faa47cd0d6629899573dd8f",
-                        "version": "2",
-                        "variables": {"word": "test"},
-                    },
+                    parameters=dict(
+                        prompt={
+                            "id": "pmpt_6911a954c8988190a82b11560faa47cd0d6629899573dd8f",
+                            "version": "2",
+                            "variables": {"word": "test"},
+                        },
+                    ),
                 ),
             )
 
@@ -744,11 +748,13 @@ class TestOpenAiPromptTracking:
                 "POST",
                 "/responses/create",
                 dict(
-                    prompt={
-                        "id": "pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191",
-                        "version": "2",
-                        "variables": {"price": "$99.99", "item": "groceries"},
-                    },
+                    parameters=dict(
+                        prompt={
+                            "id": "pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191",
+                            "version": "2",
+                            "variables": {"price": "$99.99", "item": "groceries"},
+                        },
+                    ),
                 ),
             )
 
@@ -773,11 +779,13 @@ class TestOpenAiPromptTracking:
                 "POST",
                 "/responses/create",
                 dict(
-                    prompt={
-                        "id": "pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
-                        "version": "1",
-                        "variables": {"phrase": "cat in the hat", "word": ""},
-                    },
+                    parameters=dict(
+                        prompt={
+                            "id": "pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
+                            "version": "1",
+                            "variables": {"phrase": "cat in the hat", "word": ""},
+                        },
+                    ),
                 ),
             )
 
@@ -802,30 +810,32 @@ class TestOpenAiPromptTracking:
                 "POST",
                 "/responses/create",
                 dict(
-                    prompt={
-                        "id": "pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
-                        "version": "2",
-                        "variables": {
-                            "user_message": {
-                                "type": "input_text",
-                                "text": "Analyze these images and document",
-                            },
-                            "user_image_1": {
-                                "type": "input_image",
-                                "image_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
-                                "detail": "auto",
-                            },
-                            "user_file": {
-                                "type": "input_file",
-                                "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
-                            },
-                            "user_image_2": {
-                                "type": "input_image",
-                                "file_id": "file-BCuhT1HQ24kmtsuuzF1mh2",
-                                "detail": "auto",
+                    parameters=dict(
+                        prompt={
+                            "id": "pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
+                            "version": "2",
+                            "variables": {
+                                "user_message": {
+                                    "type": "input_text",
+                                    "text": "Analyze these images and document",
+                                },
+                                "user_image_1": {
+                                    "type": "input_image",
+                                    "image_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
+                                    "detail": "auto",
+                                },
+                                "user_file": {
+                                    "type": "input_file",
+                                    "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+                                },
+                                "user_image_2": {
+                                    "type": "input_image",
+                                    "file_id": "file-BCuhT1HQ24kmtsuuzF1mh2",
+                                    "detail": "auto",
+                                },
                             },
                         },
-                    },
+                    ),
                 ),
             )
 
@@ -879,31 +889,33 @@ class TestOpenAiPromptTracking:
                 "POST",
                 "/responses/create",
                 dict(
-                    prompt={
-                        "id": "pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
-                        "version": "2",
-                        "variables": {
-                            "user_message": {
-                                "type": "input_text",
-                                "text": "Analyze these images and document",
-                            },
-                            "user_image_1": {
-                                "type": "input_image",
-                                "image_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
-                                "detail": "auto",
-                            },
-                            "user_file": {
-                                "type": "input_file",
-                                "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
-                            },
-                            "user_image_2": {
-                                "type": "input_image",
-                                "file_id": "file-BCuhT1HQ24kmtsuuzF1mh2",
-                                "detail": "auto",
+                    parameters=dict(
+                        prompt={
+                            "id": "pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
+                            "version": "2",
+                            "variables": {
+                                "user_message": {
+                                    "type": "input_text",
+                                    "text": "Analyze these images and document",
+                                },
+                                "user_image_1": {
+                                    "type": "input_image",
+                                    "image_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
+                                    "detail": "auto",
+                                },
+                                "user_file": {
+                                    "type": "input_file",
+                                    "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+                                },
+                                "user_image_2": {
+                                    "type": "input_image",
+                                    "file_id": "file-BCuhT1HQ24kmtsuuzF1mh2",
+                                    "detail": "auto",
+                                },
                             },
                         },
-                    },
-                    include=["message.input_image.image_url"],
+                        include=["message.input_image.image_url"],
+                    ),
                 ),
             )
 
