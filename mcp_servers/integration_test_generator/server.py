@@ -6,7 +6,6 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
-from pathlib import Path
 from typing import Any
 
 # MCP SDK imports
