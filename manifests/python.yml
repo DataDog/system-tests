@@ -307,7 +307,7 @@ tests/:
         Test_API10_downstream_ssrf_telemetry: v3.18.0
         Test_API10_redirect:
           '*': v3.18.0 (with urllib support)
-          'fastapi': missing_feature (no requests/urllib3 support)
+          'fastapi': v4.1.0 (with requests/urllib3 support)
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
