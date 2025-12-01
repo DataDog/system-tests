@@ -57,4 +57,10 @@ protoc \
     "$GOPATH/src/github.com/DataDog/datadog-agent/pkg/proto/datadog/trace/agent_payload.proto" \
     "$GOPATH/src/github.com/DataDog/agent-payload/proto/metrics/agent_payload.proto"
 
+protoc \
+    --include_imports \
+    -I "$ROOT_DIR" \
+    --descriptor_set_out="$ROOT_DIR/utils/proxy/_decoders/backend.descriptor" \
+    "$ROOT_DIR/utils/proxy/_decoders/backend.proto"
+
 echo "Success"

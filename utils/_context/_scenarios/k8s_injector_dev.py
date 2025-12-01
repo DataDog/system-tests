@@ -83,6 +83,10 @@ class K8sInjectorDevScenario(Scenario):
         # Initialize the injector client
         self.injector_client = InjectorDevClient()
 
+        self.warmups.append(self.print_context)
+        self.warmups.append(self._start_injector_dev)
+        self.warmups.append(self._apply_scenario_injector_dev)
+
     def print_context(self):
         logger.stdout(".:: K8s Lib injection test components ::.")
         logger.stdout(f"Weblog: {self.k8s_weblog}")
@@ -94,16 +98,6 @@ class K8sInjectorDevScenario(Scenario):
         logger.stdout(f"Injector version: {self._datadog_apm_inject_version}")
         logger.stdout(f"Injector image: {self.k8s_injector_img.registry_url}")
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-        warmups.append(self.print_context)
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting injector-dev", bold=True))
-        warmups.append(self._start_injector_dev)
-        warmups.append(lambda: logger.terminal.write_sep("=", "Applying injector-dev scenario", bold=True))
-        warmups.append(self._apply_scenario_injector_dev)
-
-        return warmups
-
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
         self.close_targets()
 
@@ -113,6 +107,7 @@ class K8sInjectorDevScenario(Scenario):
 
     def _start_injector_dev(self):
         """Start the injector-dev tool"""
+        logger.terminal.write_sep("=", "Starting injector-dev", bold=True)
         self.injector_client.start(debug=True)
 
     def _stop_injector_dev(self):
@@ -121,6 +116,8 @@ class K8sInjectorDevScenario(Scenario):
 
     def _apply_scenario_injector_dev(self):
         """Applies the scenario in yaml format to the injector-dev tool."""
+        logger.terminal.write_sep("=", "Applying injector-dev scenario", bold=True)
+
         # Create a ScenarioProvisionParser instance pointing to the logs directory
         logs_dir = Path(f"logs_{self.name}")
         scenario_provision_parser = ScenarioProvisionParser(logs_dir=logs_dir)

@@ -17,10 +17,10 @@ from retry import retry
 
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.parametric.spec import remoteconfig
-from utils.parametric.spec.trace import V06StatsPayload
-from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric.spec.trace import Trace
+from .spec import remoteconfig
+from .spec.trace import V06StatsPayload
+from .spec.trace import decode_v06_stats
+from .spec.trace import Trace
 
 from ._core import get_host_port, get_docker_client, docker_run
 
@@ -45,7 +45,11 @@ class AgentRequestV06Stats(AgentRequest):
 
 
 class TestAgentFactory:
-    """Handle everything to create the TestAgentApi"""
+    """Handle everything to create the TestAgentApi
+    This class is responsible to:
+    * build the image
+    * expose a ready to call function that runs the container and returns the client that will be used in tests
+    """
 
     def __init__(self, image: str):
         self.image = image
@@ -129,7 +133,7 @@ class TestAgentFactory:
                     time.sleep(0.1)
                 else:
                     if resp["version"] != "test":
-                        message = f"""Agent version {resp['version']} is running instead of the test agent.
+                        message = f"""Agent version {resp["version"]} is running instead of the test agent.
                         Stop the agent on port {container_port} and try again."""
                         pytest.fail(message, pytrace=False)
 
@@ -156,6 +160,8 @@ class TestAgentFactory:
 
 
 class TestAgentAPI:
+    """API to interact with the test agent server running in a docker container."""
+
     __test__ = False  # pytest must not collect it
 
     def __init__(
@@ -208,7 +214,7 @@ class TestAgentAPI:
             self.clear()
         resp_json = resp.json()
         self._write_log("metrics", resp_json)
-        return cast(list[Any], resp_json)
+        return cast("list[Any]", resp_json)
 
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
@@ -476,13 +482,10 @@ class TestAgentAPI:
             else:
                 num_received = len(llmobs_requests)
                 if num_received == num:
+                    llmobs_events = [span for request in llmobs_requests for span in request]
                     if sort_by_start:
-                        for trace in llmobs_requests:
-                            # The testagent may receive spans and trace chunks in any order,
-                            # so we sort the spans by start time if needed
-                            trace.sort(key=lambda x: x["start_ns"])
-                        return sorted(llmobs_requests, key=lambda t: t[0]["start_ns"])
-                    return llmobs_requests
+                        return sorted([event["spans"][0] for event in llmobs_events], key=lambda t: t["start_ns"])
+                    return llmobs_events
             time.sleep(0.1)
         raise ValueError(
             f"Number ({num}) of traces not available from test agent, got {num_received}:\n{llmobs_requests}"
@@ -609,7 +612,7 @@ class TestAgentAPI:
                         if config_name not in configurations:
                             configurations[config_name] = []
                         configurations[config_name].append(config)
-        if len(configurations):
+        if configurations:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configurations))
             if "seq_id" in configurations[sample_key][0]:
@@ -807,7 +810,7 @@ class TestAgentAPI:
     def logs(self) -> list[Any]:
         url = self._otlp_url("/test/session/logs")
         resp = self._session.get(url)
-        return cast(list[Any], resp.json())
+        return cast("list[Any]", resp.json())
 
     def wait_for_num_log_payloads(self, num: int, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` logs to be received from the test agent."""

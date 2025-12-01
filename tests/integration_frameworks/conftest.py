@@ -1,4 +1,5 @@
 from collections.abc import Generator
+import uuid
 
 import pytest
 
@@ -9,10 +10,20 @@ from utils.docker_fixtures import (
 from utils import context, scenarios, logger
 
 
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Mark all integration_frameworks tests as xfail when generating cassettes."""
+    if config.option.generate_cassettes:
+        for item in items:
+            item.add_marker(
+                pytest.mark.xfail(
+                    reason="Generating cassettes - test assertions are not evaluated",
+                    strict=False,
+                )
+            )
+
+
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    import uuid
-
     result = str(uuid.uuid4())[0:6]
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result
