@@ -106,32 +106,6 @@ class ComponentVersion:
 
             self.version = Version(version)
 
-            if name == "ruby":
-                if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
-                    # we are not in a released version
-
-                    # dd-trace-rb main branch expose a version equal to the last release, so hack it:
-                    # * add 1 to minor version
-                    # * and set z as prerelease if not prerelease is set, because z will be after any other prerelease
-
-                    # if dd-trace-rb repo fix the underlying issue, we can remove this hack.
-                    self.version = Version(
-                        major=self.version.major,
-                        minor=self.version.minor,
-                        patch=self.version.patch + 1,
-                        prerelease=self.version.prerelease,
-                        build=self.version.build,
-                    )
-
-                    if not self.version.prerelease:
-                        self.version = Version(
-                            major=self.version.major,
-                            minor=self.version.minor,
-                            patch=self.version.patch,
-                            prerelease=("z",),
-                            build=self.version.build,
-                        )
-
             self.add_known_version(self.version)
         else:
             self.version = Version("0.0.0")
