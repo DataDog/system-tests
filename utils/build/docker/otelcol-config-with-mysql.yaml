@@ -1,0 +1,144 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+  mysql:
+    endpoint: mysqldb:3306
+    username: system_tests_user
+    password: system_tests
+    database: mysql_dbname
+    collection_interval: 10s
+    tls:
+      insecure: true
+    metrics:
+      mysql.buffer_pool.data_pages:
+        enabled: true
+      mysql.buffer_pool.limit:
+        enabled: true
+      mysql.buffer_pool.operations:
+        enabled: true
+      mysql.buffer_pool.page_flushes:
+        enabled: true
+      mysql.buffer_pool.pages:
+        enabled: true
+      mysql.buffer_pool.usage:
+        enabled: true
+      mysql.client.network.io:
+        enabled: true
+      mysql.commands:
+        enabled: true
+      mysql.connection.count:
+        enabled: true
+      mysql.connection.errors:
+        enabled: true
+      mysql.double_writes:
+        enabled: true
+      mysql.handlers:
+        enabled: true
+      mysql.locks:
+        enabled: true
+      mysql.log_operations:
+        enabled: true
+      mysql.max_used_connections:
+        enabled: true
+      mysql.opened_resources:
+        enabled: true
+      mysql.operations:
+        enabled: true
+      mysql.page_operations:
+        enabled: true
+      mysql.prepared_statements:
+        enabled: true
+      mysql.query.client.count:
+        enabled: true
+      mysql.query.count:
+        enabled: true
+      mysql.query.slow.count:
+        enabled: true
+      mysql.row_locks:
+        enabled: true
+      mysql.row_operations:
+        enabled: true
+      mysql.sorts:
+        enabled: true
+      mysql.threads:
+        enabled: true
+      mysql.tmp_resources:
+        enabled: true
+      mysql.uptime:
+        enabled: true
+
+exporters:
+  datadog:
+    api:
+      key: ${DD_API_KEY}
+      site: ${DD_SITE}
+      fail_on_invalid_key: true
+    tls:
+      insecure_skip_verify: true #else it fails the handshake
+    metrics:
+      instrumentation_scope_metadata_as_tags: true
+
+  debug:
+    verbosity: detailed
+
+  file/traces:
+    path: /var/log/system-tests/traces.json
+    format: json
+
+  file/metrics:
+    path: /var/log/system-tests/metrics.json
+    format: json
+
+  file/logs:
+    path: /var/log/system-tests/logs.json
+    format: json
+
+processors:
+  batch:
+
+  # TODO: Check if rid needs to be a static value or if it should be dynamic
+  attributes/add_rid:
+    actions:
+      - key: rid
+        value: "otel-mysql-metrics"
+        action: upsert
+
+  attributes/add_docker_image:
+    actions:
+      - key: docker.image
+        value: ${DOCKER_IMAGE_NAME}
+        action: upsert
+      - key: docker.tag
+        value: ${DOCKER_IMAGE_TAG}
+        action: upsert
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, file/traces]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, file/metrics]
+
+    metrics/mysql:
+      receivers: [mysql]
+      processors: [attributes/add_rid, attributes/add_docker_image, batch]
+      exporters: [datadog, debug, file/metrics]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, file/logs]
+

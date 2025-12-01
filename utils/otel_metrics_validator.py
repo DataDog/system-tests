@@ -229,4 +229,3 @@ def get_collector_metrics_from_scenario(scenario: "OtelCollectorScenario") -> li
     """
     collector_log_path = f"{scenario.collector_container.log_folder_path}/logs/metrics.json"
     return OtelMetricsValidator.get_collector_metrics(collector_log_path)
-

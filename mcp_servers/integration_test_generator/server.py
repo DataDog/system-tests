@@ -6,7 +6,6 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
-from pathlib import Path
 from typing import Any
 
 # MCP SDK imports
@@ -25,11 +24,11 @@ INTEGRATION_CONFIGS = {
         "container_name": "redis_container",
         "smoke_test_operations": [
             'r = container.exec_run("redis-cli SET test_key test_value")',
-            'logger.info(r.output)',
+            "logger.info(r.output)",
             'r = container.exec_run("redis-cli GET test_key")',
-            'logger.info(r.output)',
+            "logger.info(r.output)",
             'r = container.exec_run("redis-cli INCR counter")',
-            'logger.info(r.output)',
+            "logger.info(r.output)",
         ],
         "expected_smoke_metrics": [
             "redis.commands.processed",
@@ -41,12 +40,12 @@ INTEGRATION_CONFIGS = {
     "mysql": {
         "container_name": "mysql_container",
         "smoke_test_operations": [
-            'r = container.exec_run("mysql -u root -ppassword -e \'CREATE DATABASE IF NOT EXISTS test_db;\'")',
-            'r = container.exec_run("mysql -u root -ppassword test_db -e \'CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY);\'")',
-            'r = container.exec_run("mysql -u root -ppassword test_db -e \'INSERT INTO test_table VALUES (1);\'")',
-            'logger.info(r.output)',
-            'r = container.exec_run("mysql -u root -ppassword test_db -e \'SELECT * FROM test_table;\'")',
-            'logger.info(r.output)',
+            "r = container.exec_run(\"mysql -u root -ppassword -e 'CREATE DATABASE IF NOT EXISTS test_db;'\")",
+            "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY);'\")",
+            "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'INSERT INTO test_table VALUES (1);'\")",
+            "logger.info(r.output)",
+            "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'SELECT * FROM test_table;'\")",
+            "logger.info(r.output)",
         ],
         "expected_smoke_metrics": [
             "mysql.operations",
@@ -58,7 +57,7 @@ INTEGRATION_CONFIGS = {
         "container_name": "nginx_container",
         "smoke_test_operations": [
             'r = container.exec_run("curl -s http://localhost/status")',
-            'logger.info(r.output)',
+            "logger.info(r.output)",
         ],
         "expected_smoke_metrics": [
             "nginx.requests",
@@ -70,7 +69,7 @@ INTEGRATION_CONFIGS = {
         "container_name": "kafka_container",
         "smoke_test_operations": [
             'r = container.exec_run("kafka-topics --create --topic test-topic --bootstrap-server localhost:9092")',
-            'logger.info(r.output)',
+            "logger.info(r.output)",
             'r = container.exec_run("kafka-console-producer --topic test-topic --bootstrap-server localhost:9092", stdin="test message")',
         ],
         "expected_smoke_metrics": [
@@ -88,23 +87,26 @@ def generate_test_file(
     feature_name: str | None = None,
 ) -> str:
     """Generate a test file for the specified integration."""
-    
+
     # Get integration config or use defaults
-    config = INTEGRATION_CONFIGS.get(integration_name.lower(), {
-        "container_name": f"{integration_name.lower()}_container",
-        "smoke_test_operations": [
-            f'logger.info("Add specific {integration_name} operations here")',
-        ],
-        "expected_smoke_metrics": [
-            f"{integration_name.lower()}.metric1",
-            f"{integration_name.lower()}.metric2",
-        ],
-    })
-    
+    config = INTEGRATION_CONFIGS.get(
+        integration_name.lower(),
+        {
+            "container_name": f"{integration_name.lower()}_container",
+            "smoke_test_operations": [
+                f'logger.info("Add specific {integration_name} operations here")',
+            ],
+            "expected_smoke_metrics": [
+                f"{integration_name.lower()}.metric1",
+                f"{integration_name.lower()}.metric2",
+            ],
+        },
+    )
+
     integration_title = integration_name.title()
     integration_lower = integration_name.lower()
     feature = feature_name or f"{integration_lower}_receiver_metrics"
-    
+
     # Format excluded metrics
     excluded_metrics_str = ""
     if excluded_metrics:
@@ -117,13 +119,13 @@ _EXCLUDED_{integration_name.upper()}_METRICS = {{
 """
     else:
         excluded_metrics_str = f"_EXCLUDED_{integration_name.upper()}_METRICS: set[str] = set()"
-    
+
     # Format smoke test operations
     smoke_operations = "\n        ".join(config["smoke_test_operations"])
-    
+
     # Format expected smoke metrics
     expected_metrics_formatted = ",\n            ".join([f'"{m}"' for m in config["expected_smoke_metrics"]])
-    
+
     template = f'''import time
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -237,7 +239,7 @@ class Test_Smoke:
 
         assert all_metric_has_be_seen
 '''
-    
+
     return template
 
 
@@ -325,22 +327,22 @@ async def list_tools() -> list[Tool]:
 @app.call_tool()
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
     """Handle tool calls."""
-    
+
     if name == "generate_integration_test":
         integration_name = arguments["integration_name"]
         metrics_json_file = arguments["metrics_json_file"]
         excluded_metrics = arguments.get("excluded_metrics")
         feature_name = arguments.get("feature_name")
-        
+
         test_content = generate_test_file(
             integration_name=integration_name,
             metrics_json_file=metrics_json_file,
             excluded_metrics=excluded_metrics,
             feature_name=feature_name,
         )
-        
+
         init_content = generate_init_file()
-        
+
         result = {
             "test_file": {
                 "filename": f"test_{integration_name.lower()}_metrics.py",
@@ -353,7 +355,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             "shared_utility": {
                 "note": "Uses shared OtelMetricsValidator from utils/otel_metrics_validator.py",
                 "location": "utils/otel_metrics_validator.py",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
             },
             "directory_structure": f"""
 Create the following directory structure:
@@ -376,10 +378,10 @@ The shared OtelMetricsValidator is already available at:
     utils/otel_metrics_validator.py
 """,
         }
-        
+
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
-    
-    elif name == "list_supported_integrations":
+
+    if name == "list_supported_integrations":
         result = {
             "supported_integrations": list(INTEGRATION_CONFIGS.keys()),
             "details": {
@@ -391,27 +393,27 @@ The shared OtelMetricsValidator is already available at:
             },
         }
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
-    
-    elif name == "generate_metrics_json_template":
+
+    if name == "generate_metrics_json_template":
         integration_name = arguments["integration_name"]
         sample_metrics = arguments["sample_metrics"]
-        
+
         metrics_template = {}
         for metric_name in sample_metrics:
             metrics_template[metric_name] = {
                 "data_type": "Sum",  # or "Gauge"
                 "description": f"Description for {metric_name}",
             }
-        
+
         result = {
             "filename": f"{integration_name.lower()}_metrics.json",
             "content": metrics_template,
             "note": "Update data_type to 'Sum' or 'Gauge' and provide accurate descriptions",
         }
-        
+
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
-    
-    elif name == "get_shared_utility_info":
+
+    if name == "get_shared_utility_info":
         result = {
             "shared_utility": {
                 "location": "utils/otel_metrics_validator.py",
@@ -425,8 +427,8 @@ The shared OtelMetricsValidator is already available at:
                         "load_metrics_from_file() - Load metrics from JSON",
                         "get_collector_metrics() - Get metrics from collector logs",
                         "process_and_validate_metrics() - Validate against spec",
-                        "query_backend_for_metrics() - Query Datadog backend"
-                    ]
+                        "query_backend_for_metrics() - Query Datadog backend",
+                    ],
                 }
             },
             "helper_functions": {
@@ -436,9 +438,9 @@ The shared OtelMetricsValidator is already available at:
                 "No code duplication across integration tests",
                 "Single source of truth for validation logic",
                 "Consistent behavior across all integrations",
-                "Easier maintenance - fix once, applies everywhere"
+                "Easier maintenance - fix once, applies everywhere",
             ],
-            "example_usage": '''
+            "example_usage": """
 # Load and validate metrics
 from pathlib import Path
 from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
@@ -458,13 +460,12 @@ metrics_batch = get_collector_metrics_from_scenario(scenario)
 
 # Validate
 _, _, results, failures = validator.process_and_validate_metrics(metrics_batch)
-'''
+""",
         }
-        
+
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
-    
-    else:
-        raise ValueError(f"Unknown tool: {name}")
+
+    raise ValueError(f"Unknown tool: {name}")
 
 
 async def main():
@@ -479,5 +480,5 @@ async def main():
 
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(main())
 
+    asyncio.run(main())
