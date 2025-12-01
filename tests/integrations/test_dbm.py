@@ -6,11 +6,11 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, missing_feature
-from utils.tools import logger
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug, logger
+from utils._weblog import HttpResponse
 
 
-def remove_traceparent(s):
+def remove_traceparent(s: str) -> str:
     return re.sub(r",traceparent='[^']*'", "", s)
 
 
@@ -22,7 +22,7 @@ class Test_Dbm:
 
     # Helper Methods
     def weblog_trace_payload(self):
-        self.library_name = context.library.library
+        self.library_name = context.library.name
         self.scenario_name = context.scenario.name
         self.requests = []
 
@@ -41,7 +41,7 @@ class Test_Dbm:
                         weblog.get("/dbm", params={"integration": "mysql"}),
                         weblog.get("/dbm", params={"integration": "sqlclient"}),
                     ]
-                ),
+                )
         elif self.library_name == "php":
             self.requests = [
                 weblog.get("/dbm", params={"integration": "pdo-pgsql"}),
@@ -52,9 +52,9 @@ class Test_Dbm:
                         weblog.get("/dbm", params={"integration": "mysqli"}),
                         weblog.get("/dbm", params={"integration": "pdo-mysql"}),
                     ]
-                ),
+                )
 
-    def _get_db_span(self, response):
+    def _get_db_span(self, response: HttpResponse) -> dict:
         assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
 
         spans = []
@@ -83,11 +83,11 @@ class Test_Dbm:
         for request in self.requests:
             self._assert_span_is_untagged(self._get_db_span(request))
 
-    def _assert_span_is_untagged(self, span):
+    def _assert_span_is_untagged(self, span: dict) -> None:
         meta = span.get("meta", {})
         assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
 
-    def _assert_span_is_tagged(self, span):
+    def _assert_span_is_tagged(self, span: dict) -> None:
         meta = span.get("meta", {})
         assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
         tag_value = meta.get(self.META_TAG)
@@ -105,7 +105,7 @@ class Test_Dbm:
     setup_trace_payload_service = weblog_trace_payload
 
     @scenarios.default
-    @flaky(context.library >= "dotnet@2.54.0", reason="APMAPI-930")
+    # @flaky(context.library >= "dotnet@2.54.0", reason="APMAPI-930")
     def test_trace_payload_service(self):
         assert self.requests, "No requests to validate"
         self._assert_spans_are_untagged()
@@ -113,6 +113,7 @@ class Test_Dbm:
     setup_trace_payload_full = weblog_trace_payload
 
     @scenarios.integrations
+    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_trace_payload_full(self):
         assert self.requests, "No requests to validate"
         for request in self.requests:
@@ -125,16 +126,16 @@ class Test_Dbm:
                 self._assert_span_is_tagged(span)
 
 
-class _Test_Dbm_Comment:
-    """ Verify DBM comment for given integration """
+class _BaseDbmComment:
+    """Verify DBM comment for given integration"""
 
-    integration = None
-    operation = None
+    integration: str | None = None
+    operation: str | None = None
 
     # declared in child classes
-    dddb = None  # db name
-    dddbs = None  # db name
-    ddh = None  # container name
+    dddb: str | None = None  # db name
+    dddbs: str | None = None  # db name
+    ddh: str | None = None  # container name
 
     # comment generic info
     dde = "system-tests"  # DD_ENV
@@ -144,6 +145,7 @@ class _Test_Dbm_Comment:
     def setup_dbm_comment(self):
         self.r = weblog.get("/stub_dbm", params={"integration": self.integration, "operation": self.operation})
 
+    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_dbm_comment(self):
         assert self.r.status_code == 200, f"Request: {self.r.request.url} wasn't successful."
 
@@ -154,7 +156,8 @@ class _Test_Dbm_Comment:
 
         expected_dbm_comment = f"/*dddb='{self.dddb}',dddbs='{self.dddbs}',dde='{self.dde}',ddh='{self.ddh}',ddps='{self.ddps}',ddpv='{self.ddpv}'*/ SELECT version()"
 
-        assert "status" in data and data["status"] == "ok"
+        assert "status" in data
+        assert data["status"] == "ok"
         assert "traceparent" in data["dbm_comment"]
         assert remove_traceparent(data["dbm_comment"]) == expected_dbm_comment
 
@@ -162,7 +165,7 @@ class _Test_Dbm_Comment:
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Psycopg(_BaseDbmComment):
     integration = "psycopg"
     operation = "execute"
 
@@ -174,7 +177,7 @@ class Test_Dbm_Comment_Python_Psycopg(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
     integration = "psycopg"
     operation = "executemany"
 
@@ -190,7 +193,7 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Asyncpg(_BaseDbmComment):
     integration = "asyncpg"
     operation = "execute"
 
@@ -205,7 +208,7 @@ class Test_Dbm_Comment_Python_Asyncpg(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Aiomysql(_BaseDbmComment):
     integration = "aiomysql"
     operation = "execute"
 
@@ -217,7 +220,7 @@ class Test_Dbm_Comment_Python_Aiomysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Aiomysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Aiomysql(_BaseDbmComment):
     integration = "aiomysql"
     operation = "executemany"
 
@@ -229,7 +232,7 @@ class Test_Dbm_Comment_Batch_Python_Aiomysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_MysqlConnector(_BaseDbmComment):
     integration = "mysql-connector"
     operation = "execute"
 
@@ -241,7 +244,7 @@ class Test_Dbm_Comment_Python_MysqlConnector(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_MysqlConnector(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_MysqlConnector(_BaseDbmComment):
     integration = "mysql-connector"
     operation = "executemany"
 
@@ -253,7 +256,7 @@ class Test_Dbm_Comment_Batch_Python_MysqlConnector(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
     integration = "mysqldb"
     operation = "execute"
 
@@ -269,7 +272,7 @@ class Test_Dbm_Comment_Python_Mysqldb(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
     integration = "mysqldb"
     operation = "executemany"
 
@@ -285,7 +288,7 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
     integration = "pymysql"
     operation = "execute"
 
@@ -301,7 +304,7 @@ class Test_Dbm_Comment_Python_Pymysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "python", reason="These are python only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
+class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
     integration = "pymysql"
     operation = "executemany"
 
@@ -317,7 +320,7 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
+class Test_Dbm_Comment_NodeJS_mysql2(_BaseDbmComment):
     integration = "mysql2"
     operation = "execute"
 
@@ -332,7 +335,7 @@ class Test_Dbm_Comment_NodeJS_mysql2(_Test_Dbm_Comment):
 @irrelevant(condition=context.library != "nodejs", reason="These are nodejs only tests.")
 @features.database_monitoring_support
 @scenarios.integrations
-class Test_Dbm_Comment_NodeJS_pg(_Test_Dbm_Comment):
+class Test_Dbm_Comment_NodeJS_pg(_BaseDbmComment):
     integration = "pg"
     operation = "execute"
 

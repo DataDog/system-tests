@@ -25,9 +25,6 @@ lang_variant:
 
 weblog:
     name: test-app-php
-    #rh7 is installing php 5.4
-    excluded_os_branches: [ centos_7_amd64, rhel_7_amd64]
-    excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
 
@@ -44,4 +41,4 @@ weblog:
           - name: copy-php-app
             local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
 
-        remote-command: sudo sh test-app-php_run.sh
+        remote-command: sh test-app-php_run.sh

@@ -1,0 +1,70 @@
+  - description: "[Generic questions] overview"
+    vars:
+      user_prompt: "what are the system-tests?"
+    assert:
+        - type: icontains-any
+          value:
+            - "framework"
+            - "workbench"
+            - "collection of tests"
+            - "repository"
+        - type: icontains-all
+          value:
+            - "tracer libraries"
+            - "java"
+            - "python"
+            - "php"
+            - "end-to-end"
+            - "parametric"
+        - type: icontains-any
+          value:
+            - "test scenarios"
+            - "scenario types"
+        - type: icontains-any
+          value:
+            - "kubernetes"
+            - "k8s"
+        - type: icontains-any
+          value:
+            - "aws"
+            - "ssi"
+
+  - description: "[Generic questions] main scenarios"
+    vars:
+      user_prompt: "what are the main scenarios on system-tests?"
+    assert:
+        - type: icontains-all
+          value:
+            - "end-to-end"
+            - "parametric"
+            - "docker ssi"
+        - type: icontains-any
+          value:
+            - "library injection tests"
+            - "lib injection"
+            - "kubernetes"
+            - "k8s"
+        - type: icontains-any
+          value:
+            - "aws ssi"
+            - "onboarding"
+
+  - description: "[Generic questions] First time setup"
+    vars:
+      user_prompt: "to run the system-tests for the very first time, what should i do?"
+    assert:
+        - type: icontains-all
+          value:
+            - "build.sh -i runner"
+            - "source venv/bin/activate"
+            - "build.sh"
+            - "run.sh"
+            - "docker"
+            - "bash"
+        - type: icontains-any
+          value:
+            - "python3.12"
+            - "python 3.12"
+        - type: icontains-any
+          value:
+            - "aws ssi"

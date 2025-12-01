@@ -17,5 +17,11 @@ module Types
     def userByName(name:)
       User.find_by(name: name)
     end
+
+    field :with_error, ID, null: true, description: "Raise an error"
+
+    def with_error
+      raise 'test error'
+    end
   end
 end

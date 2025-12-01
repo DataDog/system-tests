@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, bug, missing_feature, features
-from ..utils import BaseSourceTest
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_cookie_name

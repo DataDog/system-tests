@@ -1,31 +1,40 @@
 import json
-import os
+import subprocess
 
-from utils.tools import logger
+from utils import logger
 
 
 def run_system_tests(
-    scenario="MOCK_THE_TEST", test_path=None, verbose=False, forced_test=None, xfail_strict=False,
+    scenario: str = "MOCK_THE_TEST",
+    test_path: str | None = None,
+    *,
+    verbose: bool = False,
+    forced_test: str | None = None,
+    use_xdist: bool = False,
+    xfail_strict: bool = False,
+    env: dict[str, str] | None = None,
+    expected_return_code: int = 0,
 ):
-    cmd = ["./run.sh"]
+    cmd_parts = ["./run.sh"]
 
     if scenario:
-        cmd.append(scenario)
+        cmd_parts.append(scenario)
     if test_path:
-        cmd.append(test_path)
+        cmd_parts.append(test_path)
     if verbose:
-        cmd.append("-v")
+        cmd_parts.append("-v")
     if forced_test:
-        cmd.append(f"-F {forced_test}")
+        cmd_parts.extend(["-F", forced_test])
     if xfail_strict:
-        cmd.append("-o xfail_strict=True")
+        cmd_parts.extend(["-o", "xfail_strict=True"])
+    if use_xdist:
+        cmd_parts.extend(["-n=4"])
 
-    cmd = " ".join(cmd)
-    logger.info(cmd)
-    stream = os.popen(cmd)
-    output = stream.read()
+    logger.info(" ".join(cmd_parts))
+    result = subprocess.run(cmd_parts, capture_output=True, text=True, check=False, env=env)
 
-    logger.info(output)
+    logger.info(result.stdout)
+    assert result.returncode == expected_return_code, f"Command failed with return code {result.returncode}"
 
     scenario = scenario if scenario else "DEFAULT"
     with open(f"logs_{scenario.lower()}/feature_parity.json", encoding="utf-8") as f:

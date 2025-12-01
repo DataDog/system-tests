@@ -1,0 +1,47 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "targetSpan": "ACTIVE",
+        "decorations": [
+            {
+                "when": {
+                    "dsl" : "",
+                    "json": {
+                        "gt": [
+                            {
+                                "ref": "intLocal"
+                            },
+                            {
+                                "ref": "intArg"
+                            }
+                        ]
+                    }
+                },
+                "tags": [
+                    {
+                        "name": "SpanDecorationArgsAndLocals",
+                        "value": {
+                            "template": null,
+                            "segments": [
+                                {
+                                    "dsl" : "",
+                                    "json": {
+                                        "ref": "intLocal"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "SpanDecorationProbe",
+            "sourceFile": null
+        }
+    }
+]

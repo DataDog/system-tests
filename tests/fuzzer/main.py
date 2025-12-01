@@ -6,13 +6,12 @@ import random
 import argparse
 
 from utils._context.containers import WeblogContainer, AgentContainer, create_network
-from utils.tools import get_logger
+from utils._logger import get_logger
 from utils import context, scenarios
 from tests.fuzzer.core import Fuzzer
 
 
-def main():
-
+def main() -> None:
     context.scenario = scenarios.fuzzer
 
     parser = argparse.ArgumentParser(description="Send a bunch of requests to an url.")
@@ -20,14 +19,26 @@ def main():
     parser.add_argument("corpus", nargs="?", type=str, help="Base corpus", default="tests/fuzzer/corpus")
 
     parser.add_argument(
-        "--concurrent", "-c", type=int, help="How many concurrent requests run", default=8,
+        "--concurrent",
+        "-c",
+        type=int,
+        help="How many concurrent requests run",
+        default=8,
     )
     parser.add_argument(
-        "--dump", "-d", type=str, help="Save request with this HTTP status", default="500,501",
+        "--dump",
+        "-d",
+        type=str,
+        help="Save request with this HTTP status",
+        default="500,501",
     )
     parser.add_argument("--export", "-e", help="Export all requests in a dump", action="store_true")
     parser.add_argument(
-        "--report_frequency", "-f", type=int, help="Report frequency (default 1s)", default=1,
+        "--report_frequency",
+        "-f",
+        type=int,
+        help="Report frequency (default 1s)",
+        default=1,
     )
     parser.add_argument("--request_count", "-n", type=int, help="How many request to send", default=None)
     parser.add_argument("--port", "-p", type=str, help="Port to request", default="7777")
@@ -48,15 +59,16 @@ def main():
 
     logger = get_logger(use_stdout=True)
 
-    create_network()
+    network = create_network()
 
-    agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    agent.configure(False)
-    agent.start()
+    agent = AgentContainer(use_proxy=False)
+    agent.configure(host_log_folder="logs_fuzzer", replay=False)
+    agent.start(network)
 
-    weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    weblog.configure(False)
-    weblog.start()
+    weblog = WeblogContainer(use_proxy=False)
+    weblog.configure(host_log_folder="logs_fuzzer", replay=False)
+    weblog.start(network)
+    weblog.post_start()
 
     Fuzzer(
         corpus=args.corpus,

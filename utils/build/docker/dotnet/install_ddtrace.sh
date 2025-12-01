@@ -3,21 +3,37 @@ set -eu
 
 cd /binaries
 
+# Secret will be available here at build time only
+GITHUB_TOKEN_FILE="/run/secrets/github_token"
+GITHUB_AUTH_HEADER=()
+if [ -f "$GITHUB_TOKEN_FILE" ]; then
+    echo "Using GitHub token for authentication"
+    GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $(cat "$GITHUB_TOKEN_FILE")")
+fi
+
 get_latest_release() {
-    curl "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
+    local releases
+    if ! releases=$(curl --fail --retry 3 "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/$1/releases/latest"); then
+        echo "Failed to get latest release"
+        exit 1
+    fi
+    echo $releases | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
 }
 
 mkdir -p /opt/datadog
 
 if [ $(ls /binaries/Datadog.Trace.ClrProfiler.Native.so | wc -l) = 1 ]; then
-    echo "Install from local folder"
+    echo "Install ddtrace from local folder"
     cp -r /binaries/* /opt/datadog/
 else
     if [ $(ls datadog-dotnet-apm*.tar.gz | wc -l) = 1 ]; then
         echo "Install ddtrace from $(ls datadog-dotnet-apm*.tar.gz)"
     else
         echo "Install ddtrace from github releases"
-        DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"
+        if ! DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"; then
+            echo "Failed to get latest release version"
+            exit 1
+        fi
 
         if [ $(uname -m) = "aarch64" ]; then
             artifact=datadog-dotnet-apm-${DDTRACE_VERSION}.arm64.tar.gz
@@ -26,15 +42,8 @@ else
         fi
 
         echo "Using artifact ${artifact}"
-        curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
+        curl -L --fail "${GITHUB_AUTH_HEADER[@]}" https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
     fi
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
 fi
-
-# use 'strings' command from 'binutils' package to extract assembly version
-version=$(strings /opt/datadog/net6.0/Datadog.Trace.dll | egrep '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$')
-echo "${version:0:-2}" > /app/SYSTEM_TESTS_LIBRARY_VERSION
-
-echo "dd-trace version: $(cat /app/SYSTEM_TESTS_LIBRARY_VERSION)"
-

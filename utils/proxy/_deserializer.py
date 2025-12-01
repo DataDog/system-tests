@@ -8,7 +8,9 @@ import io
 import json
 import logging
 from hashlib import md5
+from http import HTTPStatus
 import traceback
+from typing import Any, Literal
 
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
@@ -25,45 +27,47 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import MetricPayload, TracePayload
+from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
 
 
 logger = logging.getLogger(__name__)
 
 
-def get_header_value(name, headers):
+def get_header_value(name: str, headers: list[tuple[str, str]]):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
 
 
-def _parse_as_unsigned_int(value, size_in_bits):
-    """This is necessary because some fields in spans are decribed as a 64 bits unsigned integers, but
+def _parse_as_unsigned_int(value: int, size_in_bits: int) -> int:
+    """Some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
     number if >2**63 -1. The agent parses it signed and interpret the bytes as unsigned. See
-    https://github.com/DataDog/datadog-agent/blob/778855c6c31b13f9235a42b758a1f7c8ab7039e5/pkg/trace/pb/decoder_bytes.go#L181-L196"""
+    https://github.com/DataDog/datadog-agent/blob/778855c6c31b13f9235a42b758a1f7c8ab7039e5/pkg/trace/pb/decoder_bytes.go#L181-L196
+    """
     if not isinstance(value, int):
         return value
 
     # Asserts that the unsigned is either a no bigger than the size in bits
-    assert -(2 ** size_in_bits - 1) <= value <= 2 ** size_in_bits - 1
+    assert -(2**size_in_bits - 1) <= value <= 2**size_in_bits - 1
 
     # Take two's complement of the number if negative
-    return value if value >= 0 else (-value ^ (2 ** size_in_bits - 1)) + 1
+    return value if value >= 0 else (-value ^ (2**size_in_bits - 1)) + 1
 
 
-def _decode_unsigned_int_traces(content):
+def _decode_unsigned_int_traces(content: list):
     for span in (span for trace in content for span in trace):
         for sub_key in ("trace_id", "parent_id", "span_id"):
             if sub_key in span:
                 span[sub_key] = _parse_as_unsigned_int(span[sub_key], 64)
 
 
-def _decode_v_0_5_traces(content):
+def _decode_v_0_5_traces(content: tuple):
     # https://github.com/DataDog/architecture/blob/master/rfcs/apm/agent/v0.5-endpoint/rfc.md
     strings, payload = content
 
     result = []
     for spans in payload:
-        decoded_spans = []
+        decoded_spans: list = []
         result.append(decoded_spans)
         for span in spans:
             decoded_span = {
@@ -86,8 +90,8 @@ def _decode_v_0_5_traces(content):
     return result
 
 
-def deserialize_dd_appsec_s_meta(payload):
-    """ meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings """
+def deserialize_dd_appsec_s_meta(payload: str):
+    """Meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings"""
 
     try:
         return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
@@ -96,7 +100,14 @@ def deserialize_dd_appsec_s_meta(payload):
         return json.loads(payload)
 
 
-def deserialize_http_message(path, message, content: bytes, interface, key, export_content_files_to: str):
+def deserialize_http_message(
+    path: str,
+    message: dict,
+    content: bytes | None,
+    interface: str,
+    key: Literal["request", "response"],
+    export_content_files_to: str,
+):
     def json_load():
         if not content:
             return None
@@ -106,31 +117,49 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
     raw_content_type = get_header_value("content-type", message["headers"])
     content_type = None if raw_content_type is None else raw_content_type.lower()
 
+    # Determine if the content is from a Datadog tracer
+    source_is_datadog_tracer = interface in (
+        "library",
+        "python_buddy",
+        "nodejs_buddy",
+        "java_buddy",
+        "ruby_buddy",
+        "golang_buddy",
+    )
+
     if not content or len(content) == 0:
         return None
 
-    if content_type and any((mime_type in content_type for mime_type in ("application/json", "text/json"))):
+    if content_type and any(mime_type in content_type for mime_type in ("application/json", "text/json")):
         return json_load()
 
     if path == "/v0.7/config":  # Kyle, please add content-type header :)
-        if key == "response" and message["status_code"] == 404:
+        if key == "response" and message["status_code"] == HTTPStatus.NOT_FOUND:
             return content.decode(encoding="utf-8")
-        else:
-            return json_load()
 
-    if interface == "library" and path == "/info":
+        return json_load()
+
+    if path == "/dogstatsd/v2/proxy" and source_is_datadog_tracer:
+        # TODO : how to deserialize this ?
+        return content.decode(encoding="utf-8")
+
+    if source_is_datadog_tracer and path == "/info":
         if key == "response":
             return json_load()
-        else:
-            if not content:
-                return None
-            else:
-                return content
+
+        # replace zero length strings/bytes by None
+        return content if content else None
+
+    if path == "/v1.0/traces" and source_is_datadog_tracer:
+        if content_type == "text/plain; charset=utf-8":
+            return content.decode(encoding="utf-8")
+
+        return deserialize_v1_trace(content)
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
-        if interface == "library":
+        if source_is_datadog_tracer:
             if path == "/v0.4/traces":
                 _decode_unsigned_int_traces(result)
                 _deserialized_nested_json_from_trace_payloads(result, interface)
@@ -151,8 +180,6 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
         return result
 
     if content_type == "application/x-protobuf":
-        # Raw data can be either a str like "b'\n\x\...'" or bytes
-        content = eval(content) if isinstance(content, str) else content
         assert isinstance(content, bytes)
         dd_protocol = get_header_value("dd-protocol", message["headers"])
         if dd_protocol == "otlp" and "traces" in path:
@@ -170,9 +197,15 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
         if path == "/api/v0.2/traces":
             result = MessageToDict(TracePayload.FromString(content))
             _deserialized_nested_json_from_trace_payloads(result, interface)
+            _uncompress_agent_v1_trace(result, interface)
             return result
         if path == "/api/v2/series":
-            return MessageToDict(MetricPayload.FromString(content))
+            if key == "request":
+                return MessageToDict(MetricPayload.FromString(content))
+
+            return MessageToDict(BackendResponsePayload.FromString(content))
+        if path == "/api/beta/sketches":
+            return MessageToDict(SketchPayload.FromString(content))
 
     if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []
@@ -180,30 +213,37 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
         for part in MultipartDecoder(content, raw_content_type).parts:
-            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
-            item = {"headers": headers}
+            headers: dict[str, str] = {k.decode("utf-8").lower(): v.decode("utf-8") for k, v in part.headers.items()}
+            item: dict[str, Any] = {"headers": headers}
 
             content_type_part = ""
 
-            for name in headers:
-                if name.lower() == "content-type":
-                    content_type_part = headers[name].lower()
+            for name, value in headers.items():
+                if name == "content-type":
+                    content_type_part = value.lower()
                     break
 
             if content_type_part.startswith("application/json"):
-                item["content"] = json.loads(part.content)
+                try:
+                    item["content"] = json.loads(part.content)
+                except json.decoder.JSONDecodeError:
+                    item["system-tests-error"] = "Can't decode json file"
+                    item["raw_content"] = repr(part.content)
 
             elif content_type_part == "application/gzip":
-                with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
-                    content = gz_file.read()
+                try:
+                    with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
+                        content = gz_file.read()
+                except Exception as e:  # Many possible errors, catching all
+                    item["system-tests-error"] = f"Can't decompress gzip data: {e}"
+                    continue
 
-                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, content)
+                _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, content)
 
             elif content_type_part == "application/octet-stream":
-                _deserialize_file_in_multipart_form_data(item, headers, export_content_files_to, part.content)
+                _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, part.content)
 
             else:
-
                 try:
                     item["content"] = part.text
                 except UnicodeDecodeError:
@@ -220,12 +260,14 @@ def deserialize_http_message(path, message, content: bytes, interface, key, expo
 
 
 def _deserialize_file_in_multipart_form_data(
-    item: dict, headers: dict, export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
 ) -> None:
-    content_disposition = headers.get("Content-Disposition", "")
+    content_disposition = headers.get("content-disposition", "<not set>")
 
     if not content_disposition.startswith("form-data"):
-        item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
+        item["system-tests-error"] = (
+            f"Unknown content-disposition: {content_disposition}, please contact #apm-shared-testing"
+        )
         item["content"] = None
 
     else:
@@ -240,17 +282,34 @@ def _deserialize_file_in_multipart_form_data(
             item["system-tests-error"] = "Filename not found in content-disposition, please contact #apm-shared-testing"
         else:
             filename = meta_data["filename"].strip('"')
-            file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
+            item["system-tests-filename"] = filename
 
-            with open(file_path, "wb") as f:
-                f.write(content)
+            if filename.lower().endswith(".gz"):
+                filename = filename[:-3]
 
-            item["system-tests-information"] = "File exported to a separated file"
-            item["system-tests-file-path"] = file_path
+            content_is_deserialized = False
+            if filename.lower().endswith(".json") or path in ("/symdb/v1/input", "/api/v2/debugger"):
+                # when path == /symdb/v1/input or /api/v2/debugger, the content may be either raw json, or gizipped json
+                # though, the file name may not always contains .json, so for this use case
+                # we always try to deserialize the content as json
+                try:
+                    item["content"] = json.loads(content)
+                    content_is_deserialized = True
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    item["system-tests-error"] = "Can't decode json file"
+
+            if not content_is_deserialized:
+                file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
+
+                item["system-tests-information"] = "File exported to a separated file"
+                item["system-tests-file-path"] = file_path
+
+                with open(file_path, "wb") as f:
+                    f.write(content)
 
 
-def _deserialized_nested_json_from_trace_payloads(content, interface):
-    """ trace payload from agent and library contains strings that are json """
+def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):  # noqa: ANN401
+    """Trace payload from agent and library contains strings that are json"""
 
     if interface == "agent":
         for tracer_payload in content.get("tracerPayloads", []):
@@ -264,8 +323,7 @@ def _deserialized_nested_json_from_trace_payloads(content, interface):
                 _deserialize_meta(span)
 
 
-def _deserialize_meta(span):
-
+def _deserialize_meta(span: dict):
     meta = span.get("meta", {})
 
     keys = ("_dd.appsec.json", "_dd.iast.json")
@@ -277,7 +335,7 @@ def _deserialize_meta(span):
             meta[key] = json.loads(meta[key])
 
 
-def _convert_bytes_values(item, path=""):
+def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401
     if isinstance(item, dict):
         for key in item:
             if isinstance(item[key], bytes):
@@ -300,16 +358,33 @@ def _convert_bytes_values(item, path=""):
             _convert_bytes_values(value, f"{path}[]")
 
 
-def deserialize(data, key, content, interface, export_content_files_to: str):
-
+def deserialize(
+    data: dict[str, Any],
+    key: Literal["request", "response"],
+    content: bytes | None,
+    interface: str,
+    export_content_files_to: str,
+):
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
-    except:
-        logger.exception(f"Error while deserializing {data['log_filename']}", exc_info=True)
-        data[key]["raw_content"] = str(content)
-        data[key]["traceback"] = str(traceback.format_exc())
+    except Exception:  # Many possible errors, catching all
+        status_code: int = data[key]["status_code"]
+        if key == "response" and status_code in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.FORBIDDEN,
+        ):
+            # backend may respond 500, while giving application/x-protobuf as content-type
+            # deserialize_http_message() will fail, but it cannot be considered as an
+            # internal error, we only log it, and do not store anything in traceback
+            logger.exception(f"Error {status_code} in response in {data['log_filename']}, preventing deserialization")
+            data[key]["content"] = repr(content)
+        else:
+            logger.exception(f"Error while deserializing {key} in {data['log_filename']}")
+            data[key]["raw_content"] = str(content)
+            data[key]["traceback"] = str(traceback.format_exc())
 
 
 # if __name__ == "__main__":

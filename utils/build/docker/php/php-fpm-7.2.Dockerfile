@@ -1,5 +1,5 @@
 
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 ARG PHP_VERSION=7.2
 
 ADD binaries* /binaries/

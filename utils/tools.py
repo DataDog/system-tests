@@ -2,15 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import logging
+from enum import StrEnum
 import os
 import re
-import sys
-import socket
-import random
+from utils._logger import logger as _logger
 
 
-class bcolors:
+class ShColors(StrEnum):
     CYAN = "\033[96m"
     MAGENTA = "\033[95m"
     BLUE = "\033[94m"
@@ -24,104 +22,53 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
-def get_log_formatter():
-    return logging.Formatter("%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", "%H:%M:%S")
-
-
-def update_environ_with_local_env():
-
+def update_environ_with_local_env() -> None:
     # dynamically load .env file in environ if exists, it allow users to keep their conf via env vars
     try:
-        with open(".env", "r", encoding="utf-8") as f:
-            logger.debug("Found a .env file")
-            for line in f:
-                line = line.strip(" \t\n")
+        with open(".env", encoding="utf-8") as f:
+            _logger.debug("Found a .env file")
+            for raw_line in f:
+                line = raw_line.strip(" \t\n")
                 line = re.sub(r"(.*)#.$", r"\1", line)
                 line = re.sub(r"^(export +)(.*)$", r"\2", line)
                 if "=" in line:
-                    items = line.split("=")
-                    logger.debug(f"adding {items[0]} in environ")
+                    items = line.split("=", 1)
+                    _logger.debug(f"adding {items[0]} in environ")
                     os.environ[items[0]] = items[1]
 
     except FileNotFoundError:
         pass
 
 
-DEBUG_LEVEL_STDOUT = 100
-
-logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
-
-
-def stdout(self, message, *args, **kws):
-
-    if self.isEnabledFor(DEBUG_LEVEL_STDOUT):
-        # Yes, logger takes its '*args' as 'args'.
-        self._log(DEBUG_LEVEL_STDOUT, message, args, **kws)  # pylint: disable=protected-access
-
-        if hasattr(self, "terminal"):
-            self.terminal.write_line(message)
-            self.terminal.flush()
-        else:
-            # at this point, the logger may not yet be configured with the pytest terminal
-            # so directly print in stdout
-            print(message)
+def o(message: str) -> str:
+    return f"{ShColors.OKGREEN}{message}{ShColors.ENDC}"
 
 
-logging.Logger.stdout = stdout
+def w(message: str) -> str:
+    return f"{ShColors.YELLOW}{message}{ShColors.ENDC}"
 
 
-def get_logger(name="tests", use_stdout=False):
-    result = logging.getLogger(name)
-
-    logging.getLogger("requests").setLevel(logging.WARNING)
-    logging.getLogger("urllib3").setLevel(logging.WARNING)
-
-    if use_stdout:
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setLevel(logging.DEBUG)
-        stdout_handler.setFormatter(get_log_formatter())
-        result.addHandler(stdout_handler)
-
-    result.setLevel(logging.DEBUG)
-
-    return result
+def m(message: str) -> str:
+    return f"{ShColors.BLUE}{message}{ShColors.ENDC}"
 
 
-def o(message):
-    return f"{bcolors.OKGREEN}{message}{bcolors.ENDC}"
+def e(message: str) -> str:
+    return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
-def w(message):
-    return f"{bcolors.YELLOW}{message}{bcolors.ENDC}"
-
-
-def m(message):
-    return f"{bcolors.BLUE}{message}{bcolors.ENDC}"
-
-
-def e(message):
-    return f"{bcolors.RED}{message}{bcolors.ENDC}"
-
-
-logger = get_logger()
-
-
-def get_rid_from_request(request):
-    if request is None:
-        return None
-
-    user_agent = [v for k, v in request.request.headers.items() if k.lower() == "user-agent"][0]
-    return user_agent[-36:]
-
-
-def get_rid_from_span(span):
-
+def get_rid_from_span(span: dict) -> str | None:
     if not isinstance(span, dict):
-        logger.error(f"Span should be an object, not {type(span)}")
+        _logger.error(f"Span should be an object, not {type(span)}")
         return None
 
     meta = span.get("meta", {})
     metrics = span.get("metrics", {})
+
+    if span.get("attributes") is not None:
+        # This is a v1 span so it won't have a meta or metrics field
+        # To reuse the logic here just override meta with the attributes
+        meta = span.get("attributes")
+        metrics = span.get("attributes")
 
     user_agent = None
 
@@ -152,7 +99,7 @@ def get_rid_from_span(span):
     return get_rid_from_user_agent(user_agent)
 
 
-def get_rid_from_user_agent(user_agent):
+def get_rid_from_user_agent(user_agent: str) -> str | None:
     if not user_agent:
         return None
 
@@ -164,18 +111,20 @@ def get_rid_from_user_agent(user_agent):
     return match.group(1)
 
 
-def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
-    """ look for needle in heystack, heystack can be a dict or an array """
+def nested_lookup(
+    needle: str,
+    heystack: str | list | tuple | dict | bool | float | None,  # noqa: FBT001
+    *,
+    look_in_keys: bool = False,
+    exact_match: bool = False,
+) -> bool:
+    """Look for needle in heystack, heystack can be a dict or an array"""
 
     if isinstance(heystack, str):
         return (needle == heystack) if exact_match else (needle in heystack)
 
     if isinstance(heystack, (list, tuple)):
-        for item in heystack:
-            if nested_lookup(needle, item, look_in_keys=look_in_keys, exact_match=exact_match):
-                return True
-
-        return False
+        return any(nested_lookup(needle, item, look_in_keys=look_in_keys, exact_match=exact_match) for item in heystack)
 
     if isinstance(heystack, dict):
         for key, value in heystack.items():
@@ -191,17 +140,3 @@ def nested_lookup(needle: str, heystack, look_in_keys=False, exact_match=False):
         return False
 
     raise TypeError(f"Can't handle type {type(heystack)}")
-
-
-def get_free_port():
-    last_allowed_port = 32000
-    port = random.randint(1100, last_allowed_port - 600)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    while port <= last_allowed_port:
-        try:
-            sock.bind(("", port))
-            sock.close()
-            return port
-        except OSError:
-            port += 1
-    raise IOError("no free ports")

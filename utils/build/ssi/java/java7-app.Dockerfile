@@ -4,7 +4,7 @@
 #
 ARG BASE_IMAGE
 
-FROM ubuntu:trusty as java7
+FROM public.ecr.aws/docker/library/ubuntu:trusty as java7
 
 ENV APT_GET_UPDATE 2015-10-29
 RUN apt-get update

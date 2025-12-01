@@ -3,25 +3,27 @@
 # Copyright 2021 Datadog, Inc.
 
 from html.parser import HTMLParser
+from collections.abc import Callable
 
 
 class _RequestExtractor(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.callback = None
-        self.base_url = None
-        self.request = None
+    request: dict
 
-    def error(self, message):
+    def __init__(self, base_url: str, callback: Callable):
+        super().__init__()
+        self.callback = callback
+        self.base_url = base_url
+
+    def error(self, message: str):
         pass
 
-    def handle_endtag(self, tag):
+    def handle_endtag(self, tag: str):
         if tag == "form":
             self.callback(self.request)
-            self.request = None
+            self.request = {}
 
-    def handle_starttag(self, tag, attrs):
-        def get_path(url_or_path):
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
+        def get_path(url_or_path: str | None):
             if not url_or_path:
                 return None
 
@@ -34,19 +36,19 @@ class _RequestExtractor(HTMLParser):
             return None
 
         if tag == "form":
-            attrs = dict(attrs)
+            attrs_dict = dict(attrs)
             self.request = {
-                "method": attrs["method"],
-                "path": get_path(attrs.get("action", "/")),
+                "method": attrs_dict["method"],
+                "path": get_path(attrs_dict.get("action", "/")),
                 "data": {},
             }
 
         elif tag == "input" and self.request:
-            attrs = dict(attrs)
+            attrs_dict = dict(attrs)
 
-            name = attrs.get("id", attrs.get("name", None))
+            name = attrs_dict.get("id", attrs_dict.get("name"))
             if name:
-                self.request["data"][name] = attrs.get("value", "")
+                self.request["data"][name] = attrs_dict.get("value", "")
 
         elif tag == "a":
             for name, value in attrs:
@@ -54,10 +56,7 @@ class _RequestExtractor(HTMLParser):
                     self.callback({"method": "GET", "path": get_path(value)})
 
 
-_extractor = _RequestExtractor()
+def extract_requests(content: str, base_url: str, callback: Callable) -> None:
+    extractor = _RequestExtractor(base_url, callback)
 
-
-def extract_requests(content, base_url, callback):
-    _extractor.base_url = base_url
-    _extractor.callback = callback
-    _extractor.feed(content)
+    extractor.feed(content)

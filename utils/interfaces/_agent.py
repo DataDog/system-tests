@@ -2,16 +2,17 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
-"""
+"""Validate data flow between agent and backend"""
 
-import threading
+from collections.abc import Callable, Iterable
 import copy
+import threading
 
-from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.tools import get_rid_from_span
+from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+from utils.interfaces._misc_validators import HeadersPresenceValidator
+from utils._weblog import HttpResponse
 
 
 class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -21,13 +22,12 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         super().__init__("agent")
         self.ready = threading.Event()
 
-    def ingest_file(self, src_path):
+    def ingest_file(self, src_path: str):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_appsec_data(self, request):
-
-        rid = get_rid_from_request(request)
+    def get_appsec_data(self, request: HttpResponse):
+        rid = request.get_rid()
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             if "tracerPayloads" not in data["request"]["content"]:
@@ -47,32 +47,20 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data
                         elif get_rid_from_span(span) == rid:
-                            logger.debug(f'Found span with rid={rid} in {data["log_filename"]}')
+                            logger.debug(f"Found span with rid={rid} in {data['log_filename']}")
                             yield data, payload, chunk, span, appsec_data
-
-    def assert_use_domain(self, expected_domain):
-        # TODO: Move this in test class
-
-        for data in self.get_data():
-            domain = data["host"][-len(expected_domain) :]
-
-            if domain != expected_domain:
-                raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
-    def validate_profiling(self, validator, success_by_default=False):
-        self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
-
-    def validate_appsec(self, request, validator):
+    def validate_appsec(self, request: HttpResponse, validator: Callable):
         for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
             if validator(data, payload, chunk, span, appsec_data):
                 return
 
         raise ValueError("No data validate this test")
 
-    def get_telemetry_data(self, flatten_message_batches=True):
+    def get_telemetry_data(self, *, flatten_message_batches: bool = True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
         if flatten_message_batches:
             yield from all_data
@@ -89,39 +77,31 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
-    def assert_headers_presence(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
+    def assert_trace_exists(self, request: HttpResponse):
+        for _, _ in self.get_spans(request=request):
+            return
+
+        raise ValueError(f"No trace has been found for request {request.get_rid()}")
+
+    def assert_headers_presence(
+        self,
+        path_filter: Iterable[str] | str | None,
+        request_headers: Iterable[str] = (),
+        response_headers: Iterable[str] = (),
+        check_condition: Callable | None = None,
+    ):
+        """Assert that a header is present on all requests"""
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
+        self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
-    def assert_headers_match(self, path_filter, request_headers=(), response_headers=(), check_condition=None):
-        validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
-
-    def validate_telemetry(self, validator=None, success_by_default=False):
-        def validator_skip_onboarding_event(data):
-            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
-                return None
-            return validator(data)
-
-        self.validate(
-            validator=validator_skip_onboarding_event,
-            success_by_default=success_by_default,
-            path_filters="/api/v2/apmtelemetry",
-        )
-
-    def add_traces_validation(self, validator, success_by_default=False):
-        self.validate(
-            validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
-        )
-
-    def get_spans(self, request=None):
+    def get_spans(self, request: HttpResponse | None = None):
         """Attempts to fetch the spans the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid() if request else None
         if rid:
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
@@ -134,18 +114,74 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for payload in content:
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
-                        if rid is None:
-                            yield data, span
-                        elif get_rid_from_span(span) == rid:
+                        if rid is None or get_rid_from_span(span) == rid:
                             yield data, span
 
-    def get_spans_list(self, request):
+    def get_chunks_v1(self, request: HttpResponse | None = None):
+        """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
+
+        When a valid request is given, then we filter the chunks to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = request.get_rid() if request else None
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "idxTracerPayloads" not in data["request"]["content"]:
+                continue
+
+            # logger.debug(f"Looking at agent data {data}")
+            content = data["request"]["content"]["idxTracerPayloads"]
+
+            for payload in content:
+                # logger.debug(f"Looking at agent payload {payload}")
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        logger.debug(f"Looking at agent span {span}")
+                        if rid is None or get_rid_from_span(span) == rid:
+                            logger.debug(f"Found a span in {data['log_filename']}")
+                            yield data, chunk
+                            break
+
+    def get_spans_list(self, request: HttpResponse):
         return [span for _, span in self.get_spans(request)]
+
+    def get_metrics(self):
+        """Attempts to fetch the metrics the agent will submit to the backend."""
+
+        for data in self.get_data(path_filters="/api/v2/series"):
+            content = data["request"]["content"]
+            assert isinstance(content, dict), f"content is not a dict in {data['log_filename']}"
+
+            if len(content) == 0:
+                continue
+
+            if "series" not in content:
+                raise ValueError(f"series property is missing in agent payload in {data['log_filename']}")
+
+            series = data["request"]["content"]["series"]
+
+            for point in series:
+                yield data, point
+
+    def get_sketches(self):
+        """Attempts to fetch the sketches the agent will submit to the backend."""
+
+        all_data = self.get_data(path_filters="/api/beta/sketches")
+
+        for data in all_data:
+            if "sketches" in data["request"]["content"]:
+                content = data["request"]["content"]["sketches"]
+
+                for point in content:
+                    yield data, point
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")
 
-    def get_stats(self, resource=""):
+    def get_stats(self, resource: str = ""):
         """Attempts to fetch the stats the agent will submit to the backend.
 
         When a valid request is given, then we filter the stats to the ones sampled
@@ -158,7 +194,5 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for client_stats_payload in client_stats_payloads:
                 for client_stats_buckets in client_stats_payload["Stats"]:
                     for client_grouped_stat in client_stats_buckets["Stats"]:
-                        if resource == "":
-                            yield client_grouped_stat
-                        elif client_grouped_stat["Resource"] == resource:
+                        if resource == "" or client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat

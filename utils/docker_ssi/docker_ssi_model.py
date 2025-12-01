@@ -1,5 +1,5 @@
 class RuntimeInstallableVersion:
-    """ Encapsulates information of the version of the language that can be installed automatically"""
+    """Encapsulates information of the version of the language that can be installed automatically"""
 
     def __init__(self, version_id, version) -> None:
         self.version_id = version_id
@@ -7,14 +7,14 @@ class RuntimeInstallableVersion:
 
 
 class DockerImage:
-    """ Encapsulates information of the docker image """
+    """Encapsulates information of the docker image"""
 
     def __init__(self, internal_name, tag, platform) -> None:
         # Try to set the same name as utils/_context/virtual_machines.py
         self.internal_name = internal_name
         self.tag = tag
         self.platform = platform
-        self.runtime_versions = []
+        self.runtime_versions: list[str] = []
 
     def with_allowed_runtime_versions(self, runtime_versions):
         self.runtime_versions = runtime_versions
@@ -32,8 +32,9 @@ class DockerImage:
 
 
 class WeblogDescriptor:
-    """ Encapsulates information of the weblog: name, library and 
-        supported images with the supported installable runtime versions """
+    """Encapsulates information of the weblog: name, library and
+    supported images with the supported installable runtime versions
+    """
 
     # see utils._features to check ids
     def __init__(self, name, library, supported_images):

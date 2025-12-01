@@ -10,4 +10,4 @@ ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 RUN pip install django
 EXPOSE 18080
-CMD python -m django runserver 0.0.0.0:18080
+CMD python -m django runserver --noreload 0.0.0.0:18080

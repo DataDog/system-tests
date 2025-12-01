@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM public.ecr.aws/docker/library/python:3.11
 
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app

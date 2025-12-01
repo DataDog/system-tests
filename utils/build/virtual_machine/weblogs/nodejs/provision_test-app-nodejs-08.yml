@@ -15,7 +15,6 @@ lang_variant:
 
 weblog:
     name: test-app-nodejs-08
-    exact_os_branches: [ubuntu20_amd64, centos_7_amd64]
     install: 
       - os_type: linux
         copy_files:

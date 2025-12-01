@@ -2,7 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import context, missing_feature, flaky, features, weblog, rfc
-from ..utils import BaseSinkTest, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.weak_cipher_detection
@@ -16,7 +21,7 @@ class TestWeakCipher(BaseSinkTest):
     data = None
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.CryptoExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
+        "nodejs": get_nodejs_iast_file_paths(),
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
@@ -39,10 +44,24 @@ class TestWeakCipher(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestWeakCipher_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/insecure_cipher/test_insecure_algorithm")
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestWeakCipher_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "WEAK_CIPHER"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.get("/iast/insecure_cipher/test_insecure_algorithm")
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

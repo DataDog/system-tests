@@ -1,385 +1,294 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/928fb698cf31451f05a180239468e9eb490ac88172a185990df8ca12d2f37d44/single-step-instrumentation-tests.yml
 stages:
-  - child_pipelines
-  - ruby_tracer
-  - nodejs_tracer
-  - java_tracer
-  - python_tracer
-  - dotnet_tracer
-  - php_tracer
-  - stats_results
-  - parse_results
-  - before_tests
-
-.base_job_onboarding_system_tests:
-  extends: .base_job_onboarding
-  after_script:
-    - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
-    - REPORTS_PATH="reports/"
-    - mkdir -p "$REPORTS_PATH"
-    - cp -R logs_"${SCENARIO_SUFIX}" $REPORTS_PATH/
-    - cp logs_"${SCENARIO_SUFIX}"/feature_parity.json "$REPORTS_PATH"/"${SCENARIO_SUFIX}".json
-    - mv "$REPORTS_PATH"/logs_"${SCENARIO_SUFIX}" "$REPORTS_PATH"/logs_"${TEST_LIBRARY}"_"${ONBOARDING_FILTER_WEBLOG}"_"${SCENARIO_SUFIX}_${DEFAULT_VMS}"
-  artifacts:
-      when: always
-      paths:
-        - reports/
+  - configure
+  - nodejs
+  - java
+  - dotnet
+  - python
+  - php
+  - ruby
+  - pipeline-status
+  - system-tests-utils
 
 variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
-    KUBERNETES_CPU_REQUEST: "6"
-    KUBERNETES_CPU_LIMIT: "6"
-    AMI_UPDATE:
-      description: "Set to true to force the update the AMIs used in the system-tests"
-    ONBOARDING_FILTER_ENV: "prod"
-    ONLY_TEST_LIBRARY: ""
-    DD_INSTALLER_LIBRARY_VERSION:
-      description: "Set the version of the library to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
-    DD_INSTALLER_INJECTOR_VERSION:
-      description: "Set the version of the injector to be installed. Use the pipeline id pipeline-${CI_PIPELINE_ID}"
 
-onboarding_nodejs:
-  extends: .base_job_onboarding_system_tests
-  stage: nodejs_tracer
-  allow_failure: true
-  dependencies: []
-  timeout: 90 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "nodejs")
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "nodejs"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-08, test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-  script:
-      - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
-
-onboarding_java:
-  extends: .base_job_onboarding_system_tests
-  stage: java_tracer
-  allow_failure: true
-  dependencies: []
-  timeout: 90 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "java")
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "java"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-  script:
-      - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
-onboarding_python:
-  extends: .base_job_onboarding_system_tests
-  stage: python_tracer
-  allow_failure: true
-  dependencies: []
-  timeout: 90 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "python")
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "python"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [
-            test-app-python,
-            test-app-python-container,
-            test-app-python-alpine
-          ]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-  script:
-      - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
-
-onboarding_dotnet:
-  extends: .base_job_onboarding_system_tests
-  stage: dotnet_tracer
-  allow_failure: true
-  dependencies: []
-  timeout: 90 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "dotnet")
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "dotnet"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-  script:
-      - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
-
-onboarding_ruby:
-  extends: .base_job_onboarding_system_tests
-  stage: ruby_tracer
-  allow_failure: true
-  # Set `needs: []` so we don't have to wait for `child_pipelines` to start
-  # Keep the other jobs with `dependencies: []` so they run in serial based on stage order
-  needs: []
-  timeout: 90 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "ruby")
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "ruby"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-  script:
-      - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
-
-onboarding_php:
-  extends: .base_job_onboarding_system_tests
-  stage: php_tracer
-  allow_failure: true
-  dependencies: []
-  timeout: 90 minutes
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && ($ONLY_TEST_LIBRARY == "" || $ONLY_TEST_LIBRARY == "php")
-      when: always
-    - when: manual
-  variables:
-    TEST_LIBRARY: "php"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-          DEFAULT_VMS: ["True", "False"]
-  script:
-      - ./build.sh -i runner
-      - timeout 4800s ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --report-run-url ${CI_PIPELINE_URL} --report-environment ${ONBOARDING_FILTER_ENV} --vm-default-vms ${DEFAULT_VMS}
-
-onboarding_stats_results:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+compute_pipeline:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
-  stage: stats_results
+  stage: configure
+  variables:
+    CI_ENVIRONMENT: "prod"
+  script:
+    - |
+      if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined.Computing changes..."
+        ./build.sh -i runner
+        source venv/bin/activate
+        ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+        git clone https://github.com/DataDog/system-tests.git original
+        git fetch --all  # Ensure all branches are available
+        git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
+        git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
+        BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
+        echo "Branch was created from commit--> $BASE_COMMIT"
+        git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
+        cat modified_files.txt
+        python utils/scripts/compute_libraries_and_scenarios.py >> impacted_scenarios.txt
+        cat impacted_scenarios.txt
+        source impacted_scenarios.txt
+      else
+          echo "✅ SYSTEM_TESTS_SCENARIOS OR SYSTEM_TESTS_SCENARIOS_GROUPS are set."
+          export scenarios=$SYSTEM_TESTS_SCENARIOS
+          export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
+          cd /system-tests
+          git pull
+          if [ -n "$SYSTEM_TESTS_REF" ]; then
+            git checkout $SYSTEM_TESTS_REF
+          else
+            echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
+          fi
+          ./build.sh -i runner
+          source venv/bin/activate
+      fi
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        cp *.yml "$CI_PROJECT_DIR"
+      fi
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  script:
-      - |
-        echo "---------------------"
-        echo "Caches/AMIs created"
-        echo "---------------------"
-        for folder in reports/logs*/ ; do
-          for filename in ./cache_created.log; do
-            if [ -e ${filename} ]
-            then
-             cat ${filename}
-            fi
-          done
-        done
-        echo "---------------------"
-        echo "Number of ec2 created"
-        echo "---------------------"
-        wc -l reports/logs*/vms_desc.log
-
-onboarding_parse_results:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  tags: ["arch:amd64"]
-  stage: parse_results
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"
-  before_script:
-    #We need authenticate on git repository
-    - export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-    - export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-  script:
-      - |
-        for folder in reports/logs*/ ; do
-          echo "Checking folder: ${folder}"
-          for filename in ./${folder}*_feature_parity.json; do
-            if [ -e ${filename} ]
-            then
-              echo "Processing report: ${filename}"
-              curl -X POST ${FP_IMPORT_URL} \
-                --fail \
-                --header "Content-Type: application/json" \
-                --header "FP_API_KEY: ${FP_API_KEY}" \
-                --data "@${filename}" \
-                --include
-            fi
-          done
-        done
-
-check_merge_labels:
-  #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/images/ci_docker_base
-  tags: ["runner:docker"]
-
-  stage: before_tests
-  allow_failure: true
-  before_script:
-    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-  script:
-    -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
-    - ./utils/scripts/get_pr_merged_labels.sh
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
-
-generate_system_tests_images:
-  image: registry.ddbuild.io/images/ci_docker_base
-  tags: ["runner:docker"]
-
-  stage: before_tests
-  allow_failure: true
-  before_script:
-    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-  script:
-      -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
-      - ./utils/build/build_tracer_buddies.sh --push
-      - ./utils/build/build_python_base_images.sh --push
-      - ./lib-injection/build/build_lib_injection_images.sh
-  when: manual
-
-generate_docker_ssi_pipeline:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: child_pipelines
-  tags: ["arch:amd64"]
-  needs: []
-  script:
-    - python utils/docker_ssi/docker_ssi_matrix_builder.py --format yaml --output-file ssi_pipeline.yml
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
-      - ssi_pipeline.yml
+      - nodejs_ssi_gitlab_pipeline.yml
+      - java_ssi_gitlab_pipeline.yml
+      - dotnet_ssi_gitlab_pipeline.yml
+      - python_ssi_gitlab_pipeline.yml
+      - php_ssi_gitlab_pipeline.yml
+      - ruby_ssi_gitlab_pipeline.yml
 
-docker_ssi_pipeline:
-  stage: child_pipelines
-  needs: ["generate_docker_ssi_pipeline"]
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
+nodejs_ssi_pipeline:
+  stage: nodejs
+  needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: ssi_pipeline.yml
-        job: generate_docker_ssi_pipeline
+      - artifact: nodejs_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+java_ssi_pipeline:
+  stage: java
+  needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: java_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+dotnet_ssi_pipeline:
+  stage: dotnet
+  needs: ["compute_pipeline", "java_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: dotnet_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+python_ssi_pipeline:
+  stage: python
+  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: python_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+php_ssi_pipeline:
+  stage: php
+  needs: ["compute_pipeline", "python_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: php_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+ruby_ssi_pipeline:
+  stage: ruby
+  needs: ["compute_pipeline", "php_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: ruby_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+delete_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  variables:
+    AMI_RETENTION_DAYS: 10
+    AMI_LAST_LAUNCHED_DAYS: 10
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis"'
+  after_script: echo "Finish"
+  timeout: 3h
+
+delete_amis_by_name_or_lang:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - |
+          if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
+            echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
+            exit 1
+          fi
+          echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - |
+          CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
+
+          if [ -n "$AMI_NAME" ]; then
+            CMD="$CMD --ami-name $AMI_NAME"
+          fi
+
+          if [ -n "$AMI_LANG" ]; then
+            CMD="$CMD --ami-lang $AMI_LANG"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
+  after_script: echo "Finish"
+
+delete_ec2_instances:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  variables:
+    EC2_AGE_MINUTES: 45
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
+  after_script: echo "Finish"
+
+count_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis_count
+  rules:
+    - if: '$SCHEDULED_JOB == "count_amis"'
+  after_script: echo "Finish"
+
+check_merge_labels:
+  #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+  tags: ["runner:docker"]
+  needs: []
+  stage: system-tests-utils
+  allow_failure: true
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+  script:
+    - ./utils/scripts/get_pr_merged_labels.sh
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+
+generate_system_tests_lambda_proxy_image:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+  tags: ["runner:docker"]
+  needs: []
+  stage: system-tests-utils
+  allow_failure: false
+  before_script:
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
+  script:
+      - ./build.sh -i lambda-proxy
+      - docker push datadog/system-tests:lambda-proxy-v1
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+      changes:
+        - utils/build/docker/lambda_proxy/pyproject.toml
+        - utils/build/docker/lambda-proxy.Dockerfile
+
+generate_system_tests_lib_injection_images:
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  stage: system-tests-utils
+  allow_failure: true
+  variables:
+    PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    PRIVATE_DOCKER_REGISTRY_USER: AWS
+  script:
+      - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+      - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
+  rules:
+    - if: '$SCHEDULED_JOB == "generate_system_tests_lib_injection_images"'
+    - when: manual
+
+.delayed_base_job:
+    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+    tags: ["arch:amd64"]
+    script:
+        - echo "⏳ Waiting before triggering the child pipeline..."
+    when: delayed
+    start_in: 5 minutes

@@ -1,0 +1,24 @@
+  - description: "[test activation] why a test is not being executed"
+    vars:
+      user_prompt: "Why my test Test_Mongo is not being executed for my python tracer 1.8.9? Be precise in your response; tell me exactly what's happening."
+    assert:
+        - type: icontains-all
+          value:
+            - "@missing_feature"
+            - "Endpoint is not implemented on weblog"
+  - description: "[test activation] Using manifests"
+    vars:
+      user_prompt: "I want to disable the test class Test_Backend for all tracer libraries"
+    assert:
+        - type: icontains-all
+          value:
+            - "manifests"
+            - "java.yml"
+            - "python.yml"
+            - "php.yml"
+            - "nodejs.yml"
+            - "ruby.yml"
+            - "golang.yml"
+            - "dotnet.yml"
+            - "cpp_httpd.yml"
+            - "cpp_nginx.yml"

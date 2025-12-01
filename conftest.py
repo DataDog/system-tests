@@ -1,32 +1,42 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+
+# keep this import at the top of the file
+from utils.proxy import scrubber  # noqa: F401
+
+from collections.abc import Sequence, Generator
 import json
 import os
+from pathlib import Path
 import time
 import types
+from typing import Any
+import xml.etree.ElementTree as ET
 
 import pytest
+from _pytest.junitxml import xml_key
 from pytest_jsonreport.plugin import JSONReport
+from pluggy._result import _Result as Result
 
 from manifests.parser.core import load as load_manifests
 from utils import context
-from utils._context._scenarios import scenarios
-from utils.tools import logger
-from utils.scripts.junit_report import junit_modifyreport
-from utils._context.library_version import LibraryVersion
-from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
+from utils._context._scenarios import scenarios, Scenario
+from utils._context.component_version import ComponentVersion
+from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
+from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
+from utils._logger import logger
 
 # Monkey patch JSON-report plugin to avoid noise in report
-JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None
+JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
-_deselected_items = []
+_deselected_items: list[pytest.Item] = []
 setup_properties = SetupProperties()
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
@@ -36,17 +46,39 @@ def pytest_addoption(parser):
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+    parser.addoption(
+        "--skip-empty-scenario",
+        action="store_true",
+        help="Skip scenario if it contains only tests marked as xfail or irrelevant",
+    )
 
     parser.addoption("--force-dd-trace-debug", action="store_true", help="Set DD_TRACE_DEBUG to true")
     parser.addoption("--force-dd-iast-debug", action="store_true", help="Set DD_IAST_DEBUG_ENABLED to true")
+    # k8s scenarios mandatory parameters
+    parser.addoption("--k8s-provider", type=str, action="store", help="Set the k8s provider, like kind or minikube")
+    parser.addoption("--k8s-weblog", type=str, action="store", help="Set weblog to deploy on k8s")
+    parser.addoption("--k8s-library", type=str, action="store", help="Set language to test")
+    parser.addoption(
+        "--k8s-lib-init-img", type=str, action="store", help="Set tracers init image on the docker registry"
+    )
+    parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
+    parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
+    parser.addoption(
+        "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
+    )
+    parser.addoption(
+        "--k8s-ssi-registry-base",
+        type=str,
+        action="store",
+        help="Set the default ssi registry base for the injection images (cluster agent, injector and library init)",
+    )
 
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
     parser.addoption("--vm-env", type=str, action="store", help="Set virtual machine environment")
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
-    parser.addoption("--vm-only-branch", type=str, action="store", help="Filter to execute only one vm branch")
-    parser.addoption("--vm-skip-branches", type=str, action="store", help="Filter exclude vm branches")
+    parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
     parser.addoption(
         "--vm-default-vms",
         type=str,
@@ -60,11 +92,19 @@ def pytest_addoption(parser):
     parser.addoption("--ssi-library", type=str, action="store", help="Set docker ssi library to test")
     parser.addoption("--ssi-base-image", type=str, action="store", help="Set docker ssi base image to build")
     parser.addoption("--ssi-arch", type=str, action="store", help="Set docker ssi archictecture of the base image")
+    parser.addoption("--ssi-env", type=str, action="store", help="Prod or Dev (use ssi releases or snapshots)")
+    parser.addoption("--ssi-library-version", type=str, action="store", help="Optional, use custom version of library")
+    parser.addoption(
+        "--ssi-injector-version", type=str, action="store", help="Optional, use custom version of injector"
+    )
     parser.addoption(
         "--ssi-installable-runtime",
         type=str,
         action="store",
-        help="Set the language runtime to install on the docker base image.Empty if we don't want to install any runtime",
+        help=(
+            """Set the language runtime to install on the docker base image. """
+            """Empty if we don't want to install any runtime"""
+        ),
     )
     parser.addoption("--ssi-push-base-images", "-P", action="store_true", help="Push docker ssi base images")
     parser.addoption("--ssi-force-build", "-B", action="store_true", help="Force build ssi base images")
@@ -77,20 +117,42 @@ def pytest_addoption(parser):
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby"],
+        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
+    )
+    parser.addoption(
+        "--github-token-file",
+        type=str,
+        action="store",
+        default="",
+        help="An file containing a valid Github token to perform API calls",
+    )
+
+    # Integration frameworks scenario options
+    parser.addoption(
+        "--weblog",
+        type=str,
+        action="store",
+        default=None,
+        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
     )
 
     # report data to feature parity dashboard
     parser.addoption(
-        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report",
+        "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report"
     )
     parser.addoption(
-        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under",
+        "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
+    )
+
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
     )
 
 
-def pytest_configure(config):
-
+def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -104,33 +166,61 @@ def pytest_configure(config):
     if not config.option.report_run_url and "SYSTEM_TESTS_REPORT_RUN_URL" in os.environ:
         config.option.report_run_url = os.environ["SYSTEM_TESTS_REPORT_RUN_URL"]
 
+    if (
+        not config.option.skip_empty_scenario
+        and os.environ.get("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", "").lower() == "true"
+    ):
+        config.option.skip_empty_scenario = True
+
+    if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
+        config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    if not config.option.library and "TEST_LIBRARY" in os.environ:
+        config.option.library = os.environ["TEST_LIBRARY"].strip()
+
+    # clean input
+    config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]
+
     # First of all, we must get the current scenario
+
+    current_scenario: Scenario | None = None
+
     for name in dir(scenarios):
         if name.upper() == config.option.scenario:
-            context.scenario = getattr(scenarios, name)
+            current_scenario = getattr(scenarios, name)
             break
 
-    if context.scenario is None:
+    if current_scenario is not None:
+        current_scenario.pytest_configure(config)
+        context.scenario = current_scenario
+    else:
         pytest.exit(f"Scenario {config.option.scenario} does not exist", 1)
-
-    context.scenario.pytest_configure(config)
 
     if not config.option.replay and not config.option.collectonly:
         config.option.json_report_file = f"{context.scenario.host_log_folder}/report.json"
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
     configure_decorators(config)
+    logger.info(f"Force execute: {config.option.force_execute}")
 
 
 # Called at the very begening
-def pytest_sessionstart(session):
-
+def pytest_sessionstart(session: pytest.Session) -> None:
     # get the terminal to allow logging directly in stdout
-    setattr(logger, "terminal", session.config.pluginmanager.get_plugin("terminalreporter"))
+    logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
     # if only collect tests, do not start the scenario
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
+
+    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    # Workaround to tackle this issue
+    # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
+    xml = session.config._store.get(xml_key, None)  # noqa: SLF001
+    if xml:
+        properties = context.scenario.get_junit_properties()
+        for key, value in properties.items():
+            xml.add_global_property(key, value or "")
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -139,94 +229,82 @@ def pytest_sessionstart(session):
 
 
 # called when each test item is collected
-def _collect_item_metadata(item):
+def _collect_item_metadata(item: pytest.Item):
+    declaration: str | None = None
+    details: str | None = None
 
-    result = {
-        "details": None,
-        "testDeclaration": None,
+    for marker in reversed(list(item.iter_markers("declaration"))):
+        declaration = marker.kwargs["declaration"]
+        details = marker.kwargs["details"]
+
+        if declaration == "irrelevant":
+            # if any irrelevant declaration exists, it is the one we need to expose
+            break
+
+    if declaration is not None:
+        logger.debug(f"{item.nodeid} => {declaration} => skipped")
+
+    metadata = {
+        "details": declaration if details is None else f"{declaration} ({details})",
+        "testDeclaration": declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+        "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
     }
 
-    # get the reason form skip before xfail
-    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
-    for marker in markers:
-        skip_reason = _get_skip_reason_from_marker(marker)
+    # decorate test for junit
+    item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
-        if skip_reason is not None:
-            # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant"):
-                result["details"] = skip_reason
+    # for feature_id in metadata["features"]:
+    #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
 
-            # otherwise, we keep the first one we found
-            elif result["details"] is None:
-                result["details"] = skip_reason
+    if declaration:
+        item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
 
-    if result["details"]:
-        logger.debug(f"{item.nodeid} => {result['details']} => skipped")
+    if details:
+        item.user_properties.append(("dd_tags[systest.case.declarationDetails]", details))
 
-        if result["details"].startswith("irrelevant"):
-            result["testDeclaration"] = "irrelevant"
-        elif result["details"].startswith("flaky"):
-            result["testDeclaration"] = "flaky"
-        elif result["details"].startswith("bug"):
-            result["testDeclaration"] = "bug"
-        elif result["details"].startswith("missing_feature"):
-            result["testDeclaration"] = "notImplemented"
-        elif "got empty parameter set" in result["details"]:
-            # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
-            logger.info(f"No parameters found for ${item.nodeid}")
-        else:
-            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {result['details']}")
-
-    return result
+    return metadata
 
 
-def _get_skip_reason_from_marker(marker):
-    if marker.name == "skipif":
-        if all(marker.args):
-            return marker.kwargs.get("reason", "")
-    elif marker.name in ("skip", "xfail"):
-        if len(marker.args):  # if un-named arguments are present, the first one is the reason
-            return marker.args[0]
-
-        # otherwise, search in named arguments
-        return marker.kwargs.get("reason", "")
-
-    return None
-
-
-def pytest_pycollect_makemodule(module_path, parent):
-
+def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
     # As now, declaration only works for tracers at module level
 
-    library = context.scenario.library.library
+    library = context.library.name
 
     manifests = load_manifests()
 
-    nodeid = str(module_path.relative_to(module_path.cwd()))
+    path = module_path.relative_to(module_path.cwd())
 
-    if nodeid in manifests and library in manifests[nodeid]:
-        declaration = manifests[nodeid][library]
+    full_declaration: str | None = None
+    nodeid: str
 
-        logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    # look in manifests for any declaration of this file, or on one of its parents
+    while str(path) != ".":
+        nodeid = f"{path!s}/" if path.is_dir() else str(path)
 
-        mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+        if nodeid in manifests and library in manifests[nodeid]:
+            full_declaration = manifests[nodeid][library]
+            break
 
-        if declaration.startswith("irrelevant") or declaration.startswith("flaky"):
-            mod.add_marker(pytest.mark.skip(reason=declaration))
-            logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-        else:
-            mod.add_marker(pytest.mark.xfail(reason=declaration))
-            logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+        path = path.parent
 
-        return mod
+    if full_declaration is None:
+        return None
+
+    logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
+
+    declaration, details = parse_skip_declaration(full_declaration)
+
+    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+
+    add_pytest_marker(mod, declaration, details)
+
+    return mod
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector, name, obj):
-
+def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
     if collector.istestclass(obj, name):
-
         if obj is None:
             message = f"""{collector.nodeid} is not properly collected.
             You may have forgotten to return a value in a decorator like @features"""
@@ -243,34 +321,41 @@ def pytest_pycollect_makeitem(collector, name, obj):
             try:
                 released(**declaration)(obj)
             except Exception as e:
-                raise ValueError(f"Unexpected error for {nodeid}.") from e
+                raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
 
 
-def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
-    """unselect items that are not included in the current scenario"""
+def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
 
     selected = []
     deselected = []
 
-    declared_scenarios = {}
+    all_declared_scenarios = {}
 
-    def iter_markers(self, name=None):
+    def iter_markers(self: pytest.Item, name: str | None = None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
+    must_pass_item_count = 0
     for item in items:
-        scenario_markers = list(item.iter_markers("scenario"))
-        declared_scenario = scenario_markers[0].args[0] if len(scenario_markers) != 0 else "DEFAULT"
+        # if the item has explicit scenario markers, we use them
+        # otherwise we use markers declared on its parents
+        own_markers = [marker for marker in item.own_markers if marker.name == "scenario"]
+        scenario_markers = own_markers if len(own_markers) != 0 else list(item.iter_markers("scenario"))
+        if len(scenario_markers) == 0:
+            declared_scenarios = ["DEFAULT"]
+        else:
+            declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
-        declared_scenarios[item.nodeid] = declared_scenario
+        all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
             deselected.append(item)
             continue
 
-        if context.scenario.is_part_of(declared_scenario):
+        if context.scenario.name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
@@ -283,27 +368,50 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]):
                     # including parent's markers) to exclude the skip, skipif and xfail markers.
                     item.iter_markers = types.MethodType(iter_markers, item)
 
+            if _item_must_pass(item):
+                must_pass_item_count += 1
+
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
             deselected.append(item)
-    items[:] = selected
-    config.hook.pytest_deselected(items=deselected)
+
+    if must_pass_item_count == 0 and session.config.option.skip_empty_scenario:
+        items[:] = []
+        config.hook.pytest_deselected(items=items)
+    else:
+        items[:] = selected
+        config.hook.pytest_deselected(items=deselected)
 
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
-            json.dump(declared_scenarios, f, indent=2)
+            json.dump(all_declared_scenarios, f, indent=2)
 
 
-def pytest_deselected(items):
+def pytest_deselected(items: Sequence[pytest.Item]) -> None:
     _deselected_items.extend(items)
 
 
-def _item_is_skipped(item):
+def _item_must_pass(item: pytest.Item) -> bool:
+    """Returns True if the item must pass to be considered as a success"""
+
+    if any(item.iter_markers("skip")):
+        return False
+
+    if any(item.iter_markers("xfail")):
+        return False
+
+    for marker in item.iter_markers("skipif"):  # noqa: SIM110 (it's more clear like that)
+        if all(marker.args[0]):
+            return False
+
+    return True
+
+
+def _item_is_skipped(item: pytest.Item):
     return any(item.iter_markers("skip"))
 
 
-def pytest_collection_finish(session: pytest.Session):
-
+def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
         return
 
@@ -314,16 +422,14 @@ def pytest_collection_finish(session: pytest.Session):
         except KeyboardInterrupt:  # catching ctrl+C
             context.scenario.close_targets()
             return
-        except Exception as e:
-            raise e
 
     if session.config.option.replay:
         setup_properties.load(context.scenario.host_log_folder)
 
     last_item_file = ""
     for item in session.items:
-
         if _item_is_skipped(item):
+            item.user_properties.append(("dd_tags[systest.case.outcome]", "skipped"))
             continue
 
         if not item.instance:  # item is a method bounded to a class
@@ -367,40 +473,71 @@ def pytest_collection_finish(session: pytest.Session):
     if not session.config.option.replay:
         setup_properties.dump(context.scenario.host_log_folder)
 
-    context.scenario.post_setup()
+    context.scenario.post_setup(session)
 
 
-def pytest_runtest_call(item):
+def pytest_runtest_call(item: pytest.Item) -> None:
     # add a log line for each request made by the setup, to help debugging
     setup_properties.log_requests(item)
 
 
-@pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item, call):
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(
+    fixturedef,  # noqa: ARG001, ANN001
+    request: pytest.FixtureRequest,
+) -> Generator[None, Any, None]:
+    try:
+        (yield).get_result()
+    except BaseException:
+        xfails = [*request.node.iter_markers("xfail")]
+        outcome = "xfailed" if len(xfails) != 0 else "error"
 
+        request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
+    # Run all other hooks to get the report object
+    outcome = yield
+    rep: pytest.TestReport = outcome.get_result()
+
+    if rep.when == "call":  # only attach outcome after test call
+        # rep.outcome is one of: passed, failed, skipped
+        # but json_report also distinguishes xfailed/xpassed
+        # via rep.wasxfail and outcome
+        value = rep.outcome
+        if getattr(rep, "wasxfail", None):
+            if rep.outcome == "skipped":
+                value = "xfailed"
+            elif rep.outcome == "passed":
+                value = "xpassed"
+
+        item.user_properties.append(("dd_tags[systest.case.outcome]", value))
+
+
+@pytest.hookimpl(optionalhook=True)
+def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> None | dict:
     if call.when != "setup":
         return {}
 
     return _collect_item_metadata(item)
 
 
-def pytest_json_modifyreport(json_report):
+def pytest_json_modifyreport(json_report: dict) -> None:
+    # add usefull data for reporting
+    json_report["context"] = context.serialize()
 
-    try:
-        # add usefull data for reporting
-        json_report["context"] = context.serialize()
-
-        logger.debug("Modifying JSON report finished")
-
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    logger.debug("Modifying JSON report finished")
 
 
-def pytest_sessionfinish(session, exitstatus):
-
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     logger.info("Executing pytest_sessionfinish")
 
-    context.scenario.close_targets()
+    if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
+        exitstatus = pytest.ExitCode.OK
+        session.exitstatus = pytest.ExitCode.OK
+
+    context.scenario.pytest_sessionfinish(session, exitstatus)
 
     if session.config.option.collectonly or session.config.option.replay:
         return
@@ -410,23 +547,37 @@ def pytest_sessionfinish(session, exitstatus):
     if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
-                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2,
+                {library: sorted(versions) for library, versions in ComponentVersion.known_versions.items()},
+                f,
+                indent=2,
             )
 
-        data = session.config._json_report.report  # pylint: disable=protected-access
+        if session.config.option.xmlpath:
+            # Test optimization needs to have the full name in name attribute
+            junit_report = ET.parse(session.config.option.xmlpath)  # noqa: S314
+
+            for testcase in junit_report.iter("testcase"):
+                if "classname" in testcase.attrib:
+                    testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
+                    del testcase.attrib["classname"]
+
+                if context.weblog_variant:
+                    name = testcase.attrib["name"]
+                    if name.endswith("]"):
+                        testcase.attrib["name"] = f"{name[:-1]}, {context.weblog_variant}]"
+                    else:
+                        testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
+
+            junit_report.write(session.config.option.xmlpath)
 
         try:
-            junit_modifyreport(
-                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties(),
-            )
-
+            data = session.config._json_report.report  # noqa: SLF001
             export_feature_parity_dashboard(session, data)
         except Exception:
-            logger.exception("Fail to export export reports", exc_info=True)
+            logger.exception("Fail to export reports", exc_info=True)
 
 
-def export_feature_parity_dashboard(session, data):
-
+def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
 
     result = {
@@ -434,7 +585,7 @@ def export_feature_parity_dashboard(session, data):
         "runDate": data["created"],
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
-        "language": context.scenario.library.library,
+        "language": context.library.name,
         "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
@@ -448,26 +599,26 @@ def export_feature_parity_dashboard(session, data):
         json.dump(result, f, indent=2)
 
 
-def convert_test_to_feature_parity_model(test):
+def convert_test_to_feature_parity_model(test: dict) -> dict | None:
     result = {
         "path": test["nodeid"],
         "lineNumber": test["lineno"],
         "outcome": test["outcome"],
         "testDeclaration": test["metadata"]["testDeclaration"],
         "details": test["metadata"]["details"],
-        "features": test["metadata"]["features"],
+        "features": [feature for feature in test["metadata"]["features"] if feature != NOT_REPORTED_FEATURE_ID],
     }
 
-    # exclude features.not_reported
-    return result if -1 not in result["features"] else None
+    # exclude test without a feature (they may have been flagged as not reported)
+    return result if len(result["features"]) != 0 else None
 
 
 ## Fixtures corners
 @pytest.fixture(scope="session", name="session")
-def fixture_session(request):
+def fixture_session(request: pytest.FixtureRequest) -> pytest.Session:
     return request.session
 
 
 @pytest.fixture(scope="session", name="deselected_items")
-def fixture_deselected_items():
+def fixture_deselected_items() -> list[pytest.Item]:
     return _deselected_items

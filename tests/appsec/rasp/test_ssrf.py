@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import pytest
+
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
@@ -9,14 +11,24 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
-    Base_Rules_Version,
-    Base_WAF_Version,
+    validate_metric_v2,
+    BaseRulesVersion,
+    BaseWAFVersion,
 )
+
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_UrlQuery:
     """Server-side request forgery through query parameters"""
 
@@ -34,8 +46,8 @@ class Test_Ssrf_UrlQuery:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": expected_http_value,},
-                "params": {"address": "server.request.query", "value": "169.254.169.254",},
+                "resource": {"address": "server.io.net.url", "value": expected_http_value},
+                "params": {"address": "server.request.query", "value": "169.254.169.254"},
             },
         )
 
@@ -43,6 +55,8 @@ class Test_Ssrf_UrlQuery:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyUrlEncoded:
     """Server-side request forgery through a url-encoded body parameter"""
 
@@ -60,8 +74,14 @@ class Test_Ssrf_BodyUrlEncoded:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": expected_http_value,},
-                "params": {"address": "server.request.body", "value": "169.254.169.254",},
+                "resource": {
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "169.254.169.254",
+                },
             },
         )
 
@@ -69,6 +89,8 @@ class Test_Ssrf_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyXml:
     """Server-side request forgery through an xml body parameter"""
 
@@ -79,12 +101,22 @@ class Test_Ssrf_BodyXml:
     def test_ssrf_post_xml(self):
         assert self.r.status_code == 403
 
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": "http://169.254.169.254",},
-                "params": {"address": "server.request.body", "value": "169.254.169.254",},
+                "resource": {
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "169.254.169.254",
+                },
             },
         )
 
@@ -92,6 +124,8 @@ class Test_Ssrf_BodyXml:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyJson:
     """Server-side request forgery through a json body parameter"""
 
@@ -110,8 +144,14 @@ class Test_Ssrf_BodyJson:
             self.r,
             "rasp-934-100",
             {
-                "resource": {"address": "server.io.net.url", "value": expected_http_value,},
-                "params": {"address": "server.request.body", "value": "169.254.169.254",},
+                "resource": {
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "169.254.169.254",
+                },
             },
         )
 
@@ -120,6 +160,8 @@ class Test_Ssrf_BodyJson:
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -134,6 +176,8 @@ class Test_Ssrf_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -142,7 +186,11 @@ class Test_Ssrf_Optional_SpanTags:
 
     def test_ssrf_span_tags(self):
         validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
+            self.r,
+            expected_metrics=[
+                "_dd.appsec.rasp.duration_ext",
+                "_dd.appsec.rasp.rule.eval",
+            ],
         )
 
 
@@ -150,6 +198,8 @@ class Test_Ssrf_Optional_SpanTags:
 @features.rasp_stack_trace
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
@@ -157,13 +207,14 @@ class Test_Ssrf_StackTrace:
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Ssrf_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
@@ -171,17 +222,41 @@ class Test_Ssrf_Telemetry:
         self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
 
     def test_ssrf_telemetry(self):
-        assert self.r.status_code == 403
-
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "ssrf", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "ssrf", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
+
+
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
+@features.rasp_server_side_request_forgery
+@scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
+class Test_Ssrf_Telemetry_V2:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_ssrf_telemetry(self):
+        self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
+
+    def test_ssrf_telemetry(self):
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
+        assert series_eval
+        assert any(validate_metric_v2("rasp.rule.eval", "ssrf", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
+        assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
+        assert any(validate_metric_v2("rasp.rule.match", "ssrf", s, block_action=block_action) for s in series_match), [
             s.get("tags") for s in series_match
         ]
 
@@ -196,15 +271,15 @@ class Test_Ssrf_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SSRF)
 
 
-@features.rasp_local_file_inclusion
-class Test_Ssrf_Rules_Version(Base_Rules_Version):
+@features.rasp_server_side_request_forgery
+class Test_Ssrf_Rules_Version(BaseRulesVersion):
     """Test ssrf min rules version"""
 
     min_version = "1.13.2"
 
 
-@features.rasp_local_file_inclusion
-class Test_Ssrf_Waf_Version(Base_WAF_Version):
+@features.rasp_server_side_request_forgery
+class Test_Ssrf_Waf_Version(BaseWAFVersion):
     """Test ssrf WAF version"""
 
     min_version = "1.20.1"

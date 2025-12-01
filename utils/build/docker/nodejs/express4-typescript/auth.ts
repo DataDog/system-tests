@@ -1,8 +1,15 @@
 'use strict'
 
 import type { Express, Request, Response, NextFunction } from "express";
- // @ts-ignore
+// @ts-ignore
 import type { Tracer } from "dd-trace";
+
+const semver = require('semver')
+const libraryVersion = require('dd-trace/package.json').version
+
+const shouldUseSession = semver.satisfies(libraryVersion, '>=5.35.0', { includePrerelease: true })
+
+const passport = require('passport')
 const { Strategy: LocalStrategy } = require('passport-local')
 const { BasicStrategy } = require('passport-http')
 
@@ -21,82 +28,128 @@ const users = [
   }
 ]
 
-module.exports = function (app: Express, passport: any, tracer: Tracer) {
-  passport.use(new LocalStrategy({ usernameField: 'username', passwordField: 'password' },
-    (username: string, password: string, done: any) => {
-      const user = users.find(user => (user.username === username) && (user.password === password))
-      if (!user) {
-        return done(null, false)
-      } else {
-        return done(null, user)
-      }
-    })
-  )
+function findUser (fields: any): any {
+  return users.find((user: any) => {
+    return Object.entries(fields).every(([field, value]) => user[field] === value)
+  })
+}
 
-  passport.use(new BasicStrategy((username: string, password: string, done: any) => {
-    const user = users.find(user => (user.username === username) && (user.password === password))
-    if (!user) {
-      return done(null, false)
-    } else {
-      return done(null, user)
-    }
-  }
-  ))
-
-  function handleAuthentication (req: Request, res: Response, next: NextFunction, err: any, user: any, info: any) {
+module.exports = function (app: Express, tracer: Tracer) {
+  function shouldSdkBlock (req: Request, res: Response): boolean {
     const event = req.query.sdk_event
     const userId: string = req.query.sdk_user as string || 'sdk_user'
-    const userMail = req.query.sdk_mail as  string || 'system_tests_user@system_tests_user.com'
+    const userMail = req.query.sdk_mail as string || 'system_tests_user@system_tests_user.com'
     const exists = req.query.sdk_user_exists === 'true'
 
-    if (err) {
-      console.error('unexpected login error', err)
-      return next(err)
-    }
-    if (!user) {
-      if (event === 'failure') {
-        tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
-      }
+    res.statusCode = req.user ? 200 : 401
 
-      res.sendStatus(401)
+    if (event === 'failure') {
+      tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
+
+      res.statusCode = 401
     } else if (event === 'success') {
-        tracer.appsec.trackUserLoginSuccessEvent(
-          {
-            id: userId,
-            email: userMail,
-            name: "system_tests_user"
-          },
-          {
-            metadata0: "value0",
-            metadata1: "value1"
-          }
-        )
-
-        res.sendStatus(200)
-      } else {
-        res.sendStatus(200)
+      const sdkUser = {
+        id: userId,
+        email: userMail,
+        name: "system_tests_user"
       }
-  }
 
-  function getStrategy (req: Request, res: Response, next: NextFunction) {
-    const auth = req.query && req.query.auth
-    if (auth === 'local') {
-      return passport.authenticate('local', { session: false }, function (err: any, user: any, info: any) {
-        handleAuthentication(req, res, next, err, user, info)
-      })(req, res, next)
-    } else {
-      return passport.authenticate('basic', { session: false }, function (err: any, user: any, info: any) {
-        handleAuthentication(req, res, next, err, user, info)
-      })(req, res, next)
+      tracer.appsec.trackUserLoginSuccessEvent(sdkUser, { metadata0: "value0", metadata1: "value1" })
+
+      const isUserBlocked: boolean = tracer.appsec.isUserBlocked(sdkUser)
+      if (isUserBlocked && tracer.appsec.blockRequest(req, res)) {
+        return true
+      }
+
+      res.statusCode = 200
     }
-  }
 
+    return false
+  }
 
   app.use(passport.initialize())
-  app.all('/login',
-    getStrategy,
-    (req: Request, res: Response, next: NextFunction) => {
-      res.sendStatus(200)
+
+  if (shouldUseSession) {
+    app.use(require('express-session')({
+      secret: 'secret',
+      resave: false,
+      rolling: true,
+      saveUninitialized: false
+    }))
+
+    app.use(passport.session())
+  }
+
+  passport.serializeUser((user: any, done: Function) => {
+    done(null, user.id)
+  })
+
+  passport.deserializeUser((id: string, done: Function) => {
+    const user: any = findUser({ id })
+
+    done(null, user)
+  })
+
+  passport.use(new LocalStrategy((username: string, password: string, done: Function) => {
+    const user: any = findUser({ username, password })
+
+    done(null, user)
+  }))
+
+  passport.use(new BasicStrategy((username: string, password: string, done: Function) => {
+    const user = findUser({ username, password })
+
+    done(null, user)
+  }))
+
+  // rewrite url depending on which strategy to use
+  app.all('/login', (req: Request, res: Response, next: NextFunction) => {
+    if (req.query.sdk_trigger === 'before' && shouldSdkBlock(req, res)) {
+      return
     }
-  )
+
+    let newRoute: string = ''
+
+    switch (req.query?.auth) {
+      case 'basic':
+        newRoute = '/login/basic'
+        break
+
+      case 'local':
+      default:
+        newRoute = '/login/local'
+    }
+
+    req.url = req.url.replace('/login', newRoute)
+
+    next()
+  })
+
+  app.use('/login/local', passport.authenticate('local', {
+    session: shouldUseSession,
+    failWithError: true
+  }), handleError)
+  app.use('/login/basic', passport.authenticate('basic', {
+    session: shouldUseSession,
+    failWithError: true
+  }), handleError)
+
+  // only stop if unexpected error
+  function handleError (err: any, req: Request, res: Response, next: NextFunction): void {
+    if (err?.name !== 'AuthenticationError') {
+      console.error('unexpected login error', err)
+      next(err)
+    } else {
+      next()
+    }
+  }
+
+  // callback for all strategies to run SDK
+  app.all(/^\/login\/.*$/i, (req: Request, res: Response) => {
+    if (req.query.sdk_trigger !== 'before' && shouldSdkBlock(req, res)) {
+      return
+    }
+
+    res.sendStatus(res.statusCode || 200)
+  })
 }

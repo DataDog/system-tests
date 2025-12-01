@@ -13,13 +13,11 @@ export APPSEC_VERSION=latest
 mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.conf /etc/apache2/mods-available/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
-cp -rf /tmp/php/common/*.php /var/www/html/
-cp -rf /tmp/php/common/rasp/*.php /var/www/html/rasp/
+cp -rf /tmp/php/common/* /var/www/html/
 cp -rf /tmp/php/common/install_ddtrace.sh /
 cp -rf /tmp/php/common/php.ini /etc/php/
 
-chmod 644 /var/www/html/*.php
-
+# Install required packages and PHP extensions
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
@@ -39,7 +37,6 @@ fi
 curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_${ARCH}.deb && \
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
-
 if [[ "${PHP_MAJOR_VERSION}" -ge 8 ]]; then
 	sed -i "s/%PHP_MAJOR_VERSION//g" /etc/apache2/mods-available/php.{conf,load};
 else
@@ -56,6 +53,17 @@ if ! { echo $VARIANT | grep -q zts; }; then a2dismod mpm_event; a2enmod mpm_pref
 a2enmod php
 
 sed -i s/80/7777/ /etc/apache2/ports.conf
+
+# Install Composer
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set up Monolog using Composer
+cd /var/www/html
+composer install --prefer-dist
+
+# Set proper permissions
+chmod -R 755 /var/www/html/vendor
+find /var/www/html/vendor -type f -exec chmod 644 {} \;
 
 /install_ddtrace.sh 1
 

@@ -1,9 +1,0 @@
-app_env_no_admission_controller:
-  - name: PYTHONPATH
-    value: "/datadog-lib/"
-  - name: DD_INSTALL_DDTRACE_PYTHON
-    value: 1
-  - name: NODE_OPTIONS
-    value: --require=/datadog-lib/node_modules/dd-trace/init
-  - name: JAVA_TOOL_OPTIONS
-    value: '-javaagent:/datadog-lib/dd-java-agent.jar'

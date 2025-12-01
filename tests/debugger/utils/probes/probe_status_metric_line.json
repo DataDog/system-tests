@@ -1,0 +1,23 @@
+[
+  {
+    "language": "",
+    "type": "",
+    "id": "",
+    "version": 0,
+    "kind": "COUNT",
+    "metricName": "MetricCountInt",
+    "value": {
+      "dsl" : "",
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": null,
+      "sourceFile": "ACTUAL_SOURCE_FILE",
+      "lines": [
+        "28"
+      ]
+    }
+  }
+]

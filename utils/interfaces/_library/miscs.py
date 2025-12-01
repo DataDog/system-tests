@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-""" Misc validations """
+"""Misc validations"""
 
 import re
 
@@ -12,23 +12,32 @@ class _SpanTagValidator:
 
     path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
-    def __init__(self, tags, value_as_regular_expression):
+    def __init__(self, tags: dict | None, *, value_as_regular_expression: bool):
         self.tags = {} if tags is None else tags
         self.value_as_regular_expression = value_as_regular_expression
 
-    def __call__(self, span):
-        for tagKey in self.tags:
-            if tagKey not in span["meta"]:
-                raise ValueError(f"{tagKey} tag not found in span's meta")
+    def __call__(self, span: dict):
+        for tag_key in self.tags:
+            if tag_key not in span["meta"]:
+                raise ValueError(f"{tag_key} tag not found in span's meta")
 
-            expectValue = self.tags[tagKey]
-            actualValue = span["meta"][tagKey]
+            expect_value = self.tags[tag_key]
+            actual_value = span["meta"][tag_key]
 
             if self.value_as_regular_expression:
-                if not re.compile(expectValue).fullmatch(actualValue):
-                    raise ValueError(f'{tagKey} tag value is "{actualValue}", and should match regex "{expectValue}"')
-            else:
-                if expectValue != actualValue:
-                    raise ValueError(f'{tagKey} tag in span\'s meta should be "{expectValue}", not "{actualValue}"')
+                if not re.compile(expect_value).fullmatch(actual_value):
+                    raise ValueError(
+                        f'{tag_key} tag value is "{actual_value}", and should match regex "{expect_value}"'
+                    )
+            elif expect_value != actual_value:
+                raise ValueError(f'{tag_key} tag in span\'s meta should be "{expect_value}", not "{actual_value}"')
 
         return True
+
+
+def validate_process_tags(process_tags: str):
+    # entrypoint name and workdir can always be defined.
+    if "entrypoint.name:" not in process_tags:
+        raise ValueError(f"No entrypoint.name defined in process tags. Current: {process_tags}")
+    if "entrypoint.workdir:" not in process_tags:
+        raise ValueError(f"No entrypoint.workdir defined in process tags. Current: {process_tags}")

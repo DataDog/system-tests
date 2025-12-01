@@ -4,17 +4,17 @@
 
 import json
 import os
+from pathlib import Path
 from tests.fuzzer.tools._tools import cached_property
 
 
 class _Data:
     def __init__(self):
-
         self.header_valid_list = "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~"
 
     @cached_property
     def _data_path(self):
-        return os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        return os.path.realpath(os.path.join(str(Path.cwd()), str(Path(__file__).parent)))
 
     @cached_property
     def blns(self):

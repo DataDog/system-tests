@@ -7,6 +7,7 @@ import java.util.Map;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kinesis.KinesisClient;
+import software.amazon.awssdk.services.kinesis.KinesisClientBuilder;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
 import software.amazon.awssdk.services.kinesis.model.CreateStreamResponse;
 import software.amazon.awssdk.services.kinesis.model.DescribeStreamRequest;
@@ -35,10 +36,19 @@ public class KinesisConnector {
     }
 
     public KinesisClient createKinesisClient() {
-        KinesisClient kinesisClient = KinesisClient.builder()
+        KinesisClientBuilder builder = KinesisClient.builder()
             .region(this.region)
-            .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
-            .build();
+            .credentialsProvider(EnvironmentVariableCredentialsProvider.create());
+
+        // Read the SYSTEM_TESTS_AWS_URL environment variable
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        // Only override endpoint if SYSTEM_TESTS_AWS_URL is set
+        if (systemTestsAwsUrl != null && !systemTestsAwsUrl.isEmpty()) {
+            builder.endpointOverride(URI.create(systemTestsAwsUrl));
+        }
+
+        KinesisClient kinesisClient = builder.build();
         return kinesisClient;
     }
 

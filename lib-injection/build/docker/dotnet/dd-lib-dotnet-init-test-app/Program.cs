@@ -2,14 +2,8 @@ using System.Diagnostics;
 
 if (Environment.GetEnvironmentVariable("FORKED") != null)
 {
-    var thread = new Thread(() =>
-    {
-        Thread.Sleep(5_000); // Add a small delay otherwise the telemetry forwarder leaves a zombie process behind
-        throw new BadImageFormatException("Expected");
-    });
-
-    thread.Start();
-    thread.Join();
+    Thread.Sleep(5_000); // Add a small delay otherwise the telemetry forwarder leaves a zombie process behind
+    CrashMe(null);
 
     // Should never get there
     Thread.Sleep(Timeout.Infinite);
@@ -17,6 +11,19 @@ if (Environment.GetEnvironmentVariable("FORKED") != null)
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
+
+static string CrashMe(HttpRequest? request)
+{
+    var thread = new Thread(() =>
+    {
+        throw new BadImageFormatException("Expected");
+    });
+
+    thread.Start();
+    thread.Join();
+
+    return "Failed to crash";
+}
 
 static string ForkAndCrash(HttpRequest request)
 {
@@ -172,6 +179,7 @@ static string GetZombies(HttpRequest request)
 
 
 app.MapGet("/", () => "Hello World!");
+app.MapGet("/crashme", CrashMe);
 app.MapGet("/fork_and_crash", ForkAndCrash);
 app.MapGet("/child_pids", GetChildPids);
 app.MapGet("/zombies", GetZombies);

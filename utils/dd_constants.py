@@ -1,6 +1,4 @@
 from enum import IntEnum
-from opentelemetry.trace import SpanKind  # pylint: disable=W0611
-from opentelemetry.trace import StatusCode  # pylint: disable=W0611
 
 
 # Key used in the metrics map to indicate tracer sampling priority
@@ -29,7 +27,7 @@ PYTHON_RELEASE_GA_1_1 = "1.5.0rc1.dev"
 
 
 class RemoteConfigApplyState(IntEnum):
-    """ https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc """
+    """https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc"""
 
     UNKNOWN = 0
     UNACKNOWLEDGED = 1
@@ -53,14 +51,66 @@ class Capabilities(IntEnum):
     APM_TRACING_LOGS_INJECTION = 13
     APM_TRACING_HTTP_HEADER_TAGS = 14
     APM_TRACING_CUSTOM_TAGS = 15
+    ASM_PROCESSOR_OVERRIDES = 16
+    ASM_CUSTOM_DATA_SCANNERS = 17
+    ASM_EXCLUSION_DATA = 18
     APM_TRACING_ENABLED = 19
+    APM_TRACING_DATA_STREAMS_ENABLED = 20
     ASM_RASP_SQLI = 21
     ASM_RASP_LFI = 22
     ASM_RASP_SSRF = 23
     ASM_RASP_SHI = 24
+    ASM_RASP_XXE = 25
+    ASM_RASP_RCE = 26
+    ASM_RASP_NOSQLI = 27
+    ASM_RASP_XSS = 28
     APM_TRACING_SAMPLE_RULES = 29
+    CSM_ACTIVATION = 30
+    ASM_AUTO_USER_INSTRUM_MODE = 31
     ASM_ENDPOINT_FINGERPRINT = 32
     ASM_SESSION_FINGERPRINT = 33
     ASM_NETWORK_FINGERPRINT = 34
     ASM_HEADER_FINGERPRINT = 35
+    ASM_TRUNCATION_RULES = 36
     ASM_RASP_CMDI = 37
+    APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION = 38
+    APM_TRACING_ENABLE_EXCEPTION_REPLAY = 39
+    APM_TRACING_ENABLE_CODE_ORIGIN = 40
+    APM_TRACING_ENABLE_LIVE_DEBUGGING = 41
+    ASM_DD_MULTICONFIG = 42
+    ASM_TRACE_TAGGING_RULES = 43
+    ASM_EXTENDED_DATA_COLLECTION = 44
+    APM_TRACING_MULTICONFIG = 45
+    FFE_FLAG_CONFIGURATION_RULES = 46
+
+
+class SamplingPriority(IntEnum):
+    USER_REJECT = -1
+    AUTO_REJECT = 0
+    AUTO_KEEP = 1
+    USER_KEEP = 2
+
+
+class SamplingMechanism(IntEnum):
+    UNKNOWN = -1
+    DEFAULT = 0
+    AGENT_RATE = 1
+    REMOTE_RATE = 2
+    RULE_RATE = 3
+    MANUAL = 4
+    APPSEC = 5
+    REMOTE_USER_RATE = 6
+    SINGLE_SPAN = 8
+    RESERVED_9 = 9
+    RESERVED_10 = 10
+    REMOTE_USER_RULE = 11
+    REMOTE_DYNAMIC_RULE = 12
+
+
+class SpanKind(IntEnum):
+    UNSPECIFIED = 0
+    INTERNAL = 1
+    SERVER = 2
+    CLIENT = 3
+    PRODUCER = 4
+    CONSUMER = 5

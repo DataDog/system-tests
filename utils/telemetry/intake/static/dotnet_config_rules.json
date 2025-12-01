@@ -1,0 +1,10 @@
+{
+    "normalization_rules": {
+        "commitsha": "commit_sha",
+        "gitmetadataenabled": "git_metadata_enabled",
+        "repositoryurl": "repository_url"
+    },
+    "prefix_block_list": [],
+    "redaction_list": [],
+    "reduce_rules": {}
+}

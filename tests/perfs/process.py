@@ -1,14 +1,15 @@
 import json
 from collections import defaultdict
 from statistics import mean, stdev
+import matplotlib.pyplot as plt
 from os import environ
 
 
-LOG_FOLDER = environ["LOG_FOLDER"] if "LOG_FOLDER" in environ else "logs"
+LOG_FOLDER = environ.get("LOG_FOLDER", "logs")
 LIBS = ("golang", "dotnet", "java", "nodejs", "php", "ruby")
 
 
-def get_bucket(size):
+def get_bucket(size) -> str:
     if size < 10000:
         return "Requests < 10ko"
 
@@ -18,7 +19,7 @@ def get_bucket(size):
     return "Requests > 1Mo"
 
 
-def compute_file(filename):
+def compute_file(filename) -> dict:
     buckets = defaultdict(list)
     results = {}
     with open(filename, encoding="utf-8") as f:
@@ -37,11 +38,11 @@ def compute_file(filename):
     return results
 
 
-def report(bucket, without, with_, diff):
+def report(bucket, without, with_, diff) -> None:
     print(f"{bucket: <16} | {without: <24} | {with_: <24} | {diff}")
 
 
-def compute(lib):
+def compute(lib) -> None:
     try:
         without_appsec = compute_file(f"logs_without_appsec//stats_{lib}_without_appsec.json")
         with_appsec = compute_file(f"logs_with_appsec/stats_{lib}_with_appsec.json")
@@ -67,18 +68,13 @@ def compute(lib):
     print()
 
 
-def plot():
-    try:
-        import matplotlib.pyplot as plt
-    except ModuleNotFoundError:
-        return
-
+def plot() -> None:
     def add_plot(filename, label, axis):
         with open(filename, encoding="utf-8") as f:
             data = json.load(f)["memory"]
 
         x = [d[0] for d in data]
-        y = [d[1] / (1024 ** 2) for d in data]
+        y = [d[1] / (1024**2) for d in data]
 
         axis.plot(x, y, label=label)
 
@@ -98,7 +94,7 @@ def plot():
     fig.savefig("test.png")
 
 
-def main():
+def main() -> None:
     for lib in LIBS:
         compute(lib)
 

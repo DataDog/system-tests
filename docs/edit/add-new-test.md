@@ -3,7 +3,7 @@ Whether it's adding a new test or modifying an existing test, a moderate amount 
 Once the changes are complete, post them in a PR.
 
 #### Notes
-* Each test class tests only one feature
+* Each test class tests only one feature (see [the doc on features](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md))
 * A test class can have several tests
 * If an RFC for the feature exists, you must use the decorator `rfc` decorator:
 ```python
@@ -29,11 +29,16 @@ class Test_Feature():
         assert my_var + 1 == 2
 ```
 
-The weblog apps are responsible for generating instrumentation. Your test should send a request to the weblog and inspect the response. There are various endpoints on weblogs for performing dedicated behaviors (e.g, starting a span, etc). When writing a new test, you might use one of the existing endpoints or create a new one if needed. To validate the response from the weblog, you can use an interface validator:
+## Weblog Requests and Interface Validation
+
+The weblog apps are responsible for generating instrumentation. Your test should send a request to the weblog and inspect the response. There are various endpoints on weblogs for performing dedicated behaviors (e.g, starting a span, etc). When writing a new test, you might use one of the existing endpoints or create a new one if needed.
+
+To validate the response from the weblog and ensure data flows correctly through the system, system-tests provides three powerful interface validators that intercept and validate data at different stages of the pipeline:
+
+### Interface Validators Overview
 
 ```python
 from utils import weblog, interfaces
-
 
 class Test_Feature():
     def setup_feature_detail(self):
@@ -41,8 +46,90 @@ class Test_Feature():
 
     def test_feature_detail(self):
         """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
+        # Validate data at tracer-to-agent level
+        interfaces.library.validate_spans(self.r, validator=lambda span: span["meta"]["http.method"] == "GET")
+
+        # Validate data at agent-to-backend level
+        interfaces.agent.assert_trace_exists(self.r)
+
+        # Validate data reaches the backend and is searchable
+        interfaces.backend.assert_library_traces_exist(self.r)
 ```
+
+### Available Interface Validators
+
+1. **Library Interface (`interfaces.library`)** - Validates messages between instrumented applications and the Datadog Agent
+   - Intercepts raw tracer output before agent processing
+   - Perfect for validating span content, AppSec events, telemetry, and remote configuration
+   - See detailed methods: [Library Interface Validation Methods](../internals/library-interface-validation-methods.md)
+
+2. **Agent Interface (`interfaces.agent`)** - Validates messages between the Datadog Agent and Datadog Backend
+   - Intercepts data after agent processing (sampling, aggregation, transformation)
+   - Ideal for validating metrics, stats, processed traces, and agent forwarding behavior
+   - See detailed methods: [Agent Interface Validation Methods](../internals/agent-interface-validation-methods.md)
+
+3. **Backend Interface (`interfaces.backend`)** - Validates data by querying Datadog's production APIs
+   - Makes actual API calls to verify end-to-end data ingestion
+   - Essential for validating search functionality and customer-visible data
+   - Requires `DD_API_KEY` and `DD_APP_KEY` environment variables
+   - See detailed methods: [Backend Interface Validation Methods](../internals/backend-interface-validation-methods.md)
+
+### Common Validation Patterns
+
+#### Basic Trace Validation
+```python
+def test_basic_tracing(self):
+    r = weblog.get("/")
+
+    # Ensure trace exists at library level
+    interfaces.library.assert_trace_exists(r)
+
+    # Validate specific span tags
+    interfaces.library.add_span_tag_validation(r, tags={"http.method": "GET"})
+
+    # Verify trace reaches backend
+    interfaces.backend.assert_library_traces_exist(r)
+```
+
+#### AppSec Event Validation
+```python
+def test_waf_attack_detection(self):
+    r = weblog.get("/", headers={"X-Attack": "' OR 1=1--"})
+
+    # Validate WAF attack detection at library level
+    interfaces.library.assert_waf_attack(r, rule="sqli-detection")
+
+    # Ensure AppSec data reaches agent
+    def appsec_validator(data, payload, chunk, span, appsec_data):
+        return "triggers" in appsec_data
+    interfaces.agent.validate_appsec(r, appsec_validator)
+```
+
+#### Custom Validation with Validators
+```python
+def test_custom_span_validation(self):
+    r = weblog.get("/custom-endpoint")
+
+    def service_validator(span):
+        return span.get("service") == "my-custom-service"
+
+    interfaces.library.validate_spans(r, validator=service_validator)
+```
+
+### Data Flow Understanding
+
+Understanding where each interface validates data helps you choose the right validator:
+
+```
+[Tracer] → [Agent] → [Backend] → [APIs]
+    ↑          ↑          ↑
+Library    Agent     Backend
+Interface  Interface Interface
+```
+
+- **Library Interface**: Raw tracer output, before any agent processing
+- **Agent Interface**: Processed data being sent to backend (sampled, aggregated)
+- **Backend Interface**: Final ingested data available through production APIs
 
 Sometimes you need to [skip a test](./skip-tests.md):
 
@@ -58,7 +145,7 @@ class Test_Feature():
     @bug(library="ruby", reason="APPSEC-123")
     def test_feature_detail(self):
         """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
+        interfaces.library.validate_spans(self.r, validator=lambda span: span["meta"]["http.method"] == "GET")
 ```
 
 You'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.

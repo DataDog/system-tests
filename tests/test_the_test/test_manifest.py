@@ -1,5 +1,5 @@
 from functools import lru_cache
-import os
+from pathlib import Path
 import re
 import semantic_version as semver
 
@@ -11,21 +11,19 @@ from utils import scenarios
 def get_variants_map():
     result = {}
 
-    for folder in os.listdir("utils/build/docker"):
-        folder_path = os.path.join("utils/build/docker/", folder)
-        if not os.path.isdir(folder_path):
+    for folder in Path("utils/build/docker").iterdir():
+        if not folder.is_dir():
             continue
 
-        result[folder] = ["*"]
-        for file in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, file)
-            if os.path.isdir(file_path):
+        result[folder.name] = ["*"]
+        for file in folder.iterdir():
+            if file.is_dir():
                 continue
-            if not file.endswith(".Dockerfile"):
+            if not file.name.endswith(".Dockerfile"):
                 continue
 
-            variant = file[: -len(".Dockerfile")]
-            result[folder].append(variant)
+            variant = file.name.removesuffix(".Dockerfile")
+            result[folder.name].append(variant)
 
     return result
 
@@ -38,26 +36,14 @@ def test_formats():
 @scenarios.test_the_test
 def test_content():
     @lru_cache
-    def get_file_content(path):
+    def get_file_content(path: str):
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
 
-    def assert_in(elements, module, nodeid):
-        if len(elements) == 0:
-            return
-
-        name = elements.pop(0)
-        if name.endswith(".py"):
-            name = name[:-3]
-
-        assert hasattr(module, name), f"Manifest path {nodeid} does not correspond to any test {dir(module)}"
-
-        assert_in(elements, getattr(module, name), nodeid)
-
-    def assert_valid_declaration(declaration):
+    def assert_valid_declaration(declaration: str):
         assert isinstance(declaration, str)
 
-        if re.match(r"^(bug|flaky|irrelevant|missing_feature)( \(.+\))?$", declaration):
+        if re.match(r"^(bug|flaky|irrelevant|missing_feature|incomplete_test_app)( \(.+\))?$", declaration):
             return
 
         # must be a version declaration or semver spec
@@ -79,19 +65,23 @@ def test_content():
         component = list(manifest[nodeid])[0]  # blame the first one
 
         if "::" in nodeid:
-            file, klass = nodeid.split("::")
+            path, klass = nodeid.split("::")
         else:
-            file, klass = nodeid, None
+            path, klass = nodeid, None
 
-        try:
-            content = get_file_content(file)
-        except FileNotFoundError as e:
-            raise ValueError(f"In {component} manifest, file {file} is declared, but does not exists") from e
+        if path.endswith(".py"):
+            try:
+                content = get_file_content(path)
+            except FileNotFoundError as e:
+                raise ValueError(f"In {component} manifest, file {path} is declared, but does not exists") from e
 
-        if klass is not None:
-            assert (
-                f"class {klass}" in content
-            ), f"In {component} manifest, class {klass} is declared in {file}, but does not exists"
+            if klass is not None:
+                assert f"class {klass}" in content, (
+                    f"In {component} manifest, class {klass} is declared in {path}, but does not exists"
+                )
+
+        elif path.endswith("/"):
+            assert Path(path).is_dir(), f"In {component} manifest, folder {path} is declared, but does not exists"
 
         # check variant names
         for component, declaration in manifest[nodeid].items():

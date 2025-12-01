@@ -1,0 +1,18 @@
+[
+  {
+    "language": "",
+    "type": "",
+    "id": "loga0cf2-meth-45cf-9f39-592method",
+    "version": 0,
+    "where": {
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "Budgets",
+      "sourceFile": null
+    },
+    "segments": [
+      {
+        "str": "log message received"
+      }
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+name: "Lint"
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - run: source venv/bin/activate
+        shell: bash
+      - name: Install node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 20
+      - name: Black, pylint, tailing whitespaces, yaml, shellcheck, and language-specific checks
+        shell: bash
+        run: ./format.sh --check
+      - if: ${{ failure() }}
+        shell: bash
+        run:
+          'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/format.md"
+
+          exit 1
+
+          '

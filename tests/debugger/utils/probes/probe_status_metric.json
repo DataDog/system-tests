@@ -1,0 +1,40 @@
+[
+  {
+    "language": "",
+    "type": "",
+    "id": "",
+    "version": 0,
+    "metricName": "MetricCountInt",
+    "kind": "COUNT",
+    "value": {
+      "dsl" : "",
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": "NotReallyExists",
+      "methodName": "SomeMethod",
+      "sourceFile": null
+    }
+  },
+  {
+    "language": "",
+    "type": "",
+    "id": "",
+    "version": 0,
+    "metricName": "MetricCountInt",
+    "kind": "COUNT",
+    "value": {
+      "dsl" : "",
+      "json": {
+        "ref": "id"
+      }
+    },
+    "where": {
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "MetricProbe",
+      "sourceFile": null
+    }
+  }
+]

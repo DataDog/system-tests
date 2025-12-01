@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace weblog
@@ -28,9 +29,9 @@ namespace weblog
             [JsonPropertyName("status_code")]
             public int StatusCode { get; set; }
             [JsonPropertyName("request_headers")]
-            public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? RequestHeaders { get; set; }
+            public Dictionary<string, string>? RequestHeaders { get; set; }
             [JsonPropertyName("response_headers")]
-            public IEnumerable<KeyValuePair<string, IEnumerable<string>>>? ResponseHeaders { get; set; }
+            public Dictionary<string, string>? ResponseHeaders { get; set; }
         }
 
         public void Register(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routeBuilder)
@@ -53,8 +54,8 @@ namespace weblog
                 {
                     Url = parameters.Url,
                     StatusCode = (int)response.StatusCode,
-                    RequestHeaders = response.RequestMessage?.Headers,
-                    ResponseHeaders = response.Headers,
+                    RequestHeaders = response.RequestMessage?.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
+                    ResponseHeaders = response.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
                 };
 
                 await context.Response.WriteAsJsonAsync(endpointResponse);

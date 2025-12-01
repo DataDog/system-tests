@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, interfaces, weblog, features, irrelevant, rfc
+from utils._weblog import HttpResponse
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
@@ -12,7 +13,7 @@ class Test_ShellExecution:
     """Test shell execution tracing"""
 
     @staticmethod
-    def fetch_command_execution_span(r):
+    def fetch_command_execution_span(r: HttpResponse) -> dict:
         assert r.status_code == 200
 
         traces = [t for _, t in interfaces.library.get_traces(request=r)]
@@ -31,7 +32,7 @@ class Test_ShellExecution:
 
     def setup_track_cmd_exec(self):
         self.r_cmd_exec = weblog.post(
-            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": "foo"},
+            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": "foo"}
         )
 
     @irrelevant(
@@ -46,7 +47,7 @@ class Test_ShellExecution:
 
     def setup_track_shell_exec(self):
         self.r_shell_exec = weblog.post(
-            "/shell_execution", json={"command": "echo", "options": {"shell": True}, "args": "foo"},
+            "/shell_execution", json={"command": "echo", "options": {"shell": True}, "args": "foo"}
         )
 
     @irrelevant(library="java", reason="No method for shell execution in Java")
@@ -59,7 +60,7 @@ class Test_ShellExecution:
     def setup_truncate_1st_argument(self):
         args = ["a" * 4096, "arg"]
         self.r_truncation = weblog.post(
-            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args},
+            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args}
         )
 
     @irrelevant(
@@ -78,7 +79,7 @@ class Test_ShellExecution:
     def setup_truncate_blank_2nd_argument(self):
         args = ["a" * 4092, "arg"]
         self.r_truncation = weblog.post(
-            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args},
+            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args}
         )
 
     @irrelevant(
@@ -96,7 +97,7 @@ class Test_ShellExecution:
     def setup_obfuscation(self):
         args = "password 1234"
         self.r_obfuscation = weblog.post(
-            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args},
+            "/shell_execution", json={"command": "echo", "options": {"shell": False}, "args": args}
         )
 
     @irrelevant(

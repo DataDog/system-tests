@@ -13,7 +13,8 @@ lang_variant:
           curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
           rbenv install 3.0.2 --verbose
           rbenv global 3.0.2
-          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem update --system 3.4.22
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.4.22'
 
       - os_type: linux
         os_distro: rpm
@@ -33,16 +34,12 @@ lang_variant:
           curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
           rbenv install 3.0.2 --verbose
           rbenv global 3.0.2
-          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem update --system 3.4.22
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.4.22'
 
 
 weblog:
     name: test-app-ruby
-    # fedora are excluded because they do not provide the right Ruby versions
-    # TODO oracle_linux and alma_linux. Failed when we run the app. Related with how we install Ruby
-    #Ubuntu_18_amd64, ubuntu 20: installation fails
-    #rhel_7_amd64 skipping (instrumentation) due to ignore rules for language ruby: Unsupported host architecture 
-    excluded_os_branches: [ubuntu18_amd64,ubuntu20_amd64, ubuntu20_arm64, oracle_linux, alma_linux, fedora, debian, rhel_7_amd64]
     install:
       - os_type: linux
 

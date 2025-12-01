@@ -1,8 +1,9 @@
-require 'pry'
 require 'sinatra'
-require "net/http"
-require "uri"
+require 'sinatra/json'
+require 'net/http'
+require 'uri'
 require 'json'
+require 'faraday'
 
 begin
   require 'datadog/auto_instrument'
@@ -13,9 +14,7 @@ end
 Datadog.configure do |c|
   c.diagnostics.debug = true
 
-  unless c.respond_to?(:tracing)
-    c.use :sinatra, service_name: (ENV['DD_SERVICE'] || 'sinatra')
-  end
+  c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
 end
 
 require 'rack/contrib/post_body_content_type_parser'
@@ -24,9 +23,9 @@ use Rack::PostBodyContentTypeParser
 # Send non-web init event
 
 if defined?(Datadog::Tracing)
-  Datadog::Tracing.trace('init.service') { }
+  Datadog::Tracing.trace('init.service') {}
 else
-  Datadog.tracer.trace('init.service') { }
+  Datadog.tracer.trace('init.service') {}
 end
 
 get '/' do
@@ -42,22 +41,24 @@ get '/healthcheck' do
   {
     status: 'ok',
     library: {
-      language: 'ruby',
+      name: 'ruby',
       version: version
     }
   }.to_json
-
 end
 
 post '/' do
   'Hello, world!'
 end
 
-get '/waf' do
+# NOTE: The issue of trailing slashes was fixed in 2.0
+#       https://github.com/sinatra/sinatra/blob/fa99a21461d4f1f5337b9b9d7a38a1b51c8f4e55/CHANGELOG.md?plain=1#L491
+#       otherwise we will use `set :strict_paths, false`
+get %r{^/waf/?$} do
   'Hello, world!'
 end
 
-post '/waf' do
+post %r{^/waf/?$} do
   'Hello, world!'
 end
 
@@ -73,7 +74,6 @@ get '/params/:value' do
   'Hello, world!'
 end
 
-
 get '/spans' do
   begin
     repeats = Integer(request.params['repeats'] || 0)
@@ -83,7 +83,7 @@ get '/spans' do
 
     'bad request'
   else
-    repeats.times do |i|
+    repeats.times do |_i|
       Datadog::Tracing.trace('repeat-#{i}') do |span|
         garbage.times do |j|
           span.set_tag("garbage-#{j}", "#{j}")
@@ -127,7 +127,7 @@ end
 get '/make_distant_call' do
   content_type :json
 
-  url = request.params["url"]
+  url = request.params['url']
   uri = URI(url)
   request = nil
   response = nil
@@ -140,9 +140,9 @@ get '/make_distant_call' do
 
   result = {
     "url": url,
-    "status_code": response.code,
+    "status_code": response.code.to_i,
     "request_headers": request.each_header.to_h,
-    "response_headers": response.each_header.to_h,
+    "response_headers": response.each_header.to_h
   }
 
   result.to_json
@@ -152,7 +152,7 @@ require 'datadog/kit/appsec/events'
 
 get '/user_login_success_event' do
   Datadog::Kit::AppSec::Events.track_login_success(
-    Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
+    Datadog::Tracing.active_trace, user: { id: 'system_tests_user' }, metadata0: 'value0', metadata1: 'value1'
   )
 
   'Ok'
@@ -160,37 +160,73 @@ end
 
 get '/user_login_failure_event' do
   Datadog::Kit::AppSec::Events.track_login_failure(
-    Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: "value0", metadata1: "value1"
+    Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: 'value0', metadata1: 'value1'
   )
 
   'Ok'
 end
 
 get '/custom_event' do
-  Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace,  metadata0: "value0", metadata1: "value1")
+  Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace, metadata0: 'value0',
+                                                                                          metadata1: 'value1')
 
   'Ok'
 end
 
-%i(get post options).each do |request_method|
+post '/user_login_success_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+    params['login'],
+    params['user_id'],
+    **params.fetch('metadata', {}).transform_keys(&:to_sym)
+  )
+
+  'OK'
+end
+
+post '/user_login_failure_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+    params['login'],
+    params.fetch('exists', 'false') == 'true',
+    params.fetch('metadata', {}).transform_keys(&:to_sym)
+  )
+
+  'OK'
+end
+
+%i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
-    if request_method == :post && params["tag_value"].include?('payload_in_response_body')
-      content_type :json
-      return {"payload":  request.POST }.to_json
+    event_value = params['tag_value']
+    status_code = params['status_code']
+
+    headers_from_query = request.query_string.split('&').map { |e| e.split('=') } || []
+    headers_from_query.each do |key, value|
+      response.headers[key] = value
+    end
+
+    if request.request_method == 'POST' && event_value.include?('payload_in_response_body')
+      return json(payload: request.POST)
     end
 
     trace = Datadog::Tracing.active_trace
-    trace.set_tag("appsec.events.system_tests_appsec_event.value", params["tag_value"])
+    trace.set_tag('appsec.events.system_tests_appsec_event.value', event_value)
 
-    status params["status_code"]
-    headers request.params || {}
-
+    status status_code
     'Value tagged'
   end
 end
 
 get '/users' do
-  user_id = request.params["user"]
+  user_id = request.params['user']
 
   Datadog::Kit::Identity.set_user(id: user_id)
 
@@ -218,8 +254,51 @@ get '/returnheaders' do
 
   # Convert headers from Rack format to browser format
 
-  headers = request.env.select { |k, v| k.start_with?('HTTP_') }
+  headers = request.env.select { |k, _v| k.start_with?('HTTP_') }
   headers = headers.transform_keys { |k| k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-') }
 
   headers.to_json
+end
+
+get '/sample_rate_route/:i' do
+  'OK'
+end
+
+get '/api_security_sampling/:i' do
+  'Hello!'
+end
+
+get '/api_security/sampling/:status' do
+  status params['status'].to_i
+  'OK'
+end
+
+ssrf_handler = lambda do
+  url = URI.parse(request.params['domain'])
+  url = "http://#{url}" unless url.scheme
+
+  Faraday.get(url)
+
+  'OK'
+end
+get '/rasp/ssrf', &ssrf_handler
+post '/rasp/ssrf', &ssrf_handler
+
+get '/flush' do
+  # NOTE: If anything needs to be flushed here before the test suite ends,
+  #       this is the place to do it.
+  #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+  if (telemetry = Datadog.send(:components)&.telemetry)
+    telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
+
+    # HACK: In the current implementation there is no way to force the flushing.
+    #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+    #       and just wait till all penging messages are flushed.
+    #
+    # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+    #       value carefully.
+    sleep 0.2
+  end
+
+  'OK'
 end

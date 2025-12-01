@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
@@ -10,16 +10,20 @@
 #
 # Binaries sources:
 #
-# * Agent:  Docker hub datadog/agent-dev:master-py3
-# * Golang: gopkg.in/DataDog/dd-trace-go.v1@main
-# * .NET:   ghcr.io/datadog/dd-trace-dotnet
-# * Java:   ghcr.io/datadog/dd-trace-java
-# * PHP:    ghcr.io/datadog/dd-trace-php
-# * NodeJS: Direct from github source
-# * C++:    Direct from github source
-# * Python: Direct from github source
-# * Ruby:   Direct from github source
-# * WAF:    Direct from github source, but not working, as this repo is now private
+# * Agent:         Docker hub datadog/agent-dev:master-py3
+# * cpp_httpd:     Github action artifact
+# * cpp_nginx:     From circle ci
+# * Golang:        github.com/DataDog/dd-trace-go/v2@main
+# * .NET:          ghcr.io/datadog/dd-trace-dotnet
+# * Java:          S3
+# * PHP:           ghcr.io/datadog/dd-trace-php
+# * Node.js:       Direct from github source
+# * C++:           Direct from github source
+# * Python:        Clone locally the github repo
+# * Ruby:          Direct from github source
+# * WAF:           Direct from github source, but not working, as this repo is now private
+# * Python Lambda: Fetch from GitHub Actions artifact
+# * Rust:          Clone locally the github repo
 ##########################################################################################
 
 set -eu
@@ -31,6 +35,17 @@ assert_version_is_dev() {
   fi
 
   echo "Don't know how to load version $VERSION for $TARGET"
+
+  exit 1
+}
+
+assert_target_branch_is_not_set() {
+
+  if [[ -z "${LIBRARY_TARGET_BRANCH:-}" ]]; then
+    return 0
+  fi
+
+  echo "It is not possible to specify the '$LIBRARY_TARGET_BRANCH' target branch for $TARGET library yet"
 
   exit 1
 }
@@ -89,20 +104,23 @@ get_circleci_artifact() {
 
     ARTIFACTS=$(curl --silent https://circleci.com/api/v2/project/$SLUG/$JOB_NUMBER/artifacts -H "Circle-Token: $CIRCLECI_TOKEN")
     QUERY=".items[] | select(.path | test(\"$ARTIFACT_PATTERN\"))"
-    ARTIFACT_URL=$(echo $ARTIFACTS | jq -r "$QUERY | .url")
+    readarray -t ARTIFACT_URLS < <(jq -r "$QUERY | .url" <<< "$ARTIFACTS")
 
-    if [ -z "$ARTIFACT_URL" ]; then
+    if [[ ${#ARTIFACT_URLS[@]} -eq 0 ]]; then
         echo "Oooops, I did not found any artifact that satisfy this pattern: $ARTIFACT_PATTERN. Here is the list:"
         echo $ARTIFACTS | jq -r ".items[] | .path"
         exit 1
     fi
+    echo "${ARTIFACT_URLS[@]}"
 
-    ARTIFACT_NAME=$(echo $ARTIFACTS | jq -r "$QUERY | .path" | sed -E 's/libs\///')
-    echo "Artifact URL: $ARTIFACT_URL"
-    echo "Artifact name: $ARTIFACT_NAME"
-    echo "Downloading artifact..."
-
-    curl --silent -L $ARTIFACT_URL --output $ARTIFACT_NAME
+    local aurl= aname=
+    for aurl in "${ARTIFACT_URLS[@]}"; do
+      aname="${aurl##*/}"
+      echo "Artifact URL: $aurl"
+      echo "Artifact Name: $aname"
+      echo "Downloading artifact..."
+      curl --silent -L "$aurl" --output "$aname"
+    done
 }
 
 get_github_action_artifact() {
@@ -111,26 +129,35 @@ get_github_action_artifact() {
     SLUG=$1
     WORKFLOW=$2
     BRANCH=$3
-    PATTERN=$4
+    ARTIFACT_NAME=$4
+    PATTERN=$5
+    IGNORE_FAILED_WORKFLOW=${6:-true}  # 6th arg, with default "true"
 
     # query filter seems not to be working ??
-    WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
+    WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
-    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    if [ "$IGNORE_FAILED_WORKFLOW" = "true" ]; then
+        QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    else
+        QUERY="[.workflow_runs[] | select(.head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    fi
+
+    # this wil fail if there are more than 100 artifacts
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
-    HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
-    echo "Load artifact $HTML_URL"
-    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
+    ARTIFACT_URL="$ARTIFACT_URL?per_page=100"
 
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
+    echo "Load artifacts for $HTML_URL"
+    ARTIFACTS=$(curl --silent -H "Authorization: token $GITHUB_TOKEN" $ARTIFACT_URL)
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))) | .[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
-    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
+    curl -H "Authorization: token $GITHUB_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
 
-    find artifacts/ -type f -name $PATTERN -exec cp '{}' . ';'
+    find artifacts/ -type f -name "$PATTERN" -exec cp '{}' . ';'
 
     rm -rf artifacts artifacts.zip
 }
@@ -139,14 +166,14 @@ get_github_release_asset() {
     SLUG=$1
     PATTERN=$2
 
-    release=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
+    release=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
 
     name=$(echo $release | jq -r ".assets[].name | select(test(\"$PATTERN\"))")
     url=$(echo $release | jq -r ".assets[].browser_download_url | select(test(\"$PATTERN\"))")
 
     echo "Load $url"
 
-    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url
+    curl -H "Authorization: token $GITHUB_TOKEN" --output $name -L $url
 }
 
 if test -f ".env"; then
@@ -156,84 +183,184 @@ fi
 TARGET=$1
 VERSION=${2:-'dev'}
 
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
+GITHUB_AUTH_HEADER=()
+if [ -n "$GITHUB_TOKEN" ]; then
+  GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $GITHUB_TOKEN")
+fi
+
 echo "Load $VERSION binary for $TARGET"
 
 cd binaries/
 
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+
+    curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-latest_snapshot}"
+    # Normalize branch name for image tag: replace '/' with '_'
+    NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
+
     rm -rf *.tar.gz
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+    if [ -n "$GITHUB_TOKEN" ]; then
+        echo "Log to GHCR with token"
+        echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
+    fi
+
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    echo "git+https://github.com/DataDog/dd-trace-py.git" > python-load-from-pip
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
-    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git'" > ruby-load-from-bundle-add
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git', branch: '$LIBRARY_TARGET_BRANCH'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
+
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
+    mkdir -p temp
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest_snapshot ./temp
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/latest/datadog-setup.php"
+        echo "Downloading datadog-setup.php from: $URL"
+        curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "$URL"
+        echo "datadog-setup.php downloaded"
+
+        VERSION_HASH=$(grep "define('RELEASE_VERSION'" ./temp/datadog-setup.php | sed -E "s/.*urlencode\('([^']+)'\).*/\1/")
+        if [ -z "$VERSION_HASH" ]; then
+            echo "Failed to extract VERSION_HASH from datadog-setup.php"
+            exit 1
+        fi
+
+        VERSION_HASH_ENCODED=$(echo "$VERSION_HASH" | sed 's/+/%2B/g')
+
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-x86_64-linux-gnu.tar.gz"
+        echo "Downloading dd-library-php from: $URL"
+        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${VERSION_HASH}-x86_64-linux-gnu.tar.gz "$URL"
+        echo "dd-library-php downloaded"
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
+
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
+    set -o pipefail
 
-    # COMMIT_ID=$(curl -s 'https://api.github.com/repos/DataDog/dd-trace-go/branches/main' | jq -r .commit.sha)
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "load last commit on $LIBRARY_TARGET_BRANCH for DataDog/dd-trace-go"
+    COMMIT_ID=$(curl -sS --fail "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/DataDog/dd-trace-go/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@main"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@main" > golang-load-from-go-get
+    echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
+    echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/database/sql/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/net/http/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2@$COMMIT_ID" >> golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
+
+    echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
+    echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
+
+    echo "Using github.com/DataDog/orchestrion@latest"
+    echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
-    echo "Using https://github.com/DataDog/dd-trace-cpp@main"
-    echo "https://github.com/DataDog/dd-trace-cpp@main" > cpp-load-from-git
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "https://github.com/DataDog/dd-trace-cpp@$LIBRARY_TARGET_BRANCH" > cpp-load-from-git
+    echo "Using $(cat cpp-load-from-git)"
+
+elif [ "$TARGET" = "cpp_httpd" ]; then
+    assert_version_is_dev
+    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog_artifact" "mod_datadog.so"
+
+elif [ "$TARGET" = "cpp_nginx" ]; then
+    assert_version_is_dev
+    ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)
+    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.28.0 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
+
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    echo "datadog/agent-dev:master-py3" > agent-image
+    AGENT_TARGET_BRANCH="${AGENT_TARGET_BRANCH:-master-py3}"
+    echo "datadog/agent-dev:$AGENT_TARGET_BRANCH" > agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#master" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#$LIBRARY_TARGET_BRANCH" > nodejs-load-from-npm
+    echo "Using $(cat nodejs-load-from-npm)"
+
+elif [ "$TARGET" = "rust" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "$LIBRARY_TARGET_BRANCH" > rust-load-from-git
+    echo "Using $(cat rust-load-from-git)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
 
 elif [ "$TARGET" = "waf_rule_set_v2" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     curl --silent \
-        -H "Authorization: token $GH_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 
 elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
+    assert_target_branch_is_not_set
     curl --fail --output "waf_rule_set.json" \
-        -H "Authorization: token $GH_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+
+elif [ "$TARGET" = "python_lambda" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
+
+    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip" "false"
+
+elif [ "$TARGET" = "otel_collector" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
+
+    echo "otel/opentelemetry-collector-contrib:nightly" > otel_collector-image
+    echo "Using $(cat otel_collector-image) image"
 
 else
     echo "Unknown target: $1"

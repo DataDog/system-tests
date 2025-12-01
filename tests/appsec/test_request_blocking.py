@@ -9,8 +9,12 @@ from utils import scenarios
 from utils import weblog
 
 
-@scenarios.appsec_request_blocking
+@features.envoy_external_processing
+@features.haproxy_stream_processing_offload
 @features.appsec_request_blocking
+@scenarios.appsec_blocking_full_denylist
+@scenarios.external_processing
+@scenarios.stream_processing_offload
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
@@ -30,9 +34,9 @@ class Test_AppSecRequestBlocking:
         self.blocked_requests2 = weblog.get(params={"random-key": "/netsparker-"})
 
     def test_request_blocking(self):
-        """test requests are blocked by rules in blocking mode"""
+        """Test requests are blocked by rules in blocking mode"""
 
-        assert self.config_state[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
+        assert self.config_state.state == remote_config.ApplyState.ACKNOWLEDGED
 
         assert self.blocked_requests1.status_code == 403
         interfaces.library.assert_waf_attack(self.blocked_requests1, rule="ua0-600-12x")

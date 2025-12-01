@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from time import time
 
 
@@ -12,18 +13,17 @@ class _SeqIdLatencyValidation:
         self.max_seq_id = 0
         self.received_max_time = None
 
-    def __call__(self, data):
+    def __call__(self, data: dict):
         seq_id = data["request"]["content"]["seq_id"]
         now = time()
         if seq_id > self.max_seq_id:
             self.max_seq_id = seq_id
             self.received_max_time = now
-        else:
-            if self.received_max_time is not None and (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
-                raise ValueError(
-                    f"Received message with seq_id {seq_id} to far more than"
-                    f"100ms after message with seq_id {self.max_seq_id}"
-                )
+        elif self.received_max_time is not None and (now - self.received_max_time) > self.MAX_OUT_OF_ORDER_LAG:
+            raise ValueError(
+                f"Received message with seq_id {seq_id} to far more than"
+                f"100ms after message with seq_id {self.max_seq_id}"
+            )
 
 
 class _NoSkippedSeqId:
@@ -33,8 +33,8 @@ class _NoSkippedSeqId:
         super().__init__()
         self.seq_ids = []
 
-    def __call__(self, data):
-        if 200 <= data["response"]["status_code"] < 300:
+    def __call__(self, data: dict):
+        if HTTPStatus(data["response"]["status_code"]).is_success:
             seq_id = data["request"]["content"]["seq_id"]
             self.seq_ids.append((seq_id, data["log_filename"]))
 

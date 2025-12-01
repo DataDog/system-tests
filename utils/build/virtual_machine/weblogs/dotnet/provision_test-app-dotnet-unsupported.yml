@@ -20,9 +20,6 @@ lang_variant:
 
 weblog:
     name: test-app-dotnet-unsupported
-    # Mostly based on the docs on supported OSs from
-    # https://github.com/dotnet/docs/commit/9693653929db2efbc8f5893c4eee37acf81b5ac6
-    exact_os_branches: [ubuntu20_amd64]
     install:
       - os_type: linux
         copy_files:

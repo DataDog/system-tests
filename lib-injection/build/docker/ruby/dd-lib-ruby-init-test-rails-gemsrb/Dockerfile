@@ -1,4 +1,4 @@
-FROM ruby:3.1.3
+FROM public.ecr.aws/docker/library/ruby:3.1.3
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -30,8 +30,8 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 
 # Upgrade RubyGems and Bundler
-RUN gem update --system 3.4.1
-RUN gem install bundler -v '~> 2.3.26'
+RUN gem update --system 3.4.22
+RUN gem install bundler -v '~> 2.4.22'
 RUN mkdir -p "$GEM_HOME" && chmod -R 777 "$GEM_HOME"
 ENV BUNDLE_SILENCE_ROOT_WARNING 1
 

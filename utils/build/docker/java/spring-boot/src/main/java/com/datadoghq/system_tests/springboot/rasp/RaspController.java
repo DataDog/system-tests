@@ -1,5 +1,6 @@
 package com.datadoghq.system_tests.springboot.rasp;
 
+import com.datadoghq.system_tests.iast.utils.*;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -9,6 +10,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +37,11 @@ import java.util.stream.Collectors;
 public class RaspController {
 
     private final DataSource dataSource;
+    private final CmdExamples cmdExamples;
 
     public RaspController(final DataSource dataSource) {
         this.dataSource = dataSource;
+        this.cmdExamples = new CmdExamples();
     }
 
     @RequestMapping(value = "/sqli", method = {GET, POST})
@@ -67,8 +72,28 @@ public class RaspController {
     }
 
     @PostMapping(value = "/lfi", consumes = {APPLICATION_XML_VALUE, APPLICATION_JSON_VALUE})
-    public ResponseEntity<String> lfi(@RequestBody final FileDTO body) throws SQLException {
+    public ResponseEntity<String> lfi(@RequestBody final FileDTO body) throws Exception {
         return execLfi(body.getFile());
+    }
+
+    @RequestMapping(value = "/shi", method = {GET, POST})
+    public ResponseEntity<String> shi(@RequestParam("list_dir") final String cmd) {
+        return execShi(cmd);
+    }
+
+    @PostMapping(value = "/shi", consumes = {APPLICATION_XML_VALUE, APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> shi(@RequestBody final ListDirDTO body) throws Exception {
+        return execShi(body.getCmd());
+    }
+
+    @RequestMapping(value = "/cmdi", method = {GET, POST})
+    public ResponseEntity<String> cmdi(@RequestParam("command") final String[] arrayCmd) {
+        return execCmdi(arrayCmd);
+    }
+
+    @PostMapping(value = "/cmdi", consumes = {APPLICATION_XML_VALUE, APPLICATION_JSON_VALUE})
+    public ResponseEntity<String> cmdi(@RequestBody final CommandDTO body) throws Exception {
+        return execCmdi(body.getCommand());
     }
 
 
@@ -104,6 +129,16 @@ public class RaspController {
 
     private ResponseEntity<String> execLfi(final String file)  {
         new File(file);
+        return ResponseEntity.ok("OK");
+    }
+
+    private ResponseEntity<String> execShi(final String cmd)  {
+        cmdExamples.insecureCmd(cmd);
+        return ResponseEntity.ok("OK");
+    }
+
+    private ResponseEntity<String> execCmdi(final String[] arrayCmd)  {
+        cmdExamples.insecureCmd(arrayCmd);
         return ResponseEntity.ok("OK");
     }
 
@@ -149,6 +184,37 @@ public class RaspController {
 
         public void setFile(String file) {
             this.file = file;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "list_dir")
+    public static class ListDirDTO {
+        @JsonProperty("list_dir")
+        @JacksonXmlText
+        private String cmd;
+
+        public String getCmd() {
+            return cmd;
+        }
+
+        public void setCmd(String cmd) {
+            this.cmd = cmd;
+        }
+    }
+
+    @JacksonXmlRootElement(localName = "command")
+    public static class CommandDTO {
+        @JsonProperty("command")
+        @JacksonXmlElementWrapper(useWrapping = false)
+        @JacksonXmlProperty(localName = "cmd")
+        private String[] command;
+
+        public String[] getCommand() {
+            return command;
+        }
+
+        public void setCommand(String[] command) {
+            this.command = command;
         }
     }
 }

@@ -1,88 +1,130 @@
-import re
-from utils import scenarios, features, flaky, irrelevant, context
-from utils.tools import logger
+import time
+from utils import scenarios, features, flaky, irrelevant, bug, context, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
-from utils import scenarios, features
 import tests.auto_inject.utils as base
-from utils.virtual_machine.utils import parametrize_virtual_machines
 
 
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
-    )
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_install(self):
+        self._test_install(context.virtual_machine)
 
 
 @features.host_auto_installation_script
 @scenarios.local_auto_injection_install_script
 class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines()
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
+    def test_install(self):
+        self._test_install(context.virtual_machine)
 
 
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"},
-            {"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"},
-        ]
+    @bug(
+        context.vm_os_cpu == "arm64" and context.weblog_variant in ["test-app-dotnet", "test-app-dotnet-container"],
+        reason="PROF-10783",
     )
-    def test_profiling(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine, profile=True)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+    @irrelevant(
+        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
+        reason="PROF-11264",
+    )
+    @irrelevant(
+        context.vm_name in ["Ubuntu_20_amd64", "Ubuntu_20_arm64"] and context.weblog_variant == "test-app-python",
+        reason="Python version too old",
+    )
+    @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
+    @bug(context.library >= "java@1.5.0", reason="SCP-962")
+    def test_profiling(self):
+        logger.info(f"Launching test_install for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
 @features.host_auto_installation_script_profiling
 @scenarios.host_auto_injection_install_script_profiling
 class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet", "reason": "PROF-10783"}]
+    @bug(
+        context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet",
+        reason="PROF-10783",
     )
-    def test_profiling(self, virtual_machine):
-        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
-        self._test_install(virtual_machine, profile=True)
-        logger.info(f"Done test_install for : [{virtual_machine.name}]")
+    @irrelevant(
+        context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
+        reason="PROF-11264",
+    )
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_profiling(self):
+        logger.info(f"Launching test_install for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, profile=True)
+        logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
+@features.origin_detection
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
-    @parametrize_virtual_machines(
-        bugs=[{"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"}]
+    ruby_bug_platforms = [
+        "AlmaLinux_9_amd64",
+        "AlmaLinux_9_arm64",
+        "Amazon_Linux_2022_amd64",
+        "Amazon_Linux_2022_arm64",
+        "Amazon_Linux_2023_amd64",
+        "Amazon_Linux_2023_arm64",
+        "Debian_11_amd64",
+        "Debian_11_arm64",
+        "Debian_12_amd64",
+        "Debian_12_arm64",
+        "OracleLinux_9_2_amd64",
+        "OracleLinux_9_2_arm64",
+        "OracleLinux_9_3_amd64",
+        "OracleLinux_9_3_arm64",
+        "RedHat_9_0_amd64",
+        "RedHat_9_0_arm64",
+        "Rocky_Linux_9_amd64",
+        "Rocky_Linux_9_arm64",
+        "Ubuntu_22_amd64",
+        "Ubuntu_22_arm64",
+        "Ubuntu_23_04_arm64",
+        "Ubuntu_23_10_arm64",
+        "Ubuntu_24_10_amd64",
+        "Ubuntu_24_10_arm64",
+        "Ubuntu_24_amd64",
+        "Ubuntu_24_arm64",
+        "Ubuntu_25_04_amd64",
+        "Ubuntu_25_04_arm64",
+    ]
+
+    @missing_feature(
+        context.vm_name in ruby_bug_platforms,
+        library="ruby",
+        reason="""Missing TCP cgroup2 support.
+        See: https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3189670032/Traces+missing+container+tags+with+cgroup+V2#Tracer-Side
+        """,
     )
-    def test_install(self, virtual_machine):
-        self._test_install(virtual_machine)
+    def test_install(self):
+        self._test_install(context.virtual_machine, origin_detection=True)
 
 
 @features.container_auto_installation_script_profiling
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[{"vm_cpu": "arm64", "weblog_variant": "test-app-dotnet-container", "reason": "PROF-10783"}]
+    @bug(
+        context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
+        reason="PROF-10783",
     )
-    def test_profiling(self, virtual_machine):
-        self._test_install(virtual_machine, profile=True)
+    @bug(
+        context.weblog_variant == "test-app-nodejs-container-25",
+        reason="PROF-12765",
+    )
+    def test_profiling(self):
+        self._test_install(context.virtual_machine, profile=True)
 
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
+@irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
-    @parametrize_virtual_machines(
-        bugs=[{"library": "ruby", "reason": "APMLP-312"},]
-    )
     @irrelevant(
         context.weblog_variant
         not in [
@@ -95,7 +137,8 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         reason="Zombies only appears in containers",
     )
     @flaky(library="python", reason="APMLP-313")
-    def test_crash_no_zombie(self, virtual_machine):
+    def test_crash_no_zombie(self):
+        virtual_machine = context.virtual_machine
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         warmup_weblog(f"http://{vm_ip}:{vm_port}/")
@@ -115,15 +158,23 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         try:
             crash_result = fork_and_crash(virtual_machine)
             logger.info("fork_and_crash: " + crash_result)
-        except Exception as e:
+        except Exception:
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
             raise
 
         # At this point, there should be no zombies and no child pids
-        child_pids = get_child_pids(virtual_machine).strip()
+        # but we apply a retry policy due to the app can take time to crash
+        child_pids = ""
+        for _attempt in range(5):
+            child_pids = get_child_pids(virtual_machine).strip()
 
-        if child_pids != "":
+            if child_pids == "":
+                break  # Success — exit the retry loop
+
+            time.sleep(1)
+        else:
+            logger.warning("⚠️ Still getting non-empty child_pids after 5 attempts.")
             logger.warning("Child PIDs found: " + child_pids)
             process_tree = self.execute_command(virtual_machine, "ps aux --forest")
             logger.warning("Failure process tree: " + process_tree)
@@ -144,18 +195,12 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
 @scenarios.installer_auto_injection
 class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
-    #  on the installer. As we can't only uninstall the injector, we are skipping
-    #  the uninstall test today
-    @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
-    )
-    def test_install_uninstall(self, virtual_machine):
+    # on the installer. As we can not only uninstall the injector, we are skipping
+    # the uninstall test today
+
+    @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
+    def test_install_uninstall(self):
+        virtual_machine = context.virtual_machine
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
         logger.info(f"Check install for : [{virtual_machine.name}]")
         self._test_install(virtual_machine)
@@ -163,20 +208,32 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         self._test_uninstall(virtual_machine)
         logger.info(f"Done test_install_uninstall for : [{virtual_machine.name}]...")
 
+    @irrelevant(condition=context.weblog_variant != "test-app-dotnet-iis")
+    def test_install(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]...")
+
+    @irrelevant(condition=context.vm_os_branch == "windows", reason="Irrelevant on Windows")
+    def test_no_world_writeable(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
+        self._test_no_world_writeable(virtual_machine)
+        logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
+
 
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @flaky(weblog_variant="test-app-java-buildpack", reason="APMON-1595")
-    @parametrize_virtual_machines(
-        bugs=[
-            {"vm_name": "AlmaLinux_8_arm64", "weblog_variant": "test-app-python-alpine", "reason": "APMON-1576"},
-            {"vm_branch": "amazon_linux2", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "centos_7_amd64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-            {"vm_branch": "redhat", "vm_cpu": "arm64", "weblog_variant": "test-app-ruby", "reason": "INPLAT-103"},
-        ]
+    @irrelevant(context.library < "python@3.0.0", reason="Avoid blocking 2.21 release pipeline")
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
     )
-    def test_install(self, virtual_machine):
+    def test_install(self):
+        virtual_machine = context.virtual_machine
         logger.info(
             f"Launching test_install for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
         )
@@ -184,3 +241,63 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+
+    @irrelevant(condition=context.vm_os_branch == "windows", reason="Irrelevant on Windows")
+    def test_no_world_writeable(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
+        self._test_no_world_writeable(virtual_machine)
+        logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
+
+
+@features.origin_detection
+@scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
+class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
+    @irrelevant(
+        condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,
+        reason="Origin detection is not supported on host environments",
+    )
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
+    )
+    def test_origin_detection(self):
+        virtual_machine = context.virtual_machine
+        logger.info(
+            f"Launching test_origin_detection for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
+        )
+        self._test_install(virtual_machine, origin_detection=True)
+        logger.info(
+            f"Done test_origin_detection for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
+        )
+
+
+@features.auto_instrumentation_appsec
+@scenarios.simple_auto_injection_appsec
+class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
+        reason="python 3.8 is not supported on ddtrace >= 3.x",
+    )
+    def test_appsec(self):
+        logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, appsec=True)
+        logger.info(f"Done test_appsec for : [{context.vm_name}]")
+
+
+@features.host_auto_installation_script_appsec
+@scenarios.host_auto_injection_install_script_appsec
+class TestHostAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_appsec(self):
+        logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, appsec=True)
+        logger.info(f"Done test_appsec for : [{context.vm_name}]")
+
+
+@features.container_auto_installation_script_appsec
+@scenarios.container_auto_injection_install_script_appsec
+class TestContainerAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
+    def test_appsec(self):
+        self._test_install(context.virtual_machine, appsec=True)

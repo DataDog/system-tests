@@ -3,6 +3,7 @@ directive @case(format: String) on FIELD
 type Query {
 	user(id: Int!): User
 	userByName(name: String): [User!]!
+	withError: ID
 }
 
 type User {

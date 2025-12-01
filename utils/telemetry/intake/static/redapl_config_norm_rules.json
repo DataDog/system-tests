@@ -1,0 +1,5 @@
+{
+    "DD_INSTRUMENTATION_CONFIG_ID": "instrumentation_config_id",
+    "DD_TAGS": "agent_tags",
+    "DD_TRACE_HEADER_TAGS": "trace_header_tags"
+}

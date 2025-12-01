@@ -195,6 +195,163 @@ object IastRoutes {
               }
             }
           }
+      } ~
+      pathPrefix("sc") {
+        pathPrefix("s") {
+          post {
+            path("configured") {
+              formField("param") { param =>
+                val sanitized = SecurityControlUtil.sanitize(param)
+                cmd.insecureCmd(sanitized)
+                complete(StatusCodes.OK)
+              }
+            } ~
+              path("not-configured") {
+                formField("param") { param =>
+                  val sanitized = SecurityControlUtil.sanitize(param)
+                  complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
+                }
+              } ~
+              path("all") {
+                formField("param") { param =>
+                  val sanitized = SecurityControlUtil.sanitizeForAllVulns(param)
+                  complete(StatusCodes.OK, sql.insecureSql(sanitized, "password"))(jsonMarshaller)
+                }
+              } ~
+              pathPrefix("overloaded") {
+                path("secure") {
+                  formField("param") { param =>
+                    val sanitized = SecurityControlUtil.overloadedSanitize(param)
+                    cmd.insecureCmd(sanitized)
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                  path("insecure") {
+                    formField("param") { param =>
+                      val sanitized = SecurityControlUtil.overloadedSanitize(param, null)
+                      cmd.insecureCmd(sanitized)
+                      complete(StatusCodes.OK)
+                    }
+                  }
+              }
+          }
+        } ~
+          pathPrefix("iv") {
+            post {
+              path("configured") {
+                formField("param") { param =>
+                  if (SecurityControlUtil.validate(param)) {
+                    cmd.insecureCmd(param)
+                  }
+                  complete(StatusCodes.OK)
+                }
+              } ~
+                path("not-configured") {
+                  formField("param") { param =>
+                    if (SecurityControlUtil.validate(param)) {
+                      sql.insecureSql(param, "password")
+                    }
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                path("all") {
+                  formField("param") { param =>
+                    if (SecurityControlUtil.validateForAllVulns(param)) {
+                      sql.insecureSql(param, "password")
+                    }
+                    complete(StatusCodes.OK)
+                  }
+                } ~
+                pathPrefix("overloaded") {
+                  path("secure") {
+                    formFields("user", "password") { (user, pass) =>
+                      if (SecurityControlUtil.overloadedValidation(null, user, pass)) {
+                        sql.insecureSql(user, pass)
+                      }
+                      complete(StatusCodes.OK)
+                    }
+                  } ~
+                    path("insecure") {
+                      formFields("user", "password") { (user, pass) =>
+                        if (SecurityControlUtil.overloadedValidation(user, pass)) {
+                          sql.insecureSql(user, pass)
+                        }
+                        complete(StatusCodes.OK)
+                      }
+                    }
+                }
+            }
+          }
+      } ~
+      path("sampling-by-route-method-count" / Segment) { id =>
+        get {
+          try {
+            java.security.MessageDigest.getInstance("SHA1").digest("hash1".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash2".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash3".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash4".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash5".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash6".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash7".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash8".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash10".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash11".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash12".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash13".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash14".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash15".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            complete("ok")
+          } catch {
+            case e: Exception => complete(StatusCodes.InternalServerError, e.getMessage)
+          }
+        } ~
+          post {
+            try {
+              java.security.MessageDigest.getInstance("SHA1").digest("hash1".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash2".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash3".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash4".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash5".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash6".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash7".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash8".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash10".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash11".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash12".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash13".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash14".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash15".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              complete("ok")
+            } catch {
+              case e: Exception => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
+          }
+      } ~
+      path("sampling-by-route-method-count-2" / Segment) { id =>
+        get {
+          try {
+            java.security.MessageDigest.getInstance("SHA1").digest("hash1".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash2".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash3".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash4".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash5".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash6".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash7".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash8".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash10".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash11".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash12".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash13".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash14".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash15".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            complete("ok")
+          } catch {
+            case e: Exception => complete(StatusCodes.InternalServerError, e.getMessage)
+          }
+        }
       }
   }
 

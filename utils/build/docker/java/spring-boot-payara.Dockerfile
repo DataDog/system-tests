@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-11 as build
 
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
@@ -9,10 +11,9 @@ RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Ppayara -B dependency:go-offl
 RUN mvn dependency:get -Dartifact=org.codehaus.woodstox:stax2-api:4.2.1
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven -Ppayara package
-
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
+RUN mvn -Dmaven.repo.local=/maven -Ppayara package
 
 ARG PAYARA_VERSION=5.2022.1
 RUN curl https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar -o /binaries/payara-micro.jar
@@ -27,6 +28,7 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 COPY --from=build /binaries/payara-micro.jar /app/payara-micro.jar
 COPY --from=build /root/.m2/repository/org/codehaus/woodstox/stax2-api/4.2.1/stax2-api-4.2.1.jar /app/stax2-api-4.2.1.jar
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app-payara.sh /app/app.sh
 RUN chmod +x /app/app.sh
 

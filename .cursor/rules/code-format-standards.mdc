@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Code format
+
+* All shell/bash scripts must be compatible with shellcheck. All shell/bash scripts you create or modify must pass shellcheck without errors or warnings.
+* Follow Python type annotation best practices that are compatible with mypy strict checking, using Python 3.12 standards as defined in pyproject.toml. Always provide explicit type annotations for all function arguments and return values. For collections, use precise types (e.g., list[str], dict[str, int]). If a value can be None, always use Optional[...] explicitly. Do not rely on implicit Optional types (e.g., avoid using x: int = None—instead, use x: Optional[int] = None). Do not omit type annotations, and do not use untyped or partially typed collections.
+* Always run [format](mdc:format.sh) before committing changes to ensure code follows the project's style guidelines,  including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks. if the format.sh script fails, try to fix the format mistakes.
+* All YAML files you create or modify must pass both yamllint and yamlfmt checks before being committed.

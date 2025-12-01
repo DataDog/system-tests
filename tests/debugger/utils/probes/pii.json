@@ -1,0 +1,17 @@
+[
+    {
+        "language": "",
+        "pii": "",
+        "id": "log170aa-acda-4453-9111-1478a6method",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Pii",
+            "sourceFile": null
+        },
+        "captureSnapshot": true,
+        "capture": {
+            "maxFieldCount": 200
+        }
+    }
+]

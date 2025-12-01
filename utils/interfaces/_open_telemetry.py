@@ -2,30 +2,29 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-This files will validate data flow between agent and backend
-"""
+"""Validate data flow between agent and backend"""
 
 import threading
 
-from utils.tools import logger, get_rid_from_request
+from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils._weblog import HttpResponse
 
 
 class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
-    """ Validated communication between open telemetry and datadog backend"""
+    """Validated communication between open telemetry and datadog backend"""
 
     def __init__(self):
         super().__init__("open_telemetry")
         self.ready = threading.Event()
 
-    def ingest_file(self, src_path):
+    def ingest_file(self, src_path: str):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_otel_trace_id(self, request):
+    def get_otel_trace_id(self, request: HttpResponse):
         paths = ["/api/v0.2/traces", "/v1/traces"]
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
 
         if rid:
             logger.debug(f"Try to find traces related to request {rid}")

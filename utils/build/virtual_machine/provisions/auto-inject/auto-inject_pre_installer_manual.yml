@@ -1,4 +1,0 @@
-# Installs the installer package (only, no agent no ssi)
-#Our goal is to cache the installer and its dependencies, in the next steps (no cached steps) we will get a fresh copy of the installer
-- os_type: linux
-  remote-command: DD_INSTALL_ONLY=true DD_INSTALLER=true bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"

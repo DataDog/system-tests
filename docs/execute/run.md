@@ -1,6 +1,6 @@
 `run.sh` accepts several options:
 
-## Run all tests
+## Run all tests using the DEFAULT scenario
 
 ```bash
 ./run.sh
@@ -48,7 +48,7 @@ You can run a group of scenarios as they are defined in `scenario_groups.yml`
 # e.g, "APPSEC_SCENARIOS" to run most of APPSEC scenarios
 ```
 
-## Spawn componenents, but do nothing
+## Spawn components, but do nothing
 
 ```bash
 ./run.sh <SCENARIO_NAME> --sleep

@@ -1,22 +1,32 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces
-from utils import weblog
-from utils.tools import logger, get_rid_from_request
+from tests.parametric.test_telemetry import _mapped_telemetry_name
+from utils import (
+    scenarios,
+    features,
+    context,
+    irrelevant,
+    bug,
+    interfaces,
+    weblog,
+    logger,
+    missing_feature,
+)
 
 
 @scenarios.docker_ssi
 class TestDockerSSIFeatures:
-    """ Test the ssi in a simulated host injection environment (docker container + test agent)
+    """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test that the injection is performed and traces and telemetry are generated.
-    If the language version is not supported, we only check that we don't break the app and telemetry is generated."""
+    If the language version is not supported, we only check that we don't break the app and telemetry is generated.
+    """
 
     _r = None
 
     def _setup_all(self):
         if TestDockerSSIFeatures._r is None:
-            parsed_url = urlparse(context.scenario.weblog_url)
-            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}")
+            parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
             TestDockerSSIFeatures._r = weblog.request(
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
@@ -28,20 +38,19 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_guardrails
-    @bug(
-        condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490",
-    )
-    @bug(condition=context.library == "python", reason="INPLAT-11")
+    @bug(condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490")
+    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     def test_install_supported_runtime(self):
-        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
-        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
 
         # If the language version is supported there are traces related with the request
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
+        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
         assert "runtime-id" in traces_for_request["meta"], "No runtime-id found in traces"
 
         # There is telemetry data related with the runtime-id
@@ -53,24 +62,24 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="APMON-1490",
     )
     def test_install_weblog_running(self):
-        logger.info(
-            f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library.library}"
-        )
-        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
+        logger.info(f"Testing Docker SSI installation. The weblog should be running: {context.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.scenario.weblog_variant and context.scenario.library.library == "java",
+        condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="APMON-1490",
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
-    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @bug(context.library == "python@2.19.1", reason="INPLAT-448")
+    @bug(context.library >= "python@3.0.0dev", reason="INPLAT-448")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -95,9 +104,11 @@ class TestDockerSSIFeatures:
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
-    @irrelevant(context.library == "python" and context.installed_language_runtime >= "3.7.0")
+    @irrelevant(context.library == "python")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
+    @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
+    @irrelevant(context.library == "dotnet" and context.installed_language_runtime >= "6.0.0")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -111,10 +122,10 @@ class TestDockerSSIFeatures:
                 inject_result = False
                 break
 
-        assert inject_result != None, "No telemetry data found for inject.success, inject.skip or inject.error"
+        assert inject_result is not None, "No telemetry data found for inject.success, inject.skip or inject.error"
 
         # The injector detected by itself that the version is not supported
-        if inject_result == False:
+        if inject_result is False:
             return
 
         # There is telemetry data about the library entrypoint. We only validate there is data
@@ -127,19 +138,58 @@ class TestDockerSSIFeatures:
                 break
         assert abort, "No telemetry data found for library_entrypoint.abort"
 
-    def setup_service_name(self):
+    def setup_instrumentation_source_ssi(self):
         self._setup_all()
 
-    @features.ssi_service_naming
-    @irrelevant(condition=not context.weblog_variant.startswith("tomcat-app"))
-    @irrelevant(condition=not context.weblog_variant.startswith("websphere-app"))
-    @irrelevant(condition=not context.weblog_variant.startswith("jboss-app"))
-    def test_service_name(self):
-        logger.info("Testing Docker SSI service name")
-        # There are traces related with the request and the service name is payment-service
-        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
-        assert "service" in traces_for_request, "No service name found in traces"
-        assert (
-            traces_for_request["service"] == "payment-service"
-        ), f"Service name is not payment-service but {traces_for_request['service']}"
+    @features.ssi_service_tracking
+    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
+    @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
+    @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
+    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
+    @missing_feature(context.library < "ruby@v2.19.0", reason="Not implemented yet")
+    def test_instrumentation_source_ssi(self):
+        logger.info("Testing Docker SSI service tracking")
+        # Get the latest (effective) configurations
+        telemetry_name = _mapped_telemetry_name("instrumentation_source")
+        configurations = interfaces.test_agent.get_telemetry_configurations()
+        instrumentation_source = configurations.get(telemetry_name, {})
+        assert instrumentation_source.get("value") == "ssi", f"{telemetry_name}=ssi not found in {configurations}"
+
+    def setup_injection_metadata(self):
+        self._setup_all()
+
+    @features.ssi_injection_metadata
+    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
+    @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
+    @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
+    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
+    @missing_feature(context.library == "ruby", reason="Not implemented yet")
+    def test_injection_metadata(self):
+        logger.info("Testing injection result variables")
+        events = interfaces.test_agent.get_injection_metadata_for_autoinject()
+        events = sorted(events, key=lambda x: x["timestamp_millis"])
+        assert len(events) >= 2
+
+        injector_event = events[0]
+        assert injector_event["component"] == "injector"
+        assert injector_event["result"] == "success"
+        assert injector_event["result_class"] == "success"
+        assert injector_event["result_reason"] != ""
+
+        tracer_event = events[1]
+        assert tracer_event["result"] == "success"
+        assert tracer_event["result_class"] == "success"
+        assert tracer_event["result_reason"] != ""

@@ -2,16 +2,16 @@ from flask import Blueprint, request, abort
 from debugger.pii import Pii, CustomPii
 from debugger.expression_test_struct import ExpressionTestStruct
 from debugger.collection_factory import CollectionFactory
+from debugger.data_generator import generate_test_data
 
 # The `debugger` feature allows attachment to specific lines of code.
 # Due to differences in line numbering between libraries,
 # 'dummy lines' are used to standardize this functionality.
 # dummy line
 # dummy line
-# dummy line
 debugger_blueprint = Blueprint("debugger", __name__, url_prefix="/debugger")
 
-intLocal = 0
+intLocal = 1000
 intMixLocal = 0
 
 
@@ -52,21 +52,24 @@ def mix_probe(arg, intArg):
     return f"Mixed result {intMixLocal}"
 
 
+# dummy line
+# dummy line
+# dummy line
 @debugger_blueprint.route("/pii", methods=["GET"])
 def pii():
     pii = Pii()
     customPii = CustomPii()
     value = pii.test_value
     custom_value = customPii.test_value
-    return f"PII {value}. CustomPII {custom_value}"
+    return f"PII {value}. CustomPII {custom_value}"  # must be line 64
 
 
 @debugger_blueprint.route("/expression", methods=["GET"])
 def expression():
-    input_value = request.args.get("inputValue", type=str)
-    test_struct = ExpressionTestStruct()
-    local_value = len(input_value)
-    return f"Great success number {local_value}"
+    inputValue = request.args.get("inputValue", type=str)
+    testStruct = ExpressionTestStruct()
+    localValue = len(inputValue)
+    return f"Great success number {localValue}"
 
 
 @debugger_blueprint.route("/expression/exception", methods=["GET"])
@@ -76,24 +79,25 @@ def expression_exception():
 
 @debugger_blueprint.route("/expression/operators", methods=["GET"])
 def expression_operators():
-    int_value = request.args.get("intValue", type=int)
-    float_value = request.args.get("floatValue", type=float)
-    str_value = request.args.get("strValue", type=str)
+    intValue = request.args.get("intValue", type=int)
+    floatValue = request.args.get("floatValue", type=float)
+    strValue = request.args.get("strValue", type=str)
+    pii = Pii()
 
-    return f"Int value {int_value}. Float value {float_value}. String value is {str_value}."
+    return f"Int value {intValue}. Float value {floatValue}. String value is {strValue}."
 
 
 @debugger_blueprint.route("/expression/strings", methods=["GET"])
 def string_operations():
-    str_value = request.args.get("strValue", type=str)
-    empty_string = request.args.get("emptyString", default="")
-    null_string = request.args.get("nullString")
+    strValue = request.args.get("strValue", type=str)
+    emptyString = request.args.get("emptyString", default="")
+    nullString = request.args.get("nullString")
 
-    return f"strValue {str_value}. emptyString {empty_string}. {null_string}."
+    return f"strValue {strValue}. emptyString {emptyString}. {nullString}."
 
 
 @debugger_blueprint.route("/expression/collections", methods=["GET"])
-def collections_operations():
+def collection_operations():
     factory = CollectionFactory()
 
     a0 = factory.get_collection(0, "array")
@@ -121,8 +125,48 @@ def collections_operations():
 
 @debugger_blueprint.route("/expression/null", methods=["GET"])
 def nulls():
-    int_value = request.args.get("intValue", type=int)
-    str_value = request.args.get("strValue")
-    pii = None
+    intValue = request.args.get("intValue", type=int)
+    strValue = request.args.get("strValue", type=str)
+    boolValue = request.args.get("boolValue", type=bool)
 
-    return f"Pii is null {pii is None}. intValue is null {int_value is None}. strValue is null {str_value is None}."
+    pii = None
+    if boolValue:
+        pii = Pii()
+
+    return f"Pii is null {pii is None}. intValue is null {intValue is None}. strValue is null {strValue is None}."
+
+
+@debugger_blueprint.route("/budgets/<int:loops>", methods=["GET"])
+def budgets(loops):
+    for _ in range(loops):
+        pass
+    return "Budgets", 200
+
+
+@debugger_blueprint.route("/exceptionreplay/simple", methods=["GET"])
+def exception_replay_simple():
+    raise Exception("simple exception")
+
+
+@debugger_blueprint.route("/exceptionreplay/recursion", methods=["GET"])
+def exception_replay_recursion():
+    depth = request.args.get("depth", type=int)
+    if depth > 0:
+        return exception_replay_recursion(depth - 1)
+    else:
+        raise Exception("recursion exception")
+
+
+@debugger_blueprint.route("/snapshot/limits", methods=["GET"])
+def snapshot_limits():
+    data = generate_test_data(
+        depth=request.args.get("depth", type=int, default=0),
+        fields=request.args.get("fields", type=int, default=0),
+        collection_size=request.args.get("collectionSize", type=int, default=0),
+        string_length=request.args.get("stringLength", type=int, default=0),
+    )
+    deepObject = data["deepObject"]  # noqa: N806
+    manyFields = data["manyFields"]  # noqa: N806
+    largeCollection = data["largeCollection"]  # noqa: N806
+    longString = data["longString"]  # noqa: N806
+    return "Capture limits probe", 200

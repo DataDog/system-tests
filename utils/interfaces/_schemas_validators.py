@@ -2,22 +2,25 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""
-Usage:
-    PYTHONPATH=. python utils/interfaces/_schemas_validators.py
+"""Usage:
+PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
 from dataclasses import dataclass
-import os
-import json
-import re
 import functools
+import json
+import os
+from pathlib import Path
+import re
+from typing import Any
 
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
+from utils._logger import logger
 
-def _is_bytes_or_string(_checker, instance):
+
+def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
 
 
@@ -30,6 +33,7 @@ def _get_schemas_filenames():
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
+        "utils/interfaces/schemas/otel_collector/",
     ):
         for root, _, files in os.walk(schema_dir):
             for f in files:
@@ -37,9 +41,9 @@ def _get_schemas_filenames():
                     yield os.path.join(root, f)
 
 
-@functools.lru_cache()
+@functools.lru_cache
 def _get_schemas_store():
-    """returns a dict with all defined schemas"""
+    """Returns a dict with all defined schemas"""
 
     store = {}
 
@@ -57,8 +61,8 @@ def _get_schemas_store():
     return store
 
 
-@functools.lru_cache()
-def _get_schema_validator(schema_id):
+@functools.lru_cache
+def _get_schema_validator(schema_id: str):
     store = _get_schemas_store()
 
     if schema_id not in store:
@@ -78,58 +82,123 @@ class SchemaError:
 
     @property
     def message(self):
-        return (
-            f"{self.error.message} on instance {self.error.json_path} in {self.endpoint}. Please check "
-            + self.data["log_filename"]
-        )
+        return f"{self.data['log_filename']}: {self.error.message} on instance {self.error.json_path}"
 
     @property
     def data_path(self):
         return re.sub(r"\[\d+\]", "[]", self.error.json_path)
 
 
+HEADER_PAIR_LENGTH = 2
+
+
 class SchemaValidator:
-    def __init__(self, interface, allowed_errors=None):
-        self.interface = interface
+    def __init__(self, interface_name: str, allowed_errors: list[str] | tuple[str, ...] = ()):
+        self.interface = interface_name
         self.allowed_errors = []
 
-        for pattern in allowed_errors or []:
+        for pattern in allowed_errors:
             self.allowed_errors.append(re.compile(pattern))
 
-    def get_errors(self, data) -> list[SchemaError]:
+    def get_errors(self, data: dict) -> list[SchemaError]:
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
         if schema_id not in _get_schemas_store():
+            logger.info(f"Schema {schema_id} does not exists")
             return []
 
         validator = _get_schema_validator(schema_id)
-        if validator.is_valid(data["request"]["content"]):
+        if "content" not in data["request"]:
+            # something went wrong on the proxy side
+            # it's not the schema job to complain about it
+            return []
+
+        # Transform data for schemas that expect headers and content structure
+        validation_data = self._prepare_validation_data(data, path)
+
+        if validator.is_valid(validation_data):
             return []
 
         return [
-            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data,)
-            for error in validator.iter_errors(data["request"]["content"])
+            SchemaError(interface_name=self.interface, endpoint=path, error=error, data=data)
+            for error in validator.iter_errors(validation_data)
         ]
+
+    def _prepare_validation_data(self, data: dict, path: str):
+        """Prepare data for validation based on the endpoint schema requirements"""
+
+        # For library endpoints that expect headers+content structure (like diagnostics, symdb)
+        if self.interface == "library" and path in ["/debugger/v1/diagnostics", "/symdb/v1/input"]:
+            # Handle multipart structure where content contains nested parts with headers/content
+            result = []
+            content = data["request"].get("content", [])
+            if content is None:
+                return content
+            for part in data["request"].get("content", []):
+                if isinstance(part, dict) and "headers" in part and "content" in part:
+                    # Convert headers from dict to object (already in correct format)
+                    headers_obj = part["headers"]
+
+                    # Add the multipart structure expected by schema
+                    result.append({"headers": headers_obj, "content": part["content"]})
+                else:
+                    # Fallback: convert request headers from array of tuples to object
+                    headers_obj = {}
+                    for header_pair in data["request"].get("headers", []):
+                        if len(header_pair) >= HEADER_PAIR_LENGTH:
+                            headers_obj[header_pair[0]] = header_pair[1]
+
+                    result.append({"headers": headers_obj, "content": data["request"]["content"]})
+                    break
+
+            return result
+
+        # For agent debugger endpoint, handle multipart structure
+        if self.interface == "agent" and path == "/api/v2/debugger":
+            # Extract the actual debugger data from multipart structure
+            result = []
+            content = data["request"].get("content", [])
+
+            if content is None:
+                return content
+
+            for part in data["request"].get("content", []):
+                if isinstance(part, dict) and "content" in part:
+                    # Handle both array and single object content
+                    content = part["content"]
+                    if isinstance(content, list):
+                        # Diagnostics/snapshots: content is an array
+                        result.extend(content)
+                    else:
+                        # Symdb: content is a single object
+                        result.append(content)
+                else:
+                    # Fallback: return content as-is
+                    result.append(part)
+            return result
+
+        # For other endpoints, return content as-is
+        return data["request"]["content"]
 
 
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        folders = [folder for folder in os.listdir(".") if os.path.isdir(folder) and folder.startswith("logs")]
+        folders = [folder for folder in Path().iterdir() if folder.is_dir() and str(folder).startswith("logs")]
         for folder in folders:
-            path = f"{folder}/interfaces/{interface}"
+            path = folder / f"/interfaces/{interface}"
 
-            if not os.path.exists(path):
+            if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            files = [file for file in path.iterdir() if file.is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)
 
                 if "request" in data and data["request"]["length"] != 0:
                     for error in validator.get_errors(data):
-                        print(error.message)
+                        print(error.message)  # noqa: T201
 
 
 if __name__ == "__main__":

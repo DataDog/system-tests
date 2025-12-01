@@ -5,11 +5,13 @@ if [[ $# -gt 0 ]]; then
   exit $?
 fi
 
+export SYSTEM_TESTS_LOGS=/var/log/system-tests
+
 # This is required to allow the tracer to open itself
 chmod a+rx /root
 
 rm -f /tmp/ddappsec.lock
-LOGS_PHP=(/tmp/appsec.log /tmp/helper.log /tmp/php_error.log)
+LOGS_PHP=(/var/log/system-tests/appsec.log /var/log/system-tests/helper.log /var/log/system-tests/php_error.log /var/log/system-tests/tracer.log)
 touch "${LOGS_PHP[@]}"
 chown www-data:www-data "${LOGS_PHP[@]}"
 
@@ -25,4 +27,4 @@ service apache2 start
 # Use init script to preserve environment
 /etc/init.d/phpPHP_VERSION-fpm start
 
-exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}"
+exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}" "/var/log/system-tests/appsec.log" "/var/log/system-tests/helper.log" "/var/log/system-tests/php_error.log" "/var/log/system-tests/tracer.log"

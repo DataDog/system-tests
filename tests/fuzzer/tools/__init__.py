@@ -2,15 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from typing import Any
+from collections.abc import Callable
+
 from ._data import _Data
 
 data = _Data()
 
 
-def apply_method(obj, key_callback, value_callback):
-    """
-    Recursyvly apply methods on a JSON-like object
-    """
+def apply_method(obj: str | bool | float | list | dict | None, key_callback: Callable, value_callback: Callable) -> Any:  # noqa: ANN401, FBT001
+    """Recursyvly apply methods on a JSON-like object"""
     if obj is None or isinstance(obj, (str, float, int, bool)):
         return value_callback(obj)
 

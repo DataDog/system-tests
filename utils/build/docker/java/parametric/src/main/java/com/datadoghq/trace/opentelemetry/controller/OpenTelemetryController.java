@@ -1,161 +1,42 @@
 package com.datadoghq.trace.opentelemetry.controller;
 
 import static com.datadoghq.ApmTestClient.LOGGER;
-import static io.opentelemetry.api.trace.SpanKind.CLIENT;
-import static io.opentelemetry.api.trace.SpanKind.CONSUMER;
-import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
-import static io.opentelemetry.api.trace.SpanKind.PRODUCER;
-import static io.opentelemetry.api.trace.SpanKind.SERVER;
+import static com.datadoghq.trace.opentelemetry.controller.OpenTelemetryTypeHelper.formatTraceState;
+import static com.datadoghq.trace.opentelemetry.controller.OpenTelemetryTypeHelper.parseAttributes;
+import static com.datadoghq.trace.opentelemetry.controller.OpenTelemetryTypeHelper.parseSpanKindNumber;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 
-import com.datadoghq.trace.opentelemetry.dto.AddEventArgs;
-import com.datadoghq.trace.opentelemetry.dto.EndSpanArgs;
-import com.datadoghq.trace.opentelemetry.dto.FlushArgs;
-import com.datadoghq.trace.opentelemetry.dto.FlushResult;
-import com.datadoghq.trace.opentelemetry.dto.IsRecordingArgs;
-import com.datadoghq.trace.opentelemetry.dto.IsRecordingResult;
-import com.datadoghq.trace.opentelemetry.dto.KeyValue;
-import com.datadoghq.trace.opentelemetry.dto.RecordExceptionArgs;
-import com.datadoghq.trace.opentelemetry.dto.SetAttributesArgs;
-import com.datadoghq.trace.opentelemetry.dto.SetNameArgs;
-import com.datadoghq.trace.opentelemetry.dto.SetStatusArgs;
-import com.datadoghq.trace.opentelemetry.dto.SpanContextArgs;
-import com.datadoghq.trace.opentelemetry.dto.SpanContextResult;
-import com.datadoghq.trace.opentelemetry.dto.SpanLink;
-import com.datadoghq.trace.opentelemetry.dto.StartSpanArgs;
-import com.datadoghq.trace.opentelemetry.dto.StartSpanResult;
+import com.datadoghq.trace.opentelemetry.dto.*;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTraceId;
 import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapGetter;
-import io.opentelemetry.context.propagation.TextMapPropagator;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping(value = "/trace/otel")
 public class OpenTelemetryController {
   private final Tracer tracer;
-  private final TextMapPropagator propagator;
   private final Map<Long, Span> spans;
+  private Baggage baggage;
 
   public OpenTelemetryController() {
     this.tracer = GlobalOpenTelemetry.getTracer("java-client");
-    this.propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
     this.spans = new HashMap<>();
-  }
-
-  private static SpanKind parseSpanKindNumber(int spanKindNumber) {
-    return switch (spanKindNumber) {
-      case 0 -> INTERNAL;
-      case 1 -> SERVER;
-      case 2 -> CLIENT;
-      case 3 -> PRODUCER;
-      case 4 -> CONSUMER;
-      default -> null;
-    };
-  }
-
-  private static Attributes parseAttributes(Map<String, Object> attributes) {
-    if (attributes == null || attributes.isEmpty()) {
-      return Attributes.empty();
-    }
-    AttributesBuilder builder = Attributes.builder();
-    for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-      String key = entry.getKey();
-      Object value = entry.getValue();
-      // Handle single attribute array value as non array value
-      if (value instanceof Collection<?> values && values.size() == 1) {
-        value = values.iterator().next();
-      }
-      if (value instanceof Boolean) {
-        builder.put(key, (Boolean) value);
-      } else if (value instanceof String) {
-        builder.put(key, (String) value);
-      } else if (value instanceof Integer) {
-        builder.put(key, ((Integer) value));
-      } else if (value instanceof Long) {
-        builder.put(key, (Long) value);
-      } else if (value instanceof Float) {
-        builder.put(key, (Float) value);
-      } else if (value instanceof Double) {
-        builder.put(key, (Double) value);
-      } else if (value instanceof Collection<?> values) {
-        Object firstValue = values.iterator().next();
-        Iterator<?> iterator = values.iterator();
-        int count = 0;
-        int valueCount = values.size();
-        if (firstValue instanceof Boolean) {
-          boolean[] parsedValues = new boolean[valueCount];
-          while (iterator.hasNext()) {
-            parsedValues[count++] = (Boolean) iterator.next();
-          }
-          builder.put(key, parsedValues);
-        } else if (firstValue instanceof String) {
-          String[] parsedValues = new String[valueCount];
-          while (iterator.hasNext()) {
-            parsedValues[count++] = (String) iterator.next();
-          }
-          builder.put(key, parsedValues);
-        } else if (firstValue instanceof Integer) {
-          long[] parsedValues = new long[valueCount];
-          while (iterator.hasNext()) {
-            parsedValues[count++] = (Integer) iterator.next();
-          }
-          builder.put(key, parsedValues);
-        } else if (firstValue instanceof Long) {
-          long[] parsedValues = new long[valueCount];
-          while (iterator.hasNext()) {
-            parsedValues[count++] = (Long) iterator.next();
-          }
-          builder.put(key, parsedValues);
-        } else if (firstValue instanceof Float) {
-          double[] parsedValues = new double[valueCount];
-          while (iterator.hasNext()) {
-            parsedValues[count++] = (Float) iterator.next();
-          }
-          builder.put(key, parsedValues);
-        } else if (firstValue instanceof Double) {
-          double[] parsedValues = new double[valueCount];
-          while (iterator.hasNext()) {
-            parsedValues[count++] = (Double) iterator.next();
-          }
-          builder.put(key, parsedValues);
-        }
-      }
-    }
-    return builder.build();
-  }
-
-  private static String formatTraceState(TraceState traceState) {
-    StringBuilder builder = new StringBuilder();
-    traceState.forEach((memberKey, memberValue) -> {
-      if (!builder.isEmpty()) {
-        builder.append(',');
-      }
-      builder.append(memberKey).append('=').append(memberValue);
-    });
-    return builder.toString();
+    this.baggage = Baggage.empty();
   }
 
   @PostMapping("start_span")
@@ -307,8 +188,8 @@ public class OpenTelemetryController {
     LOGGER.info("Flushing OTel spans: {}", args);
     try {
       // Only flush spans when tracing was enabled
-      if (GlobalTracer.get() instanceof InternalTracer) {
-          ((InternalTracer) GlobalTracer.get()).flush();
+      if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
+          internalTracer.flush();
       }
       this.spans.clear();
       return new FlushResult(true);
@@ -316,6 +197,45 @@ public class OpenTelemetryController {
       LOGGER.warn("Failed to flush OTel spans", e);
       return new FlushResult(false);
     }
+  }
+
+  @PostMapping("set_baggage")
+  public void setBaggage(@RequestBody SetBaggageArgs args) {
+    LOGGER.info("Setting OTel baggage: {}", args);
+    this.baggage = this.baggage
+            .toBuilder()
+            .put(args.key(), args.value())
+            .build();
+  }
+
+  @GetMapping("get_baggage")
+  public GetBaggageResult getBaggage(@RequestBody GetBaggageArgs args) {
+    LOGGER.info("Getting an OTel baggage entry");
+    var value = this.baggage.getEntryValue(args.key());
+    return new GetBaggageResult(value);
+  }
+
+  @GetMapping("get_all_baggage")
+  public GetAllBaggageResult getAllBaggage() {
+    LOGGER.info("Getting all OTel baggage entries");
+    Map<String, String> baggageMap = new HashMap<>();
+    this.baggage.forEach((key, entry) -> baggageMap.put(key, entry.getValue()));
+    return new GetAllBaggageResult(baggageMap);
+  }
+
+  @PostMapping("remove_baggage")
+  public void removeBaggage(@RequestBody RemoveBaggageArgs args) {
+    LOGGER.info("Removing OTel baggage entry: {}", args);
+    this.baggage = this.baggage
+            .toBuilder()
+            .remove(args.key())
+            .build();
+  }
+
+  @PostMapping("remove_all_baggage")
+  public void removeAllBaggage() {
+    LOGGER.info("Removing all OTel baggage entries");
+    this.baggage = Baggage.empty();
   }
 
   private Span getSpan(long spanId) {

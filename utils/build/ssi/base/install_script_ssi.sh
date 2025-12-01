@@ -1,6 +1,51 @@
 #!/bin/bash
 
-DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+#We want latest releases or the latest snapshot
+if [ "${SSI_ENV}" == "dev" ]; then
+    # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
+    export DD_SITE="datad0g.com"
+    export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
+    export DD_injection_repo_url='datad0g.com'
+    #The latest_snapshot of python tracer version is 2.x we want to use 3.x. Get from repo.
+    #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+    echo "DD_LANG: ${DD_LANG}"
+    if [ "${DD_LANG}" == "python" ]; then
+    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+    fi
+
+else
+    export DD_SITE="datadoghq.com"
+    export DD_injection_repo_url='datadoghq.com'
+    #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
+    #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+    if [ "${DD_LANG}" == "python" ]; then
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+    fi
+fi
+
+#We want specfic library version (to run on tracers pipelines)
+if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
+    export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
+    export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
+fi
+
+if [ "${DD_LANG}" == "js" ] && [ "${SSI_ENV}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
+    # Special case for Node.js, the staging major version is 1 above the prod major (6 here)
+    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="6"
+fi
+
+#We want specfic injector version (to run on auto_inject pipelines)
+if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
+    export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
+    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
+fi
+
+if [ -f "install_script_agent7.sh" ]; then
+    echo "[TRACE] install_script_agent7.sh exists"
+    DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(cat install_script_agent7.sh)"
+else
+    DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
+fi
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
     OS="Debian"

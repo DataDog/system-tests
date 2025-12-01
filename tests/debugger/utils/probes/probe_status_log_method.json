@@ -1,0 +1,24 @@
+[
+    {
+      "language": "",
+      "type": "",
+      "id": "",
+      "version": 0,
+      "where": {
+        "typeName": "NotReallyExists",
+        "methodName": "SomeMethod",
+        "sourceFile": null
+      }
+    },
+    {
+      "language": "",
+      "type": "",
+      "id": "",
+      "version": 0,
+      "where": {
+        "typeName": "ACTUAL_TYPE_NAME",
+        "methodName": "LogProbe",
+        "sourceFile": null
+      }
+    }
+  ]

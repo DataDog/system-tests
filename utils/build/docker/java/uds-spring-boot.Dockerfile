@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-11 as build
 
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
@@ -8,10 +10,9 @@ COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven package
-
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
+RUN mvn -Dmaven.repo.local=/maven package
 
 FROM eclipse-temurin:11-jre
 
@@ -28,4 +29,5 @@ COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 RUN apt-get update && apt-get install socat -y
 ENV UDS_WEBLOG=1
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY utils/build/docker/java/spring-boot/app.sh app.sh

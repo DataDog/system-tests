@@ -1,20 +1,16 @@
 package com.datadoghq.trace.controller;
 
 import static com.datadoghq.ApmTestClient.LOGGER;
+import static java.util.Map.entry;
 
-import com.datadoghq.trace.trace.dto.GetTraceConfigResult;
+import com.datadoghq.trace.dto.GetTraceConfigResult;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import datadog.trace.api.TracePropagationStyle;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -29,80 +25,38 @@ public class TraceController {
   @GetMapping("config")
   public GetTraceConfigResult config() {
     LOGGER.info("Getting tracer config");
-    try
-    {
-        // Use reflection to get the static Config instance
-        Class configClass = Class.forName("datadog.trace.api.Config");
-        Method getConfigMethod = configClass.getMethod("get");
+    try {
+      ConfigHelper helper = new ConfigHelper();
+      var configMapping = Map.ofEntries(
+          entry("dd_service", "getServiceName"),
+          entry("dd_env", "getEnv"),
+          entry("dd_version", "getVersion"),
+          entry("dd_log_level", "getLogLevel"),
+          entry("dd_trace_enabled", "isTraceEnabled"),
+          entry("dd_runtime_metrics_enabled", "isRuntimeMetricsEnabled"),
+          entry("dd_trace_debug", "isDebugEnabled"),
+          entry("dd_trace_agent_url", "getAgentUrl"),
+          entry("dd_dogstatsd_host", "getJmxFetchStatsdHost"),
+          entry("dd_dogstatsd_port", "getJmxFetchStatsdPort"),
+          entry("dd_trace_sample_rate", "getTraceSampleRate"),
+          entry("dd_trace_rate_limit", "getTraceRateLimit"),
+          entry("dd_logs_injection", "isLogsInjectionEnabled"),
+          entry("dd_profiling_enabled", "isProfilingEnabled"),
+          entry("dd_data_streams_enabled", "isDataStreamsEnabled")
+      );
+      Map<String, String> config = new HashMap<>();
+      configMapping.forEach(
+          (key, accessor) -> config.put(key, helper.getConfigValue(accessor))
+      );
+      config.put("dd_trace_propagation_style", helper.getConfigCollectionValues("getTracePropagationStylesToInject", ","));
+      config.put("dd_tags", helper.getConfigMapValues("getGlobalTags", ",", ":"));
+      config.put("dd_trace_otel_enabled", helper.getInstrumenterConfigValue("isTraceOtelEnabled"));
 
-        Class instrumenterConfigClass = Class.forName("datadog.trace.api.InstrumenterConfig");
-        Method getInstrumenterConfigMethod = instrumenterConfigClass.getMethod("get");
-
-        Object configObject = getConfigMethod.invoke(null);
-        Object instrumenterConfigObject = getInstrumenterConfigMethod.invoke(null);
-
-        Method getServiceName = configClass.getMethod("getServiceName");
-        Method getEnv = configClass.getMethod("getEnv");
-        Method getVersion = configClass.getMethod("getVersion");
-        Method getTraceSampleRate = configClass.getMethod("getTraceSampleRate");
-        Method isTraceEnabled = configClass.getMethod("isTraceEnabled");
-        Method isRuntimeMetricsEnabled = configClass.getMethod("isRuntimeMetricsEnabled");
-        Method getGlobalTags = configClass.getMethod("getGlobalTags");
-        Method getTracePropagationStylesToInject = configClass.getMethod("getTracePropagationStylesToInject");
-        Method isDebugEnabled = configClass.getMethod("isDebugEnabled");
-        Method getLogLevel = configClass.getMethod("getLogLevel");
-        Method getAgentUrl = configClass.getMethod("getAgentUrl");
-        Method getTraceRateLimit = configClass.getMethod("getTraceRateLimit");
-
-        Method isTraceOtelEnabled = instrumenterConfigClass.getMethod("isTraceOtelEnabled");
-
-        Map<String, String> configMap = new HashMap<>();
-        configMap.put("dd_service", getServiceName.invoke(configObject).toString());
-        configMap.put("dd_env", getEnv.invoke(configObject).toString());
-        configMap.put("dd_version", getVersion.invoke(configObject).toString());
-        configMap.put("dd_log_level", Optional.ofNullable(getLogLevel.invoke(configObject)).map(Object::toString).orElse(null));
-        configMap.put("dd_trace_enabled", isTraceEnabled.invoke(configObject).toString());
-        configMap.put("dd_runtime_metrics_enabled", isRuntimeMetricsEnabled.invoke(configObject).toString());
-        configMap.put("dd_trace_debug", isDebugEnabled.invoke(configObject).toString());
-        configMap.put("dd_trace_otel_enabled", isTraceOtelEnabled.invoke(instrumenterConfigObject).toString());
-        configMap.put("dd_trace_agent_url", getAgentUrl.invoke(configObject).toString());
-        // configMap.put("dd_trace_sample_ignore_parent", Config.get());
-
-        Object sampleRate = getTraceSampleRate.invoke(configObject);
-        if (sampleRate instanceof Double) {
-            configMap.put("dd_trace_sample_rate", String.valueOf((Double)sampleRate));
-        }
-
-        Object rateLimit = getTraceRateLimit.invoke(configObject);
-        if (rateLimit instanceof Integer) {
-          configMap.put("dd_trace_rate_limit", Integer.toString((int)rateLimit));
-        }
-
-        Object globalTags = getGlobalTags.invoke(configObject);
-        if (globalTags != null) {
-            String result = ((Map<String, String>)globalTags).entrySet()
-                .stream()
-                .map(entry -> entry.getKey() + ":" + entry.getValue())
-                .collect(Collectors.joining(","));
-
-            configMap.put("dd_tags", result);
-        }
-
-        Object propagationStyles = getTracePropagationStylesToInject.invoke(configObject);
-        if (propagationStyles != null) {
-            String result = ((Set<TracePropagationStyle>)propagationStyles)
-                .stream()
-                .map(style -> style.toString())
-                .collect(Collectors.joining(","));
-
-            configMap.put("dd_trace_propagation_style", result);
-        }
-
-        configMap.values().removeIf(Objects::isNull);
-        return new GetTraceConfigResult(configMap);
+      config.values().removeIf(Objects::isNull);
+      return new GetTraceConfigResult(config);
     } catch (Throwable t) {
-        LOGGER.error("Uncaught throwable", t);
-        return GetTraceConfigResult.error();
+      LOGGER.error("Uncaught throwable", t);
+      return GetTraceConfigResult.error();
     }
   }
 

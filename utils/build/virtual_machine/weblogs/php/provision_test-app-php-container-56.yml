@@ -1,7 +1,6 @@
 weblog:
     name: test-app-php-container-56
     runtime_version: 5.6
-    excluded_os_branches: [amazon_linux2, centos_7_amd64]
     install:
       - os_type: linux
 

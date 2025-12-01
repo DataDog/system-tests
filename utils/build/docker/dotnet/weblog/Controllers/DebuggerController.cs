@@ -35,7 +35,7 @@ namespace weblog
             return Content("Span probe");
         }
 
-        private int intLocal = 0;
+        private int intLocal = 1000;
         [HttpGet("span-decoration/{arg}/{intArg}")]
         [Consumes("application/json", "application/xml")]
         public IActionResult SpanDecorationProbe(string arg, int intArg)
@@ -61,7 +61,7 @@ namespace weblog
             PiiBase? customPii = await Task.FromResult<PiiBase>(new CustomPii());
             var value = pii?.TestValue;
             var customValue = customPii?.TestValue;
-            return Content($"PII {value}. CustomPII {customValue}");
+            return Content($"PII {value}. CustomPII {customValue}"); // must be line 64
         }
 
         [HttpGet("expression")]
@@ -83,9 +83,11 @@ namespace weblog
 
         [HttpGet("expression/operators")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExpressionOperators(int intValue, float floatValue, string strValue)
+        public async Task<IActionResult> ExpressionOperators(int intValue, float floatValue, string strValue)
         {
-            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}");
+            PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
+            var piiValue = pii?.TestValue;
+            return Content($"Int value {intValue}. Float value {floatValue}. String value {strValue}. Pii value {piiValue}");
         }
 
         [HttpGet("expression/strings")]
@@ -114,67 +116,38 @@ namespace weblog
 
         [HttpGet("expression/null")]
         [Consumes("application/json", "application/xml")]
-        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null)
+        public async Task<IActionResult> Nulls(int? intValue = null, string strValue = null, bool? boolValue = null)
         {
-            PiiBase? pii = await Task.FromResult<PiiBase>(null);
+            PiiBase pii = null;
+            if (boolValue == true)
+            {
+                pii = await Task.FromResult<PiiBase>(null);
+            }
+
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
         }
 
-        [HttpGet("exceptionreplay/simple")]
+        [HttpGet("budgets/{loops}")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplaySimple()
+        public IActionResult Budgets(int loops)
         {
-            throw new System.Exception("Simple exception");
+            for (int i = 0; i < loops; i++)
+            {
+                int j = i; // Capture snapshot here to test budgets.
+            }
+            return Content("Budgets");
         }
 
-        [HttpGet("exceptionreplay/recursion")]
+        [HttpGet("snapshot/limits")]
         [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRecursion(int depth)
+        public IActionResult SnapshotLimits(int depth = 0, int collectionSize = 0, int stringLength = 0)
         {
-            if (depth > 0)
-            {
-                return ExceptionReplayRecursion(depth - 1);
-            }
-            else
-            {
-                throw new System.Exception("Recursion exception");
-            }
-        }
-
-        [HttpGet("exceptionreplay/inner")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayInner()
-        {
-            try
-            {
-                throw new System.Exception("Inner exception");
-            }
-            catch (System.Exception ex)
-            {
-                throw new System.Exception("Outer exception", ex);
-            }
-        }
-
-        [HttpGet("exceptionreplay/rps")]
-        [Consumes("application/json", "application/xml")]
-        public IActionResult ExceptionReplayRockPaperScissors(string shape)
-        {
-            if (shape == "rock")
-            {
-                throw new ExceptionReplayRock();
-            }
-
-            if (shape == "paper")
-            {
-                throw new ExceptionReplayPaper();
-            }
-
-            if (shape == "scissors")
-            {
-                throw new ExceptionReplayScissors();
-            }
-
-            return Content("No exception");
+            var data = DataGenerator.GenerateTestData(depth, collectionSize, stringLength);
+            var deepObject = data["deepObject"];
+            var manyFields = data["manyFields"];
+            var largeCollection = data["largeCollection"];
+            var longString = data["longString"];
+            return Content("Capture limits probe"); // must be line 150
         }
     }
 }

@@ -3,26 +3,32 @@ from urllib.parse import urlparse
 from utils import (
     bug,
     irrelevant,
+    missing_feature,
     scenarios,
     features,
     context,
     interfaces,
 )
-from utils import weblog
-from utils.tools import logger
+from utils import weblog, logger
 
 
-@scenarios.docker_ssi
+@scenarios.docker_ssi_crashtracking
 class TestDockerSSICrash:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
-    We test scenarios when the application crashes and sends a crash report."""
+    We test scenarios when the application crashes and sends a crash report.
+    """
 
     _r = None
 
     def setup_crash(self):
         if TestDockerSSICrash._r is None:
-            parsed_url = urlparse(context.scenario.weblog_url + "/crashme")
-            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}")
+            parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url)
+            logger.info(
+                f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi_crashtracking.weblog_url}"
+            )
+            r_ready = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
+            logger.info(f"Check Docker SSI installation https status: {r_ready.status_code}")
+            parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url + "/crashme")
             TestDockerSSICrash._r = weblog.request(
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
@@ -31,20 +37,23 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
-    @bug(condition=context.library not in ("python", "nodejs"), reason="INPLAT-11")
+    @missing_feature(
+        condition=context.library in ("java", "php", "ruby"), reason="No implemented the endpoint /crashme"
+    )
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-603")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
-        logger.info(f"Testing Docker SSI crash tracking: {context.scenario.library.library}")
-        assert (
-            self.r.status_code is None
-        ), f"Response from request {context.scenario.weblog_url + '/crashme'} was supposed to fail: {self.r}"
+        logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
+        assert self.r.status_code is None, (
+            f"Response from request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'} was supposed to fail: {self.r}"
+        )
 
         # No traces should have been generated
-        assert not interfaces.test_agent.get_traces(
-            self.r
-        ), f"Traces found for request {context.scenario.weblog_url + '/crashme'}"
+        assert not interfaces.test_agent.get_traces(self.r), (
+            f"Traces found for request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'}"
+        )
 
         # Crash report should have been generated
         crash_reports = interfaces.test_agent.get_crash_reports()

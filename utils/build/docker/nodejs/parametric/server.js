@@ -1,6 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+const { trace, ROOT_CONTEXT, SpanKind, propagation, metrics } = require('@opentelemetry/api')
 tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
@@ -8,8 +9,10 @@ tracer.use('dns', false)
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
-const { trace, ROOT_CONTEXT, SpanKind } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
+
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
 
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
@@ -20,6 +23,7 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
+let dummyIdIncrementer = 10000000
 
 function microLongToHrTime (timestamp) {
   if (timestamp === null) {
@@ -48,6 +52,13 @@ const otelSpanKinds = {
 const spans = new Map()
 const ddContext = new Map()
 const otelSpans = new Map()
+const otelMeters = new Map()
+const otelMeterInstruments = new Map()
+
+// Helper function to create instrument keys
+function createInstrumentKey(meterName, name, kind, unit, description) {
+  return `${meterName}:${name}:${kind}:${unit}:${description}`;
+}
 
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
@@ -71,6 +82,17 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const extracted = tracer.extract('http_headers', linkHeaders);
 
   let extractedSpanID = null;
+  const dummyTracer = require('dd-trace').init()
+  const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
+
+  if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
+    // baggage propagation does not require ids so http_headers could contain no ids
+    // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
+    extracted._spanId = dummyIdIncrementer
+    extracted._traceId = dummyIdIncrementer
+    dummyIdIncrementer += 1
+  }
+
   if (extracted && extracted._spanId) {
     extractedSpanID = extracted.toSpanId();
     ddContext[extractedSpanID] = extracted;
@@ -153,7 +175,7 @@ app.post('/trace/span/set_metric', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in NodeJS Tracer
+  // TODO: implement once available in Node.js Tracer
   res.json({});
 });
 
@@ -165,6 +187,41 @@ app.post('/trace/span/error', (req, res) => {
       'error.type': request.type,
       'error.stack': request.stack
   })
+  res.json({});
+});
+
+app.post('/trace/span/set_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  span.setBaggageItem(request.key, request.value)
+  res.json({});
+});
+
+app.get('/trace/span/get_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggage = span.getBaggageItem(request.key)
+  res.json({ baggage });
+});
+
+app.get('/trace/span/get_all_baggage', (req, res) => {
+const request = req.body;
+  const span = spans[request.span_id]
+  const baggage = span.getAllBaggageItems()
+  res.json({ baggage: JSON.parse(baggage) });
+});
+
+app.post('/trace/span/remove_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggages = span.removeBaggageItem(request.key)
+  res.json({});
+});
+
+app.post('/trace/span/remove_all_baggage', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id]
+  const baggages = span.removeAllBaggageItems()
   res.json({});
 });
 
@@ -274,6 +331,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   const dummyTracer = require('dd-trace').init()
   const config = dummyTracer._tracer._config
+  const agentUrl = dummyTracer._tracer?._url ||  config?.url
   res.json( {
     config: {
       'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
@@ -281,18 +339,68 @@ app.get('/trace/config', (req, res) => {
       'dd_trace_debug': config?.debug !== undefined ? `${config.debug}`.toLowerCase() : 'null',
       'dd_trace_sample_rate': config?.sampleRate !== undefined ? `${config.sampleRate}` : 'null',
       'dd_trace_enabled': config ? 'true' : 'false', // in node if dd_trace_enabled is true the tracer won't have a config object
-      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics}`.toLowerCase() : 'null',
+      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics.enabled ?? config.runtimeMetrics}`.toLowerCase() : 'null',
       'dd_tags': config?.tags !== undefined ? Object.entries(config.tags).map(([key, val]) => `${key}:${val}`).join(',') : 'null',
       'dd_trace_propagation_style': config?.tracePropagationStyle?.inject.join(',') ?? 'null',
       'dd_trace_sample_ignore_parent': 'null', // not implemented in node
       'dd_trace_otel_enabled': 'null', // not exposed in config object in node
       'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
       'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
-      'dd_trace_agent_url': config?.url !== undefined ? `${config.url.href}` : 'null',
-      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` :'null'
+      'dd_trace_agent_url': agentUrl !== undefined ? agentUrl.toString() : 'null',
+      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` : 'null',
+      'dd_dogstatsd_host': config?.dogstatsd?.hostname !== undefined ? `${config.dogstatsd.hostname}` : 'null',
+      'dd_dogstatsd_port': config?.dogstatsd?.port !== undefined ? `${config.dogstatsd.port}` : 'null',
+      'dd_profiling_enabled': config?.profiling?.enabled !== undefined ? `${config.profiling.enabled}` : 'false',
+      'dd_data_streams_enabled': config?.dsmEnabled !== undefined ? `${config.dsmEnabled}` : 'null',
+      'dd_logs_injection': config?.logInjection !== undefined ? `${config.logInjection}` : 'null',
     }
   });
 });
+
+app.post("/log/write", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  const logger = logs.getLogger(req?.body?.logger_name)
+  const otelSpan = otelSpans[req?.body?.span_id]
+  const ddSpan = spans[req?.body?.span_id]
+  let context = undefined
+  if (otelSpan) {
+    context = trace.setSpan(ROOT_CONTEXT, otelSpan)
+  } else if (ddSpan) {
+    const ddSpanContext = ddSpan.context()
+    const sp = {spanId: ddSpanContext.toSpanId(true), traceId: ddSpanContext.toTraceId(true), flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0}
+    context = trace.setSpanContext(ROOT_CONTEXT, sp)
+  }
+
+  logger.emit({
+    severityText: req.body.level,
+    body: req.body.message,
+    context: context
+  })
+  res.status(200).json({})
+})
+
+app.post("/log/otel/flush", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  try {
+    // Get the current logs provider
+    const logsProvider = logs.getLoggerProvider()
+    const providerType = logsProvider.constructor.name
+
+    // Force flush all logs with timeout
+    const timeoutMs = (req.body.seconds || 5) * 1000
+    logsProvider.forceFlush(timeoutMs)
+      .then(() => {
+        res.status(200).json({ success: true, message: providerType })
+      })
+      .catch((error) => {
+        res.status(200).json({ success: false, message: `Error: ${error.message}` })
+      })
+  } catch (error) {
+    res.status(200).json({ success: false, message: `Error: ${error.message}` })
+  }
+})
 
 app.post("/trace/otel/add_event", (req, res) => {
   const { span_id, name, timestamp, attributes } = req.body;
@@ -308,6 +416,299 @@ app.post("/trace/otel/record_exception", (req, res) => {
   span.recordException(new Error(message))
   res.json({})
 })
+
+app.post("/trace/otel/otel_set_baggage", (req, res) => {
+  const bag = propagation
+        .createBaggage()
+        .setEntry(req.body.key, { value: req.body.value });
+  const context = propagation.setBaggage(ROOT_CONTEXT, bag)
+  const value = propagation.getBaggage(context).getEntry(req.body.key).value
+  res.json({ value });
+});
+
+// Feature Flag & Experimentation endpoints
+app.post('/ffe/start', async (req, res) => {
+  const { openfeature } = tracer
+  await OpenFeature.setProviderAndWait(openfeature)
+  openFeatureClient = OpenFeature.getClient()
+  res.json({})
+})
+
+app.post('/ffe/evaluate', async (req, res) => {
+  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  let value, reason;
+  const context = { targetingKey, ...attributes }
+
+  try {
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break;
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break;
+      case 'INTEGER':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break;
+      default:
+        value = defaultValue;
+    }
+
+    reason = 'DEFAULT';
+  } catch (error) {
+    value = defaultValue;
+    reason = 'ERROR';
+  }
+
+  res.json({
+    value: value,
+    reason: reason
+  });
+});
+
+// OpenTelemetry Metrics Endpoints
+
+app.post('/metrics/otel/get_meter', (req, res) => {
+  const { name, version, schema_url, attributes } = req.body;
+  if (!otelMeters.has(name)) {
+    const meterProvider = metrics.getMeterProvider();
+    const meter = meterProvider.getMeter(name, version, { schemaUrl: schema_url, attributes });
+    otelMeters.set(name, meter);
+  }
+  res.json({});
+});
+
+app.post('/metrics/otel/create_counter', (req, res) => {
+  const { meter_name, name, description, unit } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const counter = meter.createCounter(name, { unit, description });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'counter', unit, description);
+  otelMeterInstruments.set(instrumentKey, counter);
+  res.json({});
+});
+
+app.post('/metrics/otel/counter_add', (req, res) => {
+  const { meter_name, name, unit, description, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'counter', unit, description);
+  if (!otelMeterInstruments.has(instrumentKey)) {
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=Counter,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
+    });
+  }
+
+  const counter = otelMeterInstruments.get(instrumentKey);
+  counter.add(value, attributes);
+  res.json({});
+});
+
+app.post('/metrics/otel/create_updowncounter', (req, res) => {
+  const { meter_name, name, description, unit } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const counter = meter.createUpDownCounter(name, { unit, description });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'updowncounter', unit, description);
+  otelMeterInstruments.set(instrumentKey, counter);
+  res.json({});
+});
+
+app.post('/metrics/otel/updowncounter_add', (req, res) => {
+  const { meter_name, name, unit, description, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'updowncounter', unit, description);
+  if (!otelMeterInstruments.has(instrumentKey)) {
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=UpDownCounter,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
+    });
+  }
+
+  const counter = otelMeterInstruments.get(instrumentKey);
+  counter.add(value, attributes);
+  res.json({});
+});
+
+app.post('/metrics/otel/create_gauge', (req, res) => {
+  const { meter_name, name, description, unit } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const gauge = meter.createGauge(name, { unit, description });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'gauge', unit, description);
+  otelMeterInstruments.set(instrumentKey, gauge);
+  res.json({});
+});
+
+app.post('/metrics/otel/gauge_record', (req, res) => {
+  const { meter_name, name, unit, description, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'gauge', unit, description);
+  if (!otelMeterInstruments.has(instrumentKey)) {
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=Gauge,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
+    });
+  }
+
+  const gauge = otelMeterInstruments.get(instrumentKey);
+  gauge.record(value, attributes);
+  res.json({});
+});
+
+app.post('/metrics/otel/create_histogram', (req, res) => {
+  const { meter_name, name, description, unit } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const histogram = meter.createHistogram(name, { unit, description });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'histogram', unit, description);
+  otelMeterInstruments.set(instrumentKey, histogram);
+  res.json({});
+});
+
+app.post('/metrics/otel/histogram_record', (req, res) => {
+  const { meter_name, name, unit, description, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'histogram', unit, description);
+  if (!otelMeterInstruments.has(instrumentKey)) {
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=Histogram,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
+    });
+  }
+
+  const histogram = otelMeterInstruments.get(instrumentKey);
+  histogram.record(value, attributes);
+  res.json({});
+});
+
+app.post('/metrics/otel/create_asynchronous_counter', (req, res) => {
+  const { meter_name, name, description, unit, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const observableCounter = meter.createObservableCounter(name, {
+    unit,
+    description
+  });
+
+  // Add the callback
+  observableCounter.addCallback((observableResult) => {
+    observableResult.observe(value, attributes);
+  });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_counter', unit, description);
+  otelMeterInstruments.set(instrumentKey, observableCounter);
+  res.json({});
+});
+
+app.post('/metrics/otel/create_asynchronous_updowncounter', (req, res) => {
+  const { meter_name, name, description, unit, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const observableUpDownCounter = meter.createObservableUpDownCounter(name, {
+    unit,
+    description
+  });
+
+  // Add the callback
+  observableUpDownCounter.addCallback((observableResult) => {
+    observableResult.observe(value, attributes);
+  });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_updowncounter', unit, description);
+  otelMeterInstruments.set(instrumentKey, observableUpDownCounter);
+  res.json({});
+});
+
+app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
+  const { meter_name, name, description, unit, value, attributes } = req.body;
+  if (!otelMeters.has(meter_name)) {
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
+    });
+  }
+
+  const meter = otelMeters.get(meter_name);
+  const observableGauge = meter.createObservableGauge(name, {
+    unit,
+    description
+  });
+
+  // Add the callback
+  observableGauge.addCallback((observableResult) => {
+    observableResult.observe(value, attributes);
+  });
+
+  const instrumentKey = createInstrumentKey(meter_name, name, 'observable_gauge', unit, description);
+  otelMeterInstruments.set(instrumentKey, observableGauge);
+  res.json({});
+});
+
+app.post('/metrics/otel/force_flush', (req, res) => {
+  const meterProvider = metrics.getMeterProvider();
+  if (meterProvider.forceFlush) {
+    meterProvider.forceFlush()
+    res.json({ success: true });
+  } else {
+    res.json({ success: false, message: 'Force flush not supported' });
+  }
+});
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {

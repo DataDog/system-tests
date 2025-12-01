@@ -32,16 +32,11 @@ done
 if [ ! -d "venv/" ]; then
   echo "Runner is not installed, installing it (ETA 60s)"
   ./build.sh -i runner
+elif ! diff requirements.txt venv/requirements.txt; then
+  ./build.sh -i runner
 fi
 
 source venv/bin/activate
-
-echo "Checking Python files..."
-if [ "$COMMAND" == "fix" ]; then
-  black --quiet .
-else
-  black --check --diff .
-fi
 
 echo "Running mypy type checks..."
 if ! mypy --config pyproject.toml; then
@@ -49,9 +44,21 @@ if ! mypy --config pyproject.toml; then
   exit 1
 fi
 
-echo "Running pylint checks..."
-if ! pylint utils; then
-  echo "Pylint checks failed. Please fix the errors above. 💥 💔 💥"
+echo "Running ruff formatter..."
+if [ "$COMMAND" == "fix" ]; then
+  ruff format
+else
+  ruff format --check --diff
+fi
+
+if [ "$COMMAND" == "fix" ]; then
+  ruff_args="--fix"
+else
+  ruff_args=""
+fi
+
+if ! ruff check $ruff_args; then
+  echo "ruff checks failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi
 
@@ -84,5 +91,76 @@ else
     exit 1
   fi
 fi
+
+echo "Running yamlfmt checks..."
+if ! which yamlfmt > /dev/null; then
+  echo "yamlfmt is not installed, installing it (ETA 5s)"
+  YAMLFMT_VERSION="0.16.0"
+
+  YAMLFMT_OS=""
+  case "$(uname -s)" in
+    Darwin) YAMLFMT_OS="Darwin" ;;
+    Linux) YAMLFMT_OS="Linux" ;;
+    CYGWIN*|MINGW*|MSYS*) YAMLFMT_OS="Windows" ;;
+    *) echo "Unsupported OS"; return 1 ;;
+  esac
+
+  YAMLFMT_ARCH=""
+  case "$(uname -m)" in
+    arm64|aarch64) YAMLFMT_ARCH="arm64" ;;
+    x86_64) YAMLFMT_ARCH="x86_64" ;;
+    i386|i686) YAMLFMT_ARCH="i386" ;;
+    *) echo "Unsupported architecture"; return 1 ;;
+  esac
+
+  YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
+  curl -Lo "$PWD"/venv/bin/yamlfmt.tar.gz $YAMLFMT_URL
+  tar -xzf "$PWD"/venv/bin/yamlfmt.tar.gz -C "$PWD"/venv/bin/
+  chmod +x "$PWD"/venv/bin/yamlfmt
+fi
+
+echo "Running yamlfmt formatter..."
+if [ "$COMMAND" == "fix" ]; then
+ yamlfmt manifests/
+else
+ yamlfmt -lint manifests/
+fi
+
+echo "Running yamllint checks..."
+if ! ./venv/bin/yamllint -s manifests/; then
+  echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running parser checks..."
+if ! python ./manifests/parser/core.py; then
+  echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running shellcheck checks..."
+if ! ./utils/scripts/shellcheck.sh; then
+  echo "shellcheck checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running language-specific linters..."
+# This will not run if npm is not installed as written and there is no "install" step today
+# TODO: Install node as part of this script
+if which npm > /dev/null; then
+  echo "Running Node.js linters"
+
+  # currently only fastify requires linting
+  # this can be added later
+  nodejs_dirs=("express" "fastify")
+
+  for dir in "${nodejs_dirs[@]}"; do
+    if ! NODE_NO_WARNINGS=1 npm  --prefix ./utils/build/docker/nodejs/"$dir" install --silent && npm --prefix ./utils/build/docker/nodejs/"$dir" run --silent lint; then
+      echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
+      exit 1
+    fi
+  done
+fi
+
 
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

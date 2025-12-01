@@ -1,5 +1,7 @@
 FROM maven:3.9-eclipse-temurin-11 as build
 
+ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
 COPY ./utils/build/docker/java/iast-common/src /iast-common/src
 
 WORKDIR /app
@@ -8,10 +10,10 @@ COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
+COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
+RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
 RUN mvn -Dmaven.repo.local=/maven package
 
-COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
 RUN /binaries/install_drop_in.sh
 
 FROM eclipse-temurin:11-jre
@@ -23,6 +25,7 @@ COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/opentelemetry-javaagent-r2dbc.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 

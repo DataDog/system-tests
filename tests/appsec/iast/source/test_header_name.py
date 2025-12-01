@@ -3,14 +3,14 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features
-from ..utils import BaseSourceTest
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_header_name
 class TestHeaderName(BaseSourceTest):
     """Verify that request headers name are tainted"""
 
-    source_name = "User" if context.library.library == "python" else "user"
+    source_name = "User" if context.library.name == "python" else "user"
 
     endpoint = "/iast/source/headername/test"
     requests_kwargs = [{"method": "GET", "headers": {"user": "unused"}}]

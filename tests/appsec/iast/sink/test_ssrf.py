@@ -3,7 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, missing_feature, features, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.iast_sink_ssrf
@@ -17,8 +22,8 @@ class TestSSRF(BaseSinkTest):
     data = {"url": "https://www.datadoghq.com"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"},
-        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
+        "nodejs": get_nodejs_iast_file_paths(),
+        "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
     }
 
     @bug(context.library < "java@1.14.0", reason="APMRP-360")
@@ -26,7 +31,6 @@ class TestSSRF(BaseSinkTest):
         super().test_insecure()
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
-    @missing_feature(library="python", reason="Endpoint responds 403")
     @missing_feature(library="java", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()
@@ -41,10 +45,24 @@ class TestSSRF(BaseSinkTest):
 )
 @features.iast_stack_trace
 class TestSSRF_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/ssrf/test_insecure", data={"url": "https://www.datadoghq.com"})
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestSSRF_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "SSRF"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/ssrf/test_insecure", data={"url": "https://www.datadoghq.com"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

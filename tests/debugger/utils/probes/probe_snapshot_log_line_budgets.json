@@ -1,0 +1,20 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": [
+                "141"
+            ]
+        },
+        "captureSnapshot": true,
+        "capture": {
+            "maxFieldCount": 200
+        },
+        "tags": []
+    }
+]

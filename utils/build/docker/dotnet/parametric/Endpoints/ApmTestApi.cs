@@ -1,13 +1,13 @@
 using Datadog.Trace;
 using System.Reflection;
-using System.Threading;
-using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace ApmTestApi.Endpoints;
 
 public abstract class ApmTestApi
 {
-    public static void MapApmTraceEndpoints(WebApplication app, ILogger<ApmTestApi> logger)
+    public static void MapApmTraceEndpoints(WebApplication app, ILogger logger)
     {
         _logger = logger;
         // TODO: Remove when the Tracer sets the correct results in the SpanContextPropagator.Instance getter
@@ -18,10 +18,10 @@ public abstract class ApmTestApi
         app.MapGet("/trace/crash", Crash);
         app.MapGet("/trace/config", GetTracerConfig);
         app.MapPost("/trace/tracer/stop", StopTracer);
+
         app.MapPost("/trace/span/start", StartSpan);
         app.MapPost("/trace/span/inject_headers", InjectHeaders);
         app.MapPost("/trace/span/extract_headers", ExtractHeaders);
-
         app.MapPost("/trace/span/error", SpanSetError);
         app.MapPost("/trace/span/set_meta", SpanSetMeta);
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
@@ -29,123 +29,120 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/flush", FlushSpans);
     }
 
-    // Core types
-    private static readonly Type SpanType = Type.GetType("Datadog.Trace.Span, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type SpanContextType = Type.GetType("Datadog.Trace.SpanContext, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type TracerType = Type.GetType("Datadog.Trace.Tracer, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type TracerManagerType = Type.GetType("Datadog.Trace.TracerManager, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type GlobalSettingsType = Type.GetType("Datadog.Trace.Configuration.GlobalSettings, Datadog.Trace", throwOnError: true)!;
-    private static readonly Type ImmutableTracerSettingsType = Type.GetType("Datadog.Trace.Configuration.ImmutableTracerSettings, Datadog.Trace", throwOnError: true)!;
+    private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
+    private static readonly Assembly DatadogTraceAssembly = Assembly.Load("Datadog.Trace");
 
-    // Propagator types
-    internal static readonly Type W3CTraceContextPropagatorType = Type.GetType("Datadog.Trace.Propagators.W3CTraceContextPropagator, Datadog.Trace", throwOnError: true)!;
+    private static Type GetType(string name) => DatadogTraceAssembly.GetType(name, throwOnError: true)!;
 
-    // Agent-related types
-    private static readonly Type AgentWriterType = Type.GetType("Datadog.Trace.Agent.AgentWriter, Datadog.Trace", throwOnError: true)!;
-    internal static readonly Type StatsAggregatorType = Type.GetType("Datadog.Trace.Agent.StatsAggregator, Datadog.Trace", throwOnError: true)!;
+    // reflected types
+    private static readonly Type TracerType = GetType("Datadog.Trace.Tracer");
+    private static readonly Type TracerManagerType = GetType("Datadog.Trace.TracerManager");
+    private static readonly Type GlobalSettingsType = GetType("Datadog.Trace.Configuration.GlobalSettings");
+    private static readonly Type AgentWriterType = GetType("Datadog.Trace.Agent.AgentWriter");
+    private static readonly Type StatsAggregatorType = GetType("Datadog.Trace.Agent.StatsAggregator");
 
-    // Accessors for internal properties/fields accessors
-    internal static readonly PropertyInfo GetGlobalSettingsInstance  = GlobalSettingsType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly MethodInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", BindingFlags.Instance | BindingFlags.Public)!.GetGetMethod()!;
-    internal static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    private static readonly PropertyInfo SpanContext = SpanType.GetProperty("Context", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    private static readonly PropertyInfo Origin = SpanContextType.GetProperty("Origin", BindingFlags.Instance | BindingFlags.NonPublic)!;
+    // ImmutableTracerSettings was removed in 3.7.0
+    private static readonly Type TracerSettingsType = DatadogTraceAssembly.GetName().Version <= new Version(3, 6, 1, 0) ?
+        GetType("Datadog.Trace.Configuration.ImmutableTracerSettings") :
+        GetType("Datadog.Trace.Configuration.TracerSettings");
 
-    internal static readonly PropertyInfo SamplingPriority = SpanContextType.GetProperty("SamplingPriority", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo RawTraceId = SpanContextType.GetProperty("RawTraceId", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo RawSpanId = SpanContextType.GetProperty("RawSpanId", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo AdditionalW3CTraceState = SpanContextType.GetProperty("AdditionalW3CTraceState", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo PropagationStyleInject = ImmutableTracerSettingsType.GetProperty("PropagationStyleInject", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo RuntimeMetricsEnabled = ImmutableTracerSettingsType.GetProperty("RuntimeMetricsEnabled", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo IsActivityListenerEnabled = ImmutableTracerSettingsType.GetProperty("IsActivityListenerEnabled", BindingFlags.Instance | BindingFlags.NonPublic)!;
-    internal static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)!;
-    internal static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
-    internal static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!;
+    // reflected members
+    private static readonly PropertyInfo GetGlobalSettingsInstance = GlobalSettingsType.GetProperty("Instance", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetTracerManager = TracerType.GetProperty("TracerManager", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetAgentWriter = TracerManagerType.GetProperty("AgentWriter", CommonBindingFlags)!;
+    private static readonly FieldInfo GetStatsAggregator = AgentWriterType.GetField("_statsAggregator", CommonBindingFlags)!;
+    private static readonly PropertyInfo PropagationStyleInject = TracerSettingsType.GetProperty("PropagationStyleInject", CommonBindingFlags)!;
+    private static readonly PropertyInfo RuntimeMetricsEnabled = TracerSettingsType.GetProperty("RuntimeMetricsEnabled", CommonBindingFlags)!;
+    private static readonly PropertyInfo IsActivityListenerEnabled = TracerSettingsType.GetProperty("IsActivityListenerEnabled", CommonBindingFlags)!;
+    private static readonly PropertyInfo IsDataStreamsEnabled = TracerSettingsType.GetProperty("IsDataStreamsMonitoringEnabled", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", CommonBindingFlags)!;
+    private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", CommonBindingFlags)!;
+    private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", CommonBindingFlags)!;
 
-    // Propagator methods
-    internal static readonly MethodInfo W3CTraceContextCreateTraceStateHeader = W3CTraceContextPropagatorType.GetMethod("CreateTraceStateHeader", BindingFlags.Static | BindingFlags.NonPublic)!;
-
-    // StatsAggregator flush methods
-    private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", BindingFlags.Instance | BindingFlags.Public)!;
-    private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", BindingFlags.Instance | BindingFlags.NonPublic)!;
-
+    // static state
     private static readonly Dictionary<ulong, ISpan> Spans = new();
-    private static readonly Dictionary<ulong, Datadog.Trace.ISpanContext> DDContexts = new();
+    private static readonly Dictionary<ulong, ISpanContext> SpanContexts = new();
+    private static ILogger? _logger;
 
-    internal static ILogger<ApmTestApi>? _logger;
+    // global config reflection
+    private static MethodInfo? _getConfigurationString;
+    private static object? _telemetryInstance;
+    private static object? _globalConfigurationSourceInstance;
 
-    internal static readonly SpanContextInjector _spanContextInjector = new();
-    internal static readonly SpanContextExtractor _spanContextExtractor = new();
+    // stateless singletons
+    private static readonly SpanContextInjector SpanContextInjector = new();
+    private static readonly SpanContextExtractor SpanContextExtractor = new();
 
-    internal static IEnumerable<string> GetHeaderValues(string[][] headersList, string key)
+    private static bool GetIsProfilerEnabled()
     {
-        List<string> values = new List<string>();
-        foreach (var kvp in headersList)
-        {
-            if (kvp.Length == 2 && string.Equals(key, kvp[0], StringComparison.OrdinalIgnoreCase))
-            {
-                values.Add(kvp[1]);
-            }
-        }
+        // Datadog.Trace.ContinuousProfiler.Profiler.Instance
+        var profilerType = GetType("Datadog.Trace.ContinuousProfiler.Profiler");
+        var instanceProp = profilerType.GetProperty("Instance", CommonBindingFlags)
+                          ?? throw new MissingMemberException(profilerType.FullName!, "Instance");
+        var profiler = instanceProp.GetValue(null) ?? throw new NullReferenceException("Profiler.Instance is null");
 
-        return values.AsReadOnly();
+        // .Settings
+        var settingsProp = profilerType.GetProperty("Settings", CommonBindingFlags) ?? throw new MissingMemberException(profilerType.FullName!, "Settings");
+        var settings = settingsProp.GetValue(profiler) ?? throw new NullReferenceException("Profiler.Settings is null");
+
+        // Settings.IsProfilerEnabled
+        var settingsType = settings.GetType();
+        var isEnabledProp = settingsType.GetProperty("IsProfilerEnabled", CommonBindingFlags)
+                         ?? throw new MissingMemberException(settingsType.FullName!, "IsProfilerEnabled");
+        var state = (bool) (isEnabledProp.GetValue(settings) ?? throw new NullReferenceException("IsProfilerEnabled is null"));
+        return state;
     }
 
-    public static async Task StopTracer()
+    private static async Task<string> StopTracer()
     {
         await Tracer.Instance.ForceFlushAsync();
+        return Result();
     }
 
     private static async Task<string> StartSpan(HttpRequest request)
     {
-        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
-
-        _logger?.LogInformation("StartSpan: {HeaderRequestBody}", headerRequestBody);
+        var requestJson = await ParseJsonAsync(request.Body);
 
         var creationSettings = new SpanCreationSettings
         {
+            Parent = FindParentSpanContext(requestJson),
             FinishOnClose = false,
         };
 
-        if (parsedDictionary!.TryGetValue("parent_id", out var parentId) && parentId is not null)
+        string? operationName = null;
+
+        if (requestJson.TryGetProperty("name", out var nameProperty))
         {
-            var longParentId = Convert.ToUInt64(parentId);
-            if(Spans.TryGetValue(longParentId, out var parentSpan)) {
-                creationSettings.Parent = parentSpan.Context;
-            } else if (DDContexts.TryGetValue(longParentId, out var ddContext)) {
-                creationSettings.Parent = ddContext;
-            } else {
-                throw new Exception($"Parent span with id {longParentId} not found");
-            }
+            operationName = nameProperty.GetString();
         }
 
-        parsedDictionary.TryGetValue("name", out var name);
-        using var scope = Tracer.Instance.StartActive(operationName: name!.ToString()!, creationSettings);
+        using var scope = Tracer.Instance.StartActive(operationName ?? "", creationSettings);
         var span = scope.Span;
 
-        if (parsedDictionary.TryGetValue("service", out var service) && service is not null)
+        if (requestJson.TryGetProperty("service", out var service) && service.ValueKind != JsonValueKind.Null)
         {
-            span.ServiceName = service.ToString();
+            // TODO: setting service name to null causes an exception when the span is closed
+            span.ServiceName = service.GetString();
         }
 
-        if (parsedDictionary.TryGetValue("resource", out var resource) && resource is not null)
+        if (requestJson.TryGetProperty("resource", out var resource) && service.ValueKind != JsonValueKind.Null)
         {
-            span.ResourceName = resource.ToString();
+            span.ResourceName = resource.GetString();
         }
 
-        if (parsedDictionary.TryGetValue("type", out var type)  && type is not null)
+        if (requestJson.TryGetProperty("type", out var type) && type.ValueKind != JsonValueKind.Null)
         {
-            span.Type = type.ToString();
+            span.Type = type.GetString();
         }
 
-        if (parsedDictionary.TryGetValue("span_tags", out var tagsToken))
+        if (requestJson.TryGetProperty("span_tags", out var tags) && tags.ValueKind != JsonValueKind.Null)
         {
-            foreach (var tag in (Newtonsoft.Json.Linq.JArray)tagsToken)
+            foreach (var tag in tags.EnumerateArray())
             {
-                var key = (string)tag[0]!;
-                var value = (string?)tag[1];
+                var key = tag[0].GetString()!;
+                var value = tag[1].GetString();
 
                 span.SetTag(key, value);
             }
@@ -153,107 +150,103 @@ public abstract class ApmTestApi
 
         Spans[span.SpanId] = span;
 
-        return JsonConvert.SerializeObject(new
+        return Result(new
         {
-            span_id = span.SpanId.ToString(),
-            trace_id = span.TraceId.ToString(),
+            span_id = span.SpanId,
+            trace_id = span.TraceId,
+            trace_id_128 = span.GetTag("trace.id")
         });
     }
 
     private static async Task SpanSetMeta(HttpRequest request)
     {
-        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
-        parsedDictionary!.TryGetValue("span_id", out var id);
-        parsedDictionary.TryGetValue("key", out var key);
-        parsedDictionary.TryGetValue("value", out var value);
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
 
-        var span = Spans[Convert.ToUInt64(id)];
-        span.SetTag(key!, value);
+        var key = requestJson.GetProperty("key").GetString() ??
+                  throw new InvalidOperationException("key is null in request json.");
+
+        var value = requestJson.GetProperty("value").GetString() ??
+                    throw new InvalidOperationException("value is null in request json.");
+
+        span.SetTag(key, value);
+        _logger?.LogInformation("Set string span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
     }
 
     private static async Task SpanSetMetric(HttpRequest request)
     {
-        var headerBodyDictionary = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary)!;
-        parsedDictionary.TryGetValue("span_id", out var id);
-        parsedDictionary.TryGetValue("key", out var key);
-        parsedDictionary.TryGetValue("value", out var value);
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
 
-        var span = Spans[Convert.ToUInt64(id)];
-        span.SetTag(key!, Convert.ToDouble(value));
+        var key = requestJson.GetProperty("key").GetString() ??
+                  throw new InvalidOperationException("key is null in request json.");
+
+        var value = requestJson.GetProperty("value").GetDouble();
+
+        span.SetTag(key, value);
+        _logger?.LogInformation("Set numeric span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
     }
 
     private static async Task SpanSetError(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
+        var requestJson = await ParseJsonAsync(request.Body);
+
+        var span = FindSpan(requestJson);
+        var type = requestJson.GetProperty("type").GetString();
+        var message = requestJson.GetProperty("message").GetString();
+        var stack = requestJson.GetProperty("stack").GetString();
+
         span.Error = true;
-
-        var type = await FindBodyKeyValueAsync(request, "type");
-        var message = await FindBodyKeyValueAsync(request, "message");
-        var stack = await FindBodyKeyValueAsync(request, "stack");
-
-        if (!string.IsNullOrEmpty(type))
-        {
-            span.SetTag(Tags.ErrorType, type);
-        }
-
-        if (!string.IsNullOrEmpty(message))
-        {
-            span.SetTag(Tags.ErrorMsg, message);
-        }
-
-        if (!string.IsNullOrEmpty(stack))
-        {
-            span.SetTag(Tags.ErrorStack, stack);
-        }
+        span.SetTag(Tags.ErrorType, type);
+        span.SetTag(Tags.ErrorMsg, message);
+        span.SetTag(Tags.ErrorStack, stack);
     }
 
     private static async Task<string> ExtractHeaders(HttpRequest request)
     {
-        var headerRequestBody = await new StreamReader(request.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, Object>>(headerRequestBody);
-        var headersList = (Newtonsoft.Json.Linq.JArray)parsedDictionary!["http_headers"];
-        var extractedContext = _spanContextExtractor.Extract(
-            headersList.ToObject<string[][]>()!,
-            getter: GetHeaderValues
-        );
+        var requestJson = await ParseJsonAsync(request.Body);
 
-        String extractedSpanId = null;
+        var headersList = requestJson.GetProperty("http_headers")
+            .EnumerateArray()
+            .GroupBy(pair => pair[0].ToString(), kvp => kvp[1].ToString())
+            .Select(g => KeyValuePair.Create(g.Key, g.ToList()));
+
+        // There's a test for case-insensitive header names, so use a case-insensitive comparer.
+        // (Yeah, the test is only testing this code, not the tracer itself)
+        // tests/parametric/test_headers_tracecontext.py
+        //   Test_Headers_Tracecontext
+        //     test_traceparent_header_name_valid_casing
+        var headersDictionary = new Dictionary<string, List<string>>(headersList, StringComparer.OrdinalIgnoreCase);
+
+        // TODO: returning null causes an exception when the extractor tried to iterate over the headers
+        var extractedContext = SpanContextExtractor.Extract(
+            headersDictionary,
+            (dict, key) =>
+                dict.GetValueOrDefault(key) ?? []);
+
         if (extractedContext is not null)
         {
-            DDContexts[extractedContext.SpanId] = extractedContext;
-            extractedSpanId = extractedContext.SpanId.ToString();
+            SpanContexts[extractedContext.SpanId] = extractedContext;
         }
 
-        return JsonConvert.SerializeObject(new
+        return Result(new
         {
-            span_id = extractedSpanId
+            span_id = extractedContext?.SpanId
         });
     }
 
     private static async Task<string> InjectHeaders(HttpRequest request)
     {
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
         var httpHeaders = new List<string[]>();
 
-        var spanId = await FindBodyKeyValueAsync(request, "span_id");
+        SpanContextInjector.Inject(
+            httpHeaders,
+            (headers, key, value) => headers.Add([key, value]),
+            span.Context);
 
-        if (!string.IsNullOrEmpty(spanId as string) && Spans.TryGetValue(Convert.ToUInt64(spanId), out var span))
-        {
-            // Define a function to set headers in HttpRequestHeaders
-            static void Setter(List<string[]> headers, string key, string value) =>
-                headers.Add(new string[] { key, value });
-
-            Console.WriteLine(JsonConvert.SerializeObject(new
-            {
-                HttpHeaders = httpHeaders
-            }));
-
-            // Invoke SpanContextPropagator.Inject with the HttpRequestHeaders
-            _spanContextInjector.Inject(httpHeaders, Setter, span.Context);
-        }
-
-        return JsonConvert.SerializeObject(new
+        return Result(new
         {
             http_headers = httpHeaders
         });
@@ -261,24 +254,24 @@ public abstract class ApmTestApi
 
     private static async Task FinishSpan(HttpRequest request)
     {
-        var span = Spans[Convert.ToUInt64(await FindBodyKeyValueAsync(request, "span_id"))];
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
         span.Finish();
+
+        _logger?.LogInformation("Finished span {spanId}.", span.SpanId);
     }
 
     private static string Crash(HttpRequest request)
     {
-        var thread = new Thread(() =>
-        {
-            throw new BadImageFormatException("Expected");
-        });
-
+        var thread = new Thread(() => throw new BadImageFormatException("Expected"));
         thread.Start();
         thread.Join();
 
-        return "Failed to crash";
+        _logger?.LogInformation("Failed to crash");
+        return Result("Failed to crash");
     }
 
-    private static string GetTracerConfig(HttpRequest request)
+    private static string GetTracerConfig()
     {
         var tracerSettings = Tracer.Instance.Settings;
         var internalTracer = GetTracerInstance.GetValue(null);
@@ -290,7 +283,9 @@ public abstract class ApmTestApi
         var propagationStyleInject = (string[])PropagationStyleInject.GetValue(internalTracerSettings)!;
         var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(internalTracerSettings)!;
         var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(internalTracerSettings)!;
-
+        var isDataStreamEnabled = (bool)IsDataStreamsEnabled.GetValue(internalTracerSettings)!;
+        var isLogsInjectionEnabled = tracerSettings.LogsInjectionEnabled;
+        var ddProfilingEnabled = GetIsProfilerEnabled();
         Dictionary<string, object?> config = new()
         {
             { "dd_service", tracerSettings.ServiceName },
@@ -306,16 +301,19 @@ public abstract class ApmTestApi
             { "dd_log_level", null },
             { "dd_trace_agent_url", tracerSettings.AgentUri },
             { "dd_trace_rate_limit", tracerSettings.MaxTracesSubmittedPerSecond.ToString() },
+            { "dd_profiling_enabled", ddProfilingEnabled ? "true" : "false" },
+            { "dd_data_streams_enabled", isDataStreamEnabled ? "true" : "false" },
+            { "dd_logs_injection", isLogsInjectionEnabled ? "true" : "false" },
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
-        return JsonConvert.SerializeObject(new
+        return Result(new
         {
-            config = config
+            config
         });
     }
 
-    internal static async Task FlushSpans()
+    protected static async Task FlushSpans()
     {
         if (Tracer.Instance is null)
         {
@@ -324,23 +322,20 @@ public abstract class ApmTestApi
 
         await Tracer.Instance.ForceFlushAsync();
         Spans.Clear();
-        ApmTestApiOtel.Activities.Clear();
+        SpanContexts.Clear();
+        ApmTestApiOtel.ClearActivities();
     }
 
-    internal static async Task FlushTraceStats()
+    protected static async Task FlushTraceStats()
     {
-        if (GetTracerManager is null)
-        {
-            throw new NullReferenceException("GetTracerManager is null");
-        }
-
         if (Tracer.Instance is null)
         {
             throw new NullReferenceException("Tracer.Instance is null");
         }
 
-        var tracerManager = GetTracerManager.GetValue(GetTracerInstance.GetValue(null));
-        var agentWriter = GetAgentWriter.Invoke(tracerManager, null);
+        var tracer = GetTracerInstance.GetValue(null);
+        var tracerManager = GetTracerManager.GetValue(tracer);
+        var agentWriter = GetAgentWriter.GetValue(tracerManager);
         var statsAggregator = GetStatsAggregator.GetValue(agentWriter);
 
         if (statsAggregator?.GetType() == StatsAggregatorType)
@@ -358,12 +353,69 @@ public abstract class ApmTestApi
         }
     }
 
-    internal static async Task<string> FindBodyKeyValueAsync(HttpRequest httpRequest, string keyToFind)
+    private static ISpan FindSpan(JsonElement json, string key = "span_id")
     {
-        var headerBodyDictionary = await new StreamReader(httpRequest.Body).ReadToEndAsync();
-        var parsedDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(headerBodyDictionary);
-        var keyFound = parsedDictionary!.TryGetValue(keyToFind, out var foundValue);
+        var spanId = json.GetProperty(key).GetUInt64();
 
-        return keyFound ? foundValue! : String.Empty;
+        if (!Spans.TryGetValue(spanId, out var span))
+        {
+            _logger?.LogError("Span not found with span id: {spanId}.", spanId);
+            throw new InvalidOperationException($"Span not found with span id: {spanId}");
+        }
+
+        return span;
+    }
+
+    private static ISpanContext? FindParentSpanContext(JsonElement json, string key = "parent_id")
+    {
+        var jsonProperty = json.GetProperty(key);
+
+        if (jsonProperty.ValueKind == JsonValueKind.Null)
+        {
+            return null;
+        }
+
+        var spanId = jsonProperty.GetUInt64();
+
+        if (Spans.TryGetValue(spanId, out var span))
+        {
+            return span.Context;
+        }
+
+        if (SpanContexts.TryGetValue(spanId, out var spanContext))
+        {
+            return spanContext;
+        }
+
+        _logger?.LogError("Span or SpanContext not found with span id: {spanId}.", spanId);
+        throw new InvalidOperationException($"Span or SpanContext not found with span id: {spanId}");    }
+
+    protected static async Task<JsonElement> ParseJsonAsync(Stream stream, [CallerMemberName] string? caller = null)
+    {
+        // https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/use-dom#jsondocument-is-idisposable
+        using var jsonDoc = await JsonDocument.ParseAsync(stream);
+        var root = jsonDoc.RootElement.Clone();
+
+        _logger?.LogInformation("Handler {handler} called with {HttpRequest.Body}.", caller, root);
+        return root;
+    }
+
+    protected static string Result(object? value = null, [CallerMemberName] string? caller = null)
+    {
+        switch (value)
+        {
+            case null:
+                _logger?.LogInformation("Handler {handler} finished.", caller);
+                return string.Empty;
+            case string s:
+                _logger?.LogInformation("Handler {handler} returning \"{message}\".", caller, s);
+                return s;
+            default:
+            {
+                var json = JsonSerializer.Serialize(value);
+                _logger?.LogInformation("Handler {handler} returning {JsonResult}", caller, json);
+                return json;
+            }
+        }
     }
 }

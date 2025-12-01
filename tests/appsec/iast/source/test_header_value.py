@@ -2,8 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, features
-from ..utils import BaseSourceTest
+from utils import context, missing_feature, features
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_header_value
@@ -11,7 +11,7 @@ class TestHeaderValue(BaseSourceTest):
     """Verify that request headers are tainted"""
 
     source_name = (
-        "HTTP_TABLE" if context.library.library == "python" and context.weblog_variant == "django-poc" else "table"
+        "HTTP_TABLE" if context.library.name == "python" and context.weblog_variant == "django-poc" else "table"
     )
 
     endpoint = "/iast/source/header/test"

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'pry'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'faraday'
 
 # tracer configuration of Rack integration
 
@@ -12,7 +12,9 @@ begin
 rescue LoadError
   require 'ddtrace/auto_instrument'
 end
+
 require 'datadog/kit/appsec/events'
+require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
@@ -52,22 +54,26 @@ else
 end
 
 # /
-class Hello
-  def self.run
+module Hello
+  module_function
+
+  def run
     [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
   end
 end
 
 # /healthcheck
-class Healthcheck
-  def self.run
+module Healthcheck
+  module_function
+
+  def run
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     response = {
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }
@@ -78,11 +84,13 @@ class Healthcheck
       [response.to_json]
     ]
   end
-end  
+end
 
 # /spans
-class Spans
-  def self.run(request)
+module Spans
+  module_function
+
+  def run(request)
     repeats = Integer(request.params['repeats'] || 0)
     garbage = Integer(request.params['garbage'] || 0)
 
@@ -101,8 +109,10 @@ class Spans
 end
 
 # /headers
-class Headers
-  def self.run
+module Headers
+  module_function
+
+  def run
     [
       200,
       { 'Content-Type' => 'text/plain', 'Content-Length' => '42', 'Content-Language' => 'en-US' },
@@ -112,8 +122,10 @@ class Headers
 end
 
 # /identify
-class Identify
-  def self.run
+module Identify
+  module_function
+
+  def run
     trace = Datadog::Tracing.active_trace
     trace.set_tag('usr.id', 'usr.id')
     trace.set_tag('usr.name', 'usr.name')
@@ -126,9 +138,11 @@ class Identify
   end
 end
 
-# contains /status
-class Status
-  def self.run(request)
+# /status
+module Status
+  module_function
+
+  def run(request)
     code = Integer(request.params['code'] || 200)
 
     [code, { 'Content-Type' => 'text/plain' }, ['Ok']]
@@ -138,8 +152,10 @@ class Status
 end
 
 # /make_distant_call
-class MakeDistantCall
-  def self.run(request)
+module MakeDistantCall
+  module_function
+
+  def run(request)
     url = request.params['url']
     uri = URI(url)
     request = nil
@@ -153,7 +169,7 @@ class MakeDistantCall
 
     result = {
       url: url,
-      status_code: response.code,
+      status_code: response.code.to_i,
       request_headers: request.each_header.to_h,
       response_headers: response.each_header.to_h
     }
@@ -163,8 +179,10 @@ class MakeDistantCall
 end
 
 # /user_login_success_event
-class UserLoginSuccessEvent
-  def self.run
+module UserLoginSuccessEvent
+  module_function
+
+  def run
     Datadog::Kit::AppSec::Events.track_login_success(
       Datadog::Tracing.active_trace, user: { id: 'system_tests_user' }, metadata0: 'value0', metadata1: 'value1'
     )
@@ -174,8 +192,10 @@ class UserLoginSuccessEvent
 end
 
 # /user_login_failure_event
-class UserLoginFailureEvent
-  def self.run
+module UserLoginFailureEvent
+  module_function
+
+  def run
     Datadog::Kit::AppSec::Events.track_login_failure(
       Datadog::Tracing.active_trace,
       user_id: 'system_tests_user',
@@ -189,8 +209,10 @@ class UserLoginFailureEvent
 end
 
 # /custom_event
-class CustomEvent
-  def self.run
+module CustomEvent
+  module_function
+
+  def run
     Datadog::Kit::AppSec::Events.track('system_tests_event',
                                        Datadog::Tracing.active_trace,
                                        metadata0: 'value0',
@@ -201,8 +223,10 @@ class CustomEvent
 end
 
 # /requestdownstream
-class RequestDownstream
-  def self.run
+module RequestDownstream
+  module_function
+
+  def run
     uri = URI('http://localhost:7777/returnheaders')
     request = nil
     response = nil
@@ -218,8 +242,10 @@ class RequestDownstream
 end
 
 # /returnheaders
-class ReturnHeaders
-  def self.run(request)
+module ReturnHeaders
+  module_function
+
+  def run(request)
     request_headers = request.each_header.to_h.select do |k, _v|
       k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
     end
@@ -232,8 +258,10 @@ class ReturnHeaders
 end
 
 # contains tag_value
-class TagValue
-  def self.run(request)
+module TagValue
+  module_function
+
+  def run(request)
     tag_value, status_code = request.path.split('/').select { |p| !p.empty? && p != 'tag_value' }
     trace = Datadog::Tracing.active_trace
     trace.set_tag('appsec.events.system_tests_appsec_event.value', tag_value)
@@ -247,8 +275,10 @@ class TagValue
 end
 
 # contains /users
-class Users
-  def self.run(request)
+module Users
+  module_function
+
+  def run(request)
     user_id = request.params['user']
 
     Datadog::Kit::Identity.set_user(id: user_id)
@@ -257,10 +287,146 @@ class Users
   end
 end
 
+# /rasp/ssrf
+module SSRFHandler
+  module_function
+
+  def run(request)
+    url = URI.parse(request.params['domain'])
+    url = "http://#{url}" unless url.scheme
+
+    Faraday.get(url)
+
+    [200, { 'Content-Type' => 'text/plain' }, ['']]
+  end
+end
+
+# TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
+# TODO: This is likely a bug in the Ruby tracer.
+require 'datadog/tracing/span_event'
+
+# /add_event
+module AddEvent
+  module_function
+
+  def run(_request)
+    Datadog::Tracing.active_span.span_events << Datadog::Tracing::SpanEvent.new(
+      'span.event', attributes: { string: 'value', int: 1 }
+    )
+
+    [200, { 'Content-Type' => 'application/json' }, ['Event added']]
+  end
+end
+
+# /api_security/sampling/:status
+module ApiSecurityWithSampling
+  module_function
+
+  def run(request)
+    status = request.path.split('/').last
+    status_code = status.to_i
+
+    [status_code, { 'Content-Type' => 'application/json' }, ['OK']]
+  end
+end
+
+# /api_security_sampling/:i
+module ApiSecuritySampling
+  module_function
+
+  def run(request)
+    [200, { 'Content-Type' => 'application/json' }, ['Hello!']]
+  end
+end
+
+# POST /user_login_success_event_v2
+module UserLoginSuccessEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+      payload['login'],
+      payload['user_id'],
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+# POST /user_login_failure_event_v2
+module UserLoginFailureEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+      payload['login'],
+      payload.fetch('exists', 'false') == 'true',
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
 # any other route
-class NotFound
-  def self.run
+module NotFound
+  module_function
+
+  def run
     [404, { 'Content-Type' => 'text/plain' }, ['not found']]
+  end
+end
+
+# NOTE: This is a workaround to ensure that the trace was sampled before the
+#       request lifecycle ends, like in other higher level frameworks (Rails, Sinatra, etc.).
+class TraceSamplingMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    response = @app.call(env)
+    Datadog.send(:components).tracer.sampler.sample!(Datadog::Tracing.active_trace)
+    response
+  end
+end
+
+use TraceSamplingMiddleware
+
+# /flush
+module Flush
+  module_function
+
+  def run(request)
+    # NOTE: If anything needs to be flushed here before the test suite ends,
+    #       this is the place to do it.
+    #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+    if (telemetry = Datadog.send(:components)&.telemetry)
+      telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
+
+      # HACK: In the current implementation there is no way to force the flushing.
+      #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+      #       and just wait till all penging messages are flushed.
+      #
+      # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+      #       value carefully.
+      sleep 0.2
+    end
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+module ResourceRenaming
+  def run
+    [200, {'Content-Type' => 'text/plain'}, ['OK']]
   end
 end
 
@@ -269,7 +435,7 @@ end
 app = proc do |env|
   request = Rack::Request.new(env)
 
-  if request.path == '/' || request.path =~ %r{^/waf(?:/.*|)$} || request.path =~ %r{^/params(?:/.*|)$}
+  if request.path == '/' || request.path =~ %r{^/waf(?:/.*|)$} || request.path =~ %r{^/params(?:/.*|)$} || request.path =~ %r{^/sample_rate_route(?:/.*|)$}
     # %r{^/params(?:/.*|)$} doesn't really makes sense for Rack as it does not put the
     # value anywhere for AppSec to receive it
     Hello.run
@@ -299,6 +465,22 @@ app = proc do |env|
     TagValue.run(request)
   elsif request.path.include?('/users')
     Users.run(request)
+  elsif request.path == '/add_event'
+    AddEvent.run(request)
+  elsif request.path == '/rasp/ssrf'
+    SSRFHandler.run(request)
+  elsif request.path.include?('/api_security/sampling/')
+    ApiSecurityWithSampling.run(request)
+  elsif request.path.include?('/api_security_sampling/')
+    ApiSecuritySampling.run(request)
+  elsif request.path == '/user_login_success_event_v2'
+    UserLoginSuccessEventV2.run(request)
+  elsif request.path == '/user_login_failure_event_v2'
+    UserLoginFailureEventV2.run(request)
+  elsif request.path == '/flush'
+    Flush.run(request)
+  elsif request.path.start_with?('/resource_renaming')
+    ResourceRenaming.run
   else
     NotFound.run
   end

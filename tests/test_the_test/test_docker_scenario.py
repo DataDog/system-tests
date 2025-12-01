@@ -1,3 +1,4 @@
+from threading import RLock
 import pytest
 
 from utils._context._scenarios.endtoend import DockerScenario
@@ -6,11 +7,14 @@ from utils import scenarios
 
 
 class FakeContainer(_TestedContainer):
-    def __init__(self, name, events=None) -> None:
-        super().__init__(name=name, image_name=name, host_log_folder="logs_test_the_test")
+    def __init__(self, name: str, events: list | None = None) -> None:
+        super().__init__(name=name, image_name=name)
         self._test_events = events if events is not None else []
 
-    def start(self):
+    def configure(self, *, host_log_folder: str, replay: bool):  # noqa: ARG002
+        self._starting_lock = RLock()
+
+    def start(self, network):  # noqa: ARG002, ANN001
         self._test_events.append(f"start {self.name}")
         self.healthy = True
 
@@ -20,8 +24,7 @@ class FakeContainer(_TestedContainer):
 
 @scenarios.test_the_test
 def test_main():
-
-    events = []
+    events: list[str] = []
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
@@ -41,6 +44,7 @@ def test_main():
             self._required_containers = [container_a, container_b, container_c, container_d]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     scenario.pytest_sessionstart(None)
 
     assert events == ["start D", "start C", "start B", "start A"]
@@ -63,13 +67,14 @@ def test_recursive():
             self._required_containers = [container_a, container_b, container_c]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)
 
 
 @scenarios.test_the_test
 def test_recursive_2():
-    """ more complex """
+    """More complex"""
 
     class FakeScenario(DockerScenario):
         def __init__(self) -> None:
@@ -94,5 +99,6 @@ def test_recursive_2():
             self._required_containers = [container_a]
 
     scenario = FakeScenario()
+    scenario.configure(None)
     with pytest.raises(RuntimeError):
         scenario.pytest_sessionstart(None)

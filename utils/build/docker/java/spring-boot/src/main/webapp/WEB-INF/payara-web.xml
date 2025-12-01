@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE payara-web-app PUBLIC "-//Payara.fish//DTD Payara Server 4 Servlet 3.0//EN" "https://raw.githubusercontent.com/payara/Payara-Documentation/master/docs/modules/ROOT/pages/Appendix/Schemas/payara-web-app_4.dtd">
+<payara-web-app error-url="">
+    <context-root>/</context-root>
+    <jsp-config/>
+    <security-role-mapping>
+        <role-name>*</role-name>
+        <group-name>*</group-name>
+    </security-role-mapping>
+    <property name="allowTraceRequests" value="true"/>
+</payara-web-app>

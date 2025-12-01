@@ -37,7 +37,7 @@ public class DebuggerController {
 
 // Dummy line
 // Dummy line
-    private int intLocal = 0;
+    private int intLocal = 1000;
     @GetMapping("/span-decoration/{arg}/{intArg}")
     public String spanDecorationProbe(@PathVariable String arg, @PathVariable int intArg) {
         intLocal = intArg * arg.length();
@@ -53,13 +53,15 @@ public class DebuggerController {
         return "Mixed result " + intMixLocal;
     }
 
+// Dummy line
+// Dummy line
     @GetMapping("/pii")
     public String pii() {
         PiiBase pii = new Pii();
         PiiBase customPii = new CustomPii();
         String value = pii.TestValue;
         String customValue = customPii.TestValue;
-        return "PII " + value + ". CustomPII" + customValue;
+        return "PII " + value + ". CustomPII" + customValue; // must be line 64
     }
 
     @GetMapping("/expression")
@@ -76,6 +78,7 @@ public class DebuggerController {
 
     @GetMapping("/expression/operators")
     public String expressionOperators(@RequestParam int intValue, @RequestParam float floatValue, @RequestParam String strValue) {
+        PiiBase pii = new Pii();
         return "Int value " + intValue + ". Float value " + floatValue + ". String value is " + strValue + ".";
     }
 
@@ -114,51 +117,39 @@ public class DebuggerController {
     @GetMapping("/expression/null")
      public String nulls(
             @RequestParam(required = false) Integer intValue,
-            @RequestParam(required = false) String strValue) {
+            @RequestParam(required = false) String strValue,
+            @RequestParam(required = false) Boolean boolValue
+            ) {
+
         PiiBase pii = null;
 
-        return "Pii is null " + (pii == null) +
-                ". intValue is null " + (intValue == null) +
-                ". strValue is null " + (strValue == null) + ".";
+        if (Boolean.TRUE.equals(boolValue)) {
+            pii = new Pii();
+        }
+
+        return "Pii is null: " + (pii == null) +
+            ". intValue is null: " + (intValue == null) +
+            ". strValue is null: " + (strValue == null) + ".";
     }
 
-    @GetMapping("/exceptionreplay/simple")
-    public Void exceptionReplaySimple() {
-        throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Simple exception");
+    @GetMapping("/budgets/{loops}")
+    public String budgets(@PathVariable int loops) {
+        for (int i = 0; i < loops; i++) {
+            int noOp = 0; // Line probe is instrumented here.
+        }
+        return "Budgets";
     }
 
-    @GetMapping("/exceptionreplay/recursion")
-    public String exceptionReplayRecursion(@RequestParam(required = true) Integer depth) {
-        if (depth > 0) {
-            return exceptionReplayRecursion(depth - 1);
-        } else {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Recursion exception");
-        }
-    }
-
-    @GetMapping("/exceptionreplay/inner")
-    public Void exceptionReplayInner() {
-        try {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Inner exception");
-        } catch (ResponseStatusException ex) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception", ex);
-        }
-    }
-
-    @GetMapping("exceptionreplay/rps")
-    public String exceptionReplayRockPaperScissors(@RequestParam(required = false, defaultValue = "20") String shape) throws Exception {
-        if (shape.equals("rock")) {
-            throw new ExceptionReplayRock();
-        }
-
-        if (shape.equals("paper")) {
-            throw new ExceptionReplayPaper();
-        }
-
-        if (shape.equals("scissors")) {
-            throw new ExceptionReplayScissors();
-        }
-
-        return "No exception";
+    @GetMapping("/snapshot/limits")
+    public String snapshotLimits(
+            @RequestParam(required = false, defaultValue = "0") int depth,
+            @RequestParam(required = false, defaultValue = "0") int collectionSize,
+            @RequestParam(required = false, defaultValue = "0") int stringLength) {
+        Map<String, Object> data = DataGenerator.generateTestData(depth, collectionSize, stringLength);
+        Object deepObject = data.get("deepObject");
+        Object manyFields = data.get("manyFields");
+        List<Integer> largeCollection = (List<Integer>) data.get("largeCollection");
+        String longString = (String) data.get("longString");
+        return "Capture limits probe"; // Line probe is instrumented here.
     }
 }

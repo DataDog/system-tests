@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import pytest
+
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
@@ -9,14 +11,24 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
-    Base_Rules_Version,
-    Base_WAF_Version,
+    validate_metric_v2,
+    BaseRulesVersion,
+    BaseWAFVersion,
 )
+
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_UrlQuery:
     """SQL Injection through query parameters"""
 
@@ -30,7 +42,7 @@ class Test_Sqli_UrlQuery:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.query", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -40,6 +52,8 @@ class Test_Sqli_UrlQuery:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_BodyUrlEncoded:
     """SQL Injection through a url-encoded body parameter"""
 
@@ -53,7 +67,7 @@ class Test_Sqli_BodyUrlEncoded:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -63,6 +77,8 @@ class Test_Sqli_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_BodyXml:
     """SQL Injection through an xml body parameter"""
 
@@ -77,7 +93,7 @@ class Test_Sqli_BodyXml:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -87,6 +103,8 @@ class Test_Sqli_BodyXml:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.gv4kwto3561e")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_BodyJson:
     """SQL Injection through a json body parameter"""
 
@@ -101,7 +119,7 @@ class Test_Sqli_BodyJson:
             self.r,
             "rasp-942-100",
             {
-                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'",},
+                "resource": {"address": "server.db.statement", "value": "SELECT * FROM users WHERE id=? OR ? = ? --'"},
                 "params": {"address": "server.request.body", "value": "' OR 1 = 1 --"},
                 "db_type": {"address": "server.db.system"},
             },
@@ -112,6 +130,8 @@ class Test_Sqli_BodyJson:
 @features.rasp_span_tags
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -126,6 +146,8 @@ class Test_Sqli_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -133,15 +155,15 @@ class Test_Sqli_Optional_SpanTags:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_span_tags(self):
-        validate_span_tags(
-            self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval",],
-        )
+        validate_span_tags(self.r, expected_metrics=["_dd.appsec.rasp.duration_ext", "_dd.appsec.rasp.rule.eval"])
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
 @features.rasp_stack_trace
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
@@ -149,13 +171,14 @@ class Test_Sqli_StackTrace:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_sql_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
 class Test_Sqli_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
@@ -163,19 +186,43 @@ class Test_Sqli_Telemetry:
         self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
 
     def test_sqli_telemetry(self):
-        assert self.r.status_code == 403
-
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "sql_injection", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "sql_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
         ]
+
+
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
+@features.rasp_sql_injection
+@scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
+@scenarios.appsec_standalone_rasp
+class Test_Sqli_Telemetry_V2:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_sqli_telemetry(self):
+        self.r = weblog.get("/rasp/sqli", params={"user_id": "' OR 1 = 1 --"})
+
+    def test_sqli_telemetry(self):
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
+        assert series_eval
+        assert any(validate_metric_v2("rasp.rule.eval", "sql_injection", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
+        assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
+        assert any(
+            validate_metric_v2("rasp.rule.match", "sql_injection", s, block_action=block_action) for s in series_match
+        ), [s.get("tags") for s in series_match]
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
@@ -188,15 +235,15 @@ class Test_Sqli_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
 
 
-@features.rasp_local_file_inclusion
-class Test_Sqli_Rules_Version(Base_Rules_Version):
+@features.rasp_sql_injection
+class Test_Sqli_Rules_Version(BaseRulesVersion):
     """Test Sqli min rules version"""
 
     min_version = "1.13.2"
 
 
-@features.rasp_local_file_inclusion
-class Test_Sqli_Waf_Version(Base_WAF_Version):
+@features.rasp_sql_injection
+class Test_Sqli_Waf_Version(BaseWAFVersion):
     """Test sqli WAF version"""
 
     min_version = "1.20.1"

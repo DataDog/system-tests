@@ -11,12 +11,22 @@ if (count($uri) < 4) {
 	error();
 }
 
+
+$rootSpan = \DDTrace\root_span();
+$rootSpan->meta["http.route"] = '/tag_value/{tag_value}/{status_code}';
+
 $value = $uri[2];
 $response_code= strtok($uri[3], '?'); //There can be url parameters. Lets remove them
 
 if (!is_numeric($response_code)) {
 	error();
 }
+
+//This is done automatically on framework integrations
+\datadog\appsec\push_addresses(["server.request.path_params" => [
+	'tag_value' => $value,
+	'status_code' => $response_code,
+]]);
 
 \datadog\appsec\track_custom_event('system_tests_appsec_event',
 [

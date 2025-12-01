@@ -139,13 +139,12 @@ function activate_venv() {
     source venv/bin/activate
 }
 
-function network_name() {
-    perl -ne '/_DEFAULT_NETWORK_NAME = "(.*)"/ and print "$1\n"' utils/_context/containers.py
-}
-
 function ensure_network() {
     local network_name
-    network_name="$(network_name)"
+
+    # limited support of docker mode: it can't control test targets, so going for the most common use case
+    # reminder : this mode is unofficial and not supported (for the exact reason it can't control test targets...)
+    network_name="system-tests-ipv4"
 
     if docker network ls | grep -q "${network_name}"; then
         : # network exists
@@ -184,7 +183,7 @@ function run_scenario() {
 
             cmd+=(
               docker run
-              --network system-tests_default
+              --network system-tests-ipv4
               --rm -i
             )
             if [ -t 1 ]; then
@@ -329,6 +328,11 @@ function main() {
         run_mode='direct'
     fi
 
+    # check if runner is installed and up to date
+    if [[ "${run_mode}" == "direct" ]] && ! is_using_nix && ! diff requirements.txt venv/requirements.txt; then
+        ./build.sh -i runner
+    fi
+
     # ensure environment
     if [[ "${run_mode}" == "docker" ]] || is_using_nix; then
         : # no venv needed
@@ -387,6 +391,30 @@ function main() {
                 scenarios+=(EVERYTHING_DISABLED)
                 unset "scenarios[${i}]"
                 ;;
+
+            APPSEC_STANDALONE_V2)
+                scenarios+=(APPSEC_STANDALONE)
+                unset "scenarios[${i}]"
+                ;;
+
+            TELEMETRY_APP_STARTED_CONFIG_CHAINING)
+                scenarios+=(TELEMETRY_ENHANCED_CONFIG_REPORTING)
+                unset "scenarios[${i}]"
+                ;;
+
+            IAST_STANDALONE_V2)
+                scenarios+=(IAST_STANDALONE)
+                unset "scenarios[${i}]"
+                ;;
+
+            SCA_STANDALONE_V2)
+                scenarios+=(SCA_STANDALONE)
+                unset "scenarios[${i}]"
+                ;;
+
+            APM_TRACING_E2E)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 
@@ -413,17 +441,8 @@ function main() {
 
     # evaluate max pytest number of process for K8s_lib_injection
     for scenario in "${scenarios[@]}"; do
-        #TODO DELETE WHEN THE SCENARIO IS REMOVED. REPLACED BY K8S_LIBRARY_INJECTION
-        if [[ "${scenario}" == K8S_LIB_INJECTION_* ]]; then
-            pytest_numprocesses=$(nproc)
-        fi
         if [[ "${scenario}" == K8S_LIBRARY_INJECTION_* ]]; then
             pytest_numprocesses=$(nproc)
-        fi
-        if [[ "${scenario}" == *_AUTO_INJECTION ]]; then
-            pytest_numprocesses=6
-            #https://pytest-xdist.readthedocs.io/en/latest/distribution.html
-            pytest_args+=( '--dist' 'loadgroup' )
         fi
     done
 
@@ -451,6 +470,37 @@ function main() {
     fi
 
     for scenario in "${scenarios[@]}"; do
+        #TODO SCENARIO WAS REMOVED, TEMPORARY FIX TILL CI IS FIXED
+        if [[ "${scenario}" == DEBUGGER_METHOD_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_LINE_PROBES_SNAPSHOT ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == DEBUGGER_MIX_LOG_PROBE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE ]]; then
+            echo "${scenario} was removed, skipping."
+            continue
+        fi
+        if [[ "${scenario}" == TELEMETRY_METRIC_GENERATION_ENABLED ]]; then
+                    echo "${scenario} was removed, skipping."
+                    continue
+        fi
+        if [[ "${scenario}" == APPSEC_REQUEST_BLOCKING ]]; then
+                    echo "${scenario} was removed, skipping."
+                    continue
+        fi
+        if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        ####
+
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
     done
 }

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using System;
-using System.IO;
+using System.Reflection;
 using System.Text.Json;
 
 namespace weblog
@@ -12,17 +11,15 @@ namespace weblog
         {
             routeBuilder.MapGet("/healthcheck", async context =>
             {
-                string dd_version = "";
-                using (StreamReader reader = new StreamReader("SYSTEM_TESTS_LIBRARY_VERSION"))
-                {
-                    dd_version = reader.ReadToEnd().Trim( new Char[] { '\n' } );
-                }
+                var version = Assembly.Load("Datadog.Trace").GetName().Version?.ToString(3);
 
-                var data = new {
+                var data = new
+                {
                     status = "ok",
-                    library = new {
-                        language = "dotnet",
-                        version = dd_version
+                    library = new
+                    {
+                        name = "dotnet",
+                        version
                     }
                 };
 

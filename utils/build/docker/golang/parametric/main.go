@@ -9,20 +9,22 @@ import (
 	"os"
 	"strconv"
 
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
+	of "github.com/open-feature/go-sdk/openfeature"
 	"go.opentelemetry.io/otel"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
 	otel_trace "go.opentelemetry.io/otel/trace"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 )
 
 type apmClientServer struct {
-	spans        map[uint64]tracer.Span
-	spanContexts map[uint64]ddtrace.SpanContext
+	spans        map[uint64]*tracer.Span
+	spanContexts map[uint64]*tracer.SpanContext
 	otelSpans    map[uint64]spanContext
 	tp           *ddotel.TracerProvider
 	tracer       otel_trace.Tracer
+	ofClient     *of.Client
+	ddProvider   of.FeatureProvider
 }
 
 type spanContext struct {
@@ -31,17 +33,32 @@ type spanContext struct {
 }
 
 func newServer() *apmClientServer {
+	tp := ddotel.NewTracerProvider()
+	otel.SetTracerProvider(tp)
+
 	s := &apmClientServer{
-		spans:        make(map[uint64]tracer.Span),
-		spanContexts: make(map[uint64]ddtrace.SpanContext),
+		spans:        make(map[uint64]*tracer.Span),
+		spanContexts: make(map[uint64]*tracer.SpanContext),
 		otelSpans:    make(map[uint64]spanContext),
+		tp:           tp,
 	}
-	s.tp = ddotel.NewTracerProvider()
-	otel.SetTracerProvider(s.tp)
+
+	var err error
+	s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
+	if err != nil {
+		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
+	}
+
+	if err := of.SetProvider(s.ddProvider); err != nil {
+		log.Fatalf("failed to set Datadog OpenFeature provider and wait for initialization: %v", err)
+	}
+
+	s.ofClient = of.NewClient("system-tests-weblog-client")
 	return s
 }
 
 func main() {
+	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
 		if err := recover(); err != nil {
@@ -65,6 +82,10 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+
+	// openfeature endpoints
+	http.HandleFunc("/ffe/start", s.ffeStart)
+	http.HandleFunc("/ffe/evaluate", s.ffeEval)
 
 	// otel-api endpoints:
 	http.HandleFunc("/trace/otel/start_span", s.otelStartSpanHandler)

@@ -15,8 +15,10 @@ const { join } = require('path')
 const { Client } = require('pg')
 const { Kafka } = require('kafkajs')
 const pug = require('pug')
+const { unserialize } = require('node-serialize')
 
 const ldap = require('./integrations/ldap')
+const initSecurityControls = require('./security-controls')
 
 async function initData () {
   const query = readFileSync(join(__dirname, '..', 'resources', 'iast-data.sql')).toString()
@@ -235,6 +237,68 @@ function initSinkRoutes (app: Express): void {
     res.send('<html><body><h1>Test</h1></html>')
   })
 
+
+
+  app.get('/iast/sampling-by-route-method-count/:key', (req: Request, res: Response): void => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
+  app.get('/iast/sampling-by-route-method-count-2/:key', (req: Request, res: Response): void => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
+  app.post('/iast/sampling-by-route-method-count/:key', (req: Request, res: Response): void => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
   app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   app.post(
     '/iast/mongodb-nosql-injection/test_secure',
@@ -395,6 +459,16 @@ function initSinkRoutes (app: Express): void {
     const html = fn()
     res.send(`OK:${html}`)
   })
+
+  app.get('/iast/untrusted_deserialization/test_insecure', (req: Request, res: Response) => {
+    const name = unserialize(req.query.name)
+    res.send(`OK:${name}`)
+  })
+
+  app.get('/iast/untrusted_deserialization/test_secure', (req: Request, res: Response) => {
+    const name = unserialize(JSON.stringify({ name: 'example' }))
+    res.send(`OK:${name}`)
+  })
 }
 
 function initSourceRoutes (app: Express): void {
@@ -505,6 +579,29 @@ function initSourceRoutes (app: Express): void {
       // do nothing
     }
     res.send('OK')
+  })
+
+  app.get('/iast/source/sql/test', async (req: Request, res: Response) => {
+    const client = new Client()
+
+    try {
+      await client.connect()
+
+      const sql = 'SELECT * FROM IAST_USER'
+      const queryResult = await client.query(`${sql} WHERE USERNAME = 'shaquille_oatmeal'`)
+
+      const username = queryResult.rows[0].username
+
+      await client.query(`${sql} WHERE USERNAME = '${username}'`)
+
+      res.send('OK')
+    } catch (err) {
+      console.error('error', err)
+
+      res.status(500).json({ message: 'Error on request ' + err })
+    } finally {
+      client.end()
+    }
   })
 
   function getKafka () {
@@ -662,6 +759,7 @@ function initSourceRoutes (app: Express): void {
 function initRoutes (app: Express): void {
   initSinkRoutes(app)
   initSourceRoutes(app)
+  initSecurityControls(app)
 }
 
 

@@ -9,9 +9,6 @@
         <Nullable>enable</Nullable>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
 
-        <!-- set a default value for DDTRACE_VERSION property if not provided -->
-        <DDTRACE_VERSION Condition="'$(DDTRACE_VERSION)' == ''">2.23.0</DDTRACE_VERSION>
-
         <!--
           Ignore the following warnings:
             NU1902: Package 'System.Data.SqlClient' 4.6.1 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-8g2p-5pqh-5jmc
@@ -21,10 +18,8 @@
         <NoWarn>NU1902;NU1903;CA1416</NoWarn>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.7.0'">
+    <PropertyGroup>
         <DefineConstants>$(DefineConstants);DDTRACE_2_7_0_OR_GREATER</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(DDTRACE_VERSION)' != '' and '$(DDTRACE_VERSION)' >= '2.23.0'">
         <DefineConstants>$(DefineConstants);DDTRACE_2_23_0_OR_GREATER</DefineConstants>
     </PropertyGroup>
 
@@ -38,8 +33,11 @@
 
     <ItemGroup>
         <PackageReference Include="AWSSDK.SQS" Version="3.7.300.52"/>
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.300.52"/>
+        <PackageReference Include="Google.Protobuf" Version="3.25.3" />
         <PackageReference Include="MySql.Data" Version="8.0.30"/>
         <PackageReference Include="Npgsql" Version="4.0.10"/>
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
         <PackageReference Include="System.Data.SqlClient" Version="4.6.1"/>
         <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.8"/>
         <PackageReference Include="System.DirectoryServices" Version="6.0.0"/>
@@ -47,7 +45,9 @@
         <PackageReference Include="Confluent.Kafka" Version="1.9.3"/>
         <PackageReference Include="RabbitMQ.Client" Version="6.4.0"/>
         <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
         <PackageReference Include="Datadog.Trace" Version="*" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
     </ItemGroup>
 </Project>

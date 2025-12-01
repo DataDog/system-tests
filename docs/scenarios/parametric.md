@@ -7,7 +7,7 @@ This enables us to write unit/integration-style test cases that can be shared.
 Example:
 
 ```python
-from utils.parametric.spec.trace import find_span, find_trace, find_span_in_traces, find_first_span_in_trace_payload, find_root_span
+from utils.docker_fixtures.spec.trace import find_span, find_trace, find_span_in_traces, find_first_span_in_trace_payload, find_root_span
 
 @pytest.mark.parametrize("library_env", [{"DD_ENV": "prod"}])
 def test_datadog_spans(library_env, test_library, test_agent):
@@ -230,20 +230,20 @@ The http server implementations for each tracer can be found at the following lo
 *Note:* For some languages there is both an Otel and a Datadog server. This is simply to separate the available Otel endpoints from the available Datadog endpoints that can be hit by the client. If a language only has a single server, then both endpoints for Otel and Datadog exist there.
 
 * [Python](/utils/build/docker/python/parametric/apm_test_client/server.py)
-* [Ruby](utils/build/docker/ruby/parametric/server.rb)
-* [Php](utils/build/docker/php/parametric/server.php)
-* [Nodejs](utils/build/docker/nodejs/parametric/server.js)
-* [Java Datadog](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
-* [Java Otel](utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
-* [Dotnet Datadog](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
-* [Dotnet Otel](utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
-* [Go Datadog](utils/build/docker/golang/parametric/main.go)
-* [Go Otel](utils/build/docker/golang/parametric/otel.go)
+* [Ruby](/utils/build/docker/ruby/parametric/server.rb)
+* [Php](/utils/build/docker/php/parametric/server.php)
+* [Node.js](/utils/build/docker/nodejs/parametric/server.js)
+* [Java Datadog](/utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentracing/controller/OpenTracingController.java)
+* [Java Otel](/utils/build/docker/java/parametric/src/main/java/com/datadoghq/trace/opentelemetry/controller/OpenTelemetryController.java)
+* [.NET Datadog](/utils/build/docker/dotnet/parametric/Endpoints/ApmTestApi.cs)
+* [.NET Otel](/utils/build/docker/dotnet/parametric/Endpoints/ApmTestApiOtel.cs)
+* [Go Datadog](/utils/build/docker/golang/parametric/main.go)
+* [Go Otel](/utils/build/docker/golang/parametric/otel.go)
 
 
 ![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
 
-<img width="869" alt="image" src="https://user-images.githubusercontent.com/6321485/182887064-e241d65c-5e29-451b-a8a8-e8d18328c083.png">
+![image](https://github.com/user-attachments/assets/bb577aa2-b373-4468-b383-8394507309cc)
 
 [1]: https://github.com/DataDog/dd-trace-cpp
 [2]: https://docs.pytest.org/en/6.2.x/usage.html#specifying-tests-selecting-tests

@@ -2,46 +2,42 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (
-    context,
-    interfaces,
-    missing_feature,
-    rfc,
-    scenarios,
-    weblog,
-    features,
-)
+from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky, bug
+from utils._weblog import HttpResponse
+from types import EllipsisType
 
 
-def get_schema(request, address):
-    """get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
-        meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address)
-        if payload is not None:
-            return payload
-    return
+def get_schema(request: HttpResponse, address: str):
+    """Get api security schema from spans"""
+    span = interfaces.library.get_root_span(request)
+    meta = span.get("meta", {})
+    key = "_dd.appsec.s." + address
+    if key not in meta:
+        logger.info(f"Schema not found in span meta for {key}")
+    return meta.get(key)
 
 
 # can be used to match any value in a schema
 ANY = ...
 
 
-def contains(t1, t2):
-    """validate that schema t1 contains all keys and values from t2"""
+def contains(t1: list | EllipsisType | None, t2: list | EllipsisType | None):
+    """Validate that schema t1 contains all keys and values from t2"""
     if t2 is ANY:
         return True
     if t1 is None or t2 is None:
         return False
+    assert isinstance(t1, list)
+    assert isinstance(t2, list)
     return equal_value(t1[0], t2[0])
 
 
-def equal_value(t1, t2):
-    """compare two schema type values, ignoring any metadata"""
+def equal_value(t1: list | dict | int | EllipsisType, t2: list | dict | int | EllipsisType):
+    """Compare two schema type values, ignoring any metadata"""
     if t2 is ANY:
         return True
     if isinstance(t1, list) and isinstance(t2, list):
-        return len(t1) == len(t2) and all(contains(a, b) for a, b in zip(t1, t2))
+        return len(t1) == len(t2) and all(contains(a, b) for a, b in zip(t1, t2, strict=False))
     if isinstance(t1, dict) and isinstance(t2, dict):
         return all(k in t1 and contains(t1[k], t2[k]) for k in t2)
     if isinstance(t1, int) and isinstance(t2, int):
@@ -51,6 +47,7 @@ def equal_value(t1, t2):
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
     """Test API Security - Request Headers Schema"""
@@ -59,7 +56,7 @@ class Test_Schema_Request_Headers:
         self.request = weblog.get("/tag_value/api_match_AS001/200")
 
     def test_request_method(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         schema = get_schema(self.request, "req.headers")
         assert self.request.status_code == 200
         assert schema
@@ -71,18 +68,20 @@ class Test_Schema_Request_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
     """Test API Security - Request Cookies Schema"""
 
     def setup_request_method(self):
         self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"},
+            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
+    @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         schema = get_schema(self.request, "req.cookies")
         assert self.request.status_code == 200
         assert schema
@@ -94,6 +93,7 @@ class Test_Schema_Request_Cookies:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
@@ -102,7 +102,7 @@ class Test_Schema_Request_Query_Parameters:
         self.request = weblog.get("/tag_value/api_match_AS002/200?x=123&y=abc&z=%7B%22key%22%3A%22value%22%7D")
 
     def test_request_method(self):
-        """can provide request query parameters schema"""
+        """Can provide request query parameters schema"""
         schema = get_schema(self.request, "req.query")
         assert self.request.status_code == 200
         assert schema
@@ -114,6 +114,7 @@ class Test_Schema_Request_Query_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
     """Test API Security - Request Path Parameters Schema"""
@@ -122,7 +123,7 @@ class Test_Schema_Request_Path_Parameters:
         self.request = weblog.get("/tag_value/api_match_AS003/200")
 
     def test_request_method(self):
-        """can provide request path parameters schema"""
+        """Can provide request path parameters schema"""
         schema = get_schema(self.request, "req.params")
         assert self.request.status_code == 200
         assert schema
@@ -135,6 +136,7 @@ class Test_Schema_Request_Path_Parameters:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
     """Test API Security - Request Body and list length"""
@@ -147,14 +149,15 @@ class Test_Schema_Request_Json_Body:
         self.request = weblog.post("/tag_value/api_match_AS004/200", json=payload)
 
     def test_request_method(self):
-        """can provide request request body schema"""
+        """Can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
-        assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
+        assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
@@ -172,12 +175,12 @@ class Test_Schema_Request_FormUrlEncoded_Body:
         )
 
     def test_request_method(self):
-        """can provide request request body schema"""
+        """Can provide request request body schema"""
         schema = get_schema(self.request, "req.body")
         assert self.request.status_code == 200
         assert (
-            contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}],)
-            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}],)
+            contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}])
+            or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
             or contains(
                 schema,
                 [
@@ -195,6 +198,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
     """Test API Security - Response Header Schema"""
@@ -203,7 +207,7 @@ class Test_Schema_Response_Headers:
         self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
 
     def test_request_method(self):
-        """can provide response header schema"""
+        """Can provide response header schema"""
         schema = get_schema(self.request, "res.headers")
         assert self.request.status_code == 200
         assert isinstance(schema, list)
@@ -214,6 +218,7 @@ class Test_Schema_Response_Headers:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Body:
     """Test API Security - Response Body Schema with urlencoded body"""
@@ -221,11 +226,11 @@ class Test_Schema_Response_Body:
     def setup_request_method(self):
         self.request = weblog.post(
             "/tag_value/payload_in_response_body_001/200",
-            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
         )
 
     def test_request_method(self):
-        """can provide response body schema"""
+        """Can provide response body schema"""
         assert self.request.status_code == 200
 
         schema = get_schema(self.request, "res.body")
@@ -239,22 +244,55 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
+@features.api_security_schemas
+class Test_Schema_Response_on_Block:
+    """Test API Security - Response Schemas with urlencoded body
+    Check that response body schema is only sent when the request is not blocked
+    """
+
+    def setup_request_method(self):
+        self.request_noblock = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        )
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+            headers={"user-agent": "dd-test-scanner-log-block"},
+        )
+
+    @bug(context.library >= "python_lambda@8.117.0", reason="APPSEC-60014")
+    def test_request_method(self):
+        """Can provide response body schema"""
+        assert self.request_noblock.status_code == 200
+        assert self.request.status_code == 403
+
+        schema = get_schema(self.request_noblock, "res.body")
+        assert schema is not None, "_dd.appsec.s.res.body meta tag should be present"
+        schema = get_schema(self.request, "res.body")
+        assert schema is None, f"_dd.appsec.s.res.body meta tag should not be present, got {schema}"
+        schema = get_schema(self.request, "res.headers")
+        assert schema is None, f"_dd.appsec.s.res.headers meta tag should not be present, got {schema}"
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
-    """
-    Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
+    """Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
     Check that response headers are still parsed but not response body
     """
 
     def setup_request_method(self):
         self.request = weblog.post(
             "/tag_value/payload_in_response_body_001/200?X-option=test_value",
-            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234,},
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
         )
 
     def test_request_method(self):
-        """can provide response body schema"""
+        """Can provide response body schema"""
         assert self.request.status_code == 200
 
         headers_schema = get_schema(self.request, "res.headers")
@@ -269,6 +307,7 @@ class Test_Schema_Response_Body_env_var:
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
+@scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Scanners:
     """Test API Security - Scanners"""
@@ -276,13 +315,14 @@ class Test_Scanners:
     def setup_request_method(self):
         self.request = weblog.get(
             "/tag_value/api_match_AS001/200",
-            cookies={"mastercard": "5123456789123456", "authorization": "digest_a0b1c2", "SSN": "123-45-6789",},
-            headers={"authorization": "digest a0b1c2",},
+            cookies={"mastercard": "5123456789123456", "authorization": "digest_a0b1c2", "SSN": "123-45-6789"},
+            headers={"authorization": "digest a0b1c2"},
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
+    @bug(context.library >= "python_lambda@8.117.0", reason="APPSEC-60014")
     def test_request_method(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
         schema_cookies = get_schema(self.request, "req.cookies")
         schema_headers = get_schema(self.request, "req.headers")
         assert self.request.status_code == 200
@@ -290,11 +330,11 @@ class Test_Scanners:
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
-        EXPECTED_COOKIES = [
+        expected_cookies: list[dict] = [
             {
                 "SSN": [8, {"category": "pii", "type": "us_ssn"}],
                 "authorization": [8],
-                "mastercard": [8, {"card_type": "mastercard", "type": "card", "category": "payment"},],
+                "mastercard": [8, {"card_type": "mastercard", "type": "card", "category": "payment"}],
             },
             {
                 "SSN": [[[8, {"category": "pii", "type": "us_ssn"}]], {"len": 1}],
@@ -302,16 +342,15 @@ class Test_Scanners:
                 "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
             },
         ]
-        EXPECTED_HEADERS = [
+        expected_headers: list[dict] = [
             {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
             {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
         ]
 
         for schema, expected in [
-            (schema_cookies[0], EXPECTED_COOKIES),
-            (schema_headers[0], EXPECTED_HEADERS),
+            (schema_cookies[0], expected_cookies),
+            (schema_headers[0], expected_headers),
         ]:
-
             for key in expected[0]:
                 assert key in schema
                 assert isinstance(schema[key], list)

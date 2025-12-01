@@ -3,17 +3,13 @@ description: "Pull docker images"
 inputs:
   library:
     description: "Which library will be tested (python, cpp, java, ...)"
-    required: true
+    default: ""
   weblog:
     description: "Which weblog will be tested"
-    required: true
+    default: ""
   scenarios:
-    description: "JSON array of scenarios that will be executed"
+    description: "JSON array, or comma separated list of scenarios that will be executed"
     required: true
-  cleanup:
-    description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
-    required: false
-    default: "true"
   dockerhub_username:
     description: "To prevent reaching docker hub API limits, provide a username and token to login to docker hub"
     required: false
@@ -26,37 +22,36 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Free some place for scenarios known to require lot of images
-      if: ${{ (inputs.cleanup == 'true') && (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
-      shell: bash
-      run: |
-        df -h
-
-        echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
-
-        sudo rm -rf /usr/local/lib/android  # 9Gb!
-        sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
-        sudo rm -rf /usr/share/dotnet # 1Gb
-
-        # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
-
-        df -h
-
     - name: Get image list
       shell: bash
       run: |
         source venv/bin/activate
-        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' > compose.yaml
+        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' -l=${{ inputs.library }} -w=${{ inputs.weblog }} > compose.yaml
       env:
         PYTHONPATH: "."
 
     - name: Login to Docker Hub
       if: inputs.dockerhub_username != '' && inputs.dockerhub_token != ''
-      uses: docker/login-action@v3
+      uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
-    - name: Pull
+    - name: clean-up
       shell: bash
-      run: docker compose pull
+      if: inputs.library == 'php' || inputs.library == 'ruby' || inputs.library == 'golang' # PHP/ruby/golang use heavy images
+      run: sudo rm -rf /usr/local/lib/android
+
+#retry
+    - name: Pull
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+      with:
+        shell: bash
+        command: docker compose pull
+        timeout_minutes: 15
+        retry_wait_seconds: 10
+        max_attempts: 3
+
+    - name: Disk space usage
+      shell: bash
+      run: df -h

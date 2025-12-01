@@ -1,8 +1,12 @@
 import json
 import logging
 import time
+import os
 
 import boto3
+
+
+HOST = os.getenv("SYSTEM_TESTS_AWS_URL", "https://kinesis.us-east-1.amazonaws.com/601427279990")
 
 
 def kinesis_produce(stream, message, partition_key, timeout=60):
@@ -11,7 +15,7 @@ def kinesis_produce(stream, message, partition_key, timeout=60):
     """
 
     # Create an SQS client
-    kinesis = boto3.client("kinesis", region_name="us-east-1")
+    kinesis = boto3.client("kinesis", region_name="us-east-1", endpoint_url=HOST)
 
     # we only allow injection into JSON messages encoded as a string
     message = json.dumps({"message": message})
@@ -60,7 +64,7 @@ def kinesis_consume(stream, expectedMessage, timeout=60):
     The goal of this function is to trigger kinesis consumer calls
     """
     # Create a Kinesis client
-    kinesis = boto3.client("kinesis", region_name="us-east-1")
+    kinesis = boto3.client("kinesis", region_name="us-east-1", endpoint_url=HOST)
 
     consumed_message = None
     shard_iterator = None

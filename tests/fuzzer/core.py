@@ -2,20 +2,20 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import aiofiles
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 import hashlib
 import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 import signal
-import time
 
 import aiohttp
 from yarl import URL
 
-from utils import context
+from utils._context.containers import WeblogContainer
 
 from tests.fuzzer.corpus import get_corpus
 from tests.fuzzer.request_mutator import get_mutator
@@ -33,25 +33,25 @@ from tests.fuzzer.tools.metrics import (
 
 class Semaphore(asyncio.Semaphore):
     @property
-    def value(self):
+    def value(self) -> int:
         return self._value
 
 
 class _RequestDumper:
-    def __init__(self, name=None, enabled=True):
+    def __init__(self, name: str | None = None, *, enabled: bool = True):
         self.enabled = enabled
-        self.logger = None
+        self.logger: logging.Logger | None = None
         if name:
-            self.filename = f"logs/dump_{name}_{datetime.now().isoformat()}.dump"
+            self.filename = f"logs/dump_{name}_{datetime.now(tz=UTC).isoformat()}.dump"
         else:
-            self.filename = f"logs/dump_{datetime.now().isoformat()}.dump"
+            self.filename = f"logs/dump_{datetime.now(tz=UTC).isoformat()}.dump"
 
-    def __call__(self, payload):
+    def __call__(self, payload: dict):
         if not self.enabled:
             return
 
         if self.logger is None:
-            self.logger = logging.Logger(__name__)
+            self.logger = logging.getLogger(__name__)
             self.logger.addHandler(RotatingFileHandler(self.filename))
 
         self.logger.info(json.dumps(payload))
@@ -60,19 +60,20 @@ class _RequestDumper:
 class Fuzzer:
     def __init__(
         self,
-        corpus,
-        no_mutation,
-        base_url,
-        seed,
-        max_tasks,
-        report_frequency,
-        logger,
-        weblog,
-        request_count=None,
-        max_time=None,
-        dump_on_status=("500",),
-        debug=False,
-        systematic_export=False,
+        corpus: str,
+        base_url: str,
+        seed: str,
+        max_tasks: int,
+        report_frequency: int,
+        logger: logging.Logger,
+        weblog: WeblogContainer,
+        request_count: int | None = None,
+        max_time: int | None = None,
+        dump_on_status: tuple[str, ...] = ("500",),
+        *,
+        no_mutation: bool,
+        debug: bool = False,
+        systematic_export: bool = False,
     ):
         self.loop = asyncio.get_event_loop()
         self.loop.set_debug(debug)
@@ -86,17 +87,18 @@ class Fuzzer:
 
         self.corpus = corpus
         self.seed = seed
-        self.requests = RequestGenerator(get_mutator(no_mutation, weblog), get_corpus(corpus))
+        self.requests = RequestGenerator(get_mutator(no_mutation=no_mutation, weblog=weblog), get_corpus(corpus))
         self.request_count = request_count
 
         self.max_tasks = max_tasks
         self.max_time = max_time
-        self.max_datetime = None  # will be set later
+        self.max_datetime: datetime | None = None  # will be set later
         self.sem = Semaphore(max_tasks)
 
         self.dump_on_status = dump_on_status
         self.enable_response_dump = False
-        self.systematic_exporter = _RequestDumper() if systematic_export else lambda x: 0
+        self.systematic_export = systematic_export
+        self.request_dumper = _RequestDumper()
 
         self.total_metric = AccumulatedMetric("#", format_string="#{value}", display_length=7, has_raw_value=False)
         self.memory_metric = NumericalMetric("Mem")
@@ -106,11 +108,11 @@ class Fuzzer:
         self.count_metric = ResetedAccumulatedMetric("Count")
         self.bytes_metric = ResetedAccumulatedMetric("Bytes")
 
-        self.status_metrics = {}
-        self.backend_requests = {}
+        self.status_metrics: dict = {}
+        self.backend_requests: dict = {}
         self.backend_requests_size = ResetedAccumulatedMetric("Bytes", raw_name="backend_bytes")
-        self.backend_signals = {}
-        self.backend_commands = {}
+        self.backend_signals: dict = {}
+        self.backend_commands: dict = {}
 
         self._add_status_metric("200", "200")
         self._add_status_metric("400", "400")
@@ -120,22 +122,22 @@ class Fuzzer:
         self._add_backend_request("/ping", "Ping")
         self._add_backend_request("/batches", "Batch")
 
-        self.backend_requests_stack = []
+        self.backend_requests_stack: list[dict] = []
 
         self.finished = False
 
-    def _add_status_metric(self, key, name):
+    def _add_status_metric(self, key: str, name: str):
         self.status_metrics[key] = AccumulatedMetricWithPercent(
             name, self.count_metric, display_length=4, raw_name="R_" + key
         )
 
-    def _add_backend_request(self, key, name):
+    def _add_backend_request(self, key: str, name: str):
         self.backend_requests[key] = ResetedAccumulatedMetric(name, raw_name="B_" + key)
 
-    def _add_backend_signal(self, key, name):
+    def _add_backend_signal(self, key: str, name: str):
         self.backend_signals[key] = ResetedAccumulatedMetric(name, raw_name="S_" + key)
 
-    async def wait_for_first_response(self):
+    async def wait_for_first_response(self) -> None:
         session = aiohttp.ClientSession(loop=self.loop)
 
         self.logger.info("Wait for a successful server response...")
@@ -155,33 +157,35 @@ class Fuzzer:
                         self.logger.info(f"First response received after {i} attempts")
                         return
 
-                time.sleep(1)
+                await asyncio.sleep(1)
 
             raise Exception("Server does not respond")
         finally:
             await session.close()
 
-    def run_forever(self):
+    def run_forever(self) -> None:
         self.logger.info("")
         self.logger.info("=" * 80)
 
-        asyncio.ensure_future(self._run(), loop=self.loop)
+        task = asyncio.ensure_future(self._run(), loop=self.loop)
         self.loop.add_signal_handler(signal.SIGINT, self.perform_armageddon)
         self.logger.info("Starting event loop")
-        self.loop.run_forever()
+        self.loop.run_until_complete(task)
 
-    def perform_armageddon(self):
+    def perform_armageddon(self) -> None:
         self.finished = True
 
-    async def watch_docker_target(self):
+    async def watch_docker_target(self) -> None:
         while not self.finished:
             try:
                 session = aiohttp.ClientSession(
-                    loop=self.loop, connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
+                    loop=self.loop,
+                    connector=aiohttp.UnixConnector(path="/var/run/docker.sock"),
                 )
 
                 async with session.request(
-                    url="http://localhost/containers/system-tests_weblog_1/stats", method="GET",
+                    url="http://localhost/containers/system-tests_weblog_1/stats",
+                    method="GET",
                 ) as resp:
                     async for line in resp.content:
                         if self.finished:
@@ -206,13 +210,14 @@ class Fuzzer:
     async def _run(self):
         try:
             await self.wait_for_first_response()
-        except Exception as e:
-            self.logger.error(str(e))
+        except Exception:
+            self.logger.exception("First response failed")
             self.loop.stop()
             return
 
         self.report.start()
-        self.max_datetime = None if self.max_time is None else datetime.now() + timedelta(seconds=self.max_time)
+
+        self.max_datetime = None if self.max_time is None else datetime.now(tz=UTC) + timedelta(seconds=self.max_time)
 
         tasks = set()
 
@@ -245,7 +250,7 @@ class Fuzzer:
                 while len(self.backend_requests_stack) != 0:
                     self.update_backend_metrics(self.backend_requests_stack.pop(0))
 
-                if self.max_datetime is not None and datetime.now() > self.max_datetime:
+                if self.max_datetime is not None and datetime.now(tz=UTC) > self.max_datetime:
                     self.finished = True
 
                 if self.finished:
@@ -257,7 +262,7 @@ class Fuzzer:
                 task = self.loop.create_task(self._process(session, request))
                 tasks.add(task)
                 task.add_done_callback(tasks.remove)
-                task.add_done_callback(lambda t: self.sem.release())
+                task.add_done_callback(lambda _: self.sem.release())
 
                 request_id += 1
 
@@ -273,29 +278,31 @@ class Fuzzer:
 
             self.loop.stop()
 
-    async def _process(self, session, request):
-
+    async def _process(self, session: aiohttp.ClientSession, request: dict):
         resp = None
-        request_timestamp = datetime.now()
-        self.systematic_exporter(request)
+        request_timestamp = datetime.now(tz=UTC)
+        if self.systematic_export:
+            self.request_dumper(request)
 
         try:
             args = dict(request)
             args["url"] = URL(self.base_url + args.pop("path"), encoded=True)
             async with session.request(**args) as resp:
-
                 # if str(resp.status) == "500":
                 #     open("logs/500.html", "w").write(await resp.text())
                 #     self.finished = True
 
                 await self.update_metrics(
-                    str(resp.status), request, request_timestamp, response=resp,
+                    str(resp.status),
+                    request,
+                    request_timestamp,
+                    response=resp,
                 )
 
                 try:
                     await self.requests.feedback(request, resp, self.base_url)
                 except Exception as exc:
-                    await self.logger.signal("Feedback exception", type(exc).__name__)
+                    self.report.signal("Feedback exception", type(exc).__name__)
 
         except Exception as exc:
             await self.update_metrics(type(exc).__name__, request, request_timestamp)
@@ -305,7 +312,7 @@ class Fuzzer:
                 resp.close()
             self.report.pulse(self.get_metrics)
 
-    def get_metrics(self):
+    def get_metrics(self) -> list:
         task_metric = Metric("Tasks")
         task_metric.update(self.max_tasks - self.sem.value)
 
@@ -331,15 +338,16 @@ class Fuzzer:
 
         return result
 
-    async def update_metrics(self, status, request, request_timestamp, response=None):
-
-        ellapsed = (datetime.now() - request_timestamp).total_seconds()
+    async def update_metrics(
+        self, status: str, request: dict, request_timestamp: datetime, response: aiohttp.ClientResponse | None = None
+    ) -> None:
+        ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
         byte_count = len(request["path"])
 
         self.performances.update(ellapsed)
 
-        def get_len(obj):
+        def get_len(obj):  # noqa: ANN001
             if isinstance(obj, (int, float, bool)):
                 return 4
 
@@ -375,15 +383,17 @@ class Fuzzer:
             request_as_json = json.dumps(request, indent=4)
             hashed = hashlib.md5(request_as_json.encode()).hexdigest()
 
-            with open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
-                f.write(request_as_json)
+            async with aiofiles.open(os.path.join("logs", f"{status}-{hashed}.json"), "w", encoding="utf-8") as f:
+                await f.write(request_as_json)
 
             if response and self.enable_response_dump:
                 text = await response.text()
-                with open(os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8") as f:
-                    f.write(text)
+                async with aiofiles.open(
+                    os.path.join("logs", f"{status}-response-{hashed}.html"), "w", encoding="utf-8"
+                ) as f:
+                    await f.write(text)
 
-    def update_backend_metrics(self, data):
+    def update_backend_metrics(self, data: dict) -> None:
         path, request = data["path"], data["request"]
 
         self.backend_requests_size.update(request["length"])

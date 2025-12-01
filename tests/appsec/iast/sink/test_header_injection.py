@@ -2,17 +2,23 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, missing_feature, rfc, weblog
-from ..utils import BaseSinkTest, validate_stack_traces, assert_iast_vulnerability
+from utils import context, features, missing_feature, rfc, weblog, HttpResponse, flaky
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    assert_iast_vulnerability,
+    get_nodejs_iast_file_paths,
+)
 
 
 class _BaseTestHeaderInjectionReflectedExclusion:
-    origin_header: None
-    reflected_header: None
-    headers: None
+    origin_header: str
+    reflected_header: str
+    headers: dict
 
-    exclusion_request: None
-    no_exclusion_request: None
+    exclusion_request: HttpResponse
+    no_exclusion_request: HttpResponse
 
     def setup_no_exclusion(self):
         assert self.origin_header is not None, f"Please set {self}.origin_header"
@@ -27,7 +33,7 @@ class _BaseTestHeaderInjectionReflectedExclusion:
 
     def test_no_exclusion(self):
         assert_iast_vulnerability(
-            request=self.no_exclusion_request, vulnerability_count=1, vulnerability_type="HEADER_INJECTION",
+            request=self.no_exclusion_request, vulnerability_count=1, vulnerability_type="HEADER_INJECTION"
         )
 
     def setup_exclusion(self):
@@ -55,7 +61,7 @@ class TestHeaderInjection(BaseSinkTest):
     insecure_endpoint = "/iast/header_injection/test_insecure"
     secure_endpoint = "/iast/header_injection/test_secure"
     data = {"test": "dummyvalue"}
-    location_map = {"nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts"}}
+    location_map = {"nodejs": get_nodejs_iast_file_paths()}
 
     @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
@@ -71,12 +77,14 @@ class TestHeaderInjection(BaseSinkTest):
     "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
 )
 @features.iast_stack_trace
+@flaky(context.library == "java", reason="APPSEC-59975")
 class TestHeaderInjection_StackTrace:
-    """Validate stack trace generation """
+    """Validate stack trace generation"""
 
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
 
+    @flaky(context.library >= "java@1.56.0", reason="APPSEC-59975")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 
@@ -115,3 +123,17 @@ class TestHeaderInjectionExclusionTransferEncoding(_BaseTestHeaderInjectionRefle
     origin_header = "accept-encoding"
     reflected_header = "transfer-encoding"
     headers = {"accept-encoding": "foo, bar"}
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestHeaderInjection_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "HEADER_INJECTION"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

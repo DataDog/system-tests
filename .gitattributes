@@ -5,3 +5,7 @@
 # Otherwise, execution within Docker fails on a Windos host.
 # See https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings
 *.sh text eol=lf
+
+# Stop hiding directories called "build" in the github file search
+# https://docs.github.com/en/search-github/searching-on-github/finding-files-on-github#customizing-excluded-files
+build/** linguist-generated=false

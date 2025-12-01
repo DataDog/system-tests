@@ -1,14 +1,14 @@
-from typing import Any
-
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext
+from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, scenarios, features
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_propagationstyle_default() -> Any:
+def temporary_enable_propagationstyle_default() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
@@ -20,9 +20,8 @@ def temporary_enable_propagationstyle_default() -> Any:
 @features.datadog_headers_propagation
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
-    def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+    def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -30,60 +29,60 @@ class Test_Headers_Tracestate_DD:
             # 1) x-datadog-sampling-priority > 0
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-sampling-priority", "2"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-sampling-priority", "2"),
                 ],
             )
 
             # 2) x-datadog-sampling-priority <= 0
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-sampling-priority", "-1"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-sampling-priority", "-1"),
                 ],
             )
 
             # 3) Sampled = 1, tracestate[dd][s] is not present
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
             # 4) Sampled = 1, tracestate[dd][s] <= 0
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:-1"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:-1"),
                 ],
             )
 
             # 5) Sampled = 1, tracestate[dd][s] > 0
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:2"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2"),
                 ],
             )
 
             # 6) Sampled = 0, tracestate[dd][s] is not present
             headers6 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00")]
             )
 
             # 7) Sampled = 0, tracestate[dd][s] <= 0
             headers7 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
-                    ["tracestate", "foo=1,dd=s:-1"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+                    ("tracestate", "foo=1,dd=s:-1"),
                 ],
             )
 
             # 8) Sampled = 0, tracestate[dd][s] > 0
             headers8 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
-                    ["tracestate", "foo=1,dd=s:1"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+                    ("tracestate", "foo=1,dd=s:1"),
                 ],
             )
 
@@ -185,9 +184,8 @@ class Test_Headers_Tracestate_DD:
             assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
-    def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+    def test_headers_tracestate_dd_propagate_origin(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -195,51 +193,51 @@ class Test_Headers_Tracestate_DD:
             # 1) x-datadog-origin is a well-known value
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-origin", "synthetics-browser"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-origin", "synthetics-browser"),
                 ],
             )
 
             # 2) x-datadog-origin is NOT a well-known value
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-origin", "tracing2.0"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-origin", "tracing2.0"),
                 ],
             )
 
             # 3) x-datadog-origin has invalid characters
             headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-origin", "synthetics~;=web,z"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-origin", "synthetics~;=web,z"),
                 ],
             )
 
             # 4) tracestate[dd][o] is not present
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:-1"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:-1"),
                 ],
             )
 
             # 5) tracestate[dd][o] is present and is a well-known value
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:-1;o:synthetics-browser"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:-1;o:synthetics-browser"),
                 ],
             )
 
             # 6) tracestate[dd][o] is present and is NOT a well-known value
             headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:-1;o:tracing2.0"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:-1;o:tracing2.0"),
                 ],
             )
 
@@ -269,7 +267,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value, where invalid characters replaced by '_'
         origin = headers3["x-datadog-origin"]
         # allow implementations to split origin at the first ','
-        assert origin == "synthetics~;=web,z" or origin == "synthetics~;=web"
+        assert origin in ("synthetics~;=web,z", "synthetics~;=web")
 
         traceparent3, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
@@ -318,9 +316,13 @@ class Test_Headers_Tracestate_DD:
     )
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     @bug(context.library == "ruby", reason="APMAPI-812")
-    def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+    @bug(context.library >= "php@1.11.0", reason="APMAPI-1539")
+    @missing_feature(
+        context.library == "rust",
+        reason="can't guarantee the order of strings in the tracestate since they came from the map.",
+    )
+    def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -328,9 +330,9 @@ class Test_Headers_Tracestate_DD:
             # 1) x-datadog-tags is populated with well-known tags
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-tags", "_dd.p.usr.id=MTIz"),
                 ],
             )
 
@@ -338,38 +340,40 @@ class Test_Headers_Tracestate_DD:
             # substituting "=" characters with ":" characters
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64=="],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64=="),
+                    ("x-datadog-sampling-priority", "1"),
                 ],
             )
 
             # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
             headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "7890123456789012"],
-                    ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"],
+                    ("x-datadog-trace-id", "7890123456789012"),
+                    ("x-datadog-parent-id", "1234567890123456"),
+                    ("x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"),
+                    ("x-datadog-sampling-priority", "1"),
                 ],
             )
 
             # 4) tracestate[dd] does not contain propagated tags
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:-1"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:-1"),
                 ],
             )
 
         # 1) x-datadog-tags is populated with well-known propagated tags
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
-        assert headers1["x-datadog-tags"] == "_dd.p.dm=-4"
+        assert "_dd.p.usr.id=MTIz" in headers1["x-datadog-tags"]
 
         traceparent1, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
-        assert "t.dm:-4" in dd_items1
+        assert "t.usr.id:MTIz" in dd_items1
 
         # 2) x-datadog-tags is populated with well-known tags that require
         #    substituting "=" characters with ":" characters
@@ -429,9 +433,10 @@ class Test_Headers_Tracestate_DD:
     )
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
-    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         expects the decision maker to be passed through as DEFAULT
@@ -440,16 +445,16 @@ class Test_Headers_Tracestate_DD:
             # 1) tracestate[dd] is populated with well-known propagated tags
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:0;t.dm:-0;t.usr.id:baz64~~"),
                 ],
             )
 
             # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
-                    ["tracestate", "foo=1,dd=s:1;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+                    ("tracestate", "foo=1,dd=s:1;t.dm:-0;t.usr.id:baz64~~;t.url:http://localhost"),
                 ],
             )
 
@@ -494,9 +499,10 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
-    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         expects the decision maker to be reset to DEFAULT
@@ -505,16 +511,16 @@ class Test_Headers_Tracestate_DD:
             # 1) tracestate[dd] is populated with well-known propagated tags
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:-1;t.dm:-4;t.usr.id:baz64~~"),
                 ],
             )
 
             # 2) tracestate[dd][o] is populated with both well-known tags and unrecognized propagated tags
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-00"],
-                    ["tracestate", "foo=1,dd=s:2;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
+                    ("tracestate", "foo=1,dd=s:2;t.dm:-4;t.usr.id:baz64~~;t.url:http://localhost"),
                 ],
             )
 
@@ -556,70 +562,71 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     @bug(library="php", reason="APMAPI-916")
-    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
-        """
-        harness sends requests with both tracestate and traceparent.
+    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
         number of list-members in the tracestate is less than or equal to 32
         """
         with test_library:
-            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+            other_vendors = ",".join(f"key{i}=value{i}" for i in range(1, 32))
 
             # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", other_vendors + ",dd=s:-1"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", other_vendors + ",dd=s:-1"),
                 ],
             )
 
             # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
             headers2 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "dd=s:-1," + other_vendors],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:-1," + other_vendors),
                 ],
             )
 
             # 3) Input: 31 list-members without 'dd' in the tracestate string
             headers3 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", other_vendors],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", other_vendors),
                 ],
             )
 
             # 4) Input: No tracestate string
             headers4 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],],
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")],
             )
 
         # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
-        tracestate1String = str(tracestate1)
-        assert "key31=value31" in tracestate1String
-        assert tracestate1String.startswith("dd=")
-        assert len(tracestate1String.split(",")) == 32
+        tracestate_1_string = str(tracestate1)
+        assert "key31=value31" in tracestate_1_string
+        assert tracestate_1_string.startswith("dd=")
+        assert len(tracestate_1_string.split(",")) == 32
 
         # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
         _, tracestate2 = get_tracecontext(headers2)
-        tracestate2String = str(tracestate2)
-        assert "key31=value31" in tracestate2String
-        assert tracestate2String.startswith("dd=")
-        assert len(tracestate2String.split(",")) == 32
+        tracestate_2_string = str(tracestate2)
+        assert "key31=value31" in tracestate_2_string
+        assert tracestate_2_string.startswith("dd=")
+        assert len(tracestate_2_string.split(",")) == 32
 
         # 3) Input: 31 list-members without 'dd' in the tracestate string
         _, tracestate3 = get_tracecontext(headers3)
-        tracestate3String = str(tracestate3)
-        assert "key31=value31" in tracestate3String
-        assert tracestate3String.startswith("dd=")
-        assert len(tracestate3String.split(",")) == 32
+        tracestate_3_string = str(tracestate3)
+        assert "key31=value31" in tracestate_3_string
+        assert tracestate_3_string.startswith("dd=")
+        assert len(tracestate_3_string.split(",")) == 32
 
         # 4) Input: No tracestate string
         _, tracestate4 = get_tracecontext(headers4)
-        tracestate4String = str(tracestate4)
-        assert tracestate4String.startswith("dd=")
-        assert len(tracestate4String.split(",")) == 1
+        tracestate_4_string = str(tracestate4)
+        assert tracestate_4_string.startswith("dd=")
+        assert len(tracestate_4_string.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
@@ -628,26 +635,27 @@ class Test_Headers_Tracestate_DD:
     @bug(library="nodejs", reason="APMAPI-914")
     @bug(library="python", reason="APMAPI-914")
     @bug(library="php", reason="APMAPI-916")
-    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent.
+    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output
         tracestate string because the maximum number of list-members is 32.
         """
         with test_library:
-            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+            other_vendors = ",".join(f"key{i}=value{i}" for i in range(1, 32))
 
             # 1) Input: 32 list-members without 'dd' in the tracestate string
             headers1 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", other_vendors + ",key32=value32"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", other_vendors + ",key32=value32"),
                 ],
             )
 
         # 1) Input: 32 list-members without 'dd' in the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
-        tracestate1String = str(tracestate1)
-        assert len(tracestate1String.split(",")) == 32
-        assert "key32=value32" not in tracestate1String
-        assert tracestate1String.startswith("dd=")
+        tracestate_1_string = str(tracestate1)
+        assert len(tracestate_1_string.split(",")) == 32
+        assert "key32=value32" not in tracestate_1_string
+        assert tracestate_1_string.startswith("dd=")

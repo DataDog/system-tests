@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -15,21 +15,44 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
-	"weblog/internal/grpc"
-	"weblog/internal/rasp"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/grpc"
+	"systemtests.weblog/_shared/rasp"
 
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	echotrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/labstack/echo.v4"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	echotrace "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
+
 	tracer.Start()
 	defer tracer.Stop()
+
+	err := profiler.Start(
+		profiler.WithService("weblog"),
+		profiler.WithEnv("system-tests"),
+		profiler.WithVersion("1.0"),
+		profiler.WithTags(),
+		profiler.WithProfileTypes(profiler.CPUProfile, profiler.HeapProfile),
+	)
+
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	defer profiler.Stop()
 
 	r := echo.New()
 
@@ -137,7 +160,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(c.Request().Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 
 		defer res.Body.Close()
@@ -191,6 +214,21 @@ func main() {
 		return nil
 	})
 
+	r.POST("/user_login_success_event_v2", func(ctx echo.Context) error {
+		var data struct {
+			Login    string            `json:"login"`
+			UserID   string            `json:"user_id"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := ctx.Bind(&data); err != nil {
+			logrus.Println("error decoding request body for", ctx.Request().URL, ":", err)
+			return err
+		}
+
+		appsec.TrackUserLoginSuccess(ctx.Request().Context(), data.Login, data.UserID, data.Metadata)
+		return nil
+	})
+
 	r.GET("/user_login_failure_event", func(ctx echo.Context) error {
 		uid := "system_tests_user"
 		if q := ctx.QueryParam("event_user_id"); q != "" {
@@ -204,6 +242,27 @@ func main() {
 			}
 		}
 		appsec.TrackUserLoginFailureEvent(ctx.Request().Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+		return nil
+	})
+
+	r.POST("/user_login_failure_event_v2", func(ctx echo.Context) error {
+		var data struct {
+			Login    string            `json:"login"`
+			Exists   string            `json:"exists"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := ctx.Bind(&data); err != nil {
+			logrus.Println("error decoding request body for ", ctx.Request().URL, ":", err)
+			return err
+		}
+
+		exists, err := strconv.ParseBool(data.Exists)
+		if err != nil {
+			logrus.Printf("error parsing exists value %q: %v\n", data.Exists, err)
+			return err
+		}
+
+		appsec.TrackUserLoginFailure(ctx.Request().Context(), data.Login, exists, data.Metadata)
 		return nil
 	})
 
@@ -221,7 +280,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			return ctx.String(500, "KO")
 		}
 
@@ -250,15 +309,68 @@ func main() {
 		return ctx.NoContent(200)
 	})
 
+	r.GET("/inferred-proxy/span-creation", func(ctx echo.Context) error {
+		statusCodeStr := ctx.Request().URL.Query().Get("status_code")
+		statusCode := 200
+		if statusCodeStr != "" {
+			var err error
+			statusCode, err = strconv.Atoi(statusCodeStr)
+			if err != nil {
+				statusCode = 400
+				return ctx.String(statusCode, "no inferred span")
+			}
+		}
+
+		// Log the request headers
+		fmt.Println("Received an API Gateway request")
+		for key, values := range ctx.Request().Header {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+
+		return ctx.String(statusCode, "ok")
+	})
+
+	r.GET("/log/library", func(ctx echo.Context) error {
+		reqCtx := ctx.Request()
+		msg := reqCtx.URL.Query().Get("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		switch reqCtx.URL.Query().Get("level") {
+		case "warn":
+			logrus.WithContext(reqCtx.Context()).Warn(msg)
+		case "error":
+			logrus.WithContext(reqCtx.Context()).Error(msg)
+		case "debug":
+			logrus.WithContext(reqCtx.Context()).Debug(msg)
+		default:
+			logrus.WithContext(reqCtx.Context()).Info(msg)
+		}
+		return ctx.NoContent(200)
+	})
+
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
+	r.Any("/rasp/multiple", echoHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
+
+	r.Any("/external_request", echoHandleFunc(rasp.ExternalRequest))
+
+	r.Any("/requestdownstream", echoHandleFunc(common.Requestdownstream))
+	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))
+	r.Any("/ffe", echoHandleFunc(common.FFeEval()))
+
+	var d DebuggerController
+	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
+	r.Any("/debugger/mix", echoHandleFunc(d.mixProbe))
 
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	go func() {
 		if err := r.Start(":7777"); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -269,7 +381,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := r.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 
 }
@@ -297,4 +409,14 @@ func waf(c echo.Context) error {
 		appsec.MonitorParsedHTTPBody(req.Context(), body)
 	}
 	return c.String(http.StatusOK, "Hello, WAF!\n")
+}
+
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }

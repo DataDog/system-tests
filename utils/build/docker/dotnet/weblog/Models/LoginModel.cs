@@ -20,4 +20,6 @@ public class LoginModel
     [FromQuery(Name = "sdk_user")] public string? SdkUser { get; set; }
 
     [FromQuery(Name = "sdk_user_exists")] public bool? SdkUserExists { get; set; }
+
+    [FromQuery(Name = "sdk_trigger")] public string? SdkTrigger { get; set; }
 }

@@ -1,9 +1,11 @@
-FROM datadog/system-tests:flask-poc.base-v7
+FROM datadog/system-tests:flask-poc.base-v12
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+# TODO(munir): Move loguru install to the base image, currently lack permissions to push a new base image.
+RUN pip install loguru==0.7.3
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -16,7 +18,6 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # Cross Tracer Integration Testing for Trace Context Propagation
 ENV DD_BOTOCORE_PROPAGATION_ENABLED=true
 ENV DD_KAFKA_PROPAGATION_ENABLED=true
-
 ENV LOG_LEVEL='DEBUG'
 
 # docker startup
