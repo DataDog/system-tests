@@ -1,5 +1,7 @@
 """Test Feature Flag Exposure (FFE) exposure events in weblog end-to-end scenario."""
 
+import json
+
 from utils import (
     weblog,
     interfaces,
@@ -7,6 +9,7 @@ from utils import (
     features,
     remote_config as rc,
 )
+from utils.proxy.mocked_response import StaticJsonMockedResponse
 
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -428,3 +431,90 @@ class Test_FFE_Exposure_Events_Errors:
             assert event["subject"]["id"] == self.targeting_key, (
                 f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
             )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_RC_Unavailable:
+    """Test FFE SDK resilience when the Remote Configuration service becomes unavailable.
+
+    This test validates that the local flag configuration cache inside the tracer
+    can continue to perform evaluations even when RC returns errors.
+    """
+
+    def setup_ffe_rc_unavailable_graceful_degradation(self):
+        """Set up FFE with valid config, then simulate RC unavailability and verify cached config still works."""
+        rc.rc_state.reset().apply()
+
+        self.flag_key = "test-flag"  # From UFC_FIXTURE_DATA, returns "on"
+        self.not_delivered_flag_key = "test-flag-not-delivered"
+        self.default_value = "default_fallback"
+
+        self.config_state = rc.rc_state.set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
+
+        # Baseline: evaluate flag with RC working
+        self.baseline_eval = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": "user-1",
+                "attributes": {},
+            },
+        )
+
+        # Simulate RC unavailability by returning 503 errors
+        StaticJsonMockedResponse(
+            path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
+        ).send()
+
+        # Evaluate cached flag while RC is unavailable
+        self.cached_eval = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": "user-2",
+                "attributes": {},
+            },
+        )
+
+        # Evaluate a flag that was not delivered via RC
+        self.not_delivered_eval = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.not_delivered_flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": "user-3",
+                "attributes": {},
+            },
+        )
+
+        # Restore normal RC behavior (empty response)
+        StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}).send()
+
+    def test_ffe_rc_unavailable_graceful_degradation(self):
+        """Test that cached flag configs continue working when RC is unavailable."""
+        expected_value = "on"
+
+        assert self.baseline_eval.status_code == 200, f"Baseline request failed: {self.baseline_eval.text}"
+        assert self.cached_eval.status_code == 200, f"Cached eval request failed: {self.cached_eval.text}"
+        assert self.not_delivered_eval.status_code == 200, f"Not delivered eval failed: {self.not_delivered_eval.text}"
+
+        baseline_result = json.loads(self.baseline_eval.text)
+        assert baseline_result["value"] == expected_value, (
+            f"Baseline: expected '{expected_value}', got '{baseline_result['value']}'"
+        )
+
+        cached_result = json.loads(self.cached_eval.text)
+        assert cached_result["value"] == expected_value, (
+            f"Cached eval during RC outage: expected '{expected_value}' from cache, got '{cached_result['value']}'"
+        )
+
+        not_delivered_result = json.loads(self.not_delivered_eval.text)
+        assert not_delivered_result["value"] == self.default_value, (
+            f"Not delivered flag: expected default '{self.default_value}', got '{not_delivered_result['value']}'"
+        )
