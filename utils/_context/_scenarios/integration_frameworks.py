@@ -43,8 +43,16 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         if not weblog:
             pytest.exit("No framework specified, please set -W option", 1)
 
+        # TODO: can we turn the dockerfiles into base dockerfiles and just set a couple variables per framework?
         if "@" not in weblog:
-            pytest.exit("Weblog must be of the form : openai@2.0.0.", 1)
+            logger.debug(f"No version specified for {weblog}, using latest")
+            # TODO: see if we can resolve the version like we do for the tracer library versions
+            framework, framework_version = weblog, "latest"
+        else:
+            framework, framework_version = weblog.split("@", 1)
+
+        # TODO: make this respect generate_cassettes - should we take in the api keys as options?
+        self.environment["ANTHROPIC_API_KEY"] = os.getenv("ANTHROPIC_API_KEY", "<not-a-real-key>")
 
         if generate_cassettes:
             openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -56,8 +64,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         if config.option.force_dd_trace_debug:
             self.environment["DD_TRACE_DEBUG"] = "true"
-
-        framework, framework_version = weblog.split("@", 1)
 
         # Handle weblog language name suffix needed for weblog definitions
         # e.g., "openai-py" -> "openai", "openai-js" -> "openai"
@@ -110,6 +116,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         test_id: str,
         library_env: dict[str, str],
         test_agent: TestAgentAPI,
+        framework_app_name: str,
     ) -> Generator[FrameworkTestClientApi, None, None]:
         with self._test_client_factory.get_client(
             request=request,

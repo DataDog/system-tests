@@ -62,6 +62,7 @@ class _ScenarioGroups:
     appsec_low_waf_timeout = ScenarioGroup()
     default = ScenarioGroup()
     feature_flag_exposure = ScenarioGroup()
+    integration_frameworks = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()

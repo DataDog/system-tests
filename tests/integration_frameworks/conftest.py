@@ -55,6 +55,7 @@ def test_client(
     test_id: str,
     worker_id: str,
     test_agent: TestAgentAPI,
+    framework_app_name: str,
 ) -> Generator[FrameworkTestClientApi, None, None]:
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = dict(library_env)
 
@@ -64,5 +65,6 @@ def test_client(
         worker_id=worker_id,
         test_id=test_id,
         test_agent=test_agent,
+        framework_app_name=framework_app_name,
     ) as client:
         yield client
