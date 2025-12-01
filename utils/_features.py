@@ -2671,5 +2671,12 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=520, owner=_Owner.ml_observability)
 
+    @staticmethod
+    def llm_observability_openai_prompt_tracking(test_object):
+        """LLM Observability supports OpenAI Prompt Tracking (reverse templating)
+
+        https://feature-parity.us1.prod.dog/#/?feature=522
+        """
+        return _mark_test_object(test_object, feature_id=522, owner=_Owner.ml_observability)
 
 features = _Features()

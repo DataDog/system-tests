@@ -5,7 +5,7 @@ import pytest
 from unittest import mock
 
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
-from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
+from tests.integration_frameworks.llm.utils import assert_llmobs_span_event, assert_prompt_tracking
 
 
 from .utils import TOOLS
@@ -654,4 +654,308 @@ class TestOpenAiEmbeddingInteractions:
             metadata=mock.ANY,
             error=True,
             has_output=False,
+        )
+
+
+@features.llm_observability_openai_prompt_tracking
+@scenarios.integration_frameworks
+class TestOpenAiPromptTracking:
+    """Tests for OpenAI reusable prompt tracking (reverse templating).
+
+    These tests validate that prompt templates with {{variable}} placeholders
+    are correctly reconstructed from OpenAI's rendered responses.
+
+    Test prompts are on Datadog Staging OpenAI dashboard - do not modify them.
+    """
+
+    def test_responses_create_with_prompt_overlapping_values(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ):
+        """Test prompt tracking with overlapping variable values (longest-first matching)."""
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    prompt={
+                        "id": "pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
+                        "version": "1",
+                        "variables": {"phrase": "cat in the hat", "word": "cat"},
+                    },
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        assert_prompt_tracking(
+            span_events[0],
+            prompt_id="pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
+            prompt_version="1",
+            variables={"phrase": "cat in the hat", "word": "cat"},
+            expected_chat_template=[
+                {"role": "user", "content": "I saw a {{phrase}} and another {{word}}"}
+            ],
+            expected_messages=[
+                {"role": "user", "content": "I saw a cat in the hat and another cat"}
+            ],
+        )
+
+    def test_responses_create_with_prompt_partial_word_match(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ):
+        """Test prompt tracking with partial word matches and multiple roles."""
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    prompt={
+                        "id": "pmpt_6911a954c8988190a82b11560faa47cd0d6629899573dd8f",
+                        "version": "2",
+                        "variables": {"word": "test"},
+                    },
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        assert_prompt_tracking(
+            span_events[0],
+            prompt_id="pmpt_6911a954c8988190a82b11560faa47cd0d6629899573dd8f",
+            prompt_version="2",
+            variables={"word": "test"},
+            expected_chat_template=[
+                {"role": "developer", "content": 'Reply with "OK".'},
+                {
+                    "role": "user",
+                    "content": "This is a {{word}} for {{word}}ing the {{word}}er",
+                },
+            ],
+            expected_messages=[
+                {"role": "developer", "content": 'Reply with "OK".'},
+                {"role": "user", "content": "This is a test for testing the tester"},
+            ],
+        )
+
+    def test_responses_create_with_prompt_special_characters(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ):
+        """Test prompt tracking with special characters in variable values."""
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    prompt={
+                        "id": "pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191",
+                        "version": "2",
+                        "variables": {"price": "$99.99", "item": "groceries"},
+                    },
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        assert_prompt_tracking(
+            span_events[0],
+            prompt_id="pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191",
+            prompt_version="2",
+            variables={"price": "$99.99", "item": "groceries"},
+            expected_chat_template=[
+                {"role": "user", "content": "The price of {{item}} is {{price}}."}
+            ],
+            expected_messages=[
+                {"role": "user", "content": "The price of groceries is $99.99."}
+            ],
+        )
+
+    def test_responses_create_with_prompt_empty_values(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ):
+        """Test prompt tracking with empty variable values (should be skipped)."""
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    prompt={
+                        "id": "pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
+                        "version": "1",
+                        "variables": {"phrase": "cat in the hat", "word": ""},
+                    },
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        assert_prompt_tracking(
+            span_events[0],
+            prompt_id="pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
+            prompt_version="1",
+            variables={"phrase": "cat in the hat", "word": ""},
+            expected_chat_template=[
+                {"role": "user", "content": "I saw a {{phrase}} and another "}
+            ],
+            expected_messages=[
+                {"role": "user", "content": "I saw a cat in the hat and another "}
+            ],
+        )
+
+    def test_responses_create_with_prompt_mixed_inputs_url_stripped(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ):
+        """Test mixed input types (text, image, file) - default behavior where image_url is stripped."""
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    prompt={
+                        "id": "pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
+                        "version": "2",
+                        "variables": {
+                            "user_message": {
+                                "type": "input_text",
+                                "text": "Analyze these images and document",
+                            },
+                            "user_image_1": {
+                                "type": "input_image",
+                                "image_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
+                                "detail": "auto",
+                            },
+                            "user_file": {
+                                "type": "input_file",
+                                "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+                            },
+                            "user_image_2": {
+                                "type": "input_image",
+                                "file_id": "file-BCuhT1HQ24kmtsuuzF1mh2",
+                                "detail": "auto",
+                            },
+                        },
+                    },
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        assert_prompt_tracking(
+            span_events[0],
+            prompt_id="pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
+            prompt_version="2",
+            variables={
+                "user_message": "Analyze these images and document",
+                "user_image_1": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
+                "user_file": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+                "user_image_2": "file-BCuhT1HQ24kmtsuuzF1mh2",
+            },
+            expected_chat_template=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Analyze the following content from the user:\n\n"
+                        "Text message: {{user_message}}\n"
+                        "Image reference 1: [image]\n"
+                        "Document reference: {{user_file}}\n"
+                        "Image reference 2: {{user_image_2}}\n\n"
+                        "Please provide a comprehensive analysis."
+                    ),
+                }
+            ],
+            expected_messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Analyze the following content from the user:\n\n"
+                        "Text message: Analyze these images and document\n"
+                        "Image reference 1: [image]\n"
+                        "Document reference: https://www.berkshirehathaway.com/letters/2024ltr.pdf\n"
+                        "Image reference 2: file-BCuhT1HQ24kmtsuuzF1mh2\n\n"
+                        "Please provide a comprehensive analysis."
+                    ),
+                }
+            ],
+        )
+
+    def test_responses_create_with_prompt_mixed_inputs_url_preserved(
+        self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi
+    ):
+        """Test mixed input types (text, image, file) - with include param to preserve image_url."""
+        with test_agent.vcr_context():
+            test_client.request(
+                "POST",
+                "/responses/create",
+                dict(
+                    prompt={
+                        "id": "pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
+                        "version": "2",
+                        "variables": {
+                            "user_message": {
+                                "type": "input_text",
+                                "text": "Analyze these images and document",
+                            },
+                            "user_image_1": {
+                                "type": "input_image",
+                                "image_url": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
+                                "detail": "auto",
+                            },
+                            "user_file": {
+                                "type": "input_file",
+                                "file_url": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+                            },
+                            "user_image_2": {
+                                "type": "input_image",
+                                "file_id": "file-BCuhT1HQ24kmtsuuzF1mh2",
+                                "detail": "auto",
+                            },
+                        },
+                    },
+                    include=["message.input_image.image_url"],
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        assert_prompt_tracking(
+            span_events[0],
+            prompt_id="pmpt_69201db75c4c81959c01ea6987ab023c070192cd2843dec0",
+            prompt_version="2",
+            variables={
+                "user_message": "Analyze these images and document",
+                "user_image_1": "https://raw.githubusercontent.com/github/explore/main/topics/python/python.png",
+                "user_file": "https://www.berkshirehathaway.com/letters/2024ltr.pdf",
+                "user_image_2": "file-BCuhT1HQ24kmtsuuzF1mh2",
+            },
+            expected_chat_template=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Analyze the following content from the user:\n\n"
+                        "Text message: {{user_message}}\n"
+                        "Image reference 1: {{user_image_1}}\n"
+                        "Document reference: {{user_file}}\n"
+                        "Image reference 2: {{user_image_2}}\n\n"
+                        "Please provide a comprehensive analysis."
+                    ),
+                }
+            ],
+            expected_messages=[
+                {
+                    "role": "user",
+                    "content": (
+                        "Analyze the following content from the user:\n\n"
+                        "Text message: Analyze these images and document\n"
+                        "Image reference 1: https://raw.githubusercontent.com/github/explore/main/topics/python/python.png\n"
+                        "Document reference: https://www.berkshirehathaway.com/letters/2024ltr.pdf\n"
+                        "Image reference 2: file-BCuhT1HQ24kmtsuuzF1mh2\n\n"
+                        "Please provide a comprehensive analysis."
+                    ),
+                }
+            ],
         )

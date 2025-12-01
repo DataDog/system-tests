@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 import os
 
@@ -37,9 +37,11 @@ class EmbeddingsRequest(BaseModel):
 
 
 class ResponsesCreateRequest(BaseModel):
-    model: str
-    input: Union[str, list[dict]]
-    parameters: dict
+    model: Optional[str] = None
+    input: Optional[Union[str, list[dict]]] = None
+    parameters: Optional[dict] = None
+    prompt: Optional[dict] = None
+    include: Optional[list[str]] = None
 
 
 @app.post("/chat/completions")
@@ -83,13 +85,23 @@ def embeddings(request: EmbeddingsRequest):
 
 @app.post("/responses/create")
 def responses_create(request: ResponsesCreateRequest):
+    # Handle prompt-based flow (for reusable prompts)
+    if request.prompt:
+        kwargs = {"prompt": request.prompt}
+        if request.include:
+            kwargs["include"] = request.include
+        response = client.responses.create(**kwargs)
+        return {"response": response}
+
+    # Handle standard model/input flow
+    parameters = request.parameters or {}
     response = client.responses.create(
         model=request.model,
         input=request.input,
-        **request.parameters,
+        **parameters,
     )
 
-    if request.parameters.get("stream", False):
+    if parameters.get("stream", False):
         chunks = []
         for chunk in response:
             chunks.append(chunk)

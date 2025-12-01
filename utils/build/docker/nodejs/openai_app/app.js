@@ -60,6 +60,18 @@ app.post('/embeddings', async (req, res) => {
 });
 
 app.post('/responses/create', async (req, res) => {
+  // Handle prompt-based flow (for reusable prompts)
+  if (req.body.prompt) {
+    const options = { prompt: req.body.prompt };
+    if (req.body.include) {
+      options.include = req.body.include;
+    }
+    const response = await client.responses.create(options);
+    res.json({ response });
+    return;
+  }
+
+  // Handle standard model/input flow
   const { model, input, parameters } = req.body;
   let response = await client.responses.create({
     model,
@@ -67,7 +79,7 @@ app.post('/responses/create', async (req, res) => {
     ...parameters,
   });
 
-  if (parameters.stream) {
+  if (parameters && parameters.stream) {
     const chunks = [];
     for await (const chunk of response) {
       chunks.push(chunk);
