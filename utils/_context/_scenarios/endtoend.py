@@ -222,10 +222,7 @@ class DockerScenario(Scenario):
 
     def close_targets(self):
         for container in reversed(self._required_containers):
-            try:
-                container.remove()
-            except:
-                logger.exception(f"Failed to remove container {container}")
+            container.remove()
 
     def test_schemas(
         self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
