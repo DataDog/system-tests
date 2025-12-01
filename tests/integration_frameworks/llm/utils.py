@@ -203,9 +203,7 @@ def assert_prompt_tracking(
     assert actual_prompt["version"] == prompt_version, (
         f"Expected prompt version '{prompt_version}', got '{actual_prompt['version']}'"
     )
-    assert actual_prompt["variables"] == variables, (
-        f"Expected variables {variables}, got {actual_prompt['variables']}"
-    )
+    assert actual_prompt["variables"] == variables, f"Expected variables {variables}, got {actual_prompt['variables']}"
 
     assert "chat_template" in actual_prompt, "Expected 'chat_template' in prompt metadata"
     assert actual_prompt["chat_template"] == expected_chat_template, (

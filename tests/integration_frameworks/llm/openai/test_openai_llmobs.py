@@ -693,12 +693,8 @@ class TestOpenAiPromptTracking:
             prompt_id="pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
             prompt_version="1",
             variables={"phrase": "cat in the hat", "word": "cat"},
-            expected_chat_template=[
-                {"role": "user", "content": "I saw a {{phrase}} and another {{word}}"}
-            ],
-            expected_messages=[
-                {"role": "user", "content": "I saw a cat in the hat and another cat"}
-            ],
+            expected_chat_template=[{"role": "user", "content": "I saw a {{phrase}} and another {{word}}"}],
+            expected_messages=[{"role": "user", "content": "I saw a cat in the hat and another cat"}],
         )
 
     def test_responses_create_with_prompt_partial_word_match(
@@ -764,12 +760,8 @@ class TestOpenAiPromptTracking:
             prompt_id="pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191",
             prompt_version="2",
             variables={"price": "$99.99", "item": "groceries"},
-            expected_chat_template=[
-                {"role": "user", "content": "The price of {{item}} is {{price}}."}
-            ],
-            expected_messages=[
-                {"role": "user", "content": "The price of groceries is $99.99."}
-            ],
+            expected_chat_template=[{"role": "user", "content": "The price of {{item}} is {{price}}."}],
+            expected_messages=[{"role": "user", "content": "The price of groceries is $99.99."}],
         )
 
     def test_responses_create_with_prompt_empty_values(
@@ -797,12 +789,8 @@ class TestOpenAiPromptTracking:
             prompt_id="pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6",
             prompt_version="1",
             variables={"phrase": "cat in the hat", "word": ""},
-            expected_chat_template=[
-                {"role": "user", "content": "I saw a {{phrase}} and another "}
-            ],
-            expected_messages=[
-                {"role": "user", "content": "I saw a cat in the hat and another "}
-            ],
+            expected_chat_template=[{"role": "user", "content": "I saw a {{phrase}} and another "}],
+            expected_messages=[{"role": "user", "content": "I saw a cat in the hat and another "}],
         )
 
     def test_responses_create_with_prompt_mixed_inputs_url_stripped(
