@@ -40,6 +40,8 @@ ARTIFACT_URL = (
     "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
 )
 
+EOL_COMMENT_INDEX = 2
+
 
 def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> None:
     headers = {
@@ -329,12 +331,25 @@ def update_entry(
             else:
                 return None
 
-            # Remove comments from updated entry
+            # Preserve existing comments
+            existing_comment = None
             if hasattr(ancestor, "ca") and hasattr(ancestor.ca, "items") and root_path[-1] in ancestor.ca.items:
-                del ancestor.ca.items[root_path[-1]]
+                c_tokens = ancestor.ca.items[root_path[-1]]
+                if c_tokens and len(c_tokens) > EOL_COMMENT_INDEX and c_tokens[EOL_COMMENT_INDEX]:
+                    existing_comment = c_tokens[EOL_COMMENT_INDEX].value.strip().lstrip("#").strip()
+
+            new_comment = "auto activation: might not be the earliest working version"
+
+            if existing_comment:
+                if new_comment not in existing_comment:
+                    final_comment = f"{existing_comment}. {new_comment}"
+                else:
+                    final_comment = existing_comment
+            else:
+                final_comment = new_comment
 
             # Add comment for activated entries
-            ancestor.yaml_add_eol_comment("auto activation: might not be the earliest working version", root_path[-1])
+            ancestor.yaml_add_eol_comment(final_comment, root_path[-1])
 
             return ret
 
