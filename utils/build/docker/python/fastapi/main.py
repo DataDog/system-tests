@@ -36,18 +36,32 @@ from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
+
+# Initialize OpenFeature client if FFE is enabled
+openfeature_client = None
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
+
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -1076,7 +1090,7 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     if parsed_url.hostname not in allowed_domains:
         return PlainTextResponse("Forbidden", status_code=403)
     try:
-        requests.get(parsed_url.geturl())
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1303,6 +1317,50 @@ async def external_request(request: Request):
         return {"status": int(e.status), "error": repr(e)}
 
 
+@app.get("/external_request/redirect", response_class=JSONResponse, status_code=200)
+async def external_request(request: Request, totalRedirects: int):
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={totalRedirects}"
+    queries = {k: str(v) for k, v in request.query_params.items()}
+    try:
+        with requests.Session() as s:
+            response = s.request("GET", full_url, headers=queries, timeout=10)
+            payload = response.text
+            return {
+                "status": int(response.status_code),
+                "headers": dict(response.headers),
+                "payload": json.loads(payload),
+            }
+    except Exception as e:
+        return {"status": int(e.status), "error": repr(e)}
+
+
 @app.get("/resource_renaming/{path:path}", response_class=PlainTextResponse)
 def resource_renaming(path: str = ""):
     return "ok"
+
+
+@app.post("/ffe", response_class=JSONResponse)
+async def ffe(request: Request):
+    """OpenFeature evaluation endpoint."""
+    body = await request.json()
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return JSONResponse({"value": value}, status_code=200)

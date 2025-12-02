@@ -1,4 +1,5 @@
 import re
+import pytest
 from utils.dd_constants import Capabilities
 from utils import features
 from utils import interfaces
@@ -7,12 +8,19 @@ from utils import scenarios
 from utils import weblog
 from utils import missing_feature
 from utils import context
+from utils._weblog import HttpResponse
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
 
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
-def get_span_meta(r):
+
+def get_span_meta(r: HttpResponse):
     res = [span.get("meta", {}) for _, _, span in interfaces.library.get_spans(request=r)]
     assert res, f"no spans found in {r}"
     return res

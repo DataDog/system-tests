@@ -1,14 +1,23 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
+import pytest
 
 from utils import (
     interfaces,
     scenarios,
     weblog,
     features,
+    context,
 )
 from utils.dd_constants import Capabilities, SamplingPriority
+
+
+if context.library > "python_lambda@8.117.0":
+    pytestmark = [
+        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
+        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
+    ]
 
 
 @features.appsec_trace_tagging_rules
@@ -23,7 +32,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_no_keep_no_event(self):
         """Test trace-tagging rule with attributes, no keep and no event"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -37,7 +46,7 @@ class Test_TraceTaggingRules:
             return True
 
         assert self.r_tt1.status_code == 200
-        interfaces.library.validate_spans(self.r_tt1, validator=validate)
+        interfaces.library.validate_one_span(self.r_tt1, validator=validate)
 
     def setup_rule_with_attributes_keep_no_event(self):
         self.r_tt2 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v2"})
@@ -45,7 +54,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_keep_no_event(self):
         """Test trace-tagging rule with attributes, sampling priority user_keep and no event"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -59,7 +68,7 @@ class Test_TraceTaggingRules:
             return True
 
         assert self.r_tt2.status_code == 200
-        interfaces.library.validate_spans(self.r_tt2, validator=validate)
+        interfaces.library.validate_one_span(self.r_tt2, validator=validate)
 
     def setup_rule_with_attributes_keep_event(self):
         self.r_tt3 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v3"})
@@ -67,7 +76,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_keep_event(self):
         """Test trace-tagging rule with attributes, sampling priority user_keep and an event"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -82,7 +91,7 @@ class Test_TraceTaggingRules:
 
         assert self.r_tt3.status_code == 200
         interfaces.library.assert_waf_attack(self.r_tt3, rule="ttr-000-003")
-        interfaces.library.validate_spans(self.r_tt3, validator=validate)
+        interfaces.library.validate_one_span(self.r_tt3, validator=validate)
 
     def setup_rule_with_attributes_no_keep_event(self):
         self.r_tt4 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v4"})
@@ -90,7 +99,7 @@ class Test_TraceTaggingRules:
     def test_rule_with_attributes_no_keep_event(self):
         """Test trace-tagging rule with attributes and an event, but no sampling priority change"""
 
-        def validate(span):
+        def validate(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -105,7 +114,7 @@ class Test_TraceTaggingRules:
 
         assert self.r_tt4.status_code == 200
         interfaces.library.assert_waf_attack(self.r_tt4, rule="ttr-000-004")
-        interfaces.library.validate_spans(self.r_tt4, validator=validate)
+        interfaces.library.validate_one_span(self.r_tt4, validator=validate)
 
 
 @scenarios.appsec_api_security_rc

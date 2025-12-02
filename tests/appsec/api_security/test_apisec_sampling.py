@@ -8,13 +8,14 @@ from utils import (
     weblog,
     logger,
 )
+from utils._weblog import HttpResponse
 
 import random
 import string
 import time
 
 
-def get_schema(request, address):
+def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
@@ -35,7 +36,7 @@ class Test_API_Security_Sampling_Rate:
     def setup_sampling_rate(self):
         self.all_requests = [
             weblog.get(
-                f"/tag_value/api_match_AS001/200?{''.join(random.choices(string.ascii_letters, k=16))}={random.randint(1<<31, (1<<32)-1)}"
+                f"/tag_value/api_match_AS001/200?{''.join(random.choices(string.ascii_letters, k=16))}={random.randint(1 << 31, (1 << 32) - 1)}"
             )
             for _ in range(self.N**2)
         ]

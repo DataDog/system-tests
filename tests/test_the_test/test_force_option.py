@@ -1,13 +1,16 @@
 import pytest
 
 from utils import bug, irrelevant, scenarios, features
+from utils._context._scenarios import Scenario
 
 from .utils import run_system_tests
 
 FILENAME = "tests/test_the_test/test_force_option.py"
 
 
-def execute_process(scenario=scenarios.mock_the_test, forced_test=None, env: dict[str, str] | None = None):
+def execute_process(
+    scenario: Scenario = scenarios.mock_the_test, forced_test: str | None = None, env: dict[str, str] | None = None
+):
     return run_system_tests(scenario=scenario.name, test_path=FILENAME, forced_test=forced_test, env=env)
 
 

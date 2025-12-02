@@ -36,14 +36,14 @@ class Test_Profile:
 
     def test_library(self):
         """All profiling libraries payload have start and end fields"""
-        interfaces.library.validate_profiling(self._validate_data)
+        interfaces.library.validate_all(self._validate_data, path_filters="/profiling/v1/input")
 
     def setup_agent(self):
         self._common_setup()
 
     def test_agent(self):
         """All profiling agent payload have recording-start and recording-end fields"""
-        interfaces.agent.validate_profiling(self._validate_data)
+        interfaces.agent.validate_all(self._validate_data, path_filters="/api/v2/profile")
 
     def setup_process_tags(self):
         self._common_setup()
@@ -62,7 +62,7 @@ class Test_Profile:
                     validate_process_tags(content["content"]["process_tags"])
 
     @staticmethod
-    def _validate_data(data) -> bool:
+    def _validate_data(data: dict) -> None:
         content = data["request"]["content"]
 
         for part in content:
@@ -75,6 +75,6 @@ class Test_Profile:
                 assert re.fullmatch(TIMESTAMP_PATTERN, part_content["start"])
                 assert re.fullmatch(TIMESTAMP_PATTERN, part_content["end"])
 
-                return True
+                return
 
         raise ValueError("No profiling event requests")

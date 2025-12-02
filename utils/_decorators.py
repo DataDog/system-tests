@@ -54,6 +54,21 @@ class CustomSpec(semver.NpmSpec):
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
+def parse_skip_declaration(skip_declaration: str) -> tuple[_TestDeclaration, str | None]:
+    """Parse a skip declaration
+    returns the corresponding TestDeclaration, and if it exists, de declaration details
+    """
+
+    if not skip_declaration.startswith(SKIP_DECLARATIONS):
+        raise ValueError(f"The declaration must be a skip declaration: {skip_declaration}")
+
+    match = re.match(r"^(\w+)( \((.*)\))?$", skip_declaration)
+    assert match is not None
+    declaration, _, declaration_details = match.groups()
+
+    return _TestDeclaration(declaration), declaration_details
+
+
 def _is_jira_ticket(declaration_details: str | None):
     return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details)
 
@@ -67,14 +82,14 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {declaration_details}", 1)
 
 
-def _add_pytest_marker(
-    item: type[Any] | FunctionType | MethodType,
+def add_pytest_marker(
+    item: pytest.Module | FunctionType | MethodType,
     declaration: _TestDeclaration,
     declaration_details: str | None,
     *,
     force_skip: bool = False,
 ):
-    if not inspect.isfunction(item) and not inspect.isclass(item):
+    if not inspect.isfunction(item) and not inspect.isclass(item) and not isinstance(item, pytest.Module):
         raise ValueError(f"Unexpected skipped object: {item}")
 
     if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
@@ -87,16 +102,21 @@ def _add_pytest_marker(
 
     reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
-    if not hasattr(item, "pytestmark"):
-        item.pytestmark = []  # type: ignore[attr-defined]
+    if isinstance(item, pytest.Module):
+        add_marker = item.add_marker
+    else:
+        if not hasattr(item, "pytestmark"):
+            item.pytestmark = []  # type: ignore[attr-defined, union-attr]
 
-    item.pytestmark.append(marker(reason=reason))  # type: ignore[union-attr]
-    item.pytestmark.append(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))  # type: ignore[union-attr]
+        add_marker = item.pytestmark.append  # type: ignore[union-attr]
+
+    add_marker(marker(reason=reason))
+    add_marker(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))
 
     return item
 
 
-def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):
+def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):  # noqa: FBT001
     if condition is False:
         return False
 
@@ -131,12 +151,12 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
 
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
+    *,
     declaration: _TestDeclaration,
     condition: bool | None,
     library: str | None,
     weblog_variant: str | None,
     declaration_details: str | None,
-    *,
     force_skip: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -147,13 +167,13 @@ def _decorator(
     if not expected_to_fail:
         return function_or_class
 
-    return _add_pytest_marker(
+    return add_pytest_marker(
         function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
     )
 
 
 def missing_feature(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -173,7 +193,7 @@ def missing_feature(
 
 
 def incomplete_test_app(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -190,7 +210,7 @@ def incomplete_test_app(
 
 
 def irrelevant(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -207,7 +227,7 @@ def irrelevant(
 
 
 def bug(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     *,
@@ -228,7 +248,7 @@ def bug(
     )
 
 
-def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):
+def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):  # noqa: FBT001
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     return partial(
         _decorator,
@@ -284,10 +304,7 @@ def released(
                 return None, None
 
             if full_declaration.startswith(SKIP_DECLARATIONS):
-                match = re.match(r"^(\w+)( \((.*)\))?$", full_declaration)
-                assert match is not None
-                declaration, _, declaration_details = match.groups()
-                return _TestDeclaration(declaration), declaration_details
+                return parse_skip_declaration(full_declaration)
 
             # declaration must be now a version number
             if full_declaration.startswith("v"):
@@ -323,7 +340,7 @@ def released(
 
         for declaration, declaration_details in skip_reasons:
             if declaration is not None:
-                return _add_pytest_marker(test_class, _TestDeclaration(declaration), declaration_details)
+                return add_pytest_marker(test_class, _TestDeclaration(declaration), declaration_details)
 
         return test_class
 

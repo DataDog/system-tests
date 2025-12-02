@@ -45,9 +45,9 @@ EXTENDED_DATA_COLLECTION_RULE = (
 )
 
 
-def assert_body_property(body, prop, expected_value) -> None:
+def assert_body_property(body: dict, prop: str, expected_value: str) -> None:
     if context.library.name == "java":
-        assert body.get(prop)[0] == expected_value
+        assert body.get(prop)[0] == expected_value  # type: ignore[index]
     else:
         assert body.get(prop) == expected_value
 

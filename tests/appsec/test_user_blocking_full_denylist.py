@@ -15,12 +15,12 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         self.r_nonblock = weblog.get("/users", params={"user": self.NOT_BLOCKED_USER})
 
     def test_nonblocking_test(self):
-        def validate_nonblock_user(span):
+        def validate_nonblock_user(span: dict):
             assert span["meta"]["usr.id"] == self.NOT_BLOCKED_USER
             return True
 
         assert self.r_nonblock.status_code == 200
-        interfaces.library.validate_spans(self.r_nonblock, validator=validate_nonblock_user)
+        interfaces.library.validate_one_span(self.r_nonblock, validator=validate_nonblock_user)
         interfaces.library.assert_no_appsec_event(self.r_nonblock)
 
     def setup_blocking_test(self):

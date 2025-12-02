@@ -5,15 +5,19 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Any
+from typing import Union
 import logging
 import os
 import enum
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import JSONResponse
 import opentelemetry.trace
 from pydantic import BaseModel
 from urllib.parse import urlparse
 
 import opentelemetry
+from openfeature.evaluation_context import EvaluationContext
 from opentelemetry.metrics import CallbackOptions
 from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
@@ -34,13 +38,17 @@ from opentelemetry.baggage import get_baggage
 
 import ddtrace
 from ddtrace import config
-from ddtrace.settings.profiling import config as profiling_config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
+
+try:
+    from ddtrace.internal.settings.profiling import config as profiling_config
+except ImportError:
+    from ddtrace.settings.profiling import config as profiling_config
 
 try:
     from ddtrace.trace import Span
@@ -54,6 +62,18 @@ except ImportError:
 from opentelemetry._logs import get_logger_provider
 
 log = logging.getLogger(__name__)
+
+# OpenFeature client initialization
+openfeature_client = None
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+    except ImportError:
+        pass
 
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
@@ -90,6 +110,7 @@ try:
 
     def dogstatsd_url():
         return agent_config.dogstatsd_url
+
 except ImportError:
     # TODO: Remove this block once we stop running parametric tests for ddtrace<3.3.0
     def trace_agent_url():
@@ -293,7 +314,7 @@ def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBag
 class SpanSetMetricArgs(BaseModel):
     span_id: int
     key: str
-    value: float
+    value: Union[int, float]
 
 
 class SpanSetMetricReturn(BaseModel):
@@ -320,10 +341,10 @@ def trace_span_inject_headers(args: SpanInjectArgs) -> SpanInjectReturn:
     span = spans[args.span_id]
     headers = {}
     # span was added as a kwarg for inject in ddtrace 2.8
-    if get_ddtrace_version() >= (2, 8, 0):
+    if (4, 0, 0) > get_ddtrace_version() >= (2, 8, 0):
         HTTPPropagator.inject(span.context, headers, span)
     else:
-        HTTPPropagator.inject(span.context, headers)
+        HTTPPropagator.inject(span, headers)
     return SpanInjectReturn(http_headers=[(k, v) for k, v in headers.items()])
 
 
@@ -790,7 +811,7 @@ class OtelCounterAddArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]  # int MUST come first to preserve integer types
     attributes: dict
 
 
@@ -844,7 +865,7 @@ class OtelUpDownCounterAddArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -898,7 +919,7 @@ class OtelGaugeRecordArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -952,7 +973,7 @@ class OtelHistogramRecordArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -982,7 +1003,7 @@ class OtelCreateAsynchronousCounterArgs(BaseModel):
     name: str
     description: str
     unit: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -990,7 +1011,7 @@ class OtelCreateAsynchronousCounterReturn(BaseModel):
     pass
 
 
-def create_constant_observable_counter_func(value: float, attributes: dict):
+def create_constant_observable_counter_func(value: Union[int, float], attributes: dict):
     def observable_counter_func(options: CallbackOptions):
         yield Observation(value, attributes)
 
@@ -1019,7 +1040,7 @@ class OtelCreateAsynchronousUpDownCounterArgs(BaseModel):
     name: str
     description: str
     unit: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -1027,7 +1048,7 @@ class OtelCreateAsynchronousUpDownCounterReturn(BaseModel):
     pass
 
 
-def create_constant_observable_updowncounter_func(value: float, attributes: dict):
+def create_constant_observable_updowncounter_func(value: Union[int, float], attributes: dict):
     def observable_updowncounter_func(options: CallbackOptions):
         yield Observation(value, attributes)
 
@@ -1059,7 +1080,7 @@ class OtelCreateAsynchronousGaugeArgs(BaseModel):
     name: str
     description: str
     unit: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -1067,7 +1088,7 @@ class OtelCreateAsynchronousGaugeReturn(BaseModel):
     pass
 
 
-def create_constant_observable_gauge_func(value: float, attributes: dict):
+def create_constant_observable_gauge_func(value: Union[int, float], attributes: dict):
     def observable_gauge_func(options: CallbackOptions):
         yield Observation(value, attributes)
 
@@ -1174,6 +1195,122 @@ def _global_sampling_rate():
         ):
             return rule.sample_rate
     return 1.0
+
+
+# OpenFeature endpoints
+@app.post("/ffe", response_class=JSONResponse)
+async def ffe(request: Request) -> JSONResponse:
+    """OpenFeature evaluation endpoint."""
+    if not openfeature_client:
+        return JSONResponse({"error": "FFE provider not initialized"}, status_code=500)
+
+    try:
+        body = await request.json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+
+        # Build context
+        context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+        # Evaluate based on variation type
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+        return JSONResponse({"value": value}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/ffe/start", response_class=JSONResponse)
+async def ffe_start() -> JSONResponse:
+    """Initialize OpenFeature provider."""
+    global openfeature_client
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error starting provider: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/ffe/evaluate", response_class=JSONResponse)
+async def ffe_evaluate(request: Request) -> JSONResponse:
+    """Evaluate feature flag."""
+    if not openfeature_client:
+        return JSONResponse({"error": "FFE provider not initialized"}, status_code=500)
+
+    try:
+        body = await request.json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+        # Build context
+        context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+
+        # Evaluate based on variation type
+        value = default_value
+        reason = "DEFAULT"
+
+        try:
+            if variation_type == "BOOLEAN":
+                value = openfeature_client.get_boolean_value(flag, default_value, context)
+            elif variation_type == "STRING":
+                value = openfeature_client.get_string_value(flag, default_value, context)
+            elif variation_type == "INTEGER":
+                value = openfeature_client.get_integer_value(flag, default_value, context)
+            elif variation_type == "NUMERIC":
+                value = openfeature_client.get_float_value(flag, default_value, context)
+            elif variation_type == "JSON":
+                value = openfeature_client.get_object_value(flag, default_value, context)
+            else:
+                value = default_value
+        except Exception:
+            value = default_value
+            reason = "ERROR"
+
+        return JSONResponse({"value": value, "reason": reason}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error evaluating flag: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/rc/stop", response_class=JSONResponse)
+async def rc_stop() -> JSONResponse:
+    try:
+        from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+        remoteconfig_poller.stop()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/rc/start", response_class=JSONResponse)
+async def rc_start() -> JSONResponse:
+    try:
+        from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+        remoteconfig_poller.enable()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

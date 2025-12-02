@@ -43,7 +43,7 @@ _CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str) -> list:
-    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+    with open(os.path.join(_CUR_DIR, "utils", "probes", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -67,14 +67,14 @@ def extract_probe_ids(probes: dict | list) -> list:
 
 
 def _get_path(test_name: str, suffix: str, version: str) -> str:
-    # system-tests/tests/debugger/approvals/{language}/{version}/{test_name}_{suffix}.json
+    # system-tests/tests/debugger/utils/approvals/{language}/{version}/{test_name}_{suffix}.json
 
     language = BaseDebuggerTest.tracer["language"]
     filename = test_name + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", language, version, filename)
+    return os.path.join(_CUR_DIR, "utils", "approvals", language, version, filename)
 
 
-def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
+def write_approval(data: list | dict, test_name: str, suffix: str, version: str) -> None:
     path = _get_path(test_name, suffix, version)
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
@@ -132,13 +132,14 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "nodejs": [82]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "nodejs": [90]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "nodejs": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "nodejs": [120]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "nodejs": [126]},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [122], "nodejs": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
+            "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -241,6 +242,7 @@ class BaseDebuggerTest:
 
     def send_rc_apm_tracing(
         self,
+        *,
         dynamic_instrumentation_enabled: bool | None = None,
         exception_replay_enabled: bool | None = None,
         live_debugging_enabled: bool | None = None,
@@ -248,7 +250,6 @@ class BaseDebuggerTest:
         dynamic_sampling_enabled: bool | None = None,
         service_name: str | None = "weblog",
         env: str | None = "system-tests",
-        *,
         reset: bool = True,
     ) -> None:
         BaseDebuggerTest._rc_version += 1
@@ -288,6 +289,7 @@ class BaseDebuggerTest:
     _last_read = 0
 
     def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
+        logger.debug("Wating for all probes")
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
@@ -343,6 +345,7 @@ class BaseDebuggerTest:
     _snapshot_found = False
 
     def wait_for_snapshot_received(self, exception_message: str = "", timeout: int = 30) -> bool:
+        logger.debug("Waiting for snapshots to be received")
         exception_snapshot = False
         if exception_message:
             self._exception_message = exception_message
@@ -756,9 +759,9 @@ class BaseDebuggerTest:
         expected = self.probe_ids
         received = extract_probe_ids(self.probe_diagnostics)
 
-        assert set(expected) <= set(
-            received
-        ), f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+        assert set(expected) <= set(received), (
+            f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+        )
 
         errors = {}
         for probe_id in self.probe_ids:
@@ -787,7 +790,7 @@ class BaseDebuggerTest:
 
     def _get_path(self, test_name: str, suffix: str) -> str:
         filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
-        return os.path.join(_CUR_DIR, "approvals", filename)
+        return os.path.join(_CUR_DIR, "utils", "approvals", filename)
 
     def write_approval(self, data: list, test_name: str, suffix: str) -> None:
         with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:

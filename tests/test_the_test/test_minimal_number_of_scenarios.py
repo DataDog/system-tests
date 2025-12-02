@@ -22,6 +22,10 @@ FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attack
     ("APPSEC_AUTO_EVENTS_RC", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     ("APPSEC_BLOCKING", "GRAPHQL_APPSEC"): "TODO",
     ("APPSEC_BLOCKING_FULL_DENYLIST", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
+    (
+        "APPSEC_RUNTIME_ACTIVATION",
+        "FEATURE_FLAG_EXPOSURE",
+    ): "Scenarios test different features with different RC configurations",
     # If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
     # test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail
     ("APPSEC_BLOCKING_FULL_DENYLIST", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "Incompatible test sequence",

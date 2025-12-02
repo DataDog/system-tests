@@ -79,7 +79,7 @@ class SystemTestController < ApplicationController
 
     result = {
       "url": url,
-      "status_code": response.code,
+      "status_code": response.code.to_i,
       "request_headers": request.each_header.to_h,
       "response_headers": response.each_header.to_h,
     }

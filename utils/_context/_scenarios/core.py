@@ -2,6 +2,10 @@ from logging import FileHandler
 import os
 from pathlib import Path
 import shutil
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import pytest
 from utils._logger import logger, get_log_formatter
@@ -30,6 +34,7 @@ class _ScenarioGroups:
     appsec_rasp_scenario = ScenarioGroup()
     appsec_lambda = ScenarioGroup()
     debugger = ScenarioGroup()
+    docker_fixtures = ScenarioGroup()
     end_to_end = ScenarioGroup()
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
@@ -54,9 +59,9 @@ class _ScenarioGroups:
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
-    parametric = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     default = ScenarioGroup()
+    feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -110,13 +115,15 @@ class Scenario:
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
 
-        assert (
-            self.github_workflow in VALID_CI_WORKFLOWS
-        ), f"Invalid github_workflow {self.github_workflow} for {self.name}"
+        assert self.github_workflow in VALID_CI_WORKFLOWS, (
+            f"Invalid github_workflow {self.github_workflow} for {self.name}"
+        )
 
         for group in self.scenario_groups:
             assert isinstance(group, ScenarioGroup), f"Invalid scenario group {group} for {self.name}"
             group.scenarios.append(self)
+
+        self.warmups: list[Callable] = []
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:
@@ -127,7 +134,7 @@ class Scenario:
         if remove_if_exists:
             shutil.rmtree(path, ignore_errors=True)
 
-        Path(path).mkdir(parents=True, exist_ok=True)
+        Path(path).mkdir(mode=0o777, parents=True, exist_ok=True)
 
     def __call__(self, test_object):  # noqa: ANN001 (tes_object can be a class or a class method)
         """Handles @scenarios.scenario_name"""
@@ -158,6 +165,9 @@ class Scenario:
 
             self._create_log_subfolder("", remove_if_exists=True)
 
+            self.warmups.append(lambda: logger.stdout(f"Scenario: {self.name}"))
+            self.warmups.append(lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"))
+
         handler = FileHandler(f"{self.host_log_folder}/tests.log", encoding="utf-8")
         handler.setFormatter(get_log_formatter())
 
@@ -173,18 +183,12 @@ class Scenario:
         logger.terminal.write_sep("=", "test context", bold=True)
 
         try:
-            for warmup in self.get_warmups():
+            for warmup in self.warmups:
                 logger.info(f"Executing warmup {warmup}")
                 warmup()
         except:
             self.close_targets()
             raise
-
-    def get_warmups(self):
-        return [
-            lambda: logger.stdout(f"Scenario: {self.name}"),
-            lambda: logger.stdout(f"Logs folder: ./{self.host_log_folder}"),
-        ]
 
     def post_setup(self, session: pytest.Session):
         """Called after test setup"""

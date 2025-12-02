@@ -8,6 +8,7 @@
         "_dd_native_logging_file_size_bytes": "native_logging_file_size_bytes",
         "_dd_native_logging_file_path": "native_logging_file_path",
         "_dd_native_logging_file_rotation_len": "native_logging_file_rotation_len",
+        "DD_PROFILING_API_TIMEOUT_MS": "profiling_api_timeout_ms",
         "DD_PROFILING_PYTORCH_ENABLED": "profiling_pytorch_enabled",
         "DD_PROFILING_PYTORCH_EVENTS_LIMIT": "profiling_pytorch_events_limit",
         "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level",

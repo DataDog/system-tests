@@ -24,7 +24,7 @@ from utils import context
 from utils.properties_serialization import SetupProperties
 from utils._context._scenarios import scenarios, Scenario
 from utils._context.component_version import ComponentVersion
-from utils._decorators import released, configure as configure_decorators
+from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 
@@ -127,12 +127,28 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="An file containing a valid Github token to perform API calls",
     )
 
+    # Integration frameworks scenario options
+    parser.addoption(
+        "--weblog",
+        type=str,
+        action="store",
+        default=None,
+        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
+    )
+
     # report data to feature parity dashboard
     parser.addoption(
         "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report"
     )
     parser.addoption(
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
+    )
+
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
     )
 
 
@@ -158,6 +174,9 @@ def pytest_configure(config: pytest.Config) -> None:
 
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    if not config.option.library and "TEST_LIBRARY" in os.environ:
+        config.option.library = os.environ["TEST_LIBRARY"].strip()
 
     # clean input
     config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]
@@ -256,7 +275,7 @@ def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> No
 
     path = module_path.relative_to(module_path.cwd())
 
-    declaration: str | None = None
+    full_declaration: str | None = None
     nodeid: str
 
     # look in manifests for any declaration of this file, or on one of its parents
@@ -264,24 +283,21 @@ def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> No
         nodeid = f"{path!s}/" if path.is_dir() else str(path)
 
         if nodeid in manifests and library in manifests[nodeid]:
-            declaration = manifests[nodeid][library]
+            full_declaration = manifests[nodeid][library]
             break
 
         path = path.parent
 
-    if declaration is None:
+    if full_declaration is None:
         return None
 
-    logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
+
+    declaration, details = parse_skip_declaration(full_declaration)
 
     mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-    if declaration.startswith(("irrelevant", "flaky")):
-        mod.add_marker(pytest.mark.skip(reason=declaration))
-        logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-    else:
-        mod.add_marker(pytest.mark.xfail(reason=declaration))
-        logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+    add_pytest_marker(mod, declaration, details)
 
     return mod
 
@@ -508,14 +524,10 @@ def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> No
 
 
 def pytest_json_modifyreport(json_report: dict) -> None:
-    try:
-        # add usefull data for reporting
-        json_report["context"] = context.serialize()
+    # add usefull data for reporting
+    json_report["context"] = context.serialize()
 
-        logger.debug("Modifying JSON report finished")
-
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

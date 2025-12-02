@@ -139,4 +139,17 @@ public class DebuggerController {
         }
         return "Budgets";
     }
+
+    @GetMapping("/snapshot/limits")
+    public String snapshotLimits(
+            @RequestParam(required = false, defaultValue = "0") int depth,
+            @RequestParam(required = false, defaultValue = "0") int collectionSize,
+            @RequestParam(required = false, defaultValue = "0") int stringLength) {
+        Map<String, Object> data = DataGenerator.generateTestData(depth, collectionSize, stringLength);
+        Object deepObject = data.get("deepObject");
+        Object manyFields = data.get("manyFields");
+        List<Integer> largeCollection = (List<Integer>) data.get("largeCollection");
+        String longString = (String) data.get("longString");
+        return "Capture limits probe"; // Line probe is instrumented here.
+    }
 }
