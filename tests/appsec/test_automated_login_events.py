@@ -1510,7 +1510,7 @@ class Test_V3_Login_Events:
         reason="No signup in framework",
     )
     @missing_feature(
-        context.library < "python@3.2.0.dev"
+        context.library < "python@3.2.0-dev"
         and context.weblog_variant in ["django-poc", "python3.12", "django-py3.13"],
         reason="Signup events not implemented yet",
     )
@@ -1831,7 +1831,7 @@ class Test_V3_Login_Events_Anon:
         reason="No signup in framework",
     )
     @missing_feature(
-        context.library < "python@3.2.0.dev"
+        context.library < "python@3.2.0-dev"
         and context.weblog_variant in ["django-poc", "python3.12", "django-py3.13"],
         reason="Signup events not implemented yet",
     )

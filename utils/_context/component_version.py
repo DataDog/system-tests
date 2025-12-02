@@ -14,14 +14,23 @@ class Version(version_module.Version):
         version: str | None = None,
         major: str | int | None = None,
         minor: str | int | None = None,
-        patch: str | None = None,
+        patch: str | int | None = None,
         prerelease: str | tuple[str, ...] | None = None,
         build: str | None = None,
+        *,
+        coerce: bool = False,
     ):
         if version is not None:
             # remove any leading "v"
             version = version.removeprefix("v")
+            # removes everything after the space to allow for v1.2.3 (reason)
+            version = version[: version.find(" ") % (len(version) + 1)]
+            for _ in range(2):
+                if re.fullmatch(r"\d+\.\d+\.\d+.*", version):
+                    break
+                version += ".0"
 
+        if version is not None and coerce:
             # and use coerce to allow the wide variaty of version strings
             x = version_module.Version.coerce(version)
             major = x.major
@@ -29,8 +38,16 @@ class Version(version_module.Version):
             patch = x.patch
             prerelease = x.prerelease
             build = x.build
+            version = None
 
-        super().__init__(major=major, minor=minor, patch=patch, prerelease=prerelease, build=build)
+        super().__init__(
+            version_string=version,
+            major=major,
+            minor=minor,
+            patch=patch,
+            prerelease=prerelease,
+            build=build,
+        )
 
     def __eq__(self, other: object) -> bool:
         return super().__eq__(_build(other))
@@ -104,7 +121,7 @@ class ComponentVersion:
                 # the we can hack to move it to the built part:
                 version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
-            self.version = Version(version)
+            self.version = Version(version, coerce=True)
 
             if name == "ruby":
                 if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
@@ -121,6 +138,7 @@ class ComponentVersion:
                         patch=self.version.patch + 1,
                         prerelease=self.version.prerelease,
                         build=self.version.build,
+                        coerce=True,
                     )
 
                     if not self.version.prerelease:
@@ -130,6 +148,7 @@ class ComponentVersion:
                             patch=self.version.patch,
                             prerelease=("z",),
                             build=self.version.build,
+                            coerce=True,
                         )
 
             self.add_known_version(self.version)
