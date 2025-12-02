@@ -1160,6 +1160,9 @@ tests/:
         nextjs: irrelevant
   integration_frameworks/:
     llm/:
+      anthropic/:
+        test_anthropic_apm.py:
+          TestAnthropicApmCreate: *ref_5_71_0
       openai/:
         test_openai_apm.py:
           TestOpenAiApmChatCompletions: *ref_5_76_0
