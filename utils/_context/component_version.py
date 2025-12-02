@@ -84,7 +84,7 @@ class ComponentVersion:
                 build = r"[a-f0-9]+"
                 if re.match(rf"{base}[\. ]{prerelease}[\. ]{build}", version):
                     version = re.sub(rf"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
-                elif re.match(rf"{base}[\. ]{build}", version):
+                elif re.match(rf"{base} {build}", version):
                     version = re.sub(rf"({base})[\. ]({build})", r"\1+\2", version)
                 elif re.match(rf"{base}[\. ]{prerelease}", version):
                     version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)

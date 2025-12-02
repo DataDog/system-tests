@@ -46,7 +46,7 @@ def test_ruby_version():
     v = ComponentVersion("ruby", "2.3.0 7dbcc40")
     assert str(v.version) == "2.3.0+7dbcc40"
 
-    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.0+beta1"
+    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.0-beta1"
     assert ComponentVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.0-beta1+de82857"
 
     # very particular use case, because we hack the path for dev versions
