@@ -53,7 +53,8 @@ def test_ruby_version():
     assert ComponentVersion("ruby", "1.0.0.beta1 de82857") < "ruby@1.0.1"
     assert ComponentVersion("ruby", "1.0.0.rc1") < "ruby@1.0.1"
 
-    assert ComponentVersion("ruby", "2.3.0 7dbcc40") >= "ruby@2.3.0-dev"
+    assert ComponentVersion("ruby", "2.3.0 7dbcc40") > "ruby@2.3.0-dev"
+    assert ComponentVersion("ruby", "2.3.0") > "ruby@2.3.0-dev"
 
 
 def test_library_version_comparizon():
