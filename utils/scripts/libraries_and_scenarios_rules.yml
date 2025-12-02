@@ -50,6 +50,9 @@ patterns:
     "*.md":
         scenario_groups: null
         libraries: null
+    "*.mdc":
+        scenario_groups: null
+        libraries: null
     "*.rdoc":
         scenario_groups: null
         libraries: null
