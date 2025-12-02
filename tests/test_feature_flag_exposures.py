@@ -479,7 +479,7 @@ class Test_FFE_RC_Unavailable:
         ).send()
 
         # Wait for tracer to receive 503 from RC before evaluating flag
-        interfaces.agent.wait_for(wait_for_config_503, timeout=60)
+        interfaces.library.wait_for(wait_for_config_503, timeout=60)
 
         # Evaluate cached flag while RC is unavailable
         self.cached_eval = weblog.post(
@@ -558,7 +558,7 @@ class Test_FFE_RC_Down_From_Start:
         ).send()
 
         # Wait for tracer to receive 503 from RC before evaluating flag
-        interfaces.agent.wait_for(wait_for_config_503, timeout=60)
+        interfaces.library.wait_for(wait_for_config_503, timeout=60)
 
         self.flag_key = "test-flag-never-delivered"
         self.default_value = "my-default-value"
