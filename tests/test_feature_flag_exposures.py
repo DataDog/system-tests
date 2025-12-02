@@ -548,7 +548,7 @@ class Test_FFE_RC_Down_From_Start:
         self.config_request_data = None
 
         def wait_for_config_503(data: dict) -> bool:
-            if data["path"] == "/v0.7/config":
+            if data["path"] == "/v0.7/config" and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
                 self.config_request_data = data
                 return True
             return False
