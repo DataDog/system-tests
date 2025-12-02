@@ -711,6 +711,44 @@ app.all('/external_request', (req, res) => {
   request.end()
 })
 
+app.get('/external_request/redirect', (req, res) => {
+  const headers = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = req.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path) => {
+    const options = {
+      hostname: 'internal_server',
+      port: 8089,
+      path,
+      method: 'GET',
+      headers
+    }
+
+    const request = http.request(options, (response) => {
+      if (response.statusCode === 302 && response.headers.location) {
+        // Follow the redirect
+        followRedirect(response.headers.location)
+      } else {
+        // Final response
+        response.on('end', () => {
+          res.status(200).send('OK')
+        })
+        response.resume()
+      }
+    })
+
+    request.end()
+  }
+
+  // Start the redirect chain
+  followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
+})
+
 require('./rasp')(app)
 
 const startServer = () => {

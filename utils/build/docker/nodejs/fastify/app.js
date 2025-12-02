@@ -746,6 +746,48 @@ fastify.all('/external_request', async (request, reply) => {
   })
 })
 
+fastify.get('/external_request/redirect', async (request, reply) => {
+  const headers = {}
+  for (const [key, value] of Object.entries(request.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = request.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path) => {
+    return new Promise((resolve) => {
+      const options = {
+        hostname: 'internal_server',
+        port: 8089,
+        path,
+        method: 'GET',
+        headers
+      }
+
+      const httpRequest = http.request(options, (response) => {
+        if (response.statusCode === 302 && response.headers.location) {
+          // Follow the redirect
+          resolve(followRedirect(response.headers.location))
+        } else {
+          // Final response
+          response.on('end', () => {
+            resolve('OK')
+          })
+          response.resume()
+        }
+      })
+
+      httpRequest.end()
+    })
+  }
+
+  // Start the redirect chain
+  await followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
+  reply.status(200)
+  return 'OK'
+})
+
 require('./rasp')(fastify)
 
 const startServer = async () => {
