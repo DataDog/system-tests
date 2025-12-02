@@ -199,7 +199,7 @@ patterns:
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/integration_frameworks.py:
-        scenario: INTEGRATION_FRAMEWORKS
+        scenario_groups: integration_frameworks
     utils/_context/_scenarios/integrations.py:
         scenario_groups: integrations
     utils/_context/_scenarios/ipv6.py:

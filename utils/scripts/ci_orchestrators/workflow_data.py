@@ -565,8 +565,8 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     if weblog == "otel_collector" or scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):
         return weblog == "otel_collector" and scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E")
 
-    if "@" in weblog or scenario == "INTEGRATION_FRAMEWORKS":
-        return "@" in weblog and scenario == "INTEGRATION_FRAMEWORKS"
+    if "@" in weblog or "INTEGRATION_FRAMEWORKS" in scenario:
+        return "@" in weblog and "INTEGRATION_FRAMEWORKS" in scenario
 
     return True
 

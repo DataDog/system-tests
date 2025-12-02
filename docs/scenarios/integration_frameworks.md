@@ -6,7 +6,7 @@ Integration frameworks testing is a mix of parametric library testing with weblo
 
 ```bash
 ./build.sh python
-./run.sh INTEGRATION_FRAMEWORKS -L python --weblog openai-py@2.0.0 tests/integration_frameworks/llm/openai/test_openai_apm.py -vv
+./run.sh INTEGRATION_FRAMEWORKS_OPENAI -L python --weblog openai-py@2.0.0 tests/integration_frameworks/llm/openai/test_openai_apm.py -vv
 ```
 
 which will run the tests for all frameworks.
