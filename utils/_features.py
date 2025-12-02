@@ -2671,5 +2671,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=520, owner=_Owner.ml_observability)
 
+    @staticmethod
+    def apm_anthropic_messages_create(test_object):
+        """APM supports Anthropic create interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=523
+        """
+        return _mark_test_object(test_object, feature_id=523, owner=_Owner.ml_observability)
+
 
 features = _Features()
