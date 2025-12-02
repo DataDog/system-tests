@@ -151,7 +151,8 @@ public class App {
         // if a java engineer knows how to remove this?
         // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
-        return "Hello World!";
+        response.setHeader("Content-Type", "text/html");
+        return "<html><body><h1>Hello World!</h1></body></html>";
     }
 
     @RequestMapping("/healthcheck")

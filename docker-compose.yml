@@ -1,0 +1,62 @@
+services:
+  datadog-agent:
+    image: datadog/agent:latest
+    ports:
+      - "8126:8126"
+      - "8125:8125/udp"
+    environment:
+      - DD_API_KEY
+      - DD_SITE
+      - DD_APM_ENABLED=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8126/info"]
+        interval: 5s
+        timeout: 2s
+        retries: 5
+
+  weblog:
+    container_name: spring-boot-jetty
+    ports:
+      - "7777:7777"
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM maven:3.9-eclipse-temurin-11 AS build
+
+        ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
+
+        COPY ./utils/build/docker/java/iast-common/src /iast-common/src
+        WORKDIR /app
+
+        COPY ./utils/build/docker/java/spring-boot/pom.xml .
+        RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pjetty -B dependency:go-offline
+
+        COPY ./utils/build/docker/java/spring-boot/src ./src
+        RUN mvn -Dmaven.repo.local=/maven -Pjetty package -DskipTests
+
+        RUN wget -O /dd-java-agent.jar 'https://dtdg.co/latest-java-tracer'
+
+        FROM eclipse-temurin:11-jre
+
+        WORKDIR /app
+        COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
+        COPY --from=build /dd-java-agent.jar /app/dd-java-agent.jar
+
+        ENV DD_RUM_ENABLED=true
+        ENV DD_RUM_APPLICATION_ID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+        ENV DD_RUM_CLIENT_TOKEN=pubaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        ENV DD_RUM_REMOTE_CONFIGURATION_ID=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+        ENV DD_AGENT_HOST=datadog-agent
+        ENV DD_TRACE_AGENT_PORT=8126
+        ENV DD_TRACE_DEBUG=true
+        ENV DD_SERVICE=spring-boot-jetty
+
+        EXPOSE 7777
+        CMD ["java", "-javaagent:/app/dd-java-agent.jar", "-jar", "/app/app.jar", "--server.port=7777"]
+    depends_on:
+      datadog-agent:
+        condition: service_healthy
