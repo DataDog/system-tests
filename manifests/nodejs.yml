@@ -1169,6 +1169,7 @@ tests/:
         test_openai_llmobs.py:
           TestOpenAiEmbeddingInteractions: *ref_5_80_0
           TestOpenAiLlmInteractions: *ref_5_80_0
+          TestOpenAiPromptTracking: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
