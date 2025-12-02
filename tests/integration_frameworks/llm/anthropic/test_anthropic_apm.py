@@ -1,11 +1,11 @@
-from utils import features, scenarios
+from utils import scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 import pytest
 
 
 # @features.apm_openai_completions
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_anthropic
 class TestAnthropicApmCreate:
     @pytest.mark.parametrize("stream", [True, False])
     def test_create(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):

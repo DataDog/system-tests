@@ -1151,8 +1151,18 @@ class _Scenarios:
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 
-    integration_frameworks = IntegrationFrameworksScenario(
-        "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    integration_frameworks_openai = IntegrationFrameworksScenario(
+        "INTEGRATION_FRAMEWORKS_OPENAI",
+        doc="Tests for third-party integration frameworks",
+        required_cassette_generation_api_keys=["OPENAI_API_KEY"],
+        scenario_groups=(scenario_groups.integration_frameworks,),
+    )
+
+    integration_frameworks_anthropic = IntegrationFrameworksScenario(
+        "INTEGRATION_FRAMEWORKS_ANTHROPIC",
+        doc="Tests for third-party integration frameworks",
+        required_cassette_generation_api_keys=["ANTHROPIC_API_KEY"],
+        scenario_groups=(scenario_groups.integration_frameworks,),
     )
 
 

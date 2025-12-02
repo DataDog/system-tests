@@ -4,6 +4,7 @@ import os
 
 import pytest
 
+from utils._context._scenarios.core import ScenarioGroup
 from utils.docker_fixtures import (
     FrameworkTestClientFactory,
     TestAgentAPI,
@@ -19,18 +20,24 @@ from ._docker_fixtures import DockerFixturesScenario
 class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
 
-    def __init__(self, name: str, doc: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        doc: str,
+        required_cassette_generation_api_keys: list[str],
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
+    ) -> None:
         super().__init__(
             name,
             doc=doc,
             github_workflow="endtoend",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.38.0",
+            scenario_groups=scenario_groups,
         )
 
-        self.environment = {
-            "DD_TRACE_DEBUG": "true",
-            "DD_TRACE_OTEL_ENABLED": "true",
-        }
+        self.environment: dict[str, str] = {}
+
+        self.required_cassette_generation_api_keys = required_cassette_generation_api_keys
 
     def configure(self, config: pytest.Config):
         library: str = config.option.library
@@ -45,25 +52,19 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         # TODO: can we turn the dockerfiles into base dockerfiles and just set a couple variables per framework?
         if "@" not in weblog:
-            logger.debug(f"No version specified for {weblog}, using latest")
-            # TODO: see if we can resolve the version like we do for the tracer library versions
-            framework, framework_version = weblog, "latest"
-        else:
-            framework, framework_version = weblog.split("@", 1)
+            pytest.exit(
+                f"No version specified for {weblog}, please use the format {weblog}@<version>.\n"
+                f"To use the latest version, use the format {weblog}@latest.\n"
+                "Example: openai-py@2.0.0 or openai-js@latest",
+                1,
+            )
 
-        # TODO: make this respect generate_cassettes - should we take in the api keys as options?
-        self.environment["ANTHROPIC_API_KEY"] = os.getenv("ANTHROPIC_API_KEY", "<not-a-real-key>")
-
-        if generate_cassettes:
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-            if not openai_api_key:
-                pytest.exit("OPENAI_API_KEY is required to generate cassettes", 1)
-            self.environment["OPENAI_API_KEY"] = openai_api_key  # type: ignore[assignment]
-        else:
-            self.environment["OPENAI_API_KEY"] = "<not-a-real-key>"  # this needs a default dummy value otherwise
+        framework, framework_version = weblog.split("@", 1)
 
         if config.option.force_dd_trace_debug:
             self.environment["DD_TRACE_DEBUG"] = "true"
+
+        self._check_and_set_api_keys(generate_cassettes=generate_cassettes)
 
         # Handle weblog language name suffix needed for weblog definitions
         # e.g., "openai-py" -> "openai", "openai-js" -> "openai"
@@ -108,6 +109,17 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
 
+    def _check_and_set_api_keys(self, *, generate_cassettes: bool = False) -> None:
+        if generate_cassettes:
+            for key in self.required_cassette_generation_api_keys:
+                api_key = os.getenv(key)
+                if not api_key:
+                    pytest.exit(f"{key} is required to generate cassettes", 1)
+                self.environment[key] = api_key  # type: ignore[assignment]
+        else:
+            for key in self.required_cassette_generation_api_keys:
+                self.environment[key] = "<not-a-real-key>"
+
     @contextlib.contextmanager
     def get_client(
         self,
@@ -116,7 +128,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         test_id: str,
         library_env: dict[str, str],
         test_agent: TestAgentAPI,
-        framework_app_name: str,
     ) -> Generator[FrameworkTestClientApi, None, None]:
         with self._test_client_factory.get_client(
             request=request,

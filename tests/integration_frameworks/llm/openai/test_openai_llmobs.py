@@ -29,7 +29,7 @@ def tool_to_tool_definition(tool: dict) -> dict:
 
 
 @features.llm_observability_openai_llm_interactions
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiLlmInteractions:
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
@@ -592,7 +592,7 @@ class TestOpenAiLlmInteractions:
 
 
 @features.llm_observability_openai_embeddings
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiEmbeddingInteractions:
     def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
@@ -658,7 +658,7 @@ class TestOpenAiEmbeddingInteractions:
 
 
 @features.llm_observability_prompts
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiPromptTracking:
     """Tests for OpenAI reusable prompt tracking (reverse templating).
 

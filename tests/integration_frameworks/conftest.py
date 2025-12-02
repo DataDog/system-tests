@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from typing import TYPE_CHECKING
 import uuid
 
 import pytest
@@ -8,6 +9,9 @@ from utils.docker_fixtures import (
     TestAgentAPI,
 )
 from utils import context, scenarios, logger
+
+if TYPE_CHECKING:
+    from utils._context._scenarios.integration_frameworks import IntegrationFrameworksScenario
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -39,8 +43,16 @@ def test_agent(
     test_id: str,
     worker_id: str,
     request: pytest.FixtureRequest,
+    framework_app_name: str,
 ) -> Generator[TestAgentAPI, None, None]:
-    with scenarios.integration_frameworks.get_test_agent_api(
+    framework_scenario: IntegrationFrameworksScenario | None = getattr(
+        scenarios, f"integration_frameworks_{framework_app_name}"
+    )
+
+    if framework_scenario is None:
+        pytest.exit(f"Framework scenario for {framework_app_name} not found", 1)
+
+    with framework_scenario.get_test_agent_api(  # type: ignore[union-attr]
         request=request,
         worker_id=worker_id,
         test_id=test_id,
@@ -57,14 +69,20 @@ def test_client(
     test_agent: TestAgentAPI,
     framework_app_name: str,
 ) -> Generator[FrameworkTestClientApi, None, None]:
+    framework_scenario: IntegrationFrameworksScenario | None = getattr(
+        scenarios, f"integration_frameworks_{framework_app_name}"
+    )
+
+    if framework_scenario is None:
+        pytest.exit(f"Framework scenario for {framework_app_name} not found", 1)
+
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = dict(library_env)
 
-    with scenarios.integration_frameworks.get_client(
+    with framework_scenario.get_client(  # type: ignore[union-attr]
         request=request,
         library_env=library_env,
         worker_id=worker_id,
         test_id=test_id,
         test_agent=test_agent,
-        framework_app_name=framework_app_name,
     ) as client:
         yield client

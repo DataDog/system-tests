@@ -7,7 +7,7 @@ from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 
 @features.apm_openai_completions
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiApmCompletions:
     def test_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
@@ -32,7 +32,7 @@ class TestOpenAiApmCompletions:
 
 
 @features.apm_openai_chat_completions
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiApmChatCompletions:
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
@@ -94,7 +94,7 @@ class TestOpenAiApmChatCompletions:
 
 
 @features.apm_openai_responses
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiApmResponses:
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
@@ -120,7 +120,7 @@ class TestOpenAiApmResponses:
 
 
 @features.apm_openai_embeddings
-@scenarios.integration_frameworks
+@scenarios.integration_frameworks_openai
 class TestOpenAiApmEmbeddings:
     def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
