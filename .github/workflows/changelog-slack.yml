@@ -10,6 +10,7 @@ on:
 jobs:
   notify-slack:
     runs-on: ubuntu-latest
+    environment: Changelog slack notification
 
     steps:
       - name: Checkout code
