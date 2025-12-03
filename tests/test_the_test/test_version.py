@@ -38,22 +38,22 @@ def test_version_comparizon():
 
 def test_ruby_version():
     v = ComponentVersion("ruby", "0.53.0.appsec.180045")
-    assert str(v.version) == "0.53.0-appsec+180045"
+    assert str(v.version) == "0.53.1-appsec+180045"
 
     v = ComponentVersion("ruby", "1.0.0.beta1 de82857")
-    assert v.version == Version("1.0.0-beta1+de82857")
+    assert v.version == Version("1.0.1-beta1+de82857")
 
     v = ComponentVersion("ruby", "2.3.0 7dbcc40")
-    assert str(v.version) == "2.3.0+7dbcc40"
+    assert str(v.version) == "2.3.1-z+7dbcc40"
 
-    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.0+beta1"
-    assert ComponentVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.0-beta1+de82857"
+    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.1-z+beta1"
+    assert ComponentVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.1-beta1+de82857"
 
     # very particular use case, because we hack the path for dev versions
     assert ComponentVersion("ruby", "1.0.0.beta1 de82857") < "ruby@1.0.1"
     assert ComponentVersion("ruby", "1.0.0.rc1") < "ruby@1.0.1"
 
-    assert ComponentVersion("ruby", "2.3.0 7dbcc40") >= "ruby@2.3.0-dev"
+    assert ComponentVersion("ruby", "2.3.0 7dbcc40") >= "ruby@2.3.1-dev"
 
 
 def test_library_version_comparizon():
