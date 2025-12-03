@@ -17,25 +17,30 @@ from manifests.parser.core import _load_file
 
 import requests
 import ruamel.yaml
+
 ruamel.yaml.emitter.Emitter.MAX_SIMPLE_KEY_LENGTH = 1000
 from tqdm import tqdm
 
 
 class ChangeSummary:
     """Summary of changes made to a manifest. Tracks changes incrementally like a logger."""
-    
+
     def __init__(self) -> None:
         self.logger = get_logger(__name__)
-        self.updated_activation_rules: dict[str, tuple[Any, Any]] = {}  # rule -> (old_value, new_value) - rules that were modified
+        self.updated_activation_rules: dict[
+            str, tuple[Any, Any]
+        ] = {}  # rule -> (old_value, new_value) - rules that were modified
         self.newly_activated_tests: dict[str, Any] = {}  # test -> new_value - tests being activated for the first time
-        self.maintained_deactivation_rules: dict[str, Any] = {}  # test -> deactivation_value - tests kept deactivated (not easy wins)
-    
+        self.maintained_deactivation_rules: dict[
+            str, Any
+        ] = {}  # test -> deactivation_value - tests kept deactivated (not easy wins)
+
     def log_newly_activated_test(self, nodeid: str, new_value: Any) -> None:
         """Log a test that is being activated for the first time."""
         if nodeid not in self.newly_activated_tests:
             self.newly_activated_tests[nodeid] = new_value
             self.logger.debug("Newly activated test: %s -> %s", nodeid, _format_value(new_value))
-    
+
     def log_updated_rule(self, rule: str, old_value: Any, new_value: Any) -> None:
         """Log a rule that was updated (existed before and was changed)."""
         if old_value != new_value and rule not in self.updated_activation_rules:
@@ -46,7 +51,7 @@ class ChangeSummary:
                 _format_value(old_value),
                 _format_value(new_value),
             )
-    
+
     def log_maintained_deactivation(self, nodeid: str, deactivation_value: Any) -> None:
         """Log a deactivation rule that is being maintained (test kept deactivated)."""
         if nodeid not in self.maintained_deactivation_rules:
@@ -56,7 +61,7 @@ class ChangeSummary:
                 nodeid,
                 _format_value(deactivation_value),
             )
-    
+
     def log_activation_change(
         self,
         nodeid: str,
@@ -69,7 +74,7 @@ class ChangeSummary:
             self.log_newly_activated_test(nodeid, new_value)
         else:
             self.log_updated_rule(nodeid, old_value, new_value)
-    
+
     def log_addition_change(
         self,
         nodeid: str,
@@ -81,7 +86,7 @@ class ChangeSummary:
         old_value = original_manifest.get(nodeid)
         is_deactivation = _is_deactivation_marker(addition_value)
         final_value = final_value if final_value is not None else addition_value
-        
+
         if is_deactivation:
             if nodeid not in original_manifest:
                 self.log_maintained_deactivation(nodeid, final_value)
@@ -114,6 +119,7 @@ LIBRARIES = [
     # "rust"
 ]
 
+
 @dataclass
 class Context:
     library: str
@@ -121,111 +127,18 @@ class Context:
     variant: str
 
     @staticmethod
-    def create(library: str, library_version: str, variant: str) -> Context|None:
+    def create(library: str, library_version: str, variant: str) -> Context | None:
         if library not in LIBRARIES or not library_version or not (library_version := Version(library_version)):
             return None
         return Context(library, library_version, variant)
-
 
     def __hash__(self):
         return hash((self.library, str(self.library_version), self.variant))
 
 
-
-
 ARTIFACT_URL = (
     "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
 )
-
-
-def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> None:
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "python-requests",
-    }
-
-    # Get workflow runs
-    with requests.get(url, headers=headers, timeout=60) as resp_runs:
-        resp_runs.raise_for_status()
-        runs_data = resp_runs.json()
-
-    download_url = None
-    page = 0
-    print(f"CI workflow URL: {runs_data['workflow_runs'][0]['html_url']}")
-    while not download_url:
-        page += 1
-        artifacts_url = runs_data["workflow_runs"][0]["artifacts_url"] + f"?page={page}"
-        with requests.get(artifacts_url, headers=headers, timeout=60) as resp_artifacts:
-            resp_artifacts.raise_for_status()
-            artifacts_data = resp_artifacts.json()
-
-        # Download the first artifact
-        for artifact in artifacts_data["artifacts"]:
-            if artifact["name"] == "test-report":
-                download_url = artifact["archive_download_url"]
-
-        # If we've checked all pages and found no test-report artifact, error
-        if not download_url and len(artifacts_data["artifacts"]) == 0:
-            raise RuntimeError("test-report not found in the last nightly run")
-
-    with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
-        r.raise_for_status()
-        total_size = int(r.headers.get("content-length", 0))
-
-        with (
-            open(f"{path_root}/data.zip", "wb") as f,
-            tqdm(total=total_size, unit="B", unit_scale=True, desc="Downloading artifact") as pbar,
-        ):
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-                    pbar.update(len(chunk))
-
-    # Extract the downloaded zip file
-    with zipfile.ZipFile(f"{path_root}/data.zip") as z:
-        z.extractall(path_data_root)
-
-def parse_artifact_data(
-    path_data_opt: str, libraries: list[str]
-) -> dict[Context, list[str]]:
-    test_data: dict[Context, list[str]] = {}
-
-    for directory in os.listdir(path_data_opt):
-        if "_dev_" in directory:
-            continue
-
-        for scenario in os.listdir(f"{path_data_opt}/{directory}"):
-            try:
-                with open(f"{path_data_opt}/{directory}/{scenario}/report.json", encoding="utf-8") as file:
-                    scenario_data = json.load(file)
-            except FileNotFoundError:
-                continue
-
-            context = Context.create(scenario_data["context"].get("library_name"), scenario_data["context"].get("library"), scenario_data["context"].get("weblog_variant"))
-
-            if not context or context.library not in libraries:
-                break
-
-            if context not in test_data:
-                test_data[context] = []
-
-            for test in scenario_data["tests"]:
-                if test["outcome"] == "xpassed":
-                    test_data[context].append(test["nodeid"])
-
-    return test_data
-
-
-def parse_manifest(library: str, path_root: str, yaml: ruamel.yaml.YAML) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
-    with open(f"{path_root}/manifests/{library}.yml", encoding="utf-8") as file:
-        return yaml.load(file)
-
-
-def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str, yaml: ruamel.yaml.YAML) -> None:  # type: ignore[type-arg]
-    with open(outfile_path, "w", encoding="utf8") as outfile:
-        yaml.dump(manifest, outfile)
 
 
 def update_manifest(
@@ -236,10 +149,10 @@ def update_manifest(
 ) -> ChangeSummary:
     # Store original manifest state for comparison
     original_manifest = copy.deepcopy(manifest["manifest"])
-    
+
     # Initialize change summary at the beginning (like a logger)
     summary = ChangeSummary()
-    
+
     updates = {}
     parsed_manifest = _load_file(f"manifests/{library}.yml", library)
     for context, nodeids in test_data.items():
@@ -250,7 +163,7 @@ def update_manifest(
             for rule, declarations in rules.items():
                 if not match_rule(rule, nodeid):
                     continue
-                if "flaky" in declarations or "irrelevant" in declarations: # wrong TODO
+                if "flaky" in declarations or "irrelevant" in declarations:  # wrong TODO
                     continue
                 if rule not in updates:
                     updates[rule] = set()
@@ -259,17 +172,17 @@ def update_manifest(
     additions = {}
     updated = {}
     for rule, targets in updates.items():
-        nodeids = set([target[0][:target[0].find("[")%(len(target[0]) + 1)] for target in targets])
+        nodeids = set([target[0][: target[0].find("[") % (len(target[0]) + 1)] for target in targets])
         contexts = set([target[1] for target in targets])
         updated[rule] = parsed_manifest[rule]
         update_rule(updated[rule], contexts, manifest["manifest"][rule])
-        
+
         if is_terminal(rule):
             continue
         all_targets = set(get_all_nodeids(rule))
         if all_targets == nodeids:
             continue
-        
+
         for nodeid in all_targets - nodeids:
             new_val = manifest["manifest"][rule]
             if isinstance(new_val, str):
@@ -287,10 +200,10 @@ def update_manifest(
             old_nodeid_value = original_manifest.get(nodeid)
             new_nodeid_value = f">={max(context.library_version for context in contexts)}"
             manifest["manifest"][nodeid] = new_nodeid_value
-            
+
             # Track activation: new test or updated existing test
             summary.log_activation_change(nodeid, old_nodeid_value, new_nodeid_value, original_manifest)
-        
+
     for k, vs in additions.items():
         for v in vs:
             if isinstance(v, str):
@@ -311,7 +224,7 @@ def update_manifest(
             continue
         manifest["manifest"][k] = v
         summary.log_addition_change(k, v, original_manifest)
-    
+
     # Log rule updates as they're written back to manifest
     for k, v in updated.items():
         old_value = original_manifest.get(k)
@@ -327,11 +240,11 @@ def update_manifest(
                     clause_val = ruamel.yaml.CommentedSeq(clause_val)
                     clause_val.fa.set_flow_style()
                 manifest["manifest"][k][-1][clause_name] = clause_val
-        
+
         # Log the rule update after writing back
         new_value = manifest["manifest"][k]
         summary.log_updated_rule(k, old_value, new_value)
-    
+
     return summary
 
 
@@ -406,30 +319,30 @@ def main() -> None:
             write_manifest(manifest, f"{path_root}/manifests/{library}.yml", yaml)
 
     # Display comprehensive summary
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     if args.dry_run:
         print("🔍 DRY RUN SUMMARY")
     else:
         print("🎉 CHANGE SUMMARY")
-    print("="*80)
-    
+    print("=" * 80)
+
     total_updated = sum(len(s.updated_activation_rules) for s in all_summaries.values())
     total_newly_activated = sum(len(s.newly_activated_tests) for s in all_summaries.values())
     total_maintained_deactivations = sum(len(s.maintained_deactivation_rules) for s in all_summaries.values())
-    
+
     print(f"\n📊 Overall Statistics:")
     print(f"   • Updated activation rules: {total_updated}")
     print(f"   • Newly activated tests: {total_newly_activated}")
     print(f"   • Maintained deactivation rules: {total_maintained_deactivations}")
     print(f"   • Total changes: {total_updated + total_newly_activated + total_maintained_deactivations}")
-    
+
     # Per-library breakdown
     print(f"\n📚 Per-Library Breakdown:")
     for library, summary in all_summaries.items():
         lib_total = (
-            len(summary.updated_activation_rules) +
-            len(summary.newly_activated_tests) +
-            len(summary.maintained_deactivation_rules)
+            len(summary.updated_activation_rules)
+            + len(summary.newly_activated_tests)
+            + len(summary.maintained_deactivation_rules)
         )
         if lib_total > 0 or not args.summary_only:
             print(f"\n   {library.upper()}:")
@@ -458,23 +371,23 @@ def main() -> None:
                         print(f"        ... and {len(summary.maintained_deactivation_rules) - 5} more")
             if lib_total == 0 and not args.summary_only:
                 print(f"      • No changes")
-    
-    print("\n" + "="*80)
+
+    print("\n" + "=" * 80)
 
 
 def _is_deactivation_marker(value: Any) -> bool:
     """Check if a manifest value represents a deactivation marker.
-    
+
     Deactivation markers include: missing_feature, irrelevant, bug, flaky
     """
     if value is None:
         return False
-    
+
     if isinstance(value, str):
         # String values like "missing_feature (reason)" or "irrelevant (reason)"
         value_lower = value.lower()
         return any(marker in value_lower for marker in ["missing_feature", "irrelevant", "bug", "flaky"])
-    
+
     if isinstance(value, (list, ruamel.yaml.comments.CommentedSeq)):
         # Check if any condition in the list has a deactivation declaration
         for condition in value:
@@ -489,14 +402,14 @@ def _is_deactivation_marker(value: Any) -> bool:
                     decl_str = str(decl).lower()
                     if any(marker in decl_str for marker in ["missing_feature", "irrelevant", "bug", "flaky"]):
                         return True
-    
+
     # Check if it's a dict with declaration field
     if isinstance(value, dict):
         decl = value.get("declaration")
         if decl:
             decl_str = str(decl).lower()
             return any(marker in decl_str for marker in ["missing_feature", "irrelevant", "bug", "flaky"])
-    
+
     return False
 
 
