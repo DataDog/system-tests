@@ -1485,6 +1485,9 @@ tests/:
     Test_FFE_Exposure_Events_Errors:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
+    Test_FFE_RC_Down_From_Start:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
     Test_FFE_RC_Unavailable:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
