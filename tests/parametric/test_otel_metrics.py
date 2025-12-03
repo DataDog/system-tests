@@ -310,8 +310,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 
             t.otel_metrics_force_flush()
 
-        # import time
-        # time.sleep(100)
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
 
         # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
@@ -349,7 +347,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Meter:
     """Tests the OpenTelemetry Meter API functionality.
@@ -570,7 +567,6 @@ class Test_Otel_Metrics_Api_Meter:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Instrument:
     """Tests the OpenTelemetry Instrument API functionality.
@@ -1114,7 +1110,6 @@ class Test_Otel_Metrics_Api_Instrument:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Temporality_Preference:
     """Tests the OpenTelemetry metrics aggregation temporality preference configuration.
@@ -1307,7 +1302,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """Tests the OpenTelemetry OTLP exporter metrics endpoint configuration.
@@ -1466,7 +1460,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
@@ -1549,7 +1542,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
     """Tests the OpenTelemetry OTLP exporter metrics protocol configuration.
@@ -1728,7 +1720,6 @@ class Test_Otel_Metrics_Host_Name:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Resource_Attributes:
     """Tests the OpenTelemetry metrics resource attributes configuration.
@@ -1880,7 +1871,6 @@ class Test_Otel_Metrics_Resource_Attributes:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Telemetry:
     """Tests the OpenTelemetry metrics telemetry configuration reporting.
