@@ -4,7 +4,6 @@ import os
 
 import pytest
 
-from utils._context._scenarios.core import ScenarioGroup
 from utils.docker_fixtures import (
     FrameworkTestClientFactory,
     TestAgentAPI,
@@ -19,25 +18,21 @@ from ._docker_fixtures import DockerFixturesScenario
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
+    _required_cassette_generation_api_keys: list[str] = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
 
     def __init__(
         self,
         name: str,
         doc: str,
-        required_cassette_generation_api_keys: list[str],
-        scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
             name,
             doc=doc,
             github_workflow="endtoend",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.38.0",
-            scenario_groups=scenario_groups,
         )
 
         self.environment: dict[str, str] = {}
-
-        self.required_cassette_generation_api_keys = required_cassette_generation_api_keys
 
     def configure(self, config: pytest.Config):
         library: str = config.option.library
@@ -58,6 +53,8 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
                 "Example: openai-py@2.0.0 or openai-js@latest",
                 1,
             )
+
+        self.weblog_variant = weblog
 
         framework, framework_version = weblog.split("@", 1)
 
@@ -111,13 +108,13 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
     def _check_and_set_api_keys(self, *, generate_cassettes: bool = False) -> None:
         if generate_cassettes:
-            for key in self.required_cassette_generation_api_keys:
+            for key in self._required_cassette_generation_api_keys:
                 api_key = os.getenv(key)
                 if not api_key:
                     pytest.exit(f"{key} is required to generate cassettes", 1)
                 self.environment[key] = api_key  # type: ignore[assignment]
         else:
-            for key in self.required_cassette_generation_api_keys:
+            for key in self._required_cassette_generation_api_keys:
                 self.environment[key] = "<not-a-real-key>"
 
     @contextlib.contextmanager
