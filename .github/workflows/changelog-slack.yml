@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'CHANGELOG.md'
-  pull_request:
 
 jobs:
   notify-slack:
