@@ -47,8 +47,9 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
                 logger.info(f"Command: {command}")
             if process.returncode != 0:
                 output_error = process.stderr.read()
-                logger.debug(f"Command: {command} \n {output_error}")
-                raise Exception(f"Error executing command: {command} \n {output}")
+                output_error_str = str(output_error, "utf-8")
+                logger.debug(f"Command: {command} \n {output_error_str}")
+                raise Exception(f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
@@ -92,12 +93,14 @@ def helm_install_chart(
     if timeout == 0 or timeout is None:
         wait = ""
 
-    command = f"helm install {name} --debug {wait} {set_str} {chart}"
+    command = f"helm install {name} --debug {wait} {set_str} {chart} --namespace=default"
     if upgrade:
-        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart}"
+        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace=default"
     if custom_value_file:
-        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart}"
+        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace=default"
         if upgrade:
-            command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart}"
+            command = (
+                f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace=default"
+            )
     execute_command("kubectl config current-context")
     execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs

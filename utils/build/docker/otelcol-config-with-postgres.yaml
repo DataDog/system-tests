@@ -13,43 +13,43 @@ receivers:
     collection_interval: 10s
     tls:
       insecure: true
-    events: # from the opentelemetry-collector-contrib/receiver/postgresqlreceiver/README.md
-      db.server.query_sample:
-        enabled: true
-      db.server.top_query:
-        enabled: true
-    query_sample_collection:
-      max_rows_per_query: 100
-    top_query_collection:
-      max_rows_per_query: 100
-      top_n_query: 100
+    # events: # from the opentelemetry-collector-contrib/receiver/postgresqlreceiver/README.md
+    #   db.server.query_sample:
+    #     enabled: true
+    #   db.server.top_query:
+    #     enabled: true
+    # # query_sample_collection:
+    # #   max_rows_per_query: 100
+    # # top_query_collection:
+    # #   max_rows_per_query: 100
+    # #   top_n_query: 100
     metrics:
-      postgresql.blks_read:
-        enabled: true
-      postgresql.blks_hit:
-        enabled: true
+      # postgresql.blks_read:
+      #   enabled: true
+      # postgresql.blks_hit:
+      #   enabled: true
       postgresql.database.locks:
         enabled: true
       postgresql.deadlocks:
         enabled: true
-      postgresql.function.calls:
-        enabled: true
+      # postgresql.function.calls:
+      #   enabled: true
       postgresql.sequential_scans:
         enabled: true
-      postgresql.temp.io:
-        enabled: true
+      # postgresql.temp.io:
+      #   enabled: true
       postgresql.temp_files:
         enabled: true
-      postgresql.tup_deleted:
-        enabled: true
-      postgresql.tup_fetched:
-        enabled: true
-      postgresql.tup_inserted:
-        enabled: true
-      postgresql.tup_returned:
-        enabled: true
-      postgresql.tup_updated:
-        enabled: true
+      # postgresql.tup_deleted:
+      #   enabled: true
+      # postgresql.tup_fetched:
+      #   enabled: true
+      # postgresql.tup_inserted:
+      #   enabled: true
+      # postgresql.tup_returned:
+      #   enabled: true
+      # postgresql.tup_updated:
+      #   enabled: true
       postgresql.wal.delay:
         enabled: true
       postgresql.wal.age:

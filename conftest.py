@@ -25,7 +25,7 @@ from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
-from utils.get_declaration import get_rules, match_rule
+from utils.manifest import Manifest
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -144,6 +144,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
     )
 
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
+    )
+
 
 def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
@@ -260,9 +267,23 @@ def _collect_item_metadata(item: pytest.Item):
 
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Unselect items that are not included in the current scenario"""
+    """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
+
+    manifest = Manifest(
+        context.library.name,
+        context.library.version,
+        context.weblog_variant,
+        context.agent_version,
+        context.dd_apm_inject_version,
+        context.k8s_cluster_agent_version,
+    )
+    for item in items:
+        assert isinstance(item, pytest.Function)
+        declarations = manifest.get_declarations(item.nodeid)
+        for declaration in declarations:
+            add_pytest_marker(item, declaration.value, declaration.details)
 
     selected = []
     deselected = []
@@ -320,21 +341,6 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
-
-    rules = get_rules(
-        context.library.name,
-        context.library.version,
-        context.weblog_variant,
-        context.agent_version,
-        context.dd_apm_inject_version,
-        context.k8s_cluster_agent_version,
-    )
-    for item in items:
-        for rule, declarations in rules.items():
-            if not match_rule(rule, item.nodeid):
-                continue
-            for declaration in declarations:
-                add_pytest_marker(item, declaration[0], declaration[1])
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:

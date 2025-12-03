@@ -74,7 +74,7 @@ def _get_path(test_name: str, suffix: str, version: str) -> str:
     return os.path.join(_CUR_DIR, "utils", "approvals", language, version, filename)
 
 
-def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
+def write_approval(data: list | dict, test_name: str, suffix: str, version: str) -> None:
     path = _get_path(test_name, suffix, version)
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
@@ -242,6 +242,7 @@ class BaseDebuggerTest:
 
     def send_rc_apm_tracing(
         self,
+        *,
         dynamic_instrumentation_enabled: bool | None = None,
         exception_replay_enabled: bool | None = None,
         live_debugging_enabled: bool | None = None,
@@ -249,7 +250,6 @@ class BaseDebuggerTest:
         dynamic_sampling_enabled: bool | None = None,
         service_name: str | None = "weblog",
         env: str | None = "system-tests",
-        *,
         reset: bool = True,
     ) -> None:
         BaseDebuggerTest._rc_version += 1
@@ -759,9 +759,9 @@ class BaseDebuggerTest:
         expected = self.probe_ids
         received = extract_probe_ids(self.probe_diagnostics)
 
-        assert set(expected) <= set(
-            received
-        ), f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+        assert set(expected) <= set(received), (
+            f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+        )
 
         errors = {}
         for probe_id in self.probe_ids:

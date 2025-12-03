@@ -1,7 +1,6 @@
-import yaml
-from semantic_version import Version
+import ruamel.yaml
 
-variants = {
+weblogs = {
     "agent": set(),
     "cpp_httpd": set(),
     "cpp_nginx": set(),
@@ -111,22 +110,27 @@ variants = {
 output = ""
 
 
-def count(node_id: str) -> int | float:
-    if node_id.endswith(".py::"):
-        count = 0
-        scenario = False
-        with open(node_id[:-2]) as f:
-            for line in f:
-                if line.startswith(("@scenarios", "@features")):
-                    scenario = True
-                if line.startswith("class ") and scenario:
-                    count += 1
-                    scenario = False
-        return count
-    # if node_id.endswith("::"):
-    #     print(node_id)
-    #     return 0
-    return float("inf")
+def quotes(string: str) -> str:
+    if ">" in string or ":" in string:
+        return f'"{string}"'
+    return string
+
+
+def get_comment(commented_obj: dict, key: str) -> str:
+    """Extract EOL comment from ruamel.yaml CommentedMap for a given key."""
+    if not hasattr(commented_obj, "ca"):
+        return ""
+    ca = commented_obj.ca
+    if not ca or not hasattr(ca, "items"):
+        return ""
+    items = ca.items
+    if key not in items or len(items[key]) < 3:  # noqa: PLR2004
+        return ""
+    comment_token = items[key][2]  # EOL comment is at index 2
+    if comment_token:
+        comment_str = comment_token.value.strip()
+        return f"  {comment_str}" if comment_str else ""
+    return ""
 
 
 def flatten(
@@ -135,89 +139,54 @@ def flatten(
     refs: dict,
     root: str = "tests/",
     end: bool = False,  # noqa: FBT001, FBT002
-    leaves: set | None = None,
+    _leaves: set | None = None,
+    commented_data: dict | None = None,
+    current_key: str | None = None,
 ) -> set | None:
     global output  # noqa: PLW0603
-    if not leaves:
-        leaves = set()
+
     if isinstance(data, str):
-        # print(f"{root}: {data}")
+        comment = ""
+        if commented_data and current_key and hasattr(commented_data, "ca"):
+            comment = get_comment(commented_data, current_key)
         if refs and data in refs:
             data_str = f"*{refs[data]}"
-            if "||" in data:
-                output += f"{root}:\n  - library_version: {data_str}\n    declaration: missing_feature\n"
-            else:
-                output += f"{root}: {data_str}\n"
+            line = f"\n{root}: {data_str}"
+            if comment:
+                line += comment
+            output += line
         else:
-            output += f'{root}: "{data}"\n'
+            line = f"\n{root}: {quotes(data)}"
+            if comment:
+                line += comment
+            output += line
     elif end:
-        root = f"{root}:"
-        variants_set = set()
+        output += f"\n{root}:"
+        # For variant declarations, data itself is the CommentedMap containing the variants
+        variant_commented = data if isinstance(data, dict) and hasattr(data, "ca") else commented_data
         for var in data.items():
-            if var[0] != "*":
-                variants_set.add(var[0])
-        for var in data.items():
-            leaf = "  - "
+            var_name = var[0]
             if var[0] == "*":
-                if len(variants_set) == 0:
-                    leaves.add(f' "{var[1]}"')
-                    continue
-                if len(variants_set) > len(variants[lib]) // 2:
-                    leaf += f"variant: {sorted(variants[lib] - variants_set)}\n    "
-                    leaf = leaf.replace("{", "[").replace("}", "]").replace("'", "")
-                else:
-                    leaf += f"excluded_variant: {sorted(variants_set)}\n    "
-                    leaf = leaf.replace("{", "[").replace("}", "]").replace("'", "")
-            else:
-                leaf += f"variant: {var[0]}\n    "
-            if var[1].startswith(("v", "<", ">")):
-                if refs and var[1] in refs and "||" in var[1]:
-                    data_str = f"*{refs[var[1]]}"
-                else:
-                    data_str = f'"<{var[1][1:].strip('=')}"'
-                leaf += f"library_version: {data_str}"
-                leaf += "\n    declaration: missing_feature"
-            else:
-                leaf += f"declaration: {var[1]}"
-            leaves.add(leaf)
+                var_name = f'"{var[0]}"'
+            data_str = f"*{refs[var[1]]}" if refs and var[1] in refs else f"{quotes(var[1])}"
+            comment = ""
+            if variant_commented and hasattr(variant_commented, "ca"):
+                comment = get_comment(variant_commented, var[0])
+            line = f"\n    {var_name}: {data_str}"
+            if comment:
+                line += comment
+            output += line
 
     else:
-        branch_leaves = {}
         if root.endswith(".py"):
             root += "::"
             end = True
 
         for item in data.items():
-            res = flatten(item[1], lib, refs, root + item[0], end)
-            if res:
-                branch_leaves[root + item[0]] = res
-
-        leaves_count = {}
-        for branch in branch_leaves.values():
-            for leave in branch:
-                if leave not in leaves_count:
-                    leaves_count[leave] = 0
-                leaves_count[leave] += 1
-
-        for leaf in leaves_count.items():
-            if leaf[1] >= count(root):
-                leaves.add(leaf[0])
-
-        for branch, bleaves in branch_leaves.items():
-            p_branch = True
-            bleaves = sorted(bleaves)  # noqa: PLW2901
-            for leaf in bleaves:
-                if leaf not in leaves:
-                    if p_branch:
-                        # print(branch + ":")
-                        output += branch + ":"
-                        if len(bleaves) > 1 or len(leaf.splitlines()) > 1:
-                            output += "\n"
-                        p_branch = False
-                    output += leaf + "\n"
-                    # print(leaf)
-
-    return leaves
+            key = item[0]
+            # Pass the current level's CommentedMap as parent, and current key
+            sub_commented = data if isinstance(data, dict) and hasattr(data, "ca") else commented_data
+            flatten(item[1], lib, refs, root + key, end, commented_data=sub_commented, current_key=key)
 
 
 def yml_sort(output_file: str) -> None:
@@ -233,8 +202,10 @@ def yml_sort(output_file: str) -> None:
     with open(output_file, "a") as f:
         for entry in data:
             f.write("  " + entry[0] + "\n")
+            if entry[1]:
+                f.write("    - weblog_declaration:\n")
             for line in entry[1]:
-                f.write("  " + line + "\n")
+                f.write("    " + line + "\n")
 
 
 def add_refs(file_path: str, output_file: str) -> None:
@@ -244,74 +215,48 @@ def add_refs(file_path: str, output_file: str) -> None:
     with open(output_file, "w") as f:
         for line in data:
             if line.startswith("tests/:"):
-                # print("manifest:")
-                f.write("manifest:" + "\n")
+                f.write("manifest:")
                 return
-            # print(line, end="")
             f.write(line)
 
 
-def update_refs(file_path: str) -> None:
+def get_refs(file_path: str) -> None:
     if "nodejs" not in file_path:
         return None
     with open(file_path, "r") as f:
         lines = f.readlines()
 
     refs = {}
-    for iline, line in enumerate(lines):
+    for _iline, line in enumerate(lines):
         if line.startswith("tests"):
             break
         if "refs:" in line or "---" in line:
             continue
-        # print(line)
 
         semver_range = line[line.find("'") + 1 : line.rfind("'")]
         ref = line[line.find("&") + 1 : line.find(" '")]
         refs[semver_range] = ref
-
-        if "||" not in line:
-            continue
-
-        elements = semver_range.split(" || ")
-        if " - " in elements[0]:
-            mrel = elements[0].split(" - ")
-            main_range = f">{mrel[1]} || <{mrel[0]}"
-        else:
-            main_range = f"<{elements[0][2:]}"
-
-        new_ranges = []
-        for element in elements[1:]:
-            version = Version(element[1:])
-            new_ranges.append(f">={version.next_major()} || <{version}")
-        new_line = line[: line.find("'") + 1] + main_range
-        for new_range in new_ranges:
-            new_line += f" {new_range}"
-        new_line += line[line.rfind("'") :]
-        # print(new_line)
-        semver_range = new_line[new_line.find("'") + 1 : new_line.rfind("'")]
-        refs[semver_range] = ref
-        lines[iline] = new_line
-
-    with open(file_path, "w") as file:
-        file.writelines(lines)
 
     return refs
 
 
 def main() -> None:
     global output  # noqa: PLW0603
-    for lib in variants:
+    for lib in weblogs:
         output = ""
         file_path = f"./manifests/{lib}.yml"
         output_file = f"./new.manifests/{lib}.yml"
 
-        refs = update_refs(file_path)
+        refs = get_refs(file_path)
 
         add_refs(file_path, output_file)
-        with open(file_path) as f:
-            data = yaml.safe_load(f)
-            # print(refs)
-            flatten(data["tests/"], lib, refs)
+        with open(file_path) as file:
+            yaml = ruamel.yaml.YAML()
+            yaml.preserve_quotes = True
+            data = yaml.load(file)
+            tests_data = data.get("tests/") or data.get("manifest")
+            if tests_data:
+                flatten(tests_data, lib, refs, commented_data=tests_data)
 
         yml_sort(output_file)
 

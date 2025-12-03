@@ -472,6 +472,11 @@ jobs:
     - name: Run OTEL_COLLECTOR scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
+    - name: Run OTEL_COLLECTOR_E2E scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
+      run: ./run.sh OTEL_COLLECTOR_E2E
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

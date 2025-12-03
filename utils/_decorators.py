@@ -85,7 +85,7 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
 
 
 def add_pytest_marker(
-    item: pytest.Module | FunctionType | MethodType,
+    item: pytest.Module | pytest.Function | FunctionType | MethodType,
     declaration: _TestDeclaration,
     declaration_details: str | None,
     *,
@@ -123,7 +123,7 @@ def add_pytest_marker(
     return item
 
 
-def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):
+def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):  # noqa: FBT001
     if condition is False:
         return False
 
@@ -158,12 +158,12 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
 
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
+    *,
     declaration: _TestDeclaration,
     condition: bool | None,
     library: str | None,
     weblog_variant: str | None,
     declaration_details: str | None,
-    *,
     force_skip: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -180,7 +180,7 @@ def _decorator(
 
 
 def missing_feature(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -200,7 +200,7 @@ def missing_feature(
 
 
 def incomplete_test_app(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -217,7 +217,7 @@ def incomplete_test_app(
 
 
 def irrelevant(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -234,7 +234,7 @@ def irrelevant(
 
 
 def bug(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     *,
@@ -255,7 +255,7 @@ def bug(
     )
 
 
-def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):
+def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):  # noqa: FBT001
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     return partial(
         _decorator,

@@ -38,7 +38,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Remove manual instrumentation from RASP tests
-	rasp.HTTPClient = http.DefaultClient
+	rasp.HTTPClient = &http.Client{Transport: http.DefaultTransport}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "/" is the default route when the others don't match
@@ -606,6 +606,8 @@ func main() {
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+
+	mux.HandleFunc("/ffe", common.FFeEval())
 
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)

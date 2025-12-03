@@ -5,8 +5,7 @@ import json
 import pytest
 
 from utils import bug, features, scenarios, logger
-from utils.parametric._library_client import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
 @scenarios.parametric
@@ -44,7 +43,7 @@ class Test_Crashtracking:
 
         try:
             # container.wait will throw if the application doesn't exit in time
-            test_library._client.container.wait(timeout=10)  # noqa: SLF001
+            test_library.container.wait(timeout=10)
         finally:
             test_agent.set_trace_delay(0)
 
