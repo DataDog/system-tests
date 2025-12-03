@@ -49,7 +49,7 @@ This endpoint returns an HTML page instead of a JSON response. It is used to tes
 
 The response content type must be `text/html`.
 
-A minimal HTML response structure:
+The HTML content **must** be :
 
 ```html
 <!DOCTYPE html>
