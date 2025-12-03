@@ -202,7 +202,6 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
