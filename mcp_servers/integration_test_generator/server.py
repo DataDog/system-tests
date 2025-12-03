@@ -6,16 +6,22 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
+from pathlib import Path
 from typing import Any
 
 # MCP SDK imports
 try:
     from mcp.server import Server
-    from mcp.types import Tool, TextContent
+    from mcp.types import Tool, TextContent, Resource
     import mcp.server.stdio
 except ImportError:
     print("Error: MCP SDK not installed. Install with: pip install mcp")
     exit(1)
+
+# Path to reference test files
+SYSTEM_TESTS_ROOT = Path(__file__).parent.parent.parent
+POSTGRES_TEST_PATH = SYSTEM_TESTS_ROOT / "tests/otel_postgres_metrics_e2e/test_postgres_metrics.py"
+MYSQL_TEST_PATH = SYSTEM_TESTS_ROOT / "tests/otel_mysql_metrics_e2e/test_otel_mysql_metrics.py"
 
 
 # Integration-specific configurations
@@ -260,6 +266,7 @@ async def list_tools() -> list[Tool]:
             name="generate_integration_test",
             description=(
                 "Generate a complete test file for an OTel integration (like Redis, MySQL, Kafka, etc.). "
+                "Uses test_postgres_metrics.py as a reference template to ensure consistency. "
                 "Provides the test file content, utils.py content, and __init__.py content."
             ),
             inputSchema={
@@ -322,6 +329,182 @@ async def list_tools() -> list[Tool]:
             },
         ),
     ]
+
+
+@app.list_resources()
+async def list_resources() -> list[Resource]:
+    """List available reference resources."""
+    resources = []
+    
+    if POSTGRES_TEST_PATH.exists():
+        resources.append(
+            Resource(
+                uri=f"file://{POSTGRES_TEST_PATH}",
+                name="PostgreSQL Metrics Test (Reference)",
+                description="Reference implementation of OTel metrics test. Use this as the gold standard for structure and patterns.",
+                mimeType="text/x-python"
+            )
+        )
+    
+    if MYSQL_TEST_PATH.exists():
+        resources.append(
+            Resource(
+                uri=f"file://{MYSQL_TEST_PATH}",
+                name="MySQL Metrics Test (Reference)",
+                description="MySQL metrics test implementation following PostgreSQL patterns",
+                mimeType="text/x-python"
+            )
+        )
+    
+    # Add OtelMetricsValidator reference
+    validator_path = SYSTEM_TESTS_ROOT / "utils/otel_metrics_validator.py"
+    if validator_path.exists():
+        resources.append(
+            Resource(
+                uri=f"file://{validator_path}",
+                name="OtelMetricsValidator Utility",
+                description="Shared utility for validating OTel metrics. All tests should use this.",
+                mimeType="text/x-python"
+            )
+        )
+    
+    # Add improvements document
+    improvements_path = Path(__file__).parent / "IMPROVEMENTS.md"
+    if improvements_path.exists():
+        resources.append(
+            Resource(
+                uri=f"file://{improvements_path}",
+                name="Integration Test Improvements",
+                description="Design document with improvements and patterns for test generation",
+                mimeType="text/markdown"
+            )
+        )
+    
+    return resources
+
+
+@app.read_resource()
+async def read_resource(uri: str) -> str:
+    """Read a resource file."""
+    # Extract path from file:// URI
+    path = uri.replace("file://", "")
+    path_obj = Path(path)
+    
+    if not path_obj.exists():
+        raise ValueError(f"Resource not found: {uri}")
+    
+    with open(path_obj, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.list_prompts()
+async def list_prompts():
+    """List available prompts."""
+    from mcp.types import Prompt, PromptArgument
+    
+    return [
+        Prompt(
+            name="generate_with_reference",
+            description="Generate a new integration test using PostgreSQL test as reference",
+            arguments=[
+                PromptArgument(
+                    name="integration_name",
+                    description="Name of the integration (e.g., redis, kafka, mongodb)",
+                    required=True
+                ),
+                PromptArgument(
+                    name="metrics_json_file",
+                    description="Name of the metrics JSON file",
+                    required=True
+                ),
+            ]
+        )
+    ]
+
+
+@app.get_prompt()
+async def get_prompt(name: str, arguments: dict[str, str] | None = None):
+    """Get a specific prompt."""
+    from mcp.types import PromptMessage, TextContent as PromptTextContent
+    
+    if name == "generate_with_reference":
+        integration_name = arguments.get("integration_name", "example") if arguments else "example"
+        metrics_json_file = arguments.get("metrics_json_file", "example_metrics.json") if arguments else "example_metrics.json"
+        
+        # Read the PostgreSQL test as reference
+        postgres_test_content = ""
+        if POSTGRES_TEST_PATH.exists():
+            with open(POSTGRES_TEST_PATH, "r", encoding="utf-8") as f:
+                postgres_test_content = f.read()
+        
+        prompt_text = f"""You are generating an OTel integration metrics test for {integration_name}.
+
+CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structure exactly.
+
+## PostgreSQL Test Reference (GOLD STANDARD):
+
+```python
+{postgres_test_content}
+```
+
+## Requirements for {integration_name} test:
+
+1. **Structure**: Follow PostgreSQL test structure EXACTLY:
+   - Three separate test classes (not one big class)
+   - Test_{{Integration}}MetricsCollection
+   - Test_BackendValidity  
+   - Test_Smoke
+
+2. **Use OtelMetricsValidator**: Import and use the shared validator
+   ```python
+   from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
+   ```
+
+3. **Correct Decorators**: 
+   - Use scenario-specific decorator: @scenarios.otel_{integration_name}_metrics_e2e
+
+4. **Real Metrics**: Use actual metrics from {integration_name} receiver
+   - Do NOT invent fake metrics
+
+5. **Correct Credentials**: Use system_tests credentials
+   - User: system_tests_user
+   - Password: system_tests_password
+   - Database: system_tests_dbname
+
+6. **Retry Logic**: Backend queries MUST have:
+   - retries=3
+   - initial_delay_s=0.5
+   - Both "combined" and "native" semantic modes
+
+7. **Smoke Test**: Generate real activity on the container
+   - Access via: scenario.{integration_name}_container
+   - Run actual commands (CREATE, INSERT, SELECT for databases)
+
+8. **Test Pattern**:
+   ```python
+   def test_main(self) -> None:
+       observed_metrics: set[str] = set()
+       expected_metrics = {{...}}
+       
+       for data in interfaces.otel_collector.get_data("/api/v2/series"):
+           # ... collect metrics
+       
+       missing_metrics = expected_metrics - observed_metrics
+       assert not missing_metrics, f"Missing metrics: {{missing_metrics}}"
+   ```
+
+Generate the complete test file for {integration_name} with metrics file {metrics_json_file}.
+"""
+        
+        return PromptMessage(
+            role="user",
+            content=PromptTextContent(
+                type="text",
+                text=prompt_text
+            )
+        )
+    
+    raise ValueError(f"Unknown prompt: {name}")
 
 
 @app.call_tool()
