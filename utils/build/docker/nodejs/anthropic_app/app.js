@@ -16,20 +16,36 @@ app.post('/create', async (req, res) => {
     model,
     messages,
     parameters,
+    stream_as_method,
   } = req.body;
 
-  let response = await anthropic.messages.create({
+  const options = {
     model,
     messages,
     ...parameters,
-  });
+  };
+
+  let response = {};
 
   if (parameters.stream) {
+    response = await anthropic.messages.stream(options);
+
     const chunks = [];
     for await (const chunk of response) {
       chunks.push(chunk);
     }
     response = chunks;
+  } else if (parameters.stream) {
+    delete options.stream;
+    response = await anthropic.messages.create(options);
+
+    const chunks = [];
+    for await (const chunk of response) {
+      chunks.push(chunk);
+    }
+    response = chunks;
+  } else {
+    response = await anthropic.messages.create(options);
   }
 
   res.json({ response });
