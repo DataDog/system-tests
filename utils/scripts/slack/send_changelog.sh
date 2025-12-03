@@ -54,11 +54,11 @@ TEMP_FILE=$(mktemp)
 trap 'rm -f "$TEMP_FILE"' EXIT
 
 # Format the changelog entry for Slack
-# Convert markdown header (###) to bold (*text*)
+# Remove the date header (### YYYY-MM) and PR count lines
 # Convert markdown links to Slack format: [text](url) -> <url|text>
 # Replace leading asterisks with bullet points for Slack list formatting
 # shellcheck disable=SC2001  # sed is appropriate for regex replacement
-FORMATTED_ENTRY=$(echo "$LATEST_ENTRY" | sed 's/^### \(.*\)$/*\1*/' | sed 's/\[\([^]]*\)](\([^)]*\))/<\2|\1>/g' | sed 's/^\* /• /g')
+FORMATTED_ENTRY=$(echo "$LATEST_ENTRY" | sed '/^### [0-9]\{4\}-[0-9]\{2\}/d' | sed '/PRs:/d' | sed 's/\[\([^]]*\)](\([^)]*\))/<\2|\1>/g' | sed 's/^\* /• /g')
 
 # Build JSON payload using Python for proper escaping
 # Pass the formatted entry as an environment variable to avoid shell escaping issues
@@ -75,7 +75,7 @@ message = {
             "type": "header",
             "text": {
                 "type": "plain_text",
-                "text": "📋 Changelog Updated"
+                "text": "📋 Hi! Here are the important changes on system-tests this month:"
             }
         },
         {
