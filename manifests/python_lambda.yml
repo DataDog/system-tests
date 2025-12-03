@@ -223,4 +223,5 @@ tests/:
     test_versions.py:
       Test_Events: v7.112.0
   test_resource_renaming.py: missing_feature
+  test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   test_v1_payloads.py: missing_feature

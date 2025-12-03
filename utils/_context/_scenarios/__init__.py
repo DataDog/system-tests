@@ -1155,18 +1155,6 @@ class _Scenarios:
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )
 
-    rum_injection = EndToEndScenario(
-        "RUM_INJECTION",
-        weblog_env={
-            "DD_RUM_ENABLED": "true",
-            "DD_RUM_APPLICATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            "DD_RUM_CLIENT_TOKEN": "pubaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            "DD_RUM_REMOTE_CONFIGURATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-        },
-        doc="Test RUM injection",
-        scenario_groups=[scenario_groups.all],
-    )
-
 
 scenarios = _Scenarios()
 

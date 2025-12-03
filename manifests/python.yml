@@ -1328,6 +1328,7 @@ tests/:
   test_resource_renaming.py:
     Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
     Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
+  test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0

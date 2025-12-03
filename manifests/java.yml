@@ -2416,6 +2416,10 @@ tests/:
       '*': missing_feature
       spring-boot: v1.47.0
   test_resource_renaming.py: missing_feature
+  test_rum_injection.py:
+    Test_RUM_Injection:
+      '*': incomplete_test_app (Only spring-boot weblog implements /html endpoint)
+      spring-boot: v1.0.0
   test_sampling_rates.py:
     Test_SampleRateFunction:
       '*': v1.49.0

@@ -719,6 +719,7 @@ tests/:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_protobuf.py: missing_feature
   test_resource_renaming.py: missing_feature
+  test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown

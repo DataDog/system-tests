@@ -6,10 +6,9 @@
 
 from html.parser import HTMLParser
 
-from utils import weblog, scenarios, features
+from utils import weblog, features
 
 
-@scenarios.rum_injection
 @features.not_reported
 class Test_RUM_Injection:
     """Basic tests to verify RUM injection is working"""
