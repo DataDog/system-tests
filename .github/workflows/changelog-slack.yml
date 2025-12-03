@@ -19,7 +19,6 @@ jobs:
 
       - name: Send changelog to Slack
         run: |
-          chmod +x utils/scripts/slack/send_changelog.sh
           ./utils/scripts/slack/send_changelog.sh
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
