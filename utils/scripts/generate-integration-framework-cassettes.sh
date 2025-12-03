@@ -5,9 +5,11 @@ if [[ ! " $* " =~ " -L " ]] && [[ ! " $* " =~ " --library " ]]; then
     set -- -L python "$@"
 fi
 
-# Check if --weblog is provided, otherwise default to openai-py@2.0.0
 if [[ ! " $* " =~ " --weblog " ]]; then
-    set -- --weblog openai-py@2.0.0 "$@"
+    echo "Error: --weblog argument is required"
+    echo "Usage: $0 --weblog <framework-name>@<version>"
+    echo "Example: $0 --weblog openai-py@2.0.0"
+    exit 1
 fi
 
 echo "Generating cassettes"

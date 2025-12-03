@@ -18,7 +18,10 @@ from ._docker_fixtures import DockerFixturesScenario
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
-    _required_cassette_generation_api_keys: list[str] = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
+    _required_cassette_generation_api_keys: dict[str, list[str]] = {
+        "openai": ["OPENAI_API_KEY"],
+        "anthropic": ["ANTHROPIC_API_KEY"],
+    }
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(
@@ -57,11 +60,10 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         if config.option.force_dd_trace_debug:
             self.environment["DD_TRACE_DEBUG"] = "true"
 
-        self._check_and_set_api_keys(generate_cassettes=generate_cassettes)
-
         # Handle weblog language name suffix needed for weblog definitions
         # e.g., "openai-py" -> "openai", "openai-js" -> "openai"
         framework_dir = framework.rsplit("-", 1)[0] if "-" in framework else framework
+        self._check_and_set_api_keys(framework=framework_dir, generate_cassettes=generate_cassettes)
 
         self._set_dd_trace_integrations_enabled(library)
 
@@ -102,17 +104,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
 
-    def _check_and_set_api_keys(self, *, generate_cassettes: bool = False) -> None:
-        if generate_cassettes:
-            for key in self._required_cassette_generation_api_keys:
-                api_key = os.getenv(key)
-                if not api_key:
-                    pytest.exit(f"{key} is required to generate cassettes", 1)
-                self.environment[key] = api_key  # type: ignore[assignment]
-        else:
-            for key in self._required_cassette_generation_api_keys:
-                self.environment[key] = "<not-a-real-key>"
-
     @contextlib.contextmanager
     def get_client(
         self,
@@ -134,6 +125,19 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     @property
     def library(self):
         return self._library
+
+    def _check_and_set_api_keys(self, framework: str, *, generate_cassettes: bool = False) -> None:
+        required_api_keys = self._required_cassette_generation_api_keys.get(framework, [])
+
+        if generate_cassettes:
+            for key in required_api_keys:
+                api_key = os.getenv(key)
+                if not api_key:
+                    pytest.exit(f"{key} is required to generate cassettes", 1)
+                self.environment[key] = api_key  # type: ignore[assignment]
+        else:
+            for key in required_api_keys:
+                self.environment[key] = "<not-a-real-key>"
 
     def _set_dd_trace_integrations_enabled(self, library: str) -> None:
         """Set environment variables to disable certain integrations based on the library."""
