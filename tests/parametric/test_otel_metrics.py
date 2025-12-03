@@ -245,6 +245,10 @@ class Test_Otel_Metrics_Configuration_Enabled:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
+    @missing_feature(
+        context.library == "nodejs",
+        reason="Setting DD_METRICS_OTEL_ENABLED to false does not disable metrics collection",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1677,7 +1681,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1689,6 +1692,7 @@ class Test_Otel_Metrics_Host_Name:
     - Resource attributes set through environment variable OTEL_RESOURCE_ATTRIBUTES are preserved
     """
 
+    @missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
     @missing_feature(
         context.library == "dotnet", reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented"
     )
