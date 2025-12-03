@@ -20,11 +20,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
     _required_cassette_generation_api_keys: list[str] = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY"]
 
-    def __init__(
-        self,
-        name: str,
-        doc: str,
-    ) -> None:
+    def __init__(self, name: str, doc: str) -> None:
         super().__init__(
             name,
             doc=doc,

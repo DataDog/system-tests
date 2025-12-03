@@ -40,7 +40,7 @@ def test_agent(
     worker_id: str,
     request: pytest.FixtureRequest,
 ) -> Generator[TestAgentAPI, None, None]:
-    with scenarios.integration_frameworks.get_test_agent_api(  # type: ignore[union-attr]
+    with scenarios.integration_frameworks.get_test_agent_api(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
@@ -58,7 +58,7 @@ def test_client(
 ) -> Generator[FrameworkTestClientApi, None, None]:
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = dict(library_env)
 
-    with scenarios.integration_frameworks.get_client(  # type: ignore[union-attr]
+    with scenarios.integration_frameworks.get_client(
         request=request,
         library_env=library_env,
         worker_id=worker_id,
