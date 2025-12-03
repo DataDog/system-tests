@@ -1,13 +1,19 @@
-import pytest
 import base64
 
+from collections.abc import Generator
 from utils import scenarios, features, logger, irrelevant, context
 from utils.parametric._library_client import LogLevel
 from utils.parametric.spec.trace import find_only_span
 from urllib.parse import urlparse
+
+import pytest
+
+from utils import scenarios, features, logger, irrelevant, context
+from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures.spec.trace import find_only_span
+
 from .conftest import APMLibrary
-from collections.abc import Generator
 
 
 def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
@@ -208,7 +214,6 @@ class Test_FR04_Trace_Span_IDs:
         root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
         trace_id = f"{root_tid}{root['trace_id']:016x}"
         span_id = f"{root['span_id']:016x}"
-
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
         assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
 
@@ -270,9 +275,9 @@ class Test_FR05_Custom_Endpoints:
         with test_library as library:
             library.write_log("test_otlp_custom_endpoint", LogLevel.INFO, "test_logger")
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4320
-        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4320, (
+            f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        )
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "test_logger", "test_otlp_custom_endpoint") is not None
 
@@ -483,9 +488,9 @@ class Test_FR08_Custom_Headers:
         logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
         assert logs_request, f"Expected logs request, got {requests}"
         assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert (
-            logs_request[0]["headers"].get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {logs_request[0]['headers']}"
+        assert logs_request[0]["headers"].get("other-config-value") == "value", (
+            f"Expected other-config-value, got {logs_request[0]['headers']}"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -515,9 +520,9 @@ class Test_FR08_Custom_Headers:
         logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
         assert logs_request, f"Expected logs request, got {requests}"
         assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert (
-            logs_request[0]["headers"].get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {logs_request[0]['headers']}"
+        assert logs_request[0]["headers"].get("other-config-value") == "value", (
+            f"Expected other-config-value, got {logs_request[0]['headers']}"
+        )
 
 
 @features.otel_logs_enabled
@@ -565,9 +570,9 @@ class Test_FR09_Log_Injection:
         log_attrs = find_attributes(log_record)
         for dd_attr in ("service", "env", "version", "span_id", "trace_id"):
             for log_attr in log_attrs:
-                assert (
-                    dd_attr not in log_attr
-                ), f"Found {dd_attr} in log attributes: {log_attrs}, should not duplicate resource attributes"
+                assert dd_attr not in log_attr, (
+                    f"Found {dd_attr} in log attributes: {log_attrs}, should not duplicate resource attributes"
+                )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -638,12 +643,12 @@ class Test_FR10_Timeout_Configuration:
         assert isinstance(exporter_timeout, dict)
         assert isinstance(exporter_logs_timeout, dict)
 
-        assert (
-            exporter_timeout.get("value") == 10000
-        ), f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
-        assert (
-            exporter_logs_timeout.get("value") == 10000
-        ), f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
+        assert exporter_timeout.get("value") == 10000, (
+            f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
+        )
+        assert exporter_logs_timeout.get("value") == 10000, (
+            f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
+        )
 
 
 @features.otel_logs_enabled
@@ -697,12 +702,12 @@ class Test_FR11_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
 
-            assert isinstance(
-                config, dict
-            ), f"No configuration found for '{expected_env}', configurations: {configurations_by_name}"
-            assert (
-                str(config.get("value", "")).lower() == expected_value.lower()
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert isinstance(config, dict), (
+                f"No configuration found for '{expected_env}', configurations: {configurations_by_name}"
+            )
+            assert str(config.get("value", "")).lower() == expected_value.lower(), (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
@@ -751,9 +756,9 @@ class Test_FR11_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert (
-                config.get("value") == expected_value
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert config.get("value") == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         "library_env",

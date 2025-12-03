@@ -132,23 +132,18 @@ class DockerSSIScenario(Scenario):
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
 
+        self.warmups.append(self._create_network)
+        self.warmups.append(self._start_containers)
+
+        if "GITLAB_CI" in os.environ:
+            self.warmups.append(self.fix_gitlab_network)
+
     def _create_network(self):
         self._network = create_network()
 
     def _start_containers(self):
         for container in self._required_containers:
             container.start(self._network)
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        warmups.append(self._create_network)
-        warmups.append(self._start_containers)
-
-        if "GITLAB_CI" in os.environ:
-            warmups.append(self.fix_gitlab_network)
-
-        return warmups
 
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
@@ -162,12 +157,7 @@ class DockerSSIScenario(Scenario):
 
     def close_targets(self):
         for container in reversed(self._required_containers):
-            try:
-                container.remove()
-                logger.info(f"Removing container {container}")
-            except Exception as e:
-                logger.exception(f"Failed to remove container {container}")
-                raise ContainerRemovalError(f"Failed to remove container {container}") from e
+            container.remove()
         # TODO push images only if all tests pass
         # TODO At this point, tests are not yet executed. There is not official hook in the Scenario class to do that,
         # TODO we can add one : pytest_sessionstart, it will contains the test result.

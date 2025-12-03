@@ -21,7 +21,7 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Capabilities: v2.23.0.dev
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Negative: v2.21.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Processor_Override: v2.21.0  # auto activation: might not be the earliest working version
@@ -225,6 +225,7 @@ tests/:
         Test_API10_all: missing_feature
         Test_API10_downstream_request_tag: missing_feature
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -346,10 +347,10 @@ tests/:
         Test_Blocking_strip_response_headers: v1.13.0
         Test_CustomBlockingResponse: v1.15.0
       test_blocking_security_response_id.py:
-        Test_SecurityResponseId_Custom_Redirect: missing_feature
-        Test_SecurityResponseId_HTML_Response: missing_feature
-        Test_SecurityResponseId_In_Span_Triggers: missing_feature
-        Test_SecurityResponseId_JSON_Response: missing_feature
+        Test_SecurityResponseId_Custom_Redirect: v2.23.0.dev
+        Test_SecurityResponseId_HTML_Response: v2.23.0.dev
+        Test_SecurityResponseId_In_Span_Triggers: v2.23.0.dev
+        Test_SecurityResponseId_JSON_Response: v2.23.0.dev
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
@@ -800,7 +801,7 @@ tests/:
       Test_Stable_Configuration_Origin: v2.18.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
-      Test_TelemetrySSIConfigs: missing_feature
+      Test_TelemetrySSIConfigs: v2.18.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v2.0.0
@@ -879,6 +880,10 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events: missing_feature
+    Test_FFE_Exposure_Events_Empty: missing_feature
+    Test_FFE_Exposure_Events_Errors: missing_feature
+    Test_FFE_RC_Down_From_Start: missing_feature
+    Test_FFE_RC_Unavailable: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       "*": missing_feature

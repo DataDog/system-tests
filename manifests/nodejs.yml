@@ -59,6 +59,7 @@ refs:
   - &ref_5_52_0 '>=5.52.0'
   - &ref_5_54_0 '>=5.54.0'
   - &ref_5_55_0 '>=5.55.0'
+  - &ref_5_55_0_5_78_0 '5.55.0 - 5.78.0'
   - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
   - &ref_5_59_0 '>=5.59.0'
@@ -74,6 +75,8 @@ refs:
   - &ref_5_75_0 '>=5.75.0'
   - &ref_5_76_0 '>=5.76.0'
   - &ref_5_77_0 '>=5.77.0'
+  - &ref_5_79_0 '>=5.79.0'
+  - &ref_5_80_0 '>=5.80.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -514,13 +517,14 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
-          fastify: flaky (APPSEC-58724)
+          fastify: *ref_5_61_0
           nextjs: missing_feature
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
         Test_API10_downstream_request_tag: missing_feature
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -1086,10 +1090,10 @@ tests/:
       Test_RuntimeActivation: *ref_3_9_0
       Test_RuntimeDeactivation: *ref_3_9_0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
-      TestServiceActivationEnvVarMetric: *ref_5_55_0
-      TestServiceActivationRemoteConfigMetric: *ref_5_55_0
-      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: *ref_5_55_0  # real version unknown
+      TestServiceActivationEnvVarMetric: *ref_5_55_0_5_78_0
+      TestServiceActivationRemoteConfigMetric: *ref_5_55_0_5_78_0
+      TestServiceActivationRemoteConfigurationConfigMetric: *ref_5_79_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
@@ -1154,6 +1158,18 @@ tests/:
       Test_Debugger_Telemetry:
         '*': *ref_5_39_0
         nextjs: irrelevant
+  integration_frameworks/:
+    llm/:
+      openai/:
+        test_openai_apm.py:
+          TestOpenAiApmChatCompletions: *ref_5_76_0
+          TestOpenAiApmCompletions: *ref_5_76_0
+          TestOpenAiApmEmbeddings: *ref_5_76_0
+          TestOpenAiApmResponses: *ref_5_76_0
+        test_openai_llmobs.py:
+          TestOpenAiEmbeddingInteractions: *ref_5_80_0
+          TestOpenAiLlmInteractions: *ref_5_80_0
+          TestOpenAiPromptTracking: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1372,7 +1388,7 @@ tests/:
       Test_Stable_Configuration_Origin: *ref_5_41_0
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
-      Test_TelemetrySSIConfigs: missing_feature
+      Test_TelemetrySSIConfigs: *ref_5_59_0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown
@@ -1461,6 +1477,18 @@ tests/:
       nextjs: bug (APMAPI-939)  # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_Exposure_Events_Empty:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_Exposure_Events_Errors:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_RC_Down_From_Start:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_RC_Unavailable:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
   test_graphql.py:

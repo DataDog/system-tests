@@ -4,7 +4,7 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
 
 @scenarios.trace_propagation_style_w3c

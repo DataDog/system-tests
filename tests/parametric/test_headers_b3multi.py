@@ -1,8 +1,8 @@
 import pytest
 
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import span_has_no_parent
+from utils.docker_fixtures.spec.trace import find_only_span
 from utils import missing_feature, context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -36,7 +36,7 @@ def enable_case_insensitive_b3multi() -> pytest.MarkDecorator:
     return parametrize("library_env", [env1, env2])
 
 
-@features.b3_headers_propagation
+@features.b3multi_headers_propagation
 @scenarios.parametric
 class Test_Headers_B3multi:
     @enable_b3multi()
