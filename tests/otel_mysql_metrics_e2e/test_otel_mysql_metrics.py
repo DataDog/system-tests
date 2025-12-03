@@ -1,153 +1,149 @@
-# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
-# This product includes software developed at Datadog (https://www.datadoghq.com/).
-# Copyright 2024 Datadog, Inc.
-
-import json
-import os
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from utils import context, weblog, interfaces, scenarios, features, logger
+from utils import scenarios, interfaces, logger, features, context
+from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
+
+if TYPE_CHECKING:
+    from utils._context._scenarios.otel_collector import OtelCollectorScenario
 
 
-def load_expected_metrics() -> dict[str, dict]:
-    """Load the expected MySQL metrics from the mysql_metrics.json file."""
-    metrics_file = Path(__file__).parent / "mysql_metrics.json"
-    with open(metrics_file, "r") as f:
-        return json.load(f)
+# Load MySQL metrics specification
+# Exclude metrics that require specific configurations or sustained activity
+_EXCLUDED_MYSQL_METRICS: set[str] = {
+    # Add any metrics that need to be excluded here
+    # Example: metrics that require replication, specific storage engines, etc.
+}
+
+mysql_metrics = OtelMetricsValidator.load_metrics_from_file(
+    metrics_file=Path(__file__).parent / "mysql_metrics.json",
+    excluded_metrics=_EXCLUDED_MYSQL_METRICS,
+)
+
+# Initialize validator with MySQL metrics
+_metrics_validator = OtelMetricsValidator(mysql_metrics)
 
 
 @scenarios.otel_mysql_metrics_e2e
 @features.otel_mysql_support
-class Test_OTelMySQLMetricsE2E:
-    """Validate MySQL metrics collection via OpenTelemetry instrumentation.
+class Test_MySQLMetricsCollection:
+    def test_mysql_metrics_received_by_collector(self):
+        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+        metrics_batch = get_collector_metrics_from_scenario(scenario)
 
-    This test ensures that MySQL metrics are properly collected, exported via OTLP,
-    and ingested into the Datadog backend. It validates metrics through three paths:
-    1. Via Datadog Agent
-    2. Via backend OTLP intake endpoint
-    3. Via OTel Collector
+        _, _, _validation_results, failed_validations = _metrics_validator.process_and_validate_metrics(metrics_batch)
+
+        assert len(failed_validations) == 0, (
+            f"Error: {len(failed_validations)} metrics failed the expected behavior!\n"
+            f"\n\nFailed validations:\n" + "\n".join(failed_validations)
+        )
+
+
+@scenarios.otel_mysql_metrics_e2e
+@features.otel_mysql_support
+class Test_BackendValidity:
+    def test_mysql_metrics_received_by_backend(self):
+        """Test metrics were actually queried / received by the backend"""
+        metrics_to_validate = list(mysql_metrics.keys())
+        query_tags = {"rid": "otel-mysql-metrics", "host": "collector"}
+
+        time.sleep(15)
+        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
+            metric_names=metrics_to_validate,
+            query_tags=query_tags,
+            lookback_seconds=300,
+            retries=3,
+            initial_delay_s=0.5,
+            semantic_mode="combined",
+        )
+
+        if failed_metrics:
+            logger.error(f"\n❌ Failed validations for semantic mode combined: {failed_metrics}")
+
+        # test with native mode
+        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
+            metric_names=metrics_to_validate,
+            query_tags=query_tags,
+            lookback_seconds=300,
+            retries=3,
+            initial_delay_s=0.5,
+            semantic_mode="native",
+        )
+
+        if failed_metrics:
+            logger.error(f"\n❌ Failed validations for semantic mode native: {failed_metrics}")
+
+
+@scenarios.otel_mysql_metrics_e2e
+@features.otel_mysql_support
+class Test_Smoke:
+    """MySQL-specific smoke test to generate database activity.
+    This test validates that basic MySQL metrics are collected after database operations.
     """
 
-    def setup_metrics_collected(self):
-        """Initialize test by triggering MySQL operations and capturing timestamp."""
-        self.start = int(time.time())
-        # Trigger MySQL operations through the weblog
-        self.r = weblog.get("/db", params={"service": "mysql", "operation": "select"}, timeout=20)
-        self.expected_metrics = load_expected_metrics()
-        logger.info(f"Loaded {len(self.expected_metrics)} expected MySQL metrics")
+    def setup_main(self) -> None:
+        """When the MySQL container spins up, we need some activity:
+        - create a table
+        - insert some data
+        - run queries
+        """
+        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+        container = scenario.mysql_container
 
-    def test_metrics_collected(self):
-        """Verify that MySQL metrics are collected and sent to the backend."""
-        end = int(time.time())
-        rid = self.r.get_rid().lower()
+        # Create table
+        r = container.exec_run(
+            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
+            '"CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY AUTO_INCREMENT, value VARCHAR(255));"'
+        )
+        logger.info(f"Create table output: {r.output}")
 
-        # Count how many metrics we successfully found
-        metrics_found = 0
-        metrics_not_found = []
+        # Insert data
+        r = container.exec_run(
+            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
+            '"INSERT INTO test_table (value) VALUES (\'test1\'), (\'test2\'), (\'test3\');"'
+        )
+        logger.info(f"Insert data output: {r.output}")
 
-        for metric_name, metric_info in self.expected_metrics.items():
-            logger.info(f"Checking metric: {metric_name} (type: {metric_info['data_type']})")
+        # Run a SELECT query
+        r = container.exec_run(
+            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
+            '"SELECT * FROM test_table;"'
+        )
+        logger.info(f"Select query output: {r.output}")
 
-            try:
-                # Try to query the metric from the backend via Agent
-                metric_data = interfaces.backend.query_timeseries(
-                    start=self.start,
-                    end=end,
-                    rid=rid,
-                    metric=metric_name,
-                    dd_api_key=os.environ.get("DD_API_KEY"),
-                    dd_app_key=os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY")),
-                )
+        # Run a COUNT query
+        r = container.exec_run(
+            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
+            '"SELECT COUNT(*) FROM test_table;"'
+        )
+        logger.info(f"Count query output: {r.output}")
 
-                if metric_data and len(metric_data.get("series", [])) > 0:
-                    metrics_found += 1
-                    logger.debug(f"✓ Found metric: {metric_name}")
-                else:
-                    metrics_not_found.append(metric_name)
-                    logger.debug(f"✗ Metric not found: {metric_name}")
+    def test_main(self) -> None:
+        observed_metrics: set[str] = set()
 
-            except Exception as e:
-                logger.warning(f"Error querying metric {metric_name}: {e}")
-                metrics_not_found.append(metric_name)
-
-        logger.info(f"Metrics found: {metrics_found}/{len(self.expected_metrics)}")
-        if metrics_not_found:
-            logger.warning(f"Metrics not found: {', '.join(metrics_not_found[:10])}")
-            if len(metrics_not_found) > 10:
-                logger.warning(f"... and {len(metrics_not_found) - 10} more")
-
-        # Assert that at least some core metrics are present
-        # We don't require 100% because some metrics may only appear under specific conditions
-        assert metrics_found > 0, "No MySQL metrics were found in the backend"
-
-        # Check for some critical metrics that should always be present
-        critical_metrics = [
+        expected_metrics = {
+            "mysql.buffer_pool.usage",
             "mysql.connection.count",
+            "mysql.connection.errors",
             "mysql.query.count",
             "mysql.threads",
-        ]
+        }
 
-        for critical_metric in critical_metrics:
-            if critical_metric in self.expected_metrics:
-                assert critical_metric not in metrics_not_found, f"Critical metric '{critical_metric}' was not found"
+        for data in interfaces.otel_collector.get_data("/api/v2/series"):
+            logger.info(f"In request {data['log_filename']}")
+            payload = data["request"]["content"]
+            for serie in payload["series"]:
+                metric = serie["metric"]
+                observed_metrics.add(metric)
+                logger.info(f"    {metric} {serie['points']}")
 
-    def setup_metrics_via_collector(self):
-        """Initialize test by triggering MySQL operations and capturing timestamp."""
-        self.start = int(time.time())
-        # Trigger MySQL operations through the weblog
-        self.r = weblog.get("/db", params={"service": "mysql", "operation": "select"}, timeout=20)
-        self.expected_metrics = load_expected_metrics()
-        logger.info(f"Loaded {len(self.expected_metrics)} expected MySQL metrics")
+        all_metric_has_be_seen = True
+        for metric in expected_metrics:
+            if metric not in observed_metrics:
+                logger.error(f"Metric {metric} hasn't been observed")
+                all_metric_has_be_seen = False
+            else:
+                logger.info(f"Metric {metric} has been observed")
 
-    def test_metrics_via_collector(self):
-        """Verify that MySQL metrics are properly sent via OTel Collector."""
-        end = int(time.time())
-        rid = self.r.get_rid().lower()
-
-        # Sample a few key metrics to validate via collector
-        sample_metrics = [
-            "mysql.connection.count",
-            "mysql.query.count",
-            "mysql.buffer_pool.usage",
-        ]
-
-        metrics_found_collector = 0
-
-        for metric_name in sample_metrics:
-            if metric_name not in self.expected_metrics:
-                continue
-
-            try:
-                metric_data = interfaces.backend.query_timeseries(
-                    start=self.start,
-                    end=end,
-                    rid=rid,
-                    metric=metric_name,
-                    dd_api_key=os.environ.get("DD_API_KEY_3"),
-                    dd_app_key=os.environ.get("DD_APP_KEY_3"),
-                )
-
-                if metric_data and len(metric_data.get("series", [])) > 0:
-                    metrics_found_collector += 1
-                    logger.debug(f"✓ Found metric via collector: {metric_name}")
-
-            except ValueError:
-                logger.warning(f"Backend does not provide metric {metric_name} via collector")
-            except Exception as e:
-                logger.warning(f"Error querying metric {metric_name} via collector: {e}")
-
-        # We expect at least some metrics to be available via collector
-        logger.info(f"Metrics found via collector: {metrics_found_collector}/{len(sample_metrics)}")
-
-    def setup_metric_data_types(self):
-        """Load expected metrics for validation."""
-        self.expected_metrics = load_expected_metrics()
-
-    def test_metric_data_types(self):
-        """Verify that metrics have the correct data types (Gauge vs Sum)."""
-        # This is a metadata validation test
-        for metric_name, metric_info in self.expected_metrics.items():
-            data_type = metric_info.get("data_type")
-            assert data_type in ["Gauge", "Sum"], f"Metric {metric_name} has invalid data_type: {data_type}"
-            logger.debug(f"Metric {metric_name}: data_type={data_type} ✓")
+        # assert all_metric_has_be_seen
