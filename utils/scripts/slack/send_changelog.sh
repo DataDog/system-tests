@@ -56,8 +56,9 @@ trap 'rm -f "$TEMP_FILE"' EXIT
 # Format the changelog entry for Slack
 # Convert markdown header (###) to bold (*text*)
 # Convert markdown links to Slack format: [text](url) -> <url|text>
+# Replace leading asterisks with bullet points for Slack list formatting
 # shellcheck disable=SC2001  # sed is appropriate for regex replacement
-FORMATTED_ENTRY=$(echo "$LATEST_ENTRY" | sed 's/^### \(.*\)$/*\1*/' | sed 's/\[\([^]]*\)](\([^)]*\))/<\2|\1>/g')
+FORMATTED_ENTRY=$(echo "$LATEST_ENTRY" | sed 's/^### \(.*\)$/*\1*/' | sed 's/\[\([^]]*\)](\([^)]*\))/<\2|\1>/g' | sed 's/^\* /• /g')
 
 # Build JSON payload using Python for proper escaping
 # Pass the formatted entry as an environment variable to avoid shell escaping issues
