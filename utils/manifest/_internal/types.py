@@ -22,7 +22,7 @@ class SkipDeclaration:
         return self.value == value.value and self.details == value.details
 
     def __str__(self) -> str:
-        return f"{self.value} ({self.details})"
+        return f"{self.value} ({self.details})" if self.details else f"{self.value}"
 
     def __hash__(self) -> int:
         return hash(str(self))

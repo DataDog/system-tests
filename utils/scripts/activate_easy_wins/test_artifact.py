@@ -1,3 +1,11 @@
+import requests
+import zipfile
+import os
+from tqdm import tqdm
+from .types import Context
+import json
+
+
 def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> None:
     headers = {
         "Authorization": f"Bearer {token}",
