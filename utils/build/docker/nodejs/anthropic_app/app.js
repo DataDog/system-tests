@@ -12,13 +12,15 @@ const anthropic = new Anthropic({
 });
 
 app.post('/create', async (req, res) => {
-  const { model, messages, parameters } = req.body;
+  const { model, messages, parameters, extra_headers } = req.body;
+
+  const httpOptions = extra_headers ? { headers: extra_headers } : null;
 
   let response = await anthropic.messages.create({
     model,
     messages,
     ...parameters,
-  });
+  }, httpOptions);
 
   if (parameters.stream) {
     const chunks = [];

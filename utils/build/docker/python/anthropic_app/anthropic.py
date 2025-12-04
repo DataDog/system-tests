@@ -23,6 +23,7 @@ class CreateRequest(BaseModel):
     model: str
     messages: list[dict]
     parameters: dict
+    extra_headers: Optional[dict]
 
 
 StreamRequest = CreateRequest
