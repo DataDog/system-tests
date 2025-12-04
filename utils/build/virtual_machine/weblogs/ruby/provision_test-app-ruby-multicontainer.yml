@@ -22,6 +22,8 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_0
           - name: copy-ruby2_7-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_2_7
+          - name: copy-ruby2_6-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_2_6
           - name: copy-reverseproxy-dockerfile
             local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.reverseproxy
           - name: copy-reverseproxy-conf
