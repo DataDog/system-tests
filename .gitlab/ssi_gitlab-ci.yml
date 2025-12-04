@@ -182,7 +182,7 @@ ssi_tests:
         TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
         ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
           --push-tag ${PRIVATE_DOCKER_REGISTRY}/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
-          --docker-platform linux/arm64,linux/amd64
+          --docker-platform linux/amd64
       else
         TAG_NAME="latest"
       fi
