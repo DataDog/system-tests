@@ -8,7 +8,7 @@ from .utils import BaseAnthropicTest
 
 @features.apm_anthropic_messages
 @scenarios.integration_frameworks
-class TestAnthropicApmMessagesCreate(BaseAnthropicTest):
+class TestAnthropicApmMessages(BaseAnthropicTest):
     @pytest.mark.parametrize("stream", [True, False])
     def test_create(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):

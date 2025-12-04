@@ -918,7 +918,9 @@ tests/:
     llm/:
       anthropic/:
         test_anthropic_apm.py:
-          TestAnthropicApmMessagesCreate: v3.16.0
+          TestAnthropicApmMessages: v3.16.0
+        test_anthropic_llmobs.py:
+          TestAnthropicLlmObsMessages: v3.16.0
       openai/:
         test_openai_apm.py:
           TestOpenAiApmChatCompletions: v3.13.0
