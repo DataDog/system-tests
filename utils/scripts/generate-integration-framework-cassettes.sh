@@ -16,9 +16,6 @@ echo "Generating cassettes"
 echo "⚠️  This will make real API calls"
 echo ""
 
-# Run tests - tests will be marked as xfail so pass/fail doesn't affect exit code
-# All arguments are passed through
-# TODO: this script needs to be updated to take in the framework name for the correct scenarios
 ./run.sh INTEGRATION_FRAMEWORKS \
     --generate-cassettes \
     "$@" \

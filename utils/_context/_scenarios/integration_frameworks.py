@@ -44,7 +44,6 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         if not weblog:
             pytest.exit("No framework specified, please set -W option", 1)
 
-        # TODO: can we turn the dockerfiles into base dockerfiles and just set a couple variables per framework?
         if "@" not in weblog:
             pytest.exit(
                 f"No version specified for {weblog}, please use the format {weblog}@<version>.\n"
