@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 from utils import weblog, features
 
 
-@features.not_reported
+@features.rum_injection
 class Test_RUM_Injection:
     """Basic tests to verify RUM injection is working"""
 
@@ -25,6 +25,7 @@ class Test_RUM_Injection:
 
         # Validate HTML is well-formed
         assert _is_valid_html(html), "HTML is malformed"
+
 
         # Validate RUM SDK script is present (ignoring version number)
         assert "https://www.datadoghq-browser-agent.com/datadog-rum-v" in html, "RUM SDK script not found"
