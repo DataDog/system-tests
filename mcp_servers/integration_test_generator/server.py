@@ -6,6 +6,7 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
+from operator import index
 from pathlib import Path
 from typing import Any
 import requests
@@ -23,6 +24,8 @@ try:
 except ImportError:
     print("Error: MCP SDK not installed. Install with: pip install mcp")
     exit(1)
+
+METRIC_TYPES = {"sum", "gauge"}
 
 # Path to reference test files
 SYSTEM_TESTS_ROOT = Path(__file__).parent.parent.parent
@@ -165,6 +168,88 @@ def generate_metrics_file(integration_name: str) -> str:
 
     return metric_template
 
+def generate_metrics_file(integration_name: str) -> str:
+    """
+    Get info about the latest otel-collector-contrib release.
+    Metrics are defined in the metadata.yaml file which is provided in  response.
+    We need to get the metrics from the metadata.yaml file.
+    We can do this by parsing the yaml file and getting the metrics.
+    We can then return in the following format: 
+    {
+        "<metric_name>": {
+            "data_type": "<data_type>",
+            "description": "<metric_description>"
+        },
+    }
+    
+    """
+    url = "https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib/releases"
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+    }
+
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+
+    releases = response.json()  # list[dict]
+    if not releases:
+        return "No releases found for opentelemetry-collector-contrib."
+
+    latest = releases[0]
+    
+    metaDataUrl = f"https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib/contents/receiver/{integration_name.lower()}receiver/metadata.yaml?ref={latest.get('tag_name')}"
+
+  
+    response = requests.get(metaDataUrl, headers=headers)
+
+
+    if response.status_code != 200:
+        return f"Failed to fetch metadata.yaml for {integration_name}."
+    
+    metadata_content = response.json().get("content")
+    if not metadata_content:
+        return f"No content found in metadata.yaml."
+
+    # The content is base64-encoded per GitHub API
+    import base64
+    try:
+        decoded_yaml = base64.b64decode(metadata_content).decode("utf-8")
+    except Exception as e:
+        return f"Error decoding metadata.yaml content: {e}"
+
+    # Parse YAML to get metrics info
+    try:
+        import yaml
+        yaml_data = yaml.safe_load(decoded_yaml)
+    except Exception as e:
+        return f"Error parsing YAML: {e}"
+
+    metric_template = {}
+    metrics_dict = yaml_data.get("metrics", {})
+    for metric_name, metric_info in metrics_dict.items():
+        
+        
+        metric_type = set(metric_info.keys()) & METRIC_TYPES
+        metric_template[metric_name] = {
+            "data_type": metric_type.pop() if metric_type else None,
+            "description": metric_info.get("description", "")
+        }
+
+    # Return the dict as pretty-printed JSON
+    result_json = json.dumps(metric_template, indent=2)
+    
+    metric_file_name = f"{integration_name}_metrics.json"
+    metric_file_path = SYSTEM_TESTS_ROOT / f"tests/otel_{integration_name}_metrics_e2e/{metric_file_name}"
+    if (metric_file_path.exists()):
+        return "There is already a metric file created. Please delete and try again"
+    else:
+        # Create the parent directory if it doesn't exist
+        metric_file_path.parent.mkdir(parents=True, exist_ok=True)
+        f = open(metric_file_path, "x")
+        f.write(result_json)
+
+    return metric_template
 
 def generate_init_file() -> str:
     """Generate __init__.py file."""
@@ -223,31 +308,40 @@ async def list_tools() -> list[Tool]:
                 "properties": {},
             },
         ),
-        Tool(
-            name="generate_metrics_json_template",
-            description="Generate a template metrics JSON file structure",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "integration_name": {
-                        "type": "string",
-                        "description": "Name of the integration",
-                    },
-                    "sample_metrics": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "List of sample metric names",
-                    },
-                },
-                "required": ["integration_name", "sample_metrics"],
-            },
-        ),
+        # Tool(
+        #     name="generate_metrics_json_template",
+        #     description="Generate a template metrics JSON file structure",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "integration_name": {
+        #                 "type": "string",
+        #                 "description": "Name of the integration",
+        #             },
+        #             "sample_metrics": {
+        #                 "type": "array",
+        #                 "items": {"type": "string"},
+        #                 "description": "List of sample metric names",
+        #             },
+        #         },
+        #         "required": ["integration_name", "sample_metrics"],
+        #     },
+        # ),
         Tool(
             name="get_shared_utility_info",
             description="Get information about the shared OtelMetricsValidator utility",
             inputSchema={
                 "type": "object",
                 "properties": {},
+            },
+        ),
+        Tool(
+            name="generate_metrics_json",
+            description="Generates a metric file for a particular openTelemetry receiver",
+            inputSchema={
+                "type": "object",
+                "properties": {"integration_name": {"type": "string"}},
+                "required": ["integration_name"],
             },
         ),
     ]
@@ -479,24 +573,24 @@ IMPORTANT: The smoke test now follows the instructions from prompt_template.py:
         }
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
-    if name == "generate_metrics_json_template":
-        integration_name = arguments["integration_name"]
-        sample_metrics = arguments["sample_metrics"]
+    # if name == "generate_metrics_json_template":
+    #     integration_name = arguments["integration_name"]
+    #     sample_metrics = arguments["sample_metrics"]
 
-        metrics_template = {}
-        for metric_name in sample_metrics:
-            metrics_template[metric_name] = {
-                "data_type": "Sum",  # or "Gauge"
-                "description": f"Description for {metric_name}",
-            }
+    #     metrics_template = {}
+    #     for metric_name in sample_metrics:
+    #         metrics_template[metric_name] = {
+    #             "data_type": "Sum",  # or "Gauge"
+    #             "description": f"Description for {metric_name}",
+    #         }
 
-        result = {
-            "filename": f"{integration_name.lower()}_metrics.json",
-            "content": metrics_template,
-            "note": "Update data_type to 'Sum' or 'Gauge' and provide accurate descriptions",
-        }
+    #     result = {
+    #         "filename": f"{integration_name.lower()}_metrics.json",
+    #         "content": metrics_template,
+    #         "note": "Update data_type to 'Sum' or 'Gauge' and provide accurate descriptions",
+    #     }
 
-        return [TextContent(type="text", text=json.dumps(result, indent=2))]
+    #     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
     if name == "get_shared_utility_info":
         result = {
@@ -550,6 +644,14 @@ _, _, results, failures = validator.process_and_validate_metrics(metrics_batch)
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
+    if name == "generate_metrics_json":
+        integration_name = arguments["integration_name"]
+        result = generate_metrics_file(integration_name)
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(result, indent=2)
+        )]
     raise ValueError(f"Unknown tool: {name}")
 
 
