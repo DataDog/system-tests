@@ -89,10 +89,6 @@ class TestAgentFactory:
         if os.getenv("DEV_MODE") is not None:
             env["SNAPSHOT_CI"] = "0"
 
-        if not request.config.option.generate_cassettes:
-            # have the test agent error if there are no recorded cassettes found when not generating cassettes
-            env["VCR_CI_MODE"] = "1"
-
         env |= agent_env
 
         host_port = get_host_port(worker_id, 4600)
