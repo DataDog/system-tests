@@ -20,6 +20,10 @@
       {
         "version_id": "JAVA_21_AMZN",
         "version": "21.0.9-amzn"
+      },
+      {
+        "version_id": "JAVA_25_ORACLE",
+        "version": "25.0.1-oracle"
       }
     ],
     "nodejs": [
