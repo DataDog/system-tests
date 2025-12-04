@@ -116,7 +116,8 @@ class DockerScenario(Scenario):
             self._supporting_containers.append(RabbitMqContainer())
 
         if include_mysql_db:
-            self._supporting_containers.append(MySqlContainer())
+            self.mysql_container = MySqlContainer()
+            self._supporting_containers.append(self.mysql_container)
 
         if include_sqlserver:
             self._supporting_containers.append(MsSqlServerContainer())

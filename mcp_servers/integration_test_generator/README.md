@@ -8,10 +8,10 @@ This MCP server helps generate OTel integration metric test files similar to `te
   - `Test_<Integration>MetricsCollection` - validates metrics received by collector
   - `Test_BackendValidity` - validates metrics received by backend
   - `Test_Smoke` - generates integration-specific activity and validates basic metrics
-  
+
 - **Uses shared utilities**:
   - All tests use the shared `utils/otel_metrics_validator.py`
-  
+
 - **Generates supporting files**:
   - `__init__.py`
   - Template for metrics JSON file
@@ -153,7 +153,7 @@ def setup_main(self) -> None:
     """When the container spins up, we need some activity."""
     scenario: OtelCollectorScenario = context.scenario
     container = scenario.redis_container
-    
+
     # Customize these operations for your integration
     r = container.exec_run("redis-cli SET test_key test_value")
     logger.info(r.output)
@@ -198,7 +198,7 @@ The generator will create:
 1. Check the configuration file path is correct
 2. Ensure the Python path in configuration matches your system
 3. Restart Cursor/Claude Desktop after configuration changes
-4. Check logs: 
+4. Check logs:
    - Cursor: Developer Tools → Console
    - Claude Desktop: Console logs
 

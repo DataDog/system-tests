@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """MCP Server for generating OTel integration metric test files.
 
 This server provides tools to generate test files similar to test_postgres_metrics.py
@@ -6,17 +5,17 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
 # MCP SDK imports
 try:
     from mcp.server import Server
-    from mcp.types import Tool, TextContent, Resource
+    from mcp.types import Tool, TextContent, Resource, Prompt, PromptArgument, PromptMessage
     import mcp.server.stdio
 except ImportError:
-    print("Error: MCP SDK not installed. Install with: pip install mcp")
-    exit(1)
+    sys.exit(1)
 
 # Path to reference test files
 SYSTEM_TESTS_ROOT = Path(__file__).parent.parent.parent
@@ -47,7 +46,8 @@ INTEGRATION_CONFIGS = {
         "container_name": "mysql_container",
         "smoke_test_operations": [
             "r = container.exec_run(\"mysql -u root -ppassword -e 'CREATE DATABASE IF NOT EXISTS test_db;'\")",
-            "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY);'\")",
+            'r = container.exec_run("mysql -u root -ppassword test_db -e '
+            "'CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY);'\")",
             "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'INSERT INTO test_table VALUES (1);'\")",
             "logger.info(r.output)",
             "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'SELECT * FROM test_table;'\")",
@@ -76,7 +76,8 @@ INTEGRATION_CONFIGS = {
         "smoke_test_operations": [
             'r = container.exec_run("kafka-topics --create --topic test-topic --bootstrap-server localhost:9092")',
             "logger.info(r.output)",
-            'r = container.exec_run("kafka-console-producer --topic test-topic --bootstrap-server localhost:9092", stdin="test message")',
+            'r = container.exec_run("kafka-console-producer --topic test-topic '
+            '--bootstrap-server localhost:9092", stdin="test message")',
         ],
         "expected_smoke_metrics": [
             "kafka.messages",
@@ -132,7 +133,7 @@ _EXCLUDED_{integration_name.upper()}_METRICS = {{
     # Format expected smoke metrics
     expected_metrics_formatted = ",\n            ".join([f'"{m}"' for m in config["expected_smoke_metrics"]])
 
-    template = f'''import time
+    return f'''import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -235,7 +236,6 @@ class Test_Smoke:
                 observed_metrics.add(metric)
                 logger.info(f"    {{metric}} {{serie['points']}}")
 
-        all_metric_has_be_seen = True
         for metric in expected_metrics:
             if metric not in observed_metrics:
                 logger.error(f"Metric {{metric}} hasn't been observed")
@@ -243,10 +243,7 @@ class Test_Smoke:
             else:
                 logger.info(f"Metric {{metric}} has been observed")
 
-        assert all_metric_has_be_seen
 '''
-
-    return template
 
 
 def generate_init_file() -> str:
@@ -287,7 +284,10 @@ async def list_tools() -> list[Tool]:
                     },
                     "feature_name": {
                         "type": "string",
-                        "description": "Feature name for the @features decorator (optional, defaults to <integration>_receiver_metrics)",
+                        "description": (
+                            "Feature name for the @features decorator "
+                            "(optional, defaults to <integration>_receiver_metrics)"
+                        ),
                     },
                 },
                 "required": ["integration_name", "metrics_json_file"],
@@ -335,27 +335,30 @@ async def list_tools() -> list[Tool]:
 async def list_resources() -> list[Resource]:
     """List available reference resources."""
     resources = []
-    
+
     if POSTGRES_TEST_PATH.exists():
         resources.append(
             Resource(
                 uri=f"file://{POSTGRES_TEST_PATH}",
                 name="PostgreSQL Metrics Test (Reference)",
-                description="Reference implementation of OTel metrics test. Use this as the gold standard for structure and patterns.",
-                mimeType="text/x-python"
+                description=(
+                    "Reference implementation of OTel metrics test. "
+                    "Use this as the gold standard for structure and patterns."
+                ),
+                mimeType="text/x-python",
             )
         )
-    
+
     if MYSQL_TEST_PATH.exists():
         resources.append(
             Resource(
                 uri=f"file://{MYSQL_TEST_PATH}",
                 name="MySQL Metrics Test (Reference)",
                 description="MySQL metrics test implementation following PostgreSQL patterns",
-                mimeType="text/x-python"
+                mimeType="text/x-python",
             )
         )
-    
+
     # Add OtelMetricsValidator reference
     validator_path = SYSTEM_TESTS_ROOT / "utils/otel_metrics_validator.py"
     if validator_path.exists():
@@ -364,10 +367,10 @@ async def list_resources() -> list[Resource]:
                 uri=f"file://{validator_path}",
                 name="OtelMetricsValidator Utility",
                 description="Shared utility for validating OTel metrics. All tests should use this.",
-                mimeType="text/x-python"
+                mimeType="text/x-python",
             )
         )
-    
+
     # Add improvements document
     improvements_path = Path(__file__).parent / "IMPROVEMENTS.md"
     if improvements_path.exists():
@@ -376,10 +379,10 @@ async def list_resources() -> list[Resource]:
                 uri=f"file://{improvements_path}",
                 name="Integration Test Improvements",
                 description="Design document with improvements and patterns for test generation",
-                mimeType="text/markdown"
+                mimeType="text/markdown",
             )
         )
-    
+
     return resources
 
 
@@ -389,19 +392,17 @@ async def read_resource(uri: str) -> str:
     # Extract path from file:// URI
     path = uri.replace("file://", "")
     path_obj = Path(path)
-    
+
     if not path_obj.exists():
         raise ValueError(f"Resource not found: {uri}")
-    
-    with open(path_obj, "r", encoding="utf-8") as f:
-        return f.read()
+
+    # Read file synchronously (MCP server context)
+    return path_obj.read_text(encoding="utf-8")
 
 
 @app.list_prompts()
-async def list_prompts():
+async def list_prompts() -> list[Prompt]:
     """List available prompts."""
-    from mcp.types import Prompt, PromptArgument
-    
     return [
         Prompt(
             name="generate_with_reference",
@@ -410,33 +411,29 @@ async def list_prompts():
                 PromptArgument(
                     name="integration_name",
                     description="Name of the integration (e.g., redis, kafka, mongodb)",
-                    required=True
+                    required=True,
                 ),
-                PromptArgument(
-                    name="metrics_json_file",
-                    description="Name of the metrics JSON file",
-                    required=True
-                ),
-            ]
+                PromptArgument(name="metrics_json_file", description="Name of the metrics JSON file", required=True),
+            ],
         )
     ]
 
 
 @app.get_prompt()
-async def get_prompt(name: str, arguments: dict[str, str] | None = None):
+async def get_prompt(name: str, arguments: dict[str, str] | None = None) -> PromptMessage:
     """Get a specific prompt."""
-    from mcp.types import PromptMessage, TextContent as PromptTextContent
-    
     if name == "generate_with_reference":
         integration_name = arguments.get("integration_name", "example") if arguments else "example"
-        metrics_json_file = arguments.get("metrics_json_file", "example_metrics.json") if arguments else "example_metrics.json"
-        
+        metrics_json_file = (
+            arguments.get("metrics_json_file", "example_metrics.json") if arguments else "example_metrics.json"
+        )
+
         # Read the PostgreSQL test as reference
         postgres_test_content = ""
         if POSTGRES_TEST_PATH.exists():
-            with open(POSTGRES_TEST_PATH, "r", encoding="utf-8") as f:
-                postgres_test_content = f.read()
-        
+            # Read file synchronously (MCP server context)
+            postgres_test_content = POSTGRES_TEST_PATH.read_text(encoding="utf-8")
+
         prompt_text = f"""You are generating an OTel integration metrics test for {integration_name}.
 
 CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structure exactly.
@@ -449,18 +446,18 @@ CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structu
 
 ## Requirements for {integration_name} test:
 
-1. **Structure**: Follow PostgreSQL test structure EXACTLY:
+ 1. **Structure**: Follow PostgreSQL test structure EXACTLY:
    - Three separate test classes (not one big class)
    - Test_{{Integration}}MetricsCollection
-   - Test_BackendValidity  
+   - Test_BackendValidity
    - Test_Smoke
 
-2. **Use OtelMetricsValidator**: Import and use the shared validator
+ 2. **Use OtelMetricsValidator**: Import and use the shared validator
    ```python
    from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
    ```
 
-3. **Correct Decorators**: 
+ 3. **Correct Decorators**:
    - Use scenario-specific decorator: @scenarios.otel_{integration_name}_metrics_e2e
 
 4. **Real Metrics**: Use actual metrics from {integration_name} receiver
@@ -485,30 +482,24 @@ CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structu
    def test_main(self) -> None:
        observed_metrics: set[str] = set()
        expected_metrics = {{...}}
-       
+
        for data in interfaces.otel_collector.get_data("/api/v2/series"):
            # ... collect metrics
-       
+
        missing_metrics = expected_metrics - observed_metrics
        assert not missing_metrics, f"Missing metrics: {{missing_metrics}}"
    ```
 
-Generate the complete test file for {integration_name} with metrics file {metrics_json_file}.
-"""
-        
-        return PromptMessage(
-            role="user",
-            content=PromptTextContent(
-                type="text",
-                text=prompt_text
-            )
-        )
-    
+ Generate the complete test file for {integration_name} with metrics file {metrics_json_file}.
+ """
+
+        return PromptMessage(role="user", content=TextContent(type="text", text=prompt_text))
+
     raise ValueError(f"Unknown prompt: {name}")
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: Any) -> list[TextContent]:
+async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle tool calls."""
 
     if name == "generate_integration_test":
@@ -538,7 +529,9 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             "shared_utility": {
                 "note": "Uses shared OtelMetricsValidator from utils/otel_metrics_validator.py",
                 "location": "utils/otel_metrics_validator.py",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
+                "import_statement": (
+                    "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                ),
             },
             "directory_structure": f"""
 Create the following directory structure:
@@ -601,7 +594,9 @@ The shared OtelMetricsValidator is already available at:
             "shared_utility": {
                 "location": "utils/otel_metrics_validator.py",
                 "description": "Reusable metrics validation class for all OTel integration tests",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
+                "import_statement": (
+                    "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                ),
             },
             "classes": {
                 "OtelMetricsValidator": {
@@ -651,7 +646,7 @@ _, _, results, failures = validator.process_and_validate_metrics(metrics_batch)
     raise ValueError(f"Unknown tool: {name}")
 
 
-async def main():
+async def main() -> None:
     """Main entry point for the MCP server."""
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await app.run(
