@@ -74,6 +74,7 @@ class TestAgentFactory:
         worker_id: str,
         container_name: str,
         docker_network: str,
+        agent_env: dict[str, str],
         container_otlp_http_port: int,
         container_otlp_grpc_port: int,
     ) -> Generator["TestAgentAPI", None, None]:
@@ -87,6 +88,8 @@ class TestAgentFactory:
         }
         if os.getenv("DEV_MODE") is not None:
             env["SNAPSHOT_CI"] = "0"
+
+        env |= agent_env
 
         host_port = get_host_port(worker_id, 4600)
         container_port = 8126
