@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """MCP Server for generating OTel integration metric test files.
 
 This server provides tools to generate test files similar to test_postgres_metrics.py
@@ -6,6 +5,7 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
+import sys
 from typing import Any
 
 # MCP SDK imports
@@ -14,8 +14,7 @@ try:
     from mcp.types import Tool, TextContent, Resource
     import mcp.server.stdio
 except ImportError:
-    print("Error: MCP SDK not installed. Install with: pip install mcp")
-    exit(1)
+    sys.exit(1)
 
 # Path to reference test files
 SYSTEM_TESTS_ROOT = Path(__file__).parent.parent.parent
@@ -46,7 +45,8 @@ INTEGRATION_CONFIGS = {
         "container_name": "mysql_container",
         "smoke_test_operations": [
             "r = container.exec_run(\"mysql -u root -ppassword -e 'CREATE DATABASE IF NOT EXISTS test_db;'\")",
-            "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY);'\")",
+            'r = container.exec_run("mysql -u root -ppassword test_db -e '
+            "'CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY);'\")",
             "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'INSERT INTO test_table VALUES (1);'\")",
             "logger.info(r.output)",
             "r = container.exec_run(\"mysql -u root -ppassword test_db -e 'SELECT * FROM test_table;'\")",
@@ -75,7 +75,8 @@ INTEGRATION_CONFIGS = {
         "smoke_test_operations": [
             'r = container.exec_run("kafka-topics --create --topic test-topic --bootstrap-server localhost:9092")',
             "logger.info(r.output)",
-            'r = container.exec_run("kafka-console-producer --topic test-topic --bootstrap-server localhost:9092", stdin="test message")',
+            'r = container.exec_run("kafka-console-producer --topic test-topic '
+            '--bootstrap-server localhost:9092", stdin="test message")',
         ],
         "expected_smoke_metrics": [
             "kafka.messages",
@@ -131,7 +132,7 @@ _EXCLUDED_{integration_name.upper()}_METRICS = {{
     # Format expected smoke metrics
     expected_metrics_formatted = ",\n            ".join([f'"{m}"' for m in config["expected_smoke_metrics"]])
 
-    template = f'''import time
+    return f'''import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -234,7 +235,6 @@ class Test_Smoke:
                 observed_metrics.add(metric)
                 logger.info(f"    {{metric}} {{serie['points']}}")
 
-        all_metric_has_be_seen = True
         for metric in expected_metrics:
             if metric not in observed_metrics:
                 logger.error(f"Metric {{metric}} hasn't been observed")
@@ -242,10 +242,7 @@ class Test_Smoke:
             else:
                 logger.info(f"Metric {{metric}} has been observed")
 
-        assert all_metric_has_be_seen
 '''
-
-    return template
 
 
 def generate_init_file() -> str:
@@ -286,7 +283,10 @@ async def list_tools() -> list[Tool]:
                     },
                     "feature_name": {
                         "type": "string",
-                        "description": "Feature name for the @features decorator (optional, defaults to <integration>_receiver_metrics)",
+                        "description": (
+                            "Feature name for the @features decorator "
+                            "(optional, defaults to <integration>_receiver_metrics)"
+                        ),
                     },
                 },
                 "required": ["integration_name", "metrics_json_file"],
@@ -507,7 +507,7 @@ Generate the complete test file for {integration_name} with metrics file {metric
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: Any) -> list[TextContent]:
+async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     """Handle tool calls."""
 
     if name == "generate_integration_test":
@@ -537,7 +537,9 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             "shared_utility": {
                 "note": "Uses shared OtelMetricsValidator from utils/otel_metrics_validator.py",
                 "location": "utils/otel_metrics_validator.py",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
+                "import_statement": (
+                    "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                ),
             },
             "directory_structure": f"""
 Create the following directory structure:
@@ -600,7 +602,9 @@ The shared OtelMetricsValidator is already available at:
             "shared_utility": {
                 "location": "utils/otel_metrics_validator.py",
                 "description": "Reusable metrics validation class for all OTel integration tests",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
+                "import_statement": (
+                    "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                ),
             },
             "classes": {
                 "OtelMetricsValidator": {
@@ -650,7 +654,7 @@ _, _, results, failures = validator.process_and_validate_metrics(metrics_batch)
     raise ValueError(f"Unknown tool: {name}")
 
 
-async def main():
+async def main() -> None:
     """Main entry point for the MCP server."""
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await app.run(

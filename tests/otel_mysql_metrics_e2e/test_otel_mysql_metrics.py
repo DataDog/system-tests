@@ -11,10 +11,9 @@ if TYPE_CHECKING:
 
 # Load MySQL metrics specification
 # Exclude metrics that require specific configurations or sustained activity
-_EXCLUDED_MYSQL_METRICS: set[str] = {
-    # Add any metrics that need to be excluded here
-    # Example: metrics that require replication, specific storage engines, etc.
-}
+_EXCLUDED_MYSQL_METRICS: set[str] = set()
+# Add any metrics that need to be excluded here
+# Example: metrics that require replication, specific storage engines, etc.
 
 mysql_metrics = OtelMetricsValidator.load_metrics_from_file(
     metrics_file=Path(__file__).parent / "mysql_metrics.json",
@@ -93,28 +92,27 @@ class Test_Smoke:
 
         # Create table
         r = container.exec_run(
-            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
+            "mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e "
             '"CREATE TABLE IF NOT EXISTS test_table (id INT PRIMARY KEY AUTO_INCREMENT, value VARCHAR(255));"'
         )
         logger.info(f"Create table output: {r.output}")
 
         # Insert data
         r = container.exec_run(
-            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
-            '"INSERT INTO test_table (value) VALUES (\'test1\'), (\'test2\'), (\'test3\');"'
+            "mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e "
+            "\"INSERT INTO test_table (value) VALUES ('test1'), ('test2'), ('test3');\""
         )
         logger.info(f"Insert data output: {r.output}")
 
         # Run a SELECT query
         r = container.exec_run(
-            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
-            '"SELECT * FROM test_table;"'
+            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e "SELECT * FROM test_table;"'
         )
         logger.info(f"Select query output: {r.output}")
 
         # Run a COUNT query
         r = container.exec_run(
-            'mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e '
+            "mysql -u system_tests_user -psystem_tests_password system_tests_dbname -e "
             '"SELECT COUNT(*) FROM test_table;"'
         )
         logger.info(f"Count query output: {r.output}")
@@ -138,12 +136,8 @@ class Test_Smoke:
                 observed_metrics.add(metric)
                 logger.info(f"    {metric} {serie['points']}")
 
-        all_metric_has_be_seen = True
         for metric in expected_metrics:
             if metric not in observed_metrics:
                 logger.error(f"Metric {metric} hasn't been observed")
-                all_metric_has_be_seen = False
             else:
                 logger.info(f"Metric {metric} has been observed")
-
-        # assert all_metric_has_be_seen
