@@ -8,17 +8,9 @@ This MCP server helps generate OTel integration metric test files similar to `te
   - `Test_<Integration>MetricsCollection` - validates metrics received by collector
   - `Test_BackendValidity` - validates metrics received by backend
   - `Test_Smoke` - generates integration-specific activity and validates basic metrics
-
-- **Pre-configured integrations** with smoke tests:
-  - Redis
-  - MySQL
-  - Nginx
-  - Kafka
   
 - **Uses shared utilities**:
   - All tests use the shared `utils/otel_metrics_validator.py`
-  - No duplicate code across integrations
-  - Consistent validation logic
   
 - **Generates supporting files**:
   - `__init__.py`
@@ -43,7 +35,7 @@ Add to your MCP configuration file:
     "integration-test-generator": {
       "command": "python3",
       "args": [
-        "/Users/quinna.halim/system-tests/mcp_servers/integration_test_generator/server.py"
+        "/Users/<firstname.lastname>/system-tests/mcp_servers/integration_test_generator/server.py"
       ]
     }
   }
@@ -70,18 +62,10 @@ Add to your MCP configuration file:
 
 ### Basic Usage
 
-In Cursor or Claude Desktop, you can now use natural language to generate tests:
-
-```
-Generate a Redis integration test with metrics file redis_metrics.json
-```
+In Cursor or Claude Desktop, you can now use natural language to generate tests, i.e.:
 
 ```
 Create a MySQL integration test, excluding the metrics: mysql.slow_queries, mysql.replication.delay
-```
-
-```
-List all supported integrations with pre-configured smoke tests
 ```
 
 ### Available Tools
@@ -128,15 +112,13 @@ Generate a metrics JSON template for Redis with metrics: redis.commands.processe
 ### Step 1: Generate the Test Files
 
 ```
-Generate a Redis integration test with metrics file redis_metrics.json
+Ex: Generate a MySQL integration test with metrics file mysql_metrics.json
 ```
 
 The MCP server will provide:
-1. `test_redis_metrics.py` - The main test file
+1. `test_mysql_metrics.py` - The main test file
 2. `__init__.py` - Package init file
 3. Directory structure instructions
-
-**Note**: No `utils.py` is generated because all tests use the shared `utils/otel_metrics_validator.py`!
 
 ### Step 2: Create the Directory
 
@@ -144,47 +126,31 @@ The MCP server will provide:
 mkdir -p tests/otel_redis_metrics_e2e
 ```
 
-### Step 3: Save the Files
+### Step 3: Create the Metrics JSON
 
-Save the generated files to the new directory:
-- `tests/otel_redis_metrics_e2e/test_redis_metrics.py`
-- `tests/otel_redis_metrics_e2e/__init__.py`
-
-**Note**: No `utils.py` file is needed! The test automatically imports from the shared `utils/otel_metrics_validator.py`.
-
-### Step 4: Create the Metrics JSON
-
-Create `tests/otel_redis_metrics_e2e/redis_metrics.json`:
+Create `tests/otel_<integration>_metrics_e2e/<integration>_metrics.json`:
 
 ```json
 {
-  "redis.commands.processed": {
+  "postgresql.backends": {
     "data_type": "Sum",
-    "description": "Total number of commands processed by the server"
+    "description": "The number of backends."
   },
-  "redis.keys.expired": {
+  "postgresql.bgwriter.buffers.allocated": {
     "data_type": "Sum",
-    "description": "Total number of key expiration events"
+    "description": "Number of buffers allocated."
   },
-  "redis.net.input": {
-    "data_type": "Sum",
-    "description": "Total number of bytes received from network"
-  }
 }
 ```
 
-Or use the template generator:
-```
-Generate a metrics JSON template for Redis with metrics: redis.commands.processed, redis.keys.expired, redis.net.input
-```
 
-### Step 5: Customize the Smoke Test
+### Step 4: Customize the Smoke Test
 
-Review and update the smoke test operations in `test_redis_metrics.py` if needed:
+Review and update the smoke test operations in `test_<integration>_metrics.py` if needed:
 
 ```python
 def setup_main(self) -> None:
-    """When the redis container spins up, we need some activity."""
+    """When the container spins up, we need some activity."""
     scenario: OtelCollectorScenario = context.scenario
     container = scenario.redis_container
     
@@ -194,51 +160,29 @@ def setup_main(self) -> None:
     # ... more operations
 ```
 
-### Step 6: Add Feature to utils/_features.py
+### Step 5: Add Feature to utils/_features.py
 
 If the feature doesn't exist, add it:
 
 ```python
-redis_receiver_metrics = Feature("redis_receiver_metrics")
+@staticmethod
+def postgres_receiver_metrics(test_object):
+    """OpenTelemetry semantic conventions for Postgres receiver metrics
+
+    https://feature-parity.us1.prod.dog/#/?feature=498
+    """
+    return _mark_test_object(test_object, feature_id=498, owner=_Owner.idm)
 ```
 
-### Step 7: Format and Test
+### Step 6: Format and Test
 
 ```bash
 ./format.sh
 ./run.sh otel_collector  # or appropriate scenario
 ```
 
-## Adding Support for New Integrations
-
-To add pre-configured support for a new integration, edit `server.py` and add to `INTEGRATION_CONFIGS`:
-
-```python
-INTEGRATION_CONFIGS = {
-    # ... existing configs ...
-    "mongodb": {
-        "container_name": "mongodb_container",
-        "smoke_test_operations": [
-            'r = container.exec_run("mongo --eval \'db.test.insertOne({x: 1})\'")',
-            'logger.info(r.output)',
-        ],
-        "expected_smoke_metrics": [
-            "mongodb.operations",
-            "mongodb.connections",
-        ],
-    },
-}
-```
 
 ## Example Outputs
-
-### For Redis
-
-The generator will create a complete test structure with:
-- Metrics validation against collector logs
-- Backend API validation (both "combined" and "native" semantic modes)
-- Smoke test with Redis-specific operations (SET, GET, INCR)
-- Expected metrics for smoke test validation
 
 ### For MySQL
 
