@@ -23,34 +23,38 @@ class CreateRequest(BaseModel):
     model: str
     messages: list[dict]
     parameters: dict
-    stream_as_method: bool = False
+
+
+StreamRequest = CreateRequest
 
 
 @app.post("/create")
 def create(request: CreateRequest):
-    kwargs = {
-        "model": request.model,
-        "messages": request.messages,
+    response = client.messages.create(
+        model=request.model,
+        messages=request.messages,
         **request.parameters,
-    }
+    )
 
-    stream = request.parameters.get("stream", False)
-
-    if request.stream_as_method:
-        chunks = []
-        with client.messages.stream(**kwargs) as stream:
-            for chunk in stream.text_stream:
-                chunks.append(chunk)
-        response = chunks
-    elif stream:
-        del kwargs["stream"]
-        response = client.messages.create(**kwargs)
-
+    if request.parameters.get("stream", False):
         chunks = []
         for chunk in response:
             chunks.append(chunk)
         response = chunks
-    else:
-        response = client.messages.create(**kwargs)
+
+    return {"response": response}
+
+
+@app.post("/stream")
+def stream(request: StreamRequest):
+    with client.messages.stream(
+        model=request.model,
+        messages=request.messages,
+        **request.parameters,
+    ) as stream:
+        chunks = []
+        for chunk in stream.text_stream:
+            chunks.append(chunk)
+        response = chunks
 
     return {"response": response}

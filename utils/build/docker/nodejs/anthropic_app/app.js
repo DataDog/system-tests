@@ -12,41 +12,39 @@ const anthropic = new Anthropic({
 });
 
 app.post('/create', async (req, res) => {
-  const {
-    model,
-    messages,
-    parameters,
-    stream_as_method,
-  } = req.body;
+  const { model, messages, parameters } = req.body;
 
-  const options = {
+  let response = await anthropic.messages.create({
     model,
     messages,
     ...parameters,
-  };
-
-  let response = {};
+  });
 
   if (parameters.stream) {
-    response = await anthropic.messages.stream(options);
-
     const chunks = [];
     for await (const chunk of response) {
       chunks.push(chunk);
     }
     response = chunks;
-  } else if (parameters.stream) {
-    delete options.stream;
-    response = await anthropic.messages.create(options);
-
-    const chunks = [];
-    for await (const chunk of response) {
-      chunks.push(chunk);
-    }
-    response = chunks;
-  } else {
-    response = await anthropic.messages.create(options);
   }
+
+  res.json({ response });
+});
+
+app.post('/stream', async (req, res) => {
+  const { model, messages, parameters } = req.body;
+
+  let response = await anthropic.messages.stream({
+    model,
+    messages,
+    ...parameters,
+  });
+
+  const chunks = [];
+  for await (const chunk of response) {
+    chunks.push(chunk);
+  }
+  response = chunks;
 
   res.json({ response });
 });

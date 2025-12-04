@@ -6,7 +6,7 @@ import pytest
 from .utils import BaseAnthropicTest
 
 
-@features.apm_anthropic_messages_create
+@features.apm_anthropic_messages
 @scenarios.integration_frameworks
 class TestAnthropicApmMessagesCreate(BaseAnthropicTest):
     @pytest.mark.parametrize("stream", [True, False])
@@ -39,7 +39,7 @@ class TestAnthropicApmMessagesCreate(BaseAnthropicTest):
         with test_agent.vcr_context():
             test_client.request(
                 method="POST",
-                url="/create",
+                url="/stream",
                 body=dict(
                     model="claude-sonnet-4-5-20250929",
                     messages=[
@@ -49,7 +49,6 @@ class TestAnthropicApmMessagesCreate(BaseAnthropicTest):
                         max_tokens=100,
                         temperature=0.5,
                     ),
-                    stream_as_method=True,
                 ),
             )
 
