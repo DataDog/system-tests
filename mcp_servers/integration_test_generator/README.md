@@ -180,11 +180,8 @@ def setup_main(self) -> None:
 
 ### Step 5: Add Feature to utils/_features.py
 
-If the feature doesn't exist, add it:
-
-```python
-redis_receiver_metrics = Feature("redis_receiver_metrics")
-```
+If the feature doesn't exist, add it by following this [doc](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md).
+>Each new feature should be defined in _features.py. This consists of adding a feature in Feature Parity Dashboard, get the feature id and copying one of the already added features, changing the name and the feature id in the url, and the feature number.
 
 ### Step 6: Format and Test
 
