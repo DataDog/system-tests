@@ -529,6 +529,8 @@ manifest:
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: missing_feature
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: missing_feature
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature

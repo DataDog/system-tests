@@ -2535,6 +2535,14 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.56.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.56.0
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature

@@ -287,7 +287,10 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v3.18.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v3.18.0
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect:
+    - weblog_declaration:
+        "*": v3.18.0 (with urllib support)
+        fastapi: v4.1.0 (with requests/urllib3 support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -940,6 +943,7 @@ manifest:
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmResponses: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: v3.13.0
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -1296,6 +1300,8 @@ manifest:
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: v4.0.0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: v4.0.0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature
