@@ -1150,6 +1150,9 @@ class _Scenarios:
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
+    otel_mysql_metrics_e2e = OtelCollectorScenario(
+        "OTEL_MYSQL_METRICS_E2E", database_type="mysql", mocked_backend=False
+    )
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
