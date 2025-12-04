@@ -1,4 +1,4 @@
-from utils import bug, scenarios, weblog, interfaces, features, missing_feature, context, logger
+from utils import bug, scenarios, weblog, interfaces, features, missing_feature, context
 from utils._weblog import HttpResponse
 
 
@@ -85,7 +85,6 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
             ("GET", "/resource_renaming/api/users/{param:int}"): 5,
             ("GET", "/resource_renaming/api/posts/{param:int}"): 3,
         }
-        logger.debug(f"Stats points: {stats_points}")
 
         # Collect actual hits from stats points
         actual_hits = {}
