@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import zipfile
 from enum import Enum
 from pathlib import Path
@@ -56,7 +57,7 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
 
     download_url = None
     page = 0
-    print(f'CI workflow URL: {runs_data["workflow_runs"][0]["html_url"]}')
+    print(f"CI workflow URL: {runs_data['workflow_runs'][0]['html_url']}")
     while not download_url:
         page += 1
         artifacts_url = runs_data["workflow_runs"][0]["artifacts_url"] + f"?page={page}"
@@ -518,6 +519,10 @@ def main() -> None:
             print(f"   • {library}: {count}")
         elif not args.summary_only:  # Only show zero counts in detailed mode
             print(f"   • {library}: 0")
+
+    # Exit with non-zero status if no updates were made (or would be made in dry-run)
+    if total_updates == 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

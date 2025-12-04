@@ -144,6 +144,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
     )
 
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
+    )
+
 
 def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
@@ -517,14 +524,10 @@ def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> No
 
 
 def pytest_json_modifyreport(json_report: dict) -> None:
-    try:
-        # add usefull data for reporting
-        json_report["context"] = context.serialize()
+    # add usefull data for reporting
+    json_report["context"] = context.serialize()
 
-        logger.debug("Modifying JSON report finished")
-
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

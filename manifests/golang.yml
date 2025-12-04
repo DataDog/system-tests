@@ -24,11 +24,11 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0-dev
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0-dev
-        Test_API_Security_Custom_Data_Classification_Negative: v2.4.0-dev
-        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0-dev
-        Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0
+        Test_API_Security_Custom_Data_Classification_Negative: v2.4.0
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0
+        Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
@@ -213,17 +213,18 @@ tests/:
         TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
     rasp/:
       test_api10.py:
-        Test_API10_all: v2.4.0-dev
-        Test_API10_downstream_request_tag: missing_feature
-        Test_API10_downstream_ssrf_telemetry: missing_feature
-        Test_API10_request_body: v2.4.0-dev
-        Test_API10_request_headers: v2.4.0-dev
-        Test_API10_request_method: v2.4.0-dev
-        Test_API10_response_body: v2.4.0-dev
-        Test_API10_response_headers: v2.4.0-dev
-        Test_API10_response_status: v2.4.0-dev
-        Test_API10_without_downstream_body_analysis_using_max: missing_feature
-        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+        Test_API10_all: v2.4.0
+        Test_API10_downstream_request_tag: v2.5.0-dev
+        Test_API10_downstream_ssrf_telemetry: v2.4.0
+        Test_API10_redirect: missing_feature
+        Test_API10_request_body: v2.4.0
+        Test_API10_request_headers: v2.4.0
+        Test_API10_request_method: v2.4.0
+        Test_API10_response_body: v2.4.0
+        Test_API10_response_headers: v2.4.0
+        Test_API10_response_status: v2.4.0
+        Test_API10_without_downstream_body_analysis_using_max: v2.4.0
+        Test_API10_without_downstream_body_analysis_using_sample_rate: v2.4.0
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
@@ -351,10 +352,10 @@ tests/:
         Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: v1.63.0
       test_blocking_security_response_id.py:
-        Test_SecurityResponseId_Custom_Redirect: missing_feature
-        Test_SecurityResponseId_HTML_Response: missing_feature
-        Test_SecurityResponseId_In_Span_Triggers: missing_feature
-        Test_SecurityResponseId_JSON_Response: missing_feature
+        Test_SecurityResponseId_Custom_Redirect: v2.5.0-dev
+        Test_SecurityResponseId_HTML_Response: v2.5.0-dev
+        Test_SecurityResponseId_In_Span_Triggers: v2.5.0-dev
+        Test_SecurityResponseId_JSON_Response: v2.5.0-dev
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
@@ -557,7 +558,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
-      Test_Empty_Config: missing_feature
+      Test_Empty_Config: v2.4.0
       Test_Invalid_Config: v2.2.3
       Test_Multiple_Actions: v1.69.0
       Test_Unknown_Action: v1.69.0
@@ -584,10 +585,10 @@ tests/:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: v2.4.0-dev
-      TestServiceActivationEnvVarMetric: v2.4.0-dev
-      TestServiceActivationRemoteConfigMetric: v2.4.0-dev
-      TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0-dev
+      TestServiceActivationEnvVarConfigurationMetric: v2.4.0
+      TestServiceActivationEnvVarMetric: v2.4.0
+      TestServiceActivationRemoteConfigMetric: v2.4.0
+      TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -882,6 +883,10 @@ tests/:
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events: v2.5.0-dev
+    Test_FFE_Exposure_Events_Empty: v2.5.0-dev
+    Test_FFE_Exposure_Events_Errors: v2.5.0-dev
+    Test_FFE_RC_Down_From_Start: v2.4.0
+    Test_FFE_RC_Unavailable: v2.4.0
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant
