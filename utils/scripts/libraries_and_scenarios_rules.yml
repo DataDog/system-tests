@@ -50,6 +50,9 @@ patterns:
     "*.md":
         scenario_groups: null
         libraries: null
+    "*.mdc":
+        scenario_groups: null
+        libraries: null
     "*.rdoc":
         scenario_groups: null
         libraries: null
@@ -153,6 +156,9 @@ patterns:
     .github/workflows/changelog.yml:
         scenario_groups: null
         libraries: null
+    .github/workflows/changelog-slack.yml:
+        scenario_groups: null
+        libraries: null
     .github/workflows/daily-tag.yml:
         scenario_groups: null
     .github/workflows/debug-harness.yml:
@@ -247,6 +253,9 @@ patterns:
         scenario: PARAMETRIC
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
+    utils/scripts/slack/send_changelog.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/ssi_wizards/*:
         scenario_groups: null
     utils/scripts/update_change_log.sh:

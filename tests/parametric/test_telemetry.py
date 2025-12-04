@@ -15,7 +15,7 @@ from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
 
-telemetry_name_mapping = {
+telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "ssi_injection_enabled": {
         "python": "DD_INJECTION_ENABLED",
         "java": "injection_enabled",
@@ -86,6 +86,7 @@ telemetry_name_mapping = {
         "java": "trace_debug",
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
+        "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
     },
     "tags": {
         "java": "trace_tags",
@@ -100,12 +101,15 @@ telemetry_name_mapping = {
 }
 
 
-def _mapped_telemetry_name(apm_telemetry_name: str):
+def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
     if apm_telemetry_name in telemetry_name_mapping:
-        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.name)
+        lang_mapping = telemetry_name_mapping[apm_telemetry_name]
+        mapped_name = lang_mapping.get(context.library.name)
         if mapped_name is not None:
-            return mapped_name
-    return apm_telemetry_name
+            if isinstance(mapped_name, list):
+                return mapped_name
+            return [mapped_name]
+    return [apm_telemetry_name]
 
 
 def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict | None:
@@ -221,22 +225,24 @@ class Test_Defaults:
             if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
                 continue
-            mapped_apm_telemetry_name = _mapped_telemetry_name(apm_telemetry_name)
+            mapped_apm_telemetry_names = _mapped_telemetry_name(apm_telemetry_name)
 
-            cfg_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, mapped_apm_telemetry_name, "default"
-            )
+            cfg_item = None
+            matched_name = None
+            for mapped_name in mapped_apm_telemetry_names:
+                cfg_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, mapped_name, "default")
+                if cfg_item is not None:
+                    matched_name = mapped_name
+                    break
             assert cfg_item is not None, (
-                f"No configuration found for '{mapped_apm_telemetry_name}' with origin 'default'"
+                f"No configuration found for any of {' or '.join(mapped_apm_telemetry_names)} with origin 'default'"
             )
             assert isinstance(cfg_item, dict)
             if isinstance(value, tuple):
-                assert cfg_item.get("value") in value, (
-                    f"Unexpected value for '{mapped_apm_telemetry_name}' ('{context.library}')"
-                )
+                assert cfg_item.get("value") in value, f"Unexpected value for '{matched_name}' ('{context.library}')"
             else:
-                assert cfg_item.get("value") == value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
-            assert cfg_item.get("origin") == "default", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
+                assert cfg_item.get("value") == value, f"Unexpected value for '{matched_name}'"
+            assert cfg_item.get("origin") == "default", f"Unexpected origin for '{matched_name}'"
 
 
 @scenarios.parametric
@@ -434,17 +440,23 @@ class Test_Environment:
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
                 continue
 
-            mapped_apm_telemetry_name = _mapped_telemetry_name(apm_telemetry_name)
-            cfg_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, mapped_apm_telemetry_name, "env_var"
+            mapped_apm_telemetry_names = _mapped_telemetry_name(apm_telemetry_name)
+            cfg_item = None
+            matched_name = None
+            for mapped_name in mapped_apm_telemetry_names:
+                cfg_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, mapped_name, "env_var")
+                if cfg_item is not None:
+                    matched_name = mapped_name
+                    break
+            assert cfg_item is not None, (
+                f"Missing telemetry config item for any of {' or '.join(mapped_apm_telemetry_names)}"
             )
-            assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             assert isinstance(cfg_item, dict)
             if isinstance(environment_value, tuple):
-                assert cfg_item.get("value") in environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
+                assert cfg_item.get("value") in environment_value, f"Unexpected value for '{matched_name}'"
             else:
-                assert cfg_item.get("value") == environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
-            assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
+                assert cfg_item.get("value") == environment_value, f"Unexpected value for '{matched_name}'"
+            assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{matched_name}'"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -690,12 +702,16 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # The Go tracer does not support logs injection.
             if context.library == "golang" and cfg_name == "logs_injection_enabled":
                 continue
-            apm_telemetry_name = _mapped_telemetry_name(cfg_name)
-            telemetry_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, apm_telemetry_name, expected_origin
-            )
+            apm_telemetry_names = _mapped_telemetry_name(cfg_name)
+            telemetry_item = None
+            for apm_name in apm_telemetry_names:
+                telemetry_item = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, apm_name, expected_origin
+                )
+                if telemetry_item is not None:
+                    break
             assert telemetry_item is not None, (
-                f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'"
+                f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'"
             )
             assert isinstance(telemetry_item, dict)
             assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
@@ -719,6 +735,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
+    # This is the specific test that's currently failing, but any test that calls _mapped_telemetry_name for debug mode, for golang, would fail.
     def test_stable_configuration_config_id(
         self,
         local_cfg: dict[str, bool],
@@ -750,24 +767,32 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # Configuration set via fleet config should have the config_id set
-        apm_telemetry_name = _mapped_telemetry_name("trace_debug_enabled")
-        telemetry_item = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, apm_telemetry_name, "fleet_stable_config"
-        )
+        apm_telemetry_names = _mapped_telemetry_name("trace_debug_enabled")
+        telemetry_item = None
+        for apm_name in apm_telemetry_names:
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_name, "fleet_stable_config"
+            )
+            if telemetry_item is not None:
+                break
         assert telemetry_item is not None, (
-            f"No configuration found for '{apm_telemetry_name}' with origin 'fleet_stable_config'"
+            f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin 'fleet_stable_config'"
         )
         assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
 
         # Configuration set via local config should not have the config_id set
-        apm_telemetry_name = _mapped_telemetry_name("dynamic_instrumentation_enabled")
-        telemetry_item = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, apm_telemetry_name, "local_stable_config"
-        )
+        apm_telemetry_names = _mapped_telemetry_name("dynamic_instrumentation_enabled")
+        telemetry_item = None
+        for apm_name in apm_telemetry_names:
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_name, "local_stable_config"
+            )
+            if telemetry_item is not None:
+                break
         assert telemetry_item is not None, (
-            f"No configuration found for '{apm_telemetry_name}' with origin 'local_stable_config'"
+            f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin 'local_stable_config'"
         )
         assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "local_stable_config"
@@ -837,12 +862,16 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
-            apm_telemetry_name = _mapped_telemetry_name(cfg_name)
-            telemetry_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, apm_telemetry_name, expected_origin
-            )
+            apm_telemetry_names = _mapped_telemetry_name(cfg_name)
+            telemetry_item = None
+            for apm_name in apm_telemetry_names:
+                telemetry_item = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, apm_name, expected_origin
+                )
+                if telemetry_item is not None:
+                    break
             assert telemetry_item is not None, (
-                f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+                f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
             )
 
             assert isinstance(telemetry_item, dict)
@@ -924,12 +953,16 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             elif cfg_name == "tags" and context.library.name in ["ruby"]:
                 continue
             else:
-                apm_telemetry_name = _mapped_telemetry_name(cfg_name)
-                telemetry_item = test_agent.get_telemetry_config_by_origin(
-                    configuration_by_name, apm_telemetry_name, expected_origin
-                )
+                apm_telemetry_names = _mapped_telemetry_name(cfg_name)
+                telemetry_item = None
+                for apm_name in apm_telemetry_names:
+                    telemetry_item = test_agent.get_telemetry_config_by_origin(
+                        configuration_by_name, apm_name, expected_origin
+                    )
+                    if telemetry_item is not None:
+                        break
                 assert telemetry_item is not None, (
-                    f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+                    f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
                 )
                 assert isinstance(telemetry_item, dict)
                 actual_origin = telemetry_item.get("origin", "<missing>")
@@ -1074,11 +1107,17 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
-        ssi_enabled_telemetry_name = _mapped_telemetry_name("ssi_injection_enabled")
-        inject_enabled = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, ssi_enabled_telemetry_name, "env_var", fallback_to_first=(expected_value is None)
+        ssi_enabled_telemetry_names = _mapped_telemetry_name("ssi_injection_enabled")
+        inject_enabled = None
+        for ssi_name in ssi_enabled_telemetry_names:
+            inject_enabled = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, ssi_name, "env_var", fallback_to_first=(expected_value is None)
+            )
+            if inject_enabled is not None:
+                break
+        assert inject_enabled is not None, (
+            f"No configuration found for any of {' or '.join(ssi_enabled_telemetry_names)}"
         )
-        assert inject_enabled is not None, f"No configuration found for '{ssi_enabled_telemetry_name}'"
         assert isinstance(inject_enabled, dict)
         assert inject_enabled.get("value") == expected_value
         if expected_value is not None:
@@ -1117,11 +1156,17 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         # # Check that the tags name match the expected value
-        inject_force_telemetry_name = _mapped_telemetry_name("ssi_forced_injection_enabled")
-        inject_force = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, inject_force_telemetry_name, "env_var", fallback_to_first=(expected_value == "none")
+        inject_force_telemetry_names = _mapped_telemetry_name("ssi_forced_injection_enabled")
+        inject_force = None
+        for inject_force_name in inject_force_telemetry_names:
+            inject_force = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, inject_force_name, "env_var", fallback_to_first=(expected_value == "none")
+            )
+            if inject_force is not None:
+                break
+        assert inject_force is not None, (
+            f"No configuration found for any of {' or '.join(inject_force_telemetry_names)}"
         )
-        assert inject_force is not None, f"No configuration found for '{inject_force_telemetry_name}'"
         assert isinstance(inject_force, dict)
         assert str(inject_force.get("value")).lower() == expected_value
         assert inject_force.get("origin") == "env_var"
@@ -1137,13 +1182,17 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         # Check that the tags name match the expected value
-        instrumentation_source_telemetry_name = _mapped_telemetry_name("instrumentation_source")
+        instrumentation_source_telemetry_names = _mapped_telemetry_name("instrumentation_source")
         # Take any configuration (origin doesn't matter for this test)
-        instrumentation_source = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, instrumentation_source_telemetry_name, "default", fallback_to_first=True
-        )
+        instrumentation_source = None
+        for instrumentation_source_name in instrumentation_source_telemetry_names:
+            instrumentation_source = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, instrumentation_source_name, "default", fallback_to_first=True
+            )
+            if instrumentation_source is not None:
+                break
         assert instrumentation_source is not None, (
-            f"No configuration found for '{instrumentation_source_telemetry_name}'"
+            f"No configuration found for any of {' or '.join(instrumentation_source_telemetry_names)}"
         )
         assert isinstance(instrumentation_source, dict)
         value: str | None = instrumentation_source.get("value")
