@@ -22,7 +22,7 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
-def enable_tracestats(sample_rate: float | None = None) -> tuple[pytest.MarkDecorator, pytest.MarkDecorator]:
+def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
@@ -33,17 +33,20 @@ def enable_tracestats(sample_rate: float | None = None) -> tuple[pytest.MarkDeco
         assert 0 <= sample_rate <= 1.0
         env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
 
-    # Java tracer requires agent version >= 7.65.0 for client-side stats
-    agent_env_config = {"TEST_AGENT_VERSION": "7.65.0"}
+    return parametrize("library_env", [env])
 
-    return (parametrize("library_env", [env]), parametrize("agent_env", [agent_env_config]))
+
+def enable_agent_version(version: str = "7.65.0") -> pytest.MarkDecorator:
+    """Set the test agent version. Java tracer requires agent version >= 7.65.0 for client-side stats."""
+    agent_env_config = {"TEST_AGENT_VERSION": version}
+    return parametrize("agent_env", [agent_env_config])
 
 
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_Library_Tracestats:
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -99,8 +102,8 @@ class Test_Library_Tracestats:
         for key in ("Hostname", "Env", "Version", "Stats"):
             assert key in decoded_request_body, f"{key} should be in stats request"
 
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -188,8 +191,8 @@ class Test_Library_Tracestats:
             "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
         )
 
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -234,8 +237,8 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -289,8 +292,8 @@ class Test_Library_Tracestats:
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Duration"] > 0
 
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
@@ -347,8 +350,8 @@ class Test_Library_Tracestats:
         assert stat["OkSummary"] is not None
         assert stat["ErrorSummary"] is not None
 
-    @enable_tracestats(sample_rate=0.0)[0]
-    @enable_tracestats(sample_rate=0.0)[1]
+    @enable_tracestats(sample_rate=0.0)
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "java", reason="FIXME: Undefined behavior according the java tracer core team")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
@@ -377,8 +380,8 @@ class Test_Library_Tracestats:
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Hits"] == 1
 
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(reason="relative error test is broken")
     def test_relative_error_TS008(
         self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
@@ -425,8 +428,8 @@ class Test_Library_Tracestats:
                 rel=0.01,
             ), f"Quantile mismatch for quantile {quantile!r}"
 
-    @enable_tracestats()[0]
-    @enable_tracestats()[1]
+    @enable_tracestats()
+    @enable_agent_version()
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
