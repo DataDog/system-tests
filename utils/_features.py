@@ -2568,20 +2568,20 @@ class _Features:
         return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
 
     @staticmethod
-    def feature_flag_exposure(test_object):
-        """Feature Flag Exposure
-
-        https://feature-parity.us1.prod.dog/#/?feature=492
-        """
-        return _mark_test_object(test_object, feature_id=492, owner=_Owner.feature_flag_exposure)
-
-    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
         https://feature-parity.us1.prod.dog/#/?feature=492
         """
         return _mark_test_object(test_object, feature_id=492, owner=_Owner.asm)
+
+    @staticmethod
+    def feature_flag_exposure(test_object):
+        """Feature Flag Exposure
+
+        https://feature-parity.us1.prod.dog/#/?feature=494
+        """
+        return _mark_test_object(test_object, feature_id=494, owner=_Owner.feature_flag_exposure)
 
     @staticmethod
     def agent_data_integrity(test_object):
