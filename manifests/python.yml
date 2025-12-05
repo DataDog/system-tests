@@ -307,7 +307,7 @@ tests/:
         Test_API10_downstream_ssrf_telemetry: v3.18.0
         Test_API10_redirect:
           '*': v3.18.0 (with urllib support)
-          'fastapi': missing_feature (no requests/urllib3 support)
+          'fastapi': v4.1.0 (with requests/urllib3 support)
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
@@ -925,6 +925,7 @@ tests/:
         test_openai_llmobs.py:
           TestOpenAiEmbeddingInteractions: v3.13.0
           TestOpenAiLlmInteractions: v3.13.0
+          TestOpenAiPromptTracking: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1289,6 +1290,7 @@ tests/:
     Test_FFE_Exposure_Events: v4.0.0
     Test_FFE_Exposure_Events_Empty: v4.0.0
     Test_FFE_Exposure_Events_Errors: v4.0.0
+    Test_FFE_RC_Down_From_Start: v4.0.0
     Test_FFE_RC_Unavailable: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:

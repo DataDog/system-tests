@@ -51,10 +51,7 @@ def get_context_tracer_version():
     if context.library.name == "ruby":
         major = context.library.version.major
         minor = context.library.version.minor
-        if "dev" in context.library.version.prerelease:
-            patch = context.library.version.patch - 1
-        else:
-            patch = context.library.version.patch
+        patch = context.library.version.patch
         return Version(f"{major}.{minor}.{patch}")
     elif context.library.name == "java":
         return Version(str(context.library.version).replace("+", "-"))

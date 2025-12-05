@@ -44,6 +44,7 @@ def test_agent(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
+        agent_env={},
     ) as result:
         yield result
 
