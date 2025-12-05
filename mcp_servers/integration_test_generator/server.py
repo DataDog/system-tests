@@ -249,6 +249,86 @@ class Test_Smoke:
     return template
 
 
+def generate_metrics_file(integration_name: str) -> str:
+    """Get info about the latest otel-collector-contrib release.
+    Metrics are defined in the metadata.yaml file which is provided in  response.
+    We need to get the metrics from the metadata.yaml file.
+    We can do this by parsing the yaml file and getting the metrics.
+    We can then return in the following format:
+    {
+        "<metric_name>": {
+            "data_type": "<data_type>",
+            "description": "<metric_description>"
+        },
+    }
+
+    """
+    url = f"{constants.GH_BASE_API}/releases"
+
+    headers = {
+        "Accept": "application/vnd.github+json",
+    }
+
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+
+    releases = response.json()  # list[dict]
+    if not releases:
+        return "No releases found for opentelemetry-collector-contrib."
+
+    latest = releases[0]
+
+    metaDataUrl = f"{constants.GH_BASE_API}/contents/receiver/{integration_name.lower()}receiver/metadata.yaml?ref={latest.get('tag_name')}"
+
+    response = requests.get(metaDataUrl, headers=headers)
+    if response.status_code != 200:
+        return f"Failed to fetch metadata.yaml for {integration_name}."
+
+    metadata_content = response.json().get("content")
+    if not metadata_content:
+        return "No content found in metadata.yaml."
+
+    # The content is base64-encoded per GitHub API
+    import base64
+
+    try:
+        decoded_yaml = base64.b64decode(metadata_content).decode("utf-8")
+    except Exception as e:
+        return f"Error decoding metadata.yaml content: {e}"
+
+    # Parse YAML to get metrics info
+    try:
+        import yaml
+
+        yaml_data = yaml.safe_load(decoded_yaml)
+    except Exception as e:
+        return f"Error parsing YAML: {e}"
+
+    metric_template = {}
+    metrics_dict = yaml_data.get("metrics", {})
+    for metric_name, metric_info in metrics_dict.items():
+        metric_type = set(metric_info.keys()) & constants.METRIC_TYPES
+        metric_template[metric_name] = {
+            "data_type": metric_type.pop() if metric_type else None,
+            "description": metric_info.get("description", ""),
+        }
+
+    # Return the dict as pretty-printed JSON
+    result_json = json.dumps(metric_template, indent=2)
+
+    metric_file_name = f"{integration_name}_metrics.json"
+    metric_file_path = constants.SYSTEM_TESTS_ROOT / f"tests/otel_{integration_name}_metrics_e2e/{metric_file_name}"
+    if metric_file_path.exists():
+        return "There is already a metric file created. Please delete and try again"
+    # Create the parent directory if it doesn't exist
+    metric_file_path.parent.mkdir(parents=True, exist_ok=True)
+    f = open(metric_file_path, "x")
+    f.write(result_json)
+    f.close()
+
+    return metric_template
+
+
 def generate_init_file() -> str:
     """Generate __init__.py file."""
     return ""
@@ -339,7 +419,7 @@ async def list_resources() -> list[Resource]:
     if POSTGRES_TEST_PATH.exists():
         resources.append(
             Resource(
-                uri=f"file://{POSTGRES_TEST_PATH}",
+                uri=f"file://{constants.POSTGRES_TEST_PATH}",
                 name="PostgreSQL Metrics Test (Reference)",
                 description="Reference implementation of OTel metrics test. Use this as the gold standard for structure and patterns.",
                 mimeType="text/x-python"
@@ -478,6 +558,16 @@ CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structu
 
 7. **Smoke Test**: Generate real activity on the container
    - Access via: scenario.{integration_name}_container
+   - For each of the metrics in the generated metrics file, run a command to generate activity on the container. 
+   - Skip metrics that involve replica DBs, deadlocks, or that require a second instance of the integration that's running.
+   - If a metric is skipped, leave a comment in the test file explaining why it was skipped.
+   - Look at the postgres_metrics.json file as an example.
+   - Example:
+     - For the metric "redis.commands.processed", run the command "redis-cli INCR counter"
+     - For the metric "redis.keys.expired", run the command "redis-cli FLUSHALL"
+     - For the metric "redis.net.input", run the command "redis-cli GET test_key"
+     - For the metric "redis.net.output", run the command "redis-cli SET test_key test_value"
+   - If unable to find the command, skip the metric and leave a comment in the test file explaining why it was skipped.
    - Run actual commands (CREATE, INSERT, SELECT for databases)
 
 8. **Test Pattern**:
@@ -566,7 +656,7 @@ The shared OtelMetricsValidator is already available at:
 
     if name == "list_supported_integrations":
         result = {
-            "supported_integrations": list(INTEGRATION_CONFIGS.keys()),
+            "supported_integrations": list(constants.INTEGRATION_CONFIGS.keys()),
             "details": {
                 name: {
                     "container_name": config["container_name"],
