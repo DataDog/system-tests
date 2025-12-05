@@ -1,6 +1,6 @@
 from pathlib import Path
 
-METRIC_TYPES = {"sum", "gauge"}
+METRIC_TYPES = {"sum", "gauge", "histogram"}
 GH_BASE_API = "https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib"
 
 # Path to reference test files

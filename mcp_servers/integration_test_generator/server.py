@@ -13,6 +13,7 @@ import constants
 from formatters import format_excluded_metrics, format_smoke_operations, format_expected_metrics
 from templates.test_integration_file_template import get_test_file_template
 from templates.prompt_template import get_generate_with_reference_prompt
+from metric_operations_generator import generate_smoke_operations_from_metrics
 
 # MCP SDK imports
 try:
@@ -37,31 +38,37 @@ def generate_test_file(
 ) -> str:
     """Generate a test file for the specified integration."""
 
-    # Get integration config or use defaults
-    config = constants.INTEGRATION_CONFIGS.get(
-        integration_name.lower(),
-        {
-            "container_name": f"{integration_name.lower()}_container",
-            "smoke_test_operations": [
-                f'logger.info("Add specific {integration_name} operations here")',
-            ],
-            "expected_smoke_metrics": [
-                f"{integration_name.lower()}.metric1",
-                f"{integration_name.lower()}.metric2",
-            ],
-        },
-    )
-
     integration_title = integration_name.title()
     integration_lower = integration_name.lower()
     integration_upper = integration_name.upper()
     feature = feature_name or f"{integration_lower}_receiver_metrics"
 
+    # Determine container name from config or use default
+    config = constants.INTEGRATION_CONFIGS.get(integration_lower, {})
+    container_name = config.get("container_name", f"{integration_lower}_container")
+
+    # Try to generate operations from metrics JSON file
+    metrics_json_path = constants.SYSTEM_TESTS_ROOT / f"tests/otel_{integration_lower}_metrics_e2e/{metrics_json_file}"
+    
+    if metrics_json_path.exists():
+        # Generate operations by analyzing the metrics file
+        operations_list, expected_metrics_list = generate_smoke_operations_from_metrics(
+            integration_name=integration_lower,
+            metrics_json_path=metrics_json_path,
+        )
+    else:
+        # Fall back to config if metrics file doesn't exist yet
+        operations_list = config.get("smoke_test_operations", [
+            f'logger.info("Add specific {integration_name} operations here")',
+        ])
+        expected_metrics_list = config.get("expected_smoke_metrics", [
+            f"{integration_lower}.metric1",
+            f"{integration_lower}.metric2",
+        ])
+
     excluded_metrics_str = format_excluded_metrics(integration_name, excluded_metrics)
-
-    smoke_operations = format_smoke_operations(config["smoke_test_operations"])
-
-    expected_metrics_formatted = format_expected_metrics(config["expected_smoke_metrics"])
+    smoke_operations = format_smoke_operations(operations_list)
+    expected_metrics_formatted = format_expected_metrics(expected_metrics_list)
 
     return get_test_file_template(
         integration_title=integration_title,
@@ -70,7 +77,7 @@ def generate_test_file(
         feature=feature,
         excluded_metrics_str=excluded_metrics_str,
         metrics_json_file=metrics_json_file,
-        container_name=config["container_name"],
+        container_name=container_name,
         smoke_operations=smoke_operations,
         expected_metrics_formatted=expected_metrics_formatted,
     )
@@ -189,6 +196,11 @@ async def list_tools() -> list[Tool]:
                     "metrics_json_file": {
                         "type": "string",
                         "description": "Name of the metrics JSON file (e.g., 'redis_metrics.json')",
+                    },
+                    "sample_metrics": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of metric names to include in the template (optional - if not provided, empty template will be generated)",
                     },
                     "excluded_metrics": {
                         "type": "array",
@@ -362,7 +374,19 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
         metrics_json_file = arguments["metrics_json_file"]
         excluded_metrics = arguments.get("excluded_metrics")
         feature_name = arguments.get("feature_name")
+        sample_metrics = arguments.get("sample_metrics", [])
 
+        # Generate metrics JSON template using the same logic as generate_metrics_json_template
+        metrics_template = {}
+        if sample_metrics:
+            # If sample metrics provided, use them
+            for metric_name in sample_metrics:
+                metrics_template[metric_name] = {
+                    "data_type": "Sum",  # Default, user should update
+                    "description": f"Description for {metric_name}",
+                }
+        # If no sample metrics, provide a minimal placeholder structure
+        
         test_content = generate_test_file(
             integration_name=integration_name,
             metrics_json_file=metrics_json_file,
@@ -373,6 +397,28 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
         init_content = generate_init_file()
 
         result = {
+            "metrics_json_file": {
+                "filename": metrics_json_file,
+                "content": metrics_template if metrics_template else {},
+                "instructions": f"""⚠️ CREATE THIS FILE FIRST!
+
+Find the actual {integration_name} metrics from the OpenTelemetry Collector documentation:
+https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/{integration_name.lower()}receiver
+
+{"This file contains a template based on the sample_metrics you provided. Update the data_type and descriptions." if sample_metrics else "Add actual metric names from OTel receiver documentation."}
+
+Structure for each metric:
+{{
+    "{integration_name.lower()}.metric.name": {{
+        "data_type": "Sum",  // or "Gauge"
+        "description": "Description from OTel docs"
+    }}
+}}
+
+data_type values:
+- "Sum": For cumulative/counter metrics (counts, totals)
+- "Gauge": For point-in-time measurements (current values)"""
+            },
             "test_file": {
                 "filename": f"test_{integration_name.lower()}_metrics.py",
                 "content": test_content,
@@ -390,21 +436,31 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 Create the following directory structure:
 
 tests/otel_{integration_name.lower()}_metrics_e2e/
+├── {metrics_json_file}  ← CREATE THIS FIRST!
 ├── __init__.py
-├── test_{integration_name.lower()}_metrics.py
-└── {metrics_json_file}
+└── test_{integration_name.lower()}_metrics.py
 
 NOTE: No utils.py needed! The test file imports from shared utils.otel_metrics_validator
 
 Next steps:
-1. Create the metrics JSON file with your integration's metric specifications
-2. Update the smoke test operations in test_{integration_name.lower()}_metrics.py if needed
-3. Update expected_smoke_metrics with actual metrics from your integration
-4. Add the feature to utils/_features.py if it doesn't exist
-5. Run './format.sh' to ensure code formatting
+1. ⚠️ CREATE THE METRICS JSON FILE FIRST with ACTUAL metric names from OTel receiver docs
+   - Find metrics at: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/{integration_name.lower()}receiver
+   - Each metric needs: name, data_type (Sum/Gauge), and description
+2. Smoke test operations are AUTO-GENERATED from the metrics JSON file!
+   - Each metric will have a specific command to generate activity
+   - Metrics requiring replicas/multiple instances are automatically skipped with comments
+3. Then create __init__.py and test file
+4. Review and adjust the generated smoke test operations if needed
+5. Add the feature to utils/_features.py if it doesn't exist
+6. Run './format.sh' to ensure code formatting
 
 The shared OtelMetricsValidator is already available at:
     utils/otel_metrics_validator.py
+
+IMPORTANT: The smoke test now follows the instructions from prompt_template.py:
+- Analyzes each metric in the JSON file
+- Generates specific commands for each metric
+- Skips metrics requiring replicas/deadlocks with explanatory comments
 """,
         }
 

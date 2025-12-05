@@ -9,6 +9,12 @@ This MCP server helps generate OTel integration metric test files similar to `te
   - `Test_BackendValidity` - validates metrics received by backend
   - `Test_Smoke` - generates integration-specific activity and validates basic metrics
   
+- **Metric-based smoke test generation** (NEW!):
+  - Analyzes the metrics JSON file and generates specific operations for EACH metric
+  - Automatically skips metrics requiring replicas/multiple instances with explanatory comments
+  - Follows the detailed instructions from `prompt_template.py`
+  - Built-in generators for: Kafka, Redis, MySQL, PostgreSQL
+  
 - **Uses shared utilities**:
   - All tests use the shared `utils/otel_metrics_validator.py`
   
@@ -77,13 +83,16 @@ Generates a complete test file structure for an integration.
 **Parameters:**
 - `integration_name` (required): Name of the integration (e.g., "redis", "mysql")
 - `metrics_json_file` (required): Name of the metrics JSON file (e.g., "redis_metrics.json")
+- `sample_metrics` (optional): List of metric names to include in the metrics JSON template
 - `excluded_metrics` (optional): List of metrics to exclude
 - `feature_name` (optional): Feature name for decorator (defaults to `<integration>_receiver_metrics`)
 
 **Example:**
 ```
-Generate an integration test for Redis with metrics file redis_metrics.json and exclude redis.cluster.slots
+Generate an integration test for Redis with metrics file redis_metrics.json, sample metrics redis.commands.processed redis.keys.expired, and exclude redis.cluster.slots
 ```
+
+**Note:** If you provide `sample_metrics`, the tool will generate a metrics JSON template with those metrics included. Otherwise, it will generate an empty template structure.
 
 #### 2. `list_supported_integrations`
 
@@ -144,9 +153,18 @@ Create `tests/otel_<integration>_metrics_e2e/<integration>_metrics.json`:
 ```
 
 
-### Step 4: Customize the Smoke Test
+### Step 4: Customize the Smoke Test (Usually Not Needed!)
 
-Review and update the smoke test operations in `test_<integration>_metrics.py` if needed:
+The smoke test operations are **automatically generated** from your metrics JSON file! Each metric gets specific commands to generate it.
+
+For example, for Kafka:
+- `kafka.brokers` → `kafka-broker-api-versions` command
+- `kafka.messages` → Produce messages to topic
+- `kafka.partition.replicas` → Automatically skipped with comment (needs multiple brokers)
+
+**Only customize if:**
+- You're using an integration not yet supported (add to `metric_operations_generator.py`)
+- The auto-generated operations don't work for your specific setup
 
 ```python
 def setup_main(self) -> None:
@@ -154,10 +172,10 @@ def setup_main(self) -> None:
     scenario: OtelCollectorScenario = context.scenario
     container = scenario.redis_container
     
-    # Customize these operations for your integration
+    # Auto-generated operations - one for each metric!
     r = container.exec_run("redis-cli SET test_key test_value")
-    logger.info(r.output)
-    # ... more operations
+    logger.info(f"redis.net.output: {r.output}")
+    # ... more auto-generated operations
 ```
 
 ### Step 5: Add Feature to utils/_features.py
