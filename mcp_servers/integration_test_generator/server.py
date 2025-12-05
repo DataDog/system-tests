@@ -8,7 +8,11 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 import json
 from pathlib import Path
 from typing import Any
+import requests
 import constants
+from formatters import format_excluded_metrics, format_smoke_operations, format_expected_metrics
+from templates.test_integration_file_template import get_test_file_template
+from templates.prompt_template import get_generate_with_reference_prompt
 
 # MCP SDK imports
 try:
@@ -50,142 +54,26 @@ def generate_test_file(
 
     integration_title = integration_name.title()
     integration_lower = integration_name.lower()
+    integration_upper = integration_name.upper()
     feature = feature_name or f"{integration_lower}_receiver_metrics"
 
-    # Format excluded metrics
-    excluded_metrics_str = ""
-    if excluded_metrics:
-        excluded_metrics_formatted = ",\n    ".join([f'"{m}"' for m in excluded_metrics])
-        excluded_metrics_str = f"""
-# Exclude metrics that require specific setup or sustained activity
-_EXCLUDED_{integration_name.upper()}_METRICS = {{
-    {excluded_metrics_formatted}
-}}
-"""
-    else:
-        excluded_metrics_str = f"_EXCLUDED_{integration_name.upper()}_METRICS: set[str] = set()"
+    excluded_metrics_str = format_excluded_metrics(integration_name, excluded_metrics)
 
-    # Format smoke test operations
-    smoke_operations = "\n        ".join(config["smoke_test_operations"])
+    smoke_operations = format_smoke_operations(config["smoke_test_operations"])
 
-    # Format expected smoke metrics
-    expected_metrics_formatted = ",\n            ".join([f'"{m}"' for m in config["expected_smoke_metrics"]])
+    expected_metrics_formatted = format_expected_metrics(config["expected_smoke_metrics"])
 
-    template = f'''import time
-from pathlib import Path
-from typing import TYPE_CHECKING
-
-from utils import scenarios, interfaces, logger, features, context
-from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
-
-if TYPE_CHECKING:
-    from utils._context._scenarios.otel_collector import OtelCollectorScenario
-
-
-# Load {integration_title} metrics specification
-{excluded_metrics_str}
-{integration_lower}_metrics = OtelMetricsValidator.load_metrics_from_file(
-    metrics_file=Path(__file__).parent / "{metrics_json_file}",
-    excluded_metrics=_EXCLUDED_{integration_name.upper()}_METRICS,
-)
-
-# Initialize validator with {integration_title} metrics
-_metrics_validator = OtelMetricsValidator({integration_lower}_metrics)
-
-
-@scenarios.otel_collector
-@scenarios.otel_collector_e2e
-@features.{feature}
-class Test_{integration_title}MetricsCollection:
-    def test_{integration_lower}_metrics_received_by_collector(self):
-        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
-        metrics_batch = get_collector_metrics_from_scenario(scenario)
-
-        _, _, _validation_results, failed_validations = _metrics_validator.process_and_validate_metrics(metrics_batch)
-
-        assert len(failed_validations) == 0, (
-            f"Error: {{len(failed_validations)}} metrics failed the expected behavior!\\n"
-            f"\\n\\nFailed validations:\\n" + "\\n".join(failed_validations)
-        )
-
-
-@scenarios.otel_collector_e2e
-@features.{feature}
-class Test_BackendValidity:
-    def test_{integration_lower}_metrics_received_by_backend(self):
-        """Test metrics were actually queried / received by the backend"""
-        metrics_to_validate = list({integration_lower}_metrics.keys())
-        query_tags = {{"rid": "otel-{integration_lower}-metrics", "host": "collector"}}
-
-        time.sleep(15)
-        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
-            metric_names=metrics_to_validate,
-            query_tags=query_tags,
-            lookback_seconds=300,
-            retries=3,
-            initial_delay_s=0.5,
-            semantic_mode="combined",
-        )
-
-        if failed_metrics:
-            logger.error(f"\\n❌ Failed validations for semantic mode combined: {{failed_metrics}}")
-
-        # test with native mode
-        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
-            metric_names=metrics_to_validate,
-            query_tags=query_tags,
-            lookback_seconds=300,
-            retries=3,
-            initial_delay_s=0.5,
-            semantic_mode="native",
-        )
-
-        if failed_metrics:
-            logger.error(f"\\n❌ Failed validations for semantic mode native: {{failed_metrics}}")
-
-
-@scenarios.otel_collector
-@scenarios.otel_collector_e2e
-@features.{feature}
-class Test_Smoke:
-    """{integration_title}-specific smoke test to generate database/service activity.
-    This test validates that basic {integration_title} metrics are collected after operations.
-    """
-
-    def setup_main(self) -> None:
-        """When the {integration_lower} container spins up, we need some activity."""
-        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
-        container = scenario.{config["container_name"]}
-
-        {smoke_operations}
-
-    def test_main(self) -> None:
-        observed_metrics: set[str] = set()
-
-        expected_metrics = {{
-            {expected_metrics_formatted}
-        }}
-
-        for data in interfaces.otel_collector.get_data("/api/v2/series"):
-            logger.info(f"In request {{data['log_filename']}}")
-            payload = data["request"]["content"]
-            for serie in payload["series"]:
-                metric = serie["metric"]
-                observed_metrics.add(metric)
-                logger.info(f"    {{metric}} {{serie['points']}}")
-
-        all_metric_has_be_seen = True
-        for metric in expected_metrics:
-            if metric not in observed_metrics:
-                logger.error(f"Metric {{metric}} hasn't been observed")
-                all_metric_has_be_seen = False
-            else:
-                logger.info(f"Metric {{metric}} has been observed")
-
-        assert all_metric_has_be_seen
-'''
-
-    return template
+    return get_test_file_template(
+        integration_title=integration_title,
+        integration_lower=integration_lower,
+        integration_upper=integration_upper,
+        feature=feature,
+        excluded_metrics_str=excluded_metrics_str,
+        metrics_json_file=metrics_json_file,
+        container_name=config["container_name"],
+        smoke_operations=smoke_operations,
+        expected_metrics_formatted=expected_metrics_formatted,
+    )
 
 
 def generate_metrics_file(integration_name: str) -> str:
@@ -244,7 +132,11 @@ def generate_metrics_file(integration_name: str) -> str:
         return f"Error parsing YAML: {e}"
 
     metric_template = {}
+    # Try both metrics and telemetry.metrics paths
     metrics_dict = yaml_data.get("metrics", {})
+    if not metrics_dict and "telemetry" in yaml_data:
+        metrics_dict = yaml_data.get("telemetry", {}).get("metrics", {})
+    
     for metric_name, metric_info in metrics_dict.items():
         metric_type = set(metric_info.keys()) & constants.METRIC_TYPES
         metric_template[metric_name] = {
@@ -252,7 +144,6 @@ def generate_metrics_file(integration_name: str) -> str:
             "description": metric_info.get("description", ""),
         }
 
-    # Return the dict as pretty-printed JSON
     result_json = json.dumps(metric_template, indent=2)
 
     metric_file_name = f"{integration_name}_metrics.json"
@@ -387,17 +278,6 @@ async def list_resources() -> list[Resource]:
             )
         )
     
-    # Add improvements document
-    improvements_path = Path(__file__).parent / "IMPROVEMENTS.md"
-    if improvements_path.exists():
-        resources.append(
-            Resource(
-                uri=f"file://{improvements_path}",
-                name="Integration Test Improvements",
-                description="Design document with improvements and patterns for test generation",
-                mimeType="text/markdown"
-            )
-        )
     
     return resources
 
@@ -456,74 +336,11 @@ async def get_prompt(name: str, arguments: dict[str, str] | None = None):
             with open(POSTGRES_TEST_PATH, "r", encoding="utf-8") as f:
                 postgres_test_content = f.read()
         
-        prompt_text = f"""You are generating an OTel integration metrics test for {integration_name}.
-
-CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structure exactly.
-
-## PostgreSQL Test Reference (GOLD STANDARD):
-
-```python
-{postgres_test_content}
-```
-
-## Requirements for {integration_name} test:
-
-1. **Structure**: Follow PostgreSQL test structure EXACTLY:
-   - Three separate test classes (not one big class)
-   - Test_{{Integration}}MetricsCollection
-   - Test_BackendValidity  
-   - Test_Smoke
-
-2. **Use OtelMetricsValidator**: Import and use the shared validator
-   ```python
-   from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
-   ```
-
-3. **Correct Decorators**: 
-   - Use scenario-specific decorator: @scenarios.otel_{integration_name}_metrics_e2e
-
-4. **Real Metrics**: Use actual metrics from {integration_name} receiver
-   - Do NOT invent fake metrics
-
-5. **Correct Credentials**: Use system_tests credentials
-   - User: system_tests_user
-   - Password: system_tests_password
-   - Database: system_tests_dbname
-
-6. **Retry Logic**: Backend queries MUST have:
-   - retries=3
-   - initial_delay_s=0.5
-   - Both "combined" and "native" semantic modes
-
-7. **Smoke Test**: Generate real activity on the container
-   - Access via: scenario.{integration_name}_container
-   - For each of the metrics in the generated metrics file, run a command to generate activity on the container. 
-   - Skip metrics that involve replica DBs, deadlocks, or that require a second instance of the integration that's running.
-   - If a metric is skipped, leave a comment in the test file explaining why it was skipped.
-   - Look at the postgres_metrics.json file as an example.
-   - Example:
-     - For the metric "redis.commands.processed", run the command "redis-cli INCR counter"
-     - For the metric "redis.keys.expired", run the command "redis-cli FLUSHALL"
-     - For the metric "redis.net.input", run the command "redis-cli GET test_key"
-     - For the metric "redis.net.output", run the command "redis-cli SET test_key test_value"
-   - If unable to find the command, skip the metric and leave a comment in the test file explaining why it was skipped.
-   - Run actual commands (CREATE, INSERT, SELECT for databases)
-
-8. **Test Pattern**:
-   ```python
-   def test_main(self) -> None:
-       observed_metrics: set[str] = set()
-       expected_metrics = {{...}}
-       
-       for data in interfaces.otel_collector.get_data("/api/v2/series"):
-           # ... collect metrics
-       
-       missing_metrics = expected_metrics - observed_metrics
-       assert not missing_metrics, f"Missing metrics: {{missing_metrics}}"
-   ```
-
-Generate the complete test file for {integration_name} with metrics file {metrics_json_file}.
-"""
+        prompt_text = get_generate_with_reference_prompt(
+            integration_name=integration_name,
+            metrics_json_file=metrics_json_file,
+            postgres_test_content=postgres_test_content,
+        )
         
         return PromptMessage(
             role="user",
