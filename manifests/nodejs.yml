@@ -77,6 +77,7 @@ refs:
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
+  - &ref_5_81_0 '>=5.81.0'
 manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -1257,6 +1258,8 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
+  tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0
@@ -1608,7 +1611,14 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
+    - weblog_declaration:
+        "*": *ref_5_81_0
+        nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys:
+    - weblog_declaration:
+        "*": *ref_5_81_0
+        nextjs: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
   tests/test_sampling_rates.py::Test_SamplingDecisions: *ref_5_54_0
