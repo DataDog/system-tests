@@ -81,9 +81,6 @@ class _Scenarios:
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
         },
-        agent_env={
-            "TEST_AGENT_VERSION": "7.65.0",  # Required for Java tracer >= 1.54.0 client-side stats
-        },
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
             "may drop some of them"
