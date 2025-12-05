@@ -20,21 +20,21 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span is not None, f"Span is not found for {db_operation}"
 
             # DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name.
-            assert span["meta"]["db.name"] == db_container.db_instance
+            assert span["attributes"]["db.name"] == db_container.db_instance
 
             # Describes the relationship between the Span, its parents, and its children in a Trace.
-            assert span["meta"]["span.kind"] == "client"
+            assert span["kind"] == "SPAN_KIND_CLIENT"
 
             # An identifier for the database management system (DBMS) product being used. Formerly db.type
             # Must be one of the available values:
             # https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
-            assert span["meta"]["db.system"] == self.db_service
+            assert span["attributes"]["db.system"] == self.db_service
 
             # Username for accessing the database.
-            assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
+            assert span["attributes"]["db.user"].casefold() == db_container.db_user.casefold()
 
             # The database password should not show in the traces
-            for key in span["meta"]:
+            for key in span["attributes"]:
                 if key not in [
                     "peer.hostname",
                     "db.user",
@@ -46,20 +46,20 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     "net.peer.name",
                     "server.address",
                 ]:  # These fields hostname, user... are the same as password
-                    assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
+                    assert span["attributes"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 
     def test_resource(self):
         """Usually the query"""
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
             span = self.get_span_from_agent(request)
-            assert db_operation in span["resource"].lower()
+            assert db_operation in span["resourceRef"].lower()
 
     @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
     def test_db_connection_string(self):
         """The connection string used to connect to the database."""
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            assert span["meta"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
+            assert span["attributes"]["db.connection_string"].strip(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
     @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
@@ -69,11 +69,11 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span = self.get_span_from_agent(request)
 
             if db_operation == "procedure":
-                assert any(substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]), (
+                assert any(substring in span["attributes"]["db.operation"].lower() for substring in ["call", "exec"]), (
                     "db.operation span not found for procedure operation"
                 )
             else:
-                assert db_operation.lower() in span["meta"]["db.operation"].lower(), (
+                assert db_operation.lower() in span["attributes"]["db.operation"].lower(), (
                     f"Test is failing for {db_operation}"
                 )
 
@@ -85,22 +85,22 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
         for db_operation, request in self.get_requests(excluded_operations=["procedure"]):
             span = self.get_span_from_agent(request)
-            assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
+            assert span["attributes"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
     def test_error_message(self):
         """A string representing the error message."""
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
-        assert len(span["meta"]["error.msg"].strip()) != 0
+        assert len(span["attributes"]["error.msg"].strip()) != 0
 
     @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
     def test_error_type_and_stack(self):
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
 
         # A string representing the type of the error
-        assert span["meta"]["error.type"].strip()
+        assert span["attributes"]["error.type"].strip()
 
         # A human readable version of the stack trace
-        assert span["meta"]["error.stack"].strip()
+        assert span["attributes"]["error.stack"].strip()
 
     @bug(library="python_otel", reason="OTEL-940")
     @bug(library="nodejs_otel", reason="OTEL-940")
@@ -110,11 +110,11 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
             if db_operation in ["update", "delete", "procedure", "select_error", "select"]:
-                assert span["meta"]["db.statement"].count("?") == 2, (
+                assert span["attributes"]["db.statement"].count("?") == 2, (
                     f"The query is not properly obfuscated for operation {db_operation}"
                 )
             else:
-                assert span["meta"]["db.statement"].count("?") == 3, (
+                assert span["attributes"]["db.statement"].count("?") == 3, (
                     f"The query is not properly obfuscated for operation {db_operation}"
                 )
 
@@ -128,8 +128,8 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """Usually the query"""
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
             span = self.get_span_from_agent(request)
-            assert db_operation in span["meta"]["db.statement"].lower(), (
-                f"{db_operation}  not found in {span['meta']['db.statement']}"
+            assert db_operation in span["attributes"]["db.statement"].lower(), (
+                f"{db_operation}  not found in {span['attributes']['db.statement']}"
             )
 
 

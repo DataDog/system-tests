@@ -129,14 +129,13 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
+            logger.debug(f"Looking at agent data {data['log_filename']}")
             if "idxTracerPayloads" not in data["request"]["content"]:
                 continue
-
-            # logger.debug(f"Looking at agent data {data}")
             content = data["request"]["content"]["idxTracerPayloads"]
 
             for payload in content:
-                # logger.debug(f"Looking at agent payload {payload}")
+                logger.debug(f"Looking at agent payload {payload}")
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
                         logger.debug(f"Looking at agent span {span}")
