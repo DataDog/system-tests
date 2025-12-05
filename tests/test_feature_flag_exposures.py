@@ -599,9 +599,6 @@ class Test_FFE_Config_Update:
 
     def setup_ffe_config_update_changes_flag_value(self):
         """Set up FFE with initial config, evaluate, update config, and evaluate again."""
-        # Reset remote config to empty state
-        rc.rc_state.reset().apply()
-
         config_id = "ffe-update-test-config"
         self.flag_key = "test-flag-updatable"
         self.targeting_key = "test-user-update"
@@ -636,8 +633,8 @@ class Test_FFE_Config_Update:
             },
         }
 
-        # Apply initial config
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
+        # Reset and apply initial config
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
 
         # Evaluate flag with initial config
         self.r1 = weblog.post(
