@@ -1,14 +1,11 @@
-Use the manifest files under the [manifests](../../manifests/) folder to declare what will be tested vs skipped, and under what conditions. Tests are identified by  `file path` + `Test_Class_Name` +` Optional | Test_Name` (Where `Test_Name` is used to differentiate between multiple test functions within a class).
+Use the manifest files under the [manifests](../../manifests/) folder to declare what will be tested vs skipped, and under what conditions. Tests are identified by `file path` + `Test_Class_Name` +`Test_Name` (All optional, where `Test_Name` is used to differentiate between multiple test functions within a class).
 Example weblog test:
 ```yaml
-tests/:
-  specific.py: v1.40.0
+tests/specific.py: v1.40.0
 ```
 Example Parametric test:
 ```yaml
-tests/:
-  parametric/:
-    specific_parametric.py: v1.40.0
+tests/parametric/specific_parametric.py: v1.40.0
 ```
 
 A test is **enabled** if:
@@ -24,7 +21,7 @@ When executed locally, tests run against the latest version of dd-trace by defau
 #### Notes
 - Entries in the manifest file must be sorted in alphabetical order. This is validated by the TEST_THE_TESTS scenario/linter.
 - Manifest files are validated using JSON schema in system tests CI
-- An error will occur if a manifest file refers to a file/class that does not exists
+- An error will occur if a manifest file refers to a directory/file/class/function that does not exists
 
 The example below shows a combination of options that can be deployed in manifest files.
 
@@ -34,27 +31,23 @@ The example below shows a combination of options that can be deployed in manifes
 refs:
   - &5_6_and_someid_backports '>=5.6 || ^4.3.0 || ^4.3.0'
 
-tests/:
-  specific.py: irrelevant (see this link) # let skip  an entire file
+manifest:
+    tests/specific.py: irrelevant (see this link) # let skip  an entire file
+    tests/appsec/test_distributed.py::Test_FeatureA: v1.14 # declare a version for a class
+    tests/appsec/test_distributed.py::Test_FeatureB: flaky # skip a class with bug, flaky, irrelevant ...
+    tests/appsec/test_distributed.py::Test_FeatureC: # declare a version for a class, depending on weblog
+        - weblog_declaration:
+            '*': missing_feature # All other weblogs: not yet available
+            django: v1.2
+            flask: v1.3
+            uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
 
-  appsec/: # more regular declarations:
-    test_distributed.py:
-      Test_FeatureA: v1.14 # declare a version for a class
+    # declare compatibility for multiple release lines
+    # the caret character locks the major version (ie: `(>=1.3.0 && <2.0.0) || >= 2.3.0`)
+    tests/appsec/test_distributed.py::Test_FeatureD: ^1.3.0 || >=2.3.0
 
-      Test_FeatureB: flaky # skip a class with bug, flaky, irrelevant ...
-
-      Test_FeatureC: # declare a version for a class, depending on weblog
-        '*': missing_feature # All other weblogs: not yet available
-        django: v1.2
-        flask: v1.3
-        uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
-
-      # declare compatibility for multiple release lines
-      # the caret character locks the major version (ie: `(>=1.3.0 && <2.0.0) || >= 2.3.0`)
-      Test_FeatureD: ^1.3.0 || >=2.3.0
-
-      # reference an alias to avoid repeating long or complex semver versions
-      Test_FeatureE: *5_6_and_someid_backports
+    # reference an alias to avoid repeating long or complex semver versions
+    tests/appsec/test_distributed.py::Test_FeatureE: *5_6_and_someid_backports
 ```
 
 #### Notes
@@ -92,7 +85,6 @@ The manifest system addresses these challenges by providing:
 - **Test structure**: Design tests around features, with the general rule that one test class = one feature
 - **Manifest declarations**: Use manifests to declare at which version of your library a feature should be working
 - **When to use decorators**: Decorators still have their place for:
-  - Fine-grained skips of specific test methods within a class
   - Complex skip conditions that cannot be expressed with simple version requirements
 
 ### In Practice
