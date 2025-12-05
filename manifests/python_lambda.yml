@@ -56,6 +56,10 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: v8.117.0.dev
+        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
+        Test_API10_redirect_status: missing_feature
         Test_API10_request_body: v8.117.0.dev
         Test_API10_request_headers: v8.117.0.dev
         Test_API10_request_method: v8.117.0.dev

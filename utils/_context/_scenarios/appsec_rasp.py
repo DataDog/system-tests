@@ -7,9 +7,16 @@ from utils._context.containers import InternalServerContainer
 
 
 class AppsecRaspScenario(EndToEndScenario):
-    def __init__(self, name: str, weblog_env: dict[str, str | None] | None = None):
+    def __init__(
+        self,
+        name: str,
+        weblog_env: dict[str, str | None] | None = None,
+        weblog_volumes: dict[str, dict[str, str]] | None = None,
+    ):
         if weblog_env is None:
             weblog_env = {}
+        if weblog_volumes is None:
+            weblog_volumes = {}
 
         default_env: dict[str, str | None] = {
             "DD_APPSEC_RASP_ENABLED": "true",
@@ -25,7 +32,8 @@ class AppsecRaspScenario(EndToEndScenario):
             weblog_env=merged_env,
             weblog_volumes={
                 "./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}
-            },
+            }
+            | weblog_volumes,
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario],
