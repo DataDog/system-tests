@@ -75,6 +75,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
@@ -264,6 +265,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
@@ -311,7 +313,6 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "tool_choice": "auto",
                 "truncation": "disabled",
                 "text": {"format": {"type": "text"}, "verbosity": "medium"},
-                "reasoning_tokens": 0,
                 "stream": stream,
             },
             metrics={
@@ -319,6 +320,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
@@ -423,7 +425,6 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "tool_choice": "auto",
                 "truncation": "disabled",
                 "text": {"format": {"type": "text"}, "verbosity": "medium"},
-                "reasoning_tokens": 0,
                 "stream": stream,
             },
             metrics={
@@ -431,6 +432,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
@@ -478,7 +480,6 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 tool_choice="auto",
                 truncation="disabled",
                 text={"format": {"type": "text"}, "verbosity": "medium"},
-                reasoning_tokens=mock.ANY,
                 stream=stream,
             ),
             metrics={
@@ -486,6 +487,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
@@ -536,7 +538,6 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             tool_choice="auto",
             truncation="disabled",
             text={"format": {"type": "text"}, "verbosity": "medium"},
-            reasoning_tokens=0,
             stream=stream,
         )
 
@@ -587,6 +588,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
@@ -624,6 +626,7 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
                 "input_tokens": mock.ANY,
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
+                "reasoning_output_tokens": mock.ANY,
             },
         )
 
