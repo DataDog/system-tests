@@ -6,19 +6,24 @@ but for different integrations (Redis, MySQL, Kafka, etc.).
 """
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 import requests
 import constants
+from utils._logger import logger
+import yaml
+import base64  # The content is base64-encoded per GitHub API
 
 # MCP SDK imports
 try:
     from mcp.server import Server
     from mcp.types import Tool, TextContent, Resource
+    from mcp.types import Prompt, PromptArgument
     import mcp.server.stdio
 except ImportError:
-    print("Error: MCP SDK not installed. Install with: pip install mcp")
-    exit(1)
+    logger.error("Error: MCP SDK not installed. Install with: pip install mcp")
+    sys.exit(1)
 
 
 def generate_test_file(
@@ -67,7 +72,7 @@ _EXCLUDED_{integration_name.upper()}_METRICS = {{
     # Format expected smoke metrics
     expected_metrics_formatted = ",\n            ".join([f'"{m}"' for m in config["expected_smoke_metrics"]])
 
-    template = f'''import time
+    return f'''import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -181,8 +186,6 @@ class Test_Smoke:
         assert all_metric_has_be_seen
 '''
 
-    return template
-
 
 def generate_metrics_file(integration_name: str) -> str:
     """Get info about the latest otel-collector-contrib release.
@@ -204,7 +207,7 @@ def generate_metrics_file(integration_name: str) -> str:
         "Accept": "application/vnd.github+json",
     }
 
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=2)
     response.raise_for_status()
 
     releases = response.json()  # list[dict]
@@ -213,18 +216,16 @@ def generate_metrics_file(integration_name: str) -> str:
 
     latest = releases[0]
 
-    metaDataUrl = f"{constants.GH_BASE_API}/contents/receiver/{integration_name.lower()}receiver/metadata.yaml?ref={latest.get('tag_name')}"
+    receiver_path = f"receiver/{integration_name.lower()}receiver/metadata.yaml"
+    metadata_url = f"{constants.GH_BASE_API}/contents/{receiver_path}?ref={latest.get('tag_name')}"
 
-    response = requests.get(metaDataUrl, headers=headers)
+    response = requests.get(metadata_url, headers=headers, timeout=2)
     if response.status_code != 200:
         return f"Failed to fetch metadata.yaml for {integration_name}."
 
     metadata_content = response.json().get("content")
     if not metadata_content:
         return "No content found in metadata.yaml."
-
-    # The content is base64-encoded per GitHub API
-    import base64
 
     try:
         decoded_yaml = base64.b64decode(metadata_content).decode("utf-8")
@@ -233,8 +234,6 @@ def generate_metrics_file(integration_name: str) -> str:
 
     # Parse YAML to get metrics info
     try:
-        import yaml
-
         yaml_data = yaml.safe_load(decoded_yaml)
     except Exception as e:
         return f"Error parsing YAML: {e}"
@@ -242,7 +241,7 @@ def generate_metrics_file(integration_name: str) -> str:
     metric_template = {}
     metrics_dict = yaml_data.get("metrics", {})
     for metric_name, metric_info in metrics_dict.items():
-        metric_type = set(metric_info.keys()) & METRIC_TYPES
+        metric_type = set(metric_info.keys()) & constants.METRIC_TYPES
         metric_template[metric_name] = {
             "data_type": metric_type.pop() if metric_type else None,
             "description": metric_info.get("description", ""),
@@ -257,9 +256,8 @@ def generate_metrics_file(integration_name: str) -> str:
         return "There is already a metric file created. Please delete and try again"
     # Create the parent directory if it doesn't exist
     metric_file_path.parent.mkdir(parents=True, exist_ok=True)
-    f = open(metric_file_path, "x")
-    f.write(result_json)
-    f.close()
+    with open(metric_file_path, "x") as file:
+        file.write(result_json)
 
     return metric_template
 
@@ -302,7 +300,10 @@ async def list_tools() -> list[Tool]:
                     },
                     "feature_name": {
                         "type": "string",
-                        "description": "Feature name for the @features decorator (optional, defaults to <integration>_receiver_metrics)",
+                        "description": (
+                            "Feature name for the @features decorator "
+                            "(optional, defaults to <integration>_receiver_metrics)"
+                        ),
                     },
                 },
                 "required": ["integration_name", "metrics_json_file"],
@@ -344,7 +345,7 @@ async def list_resources() -> list[Resource]:
     if constants.POSTGRES_TEST_PATH.exists():
         resources.append(
             Resource(
-                uri=f"file://{POSTGRES_TEST_PATH}",
+                uri=f"file://{constants.POSTGRES_TEST_PATH}",
                 name="PostgreSQL Metrics Test (Reference)",
                 description="Reference implementation of OTel metrics test. Use this as the gold standard for structure and patterns.",
                 mimeType="text/x-python",
@@ -354,7 +355,7 @@ async def list_resources() -> list[Resource]:
     if constants.MYSQL_TEST_PATH.exists():
         resources.append(
             Resource(
-                uri=f"file://{MYSQL_TEST_PATH}",
+                uri=f"file://{constants.MYSQL_TEST_PATH}",
                 name="MySQL Metrics Test (Reference)",
                 description="MySQL metrics test implementation following PostgreSQL patterns",
                 mimeType="text/x-python",
@@ -405,7 +406,6 @@ async def read_resource(uri: str) -> str:
 @app.list_prompts()
 async def list_prompts():
     """List available prompts."""
-    from mcp.types import Prompt, PromptArgument
 
     return [
         Prompt(
@@ -463,7 +463,7 @@ CRITICAL: Use the PostgreSQL test as your REFERENCE TEMPLATE. Follow its structu
    from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
    ```
 
-3. **Correct Decorators**: 
+3. **Correct Decorators**:
    - Use scenario-specific decorator: @scenarios.otel_{integration_name}_metrics_e2e
 
 4. **Real Metrics**: Use actual metrics from {integration_name} receiver
@@ -563,7 +563,7 @@ The shared OtelMetricsValidator is already available at:
 
     if name == "list_supported_integrations":
         result = {
-            "supported_integrations": list(constants, INTEGRATION_CONFIGS.keys()),
+            "supported_integrations": list(constants.INTEGRATION_CONFIGS.keys()),
             "details": {
                 name: {
                     "container_name": config["container_name"],

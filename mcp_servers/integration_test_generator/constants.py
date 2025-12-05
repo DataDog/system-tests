@@ -1,5 +1,7 @@
+from pathlib import Path
+
 METRIC_TYPES = {"sum", "gauge"}
-GH_BASE_API = "https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib/"
+GH_BASE_API = "https://api.github.com/repos/open-telemetry/opentelemetry-collector-contrib"
 
 # Path to reference test files
 SYSTEM_TESTS_ROOT = Path(__file__).parent.parent.parent
