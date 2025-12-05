@@ -487,7 +487,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
                 "cache_read_input_tokens": mock.ANY,
-                "reasoning_output_tokens": mock.ANY,
+                "reasoning_output_tokens": 64,
             },
         )
 
