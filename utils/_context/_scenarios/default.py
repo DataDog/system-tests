@@ -65,6 +65,10 @@ class DefaultScenario(EndToEndScenario):
                 # but we need proper investigation to see how to properly tests everything
                 # waiting for this audit, we disable API security
                 "DD_API_SECURITY_ENABLED": "false",
+                "DD_RUM_ENABLED": "true",
+                "DD_RUM_APPLICATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "DD_RUM_CLIENT_TOKEN": "pubaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "DD_RUM_REMOTE_CONFIGURATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             include_postgres_db=True,

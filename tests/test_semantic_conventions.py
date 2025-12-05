@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features, scenarios
+from utils import context, interfaces, bug, missing_feature, features, scenarios, logger
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -49,6 +49,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
         "grpc.server": "grpc-server",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-jetty": {
         "servlet.request": "jetty-server",
@@ -57,12 +58,14 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
         "servlet.error": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-3-native": {
         "servlet.request": "tomcat-server",
         "spring.handler": "spring-web-controller",
         "hsqldb.query": "java-jdbc-statement",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
@@ -70,6 +73,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-undertow": {
         "servlet.request": "undertow-http-server",
@@ -78,6 +82,7 @@ VARIANT_COMPONENT_MAP = {
         "undertow-http.request": "undertow-http-server",
         "servlet.response": "java-web-servlet-response",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
@@ -86,6 +91,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-payara": {
         "servlet.request": "java-web-servlet",
@@ -93,6 +99,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller"},
     "akka-http": "akka-http-server",
@@ -118,6 +125,7 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
     "vertx4": {"netty.request": "netty", "vertx.route-handler": "vertx"},
@@ -142,6 +150,8 @@ def get_component_name(span_name: str):
     # if type of component is a dictionary, get the component tag value by searching dict with current span name
     # try to get component name from name of span, otherwise use beginning of span as expected component, e.g: 'rack' for span name 'rack.request'
     if isinstance(expected_component, dict):
+        logger.info(f"RMM expected_component: {expected_component}")
+        logger.info(f"RMM span_name: {span_name}")
         expected_component = expected_component.get(span_name, span_name.split(".")[0])
     return expected_component
 
