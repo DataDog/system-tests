@@ -96,7 +96,6 @@ ignore = [
     "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
     "C901",     # complex-structure: TODO (52 occurences)
-    "E722",     # bare-except: TODO big project to enable this (15 occurences)
     "PERF401",  # manual-list-comprehension: TODO TBD, the "good" code can be harder to read (13 occurences)
     "PLR0911",  # too-many-return-statements: TODO (7 occurences)
     "PLR0912",  # too-many-branches: TODO (17 occurences)
@@ -402,8 +401,6 @@ ignore = [
     "RET505",  # superfluous-else-return: TODO
 ]
 "utils/virtual_machine/virtual_machine_provisioner.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file

@@ -76,6 +76,8 @@ refs:
   - &ref_5_76_0 '>=5.76.0'
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
+  - &ref_5_80_0 '>=5.80.0'
+  - &ref_5_81_0 '>=5.81.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -516,13 +518,14 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
-          fastify: flaky (APPSEC-58724)
+          fastify: *ref_5_61_0
           nextjs: missing_feature
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
         Test_API10_downstream_request_tag: missing_feature
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -1157,8 +1160,22 @@ tests/:
         '*': *ref_5_39_0
         nextjs: irrelevant
   integration_frameworks/:
-    test_openai.py:
-      TestOpenAiAPM: *ref_5_76_0
+    llm/:
+      anthropic/:
+        test_anthropic_apm.py:
+          TestAnthropicApmMessages: *ref_5_71_0
+        test_anthropic_llmobs.py:
+          TestAnthropicLlmObsMessages: *ref_5_71_0
+      openai/:
+        test_openai_apm.py:
+          TestOpenAiApmChatCompletions: *ref_5_76_0
+          TestOpenAiApmCompletions: *ref_5_76_0
+          TestOpenAiApmEmbeddings: *ref_5_76_0
+          TestOpenAiApmResponses: *ref_5_76_0
+        test_openai_llmobs.py:
+          TestOpenAiEmbeddingInteractions: *ref_5_80_0
+          TestOpenAiLlmInteractions: *ref_5_80_0
+          TestOpenAiPromptTracking: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1479,6 +1496,12 @@ tests/:
     Test_FFE_Exposure_Events_Errors:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
+    Test_FFE_RC_Down_From_Start:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
+    Test_FFE_RC_Unavailable:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant
@@ -1510,7 +1533,13 @@ tests/:
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag:
+      '*': *ref_5_81_0
+      nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+    Test_Resource_Renaming_Stats_Aggregation_Keys:
+      '*': *ref_5_81_0
+      nextjs: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: *ref_5_54_0
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown

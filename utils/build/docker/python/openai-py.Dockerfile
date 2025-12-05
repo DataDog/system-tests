@@ -8,7 +8,11 @@ RUN apt-get update && apt-get install -y curl
 WORKDIR /app
 
 RUN python -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
-RUN python -m pip install openai==$FRAMEWORK_VERSION
+RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
+        python -m pip install openai; \
+    else \
+        python -m pip install openai==$FRAMEWORK_VERSION; \
+    fi
 
 COPY utils/build/docker/python/openai_app/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/

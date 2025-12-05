@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import zipfile
 from enum import Enum
 from pathlib import Path
@@ -518,6 +519,10 @@ def main() -> None:
             print(f"   • {library}: {count}")
         elif not args.summary_only:  # Only show zero counts in detailed mode
             print(f"   • {library}: 0")
+
+    # Exit with non-zero status if no updates were made (or would be made in dry-run)
+    if total_updates == 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

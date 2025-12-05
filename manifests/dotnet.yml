@@ -205,6 +205,7 @@ tests/:
         Test_API10_all: missing_feature
         Test_API10_downstream_request_tag: missing_feature
         Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_redirect: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -696,6 +697,8 @@ tests/:
     Test_FFE_Exposure_Events: missing_feature
     Test_FFE_Exposure_Events_Empty: missing_feature
     Test_FFE_Exposure_Events_Errors: missing_feature
+    Test_FFE_RC_Down_From_Start: missing_feature
+    Test_FFE_RC_Unavailable: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

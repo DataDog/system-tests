@@ -305,6 +305,9 @@ tests/:
           'fastapi': v3.15.0.dev (with requests support)
         Test_API10_downstream_request_tag: v3.18.0
         Test_API10_downstream_ssrf_telemetry: v3.18.0
+        Test_API10_redirect:
+          '*': v3.18.0 (with urllib support)
+          'fastapi': v4.1.0 (with requests/urllib3 support)
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
@@ -912,8 +915,22 @@ tests/:
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: v2.11.0
   integration_frameworks/:
-    test_openai.py:
-      TestOpenAiAPM: v3.13.0
+    llm/:
+      anthropic/:
+        test_anthropic_apm.py:
+          TestAnthropicApmMessages: v3.16.0
+        test_anthropic_llmobs.py:
+          TestAnthropicLlmObsMessages: v3.16.0
+      openai/:
+        test_openai_apm.py:
+          TestOpenAiApmChatCompletions: v3.13.0
+          TestOpenAiApmCompletions: v3.13.0
+          TestOpenAiApmEmbeddings: v3.13.0
+          TestOpenAiApmResponses: v3.13.0
+        test_openai_llmobs.py:
+          TestOpenAiEmbeddingInteractions: v3.13.0
+          TestOpenAiLlmInteractions: v3.13.0
+          TestOpenAiPromptTracking: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1284,6 +1301,8 @@ tests/:
     Test_FFE_Exposure_Events: v4.0.0
     Test_FFE_Exposure_Events_Empty: v4.0.0
     Test_FFE_Exposure_Events_Errors: v4.0.0
+    Test_FFE_RC_Down_From_Start: v4.0.0
+    Test_FFE_RC_Unavailable: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

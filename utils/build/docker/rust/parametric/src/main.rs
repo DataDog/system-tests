@@ -95,8 +95,8 @@ fn init_tracing() -> Result<SdkTracerProvider> {
         .try_init()
         .context("initialize tracing subscriber");
 
-    let mut builder = datadog_opentelemetry::core::Config::builder();
-    builder.set_log_level_filter(datadog_opentelemetry::core::log::LevelFilter::Debug);
+    let mut builder = datadog_opentelemetry::configuration::Config::builder();
+    builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
     Ok(datadog_opentelemetry::tracing()
         .with_config(builder.build())
         .init())

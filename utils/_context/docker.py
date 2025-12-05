@@ -4,6 +4,7 @@ import subprocess
 import docker
 from docker.errors import DockerException
 import pytest
+from requests.exceptions import RequestException
 
 from utils._logger import logger
 
@@ -26,7 +27,7 @@ def get_docker_client() -> docker.DockerClient:
                 text=True,
             ).stdout.strip()
             return docker.DockerClient(base_url=endpoint)
-        except:
+        except (subprocess.CalledProcessError, DockerException, RequestException, ValueError):
             logger.exception("No more success with docker contexts")
 
         if "Error while fetching server API version: ('Connection aborted.'" in str(e):
