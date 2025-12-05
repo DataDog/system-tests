@@ -1,0 +1,48 @@
+import json
+from typing import Any
+
+from utils import weblog, interfaces, scenarios, features
+
+
+INFERRED_SPAN_NAMES = {"aws.apigateway", "aws.httpapi"}
+
+
+@scenarios.appsec_lambda_inferred_spans
+@features.appsec_api_gateway_inferred_span_discovery
+class Test_Inferred_Span_Tags:
+    """Tests for endpoint discovery & correlation from lambda inferred spans"""
+
+    def setup_lambda_inferred_span(self) -> None:
+        self.r = weblog.get("/waf/?message=<script>alert()</script>")
+
+    def test_lambda_inferred_span(self) -> None:
+        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
+            if span.get("name") == "aws.lambda":
+                lambda_span_appsec_data = appsec_data
+
+        assert lambda_span_appsec_data, "Expected non empty appsec data on aws.lambda span"
+
+        def validate_inferred_span(span: dict[str, Any]) -> bool:
+            if span.get("name") not in INFERRED_SPAN_NAMES:
+                return False
+
+            assert span.get("type") == "web", "Lambda inferred spans must be of type web"
+            assert "operation_name" not in span.get("meta", {}), "operation_name should be removed"
+
+            metrics = span.get("metrics", {})
+            appsec_enabled = metrics.get("_dd.appsec.enabled")
+            assert appsec_enabled is not None, "Lambda inferred spans must report _dd.appsec.enabled"
+            assert float(appsec_enabled) == 1.0
+
+            inferred_span_payload = span.get("meta", {}).get("_dd.appsec.json", {}) or span.get("meta_struct", {}).get(
+                "appsec", {}
+            )
+            assert inferred_span_payload, "Lambda inferred spans must include the appsec payload"
+            inferred_payload = (
+                json.loads(inferred_span_payload) if isinstance(inferred_span_payload, str) else inferred_span_payload
+            )
+            assert inferred_payload == lambda_span_appsec_data, "AppSec Data must match the service-entry span"
+
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validate_inferred_span, full_trace=True)

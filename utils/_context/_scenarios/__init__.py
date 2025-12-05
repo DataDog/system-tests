@@ -1146,6 +1146,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
+    appsec_lambda_inferred_spans = LambdaScenario(
+        "APPSEC_LAMBDA_INFERRED_SPANS",
+        doc="Lambda scenario with managed services tracing enabled",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        trace_managed_services=True,
+    )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
