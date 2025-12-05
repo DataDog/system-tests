@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 from utils import weblog, features
 
 
-@features.not_reported
+@features.rum_injection
 class Test_RUM_Injection:
     """Basic tests to verify RUM injection is working"""
 
