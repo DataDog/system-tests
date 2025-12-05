@@ -7,15 +7,15 @@ RUN uname -r
 # print versions
 RUN node --version && npm --version && curl --version
 
-COPY utils/build/docker/nodejs/openai_app /usr/app
+COPY utils/build/docker/nodejs/anthropic_app /usr/app
 
 WORKDIR /usr/app
 
 RUN npm install || sleep 60 && npm install
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
-        npm install openai; \
+        npm install @anthropic-ai/sdk; \
     else \
-        npm install openai@$FRAMEWORK_VERSION; \
+        npm install @anthropic-ai/sdk@$FRAMEWORK_VERSION; \
     fi
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/

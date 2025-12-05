@@ -1,5 +1,5 @@
 from utils import features, scenarios
-from .utils import TOOLS
+from .utils import TOOLS, BaseOpenaiTest
 
 import pytest
 
@@ -8,7 +8,7 @@ from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 @features.apm_openai_completions
 @scenarios.integration_frameworks
-class TestOpenAiApmCompletions:
+class TestOpenAiApmCompletions(BaseOpenaiTest):
     def test_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
@@ -33,7 +33,7 @@ class TestOpenAiApmCompletions:
 
 @features.apm_openai_chat_completions
 @scenarios.integration_frameworks
-class TestOpenAiApmChatCompletions:
+class TestOpenAiApmChatCompletions(BaseOpenaiTest):
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):
@@ -95,7 +95,7 @@ class TestOpenAiApmChatCompletions:
 
 @features.apm_openai_responses
 @scenarios.integration_frameworks
-class TestOpenAiApmResponses:
+class TestOpenAiApmResponses(BaseOpenaiTest):
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):
@@ -121,7 +121,7 @@ class TestOpenAiApmResponses:
 
 @features.apm_openai_embeddings
 @scenarios.integration_frameworks
-class TestOpenAiApmEmbeddings:
+class TestOpenAiApmEmbeddings(BaseOpenaiTest):
     def test_embedding(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
