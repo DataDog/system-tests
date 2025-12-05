@@ -93,6 +93,7 @@ tests/:
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
   test_feature_flag_exposures.py:
+    Test_FFE_Config_Update: missing_feature
     Test_FFE_Exposure_Events: missing_feature
     Test_FFE_Exposure_Events_Empty: missing_feature
     Test_FFE_Exposure_Events_Errors: missing_feature

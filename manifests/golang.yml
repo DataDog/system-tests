@@ -882,6 +882,7 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_feature_flag_exposures.py:
+    Test_FFE_Config_Update: v2.5.0-dev
     Test_FFE_Exposure_Events: v2.5.0-dev
     Test_FFE_Exposure_Events_Empty: v2.5.0-dev
     Test_FFE_Exposure_Events_Errors: v2.5.0-dev
