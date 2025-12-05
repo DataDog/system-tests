@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from utils import scenarios, interfaces, logger, features, context
-from tests.otel_postgres_metrics_e2e.utils import OtelMetricsValidator, get_collector_metrics_from_scenario
+from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
 
 if TYPE_CHECKING:
     from utils._context._scenarios.otel_collector import OtelCollectorScenario
