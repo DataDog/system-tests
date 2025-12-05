@@ -77,6 +77,7 @@ refs:
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
+  - &ref_5_81_0 '>=5.81.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1485,6 +1486,9 @@ tests/:
     Test_FFE_Exposure_Events_Errors:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
+    Test_FFE_RC_Down_From_Start:
+      '*': incomplete_test_app
+      express4: *ref_5_77_0  # only target express 4
     Test_FFE_RC_Unavailable:
       '*': incomplete_test_app
       express4: *ref_5_77_0  # only target express 4
@@ -1519,7 +1523,13 @@ tests/:
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag:
+      '*': *ref_5_81_0
+      nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+    Test_Resource_Renaming_Stats_Aggregation_Keys:
+      '*': *ref_5_81_0
+      nextjs: missing_feature
   test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   test_sampling_rates.py:
     Test_SampleRateFunction: *ref_5_54_0
