@@ -167,7 +167,6 @@ ROUTES = [
     ("/", ["GET", "POST", "OPTIONS"]),
     ("/finger_print", ["GET"]),
     ("/headers", ["GET"]),
-    ("/healthcheck", ["GET"]),
     ("/external_request", ["GET", "POST", "PUT", "TRACE"]),
     ("/params/<path>/", ["GET", "POST", "OPTIONS"]),
     ("/session/new", ["GET"]),
@@ -192,3 +191,8 @@ for endpoint, methods in ROUTES:
         lambda **kwargs: lambda_invoker(),
         methods=methods,
     )
+
+
+@app.get("/healthcheck")
+def healthcheck():
+    return "Ok"
