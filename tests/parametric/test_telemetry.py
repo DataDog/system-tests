@@ -20,17 +20,20 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_INJECTION_ENABLED",
         "java": "injection_enabled",
         "ruby": "DD_INJECTION_ENABLED",
+        "golang": ["DD_INJECTION_ENABLED", "injection_enabled"],
     },
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
         "java": "inject_force",
+        "golang": ["DD_INJECT_FORCE", "inject_force"],
     },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
         "python": "DD_TRACE_SAMPLE_RATE",
         "ruby": "DD_TRACE_SAMPLE_RATE",
+        "golang": ["DD_TRACE_SAMPLE_RATE", "trace_sample_rate"],
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
@@ -38,41 +41,48 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
         "ruby": "tracing.log_injection",
+        "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
         "nodejs": "DD_TRACE_HEADER_TAGS",
         "python": "DD_TRACE_HEADER_TAGS",
+        "golang": ["DD_TRACE_HEADER_TAGS", "trace_header_tags"],
     },
-    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS"},
+    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS", "golang": ["DD_TAGS", "trace_tags"]},
     "trace_enabled": {
         "dotnet": "DD_TRACE_ENABLED",
         "nodejs": "tracing",
         "python": "DD_TRACE_ENABLED",
         "ruby": "tracing.enabled",
+        "golang": ["DD_TRACE_ENABLED", "trace_enabled"],
     },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
         "nodejs": "profiling.enabled",
         "python": "DD_PROFILING_ENABLED",
         "ruby": "profiling.enabled",
+        "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
     },
     "appsec_enabled": {
         "dotnet": "DD_APPSEC_ENABLED",
         "nodejs": "appsec.enabled",
         "python": "DD_APPSEC_ENABLED",
         "ruby": "appsec.enabled",
+        "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
     },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
         "python": "DD_DATA_STREAMS_ENABLED",
+        "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
     },
     "runtime_metrics_enabled": {
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
         "ruby": "runtime_metrics_enabled",
+        "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
     },
     "dynamic_instrumentation_enabled": {
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
@@ -80,6 +90,7 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "dynamic_instrumentation.enabled",
         "ruby": "dynamic_instrumentation.enabled",
+        "golang": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamic_instrumentation_enabled"],
     },
     "trace_debug_enabled": {
         "php": "trace.debug",
@@ -93,10 +104,12 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "dotnet": "DD_TAGS",
         "python": "DD_TAGS",
         "nodejs": "DD_TAGS",
+        "golang": ["DD_TAGS", "trace_tags"],
     },
     "trace_propagation_style": {
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
         "php": "trace.propagation_style",
+        "golang": ["DD_TRACE_PROPAGATION_STYLE", "trace.propagation_style"],
     },
 }
 
