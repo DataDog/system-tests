@@ -590,3 +590,119 @@ class Test_FFE_RC_Down_From_Start:
         assert result["value"] == self.default_value, (
             f"Expected default '{self.default_value}', got '{result['value']}'"
         )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Config_Update:
+    """Test that FFE correctly updates flag values when remote config is updated."""
+
+    def setup_ffe_config_update_changes_flag_value(self):
+        """Set up FFE with initial config, evaluate, update config, and evaluate again."""
+        config_id = "ffe-update-test-config"
+        self.flag_key = "test-flag-updatable"
+        self.targeting_key = "test-user-update"
+        self.initial_value = "initial-value"
+        self.updated_value = "updated-value"
+        self.default_value = "default"
+
+        # Initial configuration with first value
+        initial_config = {
+            "id": "1",
+            "createdAt": "2024-04-17T19:40:53.716Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                self.flag_key: {
+                    "key": self.flag_key,
+                    "enabled": True,
+                    "variationType": "STRING",
+                    "variations": {
+                        "initial": {"key": "initial", "value": self.initial_value},
+                        "updated": {"key": "updated", "value": self.updated_value},
+                    },
+                    "allocations": [
+                        {
+                            "key": "default-allocation",
+                            "rules": [],
+                            "splits": [{"variationKey": "initial", "shards": []}],
+                            "doLog": True,
+                        }
+                    ],
+                }
+            },
+        }
+
+        # Reset and apply initial config
+        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", initial_config).apply()
+
+        # Evaluate flag with initial config
+        self.r1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Updated configuration with second value
+        updated_config = {
+            "id": "2",
+            "createdAt": "2024-04-17T19:41:00.000Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                self.flag_key: {
+                    "key": self.flag_key,
+                    "enabled": True,
+                    "variationType": "STRING",
+                    "variations": {
+                        "initial": {"key": "initial", "value": self.initial_value},
+                        "updated": {"key": "updated", "value": self.updated_value},
+                    },
+                    "allocations": [
+                        {
+                            "key": "default-allocation",
+                            "rules": [],
+                            "splits": [{"variationKey": "updated", "shards": []}],
+                            "doLog": True,
+                        }
+                    ],
+                }
+            },
+        }
+
+        # Apply updated config
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", updated_config).apply()
+
+        # Evaluate flag with updated config
+        self.r2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_config_update_changes_flag_value(self):
+        """Test that flag evaluation returns updated value after config update."""
+        assert self.r1.status_code == 200, f"First flag evaluation failed: {self.r1.text}"
+        assert self.r2.status_code == 200, f"Second flag evaluation failed: {self.r2.text}"
+
+        # Verify first evaluation returned initial value
+        result1 = json.loads(self.r1.text)
+        assert result1["value"] == self.initial_value, (
+            f"First evaluation: expected '{self.initial_value}', got '{result1['value']}'"
+        )
+
+        # Verify second evaluation returned updated value
+        result2 = json.loads(self.r2.text)
+        assert result2["value"] == self.updated_value, (
+            f"Second evaluation: expected '{self.updated_value}', got '{result2['value']}'"
+        )
