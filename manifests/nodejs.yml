@@ -1364,7 +1364,8 @@ tests/:
       Test_FR09_Log_Injection: *ref_5_72_0
       Test_FR10_Timeout_Configuration: *ref_5_72_0
       Test_FR11_Telemetry: *ref_5_72_0
-    test_otel_metrics.py: missing_feature
+    test_otel_metrics.py:
+      "*": *ref_5_81_0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: *ref_5_32_0
     test_parametric_endpoints.py:
