@@ -1077,13 +1077,14 @@ class LambdaWeblogContainer(WeblogContainer):
         *,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
+        trace_managed_services: bool = False,
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
             "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
-            "DD_TRACE_MANAGED_SERVICES": "false",
+            "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 
         volumes = volumes or {}

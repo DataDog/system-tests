@@ -27,6 +27,7 @@ class LambdaScenario(DockerScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict[str, dict[str, str]] | None = None,
+        trace_managed_services: bool = False,
     ):
         scenario_groups = [
             all_scenario_groups.tracer_release,
@@ -37,8 +38,7 @@ class LambdaScenario(DockerScenario):
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 
         self.lambda_weblog = LambdaWeblogContainer(
-            environment=weblog_env or {},
-            volumes=weblog_volumes or {},
+            environment=weblog_env or {}, volumes=weblog_volumes or {}, trace_managed_services=trace_managed_services
         )
 
         self.lambda_proxy_container = LambdaProxyContainer(

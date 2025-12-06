@@ -488,6 +488,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         "APPSEC_LAMBDA_BLOCKING",
         "APPSEC_LAMBDA_API_SECURITY",
         "APPSEC_LAMBDA_RASP",
+        "APPSEC_LAMBDA_INFERRED_SPANS",
     )
     if is_lambda_library != is_lambda_scenario:
         return False
