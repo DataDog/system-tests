@@ -41,7 +41,7 @@ Add to your MCP configuration file:
     "integration-test-generator": {
       "command": "python3",
       "args": [
-        "/Users/<firstname.lastname>/system-tests/mcp_servers/integration_test_generator/server.py"
+        "<PATH>/system-tests/mcp_servers/integration_test_generator/server.py"
       ]
     }
   }
@@ -55,7 +55,7 @@ Add to your MCP configuration file:
     "integration-test-generator": {
       "command": "python3",
       "args": [
-        "/Users/quinna.halim/system-tests/mcp_servers/integration_test_generator/server.py"
+        "<PATH>/system-tests/mcp_servers/integration_test_generator/server.py"
       ]
     }
   }
@@ -180,17 +180,8 @@ def setup_main(self) -> None:
 
 ### Step 5: Add Feature to utils/_features.py
 
-If the feature doesn't exist, add it:
-
-```python
-@staticmethod
-def postgres_receiver_metrics(test_object):
-    """OpenTelemetry semantic conventions for Postgres receiver metrics
-
-    https://feature-parity.us1.prod.dog/#/?feature=498
-    """
-    return _mark_test_object(test_object, feature_id=498, owner=_Owner.idm)
-```
+If the feature doesn't exist, add it by following this [doc](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md).
+>Each new feature should be defined in _features.py. This consists of adding a feature in Feature Parity Dashboard, get the feature id and copying one of the already added features, changing the name and the feature id in the url, and the feature number.
 
 ### Step 6: Format and Test
 
