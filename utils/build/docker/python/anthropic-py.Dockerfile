@@ -9,15 +9,15 @@ WORKDIR /app
 
 RUN python -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
-        python -m pip install openai; \
+        python -m pip install anthropic; \
     else \
-        python -m pip install openai==$FRAMEWORK_VERSION; \
+        python -m pip install anthropic==$FRAMEWORK_VERSION; \
     fi
 
-COPY utils/build/docker/python/openai_app/system_tests_library_version.sh system_tests_library_version.sh
+COPY utils/build/docker/python/anthropic_app/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /integration-framework-tracer-logs
 
-CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "openai"]
+CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "anthropic"]

@@ -77,6 +77,7 @@ refs:
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
+  - &ref_5_81_0 '>=5.81.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1160,6 +1161,11 @@ tests/:
         nextjs: irrelevant
   integration_frameworks/:
     llm/:
+      anthropic/:
+        test_anthropic_apm.py:
+          TestAnthropicApmMessages: *ref_5_71_0
+        test_anthropic_llmobs.py:
+          TestAnthropicLlmObsMessages: *ref_5_71_0
       openai/:
         test_openai_apm.py:
           TestOpenAiApmChatCompletions: *ref_5_76_0
@@ -1522,7 +1528,13 @@ tests/:
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag:
+      '*': *ref_5_81_0
+      nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+    Test_Resource_Renaming_Stats_Aggregation_Keys:
+      '*': *ref_5_81_0
+      nextjs: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: *ref_5_54_0
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
