@@ -11,22 +11,26 @@ const crypto = require('crypto')
 const http = require('http')
 const winston = require('winston')
 
-const server = http.createServer()
+let fastifyHandler = null
+
+const server = http.createServer((req, res) => {
+  if (req.url.startsWith('/resource_renaming')) {
+    // Handle resource renaming with HTTP server directly
+    res.writeHead(200)
+    res.end('OK')
+  } else if (fastifyHandler) {
+    // Everything else goes to Fastify
+    fastifyHandler(req, res)
+  } else {
+    res.writeHead(503)
+    res.end('Server not ready')
+  }
+})
 
 const fastify = require('fastify')({
   logger: true,
   serverFactory: (handler) => {
-    server.on('request', (req, res) => {
-      if (req.url.startsWith('/resource_renaming')) {
-        // Handle resource renaming with HTTP server directly
-        res.writeHead(200)
-        res.end('OK')
-      } else {
-        // Everything else goes to Fastify
-        handler(req, res)
-      }
-    })
-
+    fastifyHandler = handler
     return server
   }
 })
