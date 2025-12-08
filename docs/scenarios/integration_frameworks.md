@@ -13,10 +13,10 @@ which will run the tests for all frameworks.
 
 ## Generating cassettes
 
-To generate cassettes for a given framework, run the following command:
+To generate cassettes for a given framework, run the following command, making sure to include the relevant weblog (e.g. `openai-py@2.0.0`):
 
 ```bash
-./utils/scripts/generate-integration-framework-cassettes.sh
+./utils/scripts/generate-integration-framework-cassettes.sh --weblog openai-py@2.0.0
 ```
 
 which will run the tests without caring about the test assertions, and will enforce proper API keys to generate the cassettes one time.
