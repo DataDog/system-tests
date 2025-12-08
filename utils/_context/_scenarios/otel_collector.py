@@ -28,7 +28,7 @@ class OtelCollectorScenario(DockerScenario):
         )
 
         self.collector_container = OpenTelemetryCollectorContainer(
-            config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
+            config_file="./utils/build/docker/e2eotel/",
             environment={
                 "DD_API_KEY": "0123",
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
