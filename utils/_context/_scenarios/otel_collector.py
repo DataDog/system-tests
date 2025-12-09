@@ -28,7 +28,7 @@ class OtelCollectorScenario(DockerScenario):
         )
 
         self.collector_container = OpenTelemetryCollectorContainer(
-            config_file="./utils/build/docker/e2eotel/",
+            config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
             environment={
                 "DD_API_KEY": "0123",
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
@@ -38,6 +38,10 @@ class OtelCollectorScenario(DockerScenario):
             volumes={
                 "./utils/build/docker/agent/ca-certificates.crt": {
                     "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/e2eotel/": {
+                    "bind": "/etc/config/",
                     "mode": "ro",
                 },
             },
@@ -96,14 +100,17 @@ class OtelCollectorScenario(DockerScenario):
                 otel_config = yaml.safe_load(f)
 
             if "receivers" in otel_config:
-                otel_config_keys = otel_config["receivers"].keys()
-                result["configuration"]["receivers"] = ", ".join(otel_config_keys)
-                if "postgresql" in otel_config["receivers"]:
-                    pg_config = otel_config["receivers"]["postgresql"]
-                    result["configuration"]["postgresql_receiver_endpoint"] = pg_config.get("endpoint")
-                    databases = pg_config.get("databases", [])
-                    if databases:
-                        result["configuration"]["postgresql_receiver_databases"] = ", ".join(databases)
+                otel_config_recievers = otel_config["receivers"].keys()
+                result["configuration"]["receivers"] = ", ".join(otel_config_recievers)
+                for receiver in otel_config_recievers:
+                    receiver_file_path = Path(f"utils/build/docker/e2eotel/receivers/{receiver}.yml")
+                    if receiver_file_path.exists():
+                        with (receiver_file_path).open("r") as receiver_file:
+                            receiver_data = yaml.safe_load(receiver_file)
+                            result["configuration"][f"{receiver}_receiver_endpoint"] = receiver_data.get("endpoint")
+                            databases = receiver_data.get("databases", [])
+                            if databases:
+                                result["configuration"][f"{receiver}_receiver_databases"] = ", ".join(databases)
 
             if "exporters" in otel_config:
                 otel_config_keys = otel_config["exporters"].keys()

@@ -1333,7 +1333,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self.config_file] = {"bind": "/etc/config/", "mode": "ro"}
+        self.volumes[self.config_file] = {"bind": "/etc/config/otelcol-config.yml", "mode": "ro"}
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
