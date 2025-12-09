@@ -245,10 +245,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Setting DD_METRICS_OTEL_ENABLED to false does not disable metrics collection",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
