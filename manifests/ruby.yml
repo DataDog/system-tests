@@ -880,11 +880,12 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_feature_flag_exposures.py:
-    Test_FFE_Exposure_Events: missing_feature
-    Test_FFE_Exposure_Events_Empty: missing_feature
-    Test_FFE_Exposure_Events_Errors: missing_feature
-    Test_FFE_RC_Down_From_Start: missing_feature
-    Test_FFE_RC_Unavailable: missing_feature
+    Test_FFE_Config_Update: v2.23.0+6cb632a8089d21b2b5a7ca3ca5a198dcaa566bef
+    Test_FFE_Exposure_Events: v2.23.0+6cb632a8089d21b2b5a7ca3ca5a198dcaa566bef
+    Test_FFE_Exposure_Events_Empty: v2.23.0+6cb632a8089d21b2b5a7ca3ca5a198dcaa566bef
+    Test_FFE_Exposure_Events_Errors: v2.23.0+6cb632a8089d21b2b5a7ca3ca5a198dcaa566bef
+    Test_FFE_RC_Down_From_Start: v2.23.0+6cb632a8089d21b2b5a7ca3ca5a198dcaa566bef
+    Test_FFE_RC_Unavailable: v2.23.0+6cb632a8089d21b2b5a7ca3ca5a198dcaa566bef
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       "*": missing_feature
