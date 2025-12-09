@@ -26,6 +26,11 @@ class TestManifest:
                 },
             ],
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners": [
+                {
+                    "excluded_component_version": CustomSpec(">=2.6.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for agent is v2.6.0"),
+                    "component": "agent",
+                },
                 {"declaration": SkipDeclaration("missing_feature"), "component": "java"},
                 {
                     "excluded_component_version": CustomSpec(">=2.6.0"),
@@ -167,3 +172,16 @@ class TestManifest:
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::func[param]"
         ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE)]
+
+    def test_non_library_component(self):
+        manifest = Manifest(
+            "python",
+            Version("3.12.0"),
+            "some-variant",
+            agent_version=Version("1.12.0"),
+            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
+        )
+
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners::func"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, details="declared version for agent is v2.6.0")]

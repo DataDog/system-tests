@@ -23,8 +23,8 @@ def match_condition(
         case _:
             ref_version = library_version
 
-    if not ref_version:
-        return True
+    if not isinstance(ref_version, Version):
+        return False
 
     if condition["component"] == library or condition["component"] in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
