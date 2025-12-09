@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-11 (122 PR merged)
+
+* 2025-11-26 [Clean API to control mocked behavior on proxy](https://github.com/DataDog/system-tests/pull/5775) by @cbeauchesne
+* 2025-11-21 [Simplify PARAMETRIC TestClient API](https://github.com/DataDog/system-tests/pull/5753) by @cbeauchesne
+* 2025-11-26 [Add OpenAI LLM Observability Tests](https://github.com/DataDog/system-tests/pull/5727) by @sabrenner
+* 2025-11-05 [Pushing to test optimization](https://github.com/DataDog/system-tests/pull/5663) by @nccatoni
+* 2025-11-04 [Activate ANN001 on all endtoend and parametric scenarios](https://github.com/DataDog/system-tests/pull/5661) by @cbeauchesne
+* 2025-11-13 [expand openai integration frameworks tests](https://github.com/DataDog/system-tests/pull/5632) by @sabrenner
+
+
 ### 2025-10 (207 PR merged)
 
 * 2025-10-24 [Allow running php system tests with self-compiled artifact](https://github.com/DataDog/system-tests/pull/5586) by @bwoebi

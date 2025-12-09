@@ -8,7 +8,17 @@ from utils.virtual_machine.utils import nginx_parser
 class VirtualMachineProvisioner:
     """Manages the provision parser for the virtual machines."""
 
-    def get_provision(self, library_name, env, weblog, vm_provision_name, os_type, os_distro, os_branch, os_cpu):
+    def get_provision(
+        self,
+        library_name: str,
+        env: str,
+        weblog: str,
+        vm_provision_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+    ) -> "Provision":
         """Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
         YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
@@ -52,7 +62,7 @@ class VirtualMachineProvisioner:
         )
         return provision
 
-    def _get_env(self, env, library_name, provsion_raw_data):
+    def _get_env(self, env: str, library_name: str, provsion_raw_data: dict):
         provision_env = {"LANG": library_name}
         if "init-environment" not in provsion_raw_data:
             return provision_env
@@ -63,13 +73,21 @@ class VirtualMachineProvisioner:
                     provision_env[key] = env_data[key]
         return provision_env
 
-    def get_provision_steps(self, provsion_raw_data):
-        assert "provision_steps" in provsion_raw_data, "provision_steps is required"
-        return provsion_raw_data["provision_steps"]
+    def get_provision_steps(self, provision_raw_data: dict) -> list[str]:
+        assert "provision_steps" in provision_raw_data, "provision_steps is required"
+        return provision_raw_data["provision_steps"]
 
     def _get_provision_step(
-        self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data, step_name
-    ):
+        self,
+        env: str,
+        library_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        provsion_raw_data: dict,
+        step_name: str,
+    ) -> "Installation":
         assert step_name in provsion_raw_data, f"{step_name} is required"
         provision_step = provsion_raw_data[step_name]
         installations = provision_step["install"]
@@ -79,7 +97,16 @@ class VirtualMachineProvisioner:
         installation.populate_env = provision_step.get("populate_env", True)
         return installation
 
-    def _get_tested_components(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
+    def _get_tested_components(
+        self,
+        env: str,
+        library_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        provsion_raw_data: dict,
+    ):
         assert "tested_components" in provsion_raw_data, "tested_components is required"
         tested_components = provsion_raw_data["tested_components"]
         installations = tested_components["install"]
@@ -87,7 +114,16 @@ class VirtualMachineProvisioner:
         installation.id = "tested_components"
         return installation
 
-    def _get_vm_logs(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
+    def _get_vm_logs(
+        self,
+        env: str,
+        library_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        provsion_raw_data: str,
+    ) -> "Installation | None":
         if "vm_logs" in provsion_raw_data:
             tested_components = provsion_raw_data["vm_logs"]
             installations = tested_components["install"]
@@ -98,7 +134,16 @@ class VirtualMachineProvisioner:
             return installation
         return None
 
-    def _get_lang_variant_provision(self, env, library_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data):
+    def _get_lang_variant_provision(
+        self,
+        env: str,
+        library_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        weblog_raw_data: dict,
+    ) -> "Installation":
         if "lang_variant" not in weblog_raw_data:
             logger.debug("lang_variant not found in weblog provision file")
             return None
@@ -112,7 +157,15 @@ class VirtualMachineProvisioner:
         return installation
 
     def _get_weblog_provision(
-        self, env, library_name, weblog_name, os_type, os_distro, os_branch, os_cpu, weblog_raw_data
+        self,
+        env: str,
+        library_name: str,
+        weblog_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        weblog_raw_data: dict,
     ):
         assert "weblog" in weblog_raw_data, "weblog is required"
         weblog = weblog_raw_data["weblog"]
@@ -136,7 +189,16 @@ class VirtualMachineProvisioner:
         return installation
 
     def _get_installation(
-        self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data, *, use_git: bool = False
+        self,
+        env: str,
+        library_name: str,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        installations_raw_data: dict,
+        *,
+        use_git: bool = False,
     ):
         installation_raw_data = None
         for install in installations_raw_data:
@@ -156,7 +218,7 @@ class VirtualMachineProvisioner:
         assert installation_raw_data is not None, (
             f"Installation data not found for {env} {library_name} {os_type} {os_distro} {os_branch} {os_cpu}"
         )
-        installation = Intallation()
+        installation = Installation()
         installation.local_command = installation_raw_data.get("local-command", None)
         installation.local_script = installation_raw_data.get("local-script", None)
         installation.remote_command = installation_raw_data.get("remote-command", None)
@@ -176,7 +238,13 @@ class VirtualMachineProvisioner:
 
 
 class _DeployedWeblog:
-    def __init__(self, weblog_name, runtime_version=None, app_type=None, app_context_url="/") -> None:
+    def __init__(
+        self,
+        weblog_name: str,
+        runtime_version: str | None = None,
+        app_type: str | None = None,
+        app_context_url: str = "/",
+    ):
         self.weblog_name = weblog_name
         self.runtime_version = runtime_version
         self.app_type = app_type
@@ -188,7 +256,7 @@ class _DeployedWeblog:
 class Provision:
     """Contains all the information about the provision that it will be launched on the vm 1"""
 
-    def __init__(self, provision_name):
+    def __init__(self, provision_name: str):
         self.provision_name = provision_name
         self.env = {}
         self.installations = []
@@ -198,7 +266,7 @@ class Provision:
         self.vm_logs_installation = None
         self.deployed_weblog = None
 
-    def get_deployed_weblog(self):
+    def get_deployed_weblog(self) -> _DeployedWeblog:
         """Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple
         weblogs deployed.
         """
@@ -254,7 +322,7 @@ class Provision:
         return self.deployed_weblog
 
 
-class Intallation:
+class Installation:
     """Generic installation object. It can be a installation, lang_variant installation or weblog installation."""
 
     def __init__(self):
@@ -284,7 +352,7 @@ class Intallation:
 
 
 class CopyFile:
-    def __init__(self, name, remote_path, local_path, git_path):
+    def __init__(self, name: str, remote_path: str | None, local_path: str, git_path: str):
         self.remote_path = remote_path
         self.local_path = local_path
         self.git_path = git_path

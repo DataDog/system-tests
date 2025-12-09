@@ -61,13 +61,18 @@ app.post('/embeddings', async (req, res) => {
 
 app.post('/responses/create', async (req, res) => {
   const { model, input, parameters } = req.body;
-  let response = await client.responses.create({
-    model,
-    input,
-    ...parameters,
-  });
+  const kwargs = { ...(parameters || {}) };
 
-  if (parameters.stream) {
+  if (model) {
+    kwargs.model = model;
+  }
+  if (input) {
+    kwargs.input = input;
+  }
+
+  let response = await client.responses.create(kwargs);
+
+  if (kwargs.stream) {
     const chunks = [];
     for await (const chunk of response) {
       chunks.push(chunk);
@@ -75,7 +80,7 @@ app.post('/responses/create', async (req, res) => {
     response = chunks;
   }
 
-  res.json({ response: response });
+  res.json({ response });
 });
 
 app.listen(process.env.FRAMEWORK_TEST_CLIENT_SERVER_PORT || 80, () => {

@@ -401,8 +401,6 @@ ignore = [
     "RET505",  # superfluous-else-return: TODO
 ]
 "utils/virtual_machine/virtual_machine_provisioner.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file

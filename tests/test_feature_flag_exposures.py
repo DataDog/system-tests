@@ -1,6 +1,7 @@
 """Test Feature Flag Exposure (FFE) exposure events in weblog end-to-end scenario."""
 
 import json
+from http import HTTPStatus
 
 from utils import (
     weblog,
@@ -18,7 +19,6 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 
 # Simple UFC fixture for testing with doLog: true
 UFC_FIXTURE_DATA = {
-    "id": "1",
     "createdAt": "2024-04-17T19:40:53.716Z",
     "format": "SERVER",
     "environment": {"name": "Test"},
@@ -141,7 +141,6 @@ class Test_FFE_Exposure_Events:
 
         # First configuration with test-flag-1
         rc_config_1 = {
-            "id": "1",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -165,7 +164,6 @@ class Test_FFE_Exposure_Events:
 
         # Second configuration with test-flag-2
         rc_config_2 = {
-            "id": "2",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -318,7 +316,6 @@ class Test_FFE_Exposure_Events_Errors:
         # First, set up a valid Remote Config
         config_id = "ffe-test-config-malformed"
         valid_rc_config = {
-            "id": "1",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -359,7 +356,6 @@ class Test_FFE_Exposure_Events_Errors:
 
         # Now update with a malformed config (missing allocations and variationType)
         malformed_rc_config = {
-            "id": "2",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -444,6 +440,14 @@ class Test_FFE_RC_Unavailable:
 
     def setup_ffe_rc_unavailable_graceful_degradation(self):
         """Set up FFE with valid config, then simulate RC unavailability and verify cached config still works."""
+        self.config_request_data = None
+
+        def wait_for_config_503(data: dict) -> bool:
+            if data["path"] == "/v0.7/config" and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
+                self.config_request_data = data
+                return True
+            return False
+
         rc.rc_state.reset().apply()
 
         self.flag_key = "test-flag"  # From UFC_FIXTURE_DATA, returns "on"
@@ -468,6 +472,9 @@ class Test_FFE_RC_Unavailable:
         StaticJsonMockedResponse(
             path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
         ).send()
+
+        # Wait for tracer to receive 503 from RC before evaluating flag
+        interfaces.library.wait_for(wait_for_config_503, timeout=60)
 
         # Evaluate cached flag while RC is unavailable
         self.cached_eval = weblog.post(
@@ -498,6 +505,12 @@ class Test_FFE_RC_Unavailable:
 
     def test_ffe_rc_unavailable_graceful_degradation(self):
         """Test that cached flag configs continue working when RC is unavailable."""
+        # Verify tracer received 503 from RC
+        assert self.config_request_data is not None, "No /v0.7/config request was captured"
+        assert self.config_request_data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE, (
+            f"Expected 503, got {self.config_request_data['response']['status_code']}"
+        )
+
         expected_value = "on"
 
         assert self.baseline_eval.status_code == 200, f"Baseline request failed: {self.baseline_eval.text}"
@@ -517,4 +530,58 @@ class Test_FFE_RC_Unavailable:
         not_delivered_result = json.loads(self.not_delivered_eval.text)
         assert not_delivered_result["value"] == self.default_value, (
             f"Not delivered flag: expected default '{self.default_value}', got '{not_delivered_result['value']}'"
+        )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_RC_Down_From_Start:
+    """Test FFE behavior when RC is unavailable from application start."""
+
+    def setup_ffe_rc_down_from_start(self):
+        """Simulate RC being down from the start - no config ever delivered."""
+        self.config_request_data = None
+
+        def wait_for_config_503(data: dict) -> bool:
+            if data["path"] == "/v0.7/config" and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
+                self.config_request_data = data
+                return True
+            return False
+
+        StaticJsonMockedResponse(
+            path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
+        ).send()
+
+        # Wait for tracer to receive 503 from RC before evaluating flag
+        interfaces.library.wait_for(wait_for_config_503, timeout=60)
+
+        self.flag_key = "test-flag-never-delivered"
+        self.default_value = "my-default-value"
+
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": self.default_value,
+                "targetingKey": "user-rc-down",
+                "attributes": {},
+            },
+        )
+
+        StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}).send()
+
+    def test_ffe_rc_down_from_start(self):
+        """Test that default value is returned when RC is down from start."""
+        # Verify tracer received 503 from RC
+        assert self.config_request_data is not None, "No /v0.7/config request was captured"
+        assert self.config_request_data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE, (
+            f"Expected 503, got {self.config_request_data['response']['status_code']}"
+        )
+
+        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
+
+        result = json.loads(self.r.text)
+        assert result["value"] == self.default_value, (
+            f"Expected default '{self.default_value}', got '{result['value']}'"
         )

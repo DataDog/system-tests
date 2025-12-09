@@ -179,3 +179,37 @@ def _library_to_language_tag() -> str:
         return "javascript"
 
     return context.library.name
+
+
+def assert_prompt_tracking(
+    span_event: LlmObsSpanEvent,
+    prompt_id: str,
+    prompt_version: str,
+    variables: dict,
+    expected_chat_template: list[dict],
+    expected_messages: list[dict],
+) -> None:
+    """Helper to assert prompt tracking metadata and template extraction.
+
+    Validates:
+    - Prompt metadata (id, version, variables)
+    - chat_template reconstruction with {{variable}} placeholders
+    - Rendered messages (with variables substituted)
+    """
+    assert "prompt" in span_event["meta"]["input"], "Expected 'prompt' in span_event['meta']['input']"
+
+    actual_prompt = span_event["meta"]["input"]["prompt"]
+    assert actual_prompt["id"] == prompt_id, f"Expected prompt id '{prompt_id}', got '{actual_prompt['id']}'"
+    assert actual_prompt["version"] == prompt_version, (
+        f"Expected prompt version '{prompt_version}', got '{actual_prompt['version']}'"
+    )
+    assert actual_prompt["variables"] == variables, f"Expected variables {variables}, got {actual_prompt['variables']}"
+
+    assert "chat_template" in actual_prompt, "Expected 'chat_template' in prompt metadata"
+    assert actual_prompt["chat_template"] == expected_chat_template, (
+        f"Expected chat_template {expected_chat_template}, got {actual_prompt['chat_template']}"
+    )
+
+    assert span_event["meta"]["input"]["messages"] == expected_messages, (
+        f"Expected messages {expected_messages}, got {span_event['meta']['input']['messages']}"
+    )
