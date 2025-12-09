@@ -22,56 +22,6 @@ services:
         healthcheck:
             test: "curl -f http://localhost:18080/"
 
-    ruby_3_3:
-        env_file: "scenario_app.env"
-        image: system-tests/ruby_3_3:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.ruby_3_3
-        healthcheck:
-            test: "curl -f http://localhost:18080/"
-
-    ruby_3_2:
-        env_file: "scenario_app.env"
-        image: system-tests/ruby_3_2:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.ruby_3_2
-        healthcheck:
-            test: "curl -f http://localhost:18080/"  
-
-    ruby_3_1:
-        env_file: "scenario_app.env"
-        image: system-tests/ruby_3_1:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.ruby_3_1
-        healthcheck:
-            test: "curl -f http://localhost:18080/"  
-
-    ruby_3_0:
-        env_file: "scenario_app.env"
-        image: system-tests/ruby_3_0:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.ruby_3_0
-        healthcheck:
-            test: "curl -f http://localhost:18080/"  
-
-    ruby_2_7:
-        env_file: "scenario_app.env"
-        image: system-tests/ruby_2_7:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.ruby_2_7
-        healthcheck:
-            test: "curl -f http://localhost:18080/"  
-
     ruby_2_6:
         env_file: "scenario_app.env"
         image: system-tests/ruby_2_6:latest

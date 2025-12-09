@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from utils import scenarios, interfaces, logger, features, context
-from tests.otel_postgres_metrics_e2e.utils import OtelMetricsValidator, get_collector_metrics_from_scenario
+from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
 
 if TYPE_CHECKING:
     from utils._context._scenarios.otel_collector import OtelCollectorScenario
@@ -12,26 +12,10 @@ if TYPE_CHECKING:
 # Load PostgreSQL metrics specification
 # Exclude metrics that require a replica database
 _EXCLUDED_POSTGRES_METRICS = {
-    "postgresql.wal.delay",
-    "postgresql.wal.age",
-    "postgresql.replication.data_delay",
-    "postgresql.wal.lag",
-    # Background writer metrics (require more sustained activity)
-    "postgresql.backends",
-    "postgresql.bgwriter.buffers.allocated",
-    "postgresql.bgwriter.buffers.writes",
-    "postgresql.bgwriter.checkpoint.count",
-    "postgresql.bgwriter.duration",
-    "postgresql.bgwriter.maxwritten",
-    "postgresql.blks_hit",
-    "postgresql.blks_read",
-    "postgresql.temp.io",
-    "postgresql.tup_deleted",
-    "postgresql.tup_fetched",
-    "postgresql.tup_inserted",
-    "postgresql.tup_returned",
-    "postgresql.tup_updated",
-    "postgresql.function.calls",
+    "postgresql.wal.delay",  # requires replica
+    "postgresql.wal.age",  # requires replica
+    "postgresql.replication.data_delay",  # requires replica
+    "postgresql.wal.lag",  # requires replica
 }
 
 postgresql_metrics = OtelMetricsValidator.load_metrics_from_file(
@@ -128,6 +112,45 @@ class Test_Smoke:
         )
 
         r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
+
+        # Rollback
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c "BEGIN; INSERT INTO test_table DEFAULT VALUES; ROLLBACK;"'
+        )
+
+        # Vacuums and forces a read block (FULL activates the blocks_read metric)
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "VACUUM FULL test_table;"')
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "VACUUM test_table;"')
+
+        # Forces an index scan with the two sets of psql commands
+        r = container.exec_run(
+            "psql -U system_tests_user -d system_tests_dbname -c "
+            '"INSERT INTO test_table DEFAULT VALUES FROM generate_series(1, 800);"'
+        )
+
+        r = container.exec_run(
+            "psql -U system_tests_user -d system_tests_dbname -c "
+            '"SET enable_seqscan = off; SET enable_bitmapscan = off; '
+            'SELECT * FROM test_table WHERE id = 300;"'
+        )
+
+        # Forces temp files for postgresql.temp.io and postgresql.temp_files
+        r = container.exec_run(
+            "psql -U system_tests_user -d system_tests_dbname -c "
+            "\"SET work_mem = '64kB'; "
+            'SELECT * FROM generate_series(1, 1000000) g ORDER BY g;"'
+        )
+
+        # hit the buffer + max writtern
+        r = container.exec_run(
+            'psql -U system_tests_user -d system_tests_dbname -c "'
+            "CREATE TABLE IF NOT EXISTS bg_test AS "
+            "SELECT i, md5(random()::text) FROM generate_series(1, 2000000) g(i); "
+            "UPDATE bg_test SET i = i + 1; "
+            "UPDATE bg_test SET i = i + 1; "
+            'SELECT pg_sleep(2);"'
+        )
+
         logger.info(r.output)
 
     def test_main(self) -> None:

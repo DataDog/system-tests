@@ -10,7 +10,7 @@ import pytest
 import semantic_version as semver
 
 from utils._context.core import context
-from utils._context.component_version import Version
+from utils._context.component_version import ComponentVersion, Version
 
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
@@ -74,6 +74,8 @@ def _is_jira_ticket(declaration_details: str | None):
 
 
 def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None):
+    if isinstance(item, pytest.Function):
+        item = item.function
     if not _is_jira_ticket(declaration_details):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
@@ -83,13 +85,18 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
 
 
 def add_pytest_marker(
-    item: pytest.Module | FunctionType | MethodType,
+    item: pytest.Module | pytest.Function | FunctionType | MethodType,
     declaration: _TestDeclaration,
     declaration_details: str | None,
     *,
     force_skip: bool = False,
 ):
-    if not inspect.isfunction(item) and not inspect.isclass(item) and not isinstance(item, pytest.Module):
+    if (
+        not inspect.isfunction(item)
+        and not inspect.isclass(item)
+        and not isinstance(item, pytest.Module)
+        and not isinstance(item, pytest.Function)
+    ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
     if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
@@ -102,7 +109,7 @@ def add_pytest_marker(
 
     reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
-    if isinstance(item, pytest.Module):
+    if isinstance(item, (pytest.Module, pytest.Function)):
         add_marker = item.add_marker
     else:
         if not hasattr(item, "pytestmark"):
@@ -308,7 +315,10 @@ def released(
 
             # declaration must be now a version number
             if full_declaration.startswith("v"):
-                if tested_version >= full_declaration:
+                if (
+                    not tested_version
+                    or tested_version >= ComponentVersion(component_name, full_declaration.lstrip("v")).version
+                ):
                     return None, None
             elif semver.Version(str(tested_version)) in CustomSpec(full_declaration):
                 return None, None
