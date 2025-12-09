@@ -1320,7 +1320,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         super().__init__(
             name="collector",
-            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            image_name="otel/opentelemetry-collector-contrib:0.137.0",
             binary_file_name="otel_collector-image",
             command="--config=/etc/otelcol-config.yml",
             environment=environment,
