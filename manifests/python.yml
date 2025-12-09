@@ -1080,6 +1080,8 @@ tests/:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
+        uds-flask: v2.19.0
+        uwsgi-poc: v2.19.0
   parametric/:
     test_feature_flag_exposure/:
       test_feature_flag_exposure.py:
@@ -1288,7 +1290,13 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp:
       '*': missing_feature (Missing on weblog)
+      django-poc: v1.5.0-rc2  # actual version unknown
+      django-py3.13: v1.5.0-rc2  # actual version unknown
+      fastapi: v1.5.0-rc2  # actual version unknown
       flask-poc: v1.5.0-rc2  # actual version unknown
+      python3.12: v1.5.0-rc2  # actual version unknown
+      uds-flask: v1.5.0-rc2  # actual version unknown
+      uwsgi-poc: v1.5.0-rc2  # actual version unknown
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)

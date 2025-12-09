@@ -2111,6 +2111,12 @@ tests/:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': incomplete_test_app (endpoint not implemented)
         spring-boot: v1.39.0
+        spring-boot-jetty: v1.39.0
+        spring-boot-openliberty: v1.39.0
+        spring-boot-payara: v1.39.0
+        spring-boot-undertow: v1.39.0
+        spring-boot-wildfly: v1.39.0
+        uds-spring-boot: v1.39.0
   parametric/:
     test_feature_flag_exposure/:
       test_feature_flag_exposure.py:
@@ -2223,25 +2229,16 @@ tests/:
       spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Malformed:
       '*': v1.53.0
-      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      spring-boot: v1.50.0
-      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Malformed2:
       '*': v1.53.0
-      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Max_Bytes:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      spring-boot: v1.50.0
+      spring-boot: v1.53.0
       spring-boot-jetty: v1.53.0
       spring-boot-openliberty: v1.53.0
       spring-boot-undertow: v1.53.0
@@ -2383,15 +2380,43 @@ tests/:
     Test_ExtractBehavior_Default:
       '*': incomplete_test_app (weblog endpoint not implemented)
       spring-boot: v1.48.0
+      spring-boot-openliberty: v1.48.0
+      spring-boot-payara: v1.48.0
+      spring-boot-undertow: v1.48.0
+      spring-boot-wildfly: v1.48.0
+      uds-spring-boot: v1.48.0
+      vertx3: v1.48.0
+      vertx4: v1.48.0
     Test_ExtractBehavior_Ignore:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      spring-boot: v1.50.1
+      spring-boot: v1.48.0
+      spring-boot-openliberty: v1.48.0
+      spring-boot-payara: v1.48.0
+      spring-boot-undertow: v1.48.0
+      spring-boot-wildfly: v1.48.0
+      uds-spring-boot: v1.48.0
+      vertx3: v1.48.0
+      vertx4: v1.48.0
     Test_ExtractBehavior_Restart:
       '*': incomplete_test_app (weblog endpoint not implemented)
       spring-boot: v1.48.0
+      spring-boot-openliberty: v1.48.0
+      spring-boot-payara: v1.48.0
+      spring-boot-undertow: v1.48.0
+      spring-boot-wildfly: v1.48.0
+      uds-spring-boot: v1.48.0
+      vertx3: v1.48.0
+      vertx4: v1.48.0
     Test_ExtractBehavior_Restart_With_Extract_First:
       '*': incomplete_test_app (weblog endpoint not implemented)
       spring-boot: v1.48.0
+      spring-boot-openliberty: v1.48.0
+      spring-boot-payara: v1.48.0
+      spring-boot-undertow: v1.48.0
+      spring-boot-wildfly: v1.48.0
+      uds-spring-boot: v1.48.0
+      vertx3: v1.48.0
+      vertx4: v1.48.0
     Test_HeaderTags:
       '*': v1.35.0
       spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
