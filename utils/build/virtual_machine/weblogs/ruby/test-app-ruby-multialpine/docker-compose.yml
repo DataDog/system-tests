@@ -12,6 +12,16 @@ services:
         healthcheck:
             test: "curl -f http://localhost:8080"
 
+    ruby_3_4:
+        env_file: "scenario_app.env"
+        image: system-tests/ruby_3_4:latest
+        restart: always
+        build:
+            context: .
+            dockerfile: Dockerfile.ruby_3_4-alpine
+        healthcheck:
+            test: "curl -f http://localhost:18080"
+            
     ruby_2_6:
         env_file: "scenario_app.env"
         image: system-tests/ruby_2_6:latest
