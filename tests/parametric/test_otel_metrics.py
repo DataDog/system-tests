@@ -196,7 +196,7 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -268,7 +268,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -342,7 +342,7 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -359,7 +359,10 @@ class Test_Otel_Metrics_Api_Meter:
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_otel_create_instruments_by_distinct(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        library_env: dict[str, str],
     ):
         counter_name = "test_otel_create_counter"
         updowncounter_name = "test_otel_create_updowncounter"
@@ -563,7 +566,7 @@ class Test_Otel_Metrics_Api_Meter:
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -1107,7 +1110,7 @@ class Test_Otel_Metrics_Api_Instrument:
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -1300,7 +1303,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -1459,7 +1462,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @scenarios.parametric
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -1497,11 +1500,14 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
+        
+        # HTTP headers are case-insensitive, so normalize to lowercase for comparison
+        headers_lower = {k.lower(): v for k, v in metrics_requests[0]["headers"].items()}
         assert (
-            metrics_requests[0]["headers"].get("api-key") == "key"
+            headers_lower.get("api-key") == "key"
         ), f"Expected api-key, got {metrics_requests[0]['headers']}"
         assert (
-            metrics_requests[0]["headers"].get("other-config-value") == "value"
+            headers_lower.get("other-config-value") == "value"
         ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
 
     @pytest.mark.parametrize(
@@ -1530,11 +1536,14 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
+        
+        # HTTP headers are case-insensitive, so normalize to lowercase for comparison
+        headers_lower = {k.lower(): v for k, v in metrics_requests[0]["headers"].items()}
         assert (
-            metrics_requests[0]["headers"].get("api-key") == "key"
+            headers_lower.get("api-key") == "key"
         ), f"Expected api-key, got {metrics_requests[0]['headers']}"
         assert (
-            metrics_requests[0]["headers"].get("other-config-value") == "value"
+            headers_lower.get("other-config-value") == "value"
         ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
 
 
@@ -1542,7 +1551,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @scenarios.parametric
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -1620,7 +1629,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @scenarios.parametric
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
@@ -1722,7 +1731,7 @@ class Test_Otel_Metrics_Host_Name:
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
