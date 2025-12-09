@@ -1,8 +1,6 @@
 import os
-import re
 import pytest
 import yaml
-from typing import Any
 from pathlib import Path
 
 from utils import interfaces
@@ -17,8 +15,6 @@ from .endtoend import DockerScenario
 
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
-    # Container path where config is mounted -> host config directory
-    CONTAINER_CONFIG_PATH = "/etc/config/"
 
     def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
         super().__init__(
@@ -81,34 +77,6 @@ class OtelCollectorScenario(DockerScenario):
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
 
-    def _resolve_otel_file_reference(self, value: Any, config_base_path: Path):  # noqa: ANN401
-        """Resolve OTel collector file reference syntax like ${file:/etc/config/path/file.yml}.
-        Given the value to check and resolve and base path of the config, returns
-        the resolved value (loaded YAML if it was a file reference)
-        """
-        if not isinstance(value, str):
-            return value
-
-        # Match ${file:...} pattern
-        match = re.match(r"\$\{file:(.+)\}", value)
-        if not match:
-            return value
-
-        container_path = match.group(1)
-
-        # Convert container path to host path
-        if container_path.startswith(self.CONTAINER_CONFIG_PATH):
-            relative_path = container_path[len(self.CONTAINER_CONFIG_PATH) :]
-            host_path = config_base_path / relative_path
-
-            if host_path.exists():
-                with open(host_path, "r", encoding="utf-8") as f:
-                    return yaml.safe_load(f)
-            else:
-                logger.warning(f"OTel config file reference not found: {host_path}")
-
-        return value
-
     def customize_feature_parity_dashboard(self, result: dict) -> None:
         result["configuration"]["collector_version"] = str(self.otel_collector_version)
         result["configuration"]["collector_image"] = self.collector_container.image.name
@@ -120,11 +88,7 @@ class OtelCollectorScenario(DockerScenario):
                 result["configuration"]["collector_image_commit"] = image_labels["org.opencontainers.image.revision"]
 
         # Parse OTel collector configuration file
-        config_path = Path(self.collector_container.config_file)
-
-        # If config_file is a directory, look for otelcol-config.yml inside it
-        config_file_path = config_path / "otelcol-config.yml" if config_path.is_dir() else config_path
-
+        config_file_path = Path(self.collector_container.config_file)
         result["configuration"]["config_file"] = config_file_path.name
 
         try:
@@ -132,23 +96,18 @@ class OtelCollectorScenario(DockerScenario):
                 otel_config = yaml.safe_load(f)
 
             if "receivers" in otel_config:
-                receivers = otel_config["receivers"]
-                result["configuration"]["receivers"] = ", ".join(receivers.keys())
-
-                # Handle PostgreSQL receiver configuration
-                if "postgresql" in receivers:
-                    pg_config = self._resolve_otel_file_reference(receivers["postgresql"], config_path)
-
-                    if isinstance(pg_config, dict):
-                        if "endpoint" in pg_config:
-                            result["configuration"]["postgresql_receiver_endpoint"] = pg_config["endpoint"]
-                        if "databases" in pg_config:
-                            databases = pg_config["databases"]
-                            if isinstance(databases, list) and databases:
-                                result["configuration"]["postgresql_receiver_databases"] = ", ".join(databases)
+                otel_config_keys = otel_config["receivers"].keys()
+                result["configuration"]["receivers"] = ", ".join(otel_config_keys)
+                if "postgresql" in otel_config["receivers"]:
+                    pg_config = otel_config["receivers"]["postgresql"]
+                    result["configuration"]["postgresql_receiver_endpoint"] = pg_config.get("endpoint")
+                    databases = pg_config.get("databases", [])
+                    if databases:
+                        result["configuration"]["postgresql_receiver_databases"] = ", ".join(databases)
 
             if "exporters" in otel_config:
-                result["configuration"]["exporters"] = ", ".join(otel_config["exporters"].keys())
+                otel_config_keys = otel_config["exporters"].keys()
+                result["configuration"]["exporters"] = ", ".join(otel_config_keys)
 
             if "service" in otel_config and "pipelines" in otel_config["service"]:
                 result["configuration"]["pipelines"] = ", ".join(otel_config["service"]["pipelines"].keys())
