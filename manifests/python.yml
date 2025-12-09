@@ -291,6 +291,7 @@ manifest:
     - weblog_declaration:
         "*": v3.18.0 (with urllib support)
         fastapi: v4.1.0 (with requests/urllib3 support)
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v4.1.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": v3.14.0.rc
