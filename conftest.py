@@ -133,7 +133,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         type=str,
         action="store",
         default=None,
-        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
+        help="Framework to test (e.g. 'openai-py@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
     )
 
     # report data to feature parity dashboard

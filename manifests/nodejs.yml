@@ -526,6 +526,7 @@ tests/:
         Test_API10_downstream_request_tag: missing_feature
         Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_redirect: missing_feature
+        Test_API10_redirect_status: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -1161,6 +1162,11 @@ tests/:
         nextjs: irrelevant
   integration_frameworks/:
     llm/:
+      anthropic/:
+        test_anthropic_apm.py:
+          TestAnthropicApmMessages: *ref_5_71_0
+        test_anthropic_llmobs.py:
+          TestAnthropicLlmObsMessages: *ref_5_71_0
       openai/:
         test_openai_apm.py:
           TestOpenAiApmChatCompletions: *ref_5_76_0

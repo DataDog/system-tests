@@ -44,7 +44,9 @@ def test_agent(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
-        agent_env={},
+        agent_env={
+            "VCR_CI_MODE": "1" if not request.config.option.generate_cassettes else "0",
+        },
     ) as result:
         yield result
 

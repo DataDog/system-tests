@@ -1,0 +1,64 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "x-stainless-timeout": "NOT_GIVEN",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "Anthropic/Python 0.75.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "0.75.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "anthropic-version": "2023-06-01",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "419",
+      "x-datadog-trace-id": "2298030272939549498",
+      "x-datadog-parent-id": "7701599089165258494",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=3176259608731289920,_dd.p.llmobs_trace_id=139827274073236677536191673509535908339,_dd.p.tid=6931c0e000000000",
+      "traceparent": "00-6931c0e0000000001fe43e5b95a7e33a-6ae19391182acefe-01",
+      "tracestate": "dd=p:6ae19391182acefe;s:1;t.dm:-0;t.llmobs_parent_id:3176259608731289920;t.llmobs_trace_id:139827274073236677536191673509535908339;t.tid:6931c0e000000000"
+    },
+    "body": "{\"max_tokens\":100,\"messages\":[{\"role\":\"user\",\"content\":\"What is the weather in New York City?\"}],\"model\":\"claude-sonnet-4-5-20250929\",\"stream\":true,\"temperature\":0.5,\"tools\":[{\"name\":\"get_weather\",\"description\":\"Get the current weather in a given location\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"location\":{\"type\":\"string\",\"description\":\"The city and state, e.g. San Francisco, CA\"}},\"required\":[\"location\"]}}]}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Thu, 04 Dec 2025 17:12:03 GMT",
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-RAY": "9a8ced189c3fd96d-EWR",
+      "Cache-Control": "no-cache",
+      "anthropic-ratelimit-output-tokens-limit": "2500000",
+      "anthropic-ratelimit-output-tokens-remaining": "2500000",
+      "anthropic-ratelimit-output-tokens-reset": "2025-12-04T17:12:00Z",
+      "anthropic-ratelimit-input-tokens-limit": "20000000",
+      "anthropic-ratelimit-input-tokens-remaining": "20000000",
+      "anthropic-ratelimit-input-tokens-reset": "2025-12-04T17:12:00Z",
+      "retry-after": "64",
+      "anthropic-ratelimit-tokens-limit": "22500000",
+      "anthropic-ratelimit-tokens-remaining": "22500000",
+      "anthropic-ratelimit-tokens-reset": "2025-12-04T17:12:00Z",
+      "request-id": "req_011CVn26uVEj5Wg7dPML1AH1",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "anthropic-organization-id": "4257e925-ee99-4ee8-9c62-8e53716d5203",
+      "x-envoy-upstream-service-time": "3841",
+      "cf-cache-status": "DYNAMIC",
+      "X-Robots-Tag": "none",
+      "Server": "cloudflare"
+    },
+    "body": "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"claude-sonnet-4-5-20250929\",\"id\":\"msg_01UkSGPRqA53rw7iVCfVBAbP\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":586,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"cache_creation\":{\"ephemeral_5m_input_tokens\":0,\"ephemeral_1h_input_tokens\":0},\"output_tokens\":1,\"service_tier\":\"standard\"}}            }\n\nevent: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"tool_use\",\"id\":\"toolu_013aDL24HvccQoVLTy5G4mes\",\"name\":\"get_weather\",\"input\":{}}              }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"\"}}\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"{\\\"location\\\"\"}   }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\": \\\"New \"}           }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"York City, \"}            }\n\nevent: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"NY\\\"}\"}             }\n\nevent: content_block_stop\ndata: {\"type\":\"content_block_stop\",\"index\":0            }\n\nevent: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"tool_use\",\"stop_sequence\":null},\"usage\":{\"input_tokens\":586,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":57}         }\n\nevent: message_stop\ndata: {\"type\":\"message_stop\"     }\n\n"
+  }
+}
