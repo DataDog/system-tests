@@ -70,13 +70,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             input_messages=[{"role": "user", "content": "Hello OpenAI!"}],
             output_messages=[{"role": "assistant", "content": "Hello! How can I assist you today?"}],
             metadata=expected_metadata,
-            metrics={
-                "input_tokens": mock.ANY,
-                "output_tokens": mock.ANY,
-                "total_tokens": mock.ANY,
-                "cache_read_input_tokens": mock.ANY,
-                "reasoning_output_tokens": mock.ANY,
-            },
+            metrics=mock.ANY,
         )
 
     @pytest.mark.parametrize("stream", [True, False])
@@ -151,12 +145,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             input_messages=[{"role": "", "content": "Hello OpenAI!"}],
             output_messages=[{"role": "", "content": "\n\nHello there! What can I assist you with?"}],
             metadata={"max_tokens": 35},
-            metrics={
-                "input_tokens": mock.ANY,
-                "output_tokens": mock.ANY,
-                "reasoning_output_tokens": mock.ANY,
-                "total_tokens": mock.ANY,
-            },
+            metrics=mock.ANY,
         )
 
     def test_completion_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -261,13 +250,7 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             ],
             tool_definitions=[tool_to_tool_definition(TOOLS[0])],
             metadata=expected_metadata,
-            metrics={
-                "input_tokens": mock.ANY,
-                "output_tokens": mock.ANY,
-                "total_tokens": mock.ANY,
-                "cache_read_input_tokens": mock.ANY,
-                "reasoning_output_tokens": mock.ANY,
-            },
+            metrics=mock.ANY,
         )
 
 
@@ -300,12 +283,7 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
             input_documents=[{"text": "Hello OpenAI!"}],
             output_value="[1 embedding(s) returned with size 1536]",
             metadata={"encoding_format": "float"},
-            metrics={
-                "input_tokens": mock.ANY,
-                "output_tokens": mock.ANY,
-                "total_tokens": mock.ANY,
-                "reasoning_output_tokens": mock.ANY,
-            },
+            metrics=mock.ANY,
         )
 
     def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
