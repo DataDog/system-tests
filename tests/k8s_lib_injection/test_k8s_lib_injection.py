@@ -17,7 +17,7 @@ class TestK8sLibInjection:
     @bug(context.library in ("nodejs", "ruby") and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-2215")
     def test_k8s_lib_injection(self):
         traces_json = get_dev_agent_traces(get_cluster_info())
-        assert len(traces_json) > 0, "No traces found"
+        assert len(traces_json) > 0, "No traces foundRMM"
 
 
 @features.k8s_admission_controller
