@@ -641,6 +641,7 @@ class TestOpenAiPromptTracking(BaseOpenaiTest):
             ],
         )
 
+
 @features.llm_observability_openai_llm_interactions
 @scenarios.integration_frameworks
 class TestOpenAiResponses(BaseOpenaiTest):
