@@ -72,6 +72,10 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             metadata=expected_metadata,
             metrics=mock.ANY,
         )
+        assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["cache_read_input_tokens"] == mock.ANY
 
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion_error(
@@ -147,6 +151,9 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             metadata={"max_tokens": 35},
             metrics=mock.ANY,
         )
+        assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
 
     def test_completion_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
@@ -252,6 +259,10 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             metadata=expected_metadata,
             metrics=mock.ANY,
         )
+        assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["cache_read_input_tokens"] == mock.ANY
 
 
 @features.llm_observability_openai_embeddings
@@ -285,7 +296,10 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
             metadata={"encoding_format": "float"},
             metrics=mock.ANY,
         )
-
+        assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
+        assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
+    
     def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
