@@ -191,6 +191,7 @@ def generate_metrics_file(integration_name: str) -> str:
         "<metric_name>": {
             "data_type": "<data_type>",
             "description": "<metric_description>"
+            "enabled": "boolean"
         },
     }
 
@@ -239,6 +240,7 @@ def generate_metrics_file(integration_name: str) -> str:
         metric_template[metric_name] = {
             "data_type": metric_type.pop() if metric_type else None,
             "description": metric_info.get("description", ""),
+            "enabled": metric_info.get("enabled","false")
         }
 
     # Return the dict as pretty-printed JSON
