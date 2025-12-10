@@ -37,7 +37,7 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
-        create_namespace(namespace)
+        create_namespace(namespace, k8s_cluster_info)
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def deploy_test_agent(self):
