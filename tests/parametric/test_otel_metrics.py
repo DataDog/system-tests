@@ -1689,7 +1689,8 @@ class Test_Otel_Metrics_Host_Name:
     """
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs"), reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented"
+        context.library in ("dotnet", "nodejs"),
+        reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented",
     )
     @pytest.mark.parametrize(
         "library_env",
