@@ -1,4 +1,5 @@
-from utils._context.component_version import ComponentVersion
+import pytest
+from utils._context.component_version import ComponentVersion, NoneVersion
 from .core import Scenario
 
 
@@ -8,7 +9,7 @@ class TestTheTestScenario(Scenario):
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(name, doc=doc, github_workflow="testthetest")
-        self.components["mock_comp1"] = "mock_comp1_value"
+        self.components["mock_comp1"] = NoneVersion()
 
     @property
     def parametrized_tests_metadata(self):
@@ -17,3 +18,14 @@ class TestTheTestScenario(Scenario):
     @property
     def weblog_variant(self):
         return "spring"
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+
+        if not self.replay:
+            self.warmups.append(self._set_components)
+
+    def _set_components(self) -> None:
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
+        self.components["agent"] = self.agent_version

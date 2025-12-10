@@ -129,6 +129,7 @@ class ParametricScenario(DockerFixturesScenario):
 
     def _set_components(self):
         self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     @property
     def library(self):

@@ -77,7 +77,7 @@ class _Context:
         return self._get_scenario_property("k8s_cluster_agent_version", "")
 
     @property
-    def components(self) -> dict[str, str]:
+    def components(self) -> dict[str, Version]:
         assert self.scenario is not None
         return self.scenario.components
 

@@ -16,7 +16,7 @@ from docker.models.networks import Network
 import pytest
 import requests
 
-from utils._context.component_version import ComponentVersion
+from utils._context.component_version import ComponentVersion, NoneVersion, Version
 from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -687,7 +687,7 @@ class AgentContainer(TestedContainer):
             },
         )
 
-        self.agent_version: str | None = ""
+        self.agent_version: Version = NoneVersion()
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:

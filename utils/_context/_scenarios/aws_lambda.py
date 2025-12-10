@@ -109,7 +109,8 @@ class LambdaScenario(DockerScenario):
         return super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _set_components(self):
-        self.components["libary"] = self.library.version
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")

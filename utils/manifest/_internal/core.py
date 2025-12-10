@@ -12,21 +12,15 @@ class Manifest:
 
     def __init__(
         self,
-        library: str,
-        library_version: Version | None = None,
-        weblog: str | None = None,
-        agent_version: Version | None = None,
-        dd_apm_inject_version: Version | None = None,
-        k8s_cluster_agent_version: Version | None = None,
+        components: dict[str, Version],
+        weblog: str,
         path: Path = default_manifests_path,
     ):
         """Parses all the manifest files on creation and filters the results based on
         the information provided
         """
         data = load(path)
-        self.rules = get_rules(
-            data, library, library_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
-        )
+        self.rules = get_rules(data, components, weblog)
 
     @staticmethod
     def parse(path: Path = default_manifests_path) -> ManifestData:

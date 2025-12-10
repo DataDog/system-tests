@@ -271,14 +271,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     logger.debug("pytest_collection_modifyitems")
 
-    manifest = Manifest(
-        context.library.name,
-        context.library.version,
-        context.weblog_variant,
-        context.agent_version,
-        context.dd_apm_inject_version,
-        context.k8s_cluster_agent_version,
-    )
+    manifest = Manifest(context.scenario.components, context.weblog_variant)
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)

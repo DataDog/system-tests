@@ -485,6 +485,7 @@ class EndToEndScenario(DockerScenario):
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
