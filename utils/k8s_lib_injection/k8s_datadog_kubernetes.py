@@ -334,14 +334,14 @@ class K8sDatadog:
 
             # Export: Telemetry datadog-cluster-agent
             execute_command(
-                f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry ",
+                f"kubectl exec --namespace {namespace} -it {pods.items[0].metadata.name} -- agent telemetry ",
                 logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_telemetry.log",
             )
 
             # Export: Status datadog-cluster-agent
             # Sometimes this command fails. Ignore this error
             execute_command(
-                f"kubectl exec -it {pods.items[0].metadata.name} -- agent status || true ",
+                f"kubectl exec --namespace {namespace} -it {pods.items[0].metadata.name} -- agent status || true ",
                 logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_status.log",
             )
         except Exception as e:
