@@ -143,19 +143,36 @@ func main() {
 				w.Header().Add(key, value)
 			}
 		}
-		w.WriteHeader(status)
-		w.Write([]byte("Value tagged"))
 
+		var parsedBody any
 		switch {
 		case r.Header.Get("Content-Type") == "application/json":
 			body, _ := io.ReadAll(r.Body)
 			var bodyMap map[string]any
 			if err := json.Unmarshal(body, &bodyMap); err == nil {
 				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
+				parsedBody = bodyMap
 			}
 		case r.ParseForm() == nil:
 			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
+			parsedBody = r.PostForm
 		}
+
+		if r.Method == http.MethodPost && strings.HasPrefix(tag, "payload_in_response_body") {
+			responsePayload := map[string]any{"payload": parsedBody}
+
+			appsec.MonitorHTTPResponseBody(r.Context(), responsePayload)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(status)
+			if json.NewEncoder(w).Encode(responsePayload); err != nil {
+				logrus.Errorf("Failed to encode response body: %v", err)
+			}
+			return
+		}
+
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
 	})
 
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
