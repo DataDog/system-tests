@@ -74,6 +74,8 @@ def _is_jira_ticket(declaration_details: str | None):
 
 
 def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None):
+    if isinstance(item, pytest.Function):
+        item = item.function
     if not _is_jira_ticket(declaration_details):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
@@ -83,13 +85,18 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
 
 
 def add_pytest_marker(
-    item: pytest.Module | FunctionType | MethodType,
+    item: pytest.Module | pytest.Function | FunctionType | MethodType,
     declaration: _TestDeclaration,
     declaration_details: str | None,
     *,
     force_skip: bool = False,
 ):
-    if not inspect.isfunction(item) and not inspect.isclass(item) and not isinstance(item, pytest.Module):
+    if (
+        not inspect.isfunction(item)
+        and not inspect.isclass(item)
+        and not isinstance(item, pytest.Module)
+        and not isinstance(item, pytest.Function)
+    ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
     if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
@@ -102,7 +109,7 @@ def add_pytest_marker(
 
     reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
-    if isinstance(item, pytest.Module):
+    if isinstance(item, (pytest.Module, pytest.Function)):
         add_marker = item.add_marker
     else:
         if not hasattr(item, "pytestmark"):
