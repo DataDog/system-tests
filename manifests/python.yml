@@ -931,6 +931,7 @@ tests/:
           TestOpenAiEmbeddingInteractions: v3.13.0
           TestOpenAiLlmInteractions: v3.13.0
           TestOpenAiPromptTracking: missing_feature
+          TestOpenAiResponses: missing_feature
   integrations/:
     crossed_integrations/:
       test_kafka.py:
