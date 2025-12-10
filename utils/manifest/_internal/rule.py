@@ -12,23 +12,23 @@ def match_condition(
     if component not in components:
         return False
     ret = True
-    component_tested_version = components[component]
+    tested_component_version = components[component]
 
-    assert isinstance(component_tested_version, Version), (
-        f"Version not found for {condition['component']}, got {component_tested_version}"
+    assert isinstance(tested_component_version, Version), (
+        f"Version not found for {condition['component']}, got {tested_component_version}"
     )
 
-    assert not isinstance(component_tested_version, NoneVersion), (
+    assert not isinstance(tested_component_version, NoneVersion), (
         f"Version of tested component {component} should be initialized"
     )
 
     component_version = condition.get("component_version")
     if component_version:
-        ret &= component_tested_version in component_version
+        ret &= tested_component_version in component_version
 
     excluded_component_version = condition.get("excluded_component_version")
     if excluded_component_version:
-        ret &= component_tested_version not in excluded_component_version
+        ret &= tested_component_version not in excluded_component_version
 
     weblog_entry = condition.get("weblog")
     if weblog_entry and weblog:
