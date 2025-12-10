@@ -947,6 +947,7 @@ manifest:
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: missing_feature
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
