@@ -6,7 +6,7 @@
           value:
             - "pulumi"
             - "environment variables"
-            - "wizard script"
+            - "wizard"
             - "manual"
             - "aws-vault"
             - "--vm-only"
@@ -23,7 +23,7 @@
           value:
             - "pulumi"
             - "environment variables"
-            - "wizard script"
+            - "wizard"
             - "manual"
         - type: icontains-any
           value:

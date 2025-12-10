@@ -1,0 +1,62 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "137",
+      "x-datadog-trace-id": "13605556117818745455",
+      "x-datadog-parent-id": "13871785690861102293",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=2935723419782215182,_dd.p.llmobs_trace_id=139804560943607088239531979981880087557,_dd.p.tid=692d610800000000",
+      "traceparent": "00-692d610800000000bcd0a5342e3aa26f-c0827b97081f64d5-01",
+      "tracestate": "dd=p:c0827b97081f64d5;s:1;t.dm:-0;t.llmobs_parent_id:2935723419782215182;t.llmobs_trace_id:139804560943607088239531979981880087557;t.tid:692d610800000000"
+    },
+    "body": "{\"prompt\":{\"id\":\"pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6\",\"version\":\"1\",\"variables\":{\"phrase\":\"cat in the hat\",\"word\":\"\"}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Mon, 01 Dec 2025 09:34:09 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999777",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_71f1861b2615478b9f429a88f38d2cc1",
+      "openai-processing-ms": "7883",
+      "x-envoy-upstream-service-time": "7889",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=3QlxC8BvbRxvIXbThr66XCYN6ZbBolzLK_BhFoY2.A8-1764581649-1.0.1.1-.wrUj8DbsRecRoOPjuLNZbymMFJDnLNdEQyfNWn2dcR87.Z9DU3RRNbKpBnmK4PMjmeMI7.PposE5jik4IAhYZPNgao6hilDOIYeaMq_sjs; path=/; expires=Mon, 01-Dec-25 10:04:09 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=T21yDTpWRivcTlKUtkpdkdtulwApk3DbtgwQoPiG37k-1764581649010-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "9a71961619e001f5-CDG",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"resp_019d628414d7f68501692d610918a08192aaf2526591714b19\",\n  \"object\": \"response\",\n  \"created_at\": 1764581641,\n  \"status\": \"completed\",\n  \"background\": false,\n  \"billing\": {\n    \"payer\": \"developer\"\n  },\n  \"error\": null,\n  \"incomplete_details\": null,\n  \"instructions\": [\n    {\n      \"type\": \"message\",\n      \"content\": [],\n      \"role\": \"developer\"\n    },\n    {\n      \"type\": \"message\",\n      \"content\": [\n        {\n          \"type\": \"input_text\",\n          \"text\": \"I saw a cat in the hat and another \"\n        }\n      ],\n      \"role\": \"user\"\n    }\n  ],\n  \"max_output_tokens\": null,\n  \"max_tool_calls\": null,\n  \"model\": \"o4-mini-2025-04-16\",\n  \"output\": [\n    {\n      \"id\": \"rs_019d628414d7f68501692d610a0d1881929495566feb350960\",\n      \"type\": \"reasoning\",\n      \"summary\": []\n    },\n    {\n      \"id\": \"msg_019d628414d7f68501692d610f1d6c81929383cc62887beac2\",\n      \"type\": \"message\",\n      \"status\": \"completed\",\n      \"content\": [\n        {\n          \"type\": \"output_text\",\n          \"annotations\": [],\n          \"logprobs\": [],\n          \"text\": \"It sounds like the start of a fun tale or a rhyme\\u2014here are a few ways you might finish that line:\\n\\n1. Prose continuation  \\n   \\u201cI saw a cat in the hat and another curled up on the windowsill, each eye gleaming with mischievous intent as they plotted their next grand adventure.\\u201d\\n\\n2. Rhyme (Dr. Seuss-style)  \\n   \\u201cI saw a cat in the hat and another in a cravat,  \\n    One sipped hot tea, the other chased a broom\\u2014  \\n    Such curious capers filled every room!\\u201d\\n\\n3. Comedic twist  \\n   \\u201cI saw a cat in the hat and another doing tai chi\\u2014  \\n    They bowed politely, then high-fived me!\\u201d\\n\\nPick your favorite, or let me know what tone or style you\\u2019d like and I can spin it into a full poem or short story!\"\n        }\n      ],\n      \"role\": \"assistant\"\n    }\n  ],\n  \"parallel_tool_calls\": true,\n  \"previous_response_id\": null,\n  \"prompt\": {\n    \"id\": \"pmpt_6911a8b8f7648197b39bd62127a696910d4a05830d5ba1e6\",\n    \"variables\": {\n      \"phrase\": {\n        \"type\": \"input_text\",\n        \"text\": \"cat in the hat\"\n      },\n      \"word\": {\n        \"type\": \"input_text\",\n        \"text\": \"\"\n      }\n    },\n    \"version\": \"1\"\n  },\n  \"prompt_cache_key\": null,\n  \"prompt_cache_retention\": null,\n  \"reasoning\": {\n    \"effort\": \"medium\",\n    \"summary\": null\n  },\n  \"safety_identifier\": null,\n  \"service_tier\": \"default\",\n  \"store\": false,\n  \"temperature\": 1.0,\n  \"text\": {\n    \"format\": {\n      \"type\": \"text\"\n    },\n    \"verbosity\": \"medium\"\n  },\n  \"tool_choice\": \"auto\",\n  \"tools\": [],\n  \"top_logprobs\": 0,\n  \"top_p\": 1.0,\n  \"truncation\": \"disabled\",\n  \"usage\": {\n    \"input_tokens\": 16,\n    \"input_tokens_details\": {\n      \"cached_tokens\": 0\n    },\n    \"output_tokens\": 635,\n    \"output_tokens_details\": {\n      \"reasoning_tokens\": 448\n    },\n    \"total_tokens\": 651\n  },\n  \"user\": null,\n  \"metadata\": {}\n}"
+  }
+}
