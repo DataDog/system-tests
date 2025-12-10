@@ -3,9 +3,7 @@ from utils._logger import logger
 from retry import retry
 
 
-def execute_command(
-    command, timeout=None, logfile=None, subprocess_env=None, quiet=False
-):
+def execute_command(command, timeout=None, logfile=None, subprocess_env=None, quiet=False):
     """Call shell-command and either return its output or kill it
     if it doesn't normally exit within timeout seconds and return None
     """
@@ -42,9 +40,7 @@ def execute_command(
                     return None
                 else:
                     # if we specify a timeout, we raise an exception
-                    raise Exception(
-                        f"Command: {command} timed out after {applied_timeout} seconds"
-                    )
+                    raise Exception(f"Command: {command} timed out after {applied_timeout} seconds")
         if not logfile:
             output = process.stdout.read()
             output = str(output, "utf-8")
@@ -56,9 +52,7 @@ def execute_command(
                 output_error = process.stderr.read()
                 output_error_str = str(output_error, "utf-8")
                 logger.debug(f"Command: {command} \n {output_error_str}")
-                raise Exception(
-                    f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}"
-                )
+                raise Exception(f"Error executing command: {command} \nStdout: {output}\nStderr: {output_error_str}")
 
     except Exception as ex:
         logger.error(f"Error executing command: {command} \n {ex}")
@@ -69,9 +63,7 @@ def execute_command(
 
 @retry(delay=1, tries=5)
 def helm_add_repo(name, url, k8s_cluster_info, update=False):
-    logger.info(
-        f"Adding helm repo {name} with url {url} for cluster {k8s_cluster_info.cluster_name}"
-    )
+    logger.info(f"Adding helm repo {name} with url {url} for cluster {k8s_cluster_info.cluster_name}")
     execute_command(f"helm repo add {name} {url}")
     if update:
         execute_command(f"helm repo update")
@@ -95,13 +87,9 @@ def helm_install_chart(
         with open(value_file) as file:
             value_data = file.read()
 
-        value_data = value_data.replace(
-            "$$CLUSTER_NAME$$", str(k8s_cluster_info.cluster_name)
-        )
+        value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_cluster_info.cluster_name))
 
-        custom_value_file = (
-            f"{host_log_folder}/{k8s_cluster_info.cluster_name}_help_values.yaml"
-        )
+        custom_value_file = f"{host_log_folder}/{k8s_cluster_info.cluster_name}_help_values.yaml"
 
         with open(custom_value_file, "w") as fp:
             fp.write(value_data)
@@ -118,12 +106,12 @@ def helm_install_chart(
 
     command = f"helm install {name} --debug {wait} {set_str} {chart} --namespace={namespace} --create-namespace"
     if upgrade:
-        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace={namespace} --create-namespace"
+        command = (
+            f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace={namespace} --create-namespace"
+        )
     if custom_value_file:
         command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace={namespace} --create-namespace"
         if upgrade:
             command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace={namespace} --create-namespace"
     execute_command("kubectl config current-context")
-    execute_command(
-        command, timeout=timeout, quiet=True
-    )  # Too many traces to show in the logs
+    execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs
