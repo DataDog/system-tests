@@ -22,8 +22,7 @@ class TestTheTestScenario(Scenario):
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
 
-        if not self.replay:
-            self.warmups.append(self._set_components)
+        self.warmups.append(self._set_components)
 
     def _set_components(self) -> None:
         self.components["library"] = self.library.version

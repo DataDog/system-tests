@@ -454,7 +454,7 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._get_weblog_system_info)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
-            self.warmups.append(self._set_components)
+        self.warmups.append(self._set_components)
 
     def _get_weblog_system_info(self):
         try:
