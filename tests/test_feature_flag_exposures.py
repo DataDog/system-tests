@@ -19,7 +19,6 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 
 # Simple UFC fixture for testing with doLog: true
 UFC_FIXTURE_DATA = {
-    "id": "1",
     "createdAt": "2024-04-17T19:40:53.716Z",
     "format": "SERVER",
     "environment": {"name": "Test"},
@@ -142,7 +141,6 @@ class Test_FFE_Exposure_Events:
 
         # First configuration with test-flag-1
         rc_config_1 = {
-            "id": "1",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -166,7 +164,6 @@ class Test_FFE_Exposure_Events:
 
         # Second configuration with test-flag-2
         rc_config_2 = {
-            "id": "2",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -319,7 +316,6 @@ class Test_FFE_Exposure_Events_Errors:
         # First, set up a valid Remote Config
         config_id = "ffe-test-config-malformed"
         valid_rc_config = {
-            "id": "1",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
@@ -360,7 +356,6 @@ class Test_FFE_Exposure_Events_Errors:
 
         # Now update with a malformed config (missing allocations and variationType)
         malformed_rc_config = {
-            "id": "2",
             "createdAt": "2024-04-17T19:40:53.716Z",
             "format": "SERVER",
             "environment": {"name": "Test"},
