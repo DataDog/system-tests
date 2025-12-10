@@ -1,10 +1,9 @@
-FROM golang:1.23
+FROM golang:1.24-alpine AS build
+
+RUN apk add --no-cache jq curl bash gcc musl-dev socat
 
 # print important lib versions
 RUN go version && curl --version
-
-# install socat for the UDS
-RUN apt-get update && apt-get -y install socat jq
 
 # download go dependencies
 RUN mkdir -p /app

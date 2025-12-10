@@ -21,6 +21,7 @@ COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VE
 COPY --from=build /app/target/dist/play-app-1.0.0 .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app-play.sh /app/app.sh
 RUN chmod +x /app/app.sh
 

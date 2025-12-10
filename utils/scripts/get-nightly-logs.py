@@ -89,7 +89,7 @@ def main(
     environ = get_environ()
 
     with requests.Session() as session:
-        session.headers.update({"Authorization": f"token {environ['GH_TOKEN']}"})
+        session.headers.update({"Authorization": f"token {environ['GITHUB_TOKEN']}"})
 
         artifacts = get_artifacts(session, repo_slug, workflow_file, run_id)
         artifacts = [artifact for artifact in artifacts if is_included(params, artifact["name"])]

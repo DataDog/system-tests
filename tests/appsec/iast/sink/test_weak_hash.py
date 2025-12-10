@@ -16,7 +16,7 @@ def _expected_location() -> str | None:
         return "com.datadoghq.system_tests.iast.utils.CryptoExamples"
 
     if context.library.name == "nodejs":
-        if context.weblog_variant in ("express4", "express5"):
+        if context.weblog_variant in ("express4", "express5", "fastify"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"

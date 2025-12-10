@@ -36,9 +36,14 @@ GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerable
 GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
 GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
+GET     /authorization_related_headers      controllers.AppSecController.authResponseHeaders
 GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
 
 # IAST Sampling endpoints
 GET     /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.getSamplingByRouteMethodCount(id: String)
 POST    /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.postSamplingByRouteMethodCount(id: String)
 GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingController.getSamplingByRouteMethodCount2(id: String)
+
+# IAST Source endpoints
+GET     /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterGet
+POST    /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterPost

@@ -5,6 +5,7 @@
 from ._agent import AgentInterfaceValidator
 from ._backend import _BackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
+from ._core import ProxyBasedInterfaceValidator
 from ._logs import (
     _LibraryStdout,
     _LibraryDotnetManaged,
@@ -24,6 +25,7 @@ agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
 backend = _BackendInterfaceValidator(library_interface=library)
 open_telemetry = OpenTelemetryInterfaceValidator()
+otel_collector = ProxyBasedInterfaceValidator("otel_collector")
 postgres = _PostgresStdout()
 test_agent = _TestAgentInterfaceValidator()
 

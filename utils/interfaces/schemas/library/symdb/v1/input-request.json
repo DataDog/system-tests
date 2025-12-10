@@ -23,7 +23,18 @@
     },
     "symbol": {
       "type": "object",
-      "required": ["line", "name", "symbol_type", "type"],
+      "if": {
+        "properties": {
+          "symbol_type": {"const": "field"}
+        }
+      },
+      "then": {
+        "$comment": "For Go, the debug info doesn't contain the declaration line for fields",
+        "required": ["name", "symbol_type", "type"]
+      },
+      "else": {
+        "required": ["line", "name", "symbol_type", "type"]
+      },
       "properties": {
         "language_specifics": { "type": "object" },
         "line": { "type": "integer" },
@@ -43,7 +54,7 @@
     },
     "gzip_content": {
       "type": "object",
-      "required": ["env", "language", "scopes", "service", "version"],
+      "required": ["language", "scopes", "service", "version"],
       "properties": {
         "env": { "type": "string", "const": "system-tests" },
         "language": { "type": "string" },
@@ -63,11 +74,20 @@
     "properties": {
       "headers": {
         "type": "object",
+        "patternProperties": {
+          "[Cc]ontent-[Tt]ype": { "enum": ["application/json", "application/gzip"] }
+        },
         "properties": {
-          "Content-Type": { "enum": ["application/json", "application/gzip"] },
           "Content-Disposition": { "type": "string" }
         },
-        "required": ["Content-Type"]
+        "oneOf":[
+          {
+            "required": ["Content-Type"]
+          },
+          {
+            "required": ["content-type"]
+          }
+        ]
       }
     },
     "allOf": [
@@ -75,7 +95,7 @@
         "if": {
           "properties": {
             "headers": {
-              "properties": { "Content-Type": { "const": "application/json" } }
+              "patternProperties": { "[Cc]ontent-[Tt]ype": { "const": "application/json" } }
             }
           }
         },
@@ -87,7 +107,7 @@
         "if": {
           "properties": {
             "headers": {
-              "properties": { "Content-Type": { "const": "application/gzip" } }
+              "patternProperties": { "[Cc]ontent-[Tt]ype": { "const": "application/gzip" } }
             }
           }
         },

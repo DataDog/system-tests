@@ -50,9 +50,9 @@ class Test_Main:
                 # the logic is to set USER_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
 
-                assert (
-                    "_sampling_priority_v1" in span["metrics"]
-                ), f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
+                assert "_sampling_priority_v1" in span["metrics"], (
+                    f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
+                )
 
                 if span["metrics"]["_sampling_priority_v1"] == SamplingPriority.USER_KEEP:
                     trace_count += 1

@@ -5,23 +5,27 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence
 import json
 import os
-from pathlib import Path
 import time
 import types
+import xml.etree.ElementTree as ET
+from collections.abc import Generator, Sequence
+from typing import Any
 
 import pytest
+from _pytest.junitxml import xml_key
+from pluggy._result import _Result as Result
 from pytest_jsonreport.plugin import JSONReport
 
-from manifests.parser.core import load as load_manifests
 from utils import context
-from utils._context._scenarios import scenarios, Scenario
-from utils._logger import logger
-from utils.scripts.junit_report import junit_modifyreport
+from utils._context._scenarios import Scenario, scenarios
 from utils._context.component_version import ComponentVersion
-from utils._decorators import released, configure as configure_decorators
+from utils._decorators import add_pytest_marker
+from utils._decorators import configure as configure_decorators
+from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
+from utils._logger import logger
+from utils.manifest import Manifest
 from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
@@ -62,6 +66,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
     )
+    parser.addoption(
+        "--k8s-ssi-registry-base",
+        type=str,
+        action="store",
+        help="Set the default ssi registry base for the injection images (cluster agent, injector and library init)",
+    )
+
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -106,7 +117,23 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby"],
+        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
+    )
+    parser.addoption(
+        "--github-token-file",
+        type=str,
+        action="store",
+        default="",
+        help="An file containing a valid Github token to perform API calls",
+    )
+
+    # Integration frameworks scenario options
+    parser.addoption(
+        "--weblog",
+        type=str,
+        action="store",
+        default=None,
+        help="Framework to test (e.g. 'openai-py@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
     )
 
     # report data to feature parity dashboard
@@ -115,6 +142,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
     parser.addoption(
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
+    )
+
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
     )
 
 
@@ -138,6 +172,15 @@ def pytest_configure(config: pytest.Config) -> None:
     ):
         config.option.skip_empty_scenario = True
 
+    if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
+        config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    if not config.option.library and "TEST_LIBRARY" in os.environ:
+        config.option.library = os.environ["TEST_LIBRARY"].strip()
+
+    # clean input
+    config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]
+
     # First of all, we must get the current scenario
 
     current_scenario: Scenario | None = None
@@ -158,6 +201,7 @@ def pytest_configure(config: pytest.Config) -> None:
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
     configure_decorators(config)
+    logger.info(f"Force execute: {config.option.force_execute}")
 
 
 # Called at the very begening
@@ -169,6 +213,15 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
+    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    # Workaround to tackle this issue
+    # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
+    xml = session.config._store.get(xml_key, None)  # noqa: SLF001
+    if xml:
+        properties = context.scenario.get_junit_properties()
+        for key, value in properties.items():
+            xml.add_global_property(key, value or "")
+
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
@@ -177,124 +230,60 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 # called when each test item is collected
 def _collect_item_metadata(item: pytest.Item):
-    details: str | None = None
-    test_declaration: str | None = None
-
-    # get the reason form skip before xfail
-    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
-    for marker in markers:
-        skip_reason = _get_skip_reason_from_marker(marker)
-
-        if skip_reason is not None:
-            # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant") or details is None:
-                details = skip_reason
-
-    if details is not None:
-        logger.debug(f"{item.nodeid} => {details} => skipped")
-
-        if details.startswith("irrelevant"):
-            test_declaration = "irrelevant"
-        elif details.startswith("flaky"):
-            test_declaration = "flaky"
-        elif details.startswith("bug"):
-            test_declaration = "bug"
-        elif details.startswith("incomplete_test_app"):
-            test_declaration = "incompleteTestApp"
-        elif details.startswith("missing_feature"):
-            test_declaration = "notImplemented"
-        elif "got empty parameter set" in details:
-            # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
-            logger.info(f"No parameters found for ${item.nodeid}")
-        else:
-            pytest.exit(f"Unexpected test declaration for {item.nodeid} : {details}", 1)
-
-    return {
-        "details": details,
-        "testDeclaration": test_declaration,
-        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
-    }
-
-
-def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
-    if marker.name == "skipif":
-        if all(marker.args):
-            return marker.kwargs.get("reason", "")
-    elif marker.name in ("skip", "xfail"):
-        if len(marker.args):  # if un-named arguments are present, the first one is the reason
-            return marker.args[0]
-
-        # otherwise, search in named arguments
-        return marker.kwargs.get("reason", "")
-
-    return None
-
-
-def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
-    # As now, declaration only works for tracers at module level
-
-    library = context.library.name
-
-    manifests = load_manifests()
-
-    path = module_path.relative_to(module_path.cwd())
-
     declaration: str | None = None
-    nodeid: str
+    details: str | None = None
 
-    # look in manifests for any declaration of this file, or on one of its parents
-    while str(path) != ".":
-        nodeid = f"{path!s}/" if path.is_dir() else str(path)
+    for marker in reversed(list(item.iter_markers("declaration"))):
+        declaration = marker.kwargs["declaration"]
+        details = marker.kwargs["details"]
 
-        if nodeid in manifests and library in manifests[nodeid]:
-            declaration = manifests[nodeid][library]
+        if declaration == "irrelevant":
+            # if any irrelevant declaration exists, it is the one we need to expose
             break
 
-        path = path.parent
+    if declaration is not None:
+        logger.debug(f"{item.nodeid} => {declaration} => skipped")
 
-    if declaration is None:
-        return None
+    metadata = {
+        "details": declaration if details is None else f"{declaration} ({details})",
+        "testDeclaration": declaration,
+        "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+        "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
+    }
 
-    logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    # decorate test for junit
+    item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
-    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+    # for feature_id in metadata["features"]:
+    #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
 
-    if declaration.startswith(("irrelevant", "flaky")):
-        mod.add_marker(pytest.mark.skip(reason=declaration))
-        logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-    else:
-        mod.add_marker(pytest.mark.xfail(reason=declaration))
-        logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+    if declaration:
+        item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
 
-    return mod
+    if details:
+        item.user_properties.append(("dd_tags[systest.case.declarationDetails]", details))
 
-
-@pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
-    if collector.istestclass(obj, name):
-        if obj is None:
-            message = f"""{collector.nodeid} is not properly collected.
-            You may have forgotten to return a value in a decorator like @features"""
-            raise ValueError(message)
-
-        manifest = load_manifests()
-
-        nodeid = f"{collector.nodeid}::{name}"
-
-        if nodeid in manifest:
-            declaration = manifest[nodeid]
-            logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
-
-            try:
-                released(**declaration)(obj)
-            except Exception as e:
-                raise ValueError(f"Unexpected error for {nodeid}.") from e
+    return metadata
 
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Unselect items that are not included in the current scenario"""
+    """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
+
+    manifest = Manifest(
+        context.library.name,
+        context.library.version,
+        context.weblog_variant,
+        context.agent_version,
+        context.dd_apm_inject_version,
+        context.k8s_cluster_agent_version,
+    )
+    for item in items:
+        assert isinstance(item, pytest.Function)
+        declarations = manifest.get_declarations(item.nodeid)
+        for declaration in declarations:
+            add_pytest_marker(item, declaration.value, declaration.details)
 
     selected = []
     deselected = []
@@ -396,6 +385,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     last_item_file = ""
     for item in session.items:
         if _item_is_skipped(item):
+            item.user_properties.append(("dd_tags[systest.case.outcome]", "skipped"))
             continue
 
         if not item.instance:  # item is a method bounded to a class
@@ -447,6 +437,40 @@ def pytest_runtest_call(item: pytest.Item) -> None:
     setup_properties.log_requests(item)
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(
+    fixturedef,  # noqa: ARG001, ANN001
+    request: pytest.FixtureRequest,
+) -> Generator[None, Any, None]:
+    try:
+        (yield).get_result()
+    except BaseException:
+        xfails = [*request.node.iter_markers("xfail")]
+        outcome = "xfailed" if len(xfails) != 0 else "error"
+
+        request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
+    # Run all other hooks to get the report object
+    outcome = yield
+    rep: pytest.TestReport = outcome.get_result()
+
+    if rep.when == "call":  # only attach outcome after test call
+        # rep.outcome is one of: passed, failed, skipped
+        # but json_report also distinguishes xfailed/xpassed
+        # via rep.wasxfail and outcome
+        value = rep.outcome
+        if getattr(rep, "wasxfail", None):
+            if rep.outcome == "skipped":
+                value = "xfailed"
+            elif rep.outcome == "passed":
+                value = "xpassed"
+
+        item.user_properties.append(("dd_tags[systest.case.outcome]", value))
+
+
 @pytest.hookimpl(optionalhook=True)
 def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> None | dict:
     if call.when != "setup":
@@ -456,14 +480,10 @@ def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> No
 
 
 def pytest_json_modifyreport(json_report: dict) -> None:
-    try:
-        # add usefull data for reporting
-        json_report["context"] = context.serialize()
+    # add usefull data for reporting
+    json_report["context"] = context.serialize()
 
-        logger.debug("Modifying JSON report finished")
-
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
@@ -488,16 +508,29 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 indent=2,
             )
 
-        data = session.config._json_report.report  # noqa: SLF001
+        if session.config.option.xmlpath:
+            # Test optimization needs to have the full name in name attribute
+            junit_report = ET.parse(session.config.option.xmlpath)  # noqa: S314
+
+            for testcase in junit_report.iter("testcase"):
+                if "classname" in testcase.attrib:
+                    testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
+                    del testcase.attrib["classname"]
+
+                if context.weblog_variant:
+                    name = testcase.attrib["name"]
+                    if name.endswith("]"):
+                        testcase.attrib["name"] = f"{name[:-1]}, {context.weblog_variant}]"
+                    else:
+                        testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
+
+            junit_report.write(session.config.option.xmlpath)
 
         try:
-            junit_modifyreport(
-                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties()
-            )
-
+            data = session.config._json_report.report  # noqa: SLF001
             export_feature_parity_dashboard(session, data)
         except Exception:
-            logger.exception("Fail to export export reports", exc_info=True)
+            logger.exception("Fail to export reports", exc_info=True)
 
 
 def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
@@ -529,11 +562,11 @@ def convert_test_to_feature_parity_model(test: dict) -> dict | None:
         "outcome": test["outcome"],
         "testDeclaration": test["metadata"]["testDeclaration"],
         "details": test["metadata"]["details"],
-        "features": test["metadata"]["features"],
+        "features": [feature for feature in test["metadata"]["features"] if feature != NOT_REPORTED_FEATURE_ID],
     }
 
-    # exclude features.not_reported
-    return result if -1 not in result["features"] else None
+    # exclude test without a feature (they may have been flagged as not reported)
+    return result if len(result["features"]) != 0 else None
 
 
 ## Fixtures corners

@@ -137,5 +137,17 @@ namespace weblog
             }
             return Content("Budgets");
         }
+
+        [HttpGet("snapshot/limits")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult SnapshotLimits(int depth = 0, int collectionSize = 0, int stringLength = 0)
+        {
+            var data = DataGenerator.GenerateTestData(depth, collectionSize, stringLength);
+            var deepObject = data["deepObject"];
+            var manyFields = data["manyFields"];
+            var largeCollection = data["largeCollection"];
+            var longString = data["longString"];
+            return Content("Capture limits probe"); // must be line 150
+        }
     }
 }

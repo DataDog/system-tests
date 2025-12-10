@@ -1,4 +1,5 @@
-from copy import deepcopy
+from copy import copy
+import json
 
 
 def get_tested_apps_vms(vm):
@@ -11,7 +12,7 @@ def get_tested_apps_vms(vm):
     deployed_weblog = vm.get_provision().get_deployed_weblog()
     if deployed_weblog.app_type == "multicontainer":
         for weblog in deployed_weblog.multicontainer_apps:
-            vm_by_runtime = deepcopy(vm)
+            vm_by_runtime = copy(vm)
             vm_by_runtime.set_deployed_weblog(weblog)
             vms_by_runtime.append(vm_by_runtime)
             vms_by_runtime_ids.append(vm_by_runtime.get_vm_unique_id())
@@ -27,7 +28,6 @@ def nginx_parser(nginx_config_file):
     TODO: Improve this uggly code
     """
     import crossplane
-    import json
 
     nginx_config = crossplane.parse(nginx_config_file)
     config_endpoints = nginx_config["config"]

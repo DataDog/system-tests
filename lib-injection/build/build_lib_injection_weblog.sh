@@ -15,7 +15,7 @@ NC='\033[0m'
 # Retry configuration
 MAX_RETRIES=${MAX_RETRIES:-3}
 INITIAL_DELAY=${INITIAL_DELAY:-5}
-BUILD_TIMEOUT=${BUILD_TIMEOUT:-600}  # 10 minutes timeout in seconds
+BUILD_TIMEOUT=${BUILD_TIMEOUT:-1200}  # 20 minutes timeout in seconds
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
@@ -87,7 +87,7 @@ setup_buildx() {
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
+        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -dp|--docker-platform) DOCKER_PLATFORM="$2"; shift ;;

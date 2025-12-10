@@ -19,12 +19,13 @@ const axios = require('axios')
 const http = require('http')
 const fs = require('fs')
 const crypto = require('crypto')
-const pino = require('pino')
+const winston = require('winston')
 const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
+const { OpenFeature } = require('@openfeature/server-sdk')
 
 const { spawnSync } = require('child_process')
 
@@ -43,7 +44,15 @@ const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-const logger = pino()
+// Unstructured logging (plain text)
+const plainLogger = console
+
+// Structured logging (JSON)
+const jsonLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(), // structured
+  transports: [new winston.transports.Console()]
+})
 
 iast.initData().catch(() => {})
 
@@ -115,6 +124,21 @@ app.get('/customResponseHeaders', (req, res) => {
     'x-test-header-3': 'value3',
     'x-test-header-4': 'value4',
     'x-test-header-5': 'value5'
+  })
+  res.send('OK')
+})
+
+app.get('/authorization_related_headers', (req, res) => {
+  res.set({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
   })
   res.send('OK')
 })
@@ -324,6 +348,13 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/log/library', (req, res) => {
   const msg = req.query.msg || 'msg'
+  const logger = (
+    req.query.structured === true ||
+    req.query.structured?.toString().toLowerCase() === 'true' ||
+    req.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (req.query.level) {
     case 'warn':
       logger.warn(msg)
@@ -636,21 +667,77 @@ app.get('/add_event', (req, res) => {
 
 require('./rasp')(app)
 
-const startServer = () => {
-  return new Promise((resolve) => {
-    app.listen(7777, '0.0.0.0', () => {
-      tracer.trace('init.service', () => {})
-      console.log('listening')
-      resolve()
-    })
-  })
+let openFeatureClient = null
+
+// Initialize OpenFeature provider if FFE is enabled
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  const { openfeature } = tracer
+  OpenFeature.setProvider(openfeature)
+  openFeatureClient = OpenFeature.getClient()
 }
+
+// Single FFE endpoint that evaluates feature flags
+app.post('/ffe', async (req, res) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
+
+    if (!openFeatureClient) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const context = { targetingKey, ...attributes }
+
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break
+      case 'INTEGER':
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break
+      default:
+        return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+    }
+
+    res.status(200).json({ value })
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
 
 // apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
 const initGraphQL = () => {
   return graphQLEnabled
     ? require('./graphql')(app)
     : Promise.resolve()
+}
+
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      if (req.url.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve()
+    })
+  })
 }
 
 initGraphQL()

@@ -1,4 +1,4 @@
-# AI Tools prompt validation guide
+# AI Tools prompt validation guide (beta)
 
 The selected tool for validating and ensuring that our AI assistants correctly execute tasks requested by users is Promptfoo. This framework enables systematic testing, ensuring high-quality responses, prompt accuracy, and consistent performance across various user interactions.
 
@@ -36,13 +36,15 @@ system-tests/
 ├── 📄 promptfoo-errors.log             # Error logs
 ├── 📁 .cursor/rules/                    # Cursor IDE rules directory
 │   └── 📄 promptfoo-llm.mdc            # Rules file for automated test execution
-└── 📁 .promptfoo/                       # Promptfoo test directory
-    ├── 📄 local_cursor_provider.py     # Custom provider for Cursor IDE integration
-    ├── 📄 tests_overview.yaml          # Tests for general system-tests overview
-    ├── 📄 tests_aws_ssi.yaml           # Tests for AWS SSI scenarios
-    ├── 📄 tests_end_to_end.yaml        # Tests for end-to-end scenarios
-    ├── 📄 tests_activate_tests.yaml    # Tests for test activation/deactivation
-    └── 📄 tests_task_java_endpoint_prompt.yaml # Tests for Java endpoint tasks
+├── 📁 .promptfoo/                       # Promptfoo test directory
+│   ├── 📄 local_cursor_provider.py     # Custom provider for Cursor IDE integration
+│   ├── 📄 tests_overview.yaml          # Tests for general system-tests overview
+│   ├── 📄 tests_aws_ssi.yaml           # Tests for AWS SSI scenarios
+│   ├── 📄 tests_end_to_end.yaml        # Tests for end-to-end scenarios
+│   ├── 📄 tests_activate_tests.yaml    # Tests for test activation/deactivation
+│   └── 📄 tests_task_java_endpoint_prompt.yaml # Tests for Java endpoint tasks
+└── 📁 utils/scripts/ai/                 # AI utility scripts
+    └── 📄 promptfoo_eval.sh            # Interactive wizard for running evaluations
 ```
 
 ### Key Components
@@ -52,6 +54,7 @@ system-tests/
 * **.promptfoo/**: Contains all test definitions organized by scenario type
 * **local_cursor_provider.py**: Custom provider for IDE integration
 * **Test files**: Each YAML file contains specific test cases for different system-tests scenarios
+* **promptfoo_eval.sh**: Interactive wizard script for running evaluations from the terminal
 
 ## Run the tests inside the IDE
 
@@ -97,6 +100,99 @@ promptfoo eval -t .promptfoo/tests_aws_ssi.yaml
 ```bash
 promptfoo view
 ```
+
+## Run the tests using the Wizard Script
+
+For a more guided experience, you can use the interactive wizard script that walks you through the entire evaluation process step by step.
+
+### Prerequisites
+
+Before running the wizard, ensure you have one of the following AI agents installed:
+
+* **cursor-agent**: The Cursor IDE agent CLI tool
+* **claude**: The Claude CLI from Anthropic
+
+### Running the Wizard
+
+From the repository root, execute:
+
+```bash
+./utils/scripts/ai/promptfoo_eval.sh
+```
+
+### Wizard Steps
+
+The wizard guides you through three interactive steps:
+
+#### Step 1: Select AI Agent
+
+Choose which AI agent will generate the test responses:
+
+```
+━━━ Step 1: Select AI Agent ━━━
+
+Which AI agent would you like to use for the evaluation?
+
+  1) cursor-agent  - Use Cursor AI Agent
+  2) claude        - Use Claude CLI
+
+Enter your choice (1 or 2):
+```
+
+#### Step 2: Select Test Scenarios
+
+Choose to run all scenarios or select a specific one. The wizard automatically discovers all available test files from the `.promptfoo/` directory:
+
+```
+━━━ Step 2: Select Test Scenarios ━━━
+
+Would you like to run all scenarios or select specific ones?
+
+  0) Run ALL scenarios
+
+  1) activate_tests
+  2) aws_ssi
+  3) end_to_end
+  4) k8s_tests
+  5) overview
+  6) task_java_endpoint_prompt
+
+Enter your choice (0-6):
+```
+
+#### Step 3: Automatic Execution
+
+The wizard then automatically:
+
+1. Logs in to the selected AI agent (if using cursor-agent)
+2. Runs the AI agent with the promptfoo rules file to generate responses
+3. Executes `promptfoo eval` with the selected test file(s)
+
+### Example Output
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║          🤖 Promptfoo Evaluation Wizard 🧙‍♂️               ║
+╚═══════════════════════════════════════════════════════════╝
+
+━━━ Step 1: Select AI Agent ━━━
+✓ Selected agent: claude
+
+━━━ Step 2: Select Test Scenarios ━━━
+✓ Selected scenario: aws_ssi
+
+━━━ Step 3: Running Evaluation ━━━
+🚀 Running evaluation with claude...
+📊 Running promptfoo evaluation...
+✅ Evaluation complete!
+```
+
+### When to Use Each Method
+
+| Method | Best For |
+|--------|----------|
+| **IDE Method** | Quick iterations, debugging specific prompts, when already working in Cursor IDE |
+| **Wizard Script** | Full evaluation runs, running tests from terminal, comparing different AI agents |
 
 ## Rules File Integration
 

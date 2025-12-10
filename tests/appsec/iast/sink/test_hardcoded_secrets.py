@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, context, rfc, weblog
-from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stack_traces
+from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stack_traces, get_nodejs_iast_file_paths
 
 # Test_HardcodedSecrets and Test_HardcodedSecretsExtended don't inherit from BaseSinkTest
 # Hardcode secrets detection implementation change a lot between different languages
@@ -11,7 +11,7 @@ from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stac
 # as the vulnerability is not always set in the current request span.
 
 
-def get_expectation(d):
+def get_expectation(d: dict):
     expected = d.get(context.library.name)
     if isinstance(expected, dict):
         expected = expected.get(context.weblog_variant)
@@ -24,12 +24,7 @@ class Test_HardcodedSecrets:
 
     location_map = {
         "java": "com.datadoghq.system_tests.springboot.AppSecIast",
-        "nodejs": {
-            "express4": "iast/index.js",
-            "express4-typescript": "iast.ts",
-            "express5": "iast/index.js",
-            "uds-express4": "iast/index.js",
-        },
+        "nodejs": get_nodejs_iast_file_paths(),
     }
 
     insecure_request = None
@@ -42,8 +37,10 @@ class Test_HardcodedSecrets:
         assert self.r_hardcoded_secrets_exec.status_code == 200
         hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
-        assert len(hardcode_secrets) == 1
-        vuln = hardcode_secrets[0]
+        # Deduplicate by hash in case the tracer reports the same secret multiple times
+        unique_secrets = {v["hash"]: v for v in hardcode_secrets}.values()
+        assert len(unique_secrets) == 1, f"Expected 1 unique secret, found {len(unique_secrets)}"
+        vuln = list(unique_secrets)[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
 
 
@@ -52,12 +49,7 @@ class Test_HardcodedSecretsExtended:
     """Test Hardcoded secrets extended detection."""
 
     location_map = {
-        "nodejs": {
-            "express4": "iast/index.js",
-            "express4-typescript": "iast.ts",
-            "express5": "iast/index.js",
-            "uds-express4": "iast/index.js",
-        },
+        "nodejs": get_nodejs_iast_file_paths(),
     }
 
     def setup_hardcoded_secrets_extended_exec(self):
@@ -67,8 +59,10 @@ class Test_HardcodedSecretsExtended:
         assert self.r_hardcoded_secrets_exec.status_code == 200
         hardcoded_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcoded_secrets = [v for v in hardcoded_secrets if v["evidence"]["value"] == "datadog-access-token"]
-        assert len(hardcoded_secrets) == 1
-        vuln = hardcoded_secrets[0]
+        # Deduplicate by hash in case the tracer reports the same secret multiple times
+        unique_secrets = {v["hash"]: v for v in hardcoded_secrets}.values()
+        assert len(unique_secrets) == 1, f"Expected 1 unique secret, found {len(unique_secrets)}"
+        vuln = list(unique_secrets)[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
 
 
@@ -97,8 +91,10 @@ class Test_HardcodedSecrets_ExtendedLocation:
     def test_extended_location_data(self):
         hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
-        assert len(hardcode_secrets) == 1
-        location = hardcode_secrets[0]["location"]
+        # Deduplicate by hash in case the tracer reports the same secret multiple times
+        unique_secrets = {v["hash"]: v for v in hardcode_secrets}.values()
+        assert len(unique_secrets) == 1, f"Expected 1 unique secret, found {len(unique_secrets)}"
+        location = list(unique_secrets)[0]["location"]
 
         assert all(field in location for field in ["path", "line"])
 

@@ -2,8 +2,11 @@ source 'https://rubygems.org'
 
 gem 'faraday'
 gem 'rack-contrib'
-gem 'puma'
-gem 'pry'
+gem 'puma', '~> 6.0'
+
+group :development do
+  gem 'pry-byebug'
+end
 
 gem 'dogstatsd-ruby'
-gem 'ddtrace', '~> 1.0.0.a'
+gem 'datadog', '~> 2.0'

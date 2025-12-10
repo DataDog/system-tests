@@ -34,11 +34,16 @@
       os_distro: rpm
       os_branch: centos_8_amd64 # CentOS override
       remote-command: |
-        curl -fsSL https://get.docker.com -o install-docker.sh
-        chmod 755 install-docker.sh
-        sed -i 's/yum config-manager/yum-config-manager/g' install-docker.sh
-        sudo sh install-docker.sh
-        sudo systemctl start docker
+        # Remove conflicting packages that may interfere with Docker
+        sudo dnf remove -y podman buildah containers-common || true
+        # Add Docker repository
+        sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+        # Install Docker with --nobest to handle dependency conflicts
+        sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin --nobest
+        # Start Docker service
+        sudo systemctl enable docker.service
+        sudo systemctl start docker.service
+        # Install docker-compose manually
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm

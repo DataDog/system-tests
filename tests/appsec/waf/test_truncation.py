@@ -3,7 +3,7 @@ from tests.appsec.utils import find_series
 from utils import weblog, rfc, features, interfaces
 
 
-def create_nested_object(n, obj):
+def create_nested_object(n: int, obj: dict) -> dict:
     if n > 0:
         return {"a": create_nested_object(n - 1, obj)}
     return obj
@@ -47,7 +47,7 @@ class Test_Truncation:
         # * 1 of leeway depending on how leafs of the tree are counted
         assert 20 <= int(metrics["_dd.appsec.truncated.container_depth"]) <= 28
 
-        waf_requests_series = find_series("generate-metrics", "appsec", ["waf.requests"])
+        waf_requests_series = find_series("appsec", ["waf.requests"])
         has_input_truncated = any("input_truncated:true" in series["tags"] for series in waf_requests_series)
         assert has_input_truncated, "Expected at least one serie to have input_truncated:true tag"
 
@@ -57,7 +57,7 @@ class Test_Truncation:
         )
         assert all_have_input_truncated_tag, "Expected all series to have input_truncated tag"
 
-        count_series = find_series("generate-metrics", "appsec", ["waf.input_truncated"])
+        count_series = find_series("appsec", ["waf.input_truncated"])
         input_truncated = count_series[0] if count_series else None
 
         assert input_truncated is not None, "No telemetry data received for metric appsec.waf.input_truncated"

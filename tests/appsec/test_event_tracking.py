@@ -26,7 +26,7 @@ HEADERS = {
 }
 
 
-def validate_metric_type_and_version(event_type, version, metric):
+def validate_metric_type_and_version(event_type: str, version: str, metric: dict):
     return (
         metric.get("type") == "count"
         and f"event_type:{event_type}" in metric.get("tags", ())
@@ -48,7 +48,7 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
-        def validate_user_login_success_tags(span):
+        def validate_user_login_success_tags(span: dict):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "usr.id": "system_tests_user",
@@ -65,7 +65,7 @@ class Test_UserLoginSuccessEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_tags)
 
     def setup_user_login_success_header_collection(self):
         self.r = weblog.get("/user_login_success_event", headers=HEADERS)
@@ -76,15 +76,16 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
-        def validate_user_login_success_header_collection(span):
+        def validate_user_login_success_header_collection(span: dict) -> bool:
             if span.get("parent_id") not in (0, None):
-                return None
+                return False
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 @features.user_monitoring
@@ -96,7 +97,7 @@ class Test_UserLoginSuccessEvent_Metrics:
 
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
 
@@ -120,7 +121,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_user_login_failure_tags(span):
+        def validate_user_login_failure_tags(span: dict):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.users.login.failure.usr.id": "system_tests_user",
@@ -138,7 +139,7 @@ class Test_UserLoginFailureEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_tags)
 
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
@@ -149,7 +150,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
-        def validate_user_login_failure_header_collection(span):
+        def validate_user_login_failure_header_collection(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -157,7 +158,7 @@ class Test_UserLoginFailureEvent:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 @features.user_monitoring
@@ -169,7 +170,7 @@ class Test_UserLoginFailureEvent_Metrics:
 
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
 
@@ -192,7 +193,7 @@ class Test_CustomEvent:
     def test_custom_event_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_custom_event_tags(span):
+        def validate_custom_event_tags(span: dict):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.system_tests_event.track": "true",
@@ -208,7 +209,7 @@ class Test_CustomEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_custom_event_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_custom_event_tags)
 
 
 @features.user_monitoring
@@ -220,7 +221,7 @@ class Test_CustomEvent_Metrics:
 
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
 

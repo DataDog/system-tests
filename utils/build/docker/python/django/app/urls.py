@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -32,7 +33,6 @@ from iast import (
 )
 
 import ddtrace
-from ddtrace import patch_all
 
 from ddtrace.appsec import trace_utils as ato_user_sdk_v1
 
@@ -53,12 +53,16 @@ except ImportError:
     track_user_sdk = TUS()
 
 try:
-    from ddtrace.trace import Pin, tracer
+    from ddtrace._trace.pin import Pin
+    from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import tracer, Pin
+    try:
+        from ddtrace.trace import Pin, tracer
+    except ImportError:
+        from ddtrace import tracer, Pin
 
 
-patch_all(urllib3=True)
+ddtrace.patch_all(urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -66,6 +70,13 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
+
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
 
 
 from app.models import CustomUser
@@ -168,6 +179,10 @@ def set_cookie(request):
     res = HttpResponse("OK")
     res.headers["Set-Cookie"] = f"{request.GET.get('name')}={request.GET.get('value')}"
     return res
+
+
+def resource_renaming(request, path: str):
+    return HttpResponse("ok", content_type="text/plain")
 
 
 ### BEGIN EXPLOIT PREVENTION
@@ -541,7 +556,8 @@ def view_iast_xss_secure(request):
 
 @csrf_exempt
 def view_iast_stacktraceleak_insecure(request):
-    return HttpResponse("""
+    return HttpResponse(
+        """
   Traceback (most recent call last):
   File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
     result = complex_calculation(data)
@@ -564,7 +580,8 @@ def view_iast_stacktraceleak_insecure(request):
 ValueError: Constraint violation at step 9
 
 Lorem Ipsum Foobar
-""")
+"""
+    )
 
 
 @csrf_exempt
@@ -1082,6 +1099,81 @@ def s3_multipart_upload(request):
     return JsonResponse(result)
 
 
+@csrf_exempt
+@require_http_methods(["GET", "TRACE", "POST", "PUT"])
+def external_request(request):
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in request.GET.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = request.body or None
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+    urllib_request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries, data=body
+    )
+    try:
+        with urllib.request.urlopen(urllib_request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return JsonResponse(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return JsonResponse({"status": int(e.status), "error": repr(e)})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def external_request_redirect(request):
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in request.GET.items()}
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
+    request = urllib.request.Request(
+        full_url,
+        method="GET",
+        headers=queries,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return JsonResponse(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return JsonResponse({"status": int(e.status), "error": repr(e)})
+
+
+@csrf_exempt
+def ffe(request):
+    """OpenFeature evaluation endpoint."""
+    body = json.loads(request.body)
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return JsonResponse({"value": value}, status=200)
+
+
 urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
@@ -1098,6 +1190,7 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("set_cookie", set_cookie),
+    path("resource_renaming/<path:path>", resource_renaming),
     path("rasp/cmdi", rasp_cmdi),
     path("rasp/lfi", rasp_lfi),
     path("rasp/multiple", rasp_multiple),
@@ -1177,4 +1270,7 @@ urlpatterns = [
     path("mock_s3/put_object", s3_put_object),
     path("mock_s3/copy_object", s3_copy_object),
     path("mock_s3/multipart_upload", s3_multipart_upload),
+    path("external_request", external_request),
+    path("external_request/redirect", external_request_redirect),
+    path("ffe", ffe),
 ]

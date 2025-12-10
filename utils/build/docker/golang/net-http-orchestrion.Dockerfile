@@ -1,10 +1,9 @@
-FROM golang:1.23 AS build
+FROM golang:1.24-alpine AS build
+
+RUN apk add --no-cache jq curl bash gcc musl-dev
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # build application binary
 COPY utils/build/docker/golang/app/ /app/
@@ -27,7 +26,9 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 # ==============================================================================
 
-FROM golang:1.23
+FROM golang:1.24-alpine
+
+RUN apk add --no-cache curl bash gcc musl-dev
 
 COPY --from=build /app/weblog /app/weblog
 COPY --from=build /app/net-http-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION

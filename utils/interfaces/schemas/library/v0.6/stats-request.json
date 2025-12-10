@@ -1,40 +1,59 @@
 {
   "$id": "/library/v0.6/stats-request.json",
-  "required": ["Version", "Env", "Hostname", "Stats"],
+  "type": "object",
+  "required": ["Hostname", "Env", "Version", "Stats", "RuntimeID", "Sequence", "Service"],
   "properties": {
-    "Version": { "type": "string", "minLength": 1 },
-    "Env": { "type": "string", "minLength": 1 },
-    "Hostname": { "type": "string" },
+    "Hostname": { "type": "string", "description": "Tracer hostname from configuration" },
+    "Env": { "type": "string", "minLength": 1, "description": "Environment tag (never empty, defaults to 'unknown-env')" },
+    "Version": { "type": "string", "description": "Service version from configuration" },
     "Stats": {
       "type": "array",
+      "description": "Array of ClientStatsBucket containing time-bucketed statistics",
       "items": {
         "type": "object",
         "required": ["Start", "Duration", "Stats"],
         "properties": {
-          "Start": { "type": "integer", "minimum": 0 },
-          "Duration": { "type": "integer", "minimum": 0 },
+          "Start": { "type": "integer", "minimum": 0, "description": "Bucket start time in nanoseconds" },
+          "Duration": { "type": "integer", "minimum": 0, "description": "Bucket duration in nanoseconds" },
           "Stats": {
             "type": "array",
+            "description": "Array of ClientGroupedStats containing aggregated statistics",
             "items": {
               "type": "object",
+              "required": ["Service", "Name", "Resource", "Type", "Hits", "Errors", "Duration", "OkSummary", "ErrorSummary", "Synthetics", "TopLevelHits", "IsTraceRoot"],
               "properties": {
-                "Name": { "type": "string" },
-                "Resource": { "type": "string" },
-                "Synthetics": { "type": "boolean" },
-                "HTTPStatusCode": { "type": "integer" },
-                "Hits": { "type": "integer" },
-                "TopLevelHits": { "type": "integer" },
-                "Duration": { "type": "integer" },
-                "Errors": { "type": "integer" },
-                "OkSummary": { "type": "string" },
-                "ErrorSummary": { "type": "string" },
-                "Service": { "type": "string" },
-                "Type": { "type": "string" }
+                "Service": { "type": "string", "description": "Service name from span" },
+                "Name": { "type": "string", "description": "Span operation name" },
+                "Resource": { "type": "string", "description": "Resource name (obfuscated if agent obfuscation is enabled)" },
+                "HTTPStatusCode": { "type": "integer", "description": "HTTP status code extracted from span metadata/metrics" },
+                "Type": { "type": "string", "description": "Span type (e.g., 'web', 'db', 'cache', 'custom')" },
+                "Hits": { "type": "integer", "minimum": 0, "description": "Total span count (converted to uint64 using stochastic rounding)" },
+                "Errors": { "type": "integer", "minimum": 0, "description": "Error span count (converted to uint64 using stochastic rounding)" },
+                "Duration": { "type": "integer", "minimum": 0, "description": "Total duration in nanoseconds (converted to uint64 using stochastic rounding)" },
+                "OkSummary": { "type": "string", "description": "DDSketch bytes for OK spans (1% relative accuracy)" },
+                "ErrorSummary": { "type": "string", "description": "DDSketch bytes for error spans (1% relative accuracy)" },
+                "Synthetics": { "type": "boolean", "description": "True if span origin starts with 'synthetics'" },
+                "TopLevelHits": { "type": "integer", "minimum": 0, "description": "Top-level span count (converted to uint64 using stochastic rounding)" },
+                "SpanKind": { "type": "string", "description": "Span kind value from span metadata (server, client, producer, consumer)" },
+                "PeerTags": { 
+                  "type": "array", 
+                  "items": { "type": "string" },
+                  "description": "Peer tags array from span metadata (based on agent peer tags configuration)"
+                },
+                "IsTraceRoot": { "type": "integer", "description": "TRUE if span parentID == 0, FALSE otherwise" },
+                "GRPCStatusCode": { "type": "string", "description": "gRPC status code from span metadata" }
               }
             }
           }
         }
       }
-    }
+    },
+    "Lang": { "type": "string", "description": "Language identifier (e.g., 'go', 'python', 'java')" },
+    "TracerVersion": { "type": "string", "description": "Tracer library version" },
+    "RuntimeID": { "type": "string", "description": "Runtime identifier for message uniqueness" },
+    "Sequence": { "type": "integer", "minimum": 0, "description": "Sequence number for message uniqueness" },
+    "Service": { "type": "string", "description": "Main service name from configuration" },
+    "ProcessTags": { "type": "string", "description": "Process tags string (populated at flush time)" },
+    "GitCommitSha": { "type": "string", "description": "Git commit SHA (only when CI Visibility is enabled)" }
   }
 }

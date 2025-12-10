@@ -19,7 +19,14 @@ class _BaseRabbitMQ:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, exchange, operation) -> dict | None:
+    def get_span(
+        cls,
+        interface: interfaces.LibraryInterfaceValidator,
+        span_kind: str,
+        queue: str,
+        exchange: str,
+        operation: list[str],
+    ) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -32,17 +39,17 @@ class _BaseRabbitMQ:
 
                 operation_found = False
                 for op in operation:
-                    if op.lower() in span.get("resource").lower() or op.lower() in span.get("name").lower():
+                    if op.lower() in span["resource"].lower() or op.lower() in span["name"].lower():
                         operation_found = True
                         break
 
                 if not operation_found:
                     continue
 
-                meta = span.get("meta")
+                meta: dict[str, str] = span["meta"]
                 if (
-                    queue.lower() not in span.get("resource").lower()
-                    and exchange.lower() not in span.get("resource").lower()
+                    queue.lower() not in span["resource"].lower()
+                    and exchange.lower() not in span["resource"].lower()
                     and queue.lower() not in meta.get("rabbitmq.routing_key", "").lower()
                     # this is where we find the queue name in dotnet 👇
                     and queue.lower() not in meta.get("amqp.routing_key", "").lower()
@@ -188,7 +195,13 @@ class _BaseRabbitMQ:
         assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):
+    def validate_rabbitmq_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        queue: str,
+        exchange: str,
+    ):
         """Validates production/consumption of RabbitMQ message.
         It works the same for both test_produce and test_consume
         """
