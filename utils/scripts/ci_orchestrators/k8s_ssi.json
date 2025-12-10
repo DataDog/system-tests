@@ -94,7 +94,7 @@
 
     ],
     "cluster_agent_spec": {
-        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
+        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.72.4",
         "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2"
     }
 }
