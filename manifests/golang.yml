@@ -164,8 +164,8 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.5.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0

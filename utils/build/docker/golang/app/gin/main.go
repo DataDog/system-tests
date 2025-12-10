@@ -355,6 +355,7 @@ func main() {
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
 	r.Any("/external_request", ginHandleFunc(rasp.ExternalRequest))
+	r.GET("/external_request/redirect", ginHandleFunc(rasp.ExternalRedirectRequest))
 
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
