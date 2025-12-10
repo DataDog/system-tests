@@ -739,6 +739,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
 
 	mux.HandleFunc("/ffe", common.FFeEval())
 
