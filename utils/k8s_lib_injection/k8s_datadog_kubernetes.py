@@ -130,8 +130,9 @@ class K8sDatadog:
         The main benefit of the Datadog Admission Controller is to simplify your life when it comes to configure your application Pods.
         Datadog Admission Controller is a Mutating Admission Controller type because it mutates, or changes, the pods configurations.
         """
-
         logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
+        create_namespace(self.namespace, self.k8s_cluster_info)
+
         operator_file = "utils/k8s_lib_injection/resources/helm/datadog-helm-chart-values.yaml"
         if self.dd_cluster_uds:
             logger.info("[Deploy datadog cluster] Using UDS")
@@ -171,6 +172,8 @@ class K8sDatadog:
         By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
         the Datadog Cluster Agent, and Cluster check runners.
         """
+        logger.info("[Deploy datadog operator] Creating namespace")
+        create_namespace(self.namespace, self.k8s_cluster_info)
         logger.info("[Deploy datadog operator] Configuring helm repository")
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
         helm_install_chart(
