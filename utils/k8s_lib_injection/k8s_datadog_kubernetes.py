@@ -30,6 +30,7 @@ class K8sDatadog:
         dd_cluster_img=None,
         api_key=None,
         app_key=None,
+        namespace="datadog",
     ):
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature
@@ -38,6 +39,7 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
+        self.create_namespace(namespace)
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def create_namespace(self, name: str):
@@ -56,12 +58,10 @@ class K8sDatadog:
                 # Other API errors should not be swallowed
                 raise
 
-    def deploy_test_agent(self, namespace="datadog"):
+    def deploy_test_agent(self):
         """Installs the test agent pod."""
 
         logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_cluster_info.cluster_name}")
-
-        self.create_namespace(namespace)
 
         container = client.V1Container(
             name="trace-agent",
@@ -134,12 +134,12 @@ class K8sDatadog:
             metadata=client.V1ObjectMeta(name="datadog"),
             spec=spec,
         )
-        self.k8s_cluster_info.apps_api().create_namespaced_daemon_set(namespace=namespace, body=daemonset)
+        self.k8s_cluster_info.apps_api().create_namespaced_daemon_set(namespace=self.namespace, body=daemonset)
 
-        self.wait_for_test_agent(namespace)
+        self.wait_for_test_agent(self.namespace)
         logger.info("[Test agent] Daemonset created")
 
-    def deploy_datadog_cluster_agent(self, host_log_folder: str, namespace="datadog"):
+    def deploy_datadog_cluster_agent(self, host_log_folder: str):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
         We enable the admission controller and wait for the datdog cluster to be ready.
         The Datadog Admission Controller is an important piece of the Datadog Cluster Agent.
@@ -176,13 +176,13 @@ class K8sDatadog:
             "datadog/datadog",
             value_file=operator_file,
             set_dict=self.dd_cluster_feature,
-            namespace=namespace,
+            namespace=self.namespace,
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
-        self._wait_for_cluster_agent_ready(namespace)
+        self._wait_for_cluster_agent_ready(self.namespace)
 
-    def deploy_datadog_operator(self, host_log_folder: str, namespace="datadog"):
+    def deploy_datadog_operator(self, host_log_folder: str):
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog Agent in a Kubernetes environment.
         By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
         the Datadog Cluster Agent, and Cluster check runners.
@@ -197,12 +197,12 @@ class K8sDatadog:
             value_file=None,
             set_dict={},
             timeout=None,
-            namespace=namespace,
+            namespace=self.namespace,
         )
         logger.info("[Deploy datadog operator] the operator is ready")
         logger.info("[Deploy datadog operator] Create the operator secrets")
         execute_command(
-            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace={namespace}"
+            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace={self.namespace}"
         )
         # Configure cluster agent image on the operator file
         if self.dd_cluster_img is None:
@@ -212,9 +212,9 @@ class K8sDatadog:
             oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
 
         logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
-        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace={namespace}")
+        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace={self.namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
-        self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
+        self._wait_for_cluster_agent_ready(self.namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
     def wait_for_test_agent(self, namespace):
         """Waits for the test agent to be ready."""
