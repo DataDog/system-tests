@@ -37,13 +37,15 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
-        create_namespace(namespace, k8s_cluster_info)
+        self.namespace = namespace
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def deploy_test_agent(self):
         """Installs the test agent pod."""
 
         logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_cluster_info.cluster_name}")
+
+        create_namespace(self.namespace, self.k8s_cluster_info)
 
         container = client.V1Container(
             name="trace-agent",
