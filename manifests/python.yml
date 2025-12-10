@@ -1290,7 +1290,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled::test_main:
-    - version: ">4.0.0"
+    - component_version: ">4.0.0"
       declaration: bug (AIDM-194)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
