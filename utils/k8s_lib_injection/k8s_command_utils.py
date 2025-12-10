@@ -1,6 +1,11 @@
 import subprocess, datetime, os, time, signal, shlex
 from utils._logger import logger
 from retry import retry
+from kubernetes import client
+from kubernetes.client.rest import ApiException
+
+
+KUBERNETES_NOT_FOUND = 404
 
 
 def execute_command(command, timeout=None, logfile=None, subprocess_env=None, quiet=False):
@@ -59,6 +64,23 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
         raise ex
 
     return output
+
+
+@retry(delay=1, tries=5)
+def create_namespace(name, k8s_cluster_info):
+    try:
+        # Check if namespace already exists
+        k8s_cluster_info.core_v1_api().read_namespace(name)
+        logger.info(f"Namespace '{name}' already exists.")
+    except ApiException as e:
+        if e.status == KUBERNETES_NOT_FOUND:
+            # Namespace not found → create it
+            ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=name))
+            k8s_cluster_info.core_v1_api().create_namespace(ns)
+            logger.info(f"Namespace '{name}' created.")
+        else:
+            # Other API errors should not be swallowed
+            raise
 
 
 @retry(delay=1, tries=5)

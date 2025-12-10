@@ -3,18 +3,16 @@ import time
 import yaml
 from pathlib import Path
 from kubernetes import client, watch
-from kubernetes.client.rest import ApiException
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
     execute_command,
+    create_namespace,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
 from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
-
-KUBERNETES_NOT_FOUND = 404
 
 
 class K8sDatadog:
@@ -39,23 +37,8 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
-        self.create_namespace(namespace)
+        create_namespace(namespace)
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
-
-    def create_namespace(self, name: str):
-        try:
-            # Check if namespace already exists
-            self.k8s_cluster_info.core_v1_api().read_namespace(name)
-            logger.info(f"Namespace '{name}' already exists.")
-        except ApiException as e:
-            if e.status == KUBERNETES_NOT_FOUND:
-                # Namespace not found → create it
-                ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=name))
-                self.k8s_cluster_info.core_v1_api().create_namespace(ns)
-                logger.info(f"Namespace '{name}' created.")
-            else:
-                # Other API errors should not be swallowed
-                raise
 
     def deploy_test_agent(self):
         """Installs the test agent pod."""
