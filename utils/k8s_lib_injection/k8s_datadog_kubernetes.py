@@ -43,16 +43,15 @@ class K8sDatadog:
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def create_namespace(self, name: str):
-        v1 = client.CoreV1Api()
         try:
             # Check if namespace already exists
-            v1.read_namespace(name)
+            self.k8s_cluster_info.core_v1_api().read_namespace(name)
             logger.info(f"Namespace '{name}' already exists.")
         except ApiException as e:
             if e.status == KUBERNETES_NOT_FOUND:
                 # Namespace not found → create it
                 ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=name))
-                v1.create_namespace(ns)
+                self.k8s_cluster_info.core_v1_api().create_namespace(ns)
                 logger.info(f"Namespace '{name}' created.")
             else:
                 # Other API errors should not be swallowed
