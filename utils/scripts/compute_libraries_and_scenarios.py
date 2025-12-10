@@ -208,9 +208,6 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
-        if inputs.ref in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
-            self.scenario_groups |= {all_scenario_groups.all.name}
-            return
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
