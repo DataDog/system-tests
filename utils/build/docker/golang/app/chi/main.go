@@ -363,6 +363,7 @@ func main() {
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
