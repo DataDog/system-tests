@@ -35,6 +35,11 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
+def agent_env() -> dict[str, str]:
+    return {}
+
+
+@pytest.fixture
 def library_extra_command_arguments() -> list[str]:
     return []
 
@@ -73,6 +78,7 @@ def test_agent(
     worker_id: str,
     test_id: str,
     request: pytest.FixtureRequest,
+    agent_env: dict[str, str],
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
 ) -> Generator[TestAgentAPI, None, None]:
@@ -80,6 +86,7 @@ def test_agent(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
+        agent_env=agent_env,
         container_otlp_http_port=test_agent_otlp_http_port,
         container_otlp_grpc_port=test_agent_otlp_grpc_port,
     ) as result:

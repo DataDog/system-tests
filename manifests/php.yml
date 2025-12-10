@@ -156,6 +156,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
@@ -339,13 +340,13 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v0.74.0
   tests/appsec/waf/test_addresses.py::Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
   tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
-  tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature  # v0.86.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking: v1.15.0  # v0.86.0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
-  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature  # v0.86.0
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v1.15.0  # v0.86.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: v1.15.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: v1.15.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v1.15.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: v1.15.0
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: v0.87.2
   tests/appsec/waf/test_exclusions.py::Test_Exclusions: v0.86.0
   tests/appsec/waf/test_miscs.py::Test_404: v0.1.0
@@ -529,6 +530,8 @@ manifest:
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: missing_feature
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: missing_feature
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature

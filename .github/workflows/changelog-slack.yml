@@ -1,0 +1,23 @@
+name: Changelog Slack Notification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'CHANGELOG.md'
+
+jobs:
+  notify-slack:
+    runs-on: ubuntu-latest
+    environment: Changelog slack notification
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Send changelog to Slack
+        run: |
+          ./utils/scripts/slack/send_changelog.sh
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}

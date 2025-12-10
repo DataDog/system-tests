@@ -434,11 +434,11 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except APIError as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-                logger.info(f"Fail to remove container {self.name}")
+                logger.info(f"Fail to remove container {self.name} ({e})")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -1013,9 +1013,9 @@ class WeblogContainer(TestedContainer):
         try:
             r = weblog.get("/flush", timeout=10)
             assert r.status_code == HTTPStatus.OK
-        except:
+        except Exception as e:
             self.healthy = False
-            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log")
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log ({e})")
 
     def set_weblog_domain_for_ipv6(self, network: Network):
         if sys.platform == "linux":
@@ -1320,7 +1320,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         super().__init__(
             name="collector",
-            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            image_name="otel/opentelemetry-collector-contrib:0.137.0",
             binary_file_name="otel_collector-image",
             command="--config=/etc/otelcol-config.yml",
             environment=environment,

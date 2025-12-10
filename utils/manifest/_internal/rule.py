@@ -50,6 +50,7 @@ def match_condition(
 def match_rule(rule: str, nodeid: str) -> bool:
     rule_elements = rule.strip("/").replace("::", "/").split("/")
 
+    nodeid = nodeid[: nodeid.find("[") % len(nodeid) + 1]
     nodeid_elements = nodeid.replace("::", "/").split("/")
 
     if len(rule_elements) > len(nodeid_elements):

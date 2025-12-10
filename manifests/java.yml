@@ -815,6 +815,7 @@ manifest:
         vertx3: v1.54.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": missing_feature
@@ -2532,6 +2533,14 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.56.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.56.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0

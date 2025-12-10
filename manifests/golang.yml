@@ -160,6 +160,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
@@ -811,6 +812,8 @@ manifest:
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: v2.5.0-dev
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: v2.5.0-dev
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: v2.4.0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": irrelevant

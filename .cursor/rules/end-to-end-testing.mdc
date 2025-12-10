@@ -62,7 +62,7 @@ The different choices to debug the tests/scenario are documented on these docuem
 
 #### Common steps to debug a test failure
 1. if failure is in CI, the user should get the log folder and extract it into system-tests root folder (with the name 'logs_<scenario_name>')
-2. Run in 'replay mode': './run.sh <scenario_name> --replay to reproduce locally'
+2. Run in 'replay mode': './run.sh <SCENARIO_NAME> --replay to reproduce locally'
 3. Add more traces, using 'user logger'.
 4. Dig inside the logs folder, check 'log folder structure' 
 5. 'activate tracer debug'

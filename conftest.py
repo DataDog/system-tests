@@ -133,7 +133,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         type=str,
         action="store",
         default=None,
-        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
+        help="Framework to test (e.g. 'openai-py@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
     )
 
     # report data to feature parity dashboard
@@ -480,14 +480,10 @@ def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> No
 
 
 def pytest_json_modifyreport(json_report: dict) -> None:
-    try:
-        # add usefull data for reporting
-        json_report["context"] = context.serialize()
+    # add usefull data for reporting
+    json_report["context"] = context.serialize()
 
-        logger.debug("Modifying JSON report finished")
-
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

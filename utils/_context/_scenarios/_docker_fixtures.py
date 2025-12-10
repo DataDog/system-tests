@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
+from docker.errors import DockerException
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from .core import Scenario, ScenarioGroup, scenario_groups as groups
@@ -62,11 +63,15 @@ class DockerFixturesScenario(Scenario):
         finally:
             try:
                 network.remove()
-            except:
+            except DockerException as e:
+                # Possible exceptions:
+                # - docker.errors.DockerException: Base exception for Docker errors
+                # - requests.exceptions.RequestException: Underlying HTTP/connection errors
+                # - ConnectionError: Docker daemon connection issues
                 # It's possible (why?) of having some container not stopped.
                 # If it happens, failing here makes stdout tough to understand.
                 # Let's ignore this, later calls will clean the mess
-                logger.info("Failed to remove network, ignoring the error")
+                logger.info(f"Failed to remove network, ignoring the error: {e}")
 
     @contextlib.contextmanager
     def get_test_agent_api(
@@ -74,6 +79,7 @@ class DockerFixturesScenario(Scenario):
         worker_id: str,
         request: pytest.FixtureRequest,
         test_id: str,
+        agent_env: dict[str, str],
         container_otlp_http_port: int = 4318,
         container_otlp_grpc_port: int = 4317,
     ) -> Generator[TestAgentAPI, None, None]:
@@ -84,6 +90,7 @@ class DockerFixturesScenario(Scenario):
                 worker_id=worker_id,
                 docker_network=docker_network,
                 container_name=f"ddapm-test-agent-{test_id}",
+                agent_env=agent_env,
                 container_otlp_http_port=container_otlp_http_port,
                 container_otlp_grpc_port=container_otlp_grpc_port,
             ) as result,

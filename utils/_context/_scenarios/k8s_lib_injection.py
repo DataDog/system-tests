@@ -358,11 +358,7 @@ class WeblogInjectionScenario(Scenario):
 
     def close_targets(self):
         for container in reversed(self._required_containers):
-            try:
-                container.remove()
-                logger.info(f"Removing container {container}")
-            except:
-                logger.exception(f"Failed to remove container {container}")
+            container.remove()
 
     @property
     def library(self):
