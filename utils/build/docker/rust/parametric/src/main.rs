@@ -1,4 +1,5 @@
 use ::opentelemetry::global::{self, BoxedTracer};
+use ::opentelemetry::metrics::{Meter, MeterProvider};
 use anyhow::{Context, Result};
 use axum::{
     body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
@@ -6,7 +7,7 @@ use axum::{
 };
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
-use opentelemetry_sdk::trace::SdkTracerProvider;
+use opentelemetry_sdk::{metrics::SdkMeterProvider, trace::SdkTracerProvider};
 use serde::Deserialize;
 use serde_json::json;
 use std::{
@@ -37,12 +38,22 @@ pub(crate) fn get_tracer() -> &'static BoxedTracer {
     TRACER.get_or_init(|| global::tracer("ddtrace-rust-client"))
 }
 
+pub(crate) fn get_meter_provider() -> &'static dyn MeterProvider {
+    static METER_PROVIDER: OnceLock<SdkMeterProvider> = OnceLock::new();
+    METER_PROVIDER.get_or_init(|| {
+        init_metrics().expect("Failed to initialize metrics")
+    })
+}
+
 #[derive(Clone)]
 struct AppState {
     contexts: Arc<Mutex<HashMap<u64, Arc<ContextWithParent>>>>,
     current_context: Arc<Mutex<Arc<ContextWithParent>>>,
     extracted_span_contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
     tracer_provider: SdkTracerProvider,
+    meter_provider: Option<SdkMeterProvider>,
+    otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
+    otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
 }
 
 #[derive(Default, Clone)]
@@ -102,6 +113,15 @@ fn init_tracing() -> Result<SdkTracerProvider> {
         .init())
 }
 
+fn init_metrics() -> Result<SdkMeterProvider> {
+    let mut builder = datadog_opentelemetry::configuration::Config::builder();
+    builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
+    datadog_opentelemetry::metrics()
+        .with_config(builder.build())
+        .init()
+        .map_err(|e| anyhow::anyhow!("Failed to initialize metrics: {}", e))
+}
+
 fn log_error(error: &impl Display) {
     let now = OffsetDateTime::now_utc().format(&Rfc3339).unwrap();
     let error = serde_json::to_string(&json!({
@@ -133,16 +153,22 @@ pub async fn serve(config: Config, tracer_provider: SdkTracerProvider) -> Result
 
     let current_context = Arc::new(Mutex::new(Arc::new(ContextWithParent::default())));
 
+    // Initialize metrics
+    let meter_provider = init_metrics().ok();
+
     let state = AppState {
         contexts: Arc::new(Mutex::new(HashMap::new())),
         extracted_span_contexts: Arc::new(Mutex::new(HashMap::new())),
         tracer_provider,
         current_context,
+        meter_provider,
+        otel_meters: Arc::new(Mutex::new(HashMap::new())),
+        otel_meter_instruments: Arc::new(Mutex::new(HashMap::new())),
     };
 
     let app = Router::new()
         .nest("/trace", datadog::app())
-        .nest("/trace/otel", opentelemetry::app())
+        .merge(opentelemetry::app())
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(|err: BoxError| async move {
