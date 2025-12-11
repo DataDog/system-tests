@@ -1,5 +1,5 @@
 use ::opentelemetry::global::{self, BoxedTracer};
-use ::opentelemetry::metrics::{Meter, MeterProvider};
+use ::opentelemetry::metrics::Meter;
 use anyhow::{Context, Result};
 use axum::{
     body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
@@ -38,20 +38,13 @@ pub(crate) fn get_tracer() -> &'static BoxedTracer {
     TRACER.get_or_init(|| global::tracer("ddtrace-rust-client"))
 }
 
-pub(crate) fn get_meter_provider() -> &'static dyn MeterProvider {
-    static METER_PROVIDER: OnceLock<SdkMeterProvider> = OnceLock::new();
-    METER_PROVIDER.get_or_init(|| {
-        init_metrics().expect("Failed to initialize metrics")
-    })
-}
-
 #[derive(Clone)]
 struct AppState {
     contexts: Arc<Mutex<HashMap<u64, Arc<ContextWithParent>>>>,
     current_context: Arc<Mutex<Arc<ContextWithParent>>>,
     extracted_span_contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
     tracer_provider: SdkTracerProvider,
-    meter_provider: Option<SdkMeterProvider>,
+    meter_provider: Arc<Mutex<Option<SdkMeterProvider>>>,
     otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
     otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
 }
@@ -114,10 +107,7 @@ fn init_tracing() -> Result<SdkTracerProvider> {
 }
 
 fn init_metrics() -> Result<SdkMeterProvider> {
-    let mut builder = datadog_opentelemetry::configuration::Config::builder();
-    builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
     datadog_opentelemetry::metrics()
-        .with_config(builder.build())
         .init()
         .map_err(|e| anyhow::anyhow!("Failed to initialize metrics: {}", e))
 }
@@ -153,15 +143,23 @@ pub async fn serve(config: Config, tracer_provider: SdkTracerProvider) -> Result
 
     let current_context = Arc::new(Mutex::new(Arc::new(ContextWithParent::default())));
 
-    // Initialize metrics
-    let meter_provider = init_metrics().ok();
+    let meter_provider = match init_metrics() {
+        Ok(mp) => {
+            info!("Metrics provider initialized successfully");
+            Some(mp)
+        }
+        Err(e) => {
+            info!("Metrics provider initialization failed (may be disabled): {}", e);
+            None
+        }
+    };
 
     let state = AppState {
         contexts: Arc::new(Mutex::new(HashMap::new())),
         extracted_span_contexts: Arc::new(Mutex::new(HashMap::new())),
         tracer_provider,
         current_context,
-        meter_provider,
+        meter_provider: Arc::new(Mutex::new(meter_provider)),
         otel_meters: Arc::new(Mutex::new(HashMap::new())),
         otel_meter_instruments: Arc::new(Mutex::new(HashMap::new())),
     };

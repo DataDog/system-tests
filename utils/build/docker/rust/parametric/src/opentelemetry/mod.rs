@@ -8,14 +8,14 @@ use axum::{
     Json, Router,
 };
 use opentelemetry::{
-    metrics::{Counter, Gauge, Histogram, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
+    metrics::{Counter, Gauge, Histogram, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
     trace::{Link, Span, TraceContextExt, Tracer},
     Context, KeyValue,
 };
 
 use tracing::debug;
 
-use crate::{get_meter_provider, get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
+use crate::{get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
 
 pub enum MeterInstrument {
     Counter(Counter<u64>),
@@ -395,10 +395,11 @@ async fn otel_get_meter(
 ) -> Json<OtelGetMeterReturn> {
     let mut meters = state.otel_meters.lock().unwrap();
     if !meters.contains_key(&args.name) {
-        let meter_provider = get_meter_provider();
-        let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
-        let meter = meter_provider.meter(name_static);
-        meters.insert(args.name.clone(), meter);
+        if let Some(meter_provider) = state.meter_provider.lock().unwrap().as_ref() {
+            let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
+            let meter = meter_provider.meter(name_static);
+            meters.insert(args.name.clone(), meter);
+        }
     }
     Json(OtelGetMeterReturn {})
 }
@@ -755,11 +756,11 @@ async fn otel_metrics_force_flush(
     State(state): State<AppState>,
     Json(_args): Json<OtelMetricsForceFlushArgs>,
 ) -> Json<OtelMetricsForceFlushReturn> {
-    let result = if let Some(meter_provider) = &state.meter_provider {
+    let meter_provider_guard = state.meter_provider.lock().unwrap();
+    let result = if let Some(meter_provider) = meter_provider_guard.as_ref() {
         meter_provider.force_flush().is_ok()
     } else {
         false
     };
-
     Json(OtelMetricsForceFlushReturn { success: result })
 }

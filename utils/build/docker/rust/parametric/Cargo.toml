@@ -33,5 +33,7 @@ opentelemetry_sdk       = { version = "0.31.0" }
 opentelemetry-http      = { version = "0.31.0" }
 opentelemetry-stdout    = { version = "0.31.0", features = ["trace", "logs"] }
 opentelemetry-semantic-conventions = { version = "0.31.0" }
+datadog-opentelemetry = { version = "0.2.0", path = "../../../../../binaries/dd-trace-rs/datadog-opentelemetry" }
 
-datadog-opentelemetry  = { git = "https://github.com/Datadog/dd-trace-rs", branch = "munir/otel-metrics-vibe-coding" }
+
+# datadog-opentelemetry  = { git = "https://github.com/Datadog/dd-trace-rs", rev = "main" }
