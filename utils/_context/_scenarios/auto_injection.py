@@ -131,11 +131,17 @@ class _VirtualMachineScenario(Scenario):
         for key in self.virtual_machine.tested_components:
             if key in ("host", "runtime_version"):
                 continue
-            self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
+            try:
+                self.components[key] = ComponentVersion(
+                    key.removeprefix("datadog-apm-library-"),
+                    self.virtual_machine.tested_components[key].lstrip(" ").replace(",", ""),
+                ).version
+            except ValueError:
+                self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = ComponentVersion(self._library.name, self.components[key])
+                self._library = ComponentVersion(self._library.name, str(self.components[key]))
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
                 del self.components[key]
