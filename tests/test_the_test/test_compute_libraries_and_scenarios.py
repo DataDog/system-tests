@@ -257,16 +257,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_wrong_library_tag_with_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
-            'scenarios_groups=""',
-        ]
+        with pytest.raises(ValueError):
+            _ = process(inputs)
 
     def test_lambda_proxy(self):
         inputs = build_inputs(["utils/build/docker/lambda_proxy/pyproject.toml"])
