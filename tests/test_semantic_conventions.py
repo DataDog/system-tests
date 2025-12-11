@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features, scenarios
+from utils import context, interfaces, features, scenarios
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -162,9 +162,6 @@ optional_uds_feature = (
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
-    @bug(library="cpp_nginx", reason="APMAPI-924")
-    @bug(library="cpp_httpd", reason="APMAPI-924")
-    @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -182,10 +179,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
-    @bug(library="ruby", reason="APMAPI-922")
-    @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
-    @bug(context.library < "php@0.68.2", reason="APMRP-360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -205,7 +198,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
@@ -224,7 +216,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
@@ -259,11 +250,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @bug(library="php", reason="APMAPI-923")
-    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
-    @bug(context.library < "java@1.1.0", reason="APMRP-360")
-    @bug(library="dotnet", reason="AIT-8735")
-    @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
@@ -277,16 +263,14 @@ class Test_Meta:
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
             actual_language = span["meta"]["language"]
-            assert (
-                actual_language == expected_language
-            ), f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
+            assert actual_language == expected_language, (
+                f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
+            )
 
         interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="APMAPI-920")
-    @bug(context.library >= "nodejs@4.44.0", reason="APMAPI-921")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -296,13 +280,13 @@ class Test_Meta:
 
             expected_component = get_component_name(span["name"])
 
-            assert "component" in span.get(
-                "meta", {}
-            ), f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
+            assert "component" in span.get("meta", {}), (
+                f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
+            )
             actual_component = span["meta"]["component"]
 
             if isinstance(expected_component, list):
-                exception_message = f"""Expected span {span['name']} to have component meta tag equal
+                exception_message = f"""Expected span {span["name"]} to have component meta tag equal
                  to one of the following, [{expected_component}], got: {actual_component}."""
 
                 assert actual_component in expected_component, exception_message
@@ -334,12 +318,12 @@ class Test_MetaDatadogTags:
 
     def test_meta_dd_tags(self):
         def validator(span: dict):
-            assert (
-                span["meta"]["key1"] == "val1"
-            ), f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
-            assert (
-                span["meta"]["key2"] == "val2"
-            ), f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
+            assert span["meta"]["key1"] == "val1", (
+                f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
+            )
+            assert span["meta"]["key2"] == "val2", (
+                f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
+            )
 
             return True
 

@@ -7,7 +7,7 @@ import uuid
 
 import pytest
 
-from .conftest import StableConfigWriter, _TestAgentAPI
+from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
 from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger, bug
@@ -15,22 +15,25 @@ from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
 
-telemetry_name_mapping = {
+telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
     "ssi_injection_enabled": {
         "python": "DD_INJECTION_ENABLED",
         "java": "injection_enabled",
         "ruby": "DD_INJECTION_ENABLED",
+        "golang": ["DD_INJECTION_ENABLED", "injection_enabled"],
     },
     "ssi_forced_injection_enabled": {
         "python": "DD_INJECT_FORCE",
         "ruby": "DD_INJECT_FORCE",
         "java": "inject_force",
+        "golang": ["DD_INJECT_FORCE", "inject_force"],
     },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
         "python": "DD_TRACE_SAMPLE_RATE",
         "ruby": "DD_TRACE_SAMPLE_RATE",
+        "golang": ["DD_TRACE_SAMPLE_RATE", "trace_sample_rate"],
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
@@ -38,41 +41,48 @@ telemetry_name_mapping = {
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
         "ruby": "tracing.log_injection",
+        "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
         "nodejs": "DD_TRACE_HEADER_TAGS",
         "python": "DD_TRACE_HEADER_TAGS",
+        "golang": ["DD_TRACE_HEADER_TAGS", "trace_header_tags"],
     },
-    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS"},
+    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS", "golang": ["DD_TAGS", "trace_tags"]},
     "trace_enabled": {
         "dotnet": "DD_TRACE_ENABLED",
         "nodejs": "tracing",
         "python": "DD_TRACE_ENABLED",
         "ruby": "tracing.enabled",
+        "golang": ["DD_TRACE_ENABLED", "trace_enabled"],
     },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
         "nodejs": "profiling.enabled",
         "python": "DD_PROFILING_ENABLED",
         "ruby": "profiling.enabled",
+        "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
     },
     "appsec_enabled": {
         "dotnet": "DD_APPSEC_ENABLED",
         "nodejs": "appsec.enabled",
         "python": "DD_APPSEC_ENABLED",
         "ruby": "appsec.enabled",
+        "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
     },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
         "python": "DD_DATA_STREAMS_ENABLED",
+        "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
     },
     "runtime_metrics_enabled": {
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
         "ruby": "runtime_metrics_enabled",
+        "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
     },
     "dynamic_instrumentation_enabled": {
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
@@ -80,32 +90,39 @@ telemetry_name_mapping = {
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "dynamic_instrumentation.enabled",
         "ruby": "dynamic_instrumentation.enabled",
+        "golang": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamic_instrumentation_enabled"],
     },
     "trace_debug_enabled": {
         "php": "trace.debug",
         "java": "trace_debug",
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
+        "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
     },
     "tags": {
         "java": "trace_tags",
         "dotnet": "DD_TAGS",
         "python": "DD_TAGS",
         "nodejs": "DD_TAGS",
+        "golang": ["DD_TAGS", "trace_tags"],
     },
     "trace_propagation_style": {
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
         "php": "trace.propagation_style",
+        "golang": ["DD_TRACE_PROPAGATION_STYLE", "trace.propagation_style"],
     },
 }
 
 
-def _mapped_telemetry_name(apm_telemetry_name: str):
+def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
     if apm_telemetry_name in telemetry_name_mapping:
-        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.name)
+        lang_mapping = telemetry_name_mapping[apm_telemetry_name]
+        mapped_name = lang_mapping.get(context.library.name)
         if mapped_name is not None:
-            return mapped_name
-    return apm_telemetry_name
+            if isinstance(mapped_name, list):
+                return mapped_name
+            return [mapped_name]
+    return [apm_telemetry_name]
 
 
 def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict | None:
@@ -146,24 +163,24 @@ def _check_propagation_style_with_inject_and_extract(
 
     # Check inject key
     inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, inject_key, expected_origin)
-    assert (
-        inject_item is not None
-    ), f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert inject_item is not None, (
+        f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    )
     assert isinstance(inject_item, dict)
-    assert (
-        inject_item["origin"] == expected_origin
-    ), f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
+    assert inject_item["origin"] == expected_origin, (
+        f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
+    )
     assert inject_item["value"], f"Expected non-empty value for '{inject_key}'"
 
     # Check extract key
     extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, extract_key, expected_origin)
-    assert (
-        extract_item is not None
-    ), f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert extract_item is not None, (
+        f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    )
     assert isinstance(extract_item, dict)
-    assert (
-        extract_item["origin"] == expected_origin
-    ), f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
+    assert extract_item["origin"] == expected_origin, (
+        f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
+    )
     assert extract_item["value"], f"Expected non-empty value for '{extract_key}'"
 
 
@@ -221,22 +238,24 @@ class Test_Defaults:
             if context.library == "python" and apm_telemetry_name in ("trace_sample_rate",):
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
                 continue
-            mapped_apm_telemetry_name = _mapped_telemetry_name(apm_telemetry_name)
+            mapped_apm_telemetry_names = _mapped_telemetry_name(apm_telemetry_name)
 
-            cfg_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, mapped_apm_telemetry_name, "default"
+            cfg_item = None
+            matched_name = None
+            for mapped_name in mapped_apm_telemetry_names:
+                cfg_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, mapped_name, "default")
+                if cfg_item is not None:
+                    matched_name = mapped_name
+                    break
+            assert cfg_item is not None, (
+                f"No configuration found for any of {' or '.join(mapped_apm_telemetry_names)} with origin 'default'"
             )
-            assert (
-                cfg_item is not None
-            ), f"No configuration found for '{mapped_apm_telemetry_name}' with origin 'default'"
             assert isinstance(cfg_item, dict)
             if isinstance(value, tuple):
-                assert (
-                    cfg_item.get("value") in value
-                ), f"Unexpected value for '{mapped_apm_telemetry_name}' ('{context.library}')"
+                assert cfg_item.get("value") in value, f"Unexpected value for '{matched_name}' ('{context.library}')"
             else:
-                assert cfg_item.get("value") == value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
-            assert cfg_item.get("origin") == "default", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
+                assert cfg_item.get("value") == value, f"Unexpected value for '{matched_name}'"
+            assert cfg_item.get("origin") == "default", f"Unexpected origin for '{matched_name}'"
 
 
 @scenarios.parametric
@@ -434,17 +453,23 @@ class Test_Environment:
                 # DD_TRACE_SAMPLE_RATE is not supported in ddtrace>=3.x
                 continue
 
-            mapped_apm_telemetry_name = _mapped_telemetry_name(apm_telemetry_name)
-            cfg_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, mapped_apm_telemetry_name, "env_var"
+            mapped_apm_telemetry_names = _mapped_telemetry_name(apm_telemetry_name)
+            cfg_item = None
+            matched_name = None
+            for mapped_name in mapped_apm_telemetry_names:
+                cfg_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, mapped_name, "env_var")
+                if cfg_item is not None:
+                    matched_name = mapped_name
+                    break
+            assert cfg_item is not None, (
+                f"Missing telemetry config item for any of {' or '.join(mapped_apm_telemetry_names)}"
             )
-            assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             assert isinstance(cfg_item, dict)
             if isinstance(environment_value, tuple):
-                assert cfg_item.get("value") in environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
+                assert cfg_item.get("value") in environment_value, f"Unexpected value for '{matched_name}'"
             else:
-                assert cfg_item.get("value") == environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
-            assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
+                assert cfg_item.get("value") == environment_value, f"Unexpected value for '{matched_name}'"
+            assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{matched_name}'"
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
@@ -690,13 +715,17 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # The Go tracer does not support logs injection.
             if context.library == "golang" and cfg_name == "logs_injection_enabled":
                 continue
-            apm_telemetry_name = _mapped_telemetry_name(cfg_name)
-            telemetry_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, apm_telemetry_name, expected_origin
+            apm_telemetry_names = _mapped_telemetry_name(cfg_name)
+            telemetry_item = None
+            for apm_name in apm_telemetry_names:
+                telemetry_item = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, apm_name, expected_origin
+                )
+                if telemetry_item is not None:
+                    break
+            assert telemetry_item is not None, (
+                f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'"
             )
-            assert (
-                telemetry_item is not None
-            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'"
             assert isinstance(telemetry_item, dict)
             assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
@@ -719,6 +748,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
+    # This is the specific test that's currently failing, but any test that calls _mapped_telemetry_name for debug mode, for golang, would fail.
     def test_stable_configuration_config_id(
         self,
         local_cfg: dict[str, bool],
@@ -750,25 +780,33 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # Configuration set via fleet config should have the config_id set
-        apm_telemetry_name = _mapped_telemetry_name("trace_debug_enabled")
-        telemetry_item = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, apm_telemetry_name, "fleet_stable_config"
+        apm_telemetry_names = _mapped_telemetry_name("trace_debug_enabled")
+        telemetry_item = None
+        for apm_name in apm_telemetry_names:
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_name, "fleet_stable_config"
+            )
+            if telemetry_item is not None:
+                break
+        assert telemetry_item is not None, (
+            f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin 'fleet_stable_config'"
         )
-        assert (
-            telemetry_item is not None
-        ), f"No configuration found for '{apm_telemetry_name}' with origin 'fleet_stable_config'"
         assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
 
         # Configuration set via local config should not have the config_id set
-        apm_telemetry_name = _mapped_telemetry_name("dynamic_instrumentation_enabled")
-        telemetry_item = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, apm_telemetry_name, "local_stable_config"
+        apm_telemetry_names = _mapped_telemetry_name("dynamic_instrumentation_enabled")
+        telemetry_item = None
+        for apm_name in apm_telemetry_names:
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_name, "local_stable_config"
+            )
+            if telemetry_item is not None:
+                break
+        assert telemetry_item is not None, (
+            f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin 'local_stable_config'"
         )
-        assert (
-            telemetry_item is not None
-        ), f"No configuration found for '{apm_telemetry_name}' with origin 'local_stable_config'"
         assert isinstance(telemetry_item, dict)
         assert telemetry_item["origin"] == "local_stable_config"
         assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
@@ -837,20 +875,24 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
-            apm_telemetry_name = _mapped_telemetry_name(cfg_name)
-            telemetry_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, apm_telemetry_name, expected_origin
+            apm_telemetry_names = _mapped_telemetry_name(cfg_name)
+            telemetry_item = None
+            for apm_name in apm_telemetry_names:
+                telemetry_item = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, apm_name, expected_origin
+                )
+                if telemetry_item is not None:
+                    break
+            assert telemetry_item is not None, (
+                f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
             )
-            assert (
-                telemetry_item is not None
-            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
 
             assert isinstance(telemetry_item, dict)
             actual_origin = telemetry_item.get("origin", "<missing>")
             assert isinstance(telemetry_item, dict)
-            assert (
-                telemetry_item["origin"] == expected_origin
-            ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+            assert telemetry_item["origin"] == expected_origin, (
+                f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+            )
             assert telemetry_item["value"]
 
     @pytest.mark.parametrize(
@@ -924,18 +966,22 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             elif cfg_name == "tags" and context.library.name in ["ruby"]:
                 continue
             else:
-                apm_telemetry_name = _mapped_telemetry_name(cfg_name)
-                telemetry_item = test_agent.get_telemetry_config_by_origin(
-                    configuration_by_name, apm_telemetry_name, expected_origin
+                apm_telemetry_names = _mapped_telemetry_name(cfg_name)
+                telemetry_item = None
+                for apm_name in apm_telemetry_names:
+                    telemetry_item = test_agent.get_telemetry_config_by_origin(
+                        configuration_by_name, apm_name, expected_origin
+                    )
+                    if telemetry_item is not None:
+                        break
+                assert telemetry_item is not None, (
+                    f"No configuration found for any of {' or '.join(apm_telemetry_names)} with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
                 )
-                assert (
-                    telemetry_item is not None
-                ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
                 assert isinstance(telemetry_item, dict)
                 actual_origin = telemetry_item.get("origin", "<missing>")
-                assert (
-                    telemetry_item["origin"] == expected_origin
-                ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+                assert telemetry_item["origin"] == expected_origin, (
+                    f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+                )
                 assert telemetry_item["value"]
 
 
@@ -983,30 +1029,30 @@ class Test_TelemetryInstallSignature:
             body = json.loads(base64.b64decode(req["body"]))
             if body["request_type"] != "app-started":
                 continue
-            assert (
-                "install_signature" in body["payload"]
-            ), f"The install signature should be included in the telemetry event, got {body}"
-            assert (
-                "install_id" in body["payload"]["install_signature"]
-            ), "The install id should be included in the telemetry event, got {}".format(
-                body["payload"]["install_signature"]
+            assert "install_signature" in body["payload"], (
+                f"The install signature should be included in the telemetry event, got {body}"
+            )
+            assert "install_id" in body["payload"]["install_signature"], (
+                "The install id should be included in the telemetry event, got {}".format(
+                    body["payload"]["install_signature"]
+                )
             )
             assert body["payload"]["install_signature"]["install_id"] == library_env["DD_INSTRUMENTATION_INSTALL_ID"]
             assert (
                 body["payload"]["install_signature"]["install_type"] == library_env["DD_INSTRUMENTATION_INSTALL_TYPE"]
             )
-            assert (
-                "install_type" in body["payload"]["install_signature"]
-            ), "The install type should be included in the telemetry event, got {}".format(
-                body["payload"]["install_signature"]
+            assert "install_type" in body["payload"]["install_signature"], (
+                "The install type should be included in the telemetry event, got {}".format(
+                    body["payload"]["install_signature"]
+                )
             )
             assert (
                 body["payload"]["install_signature"]["install_time"] == library_env["DD_INSTRUMENTATION_INSTALL_TIME"]
             )
-            assert (
-                "install_time" in body["payload"]["install_signature"]
-            ), "The install time should be included in the telemetry event, got {}".format(
-                body["payload"]["install_signature"]
+            assert "install_time" in body["payload"]["install_signature"], (
+                "The install time should be included in the telemetry event, got {}".format(
+                    body["payload"]["install_signature"]
+                )
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -1027,9 +1073,9 @@ class Test_TelemetryInstallSignature:
         for req in requests:
             body = json.loads(base64.b64decode(req["body"]))
             if "payload" in body:
-                assert (
-                    "install_signature" not in body["payload"]
-                ), f"The install signature should not be included in the telemetry event, got {body}"
+                assert "install_signature" not in body["payload"], (
+                    f"The install signature should not be included in the telemetry event, got {body}"
+                )
 
 
 @scenarios.parametric
@@ -1074,11 +1120,17 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
-        ssi_enabled_telemetry_name = _mapped_telemetry_name("ssi_injection_enabled")
-        inject_enabled = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, ssi_enabled_telemetry_name, "env_var", fallback_to_first=(expected_value is None)
+        ssi_enabled_telemetry_names = _mapped_telemetry_name("ssi_injection_enabled")
+        inject_enabled = None
+        for ssi_name in ssi_enabled_telemetry_names:
+            inject_enabled = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, ssi_name, "env_var", fallback_to_first=(expected_value is None)
+            )
+            if inject_enabled is not None:
+                break
+        assert inject_enabled is not None, (
+            f"No configuration found for any of {' or '.join(ssi_enabled_telemetry_names)}"
         )
-        assert inject_enabled is not None, f"No configuration found for '{ssi_enabled_telemetry_name}'"
         assert isinstance(inject_enabled, dict)
         assert inject_enabled.get("value") == expected_value
         if expected_value is not None:
@@ -1117,11 +1169,17 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         # # Check that the tags name match the expected value
-        inject_force_telemetry_name = _mapped_telemetry_name("ssi_forced_injection_enabled")
-        inject_force = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, inject_force_telemetry_name, "env_var", fallback_to_first=(expected_value == "none")
+        inject_force_telemetry_names = _mapped_telemetry_name("ssi_forced_injection_enabled")
+        inject_force = None
+        for inject_force_name in inject_force_telemetry_names:
+            inject_force = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, inject_force_name, "env_var", fallback_to_first=(expected_value == "none")
+            )
+            if inject_force is not None:
+                break
+        assert inject_force is not None, (
+            f"No configuration found for any of {' or '.join(inject_force_telemetry_names)}"
         )
-        assert inject_force is not None, f"No configuration found for '{inject_force_telemetry_name}'"
         assert isinstance(inject_force, dict)
         assert str(inject_force.get("value")).lower() == expected_value
         assert inject_force.get("origin") == "env_var"
@@ -1137,14 +1195,18 @@ class Test_TelemetrySSIConfigs:
         test_agent.wait_for_telemetry_configurations()
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         # Check that the tags name match the expected value
-        instrumentation_source_telemetry_name = _mapped_telemetry_name("instrumentation_source")
+        instrumentation_source_telemetry_names = _mapped_telemetry_name("instrumentation_source")
         # Take any configuration (origin doesn't matter for this test)
-        instrumentation_source = test_agent.get_telemetry_config_by_origin(
-            configuration_by_name, instrumentation_source_telemetry_name, "default", fallback_to_first=True
+        instrumentation_source = None
+        for instrumentation_source_name in instrumentation_source_telemetry_names:
+            instrumentation_source = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, instrumentation_source_name, "default", fallback_to_first=True
+            )
+            if instrumentation_source is not None:
+                break
+        assert instrumentation_source is not None, (
+            f"No configuration found for any of {' or '.join(instrumentation_source_telemetry_names)}"
         )
-        assert (
-            instrumentation_source is not None
-        ), f"No configuration found for '{instrumentation_source_telemetry_name}'"
         assert isinstance(instrumentation_source, dict)
         value: str | None = instrumentation_source.get("value")
         assert value is not None
@@ -1166,7 +1228,7 @@ class Test_TelemetrySCAEnvVar:
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     def test_telemetry_sca_enabled_propagated(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
         self._assert_telemetry_sca_enabled_propagated(
             library_env,
@@ -1187,7 +1249,7 @@ class Test_TelemetrySCAEnvVar:
     @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     @irrelevant(context.library not in ("python", "golang"))
     def test_telemetry_sca_enabled_propagated_specifics(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
         self._assert_telemetry_sca_enabled_propagated(
             library_env,
@@ -1197,13 +1259,13 @@ class Test_TelemetrySCAEnvVar:
         )
 
     def _assert_telemetry_sca_enabled_propagated(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         logger.info(f"""Check that:
-    * the env var DD_APPSEC_SCA_ENABLED={library_env['DD_APPSEC_SCA_ENABLED']}
+    * the env var DD_APPSEC_SCA_ENABLED={library_env["DD_APPSEC_SCA_ENABLED"]}
     * is reported in telemetry configuration {dd_appsec_sca_enabled} as value={outcome_value}""")
 
         assert configuration_by_name is not None, "Missing telemetry configuration"

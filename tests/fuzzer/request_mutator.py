@@ -72,7 +72,7 @@ def _mutate_list(item: list):
     return item
 
 
-def _mutate_item(item: float | str | list | dict | bool):
+def _mutate_item(item: float | str | list | dict | bool):  # noqa: FBT001
     if isinstance(item, (int, float)):
         item = _random_number()
 
@@ -95,7 +95,7 @@ def _mutate_item(item: float | str | list | dict | bool):
     return item
 
 
-def _reduce_item(item: list | dict | str | float | bool):
+def _reduce_item(item: list | dict | str | float | bool):  # noqa: FBT001
     if isinstance(item, (str, float, int, bool)) or len(item) == 0:
         pass
 

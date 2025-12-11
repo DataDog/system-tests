@@ -39,7 +39,7 @@ runs:
 
     - name: clean-up
       shell: bash
-      if: inputs.library == 'php'  # PHP use heavy images
+      if: inputs.library == 'php' || inputs.library == 'ruby' || inputs.library == 'golang' || inputs.library == 'python'  || inputs.library == 'nodejs' # PHP/ruby/golang/nodejs/python use heavy images
       run: sudo rm -rf /usr/local/lib/android
 
 #retry

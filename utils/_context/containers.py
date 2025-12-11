@@ -19,6 +19,13 @@ import requests
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
+from utils.proxy.mocked_response import (
+    RemoveMetaStructsSupport,
+    MockedResponse,
+    SetSpanEventFlags,
+    AddRemoteConfigEndpoint,
+    StaticJsonMockedResponse,
+)
 from utils._logger import logger
 from utils._weblog import weblog
 from utils import interfaces
@@ -427,11 +434,11 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except APIError as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-                logger.info(f"Fail to remove container {self.name}")
+                logger.info(f"Fail to remove container {self.name} ({e})")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -541,8 +548,6 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    command_host_port = 11111  # Which port exposed to host to sent proxy commands
-
     def __init__(
         self,
         *,
@@ -568,29 +573,44 @@ class ProxyContainer(TestedContainer):
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
-                "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
-                "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
-                "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
-            working_dir="/app",
+            working_dir="/app/utils",
             volumes={
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
-            command="python utils/proxy/core.py",
+            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
+            command="python -m proxy.core",
             healthcheck={
                 "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
                 "retries": 30,
             },
         )
 
+        self.internal_mocked_responses: list[MockedResponse] = [SetSpanEventFlags(span_events=span_events)]
+
+        if meta_structs_disabled:
+            self.internal_mocked_responses.append(RemoveMetaStructsSupport())
+
+        if rc_api_enabled:
+            # add the remote config endpoint on available agent endpoints
+            self.internal_mocked_responses.append(AddRemoteConfigEndpoint())
+            # mimic the default response from the agent
+            self.internal_mocked_responses.append(StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}))
+
         self.mocked_backend = mocked_backend
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        mocked_responses_path = f"{self.log_folder_path}/internal_mocked_responses.json"
+
+        with Path(mocked_responses_path).open(encoding="utf-8", mode="w") as f:
+            json.dump([resp.to_json() for resp in self.internal_mocked_responses], f, indent=2)
+
         self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
+        self.volumes[mocked_responses_path] = {"bind": "/app/logs/internal_mocked_responses.json", "mode": "ro"}
 
 
 class LambdaProxyContainer(TestedContainer):
@@ -623,7 +643,7 @@ class LambdaProxyContainer(TestedContainer):
     def post_start(self):
         super().post_start()
 
-        logger.stdout(f"Proxied event type: {self.environment.get("LAMBDA_EVENT_TYPE")}")
+        logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
 class AgentContainer(TestedContainer):
@@ -940,7 +960,7 @@ class WeblogContainer(TestedContainer):
             self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
-            header_tags += f',{",".join(self.additional_trace_header_tags)}'
+            header_tags += f",{','.join(self.additional_trace_header_tags)}"
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
 
@@ -984,6 +1004,18 @@ class WeblogContainer(TestedContainer):
 
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
+
+    def warmup_request(self, timeout: int = 10):
+        weblog.get("/", timeout=timeout)
+
+    def flush(self) -> None:
+        # for weblogs who supports it, call the flush endpoint
+        try:
+            r = weblog.get("/flush", timeout=10)
+            assert r.status_code == HTTPStatus.OK
+        except Exception as e:
+            self.healthy = False
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log ({e})")
 
     def set_weblog_domain_for_ipv6(self, network: Network):
         if sys.platform == "linux":
@@ -1045,13 +1077,14 @@ class LambdaWeblogContainer(WeblogContainer):
         *,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
+        trace_managed_services: bool = False,
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
             "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
-            "DD_TRACE_MANAGED_SERVICES": "false",
+            "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 
         volumes = volumes or {}
@@ -1288,7 +1321,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         super().__init__(
             name="collector",
-            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            image_name="otel/opentelemetry-collector-contrib:0.137.0",
             binary_file_name="otel_collector-image",
             command="--config=/etc/otelcol-config.yml",
             environment=environment,

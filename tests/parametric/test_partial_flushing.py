@@ -1,5 +1,5 @@
 import pytest
-from utils.parametric.spec.trace import find_span, find_trace
+from utils.docker_fixtures.spec.trace import find_span, find_trace
 from utils import missing_feature, features, context, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -65,6 +65,7 @@ class Test_Partial_Flushing:
             # verify the partially flushed chunk has proper "trace level" tags
             assert child_span["metrics"]["_sampling_priority_v1"] == 1.0
             assert len(child_span["meta"]["_dd.p.tid"]) > 0
+            assert len(child_span["meta"]["_dd.p.dm"]) > 0
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         full_trace = find_trace(traces, parent_span.trace_id)
