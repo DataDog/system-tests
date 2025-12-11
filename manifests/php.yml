@@ -566,6 +566,12 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingDeterminism: v1.7.2  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingRates: v1.7.2  # real version unknown
   tests/test_scrubbing.py::Test_UrlQuery: v0.76.0
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag: bug (APMAPI-920)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url:
+    - component_version: <0.68.2
+      declaration: bug (APMRP-360)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_language_tag: bug (APMAPI-923)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind: bug (APMAPI-924)
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v0.83.1
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0

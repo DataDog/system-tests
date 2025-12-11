@@ -864,6 +864,9 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates: v1.36.2
   tests/test_scrubbing.py::Test_UrlQuery: v1.40.0
   tests/test_semantic_conventions.py::Test_Meta: v1.45.0
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url:
+    - component_version: <1.69.0-dev
+      declaration: bug (APMRP-360)
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:
         "*": irrelevant
