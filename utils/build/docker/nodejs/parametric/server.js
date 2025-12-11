@@ -702,8 +702,8 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
 
 app.post('/metrics/otel/force_flush', (req, res) => {
   const meterProvider = metrics.getMeterProvider();
-  if (meterProvider.forceFlush) {
-    meterProvider.forceFlush()
+  if (meterProvider.reader) {
+    meterProvider.reader.forceFlush()
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Force flush not supported' });

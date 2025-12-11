@@ -114,7 +114,6 @@
     $data = @{
         host                    = (hostname).Trim()
         agent                   = (ls 'C:\ProgramData\Datadog\Installer\packages\datadog-agent' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
-        "datadog-apm-inject"    = "N/A (Windows IIS)"
         "datadog-apm-library-dotnet" = (ls 'C:\ProgramData\Datadog\Installer\packages\datadog-apm-library-dotnet' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
         docker                  = "N/A (Windows)"
         "datadog-installer"     = (& 'C:\Program Files\Datadog\Datadog Agent\bin\datadog-installer.exe' version).Trim()
