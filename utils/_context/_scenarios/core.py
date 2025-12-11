@@ -112,7 +112,7 @@ class Scenario:
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
         # key value pair of what is actually tested
-        self.components: dict[str, Version] = {}
+        self.components: dict[str, Version | str] = {}
 
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True

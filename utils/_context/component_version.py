@@ -51,14 +51,6 @@ class Version(version_module.Version):
         return super().__hash__()
 
 
-class NoneVersion(Version):
-    def __str__(self):
-        return "None"
-
-    def __init__(self):
-        super().__init__("0.0.0")
-
-
 class ComponentVersion:
     known_versions: dict[str, set[str]] = defaultdict(set)
     version: Version
@@ -200,8 +192,6 @@ class ComponentVersion:
 
 def _build(version: object) -> Version:
     if isinstance(version, str):
-        if version == "None":
-            return NoneVersion()
         return Version(version)
 
     if isinstance(version, Version):

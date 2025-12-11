@@ -16,7 +16,7 @@ from docker.models.networks import Network
 import pytest
 import requests
 
-from utils._context.component_version import ComponentVersion, NoneVersion, Version
+from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -649,6 +649,7 @@ class LambdaProxyContainer(TestedContainer):
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
+    agent_version: Version
 
     def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
         environment = environment or {}
@@ -686,8 +687,6 @@ class AgentContainer(TestedContainer):
                 "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
             },
         )
-
-        self.agent_version: Version = NoneVersion()
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:

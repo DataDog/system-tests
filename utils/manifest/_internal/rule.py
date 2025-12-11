@@ -1,4 +1,4 @@
-from utils._context.component_version import NoneVersion, Version
+from utils._context.component_version import Version
 from .types import ManifestData, Condition, SkipDeclaration
 
 
@@ -15,11 +15,8 @@ def match_condition(
     tested_component_version = components[component]
 
     assert isinstance(tested_component_version, Version), (
-        f"Version not found for {condition['component']}, got {tested_component_version}"
-    )
-
-    assert not isinstance(tested_component_version, NoneVersion), (
-        f"Version of tested component {component} should be initialized"
+        f"Version not found for {condition['component']},\
+        got {tested_component_version} (type {type(tested_component_version)})"
     )
 
     component_version = condition.get("component_version")
