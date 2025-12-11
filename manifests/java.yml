@@ -2648,6 +2648,10 @@ manifest:
   tests/test_semantic_conventions.py::Test_Meta:
     - weblog_declaration:
         play: irrelevant (top span is akka-http-server)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_language_tag:
+    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
+    - component_version: <1.1.0
+      declaration: bug (APMRP-360)
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v1.3.0
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp:

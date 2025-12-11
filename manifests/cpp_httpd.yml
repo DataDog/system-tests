@@ -83,6 +83,10 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingDeterminism: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingRates: v1.0.0  # real version unknown
   tests/test_scrubbing.py: irrelevant
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_method: missing_feature (For some reason, span type is server i/o web)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_status_code: missing_feature (For some reason, span type is server i/o web)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url: missing_feature (For some reason, span type is server i/o web)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind: bug (APMAPI-924)
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py: irrelevant
   tests/test_telemetry.py::Test_Log_Generation: missing_feature
