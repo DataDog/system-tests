@@ -155,12 +155,23 @@ class K8sClusterProvider:
                     f"--namespace=default",
                     quiet=True,
                 )
+                execute_command(
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson "
+                    f"--namespace=datadog",
+                    quiet=True,
+                )
                 logger.info("Successfully created ECR secret")
 
                 # Patch the default service account to use the secret
                 execute_command(
                     'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\' '
                     "--namespace=default"
+                )
+                execute_command(
+                    'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\' '
+                    "--namespace=datadog"
                 )
                 logger.info("Successfully patched default service account")
             finally:
