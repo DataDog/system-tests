@@ -44,7 +44,12 @@ manifest:
         net-http: v2.1.0-dev  # Using SDK-style
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.60.0
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
+    - weblog_declaration:
+        "*": missing_feature
+        echo: v2.1.0-dev  # Fully transparent
+        gin: v2.1.0-dev  # Using response helper functions
+        net-http: v2.1.0-dev  # Using SDK-style
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
