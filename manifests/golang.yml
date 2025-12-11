@@ -36,8 +36,13 @@ manifest:
         net-http: irrelevant (net-http cannot list path params)
         net-http-orchestrion: irrelevant (net-http cannot list path params)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: v1.60.0
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body: missing_feature
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: v2.0.0
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
+    - weblog_declaration:
+        "*": missing_feature
+        echo: v2.1.0-dev  # Fully transparent
+        gin: v2.1.0-dev  # Using response helper functions
+        net-http: v2.1.0-dev  # Using SDK-style
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.60.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
@@ -159,8 +164,8 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.5.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0

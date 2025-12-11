@@ -39,6 +39,7 @@ class _ScenarioGroups:
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
+    integration_frameworks = ScenarioGroup()
     ipv6 = ScenarioGroup()
     lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
