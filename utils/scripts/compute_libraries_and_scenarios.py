@@ -10,6 +10,7 @@ import sys
 from collections import OrderedDict, defaultdict
 from fnmatch import fnmatch
 from typing import TYPE_CHECKING, Any
+from textwrap import dedent
 
 import yaml
 
@@ -163,13 +164,14 @@ class LibraryProcessor:
             return True
         # user specified a library in the PR title
         # and there are some impacted libraries
-        if file.startswith("tests/") or self.impacted == {self.user_choice}:
-            # modification in tests files are complex, trust user
+        if self.impacted == {self.user_choice}:
             return True
         # only acceptable use case : impacted library exactly matches user choice
         raise ValueError(
-            f"""File {file} is modified, and it may impact {", ".join(self.impacted)}.
-                    Please remove the PR title prefix [{self.user_choice}]"""
+            dedent(f"""\
+            File {file} is modified, and it may impact {", ".join(self.impacted)}.
+            (prefix for test files are no longer supported)
+            Please remove the PR title prefix [{self.user_choice}]""")
         )
 
     def add(self, file: str, param: Param | None) -> None:
