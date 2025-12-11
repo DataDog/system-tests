@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features, scenarios, logger
+from utils import context, interfaces, features, scenarios
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -150,8 +150,6 @@ def get_component_name(span_name: str):
     # if type of component is a dictionary, get the component tag value by searching dict with current span name
     # try to get component name from name of span, otherwise use beginning of span as expected component, e.g: 'rack' for span name 'rack.request'
     if isinstance(expected_component, dict):
-        logger.info(f"RMM expected_component: {expected_component}")
-        logger.info(f"RMM span_name: {span_name}")
         expected_component = expected_component.get(span_name, span_name.split(".")[0])
     return expected_component
 
@@ -172,9 +170,6 @@ optional_uds_feature = (
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
-    @bug(library="cpp_nginx", reason="APMAPI-924")
-    @bug(library="cpp_httpd", reason="APMAPI-924")
-    @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -192,10 +187,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
-    @bug(library="ruby", reason="APMAPI-922")
-    @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
-    @bug(context.library < "php@0.68.2", reason="APMRP-360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -215,7 +206,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
@@ -234,7 +224,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
@@ -269,11 +258,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @bug(library="php", reason="APMAPI-923")
-    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
-    @bug(context.library < "java@1.1.0", reason="APMRP-360")
-    @bug(library="dotnet", reason="AIT-8735")
-    @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
@@ -295,8 +279,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="APMAPI-920")
-    @bug(context.library >= "nodejs@4.44.0", reason="APMAPI-921")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 

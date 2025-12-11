@@ -352,10 +352,10 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: v2.27.0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v3.10.0
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: missing_feature
-  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: missing_feature
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: v3.33.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: v3.33.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v3.33.0
+  tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: v3.33.0
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: v2.30.0
   tests/appsec/waf/test_exclusions.py::Test_Exclusions: v2.26.0
   tests/appsec/waf/test_miscs.py::Test_404: v1.28.6
@@ -579,6 +579,10 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates: v3.11.1  # real version unknown
   tests/test_scrubbing.py::Test_UrlField: v2.29.0
   tests/test_scrubbing.py::Test_UrlQuery: v2.13.0
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_language_tag:
+    - declaration: bug (AIT-8735)
+    - component_version: <2.6.0
+      declaration: missing_feature
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v2.6.0
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.26.0

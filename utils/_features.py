@@ -22,7 +22,6 @@ class _Owner(StrEnum):
     profiler = "@DataDog/profiling"  # it does not exists
     remote_config = "@DataDog/remote-config"
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    serverless = "@DataDog/serverless"
     sdk_capabilities = "@DataDog/apm-sdk-capabilities"
     feature_flag_exposure = "@DataDog/feature-flagging-and-experimentation-sdk"
 
@@ -2077,7 +2076,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
-        return _mark_test_object(test_object, feature_id=328, owner=_Owner.serverless)
+        return _mark_test_object(test_object, feature_id=328, owner=_Owner.apm_serverless)
 
     @staticmethod
     def aws_api_gateway_inferred_span_creation(test_object):
@@ -2694,6 +2693,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=524
         """
         return _mark_test_object(test_object, feature_id=524, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def appsec_api_gateway_inferred_span_discovery(test_object):
+        """Support API Gateway Inferred span discovery and correlation in the App & API Protection  API Catalog
+
+        https://feature-parity.us1.prod.dog/#/?feature=526
+        """
+        return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
 
 
 features = _Features()
