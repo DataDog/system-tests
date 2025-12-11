@@ -1,6 +1,5 @@
 import os
 import pytest
-import yaml
 from pathlib import Path
 
 from utils import interfaces
@@ -94,33 +93,6 @@ class OtelCollectorScenario(DockerScenario):
         # Parse OTel collector configuration file
         config_file_path = Path(self.collector_container.config_file)
         result["configuration"]["config_file"] = config_file_path.name
-
-        try:
-            with open(config_file_path, "r", encoding="utf-8") as f:
-                otel_config = yaml.safe_load(f)
-
-            if "receivers" in otel_config:
-                otel_config_recievers = otel_config["receivers"].keys()
-                result["configuration"]["receivers"] = ", ".join(otel_config_recievers)
-                for receiver in otel_config_recievers:
-                    receiver_file_path = Path(f"utils/build/docker/e2eotel/receivers/{receiver}.yml")
-                    if receiver_file_path.exists():
-                        with (receiver_file_path).open("r") as receiver_file:
-                            receiver_data = yaml.safe_load(receiver_file)
-                            result["configuration"][f"{receiver}_receiver_endpoint"] = receiver_data.get("endpoint")
-                            databases = receiver_data.get("databases", [])
-                            if databases:
-                                result["configuration"][f"{receiver}_receiver_databases"] = ", ".join(databases)
-
-            if "exporters" in otel_config:
-                otel_config_keys = otel_config["exporters"].keys()
-                result["configuration"]["exporters"] = ", ".join(otel_config_keys)
-
-            if "service" in otel_config and "pipelines" in otel_config["service"]:
-                result["configuration"]["pipelines"] = ", ".join(otel_config["service"]["pipelines"].keys())
-
-        except Exception as e:
-            pytest.exit(f"Failed to parse OTel collector config: {e}", 1)
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])
