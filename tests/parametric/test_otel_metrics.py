@@ -102,7 +102,7 @@ def assert_scope_metric(
 ):
     assert scope_metric["scope"]["name"] == meter_name
     assert scope_metric["scope"]["version"] == meter_version
-    
+
     if context.library != "ruby":
         # Ruby Exporter is still in beta, it does not support scope attributes
         assert (
@@ -300,6 +300,7 @@ class Test_Otel_Metrics_Api_MeterProvider:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_get_meter_by_distinct(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
     ):
@@ -371,6 +372,11 @@ class Test_Otel_Metrics_Api_Meter:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(
+        context.library == "ruby",
+        reason="Ruby exporter does not support aggregating multiple measurements",
+        force_skip=True,
+    )
     def test_otel_create_instruments_by_distinct(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
     ):
@@ -913,6 +919,7 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_histogram_add_non_negative_and_negative_values(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -980,6 +987,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_histogram_add_non_negative_values_with_different_tags(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1047,6 +1055,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_asynchronous_counter_constant_callback_value(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1088,6 +1097,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_asynchronous_updowncounter_constant_callback_value(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1129,6 +1139,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_asynchronous_gauge_constant_callback_value(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         n = 42
         name = f"observablegauge-{n}"
@@ -1189,6 +1200,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         ],
         ids=["default", "delta", "cumulative"],
     )
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otel_aggregation_temporality(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1416,6 +1428,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
             ),
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otlp_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
@@ -1487,6 +1500,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
             ),
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
@@ -1517,6 +1531,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented")
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
 
@@ -1683,7 +1698,7 @@ class Test_Otel_Metrics_Host_Name:
     """
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "nodejs"),
+        context.library in ("dotnet", "nodejs", "ruby"),
         reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented",
     )
     @pytest.mark.parametrize(
@@ -1696,6 +1711,7 @@ class Test_Otel_Metrics_Host_Name:
             },
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_hostname_from_dd_hostname(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
     ):
@@ -1945,6 +1961,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_default_configurations(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
     ):
@@ -1993,6 +2010,7 @@ class Test_Otel_Metrics_Telemetry:
             ),
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
@@ -2048,6 +2066,7 @@ class Test_Otel_Metrics_Telemetry:
             ),
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_exporter_metrics_configurations(
         self,
         library_env: dict[str, str],
@@ -2099,6 +2118,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
+    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_metrics_http_protobuf(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -2136,7 +2156,7 @@ class Test_Otel_Metrics_Telemetry:
         context.library == "dotnet",
         reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
     )
-    @missing_feature(context.library == ("nodejs", "ruby"), reason="Does not support grpc", force_skip=True)
+    @missing_feature(context.library in ("nodejs", "ruby"), reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         "library_env",
         [
