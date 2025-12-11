@@ -1655,6 +1655,7 @@ manifest:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": v0.111.0
@@ -2300,6 +2301,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0-SNAPSHOT
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
