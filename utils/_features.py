@@ -2687,5 +2687,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=524, owner=_Owner.ml_observability)
 
+    @staticmethod
+    def appsec_api_gateway_inferred_span_discovery(test_object):
+        """Support API Gateway Inferred span discovery and correlation in the App & API Protection  API Catalog
+
+        https://feature-parity.us1.prod.dog/#/?feature=526
+        """
+        return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
+
 
 features = _Features()
