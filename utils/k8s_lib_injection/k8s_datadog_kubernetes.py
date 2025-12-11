@@ -216,6 +216,12 @@ class K8sDatadog:
         the Datadog Cluster Agent, and Cluster check runners.
         """
         logger.info("[Deploy datadog operator] Configuring helm repository")
+
+        # Ensure namespace exists and copy ECR secret if using private registry
+        self._ensure_namespace_exists(namespace)
+        if PrivateRegistryConfig.is_configured():
+            self._copy_ecr_secret_to_namespace(namespace)
+
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
         helm_install_chart(
             host_log_folder,
@@ -225,11 +231,12 @@ class K8sDatadog:
             value_file=None,
             set_dict={},
             timeout=None,
+            namespace=namespace,
         )
         logger.info("[Deploy datadog operator] the operator is ready")
         logger.info("[Deploy datadog operator] Create the operator secrets")
         execute_command(
-            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace=default"
+            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace={namespace}"
         )
         # Configure cluster agent image on the operator file
         if self.dd_cluster_img is None:
@@ -239,7 +246,7 @@ class K8sDatadog:
             oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
 
         logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
-        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace=default")
+        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace={namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
