@@ -1677,7 +1677,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1690,7 +1689,8 @@ class Test_Otel_Metrics_Host_Name:
     """
 
     @missing_feature(
-        context.library == "dotnet", reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented"
+        context.library in ("dotnet", "nodejs"),
+        reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented",
     )
     @pytest.mark.parametrize(
         "library_env",
