@@ -1,8 +1,10 @@
 import os
 import time
 import yaml
+from http import HTTPStatus
 from pathlib import Path
 from kubernetes import client, watch
+from kubernetes.client.rest import ApiException
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
@@ -12,6 +14,10 @@ from utils.k8s_lib_injection.k8s_command_utils import (
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
 from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
+
+# Constant for the private registry secret name used across namespaces
+# This is the name of a Kubernetes secret resource, not a password
+PRIVATE_REGISTRY_SECRET_NAME = "private-registry-secret"  # noqa: S105
 
 
 class K8sDatadog:
@@ -37,10 +43,60 @@ class K8sDatadog:
         self.app_key = app_key
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
-    def deploy_test_agent(self, namespace="default"):
+    def _ensure_namespace_exists(self, namespace: str) -> None:
+        """Creates the namespace if it doesn't exist."""
+        try:
+            self.k8s_cluster_info.core_v1_api().read_namespace(name=namespace)
+            logger.info(f"Namespace '{namespace}' already exists")
+        except ApiException as e:
+            if e.status == HTTPStatus.NOT_FOUND:
+                logger.info(f"Creating namespace '{namespace}'")
+                ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=namespace))
+                self.k8s_cluster_info.core_v1_api().create_namespace(body=ns)
+                logger.info(f"Namespace '{namespace}' created successfully")
+            else:
+                raise
+
+    def _copy_ecr_secret_to_namespace(self, namespace: str) -> None:
+        """Copies the private-registry-secret from default namespace to target namespace.
+
+        The ECR secret is initially created in the default namespace by the cluster provider.
+        When using a private registry for cluster-agent images, we need the secret to be
+        available in the target namespace (e.g., datadog) for pods to pull images.
+        """
+        secret_name = PRIVATE_REGISTRY_SECRET_NAME
+        try:
+            # Check if secret already exists in target namespace
+            self.k8s_cluster_info.core_v1_api().read_namespaced_secret(name=secret_name, namespace=namespace)
+            logger.info(f"Secret '{secret_name}' already exists in namespace '{namespace}'")
+        except ApiException as e:
+            if e.status == HTTPStatus.NOT_FOUND:
+                # Secret doesn't exist in target namespace, copy it from default
+                logger.info(f"Copying secret '{secret_name}' from 'default' to '{namespace}' namespace")
+                try:
+                    source_secret = self.k8s_cluster_info.core_v1_api().read_namespaced_secret(
+                        name=secret_name, namespace="default"
+                    )
+                    # Create a new secret with the same data in the target namespace
+                    new_secret = client.V1Secret(
+                        metadata=client.V1ObjectMeta(name=secret_name, namespace=namespace),
+                        data=source_secret.data,
+                        type=source_secret.type,
+                    )
+                    self.k8s_cluster_info.core_v1_api().create_namespaced_secret(namespace=namespace, body=new_secret)
+                    logger.info(f"Successfully copied secret '{secret_name}' to namespace '{namespace}'")
+                except ApiException as copy_error:
+                    logger.error(f"Failed to copy secret: {copy_error}")
+                    raise
+            else:
+                raise
+
+    def deploy_test_agent(self, namespace="datadog"):
         """Installs the test agent pod."""
 
         logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_cluster_info.cluster_name}")
+
+        self._ensure_namespace_exists(namespace)
 
         container = client.V1Container(
             name="trace-agent",
@@ -106,7 +162,7 @@ class K8sDatadog:
         self.wait_for_test_agent(namespace)
         logger.info("[Test agent] Daemonset created")
 
-    def deploy_datadog_cluster_agent(self, host_log_folder: str, namespace="default"):
+    def deploy_datadog_cluster_agent(self, host_log_folder: str, namespace="datadog"):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
         We enable the admission controller and wait for the datdog cluster to be ready.
         The Datadog Admission Controller is an important piece of the Datadog Cluster Agent.
@@ -115,6 +171,11 @@ class K8sDatadog:
         """
 
         logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
+
+        # Ensure namespace exists and copy ECR secret if using private registry
+        self._ensure_namespace_exists(namespace)
+        if PrivateRegistryConfig.is_configured():
+            self._copy_ecr_secret_to_namespace(namespace)
         operator_file = "utils/k8s_lib_injection/resources/helm/datadog-helm-chart-values.yaml"
         if self.dd_cluster_uds:
             logger.info("[Deploy datadog cluster] Using UDS")
@@ -143,12 +204,13 @@ class K8sDatadog:
             "datadog/datadog",
             value_file=operator_file,
             set_dict=self.dd_cluster_feature,
+            namespace=namespace,
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace)
 
-    def deploy_datadog_operator(self, host_log_folder: str, namespace="default"):
+    def deploy_datadog_operator(self, host_log_folder: str, namespace="datadog"):
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog Agent in a Kubernetes environment.
         By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
         the Datadog Cluster Agent, and Cluster check runners.
