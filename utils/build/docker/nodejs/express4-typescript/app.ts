@@ -97,6 +97,21 @@ app.get('/customResponseHeaders', (req: Request, res: Response) => {
   res.send('OK');
 });
 
+app.get('/authorization_related_headers', (req: Request, res: Response) => {
+  res.set({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
+  })
+  res.send('OK')
+})
+
 app.get('/exceedResponseHeaders', (req: Request, res: Response) => {
   res.set('content-language', 'text/plain');
   for (let i: number = 0; i < 50; i++) {
@@ -397,9 +412,29 @@ app.get('/set_cookie', (req: Request, res: Response) => {
 
 require('./rasp')(app)
 
-require('./graphql')(app).then(() => {
-  app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => {})
-    console.log('listening')
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
+      if (req.url?.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve(true)
+    })
   })
-})
+}
+
+require('./graphql')(app)
+  .then(startServer)
+  .catch((error: Error) => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })

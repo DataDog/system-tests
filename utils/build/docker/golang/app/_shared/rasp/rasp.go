@@ -79,6 +79,27 @@ func LFI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func LFIMultiple(w http.ResponseWriter, r *http.Request) {
+	for _, path := range []string{
+		parseRASPRequest(r, "file1"),
+		parseRASPRequest(r, "file2"),
+		"../etc/passwd",
+	} {
+		if path == "" {
+			return
+		}
+
+		_, err := os.ReadFile(path)
+		if events.IsSecurityError(err) {
+			return
+		}
+
+		if err != nil {
+			log.Println("unknown error during file open: ", err.Error())
+		}
+	}
+}
+
 func SSRF(w http.ResponseWriter, r *http.Request) {
 	path := parseRASPRequest(r, "domain")
 	if path == "" {

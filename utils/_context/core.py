@@ -50,9 +50,7 @@ class _Context:
 
     @property
     def library(self) -> ComponentVersion:
-        result = self._get_scenario_property("library", None)
-        assert result is not None
-        return result
+        return self._get_scenario_property("library", ComponentVersion("notRelevant"))
 
     @property
     def tracer_sampling_rate(self):
@@ -119,13 +117,18 @@ class _Context:
     def vm_name(self) -> str:
         return self.virtual_machine.name
 
+    @property
+    def k8s_scenario_provision(self) -> str:
+        return self._get_scenario_property("current_scenario_provision", {})
+
     def serialize(self):
         result = {
+            "library_name": self.library.name,
             "weblog_variant": self.weblog_variant,
             "sampling_rate": self.tracer_sampling_rate,
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
-            "scenario": self.scenario,
+            "scenario": self.scenario.name,
         }
         # TODO all components inside of components node
         result |= self.components

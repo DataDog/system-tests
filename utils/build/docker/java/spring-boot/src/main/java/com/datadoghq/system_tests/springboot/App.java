@@ -16,6 +16,7 @@ import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
@@ -200,6 +201,21 @@ public class App {
         return "Response with custom headers";
     }
 
+    @GetMapping("/authorization_related_headers")
+    String authResponseHeaders(HttpServletResponse response) {
+        response.setHeader("Authorization", "value1");
+        response.setHeader("Proxy-Authorization", "value2");
+        response.setHeader("WWW-Authenticate", "value3");
+        response.setHeader("Proxy-Authenticate", "value4");
+        response.setHeader("Authentication-Info", "value5");
+        response.setHeader("Proxy-Authentication-Info", "value6");
+        response.setHeader("Cookie", "value7");
+        response.setHeader("Set-Cookie", "value8");
+        response.setHeader("content-type", "text/plain");
+        return "Response with authorization-related headers";
+    }
+
+
     @GetMapping("/exceedResponseHeaders")
     String exceedResponseHeaders(HttpServletResponse response) {
         for (int i = 1; i <= 50; i++) {
@@ -210,19 +226,40 @@ public class App {
     }
 
     @RequestMapping(value = "/tag_value/{tag_value}/{status_code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
-    ResponseEntity<String> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value);
-        return ResponseEntity.status(status_code).body("Value tagged");
+    ResponseEntity<?> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption) {
+        return handleTagValue(tag_value, status_code, xOption, null);
     }
 
     @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam MultiValueMap<String, String> body) {
-        return tagValue(tag_value, status_code);
+    ResponseEntity<?> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestParam MultiValueMap<String, String> form) {
+        ObjectNode body = null;
+        if (form != null) {
+            body = new ObjectMapper().valueToTree(form);
+        }
+        return handleTagValue(tag_value, status_code, xOption, body);
     }
 
     @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<String> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestBody Object body) {
-        return tagValue(tag_value, status_code);
+    ResponseEntity<?> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestBody Map<String, Object> json) {
+        ObjectNode body = null;
+        if (json != null) {
+            body = new ObjectMapper().valueToTree(json);
+        }
+        return handleTagValue(tag_value, status_code, xOption, body);
+    }
+
+    private ResponseEntity<?> handleTagValue(final String value, final int status, final String xOption, final JsonNode body) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (xOption != null) {
+            response = response.header("X-option", xOption);
+        }
+        if (value.startsWith("payload_in_response_body")) {
+            JsonNode responseBody = new ObjectMapper().createObjectNode().set("payload", body);
+            return response.contentType(MediaType.APPLICATION_JSON).body(responseBody);
+        } else {
+            return response.contentType(MediaType.TEXT_PLAIN).body("Value tagged");
+        }
     }
 
     @GetMapping("/api_security/sampling/{i}")
@@ -277,6 +314,11 @@ public class App {
 
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
+        return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    @RequestMapping("/stats-unique")
+    ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 

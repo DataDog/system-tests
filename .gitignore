@@ -8,6 +8,7 @@ binaries/*
 
 venv
 venv.
+.venv
 /vendor/python
 system_tests.egg-info/
 
@@ -32,7 +33,6 @@ bld/
 [Oo]bj/
 [Ll]og/
 dist/
-reportJunit.xml
 .report.json
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin
@@ -64,10 +64,8 @@ node_modules/
 *.swp
 *.swo
 
-utils/build/docker/*/parametric/Dockerfile
-
 # debugger
-/tests/debugger/approvals/*received*
+/tests/debugger/approvals/**/*received*
 .aider*
 
 # version check
@@ -77,3 +75,6 @@ tmp/
 
 # Go
 go.work*
+
+# Hypothesis Python package
+.hypothesis/

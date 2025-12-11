@@ -5,20 +5,66 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
     - name: copy-docker-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
+    - name: copy-binaries
+      local_path: binaries/
 
   remote-command: |
+    # Check if Docker is installed and ensure it's running
+    if command -v docker >/dev/null 2>&1; then
+        echo "Docker is installed, ensuring service is enabled and running..."
+        sudo systemctl enable docker.service docker.socket
+        
+        if ! sudo systemctl is-active --quiet docker.service; then
+            echo "Docker service is not running, starting it..."
+            sudo systemctl start docker.service docker.socket
+            
+            # Wait for Docker to be fully ready
+            echo "Waiting for Docker service to be ready..."
+            MAX_WAIT=20
+            COUNTER=0
+            while [ $COUNTER -lt $MAX_WAIT ]; do
+                if sudo docker info >/dev/null 2>&1; then
+                    echo "Docker service is ready"
+                    break
+                fi
+                echo "Docker not ready yet, waiting... ($((COUNTER + 1))/$MAX_WAIT)"
+                sleep 1
+                ((COUNTER++))
+            done
+            
+            if [ $COUNTER -eq $MAX_WAIT ]; then
+                echo "WARNING: Docker service did not become ready after $MAX_WAIT seconds"
+            fi
+        else
+            echo "Docker service is already running"
+        fi
+    else
+        echo "Docker is not installed, skipping Docker service setup"
+    fi
+
     if [ "${DD_env}" == "dev" ]; then
       # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
       export DD_SITE="datad0g.com"
       export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
+      #The latest_snapshot of python tracer version is 2.x we want to use 3.x. Get from repo.
+      #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+      echo "DD_LANG: ${DD_LANG}"
+      if [ "${DD_LANG}" == "python" ]; then
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+      fi
+
     else 
       export DD_SITE="datadoghq.com" 
+      #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
+      #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+      if [ "${DD_LANG}" == "python" ]; then
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+      fi
     fi
 
     # Environment variables for the installer
     export DD_APM_INSTRUMENTATION_ENABLED=host
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
-    export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
        export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
@@ -45,45 +91,79 @@
       export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_INSTALLER="${DD_INSTALLER_INSTALLER_VERSION}"
     fi
 
-    # Env variables set on the scenario definition. Write to file and load
+    # Env variables set on the scenario definition. Write to application_monitoring.yaml
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
-    echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
-    echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
-    cat scenario_agent.env
-    export $(cat scenario_agent.env | xargs)
 
-    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    
-    
-    # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
-    # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
-    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
-    MAX_RETRIES=5
-    RETRY_DELAY=5
-    COUNTER=0
+    # Create the application_monitoring.yaml file with apm_configuration_default section
+    sudo mkdir -p /etc/datadog-agent
+    echo "apm_configuration_default:" | sudo tee /etc/datadog-agent/application_monitoring.yaml > /dev/null
 
-    while [ $COUNTER -lt $MAX_RETRIES ]; do
-        curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh -o install_script.sh && break
-        echo "Retrying in $RETRY_DELAY seconds..."
-        sleep $RETRY_DELAY
-        ((COUNTER++))
-    done
-
-    if [ $COUNTER -eq $MAX_RETRIES ]; then
-        echo "Failed to connect to install.datadoghq.com the script after $MAX_RETRIES attempts"
-        exit 1
+    # Parse SCENARIO_AGENT_ENV (key=value pairs) and write to YAML format
+    if [ -n "${SCENARIO_AGENT_ENV}" ]; then
+        echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
+        echo "${SCENARIO_AGENT_ENV}"
+        echo "${SCENARIO_AGENT_ENV}" | tr ' ' '\n' | while IFS='=' read -r key value; do
+            if [ -n "${key}" ] && [ -n "${value}" ]; then
+                echo "  ${key}: ${value}" | sudo tee -a /etc/datadog-agent/application_monitoring.yaml > /dev/null
+                # Also export for immediate use
+                export "${key}=${value}"
+            fi
+        done
     fi
 
-     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+    echo "APPLICATION MONITORING CONFIG:"
+    sudo cat /etc/datadog-agent/application_monitoring.yaml || true
+
+    # Check if install script exists locally in binaries folder
+    if [ -f "install_script_agent7.sh" ]; then
+        echo "*** Execute installation script from provided binaries ***"
+        cp install_script_agent7.sh install_script.sh
+        chmod +x install_script.sh
+    else
+        echo "Download installation script from S3"
+        # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
+        # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
+        # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
+        MAX_RETRIES=5
+        RETRY_DELAY=5
+        COUNTER=0
+
+        while [ $COUNTER -lt $MAX_RETRIES ]; do
+            curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh -o install_script.sh && break
+            echo "Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+            ((COUNTER++))
+        done
+
+        if [ $COUNTER -eq $MAX_RETRIES ]; then
+            echo "Failed to connect to install.datadoghq.com the script after $MAX_RETRIES attempts"
+            exit 1
+        fi
+    fi
+
+    DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+
+    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
+    sudo systemctl restart datadog-agent
 
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-    echo "${SCENARIO_AGENT_ENV}" | sudo tee -a /etc/environment # TODO: remove when application_monitoring.yaml is supported everywhere
+
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
+    
+    # Add dd-agent user to docker group for docker socket access
+    sudo usermod -aG docker dd-agent || echo "Warning: Could not add dd-agent to docker group"
+    
+    # Restart datadog-agent so the new group membership takes effect
+    sudo systemctl restart datadog-agent || echo "Warning: Could not restart datadog-agent"
 - os_type: windows
+  copy_files:
+    - name: copy-binaries
+      local_path: binaries/
+
   remote-command: |
     if ($env:DD_env -eq "dev") {
       $env:DD_INSTALLER_REGISTRY_URL = "install.datad0g.com";
@@ -118,5 +198,14 @@
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
-    (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    
+    # Check if Install-Datadog.ps1 exists locally in binaries folder
+    if (Test-Path "Install-Datadog.ps1") {
+        Write-Host "*** Execute installation script from provided binaries ***"
+        Copy-Item "Install-Datadog.ps1" -Destination "C:\Windows\SystemTemp\Install-Datadog.ps1" -Force
+    } else {
+        Write-Host "Download installation script from datadoghq.com"
+        (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    }
+    
     C:\Windows\SystemTemp\Install-Datadog.ps1

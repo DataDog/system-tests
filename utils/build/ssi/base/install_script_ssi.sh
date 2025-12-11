@@ -6,9 +6,21 @@ if [ "${SSI_ENV}" == "dev" ]; then
     export DD_SITE="datad0g.com"
     export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
     export DD_injection_repo_url='datad0g.com'
+    #The latest_snapshot of python tracer version is 2.x we want to use 3.x. Get from repo.
+    #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+    echo "DD_LANG: ${DD_LANG}"
+    if [ "${DD_LANG}" == "python" ]; then
+    export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+    fi
+
 else
     export DD_SITE="datadoghq.com"
     export DD_injection_repo_url='datadoghq.com'
+    #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
+    #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+    if [ "${DD_LANG}" == "python" ]; then
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+    fi
 fi
 
 #We want specfic library version (to run on tracers pipelines)
@@ -28,7 +40,12 @@ if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 
-DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
+if [ -f "install_script_agent7.sh" ]; then
+    echo "[TRACE] install_script_agent7.sh exists"
+    DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(cat install_script_agent7.sh)"
+else
+    DD_REPO_URL=${DD_injection_repo_url}  DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host  bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
+fi
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
     OS="Debian"

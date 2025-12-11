@@ -21,12 +21,12 @@ COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VE
 COPY --from=build /app/target/jersey-grizzly2-1.0-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV DD_INTEGRATION_GRIZZLY_ENABLED=true
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 CMD [ "/app/app.sh" ]

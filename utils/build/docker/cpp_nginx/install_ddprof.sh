@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#set -euo pipefail
+set -euo pipefail
 
-# Checks in binary folder otherwise download from GH
+# Checks in binary folder otherwise download from github
 ddprof_name=$(ls -1 ddprof*.xz  2> /dev/null || true)
 if [ "$(echo $ddprof_name | wc -l)" -ge "2" ]; then
     echo "Clean up the folder in ${PWD}"
@@ -17,10 +17,12 @@ if [ -z $curl_install ]; then
 fi
 
 if [ -z "${ddprof_name}" ] || [ ! -e "${ddprof_name}" ]; then
-    echo "Could not find a version of ddprof in ${PWD}"
-    tag_name=$(wget -qO- "https://api.github.com/repos/DataDog/ddprof/releases/latest" | jq -r '.tag_name' | cut -c2-)
+    url_releases="https://api.github.com/repos/DataDog/ddprof/releases/latest"
+    echo "Could not find a version of ddprof in ${PWD}, get last release in ${url_releases}"
+    tag_name=$(curl -s --retry 3 "${url_releases}" | jq -r '.tag_name' | cut -c2-)
     url_release="https://github.com/DataDog/ddprof/releases/download/v${tag_name}/ddprof-${tag_name}-amd64-linux.tar.xz"
-    curl -L -O ${url_release}
+    echo "Using $url_release"
+    curl -L -O  -s --retry 3 ${url_release}
     ddprof_name=$(ls ddprof*.xz)
 else
     echo "using existing ddprof ${ddprof_name}"

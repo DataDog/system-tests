@@ -3,7 +3,6 @@ import os
 import random
 import socket
 import time
-import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
 import pytest
@@ -15,8 +14,8 @@ from utils._context.containers import (
     DockerSSIContainer,
     APMTestAgentContainer,
     TestedContainer,
-    _get_client as get_docker_client,
 )
+from utils._context.docker import get_docker_client
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
@@ -24,18 +23,29 @@ from utils.virtual_machine.vm_logger import vm_logger
 from .core import Scenario
 
 
+class ContainerRemovalError(Exception):
+    """Exception raised when a container fails to be removed."""
+
+
+class ImagePushError(Exception):
+    """Exception raised when a docker image push operation fails."""
+
+
 class DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
     _network: Network = None
 
-    def __init__(self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None) -> None:
+    def __init__(
+        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None, appsec_enabled=None
+    ) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
+        self._appsec_enabled = appsec_enabled
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
-        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, extra_env_vars=extra_env_vars)
-        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+        self._weblog_injection = DockerSSIContainer(extra_env_vars=extra_env_vars)
+        self._agent_container = APMTestAgentContainer(agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(self._agent_container)
@@ -45,7 +55,7 @@ class DockerSSIScenario(Scenario):
         self._configuration = {"app_type": "docker_ssi"}
 
     def configure(self, config: pytest.Config):
-        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php"
+        assert config.option.ssi_library, "library must be set: java,python,nodejs,dotnet,ruby,php,rust"
 
         self._base_weblog = config.option.ssi_weblog
         self._library = config.option.ssi_library
@@ -100,6 +110,7 @@ class DockerSSIScenario(Scenario):
             self._env,
             self._custom_library_version,
             self._custom_injector_version,
+            self._appsec_enabled,
         )
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
@@ -116,10 +127,16 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             try:
-                container.configure(replay=self.replay)
+                container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
             except Exception as e:
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
+
+        self.warmups.append(self._create_network)
+        self.warmups.append(self._start_containers)
+
+        if "GITLAB_CI" in os.environ:
+            self.warmups.append(self.fix_gitlab_network)
 
     def _create_network(self):
         self._network = create_network()
@@ -128,21 +145,10 @@ class DockerSSIScenario(Scenario):
         for container in self._required_containers:
             container.start(self._network)
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        warmups.append(self._create_network)
-        warmups.append(self._start_containers)
-
-        if "GITLAB_CI" in os.environ:
-            warmups.append(self.fix_gitlab_network)
-
-        return warmups
-
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
         self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip(self._network))
-        logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
+        logger.debug(f"GITLAB_CI: Rewritten weblog url from {old_weblog_url} to {self.weblog_url}")
         self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
@@ -151,11 +157,7 @@ class DockerSSIScenario(Scenario):
 
     def close_targets(self):
         for container in reversed(self._required_containers):
-            try:
-                container.remove()
-                logger.info(f"Removing container {container}")
-            except:
-                logger.exception(f"Failed to remove container {container}")
+            container.remove()
         # TODO push images only if all tests pass
         # TODO At this point, tests are not yet executed. There is not official hook in the Scenario class to do that,
         # TODO we can add one : pytest_sessionstart, it will contains the test result.
@@ -292,6 +294,7 @@ class DockerSSIImageBuilder:
         env,
         custom_library_version,
         custom_injector_version,
+        appsec_enabled=None,
     ) -> None:
         self.scenario_name = scenario_name
         self.host_log_folder = host_log_folder
@@ -310,6 +313,7 @@ class DockerSSIImageBuilder:
         self._env = env
         self._custom_library_version = custom_library_version
         self._custom_injector_version = custom_injector_version
+        self._appsec_enabled = appsec_enabled
 
     @property
     def dd_lang(self) -> str:
@@ -317,7 +321,8 @@ class DockerSSIImageBuilder:
 
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
-        self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_installer_{self.docker_tag}:latest"
+        docker_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
+        self._docker_registry_tag = f"{docker_registry_base_url}/system-tests/ssi_installer_{self.docker_tag}:latest"
         self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
@@ -346,15 +351,31 @@ class DockerSSIImageBuilder:
 
     def push_base_image(self):
         """Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
+        if not os.getenv("PRIVATE_DOCKER_REGISTRY", ""):
+            logger.stdout("Skipping push of base image to the registry because PRIVATE_DOCKER_REGISTRY is not set")
+            return
         if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
-                docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
+                logger.stdout(f"Tagging image [{self.ssi_installer_docker_tag}] as [{self._docker_registry_tag}]")
+                get_docker_client().api.tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
+                logger.stdout(f"Pushing image: [{self._docker_registry_tag}]")
                 push_logs = get_docker_client().images.push(self._docker_registry_tag)
                 self.print_docker_push_logs(self._docker_registry_tag, push_logs)
+
+                # Check if push was successful by verifying the image exists in registry
+                try:
+                    get_docker_client().images.pull(self._docker_registry_tag)
+                    logger.stdout("Push done")
+                except Exception as e:
+                    logger.stdout("ERROR: Image was not found in registry after push")
+                    logger.exception(f"Failed to verify pushed image: {e}")
+                    raise ImagePushError("Image push failed - image not found in registry after push") from e
+
             except Exception as e:
                 logger.stdout("ERROR pushing docker image. check log file for more details")
                 logger.exception(f"Failed to push docker image: {e}")
+                raise ImagePushError("Failed to push docker image") from e
 
     def get_base_docker_tag(self):
         """Resolves and format the docker tag for the base image"""
@@ -407,7 +428,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise
+            raise BuildError("Failed to build docker image", e.build_log) from e
 
     def build_ssi_installer_image(self):
         """Build the ssi installer image. Install only the ssi installer on the image"""
@@ -430,7 +451,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise
+            raise BuildError("Failed to build installer docker image", e.build_log) from e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
         """Build the final weblog image. Uses base ssi installer image, install
@@ -457,6 +478,7 @@ class DockerSSIImageBuilder:
                     "SSI_ENV": self._env,
                     "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
                     "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                    "DD_APPSEC_ENABLED": self._appsec_enabled,
                 },
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
@@ -476,7 +498,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise
+            raise BuildError("Failed to build weblog docker image", e.build_log) from e
 
     def tested_components(self):
         """Extract weblog versions of lang runtime, agent, installer, tracer.

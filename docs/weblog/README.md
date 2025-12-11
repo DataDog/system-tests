@@ -108,6 +108,57 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /external_request
+### POST /external_request
+### TRACE /external_request
+### PUT /external_request
+
+This endpoint is used for downstream requests test, using an addtional component hosting a fastapi application defined in `/utils/build/docker/internal_server/app.py`
+
+It must open a request on `http://internal_server:8089/mirror/{status}{url_extra}` with the same method as the method used to call this endpoint (GET, POST, TRACE or PUT).
+
+If a body was sent, it must also be sent to `internal_server` with the same content type. (whatever is the method used)
+
+All query parameters received must be sent as headers to the `internal_server` request except for:
+- `status` whose value must be used in the first path parameter (if status is missing, use `200` by default)
+- `url_extra` whose value must be appended to the `internal_server` url (if missing, use an empty string)
+
+It must always return a 200 status code.
+
+if the request to `internal_server` was a success (2xx code), it must return a json body as a map with 3 keys:
+- `status` the status code of the `internal_server` response
+- `payload` the parsed json content of the `internal_server` reponse body (it can be assumed it's always a json body)
+- `headers` the headers of the `internal_server` response as a map
+
+if the request to `internal_server` is a failure, it must return a json body with 2 keys:
+- `status` the status code of the `internal_server` response if available or a null value
+- `error` a string describing the error, for debug purposes
+
+### GET /external_request/redirect
+
+This endpoint tests HTTP redirect chains with downstream requests, using the fastapi application in `/utils/build/docker/internal_server/app.py`
+
+Query parameters:
+- `totalRedirects`: number of redirects (default 0)
+
+The endpoint calls `/redirect?totalRedirects={totalRedirects}` and follows all 302 redirects until receiving a 200 response.
+
+How it works:
+- `/redirect` decrements `totalRedirects` and redirects to itself until `totalRedirects=0`
+- When `totalRedirects=0`, redirects to `/mirror/200` which returns 200 OK
+
+Example with `totalRedirects=2`:
+1. `/redirect?totalRedirects=2` → 302
+2. `/redirect?totalRedirects=1` → 302
+3. `/redirect?totalRedirects=0` → 302
+4. `/mirror/200` → 200 OK
+
+Total: 4 downstream requests (totalRedirects + 2).
+
+All query parameters are sent as headers to `internal_server` requests.
+
+Returns 200 status code.
+
 ### GET /spans
 
 The endpoint may accept two query string parameters:
@@ -688,6 +739,7 @@ The following query parameters are optional:
 
 - `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
 - `level`: Specifies the log level to be used. If not provided, the default log level is "info".
+- `structured`: Specifies whether a log message should be generated via a structured or unstructured logger is used. If not provided the default value is True.
 
 ### GET /e2e_single_span
 
@@ -1070,6 +1122,10 @@ Examples:
 
 - `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`
 
+#### GET /resource_renaming/*
+
+This endpoint will be used for `Resource Renaming` tests, it allows all subpaths.
+
 ## Weblog specification
 
 There are several rules shared between all the existing end-to-end weblogs.
@@ -1100,8 +1156,6 @@ There are several rules shared between all the existing end-to-end weblogs.
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent\'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV DD_DATA_STREAMS_ENABLED=true
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
-
 ```
 
 ### Naming Conventions & Patterns

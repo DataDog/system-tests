@@ -7,9 +7,10 @@ import json
 import re
 
 from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug, logger
+from utils._weblog import HttpResponse
 
 
-def remove_traceparent(s):
+def remove_traceparent(s: str) -> str:
     return re.sub(r",traceparent='[^']*'", "", s)
 
 
@@ -53,7 +54,7 @@ class Test_Dbm:
                     ]
                 )
 
-    def _get_db_span(self, response):
+    def _get_db_span(self, response: HttpResponse) -> dict:
         assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
 
         spans = []
@@ -82,11 +83,11 @@ class Test_Dbm:
         for request in self.requests:
             self._assert_span_is_untagged(self._get_db_span(request))
 
-    def _assert_span_is_untagged(self, span):
+    def _assert_span_is_untagged(self, span: dict) -> None:
         meta = span.get("meta", {})
         assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
 
-    def _assert_span_is_tagged(self, span):
+    def _assert_span_is_tagged(self, span: dict) -> None:
         meta = span.get("meta", {})
         assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
         tag_value = meta.get(self.META_TAG)

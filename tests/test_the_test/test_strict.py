@@ -1,4 +1,4 @@
-from utils import bug, missing_feature, scenarios
+from utils import bug, missing_feature, scenarios, features
 
 from .utils import run_system_tests
 
@@ -8,13 +8,14 @@ FILENAME = "tests/test_the_test/test_strict.py"
 @scenarios.test_the_test
 class Test_StrictMode:
     def test_strict_missing_features(self):
-        tests = run_system_tests(test_path=FILENAME, xfail_strict=True)
+        tests = run_system_tests(test_path=FILENAME, xfail_strict=True, expected_return_code=1)
 
         assert tests[f"{FILENAME}::test_strict_bug"]["outcome"] == "failed"
         assert tests[f"{FILENAME}::test_strict_missing_feature"]["outcome"] == "failed"
 
 
 @scenarios.mock_the_test
+@features.adaptive_sampling
 @bug(condition=True, reason="FAKE-001")
 def test_strict_bug():
     assert True, "Bug fixed"
@@ -22,5 +23,6 @@ def test_strict_bug():
 
 @scenarios.mock_the_test
 @missing_feature(condition=True)
+@features.adaptive_sampling
 def test_strict_missing_feature():
     assert True, "I'm a feature implemented"

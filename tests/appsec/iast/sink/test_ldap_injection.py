@@ -3,7 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, features, rfc, weblog
-from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.iast_sink_ldap_injection
@@ -17,7 +22,7 @@ class TestLDAPInjection(BaseSinkTest):
     data = {"username": "ssam", "password": "sammy"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.LDAPExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+        "nodejs": get_nodejs_iast_file_paths(),
     }
 
     @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")

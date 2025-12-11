@@ -33,9 +33,7 @@
                         "dd-lib-python-init-test-django-gunicorn",
                         "dd-lib-python-init-test-django-gunicorn-alpine",
                         "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn",
-                        "dd-lib-python-init-test-protobuf-old",
-                        "dd-lib-python-init-test-django-preinstalled"
+                        "dd-lib-python-init-test-django-uvicorn"
                     ],
                     "ruby": [
                         "dd-lib-ruby-init-test-rails",
@@ -80,9 +78,7 @@
                         "dd-lib-python-init-test-django-gunicorn",
                         "dd-lib-python-init-test-django-gunicorn-alpine",
                         "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn",
-                        "dd-lib-python-init-test-protobuf-old",
-                        "dd-lib-python-init-test-django-preinstalled"
+                        "dd-lib-python-init-test-django-uvicorn"
                     ],
                     "ruby": [
                         "dd-lib-ruby-init-test-rails",
@@ -95,10 +91,10 @@
                 }
             ]
         }
-       
+
     ],
     "cluster_agent_spec": {
-        "latest": "gcr.io/datadoghq/cluster-agent:latest",
-        "old_injection": "gcr.io/datadoghq/cluster-agent:7.56.2"
+        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.72.4",
+        "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2"
     }
 }

@@ -42,6 +42,7 @@ class OpenTelemetryScenario(DockerScenario):
         include_sqlserver: bool = False,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
+        mocked_backend: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -49,6 +50,7 @@ class OpenTelemetryScenario(DockerScenario):
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
+            mocked_backend=mocked_backend,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -58,12 +60,12 @@ class OpenTelemetryScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
         if include_agent:
-            self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+            self.agent_container = AgentContainer(use_proxy=True)
             self._required_containers.append(self.agent_container)
         if include_collector:
-            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            self.collector_container = OpenTelemetryCollectorContainer()
             self._required_containers.append(self.collector_container)
-        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
             self.weblog_container.depends_on.append(self.agent_container)
         if include_collector:
@@ -78,6 +80,7 @@ class OpenTelemetryScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
         self._check_env_vars()
+
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
@@ -93,6 +96,11 @@ class OpenTelemetryScenario(DockerScenario):
 
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+
+        if not self.replay:
+            self.warmups.insert(0, self._start_interface_watchdog)
+            self.warmups.append(self._wait_for_app_readiness)
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
@@ -118,16 +126,11 @@ class OpenTelemetryScenario(DockerScenario):
 
         observer.start()
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(0, self._start_interface_watchdog)
-            warmups.append(self._wait_for_app_readiness)
-
-        return warmups
-
     def _wait_for_app_readiness(self):
+        supported_libraries = ("java_otel", "nodejs_otel", "python_otel")
+        if self.library.name not in supported_libraries:
+            pytest.exit(f"{self.name} scenario support only thoses libraries: {supported_libraries}", 1)
+
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 
@@ -155,13 +158,13 @@ class OpenTelemetryScenario(DockerScenario):
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         if self.include_intake:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")
-            ), "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
+                "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            )
         if self.include_collector:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")
-            ), "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            assert all(key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")), (
+                "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            )
 
     @property
     def library(self):

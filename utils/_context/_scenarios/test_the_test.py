@@ -4,14 +4,11 @@ from .core import Scenario
 
 class TestTheTestScenario(Scenario):
     library = ComponentVersion("java", "0.66.0")
+    agent_version = ComponentVersion("agent", "0.77.0").version
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(name, doc=doc, github_workflow="testthetest")
         self.components["mock_comp1"] = "mock_comp1_value"
-
-    @property
-    def agent_version(self):
-        return "0.77.0"
 
     @property
     def parametrized_tests_metadata(self):

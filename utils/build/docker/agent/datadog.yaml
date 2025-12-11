@@ -1,0 +1,27 @@
+log_level: DEBUG
+dogstatsd_non_local_traffic: true
+apm_config:
+  apm_non_local_traffic: true
+  trace_buffer: 5
+remote_configuration:
+  enabled: false
+logs_enabled: true
+logs_config:
+  batch_wait: 1
+otlp_config:
+  debug:
+    verbosity: detailed
+  receiver:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+  traces:
+    enabled: true
+    span_name_as_resource_name: true
+  metrics:
+    enabled: true
+    histograms:
+      mode: distributions
+      send_aggregation_metrics: true
+  logs:
+    enabled: true

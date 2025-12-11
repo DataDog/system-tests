@@ -54,7 +54,7 @@ class AWSPulumiProvider(VmProvider):
             self._configure_cached_amis(self.vm)
 
             logger.info(
-                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{ self.vm.datadog_config.skip_cache}] --"
+                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{self.vm.datadog_config.skip_cache}] --"
             )
             self._start_vm(self.vm)
 
@@ -82,7 +82,7 @@ class AWSPulumiProvider(VmProvider):
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
             logger.stdout(f"(Please, check the log file: tests.log and search for the text chain 'Diagnostics:')")
-            logger.debug(f"The error class name: { pulumi_exception.__class__.__name__}")
+            logger.debug(f"The error class name: {pulumi_exception.__class__.__name__}")
             self._handle_provision_error(pulumi_exception)
 
     def get_windows_user_data(self):
@@ -278,7 +278,7 @@ class AWSPulumiProvider(VmProvider):
         """
 
         ec2_ids = self._print_running_instances()
-        if len(ec2_ids) > 700:
+        if len(ec2_ids) > 1200:
             logger.stdout(f"THERE ARE TOO MANY EC2 INSTANCES RUNNING. Waiting for the instances to be destroyed")
             raise Exception("Too many ec2 instances running")
 

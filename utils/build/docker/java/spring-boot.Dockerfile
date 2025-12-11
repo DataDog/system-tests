@@ -25,6 +25,7 @@ COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/opentelemetry-javaagent-r2dbc.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
@@ -32,6 +33,5 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV APP_EXTRA_ARGS="--server.port=7777"
 ENV DD_DATA_STREAMS_ENABLED=true
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 CMD [ "/app/app.sh" ]

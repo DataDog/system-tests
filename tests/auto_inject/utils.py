@@ -1,3 +1,4 @@
+import time
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -7,7 +8,9 @@ from threading import Timer
 
 
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, *, profile: bool = False):
+    def _test_install(
+        self, virtual_machine, *, profile: bool = False, appsec: bool = False, origin_detection: bool = False
+    ):
         """If there is a multicontainer app, we need to make a request to each app"""
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
@@ -15,13 +18,25 @@ class AutoInjectBaseTest:
                 vm_context_url = (
                     f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
                 )
-                self._check_install(virtual_machine, vm_context_url, profile=profile)
+                self._check_install(
+                    virtual_machine, vm_context_url, profile=profile, appsec=appsec, origin_detection=origin_detection
+                )
 
         else:
             vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
-            self._check_install(virtual_machine, vm_context_url, profile=profile)
+            self._check_install(
+                virtual_machine, vm_context_url, profile=profile, appsec=appsec, origin_detection=origin_detection
+            )
 
-    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False):
+    def _check_install(
+        self,
+        virtual_machine,
+        vm_context_url,
+        *,
+        profile: bool = False,
+        appsec: bool = False,
+        origin_detection: bool = False,
+    ):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
         Using the agent installation script we can install different versions of the software (release or beta) in different OS.
@@ -36,21 +51,64 @@ class AutoInjectBaseTest:
             logger.info(
                 "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
-            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
+            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port, appsec=appsec)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
             logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
-            request_uuid = make_get_request(vm_context_url)
+            request_uuid = make_get_request(vm_context_url, appsec=appsec)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
 
+        validator = None
+        if appsec:
+            validator = self._appsec_validator
+        if origin_detection:
+            validator = self._container_tags_validator
+        if profile:
+            time.sleep(6)  # Wait for the profiling to start and upload the data
         try:
-            wait_backend_trace_id(request_uuid, profile=profile)
+            wait_backend_trace_id(request_uuid, profile=profile, validator=validator)
         except (TimeoutError, AssertionError) as e:
             self._log_trace_debug_message(e, request_uuid)
             raise
+
+    def _appsec_validator(self, _, trace_data):
+        """Validator for Appsec traces that checks if the trace contains an Appsec event."""
+        root_id = trace_data["trace"]["root_id"]
+        root_span = trace_data["trace"]["spans"][root_id]
+
+        meta = root_span.get("meta", {})
+        metrics = root_span.get("metrics", {})
+
+        if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
+            logger.error(
+                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found",
+                metrics.get("_dd.appsec.enabled"),
+            )
+            return False
+
+        if "appsec.event" not in meta or meta["appsec.event"] != "true":
+            logger.error("expected 'appsec.event' to be true in trace meta but found", meta.get("appsec.event"))
+            return False
+
+        return True
+
+    def _container_tags_validator(self, _, trace_data):
+        root_id = trace_data["trace"]["root_id"]
+        root_span = trace_data["trace"]["spans"][root_id]
+
+        # Check if container tags exist in the trace metadata
+        meta = root_span.get("meta", {})
+        container_tags = meta.get("_dd.tags.container")
+
+        if container_tags:
+            logger.info(f"Found container tags: {container_tags}")
+            return True
+        else:
+            logger.error(f"No container tags found in trace. Available meta keys: {list(meta.keys())}")
+            return False
 
     def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
         logger.error(
@@ -184,3 +242,29 @@ class AutoInjectBaseTest:
         self._test_uninstall_commands(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
+
+    def _test_no_world_writeable(self, virtual_machine):
+        """Checks that there are no world writeable files in /opt/datadog-packages/datadog-apm*"""
+        logger = vm_logger(context.scenario.host_log_folder, virtual_machine.name)
+        logger.info(
+            f"Checking for world writeable files in /opt/datadog-packages/datadog-apm* on VM: {virtual_machine.name}"
+        )
+
+        # Find all files under /opt/datadog-packages/datadog-apm*
+        find_cmd = (
+            r"sudo find /opt/datadog-packages/datadog-apm* \( -type f -o -type d \) -perm -002 -ls 2>/dev/null || true"
+        )
+        result = self.execute_command(virtual_machine, find_cmd)
+        world_writeable_files = result.strip().splitlines() if result else []
+
+        if world_writeable_files:
+            logger.error(
+                "World writeable files found in /opt/datadog-packages/datadog-apm*:\n%s",
+                "\n".join(world_writeable_files),
+            )
+            raise AssertionError(
+                "World writeable files found in /opt/datadog-packages/datadog-apm*:\n"
+                + "\n".join(world_writeable_files)
+            )
+        else:
+            logger.info("No world writeable files found in /opt/datadog-packages/datadog-apm*.")

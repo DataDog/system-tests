@@ -1,3 +1,13 @@
+import os
+
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
+    # Patch with gevent but not for uwsgi-poc
+    import gevent  # noqa: E402
+    from gevent import monkey  # noqa: E402
+
+    monkey.patch_all(thread=True)  # noqa: E402
+
+
 import base64
 import http.client
 import json
@@ -17,7 +27,6 @@ import mock
 import urllib3
 import xmltodict
 import graphene
-import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -29,6 +38,8 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
     import mysql
     import MySQLdb
     import pymysql
+
+from loguru import logger as log
 
 from flask import Flask
 from flask import Response
@@ -75,8 +86,15 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
+
+# This mimics a scenario where a user has one config setting set in multiple sources
+# so that config chaining data is sent
+if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
+    from ddtrace import config
+
+    config._logs_injection = True
+
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -84,13 +102,24 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
+
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -101,16 +130,24 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=(
-        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s]"
-        " %(message)s"
-    ),
+# Configure loguru logger
+log.remove()
+# Sink for unstructured logs
+log.add(
+    sys.stdout,
+    format="{level}:{name}:{message}",
+    level="INFO",
+    serialize=False,
+    filter=lambda record: not record["extra"].get("structured"),
+)
+# Sink for structured logs
+log.add(
+    sys.stdout,
+    level="INFO",
+    serialize=True,
+    filter=lambda record: record["extra"].get("structured"),
 )
 
-log = logging.getLogger(__name__)
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -139,8 +176,6 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
 
 def main():
-    # IAST Flask patch
-    ddtrace_iast_flask_patch()
     app = Flask(__name__)
     app.secret_key = "SECRET_FOR_TEST"
     app.config["SESSION_TYPE"] = "memcached"
@@ -226,23 +261,27 @@ def check_and_create_users_table():
     cur = postgres_db.cursor()
 
     # Check if 'users' exists
-    cur.execute("""
+    cur.execute(
+        """
         SELECT EXISTS (
-            SELECT FROM information_schema.tables 
+            SELECT FROM information_schema.tables
             WHERE table_name = 'users'
         );
-    """)
+    """
+    )
     table_exists = cur.fetchone()[0]
 
     if not table_exists:
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE users (
                 id VARCHAR(255) PRIMARY KEY,
                 username VARCHAR(255),
                 email VARCHAR(255),
                 password VARCHAR(255)
             );
-        """)
+        """
+        )
         postgres_db.commit()
 
         users_data = [
@@ -577,7 +616,7 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 @app.route("/session/new")
 def session_new():
-    response = Response("OK")
+    response = Response(MAGIC_SESSION_KEY)
     response.set_cookie("session_id", MAGIC_SESSION_KEY)
     return response
 
@@ -1392,7 +1431,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return Response("OK")
 
 
@@ -1408,10 +1449,18 @@ def track_user_login_failure_event():
 def before_request():
     try:
         current_user = DB_USER.get(flask.session.get("login"), None)
-        if current_user:
-            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+        login = current_user.login if current_user else None
+        user_id = current_user.uid if current_user else None
+        session_id = flask_request.cookies.get("session_id", None)
+        if current_user or session_id:
+            try:
+                import ddtrace.appsec.track_user_sdk as track_user_sdk
+
+                track_user_sdk.track_user(login=login, user_id=user_id, session_id=session_id, _auto=True)
+            except Exception:
+                # Fallback to the legacy set_user function if track_user_sdk or _auto is not available
+                set_user(ddtrace.tracer, user_id=user_id, email=login, session_id=session_id, mode="auto")
     except Exception:
-        # to be compatible with all tracer versions
         pass
 
 
@@ -1534,7 +1583,8 @@ def set_cookie():
 @app.route("/log/library", methods=["GET"])
 def log_library():
     message = flask_request.args.get("msg")
-    log.info(message)
+    structured = flask_request.args.get("structured", "true").lower() == "true"
+    log.bind(structured=structured).info(message)
     return Response("OK")
 
 
@@ -1695,9 +1745,9 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
     return Response(response.data)
 
 
@@ -1715,10 +1765,15 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
     return Response(response.data)
+
+
+@app.get("/resource_renaming/<path:path>")
+def resource_renaming(path: str):
+    return Response("ok", mimetype="text/plain")
 
 
 @app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])
@@ -1838,3 +1893,187 @@ def inferred_proxy_span_creation():
     logging.info("Request headers: " + str(headers))
 
     return Response("ok", status=status)
+
+
+def _sc_s_validate(param):
+    return param
+
+
+def _sc_s_validate_for_all(param):
+    return param
+
+
+def _sc_s_overloaded(p1, p2):
+    if p1:
+        return p1
+    return p2
+
+
+def _sc_v_validate(param):
+    return True
+
+
+def _sc_v_validate_for_all(param):
+    return True
+
+
+def _sc_v_overloaded(p1=None, p2=None, param=None):
+    return True
+
+
+@app.route("/iast/sc/s/configured", methods=["POST"])
+def view_iast_sc_s_configured():
+    param = flask_request.form["param"]
+    param2 = _sc_s_validate(param)
+    os.system(f"ls {param2}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/not-configured", methods=["POST"])
+def view_iast_sc_s_not_configured():
+    param = flask_request.form.get("param")
+    param = _sc_s_validate(param)
+    _sink_point_sqli(table=param)
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/all", methods=["POST"])
+def view_iast_sc_s_all():
+    param = flask_request.form.get("param")
+    param = _sc_s_validate_for_all(param)
+    _sink_point_sqli(table=param)
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/overloaded/secure", methods=["POST"])
+def view_iast_sc_s_overloaded_secure():
+    param = flask_request.form.get("param")
+    param = _sc_s_overloaded(param, None)
+    os.system(f"ls {param}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/overloaded/insecure", methods=["POST"])
+def view_iast_sc_s_overloaded_insecure():
+    param = flask_request.form.get("param")
+    param = _sc_s_overloaded(None, param)
+    os.system(f"ls {param}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/configured", methods=["POST"])
+def view_iast_sc_iv_configured():
+    param = flask_request.form.get("param")
+    if _sc_v_validate(param):
+        os.system(f"ls {param}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/not-configured", methods=["POST"])
+def view_iast_sc_iv_not_configured():
+    table = flask_request.form.get("param")
+    if _sc_v_validate(table):
+        _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/all", methods=["POST"])
+def view_iast_sc_iv_not_all():
+    table = flask_request.form.get("param")
+    if _sc_v_validate_for_all(table):
+        _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/overloaded/secure", methods=["POST"])
+def view_iast_sc_iv_overloaded_secure():
+    user = flask_request.form.get("user")
+    password = flask_request.form.get("password")
+    if _sc_v_overloaded(None, user, password):
+        _sink_point_sqli(table=user)
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/overloaded/insecure", methods=["POST"])
+def view_iast_sc_iv_overloaded_insecure():
+    user = flask_request.form.get("user")
+    password = flask_request.form.get("password")
+    if _sc_v_overloaded(user, password):
+        _sink_point_sqli(table=user)
+    return Response("OK")
+
+
+@app.route("/ffe", methods=["POST"])
+def ffe():
+    """OpenFeature evaluation endpoint."""
+    body = flask_request.get_json()
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return jsonify({"value": value}), 200
+
+
+@app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
+def external_request():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = flask_request.data or None
+    if body:
+        queries["Content-Type"] = flask_request.headers.get("content-type") or "application/json"
+    request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}",
+        method=flask_request.method,
+        headers=queries,
+        data=body,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})
+
+
+@app.route("/external_request/redirect", methods=["GET"])
+def external_request_redirect():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
+    request = urllib.request.Request(
+        full_url,
+        method="GET",
+        headers=queries,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})

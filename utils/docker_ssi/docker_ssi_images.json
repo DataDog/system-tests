@@ -67,12 +67,12 @@
     },
     {
       "name": "Websphere_amd64",
-      "image": "icr.io/appcafe/websphere-traditional",
+      "image": "235494822917.dkr.ecr.us-east-1.amazonaws.com/third-party/websphere-traditional:latest",
       "architecture": "linux/amd64"
     },
     {
       "name": "Wildfly_amd64",
-      "image": "quay.io/wildfly/wildfly:26.1.2.Final",
+      "image": "235494822917.dkr.ecr.us-east-1.amazonaws.com/third-party/wildfly:26.1.2.Final-amd64",
       "architecture": "linux/amd64"
     }
   ]

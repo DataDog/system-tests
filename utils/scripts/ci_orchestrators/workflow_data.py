@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
@@ -40,6 +41,24 @@ def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> di
                                         raise ValueError(f"Cluster agent {cluster_agent} not found in the k8s_ssi.json")
                             else:
                                 results[scenario][weblog] = []
+    return results
+
+
+def get_k8s_injector_dev_matrix(k8s_injector_dev_file: str, scenarios: list[str], language: str) -> dict:
+    """Computes the matrix "scenario" - "weblog" given a list of scenarios and a language."""
+    k8s_injector_dev = _load_json(k8s_injector_dev_file)
+
+    results = defaultdict(lambda: defaultdict(list))  # type: dict
+    scenario_matrix = k8s_injector_dev["scenario_matrix"]
+    for entry in scenario_matrix:
+        applicable_scenarios = entry["scenarios"]
+        weblogs = entry["weblogs"]
+        for scenario in scenarios:
+            if scenario in applicable_scenarios:
+                for weblog_entry in weblogs:
+                    if language in weblog_entry:
+                        for weblog in weblog_entry[language]:
+                            results[scenario][weblog] = []
     return results
 
 
@@ -167,11 +186,21 @@ def get_docker_ssi_matrix(
 
 
 # End-to-end corner
+@dataclass
+class Weblog:
+    name: str
+    require_build: bool
+    artifact_name: str
+
+    def serialize(self) -> dict:
+        return {"name": self.name, "artifact_name": self.artifact_name}
+
+
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
     def __init__(
-        self, library: str, weblog: str, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
+        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
     ):
         self.library = library
         self.weblog = weblog
@@ -190,11 +219,14 @@ class Job:
 
     def serialize(self) -> dict:
         return {
+            "runs_on": "ubuntu-latest",
             "library": self.library,
-            "weblog": self.weblog,
-            "scenarios": sorted(self.scenarios),
+            "weblog": self.weblog.name,
+            "weblog_build_required": self.weblog.require_build,
             "weblog_instance": self.weblog_instance,
+            "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
+            "binaries_artifact": self.weblog.artifact_name,
         }
 
     @property
@@ -207,7 +239,7 @@ class Job:
 
     @property
     def sort_key(self) -> tuple:
-        return (self.weblog, self.weblog_instance)
+        return (self.weblog.name, self.weblog_instance)
 
     def get_scenario_time(self, scenario: str) -> float:
         return self._scenarios_times[scenario]
@@ -219,9 +251,10 @@ class Job:
     def split_for_parallel_execution(self, desired_execution_time: float) -> list["Job"]:
         result: list[Job] = []
 
-        for i, scenarios in enumerate(
-            _split_scenarios_for_parallel_execution(self._scenarios_times, desired_execution_time - self.build_time)
-        ):
+        backpacks = _split_scenarios_for_parallel_execution(
+            self._scenarios_times, desired_execution_time - self.build_time
+        )
+        for i, scenarios in enumerate(backpacks):
             result.append(
                 Job(
                     library=self.library,
@@ -235,19 +268,66 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str) -> list[str]:
-    folder = f"utils/build/docker/{library}"
-    result = [
-        f.replace(".Dockerfile", "")
-        for f in os.listdir(folder)
-        if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
-    ]
+def _get_endtoend_weblogs(
+    library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
+) -> list[Weblog]:
+    result: list[Weblog] = []
 
-    return sorted(result)
+    integration_frameworks_weblogs = {
+        # openai
+        "openai-py": ["2.0.0"],
+        "openai-js": ["6.0.0"],
+        # anthropic
+        "anthropic-js": ["0.71.0"],
+        "anthropic-py": ["0.75.0"],
+    }
+
+    folder = f"utils/build/docker/{library}"
+    if Path(folder).exists():  # some lib does not have any weblog
+        names = [
+            f.replace(".Dockerfile", "")
+            for f in os.listdir(folder)
+            if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
+        ]
+
+        if len(weblogs_filter) != 0:
+            # filter weblogs by the weblogs_filter set
+            names = [weblog for weblog in names if weblog in weblogs_filter]
+
+        for name in names:
+            if name not in integration_frameworks_weblogs:
+                result.append(
+                    Weblog(
+                        name=name,
+                        require_build=True,
+                        artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                    )
+                )
+            else:
+                for version in integration_frameworks_weblogs[name]:
+                    result.append(
+                        Weblog(name=f"{name}@{version}", require_build=False, artifact_name=binaries_artifact)
+                    )
+
+    # weblog not related to a docker file
+    if library == "golang":
+        result.append(Weblog(name="no-weblog-golang", require_build=False, artifact_name=binaries_artifact))
+
+    if library == "otel_collector":
+        result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
+
+    return sorted(result, key=lambda w: w.name)
 
 
 def get_endtoend_definitions(
-    library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
+    library: str,
+    scenario_map: dict,
+    weblogs_filter: list[str],
+    ci_environment: str,
+    desired_execution_time: int,
+    maximum_parallel_jobs: int,
+    unique_id: str,
+    binaries_artifact: str,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -256,7 +336,9 @@ def get_endtoend_definitions(
         time_stats = json.load(file)
 
     # get the list of end-to-end weblogs for the given library
-    weblogs = _get_endtoend_weblogs(library)
+    weblogs: list[Weblog] = _get_endtoend_weblogs(
+        library, weblogs_filter, ci_environment=ci_environment, unique_id=unique_id, binaries_artifact=binaries_artifact
+    )
 
     # check that jobs can be splitted
     assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
@@ -264,11 +346,11 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        supported_scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
+        supported_scenarios = _filter_scenarios(scenarios, library, weblog.name, ci_environment)
 
         if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
             scenarios_times = {
-                scenario: _get_execution_time(library, weblog, scenario, time_stats["run"])
+                scenario: _get_execution_time(library, weblog.name, scenario, time_stats["run"])
                 for scenario in supported_scenarios
             }
 
@@ -290,10 +372,13 @@ def get_endtoend_definitions(
     # sort jobs by weblog name and weblog instance
     jobs.sort(key=lambda job: job.sort_key)
 
+    weblogs = list({job.weblog.name: job.weblog for job in jobs}.values())
+    weblogs.sort(key=lambda w: w.name)
+
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": sorted({job.weblog for job in jobs}),
+            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_build],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
@@ -328,40 +413,52 @@ def _split_jobs_for_parallel_execution(
     return result
 
 
-def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
-    total_execution_time = sum(scenario_times.values())
+def _split_scenarios_for_parallel_execution(
+    scenario_times: dict[str, float], desired_execution_time: float
+) -> list[list[str]]:
+    class BackPack:
+        def __init__(self, scenario: str, execution_time: float):
+            self.scenarios: list[str] = [scenario]
+            self.execution_time: float = execution_time
 
-    # 1 minute minimum, almost no scenario will be less than that
-    desired_execution_time = max(desired_execution_time, 60)
+    # First Fit Decreasing algorithm to split scenarios into backpacks
+    # https://en.wikipedia.org/wiki/First-fit-decreasing_bin_packing
+    sorted_scenarios = sorted(scenario_times.items(), key=lambda item: item[1], reverse=True)
 
-    backpack_count = int(total_execution_time / desired_execution_time) + 1
-    backpack_average_time = total_execution_time / backpack_count
+    backpacks: list[BackPack] = []
 
-    backpack: list[str] = []
-    backpack_time = 0.0
+    for scenario, execution_time in sorted_scenarios:
+        if execution_time > desired_execution_time or len(backpacks) == 0:
+            # if the scenario is too long, or if we don't have any backpack, create a new one
+            backpacks.append(BackPack(scenario, execution_time))
+        else:
+            placed = False
+            for backpack in backpacks:
+                if backpack.execution_time + execution_time <= desired_execution_time:
+                    # if the scenario fits in the backpack, add it
+                    backpack.scenarios.append(scenario)
+                    backpack.execution_time += execution_time
+                    placed = True
+                    break
 
-    for scenario, execution_time in scenario_times.items():
-        backpack.append(scenario)
-        backpack_time += execution_time
+            if not placed:
+                # if the scenario doesn't fit in any backpack, create a new one
+                backpacks.append(BackPack(scenario, execution_time))
 
-        if backpack_time > backpack_average_time:
-            yield backpack
-
-            backpack = []
-            backpack_time = 0
-
-    if len(backpack) > 0:
-        yield backpack
+    return [backpack.scenarios for backpack in backpacks]
 
 
-def _get_build_time(library: str, weblog: str, build_stats: dict) -> float:
+def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
+    if not weblog.require_build:
+        return 0.0
+
     if library not in build_stats:
         return build_stats["*"]
 
-    if weblog not in build_stats[library]:
+    if weblog.name not in build_stats[library]:
         return build_stats[library]["*"]
 
-    return build_stats[library][weblog]
+    return build_stats[library][weblog.name]
 
 
 def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dict) -> int | float:
@@ -383,6 +480,17 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
 
 def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
+
+    # Only Allow Lambda scenarios for the lambda libraries
+    is_lambda_library = library in ("python_lambda",)
+    is_lambda_scenario = scenario in (
+        "APPSEC_LAMBDA_DEFAULT",
+        "APPSEC_LAMBDA_BLOCKING",
+        "APPSEC_LAMBDA_API_SECURITY",
+        "APPSEC_LAMBDA_RASP",
+    )
+    if is_lambda_library != is_lambda_scenario:
+        return False
 
     # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
@@ -442,6 +550,24 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
+    # external processing and streamm processing
+    is_stream_processing_scenario = scenario in ("STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING")
+    is_external_processing_scenario = scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING")
+
+    if weblog == "no-weblog-golang":
+        if not is_stream_processing_scenario and not is_external_processing_scenario:
+            return False
+    if is_stream_processing_scenario or is_external_processing_scenario:
+        if weblog != "no-weblog-golang":
+            return False
+
+    # otel collector
+    if weblog == "otel_collector" or scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):
+        return weblog == "otel_collector" and scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E")
+
+    if "@" in weblog or scenario == "INTEGRATION_FRAMEWORKS":
+        return "@" in weblog and scenario == "INTEGRATION_FRAMEWORKS"
+
     return True
 
 
@@ -468,7 +594,6 @@ if __name__ == "__main__":
             "APPSEC_RASP",
             "APPSEC_RASP_NON_BLOCKING",
             "APPSEC_RATE_LIMITER",
-            "APPSEC_REQUEST_BLOCKING",
             "APPSEC_RULES_MONITORING_WITH_ERRORS",
             "APPSEC_RUNTIME_ACTIVATION",
             "APPSEC_STANDALONE",
@@ -495,7 +620,6 @@ if __name__ == "__main__":
             "PERFORMANCES",
             "PROFILING",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-            "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
             "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
@@ -507,9 +631,7 @@ if __name__ == "__main__":
             "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
             "TELEMETRY_LOG_GENERATION_DISABLED",
             "TELEMETRY_METRIC_GENERATION_DISABLED",
-            "TELEMETRY_METRIC_GENERATION_ENABLED",
             "TRACE_PROPAGATION_STYLE_W3C",
-            "TRACE_PROPAGATION_STYLE_DEFAULT",
             "TRACING_CONFIG_EMPTY",
             "TRACING_CONFIG_NONDEFAULT",
             "TRACING_CONFIG_NONDEFAULT_2",
@@ -517,7 +639,6 @@ if __name__ == "__main__":
         ],
         "aws_ssi": [],
         "dockerssi": ["DOCKER_SSI"],
-        "externalprocessing": [],
         "graphql": ["GRAPHQL_APPSEC"],
         "libinjection": [
             "K8S_LIB_INJECTION",
@@ -537,4 +658,13 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("ruby", m, "dev", 20, 256)
+    get_endtoend_definitions(
+        "ruby",
+        m,
+        [],
+        "dev",
+        desired_execution_time=400,
+        maximum_parallel_jobs=256,
+        binaries_artifact="",
+        unique_id="000",
+    )

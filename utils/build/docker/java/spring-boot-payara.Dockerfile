@@ -28,6 +28,7 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 COPY --from=build /binaries/payara-micro.jar /app/payara-micro.jar
 COPY --from=build /root/.m2/repository/org/codehaus/woodstox/stax2-api/4.2.1/stax2-api-4.2.1.jar /app/stax2-api-4.2.1.jar
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app-payara.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
@@ -38,6 +39,5 @@ ENV APP_EXTRA_ARGS="--port 7777"
 ENV HZ_PHONE_HOME_ENABLED=false
 # https://blog.payara.fish/faster-payara-micro-startup-times-with-openj9
 ENV payaramicro_noCluster=true
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 CMD [ "/app/app.sh" ]

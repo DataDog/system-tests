@@ -296,7 +296,7 @@ if [[ -z "$ONBOARDING_KEEP_VMS" ]]; then
 fi
 
 ask_for_test_language
-load_workflow_data "all,onboarding,simple_onboarding,simple_onboarding_profiling" "aws_ssi_scenario_defs"
+load_workflow_data "all,onboarding,simple_onboarding,simple_onboarding_profiling,simple_onboarding_appsec" "aws_ssi_scenario_defs"
 select_scenario
 select_weblog
 
