@@ -8,6 +8,7 @@ from utils.k8s_lib_injection.k8s_command_utils import (
     helm_add_repo,
     helm_install_chart,
     execute_command,
+    create_namespace,
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
@@ -27,6 +28,7 @@ class K8sDatadog:
         dd_cluster_img=None,
         api_key=None,
         app_key=None,
+        namespace="datadog",
     ):
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature
@@ -35,18 +37,28 @@ class K8sDatadog:
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
+        self.namespace = namespace
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
-    def deploy_test_agent(self, namespace="default"):
+    def deploy_test_agent(self):
         """Installs the test agent pod."""
 
         logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_cluster_info.cluster_name}")
+
+        create_namespace(self.namespace, self.k8s_cluster_info)
 
         container = client.V1Container(
             name="trace-agent",
             image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
             image_pull_policy="Always",
-            ports=[client.V1ContainerPort(container_port=8126, host_port=8126, name="traceport", protocol="TCP")],
+            ports=[
+                client.V1ContainerPort(
+                    container_port=8126,
+                    host_port=8126,
+                    name="traceport",
+                    protocol="TCP",
+                )
+            ],
             command=["ddapm-test-agent"],
             env=[
                 client.V1EnvVar(name="SNAPSHOT_CI", value="0"),
@@ -54,7 +66,8 @@ class K8sDatadog:
                 client.V1EnvVar(name="DD_APM_RECEIVER_SOCKET", value="/var/run/datadog/apm.socket"),
                 client.V1EnvVar(name="LOG_LEVEL", value="DEBUG"),
                 client.V1EnvVar(
-                    name="ENABLED_CHECKS", value="trace_count_header,meta_tracer_version_header,trace_content_length"
+                    name="ENABLED_CHECKS",
+                    value="trace_count_header,meta_tracer_version_header,trace_content_length",
                 ),
             ],
             volume_mounts=[client.V1VolumeMount(mount_path="/var/run/datadog", name="datadog")],
@@ -95,26 +108,31 @@ class K8sDatadog:
         )
         # Spec
         spec = client.V1DaemonSetSpec(
-            selector=client.V1LabelSelector(match_labels={"app": "datadog"}), template=template
+            selector=client.V1LabelSelector(match_labels={"app": "datadog"}),
+            template=template,
         )
         # DaemonSet
         daemonset = client.V1DaemonSet(
-            api_version="apps/v1", kind="DaemonSet", metadata=client.V1ObjectMeta(name="datadog"), spec=spec
+            api_version="apps/v1",
+            kind="DaemonSet",
+            metadata=client.V1ObjectMeta(name="datadog"),
+            spec=spec,
         )
-        self.k8s_cluster_info.apps_api().create_namespaced_daemon_set(namespace=namespace, body=daemonset)
+        self.k8s_cluster_info.apps_api().create_namespaced_daemon_set(namespace=self.namespace, body=daemonset)
 
-        self.wait_for_test_agent(namespace)
+        self.wait_for_test_agent(self.namespace)
         logger.info("[Test agent] Daemonset created")
 
-    def deploy_datadog_cluster_agent(self, host_log_folder: str, namespace="default"):
+    def deploy_datadog_cluster_agent(self, host_log_folder: str):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
         We enable the admission controller and wait for the datdog cluster to be ready.
         The Datadog Admission Controller is an important piece of the Datadog Cluster Agent.
         The main benefit of the Datadog Admission Controller is to simplify your life when it comes to configure your application Pods.
         Datadog Admission Controller is a Mutating Admission Controller type because it mutates, or changes, the pods configurations.
         """
-
         logger.info("[Deploy datadog cluster] Deploying Datadog Cluster Agent with Admission Controler")
+        create_namespace(self.namespace, self.k8s_cluster_info)
+
         operator_file = "utils/k8s_lib_injection/resources/helm/datadog-helm-chart-values.yaml"
         if self.dd_cluster_uds:
             logger.info("[Deploy datadog cluster] Using UDS")
@@ -143,16 +161,19 @@ class K8sDatadog:
             "datadog/datadog",
             value_file=operator_file,
             set_dict=self.dd_cluster_feature,
+            namespace=self.namespace,
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
-        self._wait_for_cluster_agent_ready(namespace)
+        self._wait_for_cluster_agent_ready(self.namespace)
 
-    def deploy_datadog_operator(self, host_log_folder: str, namespace="default"):
+    def deploy_datadog_operator(self, host_log_folder: str):
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog Agent in a Kubernetes environment.
         By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
         the Datadog Cluster Agent, and Cluster check runners.
         """
+        logger.info("[Deploy datadog operator] Creating namespace")
+        create_namespace(self.namespace, self.k8s_cluster_info)
         logger.info("[Deploy datadog operator] Configuring helm repository")
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
         helm_install_chart(
@@ -163,11 +184,12 @@ class K8sDatadog:
             value_file=None,
             set_dict={},
             timeout=None,
+            namespace=self.namespace,
         )
         logger.info("[Deploy datadog operator] the operator is ready")
         logger.info("[Deploy datadog operator] Create the operator secrets")
         execute_command(
-            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace=default"
+            f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace={self.namespace}"
         )
         # Configure cluster agent image on the operator file
         if self.dd_cluster_img is None:
@@ -177,9 +199,9 @@ class K8sDatadog:
             oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
 
         logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
-        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace=default")
+        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace={self.namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
-        self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
+        self._wait_for_cluster_agent_ready(self.namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
     def wait_for_test_agent(self, namespace):
         """Waits for the test agent to be ready."""
@@ -312,14 +334,14 @@ class K8sDatadog:
 
             # Export: Telemetry datadog-cluster-agent
             execute_command(
-                f"kubectl exec -it {pods.items[0].metadata.name} -- agent telemetry ",
+                f"kubectl exec --namespace {namespace} -it {pods.items[0].metadata.name} -- agent telemetry ",
                 logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_telemetry.log",
             )
 
             # Export: Status datadog-cluster-agent
             # Sometimes this command fails. Ignore this error
             execute_command(
-                f"kubectl exec -it {pods.items[0].metadata.name} -- agent status || true ",
+                f"kubectl exec --namespace {namespace} -it {pods.items[0].metadata.name} -- agent status || true ",
                 logfile=f"{self.output_folder}/{pods.items[0].metadata.name}_status.log",
             )
         except Exception as e:

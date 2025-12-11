@@ -1,6 +1,11 @@
 import subprocess, datetime, os, time, signal, shlex
 from utils._logger import logger
 from retry import retry
+from kubernetes import client
+from kubernetes.client.rest import ApiException
+
+
+KUBERNETES_NOT_FOUND = 404
 
 
 def execute_command(command, timeout=None, logfile=None, subprocess_env=None, quiet=False):
@@ -23,7 +28,10 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
     try:
         start = datetime.datetime.now()
         process = subprocess.Popen(
-            shlex.split(command), stdout=command_out_redirect, stderr=command_out_redirect, env=subprocess_env
+            shlex.split(command),
+            stdout=command_out_redirect,
+            stderr=command_out_redirect,
+            env=subprocess_env,
         )
 
         while process.poll() is None:
@@ -59,6 +67,23 @@ def execute_command(command, timeout=None, logfile=None, subprocess_env=None, qu
 
 
 @retry(delay=1, tries=5)
+def create_namespace(name, k8s_cluster_info):
+    try:
+        # Check if namespace already exists
+        k8s_cluster_info.core_v1_api().read_namespace(name)
+        logger.info(f"Namespace '{name}' already exists.")
+    except ApiException as e:
+        if e.status == KUBERNETES_NOT_FOUND:
+            # Namespace not found → create it
+            ns = client.V1Namespace(metadata=client.V1ObjectMeta(name=name))
+            k8s_cluster_info.core_v1_api().create_namespace(ns)
+            logger.info(f"Namespace '{name}' created.")
+        else:
+            # Other API errors should not be swallowed
+            raise
+
+
+@retry(delay=1, tries=5)
 def helm_add_repo(name, url, k8s_cluster_info, update=False):
     logger.info(f"Adding helm repo {name} with url {url} for cluster {k8s_cluster_info.cluster_name}")
     execute_command(f"helm repo add {name} {url}")
@@ -68,7 +93,15 @@ def helm_add_repo(name, url, k8s_cluster_info, update=False):
 
 @retry(delay=1, tries=5)
 def helm_install_chart(
-    host_log_folder: str, k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False, timeout=90
+    host_log_folder: str,
+    k8s_cluster_info,
+    name,
+    chart,
+    set_dict={},
+    value_file=None,
+    upgrade=False,
+    timeout=90,
+    namespace="default",
 ):
     # Copy and replace cluster name in the value file
     custom_value_file = None
@@ -93,14 +126,14 @@ def helm_install_chart(
     if timeout == 0 or timeout is None:
         wait = ""
 
-    command = f"helm install {name} --debug {wait} {set_str} {chart} --namespace=default"
+    command = f"helm install {name} --debug {wait} {set_str} {chart} --namespace={namespace} --create-namespace"
     if upgrade:
-        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace=default"
+        command = (
+            f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace={namespace} --create-namespace"
+        )
     if custom_value_file:
-        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace=default"
+        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace={namespace} --create-namespace"
         if upgrade:
-            command = (
-                f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace=default"
-            )
+            command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace={namespace} --create-namespace"
     execute_command("kubectl config current-context")
     execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs
