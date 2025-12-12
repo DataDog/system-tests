@@ -1621,6 +1621,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_81_0
         nextjs: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
   tests/test_sampling_rates.py::Test_SamplingDecisions: *ref_5_54_0
@@ -1635,6 +1636,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_3_13_1
         nextjs: missing_feature  # nextjs makes some internal requests and we have different tag names
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag:
+    - component_version: ">=4.44.0"
+      declaration: bug (APMAPI-921)
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: *ref_3_13_1
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:
