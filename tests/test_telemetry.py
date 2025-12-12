@@ -692,12 +692,12 @@ class Test_APMOnboardingInstallID:
         """Assert that at least one trace carries APM onboarding info"""
 
         def validate_at_least_one_span_with_tag(tag: str):
-            for _, span in interfaces.agent.get_spans():
-                meta = span.get("meta", {})
-                if tag in meta:
-                    break
-            else:
-                raise Exception(f"Did not find tag {tag} in any spans")
+            for _, chunk in interfaces.agent.get_chunks_v1():
+                for span in chunk.get("spans", []):
+                    attributes = span.get("attributes", {})
+                    if tag in attributes:
+                        return
+            raise Exception(f"Did not find tag {tag} in any spans")
 
         validate_at_least_one_span_with_tag("_dd.install.id")
         validate_at_least_one_span_with_tag("_dd.install.time")
