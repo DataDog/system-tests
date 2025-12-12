@@ -73,11 +73,22 @@ async fn main() {
         }
     };
 
+    let meter_provider = match init_metrics() {
+        Ok(provider) => provider,
+        Err(ref error) => {
+            error!(
+                error = format!("{error:#}"),
+                "failed to initialize metrics"
+            );
+            return;
+        }
+    };
+
     // Replace the default panic hook with one that uses structured logging at ERROR level.
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
 
     // Run and log any error.
-    if let Err(ref error) = run(tracer).await {
+    if let Err(ref error) = run(tracer, meter_provider).await {
         error!(
             error = format!("{error:#}"),
             backtrace = %error.backtrace(),
@@ -134,7 +145,11 @@ pub struct Config {
     shutdown_timeout: Option<Duration>,
 }
 
-pub async fn serve(config: Config, tracer_provider: SdkTracerProvider) -> Result<()> {
+pub async fn serve(
+    config: Config,
+    tracer_provider: SdkTracerProvider,
+    meter_provider: SdkMeterProvider,
+) -> Result<()> {
     let Config {
         addr,
         port,
@@ -143,23 +158,12 @@ pub async fn serve(config: Config, tracer_provider: SdkTracerProvider) -> Result
 
     let current_context = Arc::new(Mutex::new(Arc::new(ContextWithParent::default())));
 
-    let meter_provider = match init_metrics() {
-        Ok(mp) => {
-            info!("Metrics provider initialized successfully");
-            Some(mp)
-        }
-        Err(e) => {
-            info!("Metrics provider initialization failed (may be disabled): {}", e);
-            None
-        }
-    };
-
     let state = AppState {
         contexts: Arc::new(Mutex::new(HashMap::new())),
         extracted_span_contexts: Arc::new(Mutex::new(HashMap::new())),
         tracer_provider,
         current_context,
-        meter_provider: Arc::new(Mutex::new(meter_provider)),
+        meter_provider: Arc::new(Mutex::new(Some(meter_provider))),
         otel_meters: Arc::new(Mutex::new(HashMap::new())),
         otel_meter_instruments: Arc::new(Mutex::new(HashMap::new())),
     };
@@ -264,7 +268,7 @@ fn make_span(request: &Request<Body>) -> Span {
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 
-async fn run(tracer: SdkTracerProvider) -> Result<()> {
+async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider) -> Result<()> {
     let port = u16::from_str_radix(
         &env::var("APM_TEST_CLIENT_SERVER_PORT").unwrap_or("8080".to_string()),
         10,
@@ -278,5 +282,5 @@ async fn run(tracer: SdkTracerProvider) -> Result<()> {
 
     info!(?config, "starting");
 
-    serve(config, tracer).await
+    serve(config, tracer, meter_provider).await
 }
