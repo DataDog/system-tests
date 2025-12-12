@@ -471,6 +471,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.19.0
+  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py: missing_feature
