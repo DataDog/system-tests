@@ -585,3 +585,623 @@ class Test_FFE_RC_Down_From_Start:
         assert result["value"] == self.default_value, (
             f"Expected default '{self.default_value}', got '{result['value']}'"
         )
+
+
+def count_exposure_events(flag_key: str, subject_id: str | None = None) -> int:
+    """Count exposure events for a specific flag key and optionally a specific subject.
+
+    Args:
+        flag_key: The flag key to search for
+        subject_id: Optional subject ID to filter by. If None, counts all events for the flag.
+
+    Returns:
+        Number of matching exposure events found
+
+    """
+    count = 0
+    for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+        exposure_data = data["request"]["content"]
+        if exposure_data is None:
+            continue
+
+        exposures = exposure_data.get("exposures", [])
+        for event in exposures:
+            event_flag_key = event.get("flag", {}).get("key")
+            event_subject_id = event.get("subject", {}).get("id")
+
+            if event_flag_key == flag_key:
+                if subject_id is None or event_subject_id == subject_id:
+                    count += 1
+    return count
+
+
+# UFC fixture for exposure caching tests with doLog: true
+UFC_EXPOSURE_CACHING_FIXTURE = {
+    "createdAt": "2024-04-17T19:40:53.716Z",
+    "format": "SERVER",
+    "environment": {"name": "Test"},
+    "flags": {
+        "caching-test-flag": {
+            "key": "caching-test-flag",
+            "enabled": True,
+            "variationType": "STRING",
+            "variations": {
+                "variant-a": {"key": "variant-a", "value": "value-a"},
+                "variant-b": {"key": "variant-b", "value": "value-b"},
+            },
+            "allocations": [
+                {
+                    "key": "default-allocation",
+                    "rules": [],
+                    "splits": [{"variationKey": "variant-a", "shards": []}],
+                    "doLog": True,
+                }
+            ],
+        }
+    },
+}
+
+# UFC fixture with different variant allocation
+UFC_EXPOSURE_VARIANT_B_FIXTURE = {
+    "createdAt": "2024-04-17T19:40:53.716Z",
+    "format": "SERVER",
+    "environment": {"name": "Test"},
+    "flags": {
+        "caching-test-flag": {
+            "key": "caching-test-flag",
+            "enabled": True,
+            "variationType": "STRING",
+            "variations": {
+                "variant-a": {"key": "variant-a", "value": "value-a"},
+                "variant-b": {"key": "variant-b", "value": "value-b"},
+            },
+            "allocations": [
+                {
+                    "key": "default-allocation",
+                    "rules": [],
+                    "splits": [{"variationKey": "variant-b", "shards": []}],
+                    "doLog": True,
+                }
+            ],
+        }
+    },
+}
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Caching_Same_Subject:
+    """Test that exposure caching deduplicates events for the same (subject, allocation, variant).
+
+    When the same subject evaluates the same flag multiple times and gets the same variant,
+    only one exposure event should be generated due to the exposure cache.
+    """
+
+    def setup_ffe_exposure_caching_same_subject(self):
+        """Set up FFE exposure caching test with multiple evaluations for the same subject."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-caching-test"
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        self.flag_key = "caching-test-flag"
+        self.targeting_key = "same-subject-user"
+
+        # Evaluate the same flag multiple times with the same subject
+        self.responses = []
+        for _i in range(5):
+            r = weblog.post(
+                "/ffe",
+                json={
+                    "flag": self.flag_key,
+                    "variationType": "STRING",
+                    "defaultValue": "default",
+                    "targetingKey": self.targeting_key,
+                    "attributes": {},
+                },
+            )
+            self.responses.append(r)
+
+    def test_ffe_exposure_caching_same_subject(self):
+        """Test that multiple evaluations for the same subject generate at most one exposure event."""
+        # Verify all requests succeeded
+        for i, r in enumerate(self.responses):
+            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+            result = json.loads(r.text)
+            assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
+
+        # Count exposure events for this specific subject
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+
+        # The exposure cache should deduplicate events - we expect exactly 1 exposure
+        # for the same (subject, allocation, variant) tuple
+        assert exposure_count == 1, (
+            f"Expected exactly 1 exposure event for subject '{self.targeting_key}' due to caching, "
+            f"but found {exposure_count} events"
+        )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Caching_Different_Subjects:
+    """Test that different subjects each generate their own exposure event.
+
+    The exposure cache is keyed by (subject, allocation, variant), so different
+    subjects should each generate a separate exposure event.
+    """
+
+    def setup_ffe_exposure_caching_different_subjects(self):
+        """Set up FFE exposure caching test with multiple different subjects."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-caching-test-subjects"
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        self.flag_key = "caching-test-flag"
+        self.subjects = [f"unique-subject-{i}" for i in range(5)]
+
+        # Evaluate the flag with different subjects
+        self.responses = []
+        for subject in self.subjects:
+            r = weblog.post(
+                "/ffe",
+                json={
+                    "flag": self.flag_key,
+                    "variationType": "STRING",
+                    "defaultValue": "default",
+                    "targetingKey": subject,
+                    "attributes": {},
+                },
+            )
+            self.responses.append(r)
+
+    def test_ffe_exposure_caching_different_subjects(self):
+        """Test that each unique subject generates exactly one exposure event."""
+        # Verify all requests succeeded
+        for i, r in enumerate(self.responses):
+            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+            result = json.loads(r.text)
+            assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
+
+        # Count total exposure events for this flag
+        total_exposure_count = count_exposure_events(self.flag_key)
+
+        # Each unique subject should generate exactly one exposure
+        assert total_exposure_count == len(self.subjects), (
+            f"Expected {len(self.subjects)} exposure events (one per unique subject), "
+            f"but found {total_exposure_count} events"
+        )
+
+        # Verify each subject has exactly one exposure
+        for subject in self.subjects:
+            subject_count = count_exposure_events(self.flag_key, subject)
+            assert subject_count == 1, f"Expected exactly 1 exposure for subject '{subject}', but found {subject_count}"
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Caching_Variant_Change:
+    """Test that changing the variant triggers a new exposure event.
+
+    The exposure cache is keyed by (subject, allocation, variant). When the UFC
+    is updated to return a different variant for the same subject, a new exposure
+    event should be generated.
+    """
+
+    def setup_ffe_exposure_caching_variant_change(self):
+        """Set up FFE exposure test that changes variant via UFC update."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-variant-change-test"
+        self.flag_key = "caching-test-flag"
+        self.targeting_key = "variant-change-user"
+
+        # First: set up config with variant-a
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        # Evaluate and get variant-a
+        self.response_variant_a = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Update config to return variant-b
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_VARIANT_B_FIXTURE).apply()
+
+        # Evaluate again - should now get variant-b and generate new exposure
+        self.response_variant_b = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Evaluate variant-b again - should NOT generate another exposure
+        self.response_variant_b_repeat = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_caching_variant_change(self):
+        """Test that variant change triggers new exposure, but repeated same variant doesn't."""
+        # Verify first evaluation returned variant-a
+        assert self.response_variant_a.status_code == 200, f"First request failed: {self.response_variant_a.text}"
+        result_a = json.loads(self.response_variant_a.text)
+        assert result_a["value"] == "value-a", f"Expected 'value-a', got '{result_a['value']}'"
+
+        # Verify second evaluation returned variant-b
+        assert self.response_variant_b.status_code == 200, f"Second request failed: {self.response_variant_b.text}"
+        result_b = json.loads(self.response_variant_b.text)
+        assert result_b["value"] == "value-b", f"Expected 'value-b', got '{result_b['value']}'"
+
+        # Verify third evaluation also returned variant-b
+        assert self.response_variant_b_repeat.status_code == 200, (
+            f"Third request failed: {self.response_variant_b_repeat.text}"
+        )
+        result_b_repeat = json.loads(self.response_variant_b_repeat.text)
+        assert result_b_repeat["value"] == "value-b", f"Expected 'value-b', got '{result_b_repeat['value']}'"
+
+        # Count exposure events - should be exactly 2:
+        # - One for the initial variant-a evaluation
+        # - One for the variant-b evaluation after config change
+        # The repeated variant-b evaluation should NOT generate a new exposure
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+
+        assert exposure_count == 2, (
+            f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
+            f"(one for variant-a, one for variant-b after config change), "
+            f"but found {exposure_count} events"
+        )
+
+
+# UFC fixture with different allocation key but same variant
+UFC_EXPOSURE_ALLOCATION_B_FIXTURE = {
+    "createdAt": "2024-04-17T19:40:53.716Z",
+    "format": "SERVER",
+    "environment": {"name": "Test"},
+    "flags": {
+        "caching-test-flag": {
+            "key": "caching-test-flag",
+            "enabled": True,
+            "variationType": "STRING",
+            "variations": {
+                "variant-a": {"key": "variant-a", "value": "value-a"},
+                "variant-b": {"key": "variant-b", "value": "value-b"},
+            },
+            "allocations": [
+                {
+                    "key": "different-allocation",  # Different allocation key
+                    "rules": [],
+                    "splits": [{"variationKey": "variant-a", "shards": []}],  # Same variant
+                    "doLog": True,
+                }
+            ],
+        }
+    },
+}
+
+
+# UFC fixture with doLog=false
+UFC_EXPOSURE_DOLOG_FALSE_FIXTURE = {
+    "createdAt": "2024-04-17T19:40:53.716Z",
+    "format": "SERVER",
+    "environment": {"name": "Test"},
+    "flags": {
+        "no-log-flag": {
+            "key": "no-log-flag",
+            "enabled": True,
+            "variationType": "STRING",
+            "variations": {
+                "variant-a": {"key": "variant-a", "value": "value-a"},
+            },
+            "allocations": [
+                {
+                    "key": "default-allocation",
+                    "rules": [],
+                    "splits": [{"variationKey": "variant-a", "shards": []}],
+                    "doLog": False,  # Exposure logging disabled
+                }
+            ],
+        }
+    },
+}
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Caching_Allocation_Change:
+    """Test that changing the allocation key triggers a new exposure event.
+
+    The exposure cache value includes the allocation key. When the UFC is updated
+    to use a different allocation (even if the variant stays the same), a new
+    exposure event should be generated.
+    """
+
+    def setup_ffe_exposure_caching_allocation_change(self):
+        """Set up FFE exposure test that changes allocation key via UFC update."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-allocation-change-test"
+        self.flag_key = "caching-test-flag"
+        self.targeting_key = "allocation-change-user"
+
+        # First: set up config with default-allocation returning variant-a
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        # Evaluate and get variant-a from default-allocation
+        self.response_alloc_a = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Update config to use different-allocation (still returns variant-a)
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_ALLOCATION_B_FIXTURE).apply()
+
+        # Evaluate again - should still get variant-a but from different allocation
+        self.response_alloc_b = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Evaluate with different-allocation again - should NOT generate another exposure
+        self.response_alloc_b_repeat = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_caching_allocation_change(self):
+        """Test that allocation key change triggers new exposure, even with same variant."""
+        # Verify all evaluations returned variant-a (same value)
+        assert self.response_alloc_a.status_code == 200, f"First request failed: {self.response_alloc_a.text}"
+        result_a = json.loads(self.response_alloc_a.text)
+        assert result_a["value"] == "value-a", f"Expected 'value-a', got '{result_a['value']}'"
+
+        assert self.response_alloc_b.status_code == 200, f"Second request failed: {self.response_alloc_b.text}"
+        result_b = json.loads(self.response_alloc_b.text)
+        assert result_b["value"] == "value-a", f"Expected 'value-a', got '{result_b['value']}'"
+
+        assert self.response_alloc_b_repeat.status_code == 200, (
+            f"Third request failed: {self.response_alloc_b_repeat.text}"
+        )
+        result_b_repeat = json.loads(self.response_alloc_b_repeat.text)
+        assert result_b_repeat["value"] == "value-a", f"Expected 'value-a', got '{result_b_repeat['value']}'"
+
+        # Count exposure events - should be exactly 2:
+        # - One for the initial evaluation from default-allocation
+        # - One for the evaluation from different-allocation (allocation key changed)
+        # The repeated evaluation should NOT generate a new exposure
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+
+        assert exposure_count == 2, (
+            f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
+            f"(one for each allocation key), but found {exposure_count} events"
+        )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Caching_Variant_Cycle:
+    """Test that cycling through variants generates an exposure for each change.
+
+    When a subject receives variant-a, then variant-b, then variant-a again,
+    each variant change should generate a new exposure event (3 total).
+    The cache stores (allocation_key, variant) as the value, so changing back
+    to a previous variant still triggers a new exposure.
+    """
+
+    def setup_ffe_exposure_caching_variant_cycle(self):
+        """Set up FFE exposure test that cycles through variants."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-variant-cycle-test"
+        self.flag_key = "caching-test-flag"
+        self.targeting_key = "variant-cycle-user"
+
+        # Step 1: Config with variant-a
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        self.response_1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Step 2: Config with variant-b
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_VARIANT_B_FIXTURE).apply()
+
+        self.response_2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Step 3: Config back to variant-a
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        self.response_3 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_caching_variant_cycle(self):
+        """Test that variant-a → variant-b → variant-a generates 3 exposures."""
+        # Verify step 1: variant-a
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        result_1 = json.loads(self.response_1.text)
+        assert result_1["value"] == "value-a", f"Request 1: expected 'value-a', got '{result_1['value']}'"
+
+        # Verify step 2: variant-b
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+        result_2 = json.loads(self.response_2.text)
+        assert result_2["value"] == "value-b", f"Request 2: expected 'value-b', got '{result_2['value']}'"
+
+        # Verify step 3: variant-a again
+        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
+        result_3 = json.loads(self.response_3.text)
+        assert result_3["value"] == "value-a", f"Request 3: expected 'value-a', got '{result_3['value']}'"
+
+        # Count exposure events - should be exactly 3:
+        # - Exposure #1: variant-a
+        # - Exposure #2: variant-b (variant changed)
+        # - Exposure #3: variant-a (variant changed back)
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+
+        assert exposure_count == 3, (
+            f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
+            f"(variant-a → variant-b → variant-a), but found {exposure_count} events"
+        )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_Missing_Flag:
+    """Test that evaluating a missing/non-existent flag does not generate exposure events.
+
+    When a flag is not found in the configuration, the evaluation returns a default
+    value with an error reason. No exposure event should be generated for this case.
+    """
+
+    def setup_ffe_exposure_missing_flag(self):
+        """Set up FFE exposure test for a missing flag."""
+        rc.rc_state.reset().apply()
+
+        # Set up a config with a different flag (not the one we'll request)
+        config_id = "ffe-missing-flag-test"
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+
+        self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
+        self.targeting_key = "missing-flag-user"
+
+        # Evaluate a flag that doesn't exist
+        self.responses = []
+        for _i in range(3):
+            r = weblog.post(
+                "/ffe",
+                json={
+                    "flag": self.flag_key,
+                    "variationType": "STRING",
+                    "defaultValue": "default-value",
+                    "targetingKey": self.targeting_key,
+                    "attributes": {},
+                },
+            )
+            self.responses.append(r)
+
+    def test_ffe_exposure_missing_flag(self):
+        """Test that missing flag evaluations do not generate exposure events."""
+        # Verify all requests succeeded (should return default value)
+        for i, r in enumerate(self.responses):
+            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+            result = json.loads(r.text)
+            # Missing flag should return the default value
+            assert result["value"] == "default-value", (
+                f"Request {i + 1}: expected 'default-value', got '{result['value']}'"
+            )
+
+        # Count exposure events - should be 0 because flag doesn't exist
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+
+        assert exposure_count == 0, (
+            f"Expected 0 exposure events for missing flag '{self.flag_key}', but found {exposure_count} events"
+        )
+
+
+@scenarios.feature_flag_exposure
+@features.feature_flag_exposure
+class Test_FFE_Exposure_DoLog_False:
+    """Test that flags with doLog=false do not generate exposure events.
+
+    When an allocation has doLog set to false, no exposure events should be
+    sent for evaluations that match that allocation.
+    """
+
+    def setup_ffe_exposure_dolog_false(self):
+        """Set up FFE exposure test with doLog=false."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-dolog-false-test"
+        self.flag_key = "no-log-flag"
+        self.targeting_key = "dolog-false-user"
+
+        # Set up config with doLog=false
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE).apply()
+
+        # Evaluate the flag multiple times
+        self.responses = []
+        for _i in range(3):
+            r = weblog.post(
+                "/ffe",
+                json={
+                    "flag": self.flag_key,
+                    "variationType": "STRING",
+                    "defaultValue": "default",
+                    "targetingKey": self.targeting_key,
+                    "attributes": {},
+                },
+            )
+            self.responses.append(r)
+
+    def test_ffe_exposure_dolog_false(self):
+        """Test that doLog=false prevents exposure events from being generated."""
+        # Verify all requests succeeded and returned the expected value
+        for i, r in enumerate(self.responses):
+            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
+            result = json.loads(r.text)
+            assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
+
+        # Count exposure events - should be 0 because doLog=false
+        exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
+
+        assert exposure_count == 0, (
+            f"Expected 0 exposure events for flag with doLog=false, but found {exposure_count} events"
+        )
