@@ -11,6 +11,7 @@ class ProxyPorts(IntEnum):
     otel_collector = 8128
 
     agent = 8200
+    vcr_proxy = 8201
 
     python_buddy = 9001
     nodejs_buddy = 9002

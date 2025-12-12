@@ -2702,5 +2702,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
 
+    @staticmethod
+    def ai_guard(test_object):
+        """AI Guard SDK
+
+        https://feature-parity.us1.prod.dog/#/?feature=528
+        """
+        return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
+
 
 features = _Features()
