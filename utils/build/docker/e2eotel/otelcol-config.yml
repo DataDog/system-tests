@@ -3,57 +3,7 @@ receivers:
     protocols:
       http:
         endpoint: 0.0.0.0:4318
-
-  postgresql:
-    endpoint: postgres:5433
-    username: system_tests_user
-    password: system_tests
-    databases:
-      - system_tests_dbname
-    collection_interval: 10s
-    tls:
-      insecure: true
-    events: # from the opentelemetry-collector-contrib/receiver/postgresqlreceiver/README.md
-      db.server.query_sample:
-        enabled: true
-      db.server.top_query:
-        enabled: true
-    query_sample_collection:
-      max_rows_per_query: 100
-    top_query_collection:
-      max_rows_per_query: 100
-      top_n_query: 100
-    metrics:
-      postgresql.blks_read:
-        enabled: true
-      postgresql.blks_hit:
-        enabled: true
-      postgresql.database.locks:
-        enabled: true
-      postgresql.deadlocks:
-        enabled: true
-      postgresql.function.calls:
-        enabled: true
-      postgresql.sequential_scans:
-        enabled: true
-      postgresql.temp.io:
-        enabled: true
-      postgresql.temp_files:
-        enabled: true
-      postgresql.tup_deleted:
-        enabled: true
-      postgresql.tup_fetched:
-        enabled: true
-      postgresql.tup_inserted:
-        enabled: true
-      postgresql.tup_returned:
-        enabled: true
-      postgresql.tup_updated:
-        enabled: true
-      postgresql.wal.delay:
-        enabled: true
-      postgresql.wal.age:
-        enabled: true
+  postgresql: ${file:/etc/config/receivers/postgresql.yml}
 
 exporters:
   datadog:
@@ -88,7 +38,7 @@ processors:
   attributes/add_rid:
     actions:
       - key: rid
-        value: "otel-postgres-metrics"
+        value: "otel-e2e-metrics"
         action: upsert
 
   attributes/add_docker_image:
