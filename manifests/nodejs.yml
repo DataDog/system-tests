@@ -1564,6 +1564,30 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_25_0
         nextjs: bug (APMAPI-939)  # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Allocation_Change:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Different_Subjects:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Same_Subject:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Variant_Change:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Variant_Cycle:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_DoLog_False:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -1573,6 +1597,10 @@ manifest:
         "*": incomplete_test_app
         express4: *ref_5_77_0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Missing_Flag:
     - weblog_declaration:
         "*": incomplete_test_app
         express4: *ref_5_77_0

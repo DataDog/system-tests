@@ -1304,11 +1304,18 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Allocation_Change: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Different_Subjects: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Same_Subject: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Variant_Change: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Variant_Cycle: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_DoLog_False: v4.0.0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: v4.0.0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: v4.0.0
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: v4.0.0
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Missing_Flag: v4.0.0
   tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: v4.0.0
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: v4.0.0
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature

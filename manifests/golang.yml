@@ -819,9 +819,16 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Allocation_Change: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Different_Subjects: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Same_Subject: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Variant_Change: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Caching_Variant_Cycle: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_DoLog_False: v2.5.0-dev
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: v2.5.0-dev
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: v2.5.0-dev
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: v2.5.0-dev
+  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Missing_Flag: v2.5.0-dev
   tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
