@@ -615,57 +615,35 @@ def count_exposure_events(flag_key: str, subject_id: str | None = None) -> int:
     return count
 
 
-# UFC fixture for exposure caching tests with doLog: true
-UFC_EXPOSURE_CACHING_FIXTURE = {
-    "createdAt": "2024-04-17T19:40:53.716Z",
-    "format": "SERVER",
-    "environment": {"name": "Test"},
-    "flags": {
-        "caching-test-flag": {
-            "key": "caching-test-flag",
-            "enabled": True,
-            "variationType": "STRING",
-            "variations": {
-                "variant-a": {"key": "variant-a", "value": "value-a"},
-                "variant-b": {"key": "variant-b", "value": "value-b"},
-            },
-            "allocations": [
-                {
-                    "key": "default-allocation",
-                    "rules": [],
-                    "splits": [{"variationKey": "variant-a", "shards": []}],
-                    "doLog": True,
-                }
-            ],
-        }
-    },
-}
+def make_ufc_fixture(flag_key: str, variant_key: str = "variant-a", allocation_key: str = "default-allocation"):
+    """Create a UFC fixture with the given flag key and variant.
 
-# UFC fixture with different variant allocation
-UFC_EXPOSURE_VARIANT_B_FIXTURE = {
-    "createdAt": "2024-04-17T19:40:53.716Z",
-    "format": "SERVER",
-    "environment": {"name": "Test"},
-    "flags": {
-        "caching-test-flag": {
-            "key": "caching-test-flag",
-            "enabled": True,
-            "variationType": "STRING",
-            "variations": {
-                "variant-a": {"key": "variant-a", "value": "value-a"},
-                "variant-b": {"key": "variant-b", "value": "value-b"},
-            },
-            "allocations": [
-                {
-                    "key": "default-allocation",
-                    "rules": [],
-                    "splits": [{"variationKey": "variant-b", "shards": []}],
-                    "doLog": True,
-                }
-            ],
-        }
-    },
-}
+    Each test should use a unique flag_key to avoid counting exposures from other tests.
+    """
+    return {
+        "createdAt": "2024-04-17T19:40:53.716Z",
+        "format": "SERVER",
+        "environment": {"name": "Test"},
+        "flags": {
+            flag_key: {
+                "key": flag_key,
+                "enabled": True,
+                "variationType": "STRING",
+                "variations": {
+                    "variant-a": {"key": "variant-a", "value": "value-a"},
+                    "variant-b": {"key": "variant-b", "value": "value-b"},
+                },
+                "allocations": [
+                    {
+                        "key": allocation_key,
+                        "rules": [],
+                        "splits": [{"variationKey": variant_key, "shards": []}],
+                        "doLog": True,
+                    }
+                ],
+            }
+        },
+    }
 
 
 @scenarios.feature_flag_exposure
@@ -682,9 +660,9 @@ class Test_FFE_Exposure_Caching_Same_Subject:
         rc.rc_state.reset().apply()
 
         config_id = "ffe-caching-test"
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        self.flag_key = "same-subject-test-flag"  # Unique flag key for this test
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        self.flag_key = "caching-test-flag"
         self.targeting_key = "same-subject-user"
 
         # Evaluate the same flag multiple times with the same subject
@@ -735,9 +713,9 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
         rc.rc_state.reset().apply()
 
         config_id = "ffe-caching-test-subjects"
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        self.flag_key = "diff-subjects-test-flag"  # Unique flag key for this test
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        self.flag_key = "caching-test-flag"
         self.subjects = [f"unique-subject-{i}" for i in range(5)]
 
         # Evaluate the flag with different subjects
@@ -793,11 +771,11 @@ class Test_FFE_Exposure_Caching_Variant_Change:
         rc.rc_state.reset().apply()
 
         config_id = "ffe-variant-change-test"
-        self.flag_key = "caching-test-flag"
+        self.flag_key = "variant-change-test-flag"  # Unique flag key for this test
         self.targeting_key = "variant-change-user"
 
         # First: set up config with variant-a
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")).apply()
 
         # Evaluate and get variant-a
         self.response_variant_a = weblog.post(
@@ -812,7 +790,7 @@ class Test_FFE_Exposure_Caching_Variant_Change:
         )
 
         # Update config to return variant-b
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_VARIANT_B_FIXTURE).apply()
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-b")).apply()
 
         # Evaluate again - should now get variant-b and generate new exposure
         self.response_variant_b = weblog.post(
@@ -870,33 +848,6 @@ class Test_FFE_Exposure_Caching_Variant_Change:
         )
 
 
-# UFC fixture with different allocation key but same variant
-UFC_EXPOSURE_ALLOCATION_B_FIXTURE = {
-    "createdAt": "2024-04-17T19:40:53.716Z",
-    "format": "SERVER",
-    "environment": {"name": "Test"},
-    "flags": {
-        "caching-test-flag": {
-            "key": "caching-test-flag",
-            "enabled": True,
-            "variationType": "STRING",
-            "variations": {
-                "variant-a": {"key": "variant-a", "value": "value-a"},
-                "variant-b": {"key": "variant-b", "value": "value-b"},
-            },
-            "allocations": [
-                {
-                    "key": "different-allocation",  # Different allocation key
-                    "rules": [],
-                    "splits": [{"variationKey": "variant-a", "shards": []}],  # Same variant
-                    "doLog": True,
-                }
-            ],
-        }
-    },
-}
-
-
 # UFC fixture with doLog=false
 UFC_EXPOSURE_DOLOG_FALSE_FIXTURE = {
     "createdAt": "2024-04-17T19:40:53.716Z",
@@ -938,11 +889,14 @@ class Test_FFE_Exposure_Caching_Allocation_Change:
         rc.rc_state.reset().apply()
 
         config_id = "ffe-allocation-change-test"
-        self.flag_key = "caching-test-flag"
+        self.flag_key = "alloc-change-test-flag"  # Unique flag key for this test
         self.targeting_key = "allocation-change-user"
 
         # First: set up config with default-allocation returning variant-a
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        rc.rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", "default-allocation"),
+        ).apply()
 
         # Evaluate and get variant-a from default-allocation
         self.response_alloc_a = weblog.post(
@@ -957,7 +911,10 @@ class Test_FFE_Exposure_Caching_Allocation_Change:
         )
 
         # Update config to use different-allocation (still returns variant-a)
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_ALLOCATION_B_FIXTURE).apply()
+        rc.rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", "different-allocation"),
+        ).apply()
 
         # Evaluate again - should still get variant-a but from different allocation
         self.response_alloc_b = weblog.post(
@@ -1028,11 +985,11 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         rc.rc_state.reset().apply()
 
         config_id = "ffe-variant-cycle-test"
-        self.flag_key = "caching-test-flag"
+        self.flag_key = "variant-cycle-test-flag"  # Unique flag key for this test
         self.targeting_key = "variant-cycle-user"
 
         # Step 1: Config with variant-a
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")).apply()
 
         self.response_1 = weblog.post(
             "/ffe",
@@ -1046,7 +1003,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         )
 
         # Step 2: Config with variant-b
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_VARIANT_B_FIXTURE).apply()
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-b")).apply()
 
         self.response_2 = weblog.post(
             "/ffe",
@@ -1060,7 +1017,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         )
 
         # Step 3: Config back to variant-a
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")).apply()
 
         self.response_3 = weblog.post(
             "/ffe",
@@ -1117,7 +1074,7 @@ class Test_FFE_Exposure_Missing_Flag:
 
         # Set up a config with a different flag (not the one we'll request)
         config_id = "ffe-missing-flag-test"
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_CACHING_FIXTURE).apply()
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
 
         self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
         self.targeting_key = "missing-flag-user"
