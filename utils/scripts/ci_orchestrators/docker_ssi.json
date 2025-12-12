@@ -13,6 +13,9 @@
                     "nodejs": [
                         "js-app"
                     ],
+                    "ruby": [
+                        "ruby-app"
+                    ],
                     "python": [
                         "py-app"
                     ],
@@ -33,6 +36,9 @@
                 {
                     "nodejs": [
                         "js-app"
+                    ],
+                    "ruby": [
+                        "ruby-app"
                     ],
                     "python": [
                         "py-app"
@@ -170,6 +176,25 @@
                 "supported_images": [
                     {
                         "name": "Wildfly_amd64"
+                    }
+                ]
+            }
+        ],
+        "ruby": [
+            {
+                "name": "ruby-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
                     }
                 ]
             }
