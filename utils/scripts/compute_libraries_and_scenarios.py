@@ -10,7 +10,6 @@ import sys
 from collections import OrderedDict, defaultdict
 from fnmatch import fnmatch
 from typing import TYPE_CHECKING, Any
-from textwrap import dedent
 
 import yaml
 
@@ -156,7 +155,7 @@ class LibraryProcessor:
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file: str) -> bool:
+    def is_manual(self) -> bool:
         if not self.user_choice:
             return False
 
@@ -169,7 +168,7 @@ class LibraryProcessor:
 
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
-        if not self.is_manual(file):
+        if not self.is_manual():
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
