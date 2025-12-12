@@ -213,3 +213,5 @@ def assert_prompt_tracking(
     assert span_event["meta"]["input"]["messages"] == expected_messages, (
         f"Expected messages {expected_messages}, got {span_event['meta']['input']['messages']}"
     )
+
+    assert span_event.get("_dd", {}).get("prompt_tracking_auto") == 1
