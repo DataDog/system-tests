@@ -913,6 +913,10 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(
+        context.library == "rust",
+        reason="OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK.",
+    )
     def test_otel_histogram_add_non_negative_and_negative_values(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1683,7 +1687,7 @@ class Test_Otel_Metrics_Host_Name:
     """
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs"),
+        context.library in ("dotnet", "nodejs", "rust"),
         reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented",
     )
     @pytest.mark.parametrize(
@@ -1971,7 +1975,9 @@ class Test_Otel_Metrics_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            value = config.get("value")
+            assert value is not None, f"Configuration value is None for '{expected_env}'"
+            assert int(value) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
@@ -2015,12 +2021,12 @@ class Test_Otel_Metrics_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
-            ("OTEL_METRIC_EXPORT_INTERVAL", 5000),
-            ("OTEL_METRIC_EXPORT_TIMEOUT", 5000),
+            ("OTEL_METRIC_EXPORT_INTERVAL", "5000"),
+            ("OTEL_METRIC_EXPORT_TIMEOUT", "5000"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
@@ -2028,7 +2034,7 @@ class Test_Otel_Metrics_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
@@ -2070,7 +2076,7 @@ class Test_Otel_Metrics_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
@@ -2081,12 +2087,12 @@ class Test_Otel_Metrics_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
     @missing_feature(
-        context.library == "dotnet",
+        context.library in ("dotnet", "rust"),
         reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
     )
     @pytest.mark.parametrize(
@@ -2133,7 +2139,7 @@ class Test_Otel_Metrics_Telemetry:
             assert "encoding:protobuf" in metric.get("tags")
 
     @missing_feature(
-        context.library == "dotnet",
+        context.library in ("dotnet", "rust"),
         reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
     )
     @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
