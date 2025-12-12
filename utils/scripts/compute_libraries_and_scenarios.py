@@ -155,26 +155,9 @@ class LibraryProcessor:
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file: str) -> bool:
-        if not self.user_choice:
-            return False
-
-        if self.branch_selector or len(self.impacted) == 0:
-            return True
-        # user specified a library in the PR title
-        # and there are some impacted libraries
-        if file.startswith("tests/") or self.impacted == {self.user_choice}:
-            # modification in tests files are complex, trust user
-            return True
-        # only acceptable use case : impacted library exactly matches user choice
-        raise ValueError(
-            f"""File {file} is modified, and it may impact {", ".join(self.impacted)}.
-                    Please remove the PR title prefix [{self.user_choice}]"""
-        )
-
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
-        if not self.is_manual(file):
+        if not (self.user_choice and self.branch_selector):
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
