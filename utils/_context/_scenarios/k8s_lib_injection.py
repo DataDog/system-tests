@@ -80,7 +80,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
         self.components[self._library.name] = self._library.version
-        self.components["cluster_agent"] = ComponentVersion("cluster_agent", self.k8s_cluster_img.version).version
+        self.components["k8s_cluster_agent"] = ComponentVersion("cluster_agent", self.k8s_cluster_img.version).version
         self._configuration["cluster_agent"] = self.k8s_cluster_img.version
         self._datadog_apm_inject_version = f"v{self.k8s_injector_img.version}"
         self.components["datadog-apm-inject"] = ComponentVersion(
