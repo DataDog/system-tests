@@ -766,6 +766,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.container_restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        print(f"configuration_by_name: {configuration_by_name}")
         # Configuration set via fleet config should have the config_id set
         apm_telemetry_names = _mapped_telemetry_name("trace_debug_enabled")
         telemetry_item = None
