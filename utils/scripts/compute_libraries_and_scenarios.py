@@ -164,15 +164,8 @@ class LibraryProcessor:
             return True
         # user specified a library in the PR title
         # and there are some impacted libraries
-        if self.impacted == {self.user_choice}:
-            return True
         # only acceptable use case : impacted library exactly matches user choice
-        raise ValueError(
-            dedent(f"""\
-            File {file} is modified, and it may impact {", ".join(self.impacted)}.
-            (prefix for test files are no longer supported)
-            Please remove the PR title prefix [{self.user_choice}]""")
-        )
+        return self.impacted == {self.user_choice}
 
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
