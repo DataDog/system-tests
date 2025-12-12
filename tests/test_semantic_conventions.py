@@ -49,6 +49,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
         "grpc.server": "grpc-server",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-jetty": {
         "servlet.request": "jetty-server",
@@ -57,12 +58,14 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
         "servlet.error": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-3-native": {
         "servlet.request": "tomcat-server",
         "spring.handler": "spring-web-controller",
         "hsqldb.query": "java-jdbc-statement",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
@@ -70,6 +73,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-undertow": {
         "servlet.request": "undertow-http-server",
@@ -78,6 +82,7 @@ VARIANT_COMPONENT_MAP = {
         "undertow-http.request": "undertow-http-server",
         "servlet.response": "java-web-servlet-response",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
@@ -86,6 +91,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-payara": {
         "servlet.request": "java-web-servlet",
@@ -93,6 +99,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller"},
     "akka-http": "akka-http-server",
@@ -118,6 +125,7 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
     "vertx4": {"netty.request": "netty", "vertx.route-handler": "vertx"},

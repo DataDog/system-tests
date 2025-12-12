@@ -2639,6 +2639,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=517, owner=_Owner.ml_observability)
 
     @staticmethod
+    def rum_injection(test_object):
+        """RUM Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=525
+        """
+        return _mark_test_object(test_object, feature_id=525, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def apm_openai_completions(test_object):
         """APM supports OpenAI completions interactions
 

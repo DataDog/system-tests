@@ -77,6 +77,7 @@ manifest:
   tests/test_profiling.py: missing_feature (missing profiling module in weblog)
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.0.0  # real version unknown
