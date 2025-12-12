@@ -877,29 +877,29 @@ UFC_EXPOSURE_DOLOG_FALSE_FIXTURE = {
 @scenarios.feature_flag_exposure
 @features.feature_flag_exposure
 class Test_FFE_Exposure_Caching_Allocation_Change:
-    """Test that changing the allocation key triggers a new exposure event.
+    """Test that cycling through allocations generates an exposure for each change.
 
-    The exposure cache value includes the allocation key. When the UFC is updated
-    to use a different allocation (even if the variant stays the same), a new
-    exposure event should be generated.
+    When a subject receives a flag from allocation-a, then allocation-b, then allocation-a again,
+    each allocation change should generate a new exposure event (3 total), even though
+    the variant value stays the same. The cache stores (allocation_key, variant) as the value,
+    so changing back to a previous allocation still triggers a new exposure.
     """
 
     def setup_ffe_exposure_caching_allocation_change(self):
-        """Set up FFE exposure test that changes allocation key via UFC update."""
+        """Set up FFE exposure test that cycles through allocations."""
         rc.rc_state.reset().apply()
 
         config_id = "ffe-allocation-change-test"
         self.flag_key = "alloc-change-test-flag"  # Unique flag key for this test
         self.targeting_key = "allocation-change-user"
 
-        # First: set up config with default-allocation returning variant-a
+        # Step 1: Config with default-allocation returning variant-a
         rc.rc_state.set_config(
             f"{RC_PATH}/{config_id}/config",
             make_ufc_fixture(self.flag_key, "variant-a", "default-allocation"),
         ).apply()
 
-        # Evaluate and get variant-a from default-allocation
-        self.response_alloc_a = weblog.post(
+        self.response_1 = weblog.post(
             "/ffe",
             json={
                 "flag": self.flag_key,
@@ -910,14 +910,13 @@ class Test_FFE_Exposure_Caching_Allocation_Change:
             },
         )
 
-        # Update config to use different-allocation (still returns variant-a)
+        # Step 2: Config with different-allocation (still returns variant-a)
         rc.rc_state.set_config(
             f"{RC_PATH}/{config_id}/config",
             make_ufc_fixture(self.flag_key, "variant-a", "different-allocation"),
         ).apply()
 
-        # Evaluate again - should still get variant-a but from different allocation
-        self.response_alloc_b = weblog.post(
+        self.response_2 = weblog.post(
             "/ffe",
             json={
                 "flag": self.flag_key,
@@ -928,8 +927,13 @@ class Test_FFE_Exposure_Caching_Allocation_Change:
             },
         )
 
-        # Evaluate with different-allocation again - should NOT generate another exposure
-        self.response_alloc_b_repeat = weblog.post(
+        # Step 3: Config back to default-allocation (still returns variant-a)
+        rc.rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", "default-allocation"),
+        ).apply()
+
+        self.response_3 = weblog.post(
             "/ffe",
             json={
                 "flag": self.flag_key,
@@ -941,31 +945,32 @@ class Test_FFE_Exposure_Caching_Allocation_Change:
         )
 
     def test_ffe_exposure_caching_allocation_change(self):
-        """Test that allocation key change triggers new exposure, even with same variant."""
-        # Verify all evaluations returned variant-a (same value)
-        assert self.response_alloc_a.status_code == 200, f"First request failed: {self.response_alloc_a.text}"
-        result_a = json.loads(self.response_alloc_a.text)
-        assert result_a["value"] == "value-a", f"Expected 'value-a', got '{result_a['value']}'"
+        """Test that allocation-a → allocation-b → allocation-a generates 3 exposures."""
+        # Verify step 1: variant-a from default-allocation
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        result_1 = json.loads(self.response_1.text)
+        assert result_1["value"] == "value-a", f"Request 1: expected 'value-a', got '{result_1['value']}'"
 
-        assert self.response_alloc_b.status_code == 200, f"Second request failed: {self.response_alloc_b.text}"
-        result_b = json.loads(self.response_alloc_b.text)
-        assert result_b["value"] == "value-a", f"Expected 'value-a', got '{result_b['value']}'"
+        # Verify step 2: variant-a from different-allocation
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+        result_2 = json.loads(self.response_2.text)
+        assert result_2["value"] == "value-a", f"Request 2: expected 'value-a', got '{result_2['value']}'"
 
-        assert self.response_alloc_b_repeat.status_code == 200, (
-            f"Third request failed: {self.response_alloc_b_repeat.text}"
-        )
-        result_b_repeat = json.loads(self.response_alloc_b_repeat.text)
-        assert result_b_repeat["value"] == "value-a", f"Expected 'value-a', got '{result_b_repeat['value']}'"
+        # Verify step 3: variant-a from default-allocation again
+        assert self.response_3.status_code == 200, f"Request 3 failed: {self.response_3.text}"
+        result_3 = json.loads(self.response_3.text)
+        assert result_3["value"] == "value-a", f"Request 3: expected 'value-a', got '{result_3['value']}'"
 
-        # Count exposure events - should be exactly 2:
-        # - One for the initial evaluation from default-allocation
-        # - One for the evaluation from different-allocation (allocation key changed)
-        # The repeated evaluation should NOT generate a new exposure
+        # Count exposure events - should be exactly 3:
+        # - Exposure #1: default-allocation
+        # - Exposure #2: different-allocation (allocation changed)
+        # - Exposure #3: default-allocation (allocation changed back)
         exposure_count = count_exposure_events(self.flag_key, self.targeting_key)
 
-        assert exposure_count == 2, (
-            f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
-            f"(one for each allocation key), but found {exposure_count} events"
+        assert exposure_count == 3, (
+            f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
+            f"(default-allocation → different-allocation → default-allocation), "
+            f"but found {exposure_count} events"
         )
 
 
