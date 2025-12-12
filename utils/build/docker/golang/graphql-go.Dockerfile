@@ -4,7 +4,7 @@ FROM golang:1.24
 RUN go version && curl --version
 
 # install jq
-RUN apt-get update && apt-get -y install jq
+RUN apt-get update && apt-get -y install jq git
 
 # download go dependencies
 RUN mkdir -p /app

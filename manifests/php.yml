@@ -9,11 +9,11 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v1.11.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v1.11.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v1.15.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v1.15.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v1.15.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v1.15.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v1.15.0
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
@@ -560,12 +560,19 @@ manifest:
   tests/test_profiling.py::Test_Profile: missing_feature (profiling seems not to be activated)
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.7.2  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/test_sampling_rates.py::Test_SamplingDeterminism: v1.7.2  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingRates: v1.7.2  # real version unknown
   tests/test_scrubbing.py::Test_UrlQuery: v0.76.0
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag: bug (APMAPI-920)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url:
+    - component_version: <0.68.2
+      declaration: bug (APMRP-360)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_language_tag: bug (APMAPI-923)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind: bug (APMAPI-924)
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v0.83.1
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
