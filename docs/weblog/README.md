@@ -1150,6 +1150,56 @@ Examples:
 
 This endpoint will be used for `Resource Renaming` tests, it allows all subpaths.
 
+#### POST /ai_guard/evaluate
+This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method from the AI Guard SDK.
+
+**Request Format:**
+- **Content-Type:** `application/json`
+- **Body:** List of AI Guard `Message` objects to be evaluated
+- **Header:** `X-AI-Guard-Block` (optional, default: `false`) - Controls whether blocking is enabled
+
+**Request Body Example:**
+```json
+[
+  {
+    "role": "system",
+    "content": "You are a helpful AI assistant"
+  },
+  {
+    "role": "user",
+    "content": "What is the weather like today in New York?"
+  },
+  {
+    "role": "assistant",
+    "tool_calls": [
+      {
+        "id": "call_1",
+        "function": {
+          "name": "get_weather",
+          "arguments": "{ \"location\": \"New York\" }\n"
+        }
+      }
+    ]
+  }
+]
+```
+
+**Response Behavior:**
+- **Success (200 OK):** Returns the `Evaluation` result as JSON when evaluation succeeds
+- **Blocked (403 Forbidden):** Returns `AIGuardAbortError` when blocking is enabled and content is flagged
+- **Error (500 Internal Server Error):** Returns exception details for unexpected errors
+
+**Response Examples:**
+
+Successful evaluation:
+```json
+{
+  "action": "ALLOW",
+  "reason": "All looks good",
+  "tags": []
+}
+```
+
 ## Weblog specification
 
 There are several rules shared between all the existing end-to-end weblogs.

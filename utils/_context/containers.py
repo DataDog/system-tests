@@ -1391,6 +1391,31 @@ class APMTestAgentContainer(TestedContainer):
         }
 
 
+class VCRProxyContainer(TestedContainer):
+    def __init__(self, proxy_port: int = ProxyPorts.vcr_proxy) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
+            name="vcr-proxy",
+            environment={
+                "PORT": str(proxy_port),
+                "VCR_CASSETTES_DIRECTORY": "/cassettes",
+                "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{proxy_port}/info",
+                "retries": 60,
+            },
+            volumes={
+                "./utils/build/docker/vcr_proxy/cassettes": {
+                    "bind": "/cassettes",
+                    "mode": "ro",
+                },
+            },
+            ports={proxy_port: ("127.0.0.1", proxy_port)},
+            allow_old_container=False,
+        )
+
+
 class MountInjectionVolume(TestedContainer):
     def __init__(self, name: str) -> None:
         super().__init__(

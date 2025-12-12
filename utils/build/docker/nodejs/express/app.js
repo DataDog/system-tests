@@ -667,6 +667,22 @@ app.get('/add_event', (req, res) => {
 
 require('./rasp')(app)
 
+app.post('/ai_guard/evaluate', async (req, res) => {
+  const block = req.header('X-AI-Guard-Block') === 'true'
+  const messages = req.body
+  try {
+    const evaluation = await tracer.aiguard.evaluate(messages, { block })
+    console.log(JSON.stringify(evaluation))
+    res.status(200).json(evaluation)
+  } catch(e) {
+    if (e.name === 'AIGuardAbortError') {
+      res.status(403).json(e)
+    } else {
+      res.status(500).json(e)
+    }
+  }
+})
+
 let openFeatureClient = null
 
 // Initialize OpenFeature provider if FFE is enabled
