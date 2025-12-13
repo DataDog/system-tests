@@ -377,6 +377,6 @@ def _resolve_declaration(released_declaration: str | dict[str, str]) -> str | No
         if "*" in released_declaration:
             return released_declaration["*"]
 
-        return None
+        return _DecoratorType.MISSING_FEATURE
 
     raise TypeError(f"Unsuported release info: {released_declaration}")
