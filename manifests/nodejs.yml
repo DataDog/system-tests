@@ -1621,6 +1621,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_81_0
         nextjs: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
   tests/test_sampling_rates.py::Test_SamplingDecisions: *ref_5_54_0
