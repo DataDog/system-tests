@@ -1,6 +1,5 @@
 import os
 import pytest
-import yaml
 from pathlib import Path
 
 from utils import interfaces
@@ -36,7 +35,7 @@ class OtelCollectorScenario(DockerScenario):
             config_file = "./utils/build/docker/otelcol-config.yaml"
 
         self.collector_container = OpenTelemetryCollectorContainer(
-            config_file=config_file,
+            config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
             environment={
                 "DD_API_KEY": "0123",
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
@@ -46,6 +45,10 @@ class OtelCollectorScenario(DockerScenario):
             volumes={
                 "./utils/build/docker/agent/ca-certificates.crt": {
                     "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/e2eotel/": {
+                    "bind": "/etc/config/",
                     "mode": "ro",
                 },
             },
@@ -106,31 +109,6 @@ class OtelCollectorScenario(DockerScenario):
         config_file_path = Path(self.collector_container.config_file)
         result["configuration"]["config_file"] = config_file_path.name
 
-        try:
-            with open(config_file_path, "r", encoding="utf-8") as f:
-                otel_config = yaml.safe_load(f)
-
-            if "receivers" in otel_config:
-                otel_config_keys = otel_config["receivers"].keys()
-                result["configuration"]["receivers"] = ", ".join(otel_config_keys)
-
-                # Handle PostgreSQL receiver if present
-                if "postgresql" in otel_config["receivers"]:
-                    pg_config = otel_config["receivers"]["postgresql"]
-                    result["configuration"]["postgresql_receiver_endpoint"] = pg_config.get("endpoint")
-                    databases = pg_config.get("databases", [])
-                    if databases:
-                        result["configuration"]["postgresql_receiver_databases"] = ", ".join(databases)
-
-            if "exporters" in otel_config:
-                otel_config_keys = otel_config["exporters"].keys()
-                result["configuration"]["exporters"] = ", ".join(otel_config_keys)
-
-            if "service" in otel_config and "pipelines" in otel_config["service"]:
-                result["configuration"]["pipelines"] = ", ".join(otel_config["service"]["pipelines"].keys())
-
-        except Exception as e:
-            pytest.exit(f"Failed to parse OTel collector config: {e}", 1)
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])

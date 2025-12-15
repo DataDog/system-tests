@@ -826,6 +826,7 @@ manifest:
         sinatra41: irrelevant
         uds-sinatra: irrelevant
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v2.15.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.12.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v2.15.0  # real version unknown
@@ -834,6 +835,7 @@ manifest:
   tests/test_scrubbing.py::Test_UrlField: missing_feature (Needs weblog endpoint)
   tests/test_scrubbing.py::Test_UrlQuery: v1.0.0
   tests/test_semantic_conventions.py::Test_Meta: v1.7.0
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url: bug (APMAPI-922)
   tests/test_semantic_conventions.py::Test_MetaDatadogTags: v1.9.0
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v1.7.0
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
