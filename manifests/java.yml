@@ -2625,6 +2625,10 @@ manifest:
         "*": missing_feature
         spring-boot: v1.47.0
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py:
+    - weblog_declaration:
+        "*": irrelevant (RUM injection only supported for spring-boot)
+        spring-boot: v1.49.0
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
         "*": v1.49.0

@@ -1295,9 +1295,6 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v0.30.0
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled::test_main:
-    - component_version: ">4.0.0"
-      declaration: bug (AIDM-194)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v2.0.0
@@ -1349,6 +1346,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v3.6.0+dev
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.8.0
   tests/test_sampling_rates.py::Test_SamplingDecisions: v3.6.0+dev

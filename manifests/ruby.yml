@@ -827,6 +827,7 @@ manifest:
         sinatra41: irrelevant
         uds-sinatra: irrelevant
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v2.15.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.12.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v2.15.0  # real version unknown

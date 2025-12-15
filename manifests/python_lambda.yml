@@ -236,4 +236,5 @@ manifest:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_v1_payloads.py: missing_feature
