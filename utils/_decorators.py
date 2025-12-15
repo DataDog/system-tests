@@ -21,6 +21,7 @@ def configure(config: pytest.Config):
 
 
 class _TestDeclaration(enum.StrEnum):
+    __test__ = False  # Tell pytest this is not a test class
     BUG = "bug"
     FLAKY = "flaky"
     INCOMPLETE_TEST_APP = "incomplete_test_app"

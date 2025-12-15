@@ -857,6 +857,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.72.1  # real version unknown
@@ -864,6 +865,9 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates: v1.36.2
   tests/test_scrubbing.py::Test_UrlQuery: v1.40.0
   tests/test_semantic_conventions.py::Test_Meta: v1.45.0
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url:
+    - component_version: <1.69.0-dev
+      declaration: bug (APMRP-360)
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:
         "*": irrelevant

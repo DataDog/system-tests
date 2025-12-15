@@ -49,7 +49,7 @@ class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
         """Test metrics were actually queried / received by the backend"""
         metrics_to_validate = list(postgresql_metrics.keys())
-        query_tags = {"rid": "otel-postgres-metrics", "host": "collector"}
+        query_tags = {"rid": "otel-e2e-metrics", "host": "collector"}
 
         time.sleep(15)
         _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
