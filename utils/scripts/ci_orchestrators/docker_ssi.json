@@ -54,6 +54,10 @@
             ],
             "weblogs": [
                 {
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
                     "java": [
                         "tomcat-app",
                         "websphere-app",
