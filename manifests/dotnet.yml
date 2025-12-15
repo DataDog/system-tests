@@ -470,7 +470,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
-  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.19.0
+  tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: missing_feature
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py: missing_feature
@@ -571,6 +571,7 @@ manifest:
         uds: missing_feature (to be confirmed)
   tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v3.11.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v3.11.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v3.11.1  # real version unknown

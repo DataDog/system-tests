@@ -857,6 +857,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.72.1  # real version unknown
