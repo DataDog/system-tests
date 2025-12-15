@@ -672,7 +672,6 @@ app.post('/ai_guard/evaluate', async (req, res) => {
   const messages = req.body
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
-    console.log(JSON.stringify(evaluation))
     res.status(200).json(evaluation)
   } catch(e) {
     if (e.name === 'AIGuardAbortError') {
