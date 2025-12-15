@@ -25,6 +25,9 @@ case "$RB_VERSION" in
     4.*)
         RB_YJIT=1
         ;;
+    *)
+        RB_YJIT=''
+        ;;
 esac
 
 if [ -n "$RB_YJIT" ]; then
@@ -38,6 +41,9 @@ if [ -n "$RB_YJIT" ]; then
             rustArch='aarch64-unknown-linux-gnu'
             rustupUrl='https://static.rust-lang.org/rustup/archive/1.26.0/aarch64-unknown-linux-gnu/rustup-init'
             rustupSha256='673e336c81c65e6b16dcdede33f4cc9ed0f08bde1dbe7a935f113605292dc800'
+            ;;
+        *)
+            rustArch=''
             ;;
     esac
 
