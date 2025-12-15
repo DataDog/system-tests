@@ -3,18 +3,9 @@
 # Copyright 2021 Datadog, Inc.
 
 
-import pytest
-
 from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
-
-
-if context.library > "python_lambda@8.117.0":
-    pytestmark = [
-        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
-        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
-    ]
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
