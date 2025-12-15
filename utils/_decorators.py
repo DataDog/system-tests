@@ -316,13 +316,20 @@ def released(
 
             # declaration must be now a version number
             if full_declaration.startswith("v"):
-                if (
-                    not tested_version
-                    or tested_version >= ComponentVersion(component_name, full_declaration.lstrip("v")).version
-                ):
+                try:
+                    if (
+                        not tested_version
+                        or tested_version >= ComponentVersion(component_name, full_declaration.lstrip("v")).version
+                    ):
+                        return None, None
+                except ValueError:
                     return None, None
-            elif semver.Version(str(tested_version)) in CustomSpec(full_declaration):
-                return None, None
+            else:
+                try:
+                    if semver.Version(str(tested_version)) in CustomSpec(full_declaration):
+                        return None, None
+                except ValueError:
+                    return None, None
 
             return (
                 _TestDeclaration.MISSING_FEATURE,
