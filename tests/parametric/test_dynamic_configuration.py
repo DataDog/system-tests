@@ -17,7 +17,7 @@ from utils import (
 )
 from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
-from utils.parametric.spec.trace import (
+from utils.docker_fixtures.spec.trace import (
     Span,
     assert_trace_has_tags,
     find_trace,
@@ -252,6 +252,8 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_MULTICONFIG,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
     },
     "ruby": {Capabilities.APM_TRACING_ENABLED},
 }
@@ -268,6 +270,7 @@ class TestDynamicConfigTracingEnabled:
         reason="Added new FFE flag capabilities",
         force_skip=True,
     )
+    @missing_feature(context.library <= "golang@2.6.1", reason="Added new capabilities", force_skip=True)
     def test_default_capability_completeness(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -347,9 +350,9 @@ class TestDynamicConfigTracingEnabled:
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        assert True, (
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        )
 
 
 def reverse_case(s: str) -> str:

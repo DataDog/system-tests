@@ -627,19 +627,19 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
                     obtained_param = obtained_parameters[name]
 
-                    assert (
-                        obtained_param["address"] == address
-                    ), f"incorrect address for '{name}', expected '{address}, found '{obtained_param['address']}'"
+                    assert obtained_param["address"] == address, (
+                        f"incorrect address for '{name}', expected '{address}, found '{obtained_param['address']}'"
+                    )
 
                     if value is not None:
-                        assert (
-                            obtained_param["value"] == value
-                        ), f"incorrect value for '{name}', expected '{value}', found '{obtained_param['value']}'"
+                        assert obtained_param["value"] == value, (
+                            f"incorrect value for '{name}', expected '{value}', found '{obtained_param['value']}'"
+                        )
 
                     if key_path is not None:
-                        assert (
-                            obtained_param["key_path"] == key_path
-                        ), f"incorrect key_path for '{name}', expected '{key_path}'"
+                        assert obtained_param["key_path"] == key_path, (
+                            f"incorrect key_path for '{name}', expected '{key_path}'"
+                        )
 
             return True
 

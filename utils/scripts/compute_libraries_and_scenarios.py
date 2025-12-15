@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import sys
 from collections import OrderedDict, defaultdict
@@ -12,11 +13,12 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
-from manifests.parser.core import load as load_manifests
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios
 from utils._logger import logger
+from utils.manifest import Manifest
 
 if TYPE_CHECKING:
+    from utils.manifest import ManifestData
     from collections.abc import Iterable
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
@@ -36,7 +38,7 @@ LIBRARIES = {
     "python",
     "ruby",
     "python_lambda",
-    "rust",
+    # "rust",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
@@ -153,26 +155,9 @@ class LibraryProcessor:
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file: str) -> bool:
-        if not self.user_choice:
-            return False
-
-        if self.branch_selector or len(self.impacted) == 0:
-            return True
-        # user specified a library in the PR title
-        # and there are some impacted libraries
-        if file.startswith("tests/") or self.impacted == {self.user_choice}:
-            # modification in tests files are complex, trust user
-            return True
-        # only acceptable use case : impacted library exactly matches user choice
-        raise ValueError(
-            f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
-                    Please remove the PR title prefix [{self.user_choice}]"""
-        )
-
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
-        if not self.is_manual(file):
+        if not (self.user_choice and self.branch_selector):
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
@@ -188,7 +173,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector", "python_lambda")
+            if "otel" not in library and library not in ("otel_collector",)
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
@@ -206,6 +191,9 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
+        if inputs.ref in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
+            self.scenario_groups |= {all_scenario_groups.all.name}
+            return
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
@@ -291,21 +279,22 @@ class Inputs:
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
-        new_manifests: str = "manifests/",
-        old_manifests: str = "original/manifests/",
+        new_manifests: Path = Path("manifests/"),
+        old_manifests: Path = Path("original/manifests/"),
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        self.new_manifests = load_manifests(new_manifests)
-        self.old_manifests = load_manifests(old_manifests)
+        if self.ref not in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
+            self.new_manifests: ManifestData = Manifest.parse(new_manifests)
+            self.old_manifests: ManifestData = Manifest.parse(old_manifests)
 
-        if not self.new_manifests:
-            raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
-        if not self.old_manifests:
-            raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
+            if not self.new_manifests:
+                raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
+            if not self.old_manifests:
+                raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
 
         self.load_raw_impacts()
         self.load_scenario_mappings()
@@ -339,9 +328,10 @@ class Inputs:
                 self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
     def load_modified_files(self) -> None:
-        # Gets the modified files. Computed with gh in a previous ci step.
-        with open("modified_files.txt", "r", encoding="utf-8") as f:
-            self.modified_files = [line.strip() for line in f]
+        if self.ref != "refs/heads/main":
+            # Gets the modified files. Computed with gh in a previous ci step.
+            with open("modified_files.txt", "r", encoding="utf-8") as f:
+                self.modified_files = [line.strip() for line in f]
 
     def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):

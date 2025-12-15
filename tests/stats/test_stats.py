@@ -58,13 +58,13 @@ class Test_Client_Stats:
                 pytest.fail("Unexpected status code " + str(s["HTTPStatusCode"]))
             assert s["Service"] == "weblog", "expect weblog as service"
             assert s["Type"] == "web", "expect 'web' type"
-        assert (
-            stats_count <= 4
-        ), "expect <= 4 stats"  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
+        assert stats_count <= 4, (
+            "expect <= 4 stats"
+        )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert ok_hits == ok_top_hits == 5, "expect exactly 5 'OK' hits and top level hits across all payloads"
-        assert (
-            no_content_hits == no_content_top_hits == 3
-        ), "expect exactly 5 'No Content' hits and top level hits across all payloads"
+        assert no_content_hits == no_content_top_hits == 3, (
+            "expect exactly 5 'No Content' hits and top level hits across all payloads"
+        )
 
     def setup_obfuscation(self):
         """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
@@ -91,9 +91,9 @@ class Test_Client_Stats:
             hits += s["Hits"]
             top_hits += s["TopLevelHits"]
             assert s["Type"] == "sql", "expect 'sql' type"
-        assert (
-            stats_count <= 4
-        ), "expect <= 4 stats"  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
+        assert stats_count <= 4, (
+            "expect <= 4 stats"
+        )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
     @missing_feature(
@@ -281,9 +281,9 @@ class Test_Transport_Headers:
         logger.debug(f"Stats request headers: {headers}")
 
         assert "Content-Type" in headers, "Stats request should have Content-Type header"
-        assert (
-            headers["Content-Type"] == "application/msgpack"
-        ), f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
+        assert headers["Content-Type"] == "application/msgpack", (
+            f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
+        )
 
         content_length = headers.get("Content-Length")
         assert content_length, f"Content-Length should not be empty, found: {content_length}"
@@ -298,20 +298,16 @@ class Test_Transport_Headers:
         if "Datadog-Obfuscation-Version" in headers:
             obfuscation_version = headers["Datadog-Obfuscation-Version"]
             # Validate it's a positive integer string
-            assert (
-                obfuscation_version.isdigit()
-            ), f"Obfuscation version should be positive integer, found: {obfuscation_version}"
-            assert (
-                int(obfuscation_version) > 0
-            ), f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+            assert obfuscation_version.isdigit(), (
+                f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+            )
+            assert int(obfuscation_version) > 0, (
+                f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+            )
 
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
-    )
-    @bug(
-        context.library == "java",
-        reason="LANGPLAT-755",
     )
     def test_container_id_header(self):
         """Test that stats transport includes container id headers"""
@@ -325,8 +321,9 @@ class Test_Transport_Headers:
         logger.debug(f"Stats request headers: {headers}")
 
         # we must have at least one of the CID resolution headers
-        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
-        cid_headers = [h for h in headers if h in cid_headers_list]
+        cid_headers_list = ["datadog-entity-id", "datadog-external-env", "datadog-container-id"]
+        cid_headers = [h for h in headers if h.lower() in cid_headers_list]
+
         assert len(cid_headers) > 0, f"ContainerID resolution headers not found: {headers}"
         for h in cid_headers:
             assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
@@ -372,9 +369,9 @@ class Test_Time_Bucketing:
 
             # Validate 10-second bucket duration for tracer stats
             expected_duration = 10_000_000_000  # 10 seconds in nanoseconds
-            assert (
-                duration == expected_duration
-            ), f"CSS bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
+            assert duration == expected_duration, (
+                f"CSS bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
+            )
 
             # Validate stats array is not empty and properly structured
             assert len(stats) > 0, "Bucket should contain stats, found empty bucket"
@@ -417,9 +414,9 @@ class Test_Time_Bucketing:
 
             # Validate bucket alignment (start should be aligned to 10-second boundaries)
             expected_duration = 10_000_000_000  # 10 seconds in nanoseconds
-            assert (
-                start % expected_duration == 0
-            ), f"CSS bucket start should be aligned to 10-second boundaries, found: {start}"
+            assert start % expected_duration == 0, (
+                f"CSS bucket start should be aligned to 10-second boundaries, found: {start}"
+            )
 
     def setup_agent_aggregated_stats(self):
         """Setup for agent stats test - generates spans for agent aggregation"""
@@ -450,21 +447,21 @@ class Test_Time_Bucketing:
                     assert start is not None, "Bucket should have Start time"
                     assert duration is not None, "Bucket should have Duration"
                     assert isinstance(start, int), f"Start should be integer (nanoseconds), found: {type(start)}"
-                    assert isinstance(
-                        duration, int
-                    ), f"Duration should be integer (nanoseconds), found: {type(duration)}"
+                    assert isinstance(duration, int), (
+                        f"Duration should be integer (nanoseconds), found: {type(duration)}"
+                    )
 
                     # Validate 10-second bucket duration for aggregated stats
                     expected_duration = 10_000_000_000  # 10 seconds in nanoseconds
-                    assert (
-                        duration == expected_duration
-                    ), f"agent-aggregated bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
+                    assert duration == expected_duration, (
+                        f"agent-aggregated bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
+                    )
 
                     # Validate bucket alignment (start should be aligned to 2s boundary, with 1s offset)
                     offset = 1_000_000_000
-                    assert (
-                        (start + offset) % 2_000_000_000 == 0
-                    ), f"agent-aggregated bucket start should be aligned to 2-second boundaries, found: {start}"
+                    assert (start + offset) % 2_000_000_000 == 0, (
+                        f"agent-aggregated bucket start should be aligned to 2-second boundaries, found: {start}"
+                    )
 
                     # Validate stats array is not empty and properly structured
                     assert len(stats) > 0, "Bucket should contain stats, found empty bucket"
