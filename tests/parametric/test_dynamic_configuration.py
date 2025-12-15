@@ -252,6 +252,8 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_MULTICONFIG,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
     },
     "ruby": {Capabilities.APM_TRACING_ENABLED},
 }
@@ -268,6 +270,7 @@ class TestDynamicConfigTracingEnabled:
         reason="Added new FFE flag capabilities",
         force_skip=True,
     )
+    @missing_feature(context.library <= "golang@2.6.1", reason="Added new capabilities", force_skip=True)
     def test_default_capability_completeness(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
