@@ -668,7 +668,7 @@ app.get('/add_event', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  const block = req.header('X-AI-Guard-Block') === 'true'
+  const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   try {
     const evaluation = await tracer.aiguard.evaluate(messages, { block })
