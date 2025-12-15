@@ -19,10 +19,7 @@ elif [ -f /etc/alpine-release ]; then
 fi
 
 case "$RB_VERSION" in
-    3.4.*)
-        RB_YJIT=1
-        ;;
-    4.*)
+    3.2.*|3.3.*|3.4.*|4.*)
         RB_YJIT=1
         ;;
     *)
