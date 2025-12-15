@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3  # noqa: EXE001
 """MCP Server for generating OTel integration metric test files.
 
 This server provides tools to generate test files similar to test_postgres_metrics.py
-but for different integrations (Redis, MySQL, Kafka, etc.).
+for any OpenTelemetry receiver integration.
 """
 
 import json
@@ -64,7 +64,7 @@ def generate_test_file(
 
     # Try to generate operations from metrics JSON file
     metrics_json_path = constants.SYSTEM_TESTS_ROOT / f"tests/otel_{integration_lower}_metrics_e2e/{metrics_json_file}"
-    
+
     if metrics_json_path.exists():
         # Generate operations by analyzing the metrics file
         operations_list, expected_metrics_list = generate_smoke_operations_from_metrics(
@@ -73,13 +73,19 @@ def generate_test_file(
         )
     else:
         # Fall back to config if metrics file doesn't exist yet
-        operations_list = config.get("smoke_test_operations", [
-            f'logger.info("Add specific {integration_name} operations here")',
-        ])
-        expected_metrics_list = config.get("expected_smoke_metrics", [
-            f"{integration_lower}.metric1",
-            f"{integration_lower}.metric2",
-        ])
+        operations_list = config.get(
+            "smoke_test_operations",
+            [
+                f'logger.info("Add specific {integration_name} operations here")',
+            ],
+        )
+        expected_metrics_list = config.get(
+            "expected_smoke_metrics",
+            [
+                f"{integration_lower}.metric1",
+                f"{integration_lower}.metric2",
+            ],
+        )
 
     excluded_metrics_str = format_excluded_metrics(integration_name, excluded_metrics)
     smoke_operations = format_smoke_operations(operations_list)
@@ -96,89 +102,6 @@ def generate_test_file(
         smoke_operations=smoke_operations,
         expected_metrics_formatted=expected_metrics_formatted,
     )
-
-
-def generate_metrics_file(integration_name: str) -> str:
-    """Get info about the latest otel-collector-contrib release.
-    Metrics are defined in the metadata.yaml file which is provided in  response.
-    We need to get the metrics from the metadata.yaml file.
-    We can do this by parsing the yaml file and getting the metrics.
-    We can then return in the following format:
-    {
-        "<metric_name>": {
-            "data_type": "<data_type>",
-            "description": "<metric_description>"
-        },
-    }
-
-    """
-    url = f"{constants.GH_BASE_API}/releases"
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-    }
-
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-
-    releases = response.json()  # list[dict]
-    if not releases:
-        return "No releases found for opentelemetry-collector-contrib."
-
-    latest = releases[0]
-
-    metaDataUrl = f"{constants.GH_BASE_API}/contents/receiver/{integration_name.lower()}receiver/metadata.yaml?ref={latest.get('tag_name')}"
-
-    response = requests.get(metaDataUrl, headers=headers)
-    if response.status_code != 200:
-        return f"Failed to fetch metadata.yaml for {integration_name}."
-
-    metadata_content = response.json().get("content")
-    if not metadata_content:
-        return "No content found in metadata.yaml."
-
-    # The content is base64-encoded per GitHub API
-    import base64
-
-    try:
-        decoded_yaml = base64.b64decode(metadata_content).decode("utf-8")
-    except Exception as e:
-        return f"Error decoding metadata.yaml content: {e}"
-
-    # Parse YAML to get metrics info
-    try:
-        import yaml
-
-        yaml_data = yaml.safe_load(decoded_yaml)
-    except Exception as e:
-        return f"Error parsing YAML: {e}"
-
-    metric_template = {}
-    # Try both metrics and telemetry.metrics paths
-    metrics_dict = yaml_data.get("metrics", {})
-    if not metrics_dict and "telemetry" in yaml_data:
-        metrics_dict = yaml_data.get("telemetry", {}).get("metrics", {})
-    
-    for metric_name, metric_info in metrics_dict.items():
-        metric_type = set(metric_info.keys()) & constants.METRIC_TYPES
-        metric_template[metric_name] = {
-            "data_type": metric_type.pop() if metric_type else None,
-            "description": metric_info.get("description", ""),
-        }
-
-    result_json = json.dumps(metric_template, indent=2)
-
-    metric_file_name = f"{integration_name}_metrics.json"
-    metric_file_path = constants.SYSTEM_TESTS_ROOT / f"tests/otel_{integration_name}_metrics_e2e/{metric_file_name}"
-    if metric_file_path.exists():
-        return "There is already a metric file created. Please delete and try again"
-    # Create the parent directory if it doesn't exist
-    metric_file_path.parent.mkdir(parents=True, exist_ok=True)
-    f = open(metric_file_path, "x")
-    f.write(result_json)
-    f.close()
-
-    return metric_template
 
 
 def generate_metrics_file(integration_name: str) -> str:
@@ -212,10 +135,12 @@ def generate_metrics_file(integration_name: str) -> str:
     latest = releases[0]
 
     receiver_path = f"receiver/{integration_name.lower()}receiver/metadata.yaml"
-    metadata_url = f"{constants.GH_BASE_API}/contents/{receiver_path}?ref={latest.get('tag_name')}"
+    tag_name = latest.get("tag_name")
+    metadata_url = f"{constants.GH_BASE_API}/contents/{receiver_path}?ref={tag_name}"
 
     response = requests.get(metadata_url, headers=headers, timeout=2)
-    if response.status_code != 200:
+    http_ok = 200
+    if response.status_code != http_ok:
         return f"Failed to fetch metadata.yaml for {integration_name}."
 
     metadata_content = response.json().get("content")
@@ -240,14 +165,15 @@ def generate_metrics_file(integration_name: str) -> str:
         metric_template[metric_name] = {
             "data_type": metric_type.pop() if metric_type else None,
             "description": metric_info.get("description", ""),
-            "enabled": metric_info.get("enabled","false")
+            "enabled": metric_info.get("enabled", "false"),
         }
 
     # Return the dict as pretty-printed JSON
     result_json = json.dumps(metric_template, indent=2)
 
     metric_file_name = f"{integration_name}_metrics.json"
-    metric_file_path = constants.SYSTEM_TESTS_ROOT / f"tests/otel_{integration_name}_metrics_e2e/{metric_file_name}"
+    test_dir = f"tests/otel_{integration_name}_metrics_e2e"
+    metric_file_path = constants.SYSTEM_TESTS_ROOT / test_dir / metric_file_name
     if metric_file_path.exists():
         return "There is already a metric file created. Please delete and try again"
     # Create the parent directory if it doesn't exist
@@ -274,7 +200,7 @@ async def list_tools() -> list[Tool]:
         Tool(
             name="generate_integration_test",
             description=(
-                "Generate a complete test file for an OTel integration (like Redis, MySQL, Kafka, etc.). "
+                "Generate a complete test file for an OTel integration receiver. "
                 "Uses test_postgres_metrics.py as a reference template to ensure consistency. "
                 "Provides the test file content, utils.py content, and __init__.py content."
             ),
@@ -292,7 +218,10 @@ async def list_tools() -> list[Tool]:
                     "sample_metrics": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "List of metric names to include in the template (optional - if not provided, empty template will be generated)",
+                        "description": (
+                            "List of metric names to include in the template "
+                            "(optional - if not provided, empty template will be generated)"
+                        ),
                     },
                     "excluded_metrics": {
                         "type": "array",
@@ -328,7 +257,10 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="generate_metrics_json",
-            description="Generates a metric file for a particular openTelemetry receiver",
+            description=(
+                "Generates a metric file for a particular OpenTelemetry receiver "
+                "by fetching metadata from the official OTel collector repository"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {"integration_name": {"type": "string"}},
@@ -348,17 +280,10 @@ async def list_resources() -> list[Resource]:
             Resource(
                 uri=f"file://{constants.POSTGRES_TEST_PATH}",
                 name="PostgreSQL Metrics Test (Reference)",
-                description="Reference implementation of OTel metrics test. Use this as the gold standard for structure and patterns.",
-                mimeType="text/x-python",
-            )
-        )
-
-    if constants.MYSQL_TEST_PATH.exists():
-        resources.append(
-            Resource(
-                uri=f"file://{constants.MYSQL_TEST_PATH}",
-                name="MySQL Metrics Test (Reference)",
-                description="MySQL metrics test implementation following PostgreSQL patterns",
+                description=(
+                    "Reference implementation of OTel metrics test. "
+                    "Use this as the gold standard for structure and patterns."
+                ),
                 mimeType="text/x-python",
             )
         )
@@ -400,12 +325,12 @@ async def read_resource(uri: str) -> str:
     if not path_obj.exists():
         raise ValueError(f"Resource not found: {uri}")
 
-    with open(path_obj, "r", encoding="utf-8") as f:
+    with open(path_obj, "r", encoding="utf-8") as f:  # noqa: ASYNC230
         return f.read()
 
 
 @app.list_prompts()
-async def list_prompts():
+async def list_prompts() -> list[Prompt]:
     """List available prompts."""
 
     return [
@@ -425,9 +350,9 @@ async def list_prompts():
 
 
 @app.get_prompt()
-async def get_prompt(name: str, arguments: dict[str, str] | None = None):
+async def get_prompt(name: str, arguments: dict[str, str] | None = None) -> Any:  # noqa: ANN401
     """Get a specific prompt."""
-    from mcp.types import PromptMessage, TextContent as PromptTextContent
+    from mcp.types import PromptMessage, TextContent as PromptTextContent  # noqa: PLC0415
 
     if name == "generate_with_reference":
         integration_name = arguments.get("integration_name", "example") if arguments else "example"
@@ -438,28 +363,22 @@ async def get_prompt(name: str, arguments: dict[str, str] | None = None):
         # Read the PostgreSQL test as reference
         postgres_test_content = ""
         if constants.POSTGRES_TEST_PATH.exists():
-            with open(constants.POSTGRES_TEST_PATH, "r", encoding="utf-8") as f:
+            with open(constants.POSTGRES_TEST_PATH, "r", encoding="utf-8") as f:  # noqa: ASYNC230
                 postgres_test_content = f.read()
-        
+
         prompt_text = get_generate_with_reference_prompt(
             integration_name=integration_name,
             metrics_json_file=metrics_json_file,
             postgres_test_content=postgres_test_content,
         )
-        
-        return PromptMessage(
-            role="user",
-            content=PromptTextContent(
-                type="text",
-                text=prompt_text
-            )
-        )
-    
+
+        return PromptMessage(role="user", content=PromptTextContent(type="text", text=prompt_text))
+
     raise ValueError(f"Unknown prompt: {name}")
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: Any) -> list[TextContent]:
+async def call_tool(name: str, arguments: Any) -> list[TextContent]:  # noqa: ANN401
     """Handle tool calls."""
 
     if name == "generate_integration_test":
@@ -479,7 +398,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                     "description": f"Description for {metric_name}",
                 }
         # If no sample metrics, provide a minimal placeholder structure
-        
+
         test_content = generate_test_file(
             integration_name=integration_name,
             metrics_json_file=metrics_json_file,
@@ -498,7 +417,12 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 Find the actual {integration_name} metrics from the OpenTelemetry Collector documentation:
 https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/{integration_name.lower()}receiver
 
-{"This file contains a template based on the sample_metrics you provided. Update the data_type and descriptions." if sample_metrics else "Add actual metric names from OTel receiver documentation."}
+{
+                    "This file contains a template based on the sample_metrics you provided. "
+                    "Update the data_type and descriptions."
+                    if sample_metrics
+                    else "Add actual metric names from OTel receiver documentation."
+                }
 
 Structure for each metric:
 {{
@@ -510,7 +434,7 @@ Structure for each metric:
 
 data_type values:
 - "Sum": For cumulative/counter metrics (counts, totals)
-- "Gauge": For point-in-time measurements (current values)"""
+- "Gauge": For point-in-time measurements (current values)""",
             },
             "test_file": {
                 "filename": f"test_{integration_name.lower()}_metrics.py",
@@ -523,7 +447,9 @@ data_type values:
             "shared_utility": {
                 "note": "Uses shared OtelMetricsValidator from utils/otel_metrics_validator.py",
                 "location": "utils/otel_metrics_validator.py",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
+                "import_statement": (
+                    "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                ),
             },
             "directory_structure": f"""
 Create the following directory structure:
@@ -596,7 +522,9 @@ IMPORTANT: The smoke test now follows the instructions from prompt_template.py:
             "shared_utility": {
                 "location": "utils/otel_metrics_validator.py",
                 "description": "Reusable metrics validation class for all OTel integration tests",
-                "import_statement": "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario",
+                "import_statement": (
+                    "from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario"
+                ),
             },
             "classes": {
                 "OtelMetricsValidator": {
@@ -621,12 +549,15 @@ IMPORTANT: The smoke test now follows the instructions from prompt_template.py:
             "example_usage": """
 # Load and validate metrics
 from pathlib import Path
-from utils.otel_metrics_validator import OtelMetricsValidator, get_collector_metrics_from_scenario
+from utils.otel_metrics_validator import (
+    OtelMetricsValidator,
+    get_collector_metrics_from_scenario,
+)
 
 # Load metrics from JSON
 metrics = OtelMetricsValidator.load_metrics_from_file(
-    metrics_file=Path(__file__).parent / "redis_metrics.json",
-    excluded_metrics={"redis.cluster.slots"}
+    metrics_file=Path(__file__).parent / "integration_metrics.json",
+    excluded_metrics={"integration.excluded.metric"}
 )
 
 # Initialize validator
@@ -650,7 +581,7 @@ _, _, results, failures = validator.process_and_validate_metrics(metrics_batch)
     raise ValueError(f"Unknown tool: {name}")
 
 
-async def main():
+async def main() -> None:
     """Main entry point for the MCP server."""
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
         await app.run(

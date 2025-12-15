@@ -13,7 +13,7 @@ def get_test_file_template(
     expected_metrics_formatted: str,
 ) -> str:
     """Generate test file template with given parameters.
-    
+
     Args:
         integration_title: Title-cased integration name (e.g., "Redis")
         integration_lower: Lowercase integration name (e.g., "redis")
@@ -24,9 +24,10 @@ def get_test_file_template(
         container_name: Docker container name
         smoke_operations: Formatted smoke test operations
         expected_metrics_formatted: Formatted expected metrics list
-    
+
     Returns:
         Complete test file content as string
+
     """
     return f'''import time
 from pathlib import Path
@@ -141,4 +142,3 @@ class Test_Smoke:
 
         assert all_metric_has_be_seen
 '''
-

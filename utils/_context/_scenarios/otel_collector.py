@@ -16,31 +16,25 @@ from .endtoend import DockerScenario
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
 
-    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True, database_type: str = "postgres"):
-        include_postgres = database_type == "postgres"
-        include_mysql = database_type == "mysql"
-        
+    def __init__(
+        self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True, include_postgres: bool = True
+    ):
         super().__init__(
             name,
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
             include_postgres_db=include_postgres,
-            include_mysql_db=include_mysql,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
         )
 
-        self.database_type = database_type
-        
-        # Select the appropriate config file based on database type
-        if database_type == "mysql":
-            config_file = "./utils/build/docker/otelcol-config-with-mysql.yaml"
-        elif database_type == "postgres":
+        # Select the appropriate config file
+        if include_postgres:
             config_file = "./utils/build/docker/otelcol-config-with-postgres.yaml"
         else:
             config_file = "./utils/build/docker/otelcol-config.yaml"
-        
+
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file=config_file,
             environment={
@@ -73,23 +67,17 @@ class OtelCollectorScenario(DockerScenario):
         # Set default values first (required for OTEL collector config)
         docker_image_name = "unknown"
         docker_image_tag = "unknown"
-        
-        db_container = None
-        if self.database_type == "mysql" and hasattr(self, 'mysql_container'):
-            db_container = self.mysql_container
-        elif self.database_type == "postgres" and hasattr(self, 'postgres_container'):
-            db_container = self.postgres_container
-        
-        if db_container:
-            db_image = db_container.image.name
+
+        if hasattr(self, "postgres_container"):
+            db_image = self.postgres_container.image.name
             image_parts = db_image.split(":")
             docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
             docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
-            
+
             # Extract version from image name
-            db_version = docker_image_tag if docker_image_tag != "unknown" else "unknown"
-            self.components[self.database_type] = db_version
-        
+            postgres_version = docker_image_tag if docker_image_tag != "unknown" else "unknown"
+            self.components["postgres"] = postgres_version
+
         # Always set these environment variables (OTEL collector config requires them)
         self.collector_container.environment["DOCKER_IMAGE_NAME"] = docker_image_name
         self.collector_container.environment["DOCKER_IMAGE_TAG"] = docker_image_tag
@@ -125,22 +113,14 @@ class OtelCollectorScenario(DockerScenario):
             if "receivers" in otel_config:
                 otel_config_keys = otel_config["receivers"].keys()
                 result["configuration"]["receivers"] = ", ".join(otel_config_keys)
-                
-                # Handle PostgreSQL receiver
+
+                # Handle PostgreSQL receiver if present
                 if "postgresql" in otel_config["receivers"]:
                     pg_config = otel_config["receivers"]["postgresql"]
                     result["configuration"]["postgresql_receiver_endpoint"] = pg_config.get("endpoint")
                     databases = pg_config.get("databases", [])
                     if databases:
                         result["configuration"]["postgresql_receiver_databases"] = ", ".join(databases)
-                
-                # Handle MySQL receiver
-                if "mysql" in otel_config["receivers"]:
-                    mysql_config = otel_config["receivers"]["mysql"]
-                    result["configuration"]["mysql_receiver_endpoint"] = mysql_config.get("endpoint")
-                    database = mysql_config.get("database")
-                    if database:
-                        result["configuration"]["mysql_receiver_database"] = database
 
             if "exporters" in otel_config:
                 otel_config_keys = otel_config["exporters"].keys()

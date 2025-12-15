@@ -1,6 +1,6 @@
 # Integration Test Generator MCP Server
 
-This MCP server helps generate OTel integration metric test files similar to `test_postgres_metrics.py` but for different integrations (Redis, MySQL, Kafka, Nginx, etc.).
+This MCP server helps generate OTel integration metric test files similar to `test_postgres_metrics.py` for any OpenTelemetry receiver integration.
 
 ## Features
 
@@ -8,16 +8,16 @@ This MCP server helps generate OTel integration metric test files similar to `te
   - `Test_<Integration>MetricsCollection` - validates metrics received by collector
   - `Test_BackendValidity` - validates metrics received by backend
   - `Test_Smoke` - generates integration-specific activity and validates basic metrics
-  
+
 - **Metric-based smoke test generation** (NEW!):
   - Analyzes the metrics JSON file and generates specific operations for EACH metric
   - Automatically skips metrics requiring replicas/multiple instances with explanatory comments
   - Follows the detailed instructions from `prompt_template.py`
-  - Built-in generators for: Kafka, Redis, MySQL, PostgreSQL
-  
+  - Built-in generators for: PostgreSQL, and extensible for other integrations
+
 - **Uses shared utilities**:
   - All tests use the shared `utils/otel_metrics_validator.py`
-  
+
 - **Generates supporting files**:
   - `__init__.py`
   - Template for metrics JSON file
@@ -71,7 +71,7 @@ Add to your MCP configuration file:
 In Cursor or Claude Desktop, you can now use natural language to generate tests, i.e.:
 
 ```
-Create a MySQL integration test, excluding the metrics: mysql.slow_queries, mysql.replication.delay
+Create an integration test for a specific receiver
 ```
 
 ### Available Tools
@@ -89,7 +89,7 @@ Generates a complete test file structure for an integration.
 
 **Example:**
 ```
-Generate an integration test for Redis with metrics file redis_metrics.json, sample metrics redis.commands.processed redis.keys.expired, and exclude redis.cluster.slots
+Generate an integration test for a specific OpenTelemetry receiver
 ```
 
 **Note:** If you provide `sample_metrics`, the tool will generate a metrics JSON template with those metrics included. Otherwise, it will generate an empty template structure.
@@ -113,7 +113,7 @@ Creates a template metrics JSON file structure.
 
 **Example:**
 ```
-Generate a metrics JSON template for Redis with metrics: redis.commands.processed, redis.net.input, redis.keys.expired
+Generate a metrics JSON template for the integration
 ```
 
 ## Workflow
@@ -121,18 +121,18 @@ Generate a metrics JSON template for Redis with metrics: redis.commands.processe
 ### Step 1: Generate the Test Files
 
 ```
-Ex: Generate a MySQL integration test with metrics file mysql_metrics.json
+Ex: Generate an integration test with appropriate metrics file
 ```
 
 The MCP server will provide:
-1. `test_mysql_metrics.py` - The main test file
+1. `test_<integration>_metrics.py` - The main test file
 2. `__init__.py` - Package init file
 3. Directory structure instructions
 
 ### Step 2: Create the Directory
 
 ```bash
-mkdir -p tests/otel_redis_metrics_e2e
+mkdir -p tests/otel_<integration>_metrics_e2e
 ```
 
 ### Step 3: Create the Metrics JSON
@@ -157,10 +157,10 @@ Create `tests/otel_<integration>_metrics_e2e/<integration>_metrics.json`:
 
 The smoke test operations are **automatically generated** from your metrics JSON file! Each metric gets specific commands to generate it.
 
-For example, for Kafka:
-- `kafka.brokers` → `kafka-broker-api-versions` command
-- `kafka.messages` → Produce messages to topic
-- `kafka.partition.replicas` → Automatically skipped with comment (needs multiple brokers)
+For example, for PostgreSQL:
+- `postgresql.backends` → `psql` commands to create connections
+- `postgresql.commits` → Transaction commands
+- `postgresql.replication.lag` → Automatically skipped with comment (needs replication setup)
 
 **Only customize if:**
 - You're using an integration not yet supported (add to `metric_operations_generator.py`)
@@ -170,11 +170,11 @@ For example, for Kafka:
 def setup_main(self) -> None:
     """When the container spins up, we need some activity."""
     scenario: OtelCollectorScenario = context.scenario
-    container = scenario.redis_container
-    
+    container = scenario.postgres_container
+
     # Auto-generated operations - one for each metric!
-    r = container.exec_run("redis-cli SET test_key test_value")
-    logger.info(f"redis.net.output: {r.output}")
+    r = container.exec_run("psql -U postgres -c 'SELECT 1;'")
+    logger.info(f"postgresql.backends: {r.output}")
     # ... more auto-generated operations
 ```
 
@@ -187,18 +187,16 @@ If the feature doesn't exist, add it by following this [doc](https://github.com/
 
 ```bash
 ./format.sh
-./run.sh otel_collector  # or appropriate scenario
+./run.sh otel_collector # or OTEL_COLLECTOR_E2E scenario
 ```
 
 
 ## Example Outputs
 
-### For MySQL
-
 The generator will create:
-- MySQL-specific database operations (CREATE DATABASE, CREATE TABLE, INSERT, SELECT)
-- Expected metrics for MySQL operations
-- Proper container reference (`mysql_container`)
+- Integration-specific operations appropriate for the receiver type
+- Expected metrics based on the metrics JSON file
+- Proper container reference (e.g., `{integration}_container`)
 
 ## Troubleshooting
 
@@ -207,7 +205,7 @@ The generator will create:
 1. Check the configuration file path is correct
 2. Ensure the Python path in configuration matches your system
 3. Restart Cursor/Claude Desktop after configuration changes
-4. Check logs: 
+4. Check logs:
    - Cursor: Developer Tools → Console
    - Claude Desktop: Console logs
 
@@ -222,12 +220,12 @@ pip install mcp
 
 Make the server executable:
 ```bash
-chmod +x /Users/quinna.halim/system-tests/mcp_servers/integration_test_generator/server.py
+chmod +x <user_path>/system-tests/mcp_servers/integration_test_generator/server.py
 ```
 
 ## Next Steps
 
-1. **Extend INTEGRATION_CONFIGS**: Add more pre-configured integrations
+1. **Extend metric generators**: Add more integration-specific metric generators to `metric_operations_generator.py`
 2. **Custom Templates**: Create specialized templates for different test patterns
 3. **Metrics Discovery**: Add tools to discover metrics from OTel Collector configuration
 4. **Validation**: Add tools to validate generated tests against existing patterns
