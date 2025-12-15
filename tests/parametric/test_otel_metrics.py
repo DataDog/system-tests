@@ -1564,15 +1564,13 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        
+
         # HTTP headers are case-insensitive, so normalize to lowercase for comparison
         headers_lower = {k.lower(): v for k, v in metrics_requests[0]["headers"].items()}
-        assert (
-            headers_lower.get("api-key") == "key"
-        ), f"Expected api-key, got {metrics_requests[0]['headers']}"
-        assert (
-            headers_lower.get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        assert headers_lower.get("api-key") == "key", f"Expected api-key, got {metrics_requests[0]['headers']}"
+        assert headers_lower.get("other-config-value") == "value", (
+            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1600,15 +1598,13 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        
+
         # HTTP headers are case-insensitive, so normalize to lowercase for comparison
         headers_lower = {k.lower(): v for k, v in metrics_requests[0]["headers"].items()}
-        assert (
-            headers_lower.get("api-key") == "key"
-        ), f"Expected api-key, got {metrics_requests[0]['headers']}"
-        assert (
-            headers_lower.get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        assert headers_lower.get("api-key") == "key", f"Expected api-key, got {metrics_requests[0]['headers']}"
+        assert headers_lower.get("other-config-value") == "value", (
+            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        )
 
 
 @features.otel_metrics_api
