@@ -193,13 +193,13 @@
                     {
                         "name": "Ubuntu_22_arm64",
                         "allowed_runtime_versions": [
-                            "2.6"
+                            "RB26"
                         ]
                     },
                     {
                         "name": "Ubuntu_22_amd64",
                         "allowed_runtime_versions": [
-                            "2.6"
+                            "RB26"
                         ]
                     }
                 ]
@@ -210,23 +210,23 @@
                     {
                         "name": "Ubuntu_22_arm64",
                         "allowed_runtime_versions": [
-                            "2.7",
-                            "3.0",
-                            "3.1",
-                            "3.2",
-                            "3.3",
-                            "3.4"
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
                         ]
                     },
                     {
                         "name": "Ubuntu_22_amd64",
                         "allowed_runtime_versions": [
-                            "2.7",
-                            "3.0",
-                            "3.1",
-                            "3.2",
-                            "3.3",
-                            "3.4"
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
                         ]
                     }
                 ]
