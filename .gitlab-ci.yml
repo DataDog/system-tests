@@ -52,6 +52,11 @@ compute_pipeline:
           ./build.sh -i runner
           source venv/bin/activate
       fi
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
     - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
@@ -62,11 +67,91 @@ compute_pipeline:
     - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
+      - nodejs_ssi_gitlab_pipeline.yml
+      - java_ssi_gitlab_pipeline.yml
+      - dotnet_ssi_gitlab_pipeline.yml
+      - python_ssi_gitlab_pipeline.yml
+      - php_ssi_gitlab_pipeline.yml
       - ruby_ssi_gitlab_pipeline.yml
+
+nodejs_ssi_pipeline:
+  stage: nodejs
+  needs: ["compute_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: nodejs_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+java_ssi_pipeline:
+  stage: java
+  needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: java_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+dotnet_ssi_pipeline:
+  stage: dotnet
+  needs: ["compute_pipeline", "java_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: dotnet_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+python_ssi_pipeline:
+  stage: python
+  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: python_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
+
+php_ssi_pipeline:
+  stage: php
+  needs: ["compute_pipeline", "python_ssi_pipeline"]
+  variables:
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+  trigger:
+    include:
+      - artifact: php_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
+    strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 ruby_ssi_pipeline:
   stage: ruby
-  needs: ["compute_pipeline"]
+  needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
