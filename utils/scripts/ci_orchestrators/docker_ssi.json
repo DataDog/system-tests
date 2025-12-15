@@ -14,6 +14,7 @@
                         "js-app"
                     ],
                     "ruby": [
+                        "rails6-app",
                         "ruby-app"
                     ],
                     "python": [
@@ -38,6 +39,7 @@
                         "js-app"
                     ],
                     "ruby": [
+                        "rails6-app",
                         "ruby-app"
                     ],
                     "python": [
@@ -182,18 +184,45 @@
         ],
         "ruby": [
             {
-                "name": "ruby-app",
+                "name": "rails6-app",
                 "supported_images": [
                     {
                         "name": "Ubuntu_22_arm64",
                         "allowed_runtime_versions": [
-                            "*"
+                            "2.6"
                         ]
                     },
                     {
                         "name": "Ubuntu_22_amd64",
                         "allowed_runtime_versions": [
-                            "*"
+                            "2.6"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "ruby-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "2.7",
+                            "3.0",
+                            "3.1",
+                            "3.2",
+                            "3.3",
+                            "3.4"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "2.7",
+                            "3.0",
+                            "3.1",
+                            "3.2",
+                            "3.3",
+                            "3.4"
                         ]
                     }
                 ]
