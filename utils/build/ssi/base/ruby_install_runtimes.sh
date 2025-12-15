@@ -85,3 +85,21 @@ git clone https://github.com/rbenv/ruby-build.git "$(rbenv root)"/plugins/ruby-b
 
 rbenv install "$RB_VERSION"
 rbenv global "$RB_VERSION"
+
+case "$RB_VERSION" in
+    2.6.*|2.7.*)
+        gem update --system '3.4.22'
+        ;;
+    3.0.*)
+        gem update --system '3.5.23'
+        ;;
+    3.1.*)
+        gem update --system '3.6.9'
+        ;;
+    3.2.*|3.3.*|3.4.*)
+        gem update --system '3.7.2'
+        ;;
+    4.0.*)
+        gem update --system '3.7.2'
+        ;;
+esac
