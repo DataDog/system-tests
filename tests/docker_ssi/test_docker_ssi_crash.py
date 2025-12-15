@@ -38,8 +38,9 @@ class TestDockerSSICrash:
 
     @features.ssi_crashtracking
     @missing_feature(
-        condition=context.library in ("java", "php", "ruby"), reason="No implemented the endpoint /crashme"
+        condition=context.library in ("java", "php"), reason="No implemented the endpoint /crashme"
     )
+    @missing_feature(context.library < "ruby@2.7.0", reason="Not implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-603")
