@@ -98,4 +98,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/DataDog/dd-trace-go/v2 => github.com/DataDog/dd-trace-go/v2 v2.4.0-dev.0.20251204214531-b0ede510efae
+// replace github.com/DataDog/dd-trace-go/v2 => ./dd-trace-go
