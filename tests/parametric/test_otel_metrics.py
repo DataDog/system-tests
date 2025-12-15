@@ -1200,7 +1200,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         ],
         ids=["default", "delta", "cumulative"],
     )
-    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
+    @missing_feature(context.library == "ruby", reason="Default Histogram bucket counts is not up to spec.")
     def test_otel_aggregation_temporality(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1414,7 +1414,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
+    @missing_feature(context.library in ("nodejs", "ruby"), reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1428,7 +1428,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
             ),
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otlp_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
@@ -1486,7 +1485,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
+    @missing_feature(context.library in ("nodejs", "ruby"), reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1500,7 +1499,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
             ),
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
@@ -1531,7 +1529,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented")
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
 
@@ -1565,12 +1562,10 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert metrics_requests[0]["headers"].get("api-key") == "key", (
-            f"Expected api-key, got {metrics_requests[0]['headers']}"
-        )
-        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
-        )
+        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
+        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
+        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
+        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1598,12 +1593,10 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert metrics_requests[0]["headers"].get("api-key") == "key", (
-            f"Expected api-key, got {metrics_requests[0]['headers']}"
-        )
-        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
-        )
+        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
+        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
+        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
+        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
 
 @features.otel_metrics_api
@@ -1961,7 +1954,6 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_default_configurations(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
     ):
@@ -2010,7 +2002,6 @@ class Test_Otel_Metrics_Telemetry:
             ),
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
@@ -2066,7 +2057,6 @@ class Test_Otel_Metrics_Telemetry:
             ),
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_exporter_metrics_configurations(
         self,
         library_env: dict[str, str],
@@ -2114,11 +2104,12 @@ class Test_Otel_Metrics_Telemetry:
             {
                 **DEFAULT_ENVVARS,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # Required by ruby metrics exporter, defaults to 10 seconds
+                "DD_TELEMETRY_METRICS_AGGREGATION_INTERVAL": "0.1",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             },
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
     def test_telemetry_metrics_http_protobuf(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ):
