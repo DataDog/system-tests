@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 
 from utils import scenarios, interfaces, weblog, features, missing_feature, context, logger
 
+
 @features.ssi_service_naming
 @scenarios.docker_ssi_servicenaming
 class TestDockerServiceNaming:
