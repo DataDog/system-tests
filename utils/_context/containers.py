@@ -1392,6 +1392,12 @@ class APMTestAgentContainer(TestedContainer):
 
 
 class VCRProxyContainer(TestedContainer):
+    """VCR proxy container for recording and replaying HTTP interactions.
+    
+    Will mount the folder ./utils/build/docker/vcr_proxy/cassettes to /cassettes inside the container.
+    
+    The endpoint will be made available to weblogs at 'http://vcr-proxy:{proxy_port}/vcr'
+    """
     def __init__(self, proxy_port: int = ProxyPorts.vcr_proxy) -> None:
         super().__init__(
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
