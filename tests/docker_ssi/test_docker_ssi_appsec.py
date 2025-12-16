@@ -14,7 +14,7 @@ class TestDockerSSIAppsecFeatures:
         parsed_url = urlparse(scenarios.docker_ssi_appsec.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
-    @missing_feature(condition=context.library in ("nodejs", "java", "php", "dotnet"), reason="No implemented")
+    @missing_feature(condition=context.library in ("nodejs", "java", "php", "dotnet", "ruby"), reason="No implemented")
     @missing_feature(context.library < "python@3.15.0", reason="No implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library >= "python@3.32.0" and context.installed_language_runtime < "3.9.0")
