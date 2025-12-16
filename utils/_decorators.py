@@ -21,11 +21,11 @@ def configure(config: pytest.Config):
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def _is_jira_ticket(declaration_details: str | None):
-    return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details)
+def _is_jira_ticket(declaration_details: str | None) -> bool:
+    return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details) is not None
 
 
-def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None):
+def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None) -> None:
     if isinstance(item, pytest.Function):
         item = item.function
     if not _is_jira_ticket(declaration_details):
@@ -42,7 +42,7 @@ def add_pytest_marker(
     declaration_details: str | None,
     *,
     force_skip: bool = False,
-):
+) -> pytest.Module | pytest.Function | FunctionType | MethodType:
     if (
         not inspect.isfunction(item)
         and not inspect.isclass(item)
@@ -75,7 +75,11 @@ def add_pytest_marker(
     return item
 
 
-def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):  # noqa: FBT001
+def _expected_to_fail(
+    condition: bool | None = None,  # noqa: FBT001
+    library: str | None = None,
+    weblog_variant: str | None = None,
+) -> bool:
     if condition is False:
         return False
 
