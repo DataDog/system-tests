@@ -32,9 +32,7 @@ def _find_class_in_ast(module_ast: ast.Module, class_name: str) -> ast.ClassDef 
     return None
 
 
-def _function_exists_in_class(
-    class_node: ast.ClassDef, function_name: str, module_ast: ast.Module
-) -> bool:
+def _function_exists_in_class(class_node: ast.ClassDef, function_name: str, module_ast: ast.Module) -> bool:
     """Check if a function exists in a class, including inherited methods."""
     # Check direct methods first
     for child in ast.iter_child_nodes(class_node):
