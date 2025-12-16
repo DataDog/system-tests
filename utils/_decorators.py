@@ -18,7 +18,7 @@ def configure(config: pytest.Config):
     pass  # nothing to do right now
 
 
-class _TestDeclaration(enum.StrEnum):
+class TestDeclaration(enum.StrEnum):
     __test__ = False  # Tell pytest this is not a test class
     BUG = "bug"
     FLAKY = "flaky"
@@ -28,18 +28,18 @@ class _TestDeclaration(enum.StrEnum):
 
 
 SKIP_DECLARATIONS = (
-    _TestDeclaration.MISSING_FEATURE,
-    _TestDeclaration.BUG,
-    _TestDeclaration.FLAKY,
-    _TestDeclaration.IRRELEVANT,
-    _TestDeclaration.INCOMPLETE_TEST_APP,
+    TestDeclaration.MISSING_FEATURE,
+    TestDeclaration.BUG,
+    TestDeclaration.FLAKY,
+    TestDeclaration.IRRELEVANT,
+    TestDeclaration.INCOMPLETE_TEST_APP,
 )
 
 
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def parse_skip_declaration(skip_declaration: str) -> tuple[_TestDeclaration, str | None]:
+def parse_skip_declaration(skip_declaration: str) -> tuple[TestDeclaration, str | None]:
     """Parse a skip declaration
     returns the corresponding TestDeclaration, and if it exists, de declaration details
     """
@@ -51,7 +51,7 @@ def parse_skip_declaration(skip_declaration: str) -> tuple[_TestDeclaration, str
     assert match is not None
     declaration, _, declaration_details = match.groups()
 
-    return _TestDeclaration(declaration), declaration_details
+    return TestDeclaration(declaration), declaration_details
 
 
 def _is_jira_ticket(declaration_details: str | None):
@@ -71,7 +71,7 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
 
 def add_pytest_marker(
     item: pytest.Module | pytest.Function | FunctionType | MethodType,
-    declaration: _TestDeclaration,
+    declaration: TestDeclaration,
     declaration_details: str | None,
     *,
     force_skip: bool = False,
@@ -84,10 +84,10 @@ def add_pytest_marker(
     ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
-    if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
+    if declaration in (TestDeclaration.BUG, TestDeclaration.FLAKY):
         _ensure_jira_ticket_as_reason(item, declaration_details)
 
-    if force_skip or declaration in (_TestDeclaration.IRRELEVANT, _TestDeclaration.FLAKY):
+    if force_skip or declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
         marker = pytest.mark.skip
     else:
         marker = pytest.mark.xfail
@@ -144,7 +144,7 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
     *,
-    declaration: _TestDeclaration,
+    declaration: TestDeclaration,
     condition: bool | None,
     library: str | None,
     weblog_variant: str | None,
@@ -175,7 +175,7 @@ def missing_feature(
     """decorator, allow to mark a test function/class as missing"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.MISSING_FEATURE,
+        declaration=TestDeclaration.MISSING_FEATURE,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -193,7 +193,7 @@ def incomplete_test_app(
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.INCOMPLETE_TEST_APP,
+        declaration=TestDeclaration.INCOMPLETE_TEST_APP,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -210,7 +210,7 @@ def irrelevant(
     """decorator, allow to mark a test function/class as not relevant"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.IRRELEVANT,
+        declaration=TestDeclaration.IRRELEVANT,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -231,7 +231,7 @@ def bug(
     """
     return partial(
         _decorator,
-        declaration=_TestDeclaration.BUG,
+        declaration=TestDeclaration.BUG,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -244,7 +244,7 @@ def flaky(condition: bool | None = None, library: str | None = None, weblog_vari
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.FLAKY,
+        declaration=TestDeclaration.FLAKY,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,

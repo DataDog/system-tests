@@ -1,7 +1,7 @@
 from pathlib import Path
 from utils import scenarios
 from utils._context.component_version import Version
-from utils._decorators import _TestDeclaration as TestDeclaration
+from utils._decorators import TestDeclaration as TestDeclaration
 from utils.manifest import Manifest, SkipDeclaration
 from utils.manifest._internal.types import SemverRange as CustomSpec
 

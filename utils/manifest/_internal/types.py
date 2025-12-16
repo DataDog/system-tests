@@ -3,7 +3,7 @@ from typing import NotRequired, TypedDict, Any
 
 import semantic_version as semver
 
-from utils._decorators import _TestDeclaration
+from utils._decorators import TestDeclaration
 
 
 # semver module offers two spec engine :
@@ -24,11 +24,11 @@ class SemverRange(semver.NpmSpec):
 class SkipDeclaration:
     """Type for skip declarations. Unlike _TestDeclaration it also contains the details"""
 
-    value: _TestDeclaration
+    value: TestDeclaration
     details: str | None = None
 
     def __init__(self, value: str, details: str | None = None):
-        self.value = _TestDeclaration(value)
+        self.value = TestDeclaration(value)
         self.details = details
 
     def __eq__(self, value: object, /) -> bool:
