@@ -2570,9 +2570,9 @@ class _Features:
     def feature_flag_exposure(test_object):
         """Feature Flag Exposure
 
-        https://feature-parity.us1.prod.dog/#/?feature=492
+        https://feature-parity.us1.prod.dog/#/?feature=529
         """
-        return _mark_test_object(test_object, feature_id=492, owner=_Owner.feature_flag_exposure)
+        return _mark_test_object(test_object, feature_id=529, owner=_Owner.feature_flag_exposure)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
