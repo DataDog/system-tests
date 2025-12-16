@@ -29,7 +29,13 @@ ask_load_k8s_requirements(){
             if [[ "$INSTALL_KIND" == "y" ]]; then
                 echo "Installing Kind..."
                 KIND_VERSION='v0.17.0'
-                curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
+                # Download appropriate version (Mac M1 arm64 arch or linux amd64)
+                ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+                if [ "$ARCH" = "arm64" ]; then
+                    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
+                else
+                    curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
+                fi
                 chmod +x ./kind
                 sudo mv ./kind /usr/local/bin/kind
                 echo -e "${GREEN}✅ Kind installed successfully.${NC}"
