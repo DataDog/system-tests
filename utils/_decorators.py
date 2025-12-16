@@ -10,7 +10,6 @@ import pytest
 import semantic_version as semver
 
 from utils._context.core import context
-from utils._context.component_version import ComponentVersion, Version
 
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
@@ -268,115 +267,8 @@ def flaky(condition: bool | None = None, library: str | None = None, weblog_vari
     )
 
 
-def released(
-    cpp: str | None = None,
-    cpp_httpd: str | None = None,
-    cpp_nginx: str | None = None,
-    dotnet: str | None = None,
-    golang: str | None = None,
-    java: str | None = None,
-    nodejs: str | None = None,
-    php: str | None = None,
-    python: str | None = None,
-    python_otel: str | None = None,
-    nodejs_otel: str | None = None,
-    ruby: str | None = None,
-    rust: str | None = None,
-    agent: str | None = None,
-    dd_apm_inject: str | None = None,
-    k8s_cluster_agent: str | None = None,
-    python_lambda: str | None = None,
-):
-    """Class decorator, allow to mark a test class with a version number of a component"""
-
-    def wrapper(test_class: type[Any]):
-        if not inspect.isclass(test_class):
-            raise TypeError(f"{test_class} is not a class")
-
-        def compute_declaration(
-            only_for_library: str, component_name: str, full_declaration: str | None, tested_version: Version
-        ) -> tuple[str | None, str | None]:
-            if full_declaration is None:
-                # nothing declared
-                return None, None
-
-            if only_for_library != "*":
-                # this declaration is applied only if the tested library is <only_for_library>
-                if context.library != only_for_library:
-                    # the tested library is not concerned by this declaration
-                    return None, None
-
-            full_declaration = _resolve_declaration(full_declaration)
-
-            if full_declaration is None:
-                return None, None
-
-            if full_declaration.startswith(SKIP_DECLARATIONS):
-                return parse_skip_declaration(full_declaration)
-
-            # declaration must be now a version number
-            if full_declaration.startswith("v"):
-                if (
-                    not tested_version
-                    or tested_version >= ComponentVersion(component_name, full_declaration.lstrip("v")).version
-                ):
-                    return None, None
-            elif semver.Version(str(tested_version)) in CustomSpec(full_declaration):
-                return None, None
-
-            return (
-                _TestDeclaration.MISSING_FEATURE,
-                f"declared version for {component_name} is {full_declaration}, tested version is {tested_version}",
-            )
-
-        skip_reasons = [
-            compute_declaration("cpp", "cpp", cpp, context.library.version),
-            compute_declaration("cpp_httpd", "cpp_httpd", cpp_httpd, context.library.version),
-            compute_declaration("cpp_nginx", "cpp_nginx", cpp_nginx, context.library.version),
-            compute_declaration("dotnet", "dotnet", dotnet, context.library.version),
-            compute_declaration("golang", "golang", golang, context.library.version),
-            compute_declaration("java", "java", java, context.library.version),
-            compute_declaration("nodejs", "nodejs", nodejs, context.library.version),
-            compute_declaration("nodejs_otel", "nodejs_otel", nodejs_otel, context.library.version),
-            compute_declaration("php", "php", php, context.library.version),
-            compute_declaration("python", "python", python, context.library.version),
-            compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
-            compute_declaration("python_lambda", "python_lambda", python_lambda, context.library.version),
-            compute_declaration("ruby", "ruby", ruby, context.library.version),
-            compute_declaration("rust", "rust", rust, context.library.version),
-            compute_declaration("*", "agent", agent, context.agent_version),
-            compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
-            compute_declaration("*", "k8s_cluster_agent", k8s_cluster_agent, context.k8s_cluster_agent_version),
-        ]
-
-        for declaration, declaration_details in skip_reasons:
-            if declaration is not None:
-                return add_pytest_marker(test_class, _TestDeclaration(declaration), declaration_details)
-
-        return test_class
-
-    return wrapper
-
-
 def rfc(link: str):  # noqa: ARG001
     def wrapper(item: type[Any]):
         return item
 
     return wrapper
-
-
-def _resolve_declaration(released_declaration: str | dict[str, str]) -> str | None:
-    """If the declaration is a dict, resolve it regarding the tested weblog"""
-    if isinstance(released_declaration, str):
-        return released_declaration
-
-    if isinstance(released_declaration, dict):
-        if context.weblog_variant in released_declaration:
-            return released_declaration[context.weblog_variant]
-
-        if "*" in released_declaration:
-            return released_declaration["*"]
-
-        return None
-
-    raise TypeError(f"Unsuported release info: {released_declaration}")
