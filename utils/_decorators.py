@@ -2,12 +2,12 @@ import inspect
 import os
 import re
 from functools import partial
-import enum
 from types import FunctionType, MethodType
 from typing import Any
 
 import pytest
 
+from utils.manifest import TestDeclaration
 from utils._context.core import context
 
 
@@ -18,40 +18,7 @@ def configure(config: pytest.Config):
     pass  # nothing to do right now
 
 
-class TestDeclaration(enum.StrEnum):
-    __test__ = False  # Tell pytest this is not a test class
-    BUG = "bug"
-    FLAKY = "flaky"
-    INCOMPLETE_TEST_APP = "incomplete_test_app"
-    IRRELEVANT = "irrelevant"
-    MISSING_FEATURE = "missing_feature"
-
-
-SKIP_DECLARATIONS = (
-    TestDeclaration.MISSING_FEATURE,
-    TestDeclaration.BUG,
-    TestDeclaration.FLAKY,
-    TestDeclaration.IRRELEVANT,
-    TestDeclaration.INCOMPLETE_TEST_APP,
-)
-
-
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
-
-
-def parse_skip_declaration(skip_declaration: str) -> tuple[TestDeclaration, str | None]:
-    """Parse a skip declaration
-    returns the corresponding TestDeclaration, and if it exists, de declaration details
-    """
-
-    if not skip_declaration.startswith(SKIP_DECLARATIONS):
-        raise ValueError(f"The declaration must be a skip declaration: {skip_declaration}")
-
-    match = re.match(r"^(\w+)( \((.*)\))?$", skip_declaration)
-    assert match is not None
-    declaration, _, declaration_details = match.groups()
-
-    return TestDeclaration(declaration), declaration_details
 
 
 def _is_jira_ticket(declaration_details: str | None):

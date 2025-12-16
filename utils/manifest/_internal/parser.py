@@ -6,8 +6,7 @@ from typing import Any, get_args, get_origin
 
 import yaml
 
-from utils._decorators import TestDeclaration
-
+from .const import TestDeclaration
 from .declaration import Declaration
 from .types import Condition, ManifestData, SkipDeclaration, SemverRange
 
