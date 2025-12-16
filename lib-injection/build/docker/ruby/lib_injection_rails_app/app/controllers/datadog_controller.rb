@@ -1,4 +1,8 @@
 class DatadogController < ApplicationController
+    def crashme
+      Process.kill('SEGV', Process.pid)
+    end
+
     def fork_and_crash
         pid = Process.fork do
             Process.kill('SEGV', Process.pid)
