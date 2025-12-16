@@ -13,8 +13,7 @@ RUN find jetty-distribution-9.4.56.v20240826/lib -iname '*.jar' -exec cp \{\} je
 RUN rm jetty-classpath/jetty-jaspi*
 
 COPY lib-injection/build/docker/java/jetty-app/ .
-RUN javac -cp "jetty-classpath/*" JettyServletMain.java CrashServlet.java
-
+RUN javac -cp "jetty-classpath/*" JettyServletMain.java CrashServlet.java MyServlet.java
 RUN mkdir -p /var/log/java
 
 RUN echo '#!/bin/bash' > app.sh && \
