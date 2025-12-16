@@ -15,16 +15,24 @@ from .endtoend import DockerScenario
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
 
-    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
+    def __init__(
+        self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True, include_postgres: bool = True
+    ):
         super().__init__(
             name,
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
-            include_postgres_db=True,
+            include_postgres_db=include_postgres,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
         )
+
+        # Select the appropriate config file
+        if include_postgres:
+            config_file = "./utils/build/docker/otelcol-config-with-postgres.yaml"
+        else:
+            config_file = "./utils/build/docker/otelcol-config.yaml"
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
@@ -58,11 +66,22 @@ class OtelCollectorScenario(DockerScenario):
 
             self.collector_container.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        postgres_image = self.postgres_container.image.name
-        image_parts = postgres_image.split(":")
-        docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
-        docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
+        # Get the database container image info
+        # Set default values first (required for OTEL collector config)
+        docker_image_name = "unknown"
+        docker_image_tag = "unknown"
 
+        if hasattr(self, "postgres_container"):
+            db_image = self.postgres_container.image.name
+            image_parts = db_image.split(":")
+            docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
+            docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
+
+            # Extract version from image name
+            postgres_version = docker_image_tag if docker_image_tag != "unknown" else "unknown"
+            self.components["postgres"] = postgres_version
+
+        # Always set these environment variables (OTEL collector config requires them)
         self.collector_container.environment["DOCKER_IMAGE_NAME"] = docker_image_name
         self.collector_container.environment["DOCKER_IMAGE_TAG"] = docker_image_tag
 
@@ -70,10 +89,6 @@ class OtelCollectorScenario(DockerScenario):
         self.otel_collector_version = Version(self.collector_container.image.labels["org.opencontainers.image.version"])
 
         self.components["otel_collector"] = str(self.otel_collector_version)
-        # Extract version from image name
-        image_name = self.postgres_container.image.name
-        postgres_version = image_name.split(":", 1)[1] if ":" in image_name else "unknown"
-        self.components["postgresql"] = postgres_version
 
         self.warmups.append(self._print_otel_collector_version)
 
@@ -93,6 +108,7 @@ class OtelCollectorScenario(DockerScenario):
         # Parse OTel collector configuration file
         config_file_path = Path(self.collector_container.config_file)
         result["configuration"]["config_file"] = config_file_path.name
+
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])
