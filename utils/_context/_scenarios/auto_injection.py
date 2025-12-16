@@ -144,6 +144,7 @@ class _VirtualMachineScenario(Scenario):
                 self._library = ComponentVersion(self._library.name, str(self.components[key]))
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
+                self.components[key.removeprefix("datadog-apm-library-")] = self.components[key]
                 del self.components[key]
             if key.startswith("glibc"):
                 # We will all the glibc versions in the feature parity report, due to each machine can have a
