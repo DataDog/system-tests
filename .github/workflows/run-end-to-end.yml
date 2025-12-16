@@ -480,6 +480,9 @@ jobs:
       run: ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run AI_GUARD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AI_GUARD"')
+      run: ./run.sh AI_GUARD
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
