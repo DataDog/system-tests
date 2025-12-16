@@ -13,6 +13,10 @@
                     "nodejs": [
                         "js-app"
                     ],
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
                     "python": [
                         "py-app"
                     ],
@@ -34,6 +38,10 @@
                     "nodejs": [
                         "js-app"
                     ],
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
                     "python": [
                         "py-app"
                     ]
@@ -46,6 +54,10 @@
             ],
             "weblogs": [
                 {
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
                     "java": [
                         "tomcat-app",
                         "websphere-app",
@@ -170,6 +182,52 @@
                 "supported_images": [
                     {
                         "name": "Wildfly_amd64"
+                    }
+                ]
+            }
+        ],
+        "ruby": [
+            {
+                "name": "rails6-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB26"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB26"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "ruby-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
+                        ]
                     }
                 ]
             }
