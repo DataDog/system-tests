@@ -5,7 +5,7 @@ import json
 import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios, context, missing_feature, bug
+from utils import features, scenarios, context, bug
 from utils._context.component_version import Version
 from .conftest import APMLibrary
 
