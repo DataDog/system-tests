@@ -12,7 +12,8 @@
                 }
             ],
             "cluster_agents": [
-                "latest"
+                "prod",
+                "dev"
             ]
         },
         {
@@ -44,7 +45,8 @@
             ],
             "cluster_agents": [
                 "old_injection",
-                "latest"
+                "prod",
+                "dev"
             ]
         },
         {
@@ -57,7 +59,8 @@
                 }
             ],
             "cluster_agents": [
-                "latest"
+                "prod",
+                "dev"
             ]
         },
         {
@@ -94,7 +97,8 @@
 
     ],
     "cluster_agent_spec": {
-        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
-        "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2"
+        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
+        "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2",
+        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master"
     }
 }
