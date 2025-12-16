@@ -34,9 +34,7 @@ install_custom_jar "dd-openfeature*.jar" "dd-openfeature" "$MVN_OPTS"
 
 # Look for custom dd-trace-java jar in custom binaries folder
 if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then
-    # TEMPORARY: Force using the PR branch instead of latest release
-    TARGET_BRANCH="alejandro.gonzalez/security-response-id"
-    BUILD_URL="https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
+    BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
     echo "install from Github release: $BUILD_URL"
     curl  -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
 
