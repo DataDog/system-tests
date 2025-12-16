@@ -7,82 +7,40 @@ CLASS_LENGTH = 2
 FUNCTION_LENGTH = 3
 
 
-class Dir:
-    pass
-
-
-class File:
-    def __init__(self, file_path: Path):
-        self.classes = None
-        with file_path.open() as f:
-            self.ast = ast.parse(f.read())
-
-    def get_classes(self) -> list[Class]:
-        if self.classes is not None:
-            return self.classes
-        self.classes = []
-        for node in ast.iter_child_nodes(self.ast):
-            if isinstance(node, ast.ClassDef):
-                self.classes.append(Class(node, self))
-        return self.classes
-
-
-class Class:
-    def __init__(self, node: ast.ClassDef, parent: File):
-        self.node = node
-        self.parent = parent
-        self.functions = None
-
-    def get_functions(self) -> list[ast.FunctionDef]:
-        if self.functions is not None:
-            return self.functions
-        self.functions = []
-        for node in ast.iter_child_nodes(self.node):
-            if isinstance(node, ast.FunctionDef):
-                self.functions.append(Function(node, self))
-        return self.functions
-
-
-class Function:
-    def __init__(self, node: ast.FunctionDef, parent: Class):
-        self.node = node
-        self.parent = parent
-
-    def __str__(self) -> str:
-        return ""
-
-
-def get_impacted_nodeids(rule: str) -> list[str]:
+def get_impacted_nodeids(rule: str) -> set[str]:
     elements = rule.split("::")
-
     if len(elements) == FUNCTION_LENGTH:
-        return [rule]
-    if len(elements) == CLASS_LENGTH:
-        file = elements[0]
-    else:
-        dirs = elements[0]
+        return {rule}
 
-    with open(elements[0]) as f:
+    path = Path(elements[0])
+    ret = set()
+
+    if path.is_dir():
+        if len(elements) >= CLASS_LENGTH:
+            raise ValueError(f"When a class is specified the path should be a file, {path} is a dir")
+        for child in path.iterdir():
+            if "__pycache__" in child.name:
+                continue
+            ret |= get_impacted_nodeids(str(child))
+        return ret
+
+    if path.suffix != ".py":
+        return set()
+    with path.open() as f:
         test_ast = ast.parse(f.read())
 
-    found_class = False
-    found_function = len(elements) < 3  # noqa: PLR2004
+    if len(elements) == CLASS_LENGTH:
+        for node in ast.iter_child_nodes(test_ast):
+            if not isinstance(node, ast.ClassDef) or node.name != elements[1]:
+                continue
+            for child in ast.iter_child_nodes(node):
+                if isinstance(child, ast.FunctionDef):
+                    ret.add(f"{path}::{elements[1]}::{child.name}")
+        return ret
+
     for node in ast.iter_child_nodes(test_ast):
-        if not isinstance(node, ast.ClassDef) or node.name != elements[1]:
+        if not isinstance(node, ast.ClassDef):
             continue
-        if found_class:
-            break
+        ret |= get_impacted_nodeids(f"{path}::{node.name}")
 
-        found_class = True
-        for child in ast.iter_child_nodes(node):
-            if found_function:
-                break
-
-            if isinstance(child, ast.FunctionDef) and child.name == elements[2]:
-                found_function = True
-
-    if not found_class:
-        errors.append(f"{elements[0]} does not contain class {elements[1]}")
-    if found_class and not found_function and len(elements) >= 3:  # noqa: PLR2004
-        errors.append(f"{elements[0]}::{elements[1]} does not contain function {elements[2]}")
-    return [""]
+    return ret

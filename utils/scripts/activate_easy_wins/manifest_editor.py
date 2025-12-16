@@ -1,13 +1,15 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 import ruamel.yaml
+from utils._decorators import CustomSpec
 from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML
 
 from utils.manifest import Condition, SkipDeclaration
 from .const import LIBRARIES
 from .types import Context
+import sys
 
 # Fix line wrapping bug in ruamel
 ruamel.yaml.emitter.Emitter.MAX_SIMPLE_KEY_LENGTH = 1000
@@ -17,6 +19,9 @@ class ManifestEditor:
     raw_data: dict[str, CommentedMap]
     manifest: Manifest
     round_trip_parser: YAML
+    context: Context
+    poked_views: dict[View, set[Context]] = {}
+    added_rules: dict[str, set[tuple[View, Context]]] = {}
 
     @dataclass
     class View:
@@ -25,6 +30,7 @@ class ManifestEditor:
         condition_index: int
         clause_key: str | None
         is_inline: bool = False
+        # poked: set[Context] = field(default_factory=set)
 
         def __hash__(self) -> int:
             return hash(self.rule + str(self.condition) + str(self.condition_index))
@@ -48,8 +54,10 @@ class ManifestEditor:
         self.round_trip_parser.preserve_quotes = True
         self.round_trip_parser.indent(mapping=2, sequence=4, offset=2)
 
-    def set_context(self, context: Context) -> None:
+    def set_context(self, context: Context) -> ManifestEditor:
+        self.context = context
         self.manifest.update_rules(context.library, context.library_version, context.variant)
+        return self
 
     def get_matches(self, nodeid: str) -> set[View]:
         def compute_edit_loc(raw_conditions: list[CommentedMap], parsed_rule_index: int) -> tuple[int, bool]:
@@ -78,6 +86,8 @@ class ManifestEditor:
         for rule, condition_indices in declaration_sources:
             for condition_index in condition_indices:
                 component = self.manifest.data[rule][condition_index[0]]["component"]
+                if component not in LIBRARIES:
+                    continue
                 raw_conditions = self.raw_data[component]["manifest"][rule]
                 parsed_condition = self.manifest.data[rule][condition_index[0]]
                 index, is_clause = (
@@ -103,6 +113,11 @@ class ManifestEditor:
                 )
         return ret
 
+    def poke(self, view: View):
+        if view not in self.poked_views:
+            self.poked_views[view] = set()
+        self.poked_views[view].add(self.context)
+
     def update(self, view: View, new_content: Condition | SkipDeclaration | str, append_key: str | None = None) -> None:
         if isinstance(new_content, SkipDeclaration):
             new_content = str(new_content)
@@ -118,6 +133,48 @@ class ManifestEditor:
         else:
             raw_data[view.rule][view.condition_index] = new_content
 
+    def add_condition(self, rule: str, condition: dict) -> None:
+        print(type(self.raw_data), type(self.raw_data[rule]), self.raw_data[rule])
+        self.raw_data[self.context.library]["manifest"][rule].append(condition)
+
+    def add_rules(self, rules: list[str], parent: View) -> None:
+        for rule in rules:
+            if rule not in self.added_rules:
+                self.added_rules[rule] = set()
+            self.added_rules[rule].add((parent, self.context))
+
+    def contains(self, rule: str) -> bool:
+        return rule in self.raw_data[self.context.library]["manifest"]
+
+    @staticmethod
+    def serialize_condition(condition: Condition) -> dict[str, str]:
+        ret = {}
+        for name in condition:
+            if name == "declaration":
+                ret[name] = str(condition[name])
+            elif name == "component":
+                pass
+            else:
+                ret[name] = str(condition[name])
+        return ret
+
+    @staticmethod
+    def specialize(condition: Condition, context: Context) -> Condition:
+        condition["weblog"] = [context.variant]
+        condition["component_version"] = CustomSpec(f">={context.library_version}")
+        return condition
+
+    def write_new_rules(self) -> None:
+        for rule, sources in self.added_rules.items():
+            for source in sources:
+                condition = source[0].condition
+                manifest = self.raw_data[condition["component"]]["manifest"]
+                if rule not in manifest:
+                    manifest[rule] = []
+                manifest[rule].append(self.serialize_condition(ManifestEditor.specialize(condition, source[1])))
+
     def write(self, output_dir: Path = Path("manifests/")) -> None:
+        self.write_new_rules()
         for component, data in self.raw_data.items():
-            self.round_trip_parser.dump(data, output_dir.joinpath(f"{component}.yml"))
+            self.round_trip_parser.dump(data, sys.stdout)
+            # self.round_trip_parser.dump(data, output_dir.joinpath(f"{component}.yml"))

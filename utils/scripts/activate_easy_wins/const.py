@@ -16,3 +16,6 @@ LIBRARIES = [
     "ruby",
     # "rust"
 ]
+ARTIFACT_URL = (
+    "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
+)
