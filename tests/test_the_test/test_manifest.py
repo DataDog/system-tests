@@ -155,3 +155,15 @@ class TestManifest:
         assert manifest.get_declarations("tests/appsec/iast/sink/file.py::Class::function") == [
             SkipDeclaration(TestDeclaration.MISSING_FEATURE)
         ]
+
+    def test_parametric_test(self):
+        manifest = Manifest(
+            "python",
+            Version("3.12.0"),
+            "some-variant",
+            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
+        )
+
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::func[param]"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE)]

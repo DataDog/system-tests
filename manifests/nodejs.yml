@@ -77,6 +77,7 @@ refs:
   - &ref_5_77_0 '>=5.77.0'
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
+  - &ref_5_81_0 '>=5.81.0'
 manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -549,6 +550,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
@@ -1169,6 +1171,9 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
         fastify: *ref_5_57_0
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once_rfc1025:
+    - component_version: ">=5.80.0"
+      declaration: flaky (APPSEC-60220)
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v2.0.0
@@ -1257,12 +1262,16 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
+  tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmResponses: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: *ref_5_80_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: *ref_5_80_0
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: missing_feature
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -1453,7 +1462,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
-  tests/parametric/test_otel_metrics.py: missing_feature
+  tests/parametric/test_otel_metrics.py: *ref_5_81_0
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: *ref_5_32_0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.
@@ -1570,6 +1579,14 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app
         express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": irrelevant
@@ -1599,7 +1616,15 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
   tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
+    - weblog_declaration:
+        "*": *ref_5_81_0
+        nextjs: missing_feature  # Next.js have file based routing, resource renaming is supported if we are not able to get route from insturmantation that we can't reprocude it.
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys:
+    - weblog_declaration:
+        "*": *ref_5_81_0
+        nextjs: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
   tests/test_sampling_rates.py::Test_SamplingDecisions: *ref_5_54_0
@@ -1614,6 +1639,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_3_13_1
         nextjs: missing_feature  # nextjs makes some internal requests and we have different tag names
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag:
+    - component_version: ">=4.44.0"
+      declaration: bug (APMAPI-921)
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: *ref_3_13_1
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:

@@ -4,20 +4,14 @@
 
 import json
 import urllib.parse
-import pytest
 
-from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils import features, weblog, interfaces, scenarios, rfc
 
 from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant_v2,
 )
 
-if context.library > "python_lambda@8.117.0":
-    pytestmark = [
-        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
-        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
-    ]
 
 API10_TAGS = [
     "_dd.appsec.trace.req_headers",
@@ -375,3 +369,32 @@ class Test_API10_redirect(API10):
         assert self.r.status_code == 200
         interfaces.library.validate_one_span(self.r, validator=self.validate)
         interfaces.library.validate_one_span(self.r, validator=self.validate_metric)
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp_non_blocking
+class Test_API10_redirect_status(API10):
+    """API 10 for multiple redirect responses. Check status code analysis."""
+
+    TAGS_EXPECTED = [
+        ("_dd.appsec.trace.req_headers", "TAG_API10_REQ_HEADERS"),
+    ]
+
+    TAGS_EXPECTED_METRIC = [
+        ("_dd.appsec.downstream_request", "5"),
+    ]
+
+    PARAMS = {"Witness": "pwq3ojtropiw3hjtowir", "totalRedirects": "3"}
+
+    def setup_api10_redirect(self):
+        self.r = weblog.get("/external_request/redirect", params=self.PARAMS)
+
+    def test_api10_redirect(self):
+        assert self.r.status_code == 200
+        # interfaces.library.validate_one_span(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate_metric)
+        for _, _trace, span in interfaces.library.get_spans(request=self.r):
+            meta = span.get("meta", {})
+            assert isinstance(meta.get("appsec.api.redirection.move_target", None), str), f"missing tag in {meta}"
+            assert "/redirect?totalRedirects=2" in meta["appsec.api.redirection.move_target"]

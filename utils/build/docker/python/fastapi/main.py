@@ -1317,6 +1317,23 @@ async def external_request(request: Request):
         return {"status": int(e.status), "error": repr(e)}
 
 
+@app.get("/external_request/redirect", response_class=JSONResponse, status_code=200)
+async def external_request(request: Request, totalRedirects: int):
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={totalRedirects}"
+    queries = {k: str(v) for k, v in request.query_params.items()}
+    try:
+        with requests.Session() as s:
+            response = s.request("GET", full_url, headers=queries, timeout=10)
+            payload = response.text
+            return {
+                "status": int(response.status_code),
+                "headers": dict(response.headers),
+                "payload": json.loads(payload),
+            }
+    except Exception as e:
+        return {"status": int(e.status), "error": repr(e)}
+
+
 @app.get("/resource_renaming/{path:path}", response_class=PlainTextResponse)
 def resource_renaming(path: str = ""):
     return "ok"

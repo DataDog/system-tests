@@ -7,10 +7,11 @@ from typing import TypedDict
 import urllib.parse
 
 from _pytest.outcomes import Failed
+import requests
+from requests.exceptions import RequestException
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
 import pytest
-import requests
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
@@ -282,8 +283,8 @@ class ParametricTestClientApi:
     def crash(self) -> None:
         try:
             self._session.get(self._url("/trace/crash"))
-        except:
-            logger.info("Expected exception when calling /trace/crash")
+        except RequestException as e:
+            logger.info(f"Expected exception when calling /trace/crash: {e}")
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:

@@ -88,10 +88,14 @@ class MockedResponse:
 class StaticJsonMockedResponse(MockedResponse):
     """Always overwrites the same static JSON content on request made on the given path"""
 
-    def __init__(self, path: str, mocked_json: dict | list):
+    def __init__(self, path: str, mocked_json: dict | list, status_code: int = 200):
         super().__init__(path=path, mocked_headers={"Content-Type": "application/json"})
         self.mocked_json = mocked_json
         """ Content of the static JSON response """
+        self.status_code = status_code
+
+    def _apply_status_code(self, flow: HTTPFlow) -> None:
+        flow.response.status_code = self.status_code
 
     def execute(self, flow: HTTPFlow) -> None:
         super().execute(flow)
@@ -102,6 +106,7 @@ class StaticJsonMockedResponse(MockedResponse):
             "type": self.__class__.__name__,
             "path": self.path,
             "mocked_json": self.mocked_json,
+            "status_code": self.status_code,
         }
 
 

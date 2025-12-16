@@ -61,6 +61,10 @@ manifest:
         alb-multi: missing_feature
         function-url: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_all: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
@@ -205,6 +209,7 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/test_inferred_spans.py::Test_Inferred_Span_Tags: missing_feature
   tests/appsec/test_only_python.py::Test_ImportError: v7.112.0
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v7.112.0
   tests/appsec/test_reports.py::Test_Info: v7.112.0
@@ -231,4 +236,5 @@ manifest:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
   tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_v1_payloads.py: missing_feature

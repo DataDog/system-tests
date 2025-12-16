@@ -157,10 +157,13 @@ class TestDockerSSIFeatures:
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # Get the latest (effective) configurations
-        telemetry_name = _mapped_telemetry_name("instrumentation_source")
+        telemetry_names: list[str] = _mapped_telemetry_name("instrumentation_source")
         configurations = interfaces.test_agent.get_telemetry_configurations()
-        instrumentation_source = configurations.get(telemetry_name, {})
-        assert instrumentation_source.get("value") == "ssi", f"{telemetry_name}=ssi not found in {configurations}"
+
+        for name in telemetry_names:
+            if name in configurations:
+                instrumentation_source: dict = configurations[name]
+                assert instrumentation_source.get("value") == "ssi", f"{name}=ssi not found in {configurations}"
 
     def setup_injection_metadata(self):
         self._setup_all()

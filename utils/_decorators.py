@@ -10,7 +10,7 @@ import pytest
 import semantic_version as semver
 
 from utils._context.core import context
-from utils._context.component_version import Version
+from utils._context.component_version import ComponentVersion, Version
 
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
@@ -21,6 +21,7 @@ def configure(config: pytest.Config):
 
 
 class _TestDeclaration(enum.StrEnum):
+    __test__ = False  # Tell pytest this is not a test class
     BUG = "bug"
     FLAKY = "flaky"
     INCOMPLETE_TEST_APP = "incomplete_test_app"
@@ -315,7 +316,10 @@ def released(
 
             # declaration must be now a version number
             if full_declaration.startswith("v"):
-                if tested_version >= full_declaration:
+                if (
+                    not tested_version
+                    or tested_version >= ComponentVersion(component_name, full_declaration.lstrip("v")).version
+                ):
                     return None, None
             elif semver.Version(str(tested_version)) in CustomSpec(full_declaration):
                 return None, None

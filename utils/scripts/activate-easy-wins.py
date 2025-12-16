@@ -4,6 +4,7 @@ import argparse
 import copy
 import json
 import os
+import sys
 import zipfile
 from enum import Enum
 from pathlib import Path
@@ -515,6 +516,10 @@ def _format_value(value: Any) -> str:
     if isinstance(value, dict):
         return f"{{dict with {len(value)} keys}}"
     return str(value)
+
+    # Exit with non-zero status if no updates were made (or would be made in dry-run)
+    if total_updates == 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -434,11 +434,11 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except APIError as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-                logger.info(f"Fail to remove container {self.name}")
+                logger.info(f"Fail to remove container {self.name} ({e})")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -1013,9 +1013,9 @@ class WeblogContainer(TestedContainer):
         try:
             r = weblog.get("/flush", timeout=10)
             assert r.status_code == HTTPStatus.OK
-        except:
+        except Exception as e:
             self.healthy = False
-            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log")
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log ({e})")
 
     def set_weblog_domain_for_ipv6(self, network: Network):
         if sys.platform == "linux":
@@ -1077,13 +1077,14 @@ class LambdaWeblogContainer(WeblogContainer):
         *,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
+        trace_managed_services: bool = False,
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
             "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
-            "DD_TRACE_MANAGED_SERVICES": "false",
+            "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 
         volumes = volumes or {}
@@ -1320,9 +1321,9 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         super().__init__(
             name="collector",
-            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            image_name="otel/opentelemetry-collector-contrib:0.137.0",
             binary_file_name="otel_collector-image",
-            command="--config=/etc/otelcol-config.yml",
+            command="--config=/etc/config/otelcol-config.yml",
             environment=environment,
             volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
@@ -1333,7 +1334,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
+        self.volumes[self.config_file] = {"bind": "/etc/config/otelcol-config.yml", "mode": "ro"}
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
