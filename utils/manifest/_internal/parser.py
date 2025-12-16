@@ -6,11 +6,10 @@ from typing import Any, get_args, get_origin
 
 import yaml
 
-from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import _TestDeclaration
 
 from .declaration import Declaration
-from .types import Condition, ManifestData, SkipDeclaration
+from .types import Condition, ManifestData, SkipDeclaration, SemverRange
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:

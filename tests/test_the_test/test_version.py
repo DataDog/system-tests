@@ -1,6 +1,6 @@
 import pytest
 import semantic_version as semver
-from utils._decorators import CustomSpec
+from utils.manifest._internal.types import SemverRange as CustomSpec
 from utils._context.component_version import ComponentVersion, Version
 
 

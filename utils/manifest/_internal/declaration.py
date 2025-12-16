@@ -1,8 +1,8 @@
 from utils._context.component_version import ComponentVersion
-from utils._decorators import CustomSpec as SemverRange
 from utils._decorators import parse_skip_declaration
 from utils._decorators import _TestDeclaration
 from .const import skip_declaration_regex, full_regex
+from .types import SemverRange
 import re
 
 
