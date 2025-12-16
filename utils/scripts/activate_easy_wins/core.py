@@ -2,19 +2,18 @@ from __future__ import annotations
 
 
 from functools import reduce
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
-from semantic_version.base import functools
 
 from utils.scripts.activate_easy_wins.test_artifact import ActivationStatus, TestData
-from utils.scripts.activate_easy_wins.utils import get_impacted_nodeids
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
     from .types import Context
     from utils.scripts.activate_easy_wins.manifest_editor import ManifestEditor
 
 
-def tup_to_rule(tup: tuple[str]) -> str:
+def tup_to_rule(tup: tuple[str, ...]) -> str:
     rule = tup[0]
     sep = "/"
     for element in tup[1:]:
@@ -32,7 +31,9 @@ def tups_to_rule(tups: list[tuple[str]]) -> list[str]:
 
 
 def update_manifest(manifest_editor: ManifestEditor, test_data: dict[Context, TestData]) -> None:
-    def get_activation(path_conv, path, children, value=ActivationStatus.NONE):
+    def get_activation(
+        _: object, path: tuple[str], children: Iterable, value: ActivationStatus = ActivationStatus.NONE
+    ):
         if value == ActivationStatus.XPASS:
             return [path]
         if value == ActivationStatus.NONE:

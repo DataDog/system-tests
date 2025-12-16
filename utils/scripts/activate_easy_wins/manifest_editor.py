@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 import ruamel.yaml
 from utils._decorators import CustomSpec
@@ -8,8 +8,11 @@ from ruamel.yaml import CommentedMap, YAML
 
 from utils.manifest import Condition, SkipDeclaration
 from .const import LIBRARIES
-from .types import Context
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .types import Context
 
 # Fix line wrapping bug in ruamel
 ruamel.yaml.emitter.Emitter.MAX_SIMPLE_KEY_LENGTH = 1000
@@ -25,12 +28,13 @@ class ManifestEditor:
 
     @dataclass
     class View:
+        """View on a manifest element"""
+
         rule: str
         condition: Condition
         condition_index: int
         clause_key: str | None
         is_inline: bool = False
-        # poked: set[Context] = field(default_factory=set)
 
         def __hash__(self) -> int:
             return hash(self.rule + str(self.condition) + str(self.condition_index))
@@ -81,7 +85,7 @@ class ManifestEditor:
         declaration_sources: list[tuple[str, list[tuple[int, int]]]] = []
         ret = set()
 
-        dec = self.manifest.get_declarations(nodeid, declaration_sources)
+        _ = self.manifest.get_declarations(nodeid, declaration_sources)
 
         for rule, condition_indices in declaration_sources:
             for condition_index in condition_indices:
@@ -98,9 +102,10 @@ class ManifestEditor:
 
                 clause_key = None
                 if is_clause:
-                    clause_key = parsed_condition.get("weblog", ["*"])
-                    assert len(clause_key) == 1
-                    clause_key = clause_key[0]
+                    key_list = parsed_condition.get("weblog", ["*"])
+                    assert key_list
+                    assert len(key_list) == 1
+                    clause_key = key_list[0]
 
                 ret.add(
                     ManifestEditor.View(
@@ -113,7 +118,7 @@ class ManifestEditor:
                 )
         return ret
 
-    def poke(self, view: View):
+    def poke(self, view: View) -> None:
         if view not in self.poked_views:
             self.poked_views[view] = set()
         self.poked_views[view].add(self.context)
@@ -149,13 +154,13 @@ class ManifestEditor:
     @staticmethod
     def serialize_condition(condition: Condition) -> dict[str, str]:
         ret = {}
-        for name in condition:
+        for name, value in condition.items():
             if name == "declaration":
-                ret[name] = str(condition[name])
+                ret[name] = str(value)
             elif name == "component":
                 pass
             else:
-                ret[name] = str(condition[name])
+                ret[name] = str(value)
         return ret
 
     @staticmethod
@@ -177,4 +182,5 @@ class ManifestEditor:
         self.write_new_rules()
         for component, data in self.raw_data.items():
             self.round_trip_parser.dump(data, sys.stdout)
-            # self.round_trip_parser.dump(data, output_dir.joinpath(f"{component}.yml"))
+            if False:
+                self.round_trip_parser.dump(data, output_dir.joinpath(f"{component}.yml"))

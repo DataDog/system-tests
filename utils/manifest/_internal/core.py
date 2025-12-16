@@ -10,6 +10,9 @@ from .const import default_manifests_path
 class Manifest:
     """Provides a simple way to get information from the manifests"""
 
+    rules: dict[str, list[SkipDeclaration]] | None
+    condition_tracker: dict[str, list[tuple[int, int]]]
+
     def __init__(
         self,
         library: str | None = None,
@@ -79,7 +82,7 @@ class Manifest:
 
         """
         ret: list[SkipDeclaration] = []
-        assert type(self.rules) is not dict[str, list[SkipDeclaration]], (
+        assert type(self.rules) is dict[str, list[SkipDeclaration]], (
             "You need to provide a library name to the constructor or call update_rules"
         )
         for rule, declarations in self.rules.items():

@@ -7,7 +7,6 @@ import zipfile
 from tqdm import tqdm
 from pygtrie import StringTrie
 
-from utils.scripts.activate_easy_wins.manifest_editor import ManifestEditor
 from .types import Context
 import json
 
