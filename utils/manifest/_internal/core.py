@@ -82,9 +82,7 @@ class Manifest:
 
         """
         ret: list[SkipDeclaration] = []
-        assert type(self.rules) is dict[str, list[SkipDeclaration]], (
-            "You need to provide a library name to the constructor or call update_rules"
-        )
+        assert self.rules is not None, "You need to provide a library name to the constructor or call update_rules"
         for rule, declarations in self.rules.items():
             if not match_rule(rule, nodeid):
                 continue
