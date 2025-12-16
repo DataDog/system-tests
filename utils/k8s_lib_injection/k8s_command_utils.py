@@ -68,7 +68,15 @@ def helm_add_repo(name, url, k8s_cluster_info, update=False):
 
 @retry(delay=1, tries=5)
 def helm_install_chart(
-    host_log_folder: str, k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False, timeout=90
+    host_log_folder: str,
+    k8s_cluster_info,
+    name,
+    chart,
+    set_dict={},
+    value_file=None,
+    upgrade=False,
+    timeout=90,
+    namespace="datadog",
 ):
     # Copy and replace cluster name in the value file
     custom_value_file = None
@@ -93,14 +101,12 @@ def helm_install_chart(
     if timeout == 0 or timeout is None:
         wait = ""
 
-    command = f"helm install {name} --debug {wait} {set_str} {chart} --namespace=default"
+    command = f"helm install {name} --debug {wait} {set_str} {chart} --namespace={namespace}"
     if upgrade:
-        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace=default"
+        command = f"helm upgrade {name} --debug --install {wait} {set_str} {chart} --namespace={namespace}"
     if custom_value_file:
-        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace=default"
+        command = f"helm install {name} {set_str} --debug -f {custom_value_file} {chart} --namespace={namespace}"
         if upgrade:
-            command = (
-                f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace=default"
-            )
+            command = f"helm upgrade {name} {set_str} --debug --install -f {custom_value_file} {chart} --namespace={namespace}"
     execute_command("kubectl config current-context")
     execute_command(command, timeout=timeout, quiet=True)  # Too many traces to show in the logs

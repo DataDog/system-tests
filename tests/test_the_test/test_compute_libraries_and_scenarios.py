@@ -235,8 +235,16 @@ class Test_ComputeLibrariesAndScenarios:
     def test_wrong_library_tag(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        with pytest.raises(ValueError):
-            process(inputs)
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "java", "version": "dev"}, {"library": "python", "version": "dev"}]',
+            'libraries_with_dev=["java", "python"]',
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="end_to_end,open_telemetry"',
+        ]
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
     def test_wrong_library_tag_with_branch(self):
@@ -260,9 +268,9 @@ class Test_ComputeLibrariesAndScenarios:
         strings_out = process(inputs)
 
         assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
             'scenarios_groups=""',
