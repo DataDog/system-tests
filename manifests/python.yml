@@ -396,7 +396,7 @@ manifest:
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
-      weblog: django-poc django-py3.13 python3.12
+      weblog: [django-poc, django-py3.13, python3.12]
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
@@ -412,7 +412,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
     - declaration: irrelevant (no signup events in Python except for django)
-      weblog: flask-poc uwsgi-poc uds-flask fastapi
+      weblog: [flask-poc, uwsgi-poc, uds-flask, fastapi]
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v3.9.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v3.9.0
   tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
