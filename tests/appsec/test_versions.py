@@ -5,10 +5,13 @@
 from utils import context, interfaces, missing_feature, features, scenarios
 
 
-@features.appsec_miscs_internals
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_miscs_internals
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_Events:
     """AppSec events uses events in span"""
 

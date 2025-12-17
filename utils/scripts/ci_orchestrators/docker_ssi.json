@@ -2,7 +2,7 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "DOCKER_SSI","DOCKER_SSI_CRASHTRACKING"
+                "DOCKER_SSI", "DOCKER_SSI_APPSEC"
             ],
             "weblogs": [
                 {
@@ -13,11 +13,37 @@
                     "nodejs": [
                         "js-app"
                     ],
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
                     "python": [
                         "py-app"
                     ],
                     "php": [
                         "php-app"
+                    ],
+                    "dotnet": [
+                        "dotnet-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+               "DOCKER_SSI_CRASHTRACKING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "js-app"
+                    ],
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
+                    "python": [
+                        "py-app"
                     ]
                 }
             ]
@@ -28,6 +54,10 @@
             ],
             "weblogs": [
                 {
+                    "ruby": [
+                        "rails6-app",
+                        "ruby-app"
+                    ],
                     "java": [
                         "tomcat-app",
                         "websphere-app",
@@ -156,6 +186,52 @@
                 ]
             }
         ],
+        "ruby": [
+            {
+                "name": "rails6-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB26"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB26"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "ruby-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
+                        ]
+                    }
+                ]
+            }
+        ],
         "python": [
             {
                 "name": "py-app",
@@ -178,6 +254,25 @@
         "php": [
             {
                 "name": "php-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "dotnet": [
+            {
+                "name": "dotnet-app",
                 "supported_images": [
                     {
                         "name": "Ubuntu_22_amd64",

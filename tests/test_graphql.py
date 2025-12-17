@@ -28,11 +28,24 @@ COMPONENT_EXCEPTIONS["go"]["graph-gophers/graphql-go"] = {
 }
 
 
-@rfc("https://docs.google.com/document/d/1JjctLYE4a4EbtmnFixQt-TilltcSV69IAeiSGjcUL34")
-@scenarios.graphql_appsec
-@features.graphql_query_error_reporting
-class Test_GraphQLQueryErrorReporting:
-    """Test if GraphQL query errors create span events"""
+class BaseGraphQLOperationError:
+    """Base class for GraphQL query error reporting tests"""
+
+    event_name: str
+    message_key: str
+    type_key: str
+    stacktrace_key: str
+    path_key: str
+    locations_key: str
+    extensions_prefix: str
+
+    @classmethod
+    def setup_class(cls) -> None:
+        cls._setup_configuration()
+
+    @classmethod
+    def _setup_configuration(cls) -> None:
+        raise NotImplementedError("Derived classes must implement _setup_configuration")
 
     def setup_execute_error_span_event(self):
         self.request = weblog.post(
@@ -47,34 +60,7 @@ class Test_GraphQLQueryErrorReporting:
         )
 
     def test_execute_error_span_event(self):
-        """Test if the main GraphQL span contains a span event with the appropriate error information.
-        The /graphql endpoint must support the query `query myQuery { withError }` which will return an
-        error response with the following structure:
-        {
-            "errors": [
-                {
-                    "message": <the application error message (string)>,
-                    "locations": [
-                        {
-                            "line": <line number (int)>,
-                            "column": <column number (int)>
-                        }
-                    ],
-                    "path": <path to the field in the query (array of strings)>,
-                    "extensions": {
-                        "int": 1,
-                        "float": 1.1,
-                        "str": "1",
-                        "bool": true,
-                        "other": [1, "foo"],
-                        "not_captured": <any value>
-                    }
-                }
-            ],
-            "data": <may or may not be present, GraphQL-library dependent>
-        }
-        The error extensions allowed in this test are DD_TRACE_GRAPHQL_ERROR_EXTENSIONS=int,float,str,bool,other.
-        """
+        """Test if the main GraphQL span contains a span event with the appropriate error information."""
 
         assert self.request.status_code == 200
 
@@ -88,24 +74,32 @@ class Test_GraphQLQueryErrorReporting:
         span = spans[0]
 
         events = self._get_events(span)
-        graphql_events = [event for event in events if event["name"] == "dd.graphql.query.error"]
+        target_events = [event for event in events if event["name"] == self.event_name]
 
-        assert len(graphql_events) == 1
-        event = graphql_events[0]
+        assert len(target_events) == 1
+        event = target_events[0]
 
-        assert event["name"] == "dd.graphql.query.error"
+        assert event["name"] == self.event_name
 
         attributes = event["attributes"]
 
-        assert isinstance(attributes["message"], str)
-        assert isinstance(attributes["type"], str)
-        assert isinstance(attributes["stacktrace"], str)
+        self._validate_exception_attributes(attributes)
+        self._validate_graphql_attributes(attributes, span)
+        self._validate_extensions(attributes)
 
-        for path in attributes["path"]:
+    def _validate_exception_attributes(self, attributes: dict) -> None:
+        """Validate the exception attributes (message, type, stacktrace)"""
+        assert isinstance(attributes[self.message_key], str)
+        assert isinstance(attributes[self.type_key], str)
+        assert isinstance(attributes[self.stacktrace_key], str)
+
+    def _validate_graphql_attributes(self, attributes: dict, span: dict) -> None:
+        """Validate GraphQL-specific attributes (path, locations)"""
+        for path in attributes[self.path_key]:
             assert isinstance(path, str)
 
         if self._has_location(span):
-            location = attributes["locations"]
+            location = attributes[self.locations_key]
             assert len(location) == 1
 
             for loc in location:
@@ -113,10 +107,12 @@ class Test_GraphQLQueryErrorReporting:
                 assert loc.split(":")[0].isdigit()
                 assert loc.split(":")[1].isdigit()
 
-        assert attributes["extensions.int"] == 1
-        assert attributes["extensions.float"] == 1.1
-        assert attributes["extensions.str"] == "1"
-        assert attributes["extensions.bool"] is True
+    def _validate_extensions(self, attributes: dict) -> None:
+        """Validate extension attributes"""
+        assert attributes[f"{self.extensions_prefix}.int"] == 1
+        assert attributes[f"{self.extensions_prefix}.float"] == 1.1
+        assert attributes[f"{self.extensions_prefix}.str"] == "1"
+        assert attributes[f"{self.extensions_prefix}.bool"] is True
 
         # A list with two heterogeneous elements: [1, "foo"].
         # This test simulates an object that is not a supported scalar above (int,float,string,boolean).
@@ -124,26 +120,26 @@ class Test_GraphQLQueryErrorReporting:
         # JSON serialization of the object.
         # The goal here is to display the original data with as much fidelity as possible, without allowing
         # for arbitrary nested levels inside `span_event.attributes`.
-        assert "1" in attributes["extensions.other"]
-        assert "foo" in attributes["extensions.other"]
+        assert "1" in attributes[f"{self.extensions_prefix}.other"]
+        assert "foo" in attributes[f"{self.extensions_prefix}.other"]
 
-        assert "extensions.not_captured" not in attributes
+        assert f"{self.extensions_prefix}.not_captured" not in attributes
 
     @staticmethod
-    def _is_graphql_execute_span(span) -> bool:
+    def _is_graphql_execute_span(span: dict) -> bool:
         name = span["name"]
         lang = span.get("meta", {}).get("language", "")
         component = span.get("meta", {}).get("component", "")
         return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
 
     @staticmethod
-    def _has_location(span) -> bool:
+    def _has_location(span: dict) -> bool:
         lang = span.get("meta", {}).get("language", "")
         component = span.get("meta", {}).get("component", "")
         return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
 
     @staticmethod
-    def _get_events(span) -> dict:
+    def _get_events(span: dict) -> dict:
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
@@ -152,12 +148,12 @@ class Test_GraphQLQueryErrorReporting:
                 attributes = event["attributes"]
 
                 for key, value in attributes.items():
-                    attributes[key] = Test_GraphQLQueryErrorReporting._parse_event_value(value)
+                    attributes[key] = BaseGraphQLOperationError._parse_event_value(value)
 
             return events
 
     @staticmethod
-    def _parse_event_value(value) -> int | str | bool | float | list[Any]:
+    def _parse_event_value(value: dict) -> int | str | bool | float | list[Any]:
         type_ = value["type"]
         if type_ == 0:
             return value["string_value"]
@@ -168,6 +164,40 @@ class Test_GraphQLQueryErrorReporting:
         elif type_ == 3:
             return value["double_value"]
         elif type_ == 4:
-            return [Test_GraphQLQueryErrorReporting._parse_event_value(v) for v in value["array_value"]["values"]]
+            return [BaseGraphQLOperationError._parse_event_value(v) for v in value["array_value"]["values"]]
         else:
             raise ValueError(f"Unsupported span event attribute type {type_} for: {value}")
+
+
+@rfc("https://docs.google.com/document/d/1JjctLYE4a4EbtmnFixQt-TilltcSV69IAeiSGjcUL34")
+@scenarios.graphql_appsec
+@features.graphql_operation_error_reporting
+class Test_GraphQLOperationErrorReporting(BaseGraphQLOperationError):
+    """Test that GraphQL operation errors create span events with the Datadog-specific semantics"""
+
+    @classmethod
+    def _setup_configuration(cls) -> None:
+        cls.event_name = "dd.graphql.query.error"
+        cls.message_key = "message"
+        cls.type_key = "type"
+        cls.stacktrace_key = "stacktrace"
+        cls.path_key = "path"
+        cls.locations_key = "locations"
+        cls.extensions_prefix = "extensions"
+
+
+@rfc("https://docs.google.com/document/d/1v_GMkCLltrUuQNex3DRJ2G8UVrR03HvG8WBRnNOC4po")
+@scenarios.graphql_error_tracking
+@features.graphql_operation_error_tracking
+class Test_GraphQLOperationErrorTracking(BaseGraphQLOperationError):
+    """Test that GraphQL operation errors create span events with the OpenTelemetry semantics"""
+
+    @classmethod
+    def _setup_configuration(cls) -> None:
+        cls.event_name = "exception"
+        cls.message_key = "exception.message"
+        cls.type_key = "exception.type"
+        cls.stacktrace_key = "exception.stacktrace"
+        cls.path_key = "graphql.error.path"
+        cls.locations_key = "graphql.error.locations"
+        cls.extensions_prefix = "graphql.error.extensions"

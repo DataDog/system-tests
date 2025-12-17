@@ -315,6 +315,23 @@ public class Main {
                     ctx.response().end("Response with custom headers");
                 });
 
+        router.get("/authorization_related_headers")
+                .handler(ctx -> {
+                    // Headers with sensitive or authentication-related information
+                    ctx.response().putHeader("Authorization", "value1");
+                    ctx.response().putHeader("Proxy-Authorization", "value2");
+                    ctx.response().putHeader("WWW-Authenticate", "value3");
+                    ctx.response().putHeader("Proxy-Authenticate", "value4");
+                    ctx.response().putHeader("Authentication-Info", "value5");
+                    ctx.response().putHeader("Proxy-Authentication-Info", "value6");
+                    ctx.response().putHeader("Cookie", "value7");
+                    ctx.response().putHeader("Set-Cookie", "value8");
+
+                    // Additional headers
+                    ctx.response().putHeader("content-type", "text/plain");
+                    ctx.response().end("Response with sensitive headers");
+                });
+
         // Exceed response headers endpoint
         router.get("/exceedResponseHeaders")
                 .handler(ctx -> {
@@ -347,6 +364,57 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+
+        router.get("/make_distant_call").handler(ctx -> {
+            String url = ctx.request().getParam("url");
+            JsonObject requestHeaders = new JsonObject();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    requestHeaders.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    ctx.response().setStatusCode(500).end(e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    if (!response.isSuccessful()) {
+                        ctx.response().setStatusCode(500).end(response.message());
+                    } else {
+                        int status_code = response.code();
+                        JsonObject responseHeaders = new JsonObject();
+                        Headers headers = response.headers();
+                        for (String name : headers.names()) {
+                            responseHeaders.put(name, headers.get(name));
+                        }
+
+                        JsonObject result = new JsonObject();
+                        result.put("url", url);
+                        result.put("status_code", status_code);
+                        result.put("request_headers", requestHeaders);
+                        result.put("response_headers", responseHeaders);
+
+                        ctx.response().end(result.encodePrettily());                    }
+                }
+            });
+        });
 
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(SessionHandler.create(LocalSessionStore.create(vertx)));

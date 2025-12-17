@@ -4,7 +4,7 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
 
 @scenarios.trace_propagation_style_w3c
@@ -211,7 +211,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         assert link1.get("tracestate") is None
 
 
-def _retrieve_span_links(span):
+def _retrieve_span_links(span: dict):
     if span.get("span_links") is not None:
         return span["span_links"]
 

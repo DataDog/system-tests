@@ -1,6 +1,6 @@
 import pytest
 import semantic_version as semver
-from utils._decorators import CustomSpec
+from utils.manifest._internal.types import SemverRange as CustomSpec
 from utils._context.component_version import ComponentVersion, Version
 
 
@@ -38,22 +38,23 @@ def test_version_comparizon():
 
 def test_ruby_version():
     v = ComponentVersion("ruby", "0.53.0.appsec.180045")
-    assert str(v.version) == "0.53.1-appsec+180045"
+    assert str(v.version) == "0.53.0-appsec+180045"
 
     v = ComponentVersion("ruby", "1.0.0.beta1 de82857")
-    assert v.version == Version("1.0.1-beta1+de82857")
+    assert v.version == Version("1.0.0-beta1+de82857")
 
     v = ComponentVersion("ruby", "2.3.0 7dbcc40")
-    assert str(v.version) == "2.3.1-z+7dbcc40"
+    assert str(v.version) == "2.3.0+7dbcc40"
 
-    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.1-z+beta1"
-    assert ComponentVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.1-beta1+de82857"
+    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.0-beta1"
+    assert ComponentVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.0-beta1+de82857"
 
     # very particular use case, because we hack the path for dev versions
     assert ComponentVersion("ruby", "1.0.0.beta1 de82857") < "ruby@1.0.1"
     assert ComponentVersion("ruby", "1.0.0.rc1") < "ruby@1.0.1"
 
-    assert ComponentVersion("ruby", "2.3.0 7dbcc40") >= "ruby@2.3.1-dev"
+    assert ComponentVersion("ruby", "2.3.0 7dbcc40") > "ruby@2.3.0-dev"
+    assert ComponentVersion("ruby", "2.3.0") > "ruby@2.3.0-dev"
 
 
 def test_library_version_comparizon():
@@ -199,3 +200,29 @@ def test_php_version():
     # but legit pre-release names are kept untouched
     assert str(ComponentVersion("php", "1.9.0-prerelease").version) == "1.9.0-prerelease"
     assert str(ComponentVersion("php", "1.9.0-dev").version) == "1.9.0-dev"
+
+
+def test_custom_spec():
+    def check(declaration: str, tested_version: str, *, should_be_inside: bool):
+        spec = CustomSpec(declaration)
+
+        if should_be_inside:
+            assert semver.Version(tested_version) in spec
+        else:
+            assert semver.Version(tested_version) not in spec
+
+    declaration = "^1.2.3 || ^2.3.4 || >=3.4.5"
+
+    check(declaration, "1.2.2", should_be_inside=False)
+    check(declaration, "2.0.0", should_be_inside=False)
+    check(declaration, "2.3.3", should_be_inside=False)
+    check(declaration, "3.0.0", should_be_inside=False)
+    check(declaration, "3.4.4", should_be_inside=False)
+
+    check(declaration, "1.2.3", should_be_inside=True)
+    check(declaration, "1.9.9", should_be_inside=True)
+    check(declaration, "2.3.4", should_be_inside=True)
+    check(declaration, "2.9.9", should_be_inside=True)
+    check(declaration, "3.4.5", should_be_inside=True)
+    check(declaration, "3.9.9", should_be_inside=True)
+    check(declaration, "4.0.0", should_be_inside=True)

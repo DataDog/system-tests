@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'pry'
 require 'net/http'
 require 'uri'
 require 'json'
@@ -13,7 +12,9 @@ begin
 rescue LoadError
   require 'ddtrace/auto_instrument'
 end
+
 require 'datadog/kit/appsec/events'
+require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
@@ -168,7 +169,7 @@ module MakeDistantCall
 
     result = {
       url: url,
-      status_code: response.code,
+      status_code: response.code.to_i,
       request_headers: request.each_header.to_h,
       response_headers: response.each_header.to_h
     }
@@ -338,6 +339,42 @@ module ApiSecuritySampling
   end
 end
 
+# POST /user_login_success_event_v2
+module UserLoginSuccessEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+      payload['login'],
+      payload['user_id'],
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+# POST /user_login_failure_event_v2
+module UserLoginFailureEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+      payload['login'],
+      payload.fetch('exists', 'false') == 'true',
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
 # any other route
 module NotFound
   module_function
@@ -362,6 +399,36 @@ class TraceSamplingMiddleware
 end
 
 use TraceSamplingMiddleware
+
+# /flush
+module Flush
+  module_function
+
+  def run(request)
+    # NOTE: If anything needs to be flushed here before the test suite ends,
+    #       this is the place to do it.
+    #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+    if (telemetry = Datadog.send(:components)&.telemetry)
+      telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
+
+      # HACK: In the current implementation there is no way to force the flushing.
+      #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+      #       and just wait till all penging messages are flushed.
+      #
+      # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+      #       value carefully.
+      sleep 0.2
+    end
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+module ResourceRenaming
+  def run
+    [200, {'Content-Type' => 'text/plain'}, ['OK']]
+  end
+end
 
 # trivial rack endpoint. We use a proc instead of Rack Builder because
 # we compare the request path using regexp and include?
@@ -406,6 +473,14 @@ app = proc do |env|
     ApiSecurityWithSampling.run(request)
   elsif request.path.include?('/api_security_sampling/')
     ApiSecuritySampling.run(request)
+  elsif request.path == '/user_login_success_event_v2'
+    UserLoginSuccessEventV2.run(request)
+  elsif request.path == '/user_login_failure_event_v2'
+    UserLoginFailureEventV2.run(request)
+  elsif request.path == '/flush'
+    Flush.run(request)
+  elsif request.path.start_with?('/resource_renaming')
+    ResourceRenaming.run
   else
     NotFound.run
   end

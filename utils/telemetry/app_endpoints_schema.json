@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "is_first": {
+      "type": "boolean"
+    },
+    "endpoints": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "HEAD",
+                "OPTIONS",
+                "TRACE",
+                "CONNECT",
+                "*"
+              ]
+            },
+            "path": {
+              "type": "string"
+            },
+            "operation_name": {
+              "type": "string"
+            },
+            "resource_name": {
+              "type": "string"
+            },
+            "request_body_type": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "response_body_type": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "response_code": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "integer"
+                }
+              ],
+              "minItems": 1
+            },
+            "authentication": {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "JWT",
+                    "basic",
+                    "oauth",
+                    "OIDC",
+                    "api_key",
+                    "session",
+                    "mTLS",
+                    "SAML",
+                    "LDAP",
+                    "Form",
+                    "other"
+                  ]
+                }
+              ]
+            },
+            "metadata": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "required": [
+            "operation_name",
+            "resource_name"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "endpoints"
+  ]
+}

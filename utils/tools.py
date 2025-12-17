@@ -64,6 +64,12 @@ def get_rid_from_span(span: dict) -> str | None:
     meta = span.get("meta", {})
     metrics = span.get("metrics", {})
 
+    if span.get("attributes") is not None:
+        # This is a v1 span so it won't have a meta or metrics field
+        # To reuse the logic here just override meta with the attributes
+        meta = span.get("attributes")
+        metrics = span.get("attributes")
+
     user_agent = None
 
     if span.get("type") == "rpc":
@@ -107,7 +113,7 @@ def get_rid_from_user_agent(user_agent: str) -> str | None:
 
 def nested_lookup(
     needle: str,
-    heystack: str | list | tuple | dict | bool | float | None,
+    heystack: str | list | tuple | dict | bool | float | None,  # noqa: FBT001
     *,
     look_in_keys: bool = False,
     exact_match: bool = False,

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+echo "--- PIP FREEZE ---"
+python -m pip freeze
+echo "------------------"
+
 if [[ ${UDS_WEBLOG:-} = "1" ]]; then
     ./set-uds-transport.sh
 fi

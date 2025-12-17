@@ -1,7 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
-tests/:
-  docker_ssi/:
-    test_docker_ssi.py:
-      TestDockerSSIFeatures: v0.19.1
-    test_docker_ssi_crash.py:
-      TestDockerSSICrash: v0.19.1
+manifest:
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures: v0.19.1
+  tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash: v0.19.1

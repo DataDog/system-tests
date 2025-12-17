@@ -23,18 +23,19 @@
         <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
+    <!--Enable when oss.sonatype.org is available again-->
+    <!--    <repositories>-->
+    <!--        <repository>-->
+    <!--            <id>sonatype-snapshots</id>-->
+    <!--            <url>https://oss.sonatype.org/content/repositories/snapshots</url>-->
+    <!--            <releases>-->
+    <!--                <enabled>false</enabled>-->
+    <!--            </releases>-->
+    <!--            <snapshots>-->
+    <!--                <enabled>true</enabled>-->
+    <!--            </snapshots>-->
+    <!--        </repository>-->
+    <!--    </repositories>-->
 
     <dependencies>
         <dependency>

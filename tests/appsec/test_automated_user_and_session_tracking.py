@@ -36,7 +36,7 @@ PASSWORD = "1234"
 libs_without_user_id = ["java"]
 
 
-def login_data(context, user, password):
+def login_data(user: str, password: str):
     """In Rails the parameters are group by scope. In the case of the test the scope is user.
     The syntax to group parameters in a POST request is scope[parameter]
     """
@@ -49,7 +49,7 @@ def login_data(context, user, password):
 @features.user_monitoring
 class Test_Automated_User_Tracking:
     def setup_user_tracking_auto(self):
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         self.r_home = weblog.get(
             "/",
             cookies=self.r_login.cookies,
@@ -71,7 +71,7 @@ class Test_Automated_User_Tracking:
             assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
     def setup_user_tracking_sdk_overwrite(self):
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         self.r_users = weblog.get("/users?user=sdkUser", cookies=self.r_login.cookies)
 
     @missing_feature(context.library == "java")
@@ -138,12 +138,12 @@ BLOCK_USER_DATA = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
         rc.rc_state.reset().apply()
 
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
         self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
@@ -167,7 +167,7 @@ class Test_Automated_User_Blocking:
     def setup_user_blocking_sdk(self):
         rc.rc_state.reset().apply()
 
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
+        self.r_login = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
 
         self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER).apply()
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
@@ -228,7 +228,7 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         rc.rc_state.reset().apply()

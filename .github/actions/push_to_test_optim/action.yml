@@ -1,0 +1,35 @@
+name: "Push to TestOptim"
+description: "Push test runs to DataDog Test Optimization"
+inputs:
+  datadog_site:
+    description: Which DataDog site shoud be used
+    default: datadoghq.com
+  datadog_api_key:
+    description: "A valid DD_API_KEY"
+
+runs:
+  using: composite
+  steps:
+    - name: Install datadog-ci
+      shell: bash
+      run: npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
+
+    - name: checkout owner repo
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      with:
+        path: repo
+
+    # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
+    - name: Push results
+      shell: bash
+      run: |
+        cd repo
+        datadog-ci junit upload \
+          ../logs*/reportJunit.xml \
+          --service system-tests \
+          --env ci \
+          --verbose \
+          --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+      env:
+        DATADOG_SITE: ${{ inputs.datadog_site }}
+        DATADOG_API_KEY:  ${{ inputs.datadog_api_key }}

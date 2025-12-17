@@ -148,10 +148,48 @@
         "version": "8.3"
       }
     ],
+    "ruby": [
+      {
+        "version_id": "RB26",
+        "version": "2.6.10"
+      },
+      {
+        "version_id": "RB27",
+        "version": "2.7.8"
+      },
+      {
+        "version_id": "RB30",
+        "version": "3.0.7"
+      },
+      {
+        "version_id": "RB31",
+        "version": "3.1.7"
+      },
+      {
+        "version_id": "RB32",
+        "version": "3.2.9"
+      },
+      {
+        "version_id": "RB33",
+        "version": "3.3.9"
+      },
+      {
+        "version_id": "RB34",
+        "version": "3.4.7"
+      }
+    ],
     "dotnet": [
+      {
+        "version_id": "DOTNET80",
+        "version": "8.0.404"
+      },
       {
         "version_id": "DOTNET70",
         "version": "7.0.410"
+      },
+      {
+        "version_id": "DOTNET60",
+        "version": "6.0.428"
       }
     ]
   }

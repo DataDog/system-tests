@@ -1,0 +1,589 @@
+[
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Async exception",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController+<AsyncThrow><scrubbed>",
+              "lineNumber": 0
+            },
+            {
+              "function": "weblog.ExceptionReplayController+<ExceptionReplayAsync><scrubbed>",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Async exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        },
+        "arguments": {
+          "this": {
+            "type": "ExceptionReplayController",
+            "fields": {
+              "_tempData": {
+                "type": "ITempDataDictionary",
+                "isNull": "true"
+              },
+              "_viewBag": {
+                "type": "DynamicViewData",
+                "isNull": "true"
+              },
+              "_viewData": {
+                "type": "ViewDataDictionary",
+                "fields": {
+                  "_data": {
+                    "type": "IDictionary`2",
+                    "size": 0,
+                    "entries": []
+                  },
+                  "_declaredModelType": {
+                    "type": "Type"
+                  },
+                  "_metadataProvider": {
+                    "type": "IModelMetadataProvider"
+                  },
+                  "ModelState": {
+                    "type": "ModelStateDictionary",
+                    "fields": {
+                      "_root": {
+                        "type": "ModelStateNode",
+                        "notCapturedReason": "depth"
+                      },
+                      "_maxAllowedErrors": {
+                        "type": "Int32",
+                        "value": "200"
+                      },
+                      "ErrorCount": {
+                        "type": "Int32",
+                        "value": "0"
+                      },
+                      "Count": {
+                        "type": "Int32",
+                        "value": "0"
+                      },
+                      "HasRecordedMaxModelError": {
+                        "type": "Boolean",
+                        "value": "False"
+                      },
+                      "MaxValidationDepth": {
+                        "type": "Nullable`1",
+                        "value": "32"
+                      },
+                      "MaxStateDepth": {
+                        "type": "Nullable`1",
+                        "value": "32"
+                      }
+                    }
+                  },
+                  "ModelExplorer": {
+                    "type": "ModelExplorer",
+                    "fields": {
+                      "_metadataProvider": {
+                        "type": "IModelMetadataProvider",
+                        "notCapturedReason": "depth"
+                      },
+                      "_model": {
+                        "type": "Object",
+                        "isNull": "true"
+                      },
+                      "_modelAccessor": {
+                        "type": "Func`2",
+                        "isNull": "true"
+                      },
+                      "_properties": {
+                        "type": "ModelExplorer[]",
+                        "isNull": "true"
+                      },
+                      "Container": {
+                        "type": "ModelExplorer",
+                        "isNull": "true"
+                      },
+                      "Metadata": {
+                        "type": "ModelMetadata",
+                        "notCapturedReason": "depth"
+                      }
+                    }
+                  },
+                  "TemplateInfo": {
+                    "type": "TemplateInfo",
+                    "fields": {
+                      "_visitedObjects": {},
+                      "_formattedModelValue": {
+                        "type": "Object",
+                        "notCapturedReason": "depth"
+                      },
+                      "_htmlFieldPrefix": {
+                        "type": "String",
+                        "value": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "_controllerContext": {
+                "type": "ControllerContext",
+                "fields": {
+                  "_valueProviderFactories": {
+                    "type": "IList`1"
+                  },
+                  "ActionDescriptor": {
+                    "type": "ActionDescriptor",
+                    "fields": {
+                      "Id": "<scrubbed>",
+                      "RouteValues": {
+                        "type": "IDictionary`2",
+                        "size": 2,
+                        "entries": [
+                          [
+                            {
+                              "type": "String",
+                              "value": "action"
+                            },
+                            {
+                              "type": "String",
+                              "value": "ExceptionReplay"
+                            }
+                          ],
+                          [
+                            {
+                              "type": "String",
+                              "value": "controller"
+                            },
+                            {
+                              "type": "String",
+                              "value": "ExceptionReplay"
+                            }
+                          ]
+                        ]
+                      },
+                      "AttributeRouteInfo": {
+                        "type": "AttributeRouteInfo",
+                        "notCapturedReason": "depth"
+                      },
+                      "ActionConstraints": {
+                        "type": "IList`1",
+                        "size": 2,
+                        "elements": [
+                          {
+                            "type": "ConsumesAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "HttpMethodActionConstraint",
+                            "notCapturedReason": "depth"
+                          }
+                        ]
+                      },
+                      "EndpointMetadata": {
+                        "type": "IList`1",
+                        "size": 9,
+                        "elements": [
+                          {
+                            "type": "NullableContextAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "NullableAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ApiControllerAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ControllerAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "RouteAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "AsyncStateMachineAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ConsumesAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "HttpGetAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "HttpMethodMetadata",
+                            "notCapturedReason": "depth"
+                          }
+                        ]
+                      },
+                      "Parameters": {
+                        "type": "IList`1",
+                        "size": 0,
+                        "elements": []
+                      },
+                      "BoundProperties": {
+                        "type": "IList`1",
+                        "size": 0,
+                        "elements": []
+                      },
+                      "FilterDescriptors": {
+                        "type": "IList`1",
+                        "size": 8,
+                        "elements": [
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "FilterDescriptor",
+                            "notCapturedReason": "depth"
+                          }
+                        ]
+                      },
+                      "DisplayName": {
+                        "type": "String",
+                        "value": "weblog.ExceptionReplayController.ExceptionReplayAsync (app)"
+                      },
+                      "Properties": {
+                        "type": "IDictionary`2",
+                        "size": 2,
+                        "entries": [
+                          [
+                            {
+                              "type": "Object",
+                              "notCapturedReason": "depth"
+                            },
+                            {
+                              "type": "Object",
+                              "notCapturedReason": "depth"
+                            }
+                          ],
+                          [
+                            {
+                              "type": "Object",
+                              "notCapturedReason": "depth"
+                            },
+                            {
+                              "type": "Object",
+                              "notCapturedReason": "depth"
+                            }
+                          ]
+                        ]
+                      },
+                      "CachedReusableFilters": {
+                        "type": "IFilterMetadata[]",
+                        "size": 8,
+                        "elements": [
+                          {
+                            "type": "ControllerActionFilter",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "SaveTempDataFilter",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "UnsupportedContentTypeFilter",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ClientErrorResultFilter",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ModelStateInvalidFilter",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ActionResponseFilter",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ApiControllerAttribute",
+                            "notCapturedReason": "depth"
+                          },
+                          {
+                            "type": "ConsumesAttribute",
+                            "notCapturedReason": "depth"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "HttpContext": {
+                    "type": "HttpContext"
+                  },
+                  "ModelState": {
+                    "type": "ModelStateDictionary",
+                    "fields": {
+                      "_root": {
+                        "type": "ModelStateNode",
+                        "notCapturedReason": "depth"
+                      },
+                      "_maxAllowedErrors": {
+                        "type": "Int32",
+                        "value": "200"
+                      },
+                      "ErrorCount": {
+                        "type": "Int32",
+                        "value": "0"
+                      },
+                      "Count": {
+                        "type": "Int32",
+                        "value": "0"
+                      },
+                      "HasRecordedMaxModelError": {
+                        "type": "Boolean",
+                        "value": "False"
+                      },
+                      "MaxValidationDepth": {
+                        "type": "Nullable`1",
+                        "value": "32"
+                      },
+                      "MaxStateDepth": {
+                        "type": "Nullable`1",
+                        "value": "32"
+                      }
+                    }
+                  },
+                  "RouteData": {
+                    "type": "RouteData",
+                    "fields": {
+                      "_dataTokens": {
+                        "type": "RouteValueDictionary",
+                        "isNull": "true"
+                      },
+                      "_routers": {
+                        "type": "List`1",
+                        "isNull": "true"
+                      },
+                      "_values": {
+                        "type": "RouteValueDictionary",
+                        "notCapturedReason": "depth"
+                      }
+                    }
+                  }
+                }
+              },
+              "_metadataProvider": {
+                "type": "IModelMetadataProvider",
+                "isNull": "true"
+              },
+              "_modelBinderFactory": {
+                "type": "IModelBinderFactory",
+                "isNull": "true"
+              },
+              "_objectValidator": {
+                "type": "IObjectModelValidator",
+                "isNull": "true"
+              },
+              "_url": {
+                "type": "IUrlHelper",
+                "isNull": "true"
+              },
+              "_problemDetailsFactory": {
+                "type": "ProblemDetailsFactory",
+                "isNull": "true"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "ExceptionReplayAsync",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController+<ExceptionReplayAsync><scrubbed>",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 106
+      },
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayAsync",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  },
+  {
+    "captures": {
+      "return": {
+        "staticFields": {
+          "Empty": {
+            "type": "EmptyResult"
+          }
+        },
+        "throwable": {
+          "message": "Async exception",
+          "type": "System.Exception",
+          "stacktrace": [
+            {
+              "function": "weblog.ExceptionReplayController+<AsyncThrow><scrubbed>",
+              "lineNumber": 0
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ]
+        },
+        "locals": {
+          "@exception": {
+            "type": "Exception",
+            "fields": {
+              "Message": {
+                "type": "String",
+                "value": "Async exception"
+              },
+              "InnerException": {
+                "type": "Exception",
+                "isNull": "true"
+              },
+              "HelpLink": {
+                "type": "String",
+                "isNull": "true"
+              },
+              "Source": {
+                "type": "String",
+                "value": "app"
+              },
+              "HResult": {
+                "type": "Int32",
+                "value": "-2146233088"
+              },
+              "StackTrace": {
+                "type": "String",
+                "value": "<scrubbed>"
+              }
+            }
+          }
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 1,
+      "location": {
+        "method": "AsyncThrow",
+        "type": "weblog.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "weblog.ExceptionReplayController+<AsyncThrow><scrubbed>",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 98
+      },
+      {
+        "function": "weblog.ExceptionReplayController.AsyncThrow",
+        "lineNumber": 0
+      },
+      {
+        "function": "weblog.ExceptionReplayController+<ExceptionReplayAsync><scrubbed>",
+        "fileName": "/app/ExceptionReplayController.cs",
+        "lineNumber": 105
+      },
+      {
+        "function": "weblog.ExceptionReplayController.ExceptionReplayAsync",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
+        "lineNumber": 0
+      },
+      {
+        "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware.Invoke",
+        "lineNumber": 0
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "duration": "<scrubbed>",
+    "language": "dotnet"
+  }
+]

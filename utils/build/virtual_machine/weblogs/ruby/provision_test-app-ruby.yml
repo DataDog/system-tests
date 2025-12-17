@@ -13,7 +13,8 @@ lang_variant:
           curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
           rbenv install 3.0.2 --verbose
           rbenv global 3.0.2
-          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem update --system 3.4.22
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.4.22'
 
       - os_type: linux
         os_distro: rpm
@@ -33,7 +34,8 @@ lang_variant:
           curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
           rbenv install 3.0.2 --verbose
           rbenv global 3.0.2
-          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem update --system 3.4.22
+          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.4.22'
 
 
 weblog:

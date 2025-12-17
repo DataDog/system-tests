@@ -6,13 +6,36 @@ const tracer = require('dd-trace').init({
 })
 
 const { promisify } = require('util')
-const fastify = require('fastify')({ logger: true })
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
-const pino = require('pino')
-const cookie = require('@fastify/cookie')
+const winston = require('winston')
 
+let fastifyHandler = null
+
+const server = http.createServer((req, res) => {
+  if (req.url.startsWith('/resource_renaming')) {
+    // Handle resource renaming with HTTP server directly
+    res.writeHead(200)
+    res.end('OK')
+  } else if (fastifyHandler) {
+    // Everything else goes to Fastify
+    fastifyHandler(req, res)
+  } else {
+    res.writeHead(503)
+    res.end('Server not ready')
+  }
+})
+
+const fastify = require('fastify')({
+  logger: true,
+  serverFactory: (handler) => {
+    fastifyHandler = handler
+    return server
+  }
+})
+
+const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
 
@@ -20,19 +43,29 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 const apiGateway = require('./integrations/api_gateway')
-
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-const logger = pino()
+// Unstructured logging (plain text)
+const plainLogger = console
+
+// Structured logging (JSON)
+const jsonLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(), // structured
+  transports: [new winston.transports.Console()]
+})
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
 fastify.register(require('@fastify/multipart'), { attachFieldsToBody: true })
-fastify.register(cookie)
+fastify.register(require('@fastify/cookie'), { hook: 'onRequest', secret: 'my-secret' })
+
+iast.initPlugins(fastify)
+iast.initData().catch(() => {})
 
 fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (req, body, done) => {
   try {
@@ -116,6 +149,21 @@ fastify.get('/customResponseHeaders', (request, reply) => {
     'x-test-header-3': 'value3',
     'x-test-header-4': 'value4',
     'x-test-header-5': 'value5'
+  })
+  return 'OK'
+})
+
+fastify.get('/authorization_related_headers', (request, reply) => {
+  reply.headers({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
   })
   return 'OK'
 })
@@ -329,6 +377,13 @@ fastify.get('/kafka/consume', async (request, reply) => {
 
 fastify.get('/log/library', (request, reply) => {
   const msg = request.query.msg || 'msg'
+  const logger = (
+    request.query.structured === true ||
+    request.query.structured?.toString().toLowerCase() === 'true' ||
+    request.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (request.query.level) {
     case 'warn':
       logger.warn(msg)
@@ -580,6 +635,8 @@ fastify.get('/createextraservice', async (request, reply) => {
   return 'OK'
 })
 
+iast.initRoutes(fastify, tracer)
+
 di.initRoutes(fastify)
 
 fastify.get('/flush', async (request, reply) => {
@@ -659,6 +716,8 @@ fastify.get('/add_event', async (request, reply) => {
   reply.status(200)
   return { message: 'Event added' }
 })
+
+require('./rasp')(fastify)
 
 const startServer = async () => {
   try {

@@ -25,6 +25,7 @@ COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/opentelemetry-javaagent-r2dbc.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
+COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 COPY ./utils/build/docker/java/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 

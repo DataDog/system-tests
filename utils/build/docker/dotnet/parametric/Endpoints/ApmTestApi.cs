@@ -54,6 +54,7 @@ public abstract class ApmTestApi
     private static readonly PropertyInfo PropagationStyleInject = TracerSettingsType.GetProperty("PropagationStyleInject", CommonBindingFlags)!;
     private static readonly PropertyInfo RuntimeMetricsEnabled = TracerSettingsType.GetProperty("RuntimeMetricsEnabled", CommonBindingFlags)!;
     private static readonly PropertyInfo IsActivityListenerEnabled = TracerSettingsType.GetProperty("IsActivityListenerEnabled", CommonBindingFlags)!;
+    private static readonly PropertyInfo IsDataStreamsEnabled = TracerSettingsType.GetProperty("IsDataStreamsMonitoringEnabled", CommonBindingFlags)!;
     private static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", CommonBindingFlags)!;
     private static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", CommonBindingFlags)!;
     private static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", CommonBindingFlags)!;
@@ -65,10 +66,34 @@ public abstract class ApmTestApi
     private static readonly Dictionary<ulong, ISpanContext> SpanContexts = new();
     private static ILogger? _logger;
 
+    // global config reflection
+    private static MethodInfo? _getConfigurationString;
+    private static object? _telemetryInstance;
+    private static object? _globalConfigurationSourceInstance;
+
     // stateless singletons
     private static readonly SpanContextInjector SpanContextInjector = new();
     private static readonly SpanContextExtractor SpanContextExtractor = new();
 
+    private static bool GetIsProfilerEnabled()
+    {
+        // Datadog.Trace.ContinuousProfiler.Profiler.Instance
+        var profilerType = GetType("Datadog.Trace.ContinuousProfiler.Profiler");
+        var instanceProp = profilerType.GetProperty("Instance", CommonBindingFlags)
+                          ?? throw new MissingMemberException(profilerType.FullName!, "Instance");
+        var profiler = instanceProp.GetValue(null) ?? throw new NullReferenceException("Profiler.Instance is null");
+
+        // .Settings
+        var settingsProp = profilerType.GetProperty("Settings", CommonBindingFlags) ?? throw new MissingMemberException(profilerType.FullName!, "Settings");
+        var settings = settingsProp.GetValue(profiler) ?? throw new NullReferenceException("Profiler.Settings is null");
+
+        // Settings.IsProfilerEnabled
+        var settingsType = settings.GetType();
+        var isEnabledProp = settingsType.GetProperty("IsProfilerEnabled", CommonBindingFlags)
+                         ?? throw new MissingMemberException(settingsType.FullName!, "IsProfilerEnabled");
+        var state = (bool) (isEnabledProp.GetValue(settings) ?? throw new NullReferenceException("IsProfilerEnabled is null"));
+        return state;
+    }
 
     private static async Task<string> StopTracer()
     {
@@ -182,9 +207,9 @@ public abstract class ApmTestApi
         var requestJson = await ParseJsonAsync(request.Body);
 
         var headersList = requestJson.GetProperty("http_headers")
-                                 .EnumerateArray()
-                                 .GroupBy(pair => pair[0].ToString(), kvp => kvp[1].ToString())
-                                 .Select(g => KeyValuePair.Create(g.Key, g.ToList()));
+            .EnumerateArray()
+            .GroupBy(pair => pair[0].ToString(), kvp => kvp[1].ToString())
+            .Select(g => KeyValuePair.Create(g.Key, g.ToList()));
 
         // There's a test for case-insensitive header names, so use a case-insensitive comparer.
         // (Yeah, the test is only testing this code, not the tracer itself)
@@ -258,7 +283,9 @@ public abstract class ApmTestApi
         var propagationStyleInject = (string[])PropagationStyleInject.GetValue(internalTracerSettings)!;
         var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(internalTracerSettings)!;
         var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(internalTracerSettings)!;
-
+        var isDataStreamEnabled = (bool)IsDataStreamsEnabled.GetValue(internalTracerSettings)!;
+        var isLogsInjectionEnabled = tracerSettings.LogsInjectionEnabled;
+        var ddProfilingEnabled = GetIsProfilerEnabled();
         Dictionary<string, object?> config = new()
         {
             { "dd_service", tracerSettings.ServiceName },
@@ -274,6 +301,9 @@ public abstract class ApmTestApi
             { "dd_log_level", null },
             { "dd_trace_agent_url", tracerSettings.AgentUri },
             { "dd_trace_rate_limit", tracerSettings.MaxTracesSubmittedPerSecond.ToString() },
+            { "dd_profiling_enabled", ddProfilingEnabled ? "true" : "false" },
+            { "dd_data_streams_enabled", isDataStreamEnabled ? "true" : "false" },
+            { "dd_logs_injection", isLogsInjectionEnabled ? "true" : "false" },
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
