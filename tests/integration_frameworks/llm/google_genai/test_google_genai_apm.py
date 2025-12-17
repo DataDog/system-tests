@@ -8,7 +8,7 @@ from .utils import BaseGoogleGenaiTest
 
 # TODO: add feature
 @scenarios.integration_frameworks
-class TestGoogleGenAiApm(BaseGoogleGenaiTest):
+class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
     @pytest.mark.parametrize("stream", [True, False])
     def test_generate_content(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):
@@ -36,6 +36,10 @@ class TestGoogleGenAiApm(BaseGoogleGenaiTest):
         assert span["meta"]["google_genai.request.model"] == "gemini-2.0-flash"
         assert span["meta"]["google_genai.request.provider"] == "google"
 
+
+# TODO: add feature
+@scenarios.integration_frameworks
+class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
     def test_embed_content(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
         with test_agent.vcr_context():
             test_client.request(
