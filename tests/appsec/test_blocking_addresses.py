@@ -754,8 +754,8 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""

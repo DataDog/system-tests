@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, context
+from utils import scenarios, features, missing_feature, context, bug
 
 
 @features.debugger_probe_budgets
@@ -73,6 +73,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @bug(context.library == "dotnet", reason="DEBUG-4746")
     def test_log_line_budgets(self):
         self._assert()
         self._validate_snapshots()
@@ -88,6 +89,6 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
 
             # Probe budgets aren't exact and can take time to be applied, so we allow a range of 1-20 snapshots with
             # captures for 150 requests.
-            assert (
-                1 <= snapshots_with_captures <= 20
-            ), f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
+            assert 1 <= snapshots_with_captures <= 20, (
+                f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
+            )

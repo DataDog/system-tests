@@ -26,9 +26,9 @@ class Test_StandardTagsClientIp:
             assert "appsec.event" not in meta, "unexpected appsec event while appsec should be disabled"
             assert "http.client_ip" not in meta, "unexpected http.client_ip tag"
             assert "network.client.ip" not in meta, "unexpected network.client.ip tag"
-            assert (
-                "http.request.headers.x-cluster-client-ip" not in meta
-            ), "unexpected http.request.headers.x-cluster-client-ip tag"
+            assert "http.request.headers.x-cluster-client-ip" not in meta, (
+                "unexpected http.request.headers.x-cluster-client-ip tag"
+            )
 
             return True
 

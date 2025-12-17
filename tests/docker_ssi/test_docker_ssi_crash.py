@@ -37,23 +37,22 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
-    @missing_feature(
-        condition=context.library in ("java", "php", "ruby"), reason="No implemented the endpoint /crashme"
-    )
+    @missing_feature(condition=context.library in ("java", "php"), reason="No implemented the endpoint /crashme")
+    @missing_feature(context.library < "ruby@2.7.0", reason="Not implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-603")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
-        assert (
-            self.r.status_code is None
-        ), f"Response from request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'} was supposed to fail: {self.r}"
+        assert self.r.status_code is None, (
+            f"Response from request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'} was supposed to fail: {self.r}"
+        )
 
         # No traces should have been generated
-        assert not interfaces.test_agent.get_traces(
-            self.r
-        ), f"Traces found for request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'}"
+        assert not interfaces.test_agent.get_traces(self.r), (
+            f"Traces found for request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'}"
+        )
 
         # Crash report should have been generated
         crash_reports = interfaces.test_agent.get_crash_reports()

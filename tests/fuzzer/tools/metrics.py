@@ -15,12 +15,12 @@ def get_readable_integer_value(value: float) -> str:
         return f"{int(value)}"
 
     if value < 9999 * 1024:
-        return f"{int(value/1024)}k"
+        return f"{int(value / 1024)}k"
 
     if value < 9999 * 1024 * 1024:
-        return f"{int(value/(1024*1024))}M"
+        return f"{int(value / (1024 * 1024))}M"
 
-    return f"{int(value/(1024*1024*1024))}G"
+    return f"{int(value / (1024 * 1024 * 1024))}G"
 
 
 class Metric:
@@ -157,7 +157,7 @@ class AccumulatedMetricWithPercent(AccumulatedMetric):
         if self.value == 0:
             return "-"
 
-        return f"{round(100*self.value/self.total_metric.value)}%"
+        return f"{round(100 * self.value / self.total_metric.value)}%"
 
     @property
     def raw(self) -> float | None:
@@ -196,7 +196,7 @@ class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
         if self.value == 0:
             return "-"
 
-        return f"{round(100*self.value/self.total)}%"
+        return f"{round(100 * self.value / self.total)}%"
 
     @property
     def raw(self) -> float | None:

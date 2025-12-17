@@ -3,9 +3,9 @@ import json
 import pytest
 import random
 
-from utils.parametric.spec.trace import find_only_span, find_span_in_traces
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
+from utils.docker_fixtures.spec.trace import find_only_span, find_span_in_traces
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
+from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
 from utils import rfc, scenarios, missing_feature, flaky, features, bug, context
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary

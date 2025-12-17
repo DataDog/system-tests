@@ -35,6 +35,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         reason="Python version too old",
     )
     @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
+    @bug(context.library >= "java@1.5.0", reason="SCP-962")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
