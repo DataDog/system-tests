@@ -288,6 +288,9 @@ patterns:
     utils/manifest/validate.py:
         scenario_groups: null
         libraries: null
+    utils/manifest/schema.json:
+        scenario_groups: null
+        libraries: null
     utils/onboarding*:
         scenario_groups: onboarding
     utils/telemetry/*:
