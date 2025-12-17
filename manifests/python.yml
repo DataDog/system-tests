@@ -387,11 +387,16 @@ manifest:
     - weblog_declaration:
         "*": v1.1.0-rc2
         fastapi: v2.4.0
+  tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
   : - component_version: ">=4.0.0"
       declaration: bug (APPSEC-60241)
       weblog: uwsgi-poc
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  : - component_version: "<3.11.0"
+      declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
+      weblog: django-poc django-py3.13 python3.12
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
@@ -405,6 +410,9 @@ manifest:
       weblog: uwsgi-poc
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
+    - declaration: irrelevant (no signup events in Python except for django)
+      weblog: flask-poc uwsgi-poc uds-flask fastapi
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v3.9.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v3.9.0
   tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -419,12 +427,24 @@ manifest:
         django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
         django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
         python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_signup_local:
+    - weblog_declaration:
+        "*": irrelevant (No signup in frameworks except django)
+        django-poc: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
     - weblog_declaration:
         "*": v2.20.0.dev
         django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
         django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
         python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_signup_local:
+    - weblog_declaration:
+        "*": irrelevant (No signup in frameworks except django)
+        django-poc: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
     - weblog_declaration:
         "*": v2.20.0.dev
@@ -550,7 +570,7 @@ manifest:
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.5.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:
     - weblog_declaration:
-        "*": v1.5.0rc1.dev
+        "*": v1.5.0
         fastapi: v2.4.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
   tests/appsec/test_customconf.py::Test_ConfRuleSet: v1.1.0-rc2
@@ -632,9 +652,10 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: v2.11.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v2.17.0.dev
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v3.0.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v2.17.0.dev
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
@@ -643,7 +664,7 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: v3.11.0.dev
-  tests/appsec/test_only_python.py::Test_ImportError: v3.3.0.dev (was v2.20.0.dev but a regression was introduced in v3.2/v3.1)
+  tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
@@ -656,9 +677,9 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: v2.10.1
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.14.0
-  tests/appsec/test_reports.py::Test_Info: v1.1.0-rc2
-  tests/appsec/test_reports.py::Test_RequestHeaders: v1.1.0-rc2
-  tests/appsec/test_reports.py::Test_StatusCode: v1.1.0-rc2
+  tests/appsec/test_reports.py::Test_Info: v1.1.1
+  tests/appsec/test_reports.py::Test_RequestHeaders: v1.1.1
+  tests/appsec/test_reports.py::Test_StatusCode: v1.1.1
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
     - weblog_declaration:
         "*": v1.10.0
@@ -674,6 +695,7 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v0.58.5
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: v1.5.0
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
     - weblog_declaration:
         "*": v1.5.0-rc1
@@ -684,7 +706,7 @@ manifest:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v2.9.0
-  tests/appsec/test_traces.py::Test_RetainTraces: v1.1.0-rc2
+  tests/appsec/test_traces.py::Test_RetainTraces: v1.1.1
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist:
     - weblog_declaration:
         "*": v2.11.0
@@ -718,6 +740,7 @@ manifest:
         python3.12: v1.1.0-rc2
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.16.1
+  tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (Not handled by the Python standard cookie parser)
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
@@ -753,6 +776,10 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept: v1.16.1
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v2.10.0
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse:
     - weblog_declaration:
@@ -774,7 +801,7 @@ manifest:
         django-poc: v1.12
         fastapi: v2.4.0
         flask-poc: v1.12
-  tests/appsec/waf/test_miscs.py::Test_404: v1.1.0-rc2
+  tests/appsec/waf/test_miscs.py::Test_404: v1.1.1
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
     - weblog_declaration:
         "*": v1.1.0
@@ -791,6 +818,7 @@ manifest:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.4.0
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v1.2.1
