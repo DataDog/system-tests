@@ -1,6 +1,6 @@
 import json
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
-from utils import missing_feature, scenarios, bug, context
+from utils import features, missing_feature, scenarios, bug, context
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 import pytest
@@ -62,7 +62,7 @@ def format_expected_metadata(**metadata: Any) -> dict[str, Any]:  # noqa: ANN401
     return expected_metadata
 
 
-# TODO: add feature
+@features.llm_observability_google_genai_generate_content
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
     @pytest.mark.parametrize("stream", [True, False])
@@ -259,7 +259,7 @@ class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
         )
 
 
-# TODO: add feature
+@features.llm_observability_google_genai_generate_content_reasoning
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
     # python does not have reasoning output messages for streamed responses
@@ -392,7 +392,7 @@ class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
         )
 
 
-# TODO: add feature
+@features.llm_observability_google_genai_generate_content_with_tools
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContentWithTools(BaseGoogleGenaiTest):
     # tool definitions do not seem to be formatted correctly
@@ -625,7 +625,7 @@ class TestGoogleGenAiGenerateContentWithTools(BaseGoogleGenaiTest):
             assert found, f"Did not find expected message {expected_message} in {actual_output_messages}"
 
 
-# TODO: add feature
+@features.llm_observability_google_genai_embed_content
 @scenarios.integration_frameworks
 class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
     def test_embed_content(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):

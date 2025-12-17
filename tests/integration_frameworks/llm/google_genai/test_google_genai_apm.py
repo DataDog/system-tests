@@ -1,4 +1,4 @@
-from utils import scenarios
+from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 import pytest
@@ -6,7 +6,7 @@ import pytest
 from .utils import BaseGoogleGenaiTest
 
 
-# TODO: add feature
+@features.apm_google_genai_generate_content
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
     @pytest.mark.parametrize("stream", [True, False])
@@ -37,7 +37,7 @@ class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
         assert span["meta"]["google_genai.request.provider"] == "google"
 
 
-# TODO: add feature
+@features.apm_google_genai_embed_content
 @scenarios.integration_frameworks
 class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
     def test_embed_content(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
