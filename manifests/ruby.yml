@@ -584,6 +584,8 @@ manifest:
         rails72: v2.16.0
         rails80: v2.16.0
         uds-rails: v2.16.0
+  tests/ffe/test_dynamic_evaluation.py: missing_feature
+  tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -683,7 +685,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature
-  tests/parametric/test_feature_flag_exposure/test_feature_flag_exposure.py::Test_Feature_Flag_Exposure: missing_feature
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v2.22.1-dev
   tests/parametric/test_otel_api_interoperability.py: missing_feature
@@ -783,11 +785,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature
