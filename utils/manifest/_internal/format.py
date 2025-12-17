@@ -19,12 +19,12 @@ def yml_sort(directory: Path = Path("manifests/")) -> None:
                 header_data.append(line)
                 continue
 
-            if line.startswith("    ") or re.match(r" *\#", line):
+            if line.startswith(("    ", "  :")) or re.match(r" *\#", line):
                 manifest_data[-1][1].append(line)
             else:
                 manifest_data.append((line, []))
 
-        manifest_data.sort(key=lambda x: x[0][: x[0].rfind(":")])
+        manifest_data.sort(key=lambda x: x[0][x[0].find("tests/") : x[0].rfind(":")])
 
         text = ""
         for line in header_data:
