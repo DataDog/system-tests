@@ -12,6 +12,7 @@ from tests.appsec.rasp.utils import (
     validate_metric_variant_v2,
 )
 
+
 API10_TAGS = [
     "_dd.appsec.trace.req_headers",
     "_dd.appsec.trace.req_body",
@@ -24,6 +25,7 @@ API10_TAGS = [
 
 class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
+    TAGS_EXPECTED_METRIC: list[tuple[str, str]] = []
 
     def validate(self, span: dict):
         if span.get("parent_id") not in (0, None):
@@ -32,7 +34,7 @@ class API10:
         for tag, expected in self.TAGS_EXPECTED:
             assert tag in span["meta"], f"Missing {tag} from span's meta"
 
-            assert span["meta"][tag] == expected, f"Wrong value {span["meta"][tag]}, expected {expected}"
+            assert span["meta"][tag] == expected, f"Wrong value {span['meta'][tag]}, expected {expected}"
 
         # ensure this is the only rule(s) triggered
         tags = [t[0] for t in self.TAGS_EXPECTED]
@@ -42,7 +44,7 @@ class API10:
         return True
 
     def validate_metric(self, span: dict):
-        for tag, expected in self.TAGS_EXPECTED:
+        for tag, expected in self.TAGS_EXPECTED_METRIC:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
             values = span["metrics"] if tag in span["metrics"] else span["meta"]
@@ -234,7 +236,7 @@ class Test_API10_all(API10):
 class Test_API10_downstream_request_tag(API10):
     """API 10 span tag validation"""
 
-    TAGS_EXPECTED = [
+    TAGS_EXPECTED_METRIC = [
         ("_dd.appsec.downstream_request", "1"),
     ]
 
@@ -341,3 +343,58 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
         assert "error" not in body
         assert int(body["status"]) == 200
         interfaces.library.validate_one_span(self.r, validator=self.validate_absence)
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp
+@scenarios.appsec_standalone_rasp
+class Test_API10_redirect(API10):
+    """API 10 for multiple redirect responses"""
+
+    TAGS_EXPECTED = [
+        ("_dd.appsec.trace.req_headers", "TAG_API10_REQ_HEADERS"),
+    ]
+
+    TAGS_EXPECTED_METRIC = [
+        ("_dd.appsec.downstream_request", "5"),
+    ]
+
+    PARAMS = {"Witness": "pwq3ojtropiw3hjtowir", "totalRedirects": "3"}
+
+    def setup_api10_redirect(self):
+        self.r = weblog.get("/external_request/redirect", params=self.PARAMS)
+
+    def test_api10_redirect(self):
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate_metric)
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp_non_blocking
+class Test_API10_redirect_status(API10):
+    """API 10 for multiple redirect responses. Check status code analysis."""
+
+    TAGS_EXPECTED = [
+        ("_dd.appsec.trace.req_headers", "TAG_API10_REQ_HEADERS"),
+    ]
+
+    TAGS_EXPECTED_METRIC = [
+        ("_dd.appsec.downstream_request", "5"),
+    ]
+
+    PARAMS = {"Witness": "pwq3ojtropiw3hjtowir", "totalRedirects": "3"}
+
+    def setup_api10_redirect(self):
+        self.r = weblog.get("/external_request/redirect", params=self.PARAMS)
+
+    def test_api10_redirect(self):
+        assert self.r.status_code == 200
+        # interfaces.library.validate_one_span(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate_metric)
+        for _, _trace, span in interfaces.library.get_spans(request=self.r):
+            meta = span.get("meta", {})
+            assert isinstance(meta.get("appsec.api.redirection.move_target", None), str), f"missing tag in {meta}"
+            assert "/redirect?totalRedirects=2" in meta["appsec.api.redirection.move_target"]

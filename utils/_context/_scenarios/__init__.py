@@ -178,6 +178,7 @@ class _Scenarios:
             "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -628,6 +629,7 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
@@ -638,6 +640,8 @@ class _Scenarios:
     tracing_config_nondefault_4 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_4",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
@@ -683,6 +687,8 @@ class _Scenarios:
     debugger_pii_redaction = DebuggerScenario(
         "DEBUGGER_PII_REDACTION",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
@@ -1024,18 +1030,15 @@ class _Scenarios:
         },
     )
 
-    appsec_rasp_non_blocking = EndToEndScenario(
+    appsec_rasp_non_blocking = AppsecRaspScenario(
         "APPSEC_RASP_NON_BLOCKING",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
         weblog_volumes={
             "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
                 "bind": "/appsec_rasp_non_blocking_ruleset.json",
                 "mode": "ro",
             }
         },
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
     )
 
     appsec_ato_sdk = EndToEndScenario(
@@ -1143,6 +1146,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
+    appsec_lambda_inferred_spans = LambdaScenario(
+        "APPSEC_LAMBDA_INFERRED_SPANS",
+        doc="Lambda scenario with managed services tracing enabled",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        trace_managed_services=True,
+    )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)

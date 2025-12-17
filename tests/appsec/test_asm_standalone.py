@@ -8,13 +8,15 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger, flaky
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
 
 USER = "test"
 NEW_USER = "testnew"
 INVALID_USER = "invalidUser"
 UUID_USER = "testuuid"
 PASSWORD = "1234"
+
+TRUTHY_VALUES = ["yes", "true", "t", "1"]
 
 
 # This methods exist to test the 2 different ways of setting the tags in the tracers.
@@ -157,7 +159,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -203,7 +205,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -249,7 +251,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -295,7 +297,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -339,7 +341,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -383,7 +385,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -429,7 +431,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -474,7 +476,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -519,7 +521,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -561,7 +563,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -603,7 +605,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -645,7 +647,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -751,7 +753,7 @@ class BaseSCAStandaloneTelemetry:
                 if item["name"] not in configuration_by_name:
                     configuration_by_name[item["name"]] = []
                 configuration_by_name[item["name"]].append(item)
-        if len(configuration_by_name):
+        if configuration_by_name:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configuration_by_name))
             if "seq_id" in configuration_by_name[sample_key][0]:
@@ -871,7 +873,6 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.api_security_configuration
 @scenarios.appsec_standalone_api_security
-@flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
@@ -907,7 +908,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
             # Check for client-computed-stats header
             headers = data["request"]["headers"]
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in headers
             )
             spans_checked += 1
@@ -1067,7 +1068,7 @@ class Test_UserEventsStandalone_Automated:
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             return span["meta"]
@@ -1145,7 +1146,7 @@ class Test_UserEventsStandalone_SDK_V1:
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             return span["meta"]
@@ -1209,7 +1210,7 @@ class Test_UserEventsStandalone_SDK_V2:
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             return span["meta"]

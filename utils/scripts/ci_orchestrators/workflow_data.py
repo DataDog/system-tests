@@ -274,7 +274,12 @@ def _get_endtoend_weblogs(
     result: list[Weblog] = []
 
     integration_frameworks_weblogs = {
-        "openai": ["2.0.0"]  # python
+        # openai
+        "openai-py": ["2.0.0"],
+        "openai-js": ["6.0.0"],
+        # anthropic
+        "anthropic-js": ["0.71.0"],
+        "anthropic-py": ["0.75.0"],
     }
 
     folder = f"utils/build/docker/{library}"
@@ -483,6 +488,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         "APPSEC_LAMBDA_BLOCKING",
         "APPSEC_LAMBDA_API_SECURITY",
         "APPSEC_LAMBDA_RASP",
+        "APPSEC_LAMBDA_INFERRED_SPANS",
     )
     if is_lambda_library != is_lambda_scenario:
         return False

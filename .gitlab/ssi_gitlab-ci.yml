@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/928fb698cf31451f05a180239468e9eb490ac88172a185990df8ca12d2f37d44/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -182,7 +182,7 @@ ssi_tests:
         TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
         ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
           --push-tag ${PRIVATE_DOCKER_REGISTRY}/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
-          --docker-platform linux/arm64,linux/amd64
+          --docker-platform linux/amd64
       else
         TAG_NAME="latest"
       fi

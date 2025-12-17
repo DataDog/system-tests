@@ -1,17 +1,16 @@
 import base64
 from collections.abc import Generator
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
+import uuid
 
 import pytest
 import yaml
 
-from utils.parametric._library_client import APMLibrary
-
 from utils import scenarios, logger
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
-from utils.docker_fixtures import TestAgentAPI as _TestAgentAPI
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
@@ -19,8 +18,6 @@ default_subprocess_run_timeout = 300
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    import uuid
-
     result = str(uuid.uuid4())[0:6]
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result
@@ -34,6 +31,11 @@ def pytest_configure(config: pytest.Config) -> None:
 
 @pytest.fixture
 def library_env() -> dict[str, str]:
+    return {}
+
+
+@pytest.fixture
+def agent_env() -> dict[str, str]:
     return {}
 
 
@@ -76,13 +78,15 @@ def test_agent(
     worker_id: str,
     test_id: str,
     request: pytest.FixtureRequest,
+    agent_env: dict[str, str],
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
-) -> Generator[_TestAgentAPI, None, None]:
+) -> Generator[TestAgentAPI, None, None]:
     with scenarios.parametric.get_test_agent_api(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
+        agent_env=agent_env,
         container_otlp_http_port=test_agent_otlp_http_port,
         container_otlp_grpc_port=test_agent_otlp_grpc_port,
     ) as result:
@@ -94,7 +98,7 @@ def test_library(
     worker_id: str,
     request: pytest.FixtureRequest,
     test_id: str,
-    test_agent: _TestAgentAPI,
+    test_agent: TestAgentAPI,
     library_env: dict[str, str],
     library_extra_command_arguments: list[str],
 ) -> Generator[APMLibrary, None, None]:

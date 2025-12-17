@@ -1,6 +1,6 @@
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import span_has_no_parent
+from utils.docker_fixtures.spec.trace import find_only_span
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
