@@ -80,6 +80,10 @@ def should_run_fast_mode() -> bool:
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
+    print(f"RMM ci_commit_tag: {ci_commit_tag}")
+    print(f"RMM ci_commit_branch: {ci_commit_branch}")
+    print(f"RMM ci_project_name: {ci_project_name}")
+    print(f"RMM ci_pipeline_source: {ci_pipeline_source}")
 
     # If it is a scheduled pipeline or tag generation, we should run the full pipeline
     # it doesn't matter the project pipeline
@@ -174,14 +178,17 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         for weblog_name, cluster_agent_versions in weblogs.items():
             k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
             if cluster_agent_versions:
+                print(f"RMM cluster_agent_versions: {cluster_agent_versions}")
                 filtered_versions = cluster_agent_versions
+                print(f"RMM filtered_versions: {filtered_versions}")
+                print(f"RMM should_run_fast_mode: {should_run_fast_mode()}")
                 if should_run_fast_mode():
                     # we don't include in the matrix the cluster agent dev version
                     # remove the image cluster-agent-dev image from cluster_agent_versions
                     filtered_versions = [
                         version for version in cluster_agent_versions if "cluster-agent-dev" not in version
                     ]
-
+                    print(f"RMM filtered_versions (fast mode): {filtered_versions}")
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {
                         "K8S_WEBLOG": weblog_name,
