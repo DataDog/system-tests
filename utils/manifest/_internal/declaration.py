@@ -70,21 +70,12 @@ class Declaration:
         return f"{self.value}"
 
 
-_SKIP_DECLARATIONS = (
-    TestDeclaration.MISSING_FEATURE,
-    TestDeclaration.BUG,
-    TestDeclaration.FLAKY,
-    TestDeclaration.IRRELEVANT,
-    TestDeclaration.INCOMPLETE_TEST_APP,
-)
-
-
 def _parse_skip_declaration(skip_declaration: str) -> tuple[TestDeclaration, str | None]:
     """Parse a skip declaration
     returns the corresponding TestDeclaration, and if it exists, de declaration details
     """
 
-    if not skip_declaration.startswith(_SKIP_DECLARATIONS):
+    if not skip_declaration.startswith(tuple(TestDeclaration)):
         raise ValueError(f"The declaration must be a skip declaration: {skip_declaration}")
 
     match = re.match(r"^(\w+)( \((.*)\))?$", skip_declaration)
