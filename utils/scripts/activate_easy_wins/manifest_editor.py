@@ -2,14 +2,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import ruamel.yaml
-from utils._decorators import CustomSpec
+from utils._context.component_version import Version
+from utils.manifest._internal.rule import match_condition
+from utils.manifest._internal.types import SemverRange as CustomSpec
 from utils.manifest import Manifest
-from ruamel.yaml import CommentedMap, YAML
+from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
 from utils.manifest import Condition, SkipDeclaration
 from .const import LIBRARIES
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     from .types import Context
@@ -159,6 +161,15 @@ class ManifestEditor:
                 ret[name] = str(value)
             elif name == "component":
                 pass
+            elif name in ("weblog", "excluded_weblog"):
+                if isinstance(value, list):
+                    if len(value) == 1:
+                        ret[name] = value[0]
+                    else:
+                        ret[name] = CommentedSeq(value)
+                        ret[name].fa.set_flow_style()
+                else:
+                    ret[name] = value
             else:
                 ret[name] = str(value)
         return ret
@@ -169,18 +180,132 @@ class ManifestEditor:
         condition["component_version"] = CustomSpec(f">={context.library_version}")
         return condition
 
-    def write_new_rules(self) -> None:
+    def build_new_rules(self) -> dict[str, list[Condition]]:
+        ret: dict[str, list[Condition]] = {}
         for rule, sources in self.added_rules.items():
             for source in sources:
                 condition = source[0].condition
+                if rule not in ret:
+                    ret[rule] = []
+                ret[rule].append(ManifestEditor.specialize(condition, source[1]))
+        return ret
+
+    @staticmethod
+    def condition_key(condition: Condition) -> tuple:
+        ret = []
+        clauses = sorted(condition.items())
+        for name, value in clauses:
+            if isinstance(value, list):
+                ret.append((name, tuple(value)))
+            else:
+                ret.append((name, value))
+        return tuple(ret)
+
+    @staticmethod
+    def compress_pokes(contexts: set[Context]) -> tuple[Version, list[str]]:
+        ret: tuple[Version, list[str]] | None = None
+        for context in contexts:
+            if not ret:
+                ret = (context.library_version, [])
+            ret[1].append(context.variant)
+        assert ret
+        return ret
+
+    @staticmethod
+    def compress_rules(rules: dict[str, list[Condition]]) -> dict[str, list[Condition]]:
+        compressed: dict[str, dict[tuple, set[str]]] = {}
+        ret: dict[str, list[Condition]] = {}
+        non_var_conditions: dict[tuple, Condition] = {}
+        for rule, conditions in rules.items():
+            if rule not in compressed:
+                compressed[rule] = {}
+            for condition in conditions:
+                non_var_condition = condition.copy()
+                del non_var_condition["weblog"]
+                key = ManifestEditor.condition_key(non_var_condition)
+
+                non_var_conditions[key] = non_var_condition
+
+                if key not in compressed[rule]:
+                    compressed[rule][key] = set()
+
+                compressed[rule][key] |= set(condition.get("weblog", []))
+
+        for rule, conditions in compressed.items():
+            if rule not in ret:
+                ret[rule] = []
+            for condition_key, weblogs in conditions.items():
+                condition = non_var_conditions[condition_key]
+                condition["weblog"] = list(weblogs)
+                ret[rule].append(condition)
+        return ret
+
+    def write_new_rules(self) -> None:
+        new_rules = self.build_new_rules()
+        new_rules = ManifestEditor.compress_rules(new_rules)
+        for rule, conditions in new_rules.items():
+            for condition in conditions:
                 manifest = self.raw_data[condition["component"]]["manifest"]
                 if rule not in manifest:
                     manifest[rule] = []
-                manifest[rule].append(self.serialize_condition(ManifestEditor.specialize(condition, source[1])))
+                manifest[rule].append(self.serialize_condition(condition))
+
+    def write_poke(self) -> None:
+        for view, contexts in self.poked_views.items():
+            raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
+            component_version, weblogs = ManifestEditor.compress_pokes(contexts)
+            if view.is_inline:
+                self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
+                    {
+                        "declaration": str(view.condition["declaration"]),
+                        "excluded_weblog": CommentedSeq(weblogs.copy()),
+                    },
+                    {
+                        "declaration": str(view.condition["declaration"]),
+                        "weblog": CommentedSeq(weblogs.copy()),
+                        "excluded_component_version": f">={component_version}",
+                    },
+                ]
+                self.raw_data[view.condition["component"]]["manifest"][view.rule][0][
+                    "excluded_weblog"
+                ].fa.set_flow_style()
+                self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["weblog"].fa.set_flow_style()
+                # if "component_version" in view.condition:
+                #     print(view.rule)
+                #     print(view.condition)
+                #     print(self.raw_data[view.condition["component"]]["manifest"][view.rule])
+                #     self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["component_version"] = str(
+                #         view.condition["component_version"]
+                #     )
+                #     self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["component_version"] = str(
+                #         view.condition["component_version"]
+                #     )
+            elif "weblog_declaration" in raw_data[view.condition_index]:
+                for weblog in weblogs:
+                    raw_data[view.condition_index]["weblog_declaration"][weblog] = f"v{component_version}"
+            else:
+                raw_data[view.condition_index]["excluded_weblog"] = CommentedSeq(
+                    view.condition.get("excluded_weblog", []) + weblogs
+                )
+                raw_data[view.condition_index]["excluded_weblog"].fa.set_flow_style()
+                raw_data.append(
+                    {
+                        "declaration": str(view.condition["declaration"]),
+                        "weblog": CommentedSeq(weblogs.copy()),
+                        "excluded_component_version": f">={component_version}",
+                    }
+                )
+                raw_data[-1]["weblog"].fa.set_flow_style()
 
     def write(self, output_dir: Path = Path("manifests/")) -> None:
         self.write_new_rules()
+        self.write_poke()
         for component, data in self.raw_data.items():
-            self.round_trip_parser.dump(data, sys.stdout)
+            file = output_dir.joinpath(f"{component}.yml")
+            self.round_trip_parser.dump(data, file)
             if False:
-                self.round_trip_parser.dump(data, output_dir.joinpath(f"{component}.yml"))
+                self.round_trip_parser.dump(data, sys.stdout)
+            data = file.read_text()
+            file.write_text(
+                f"# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n{data}"
+            )

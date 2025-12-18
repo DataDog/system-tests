@@ -28,8 +28,6 @@ def main() -> None:
         pull_artifact(ARTIFACT_URL, token, Path("data"))
 
     test_data, weblogs = parse_artifact_data(Path("data/"), LIBRARIES)
-    print(weblogs)
-    return
     update_manifest(manifest_editor, test_data)
 
     if not args.dry_run:
