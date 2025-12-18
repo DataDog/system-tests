@@ -24,7 +24,7 @@ class Test_Backend:
     def test_good_backend_partial(self):
         """Agent reads and use DD_SITE env var"""
         self._assert_good_backend(
-            expected_domain=context.dd_site, excluded_sub_domains=("intake.profile", "debugger-intake")
+            expected_domain=context.dd_site, excluded_sub_domains=("intake.profile", "debugger-intake", "support_flare")
         )
 
     @staticmethod
