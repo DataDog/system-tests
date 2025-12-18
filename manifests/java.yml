@@ -1159,6 +1159,9 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: bug (APPSEC-56870)
         vertx4: bug (APPSEC-56871)
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_different_endpoints:
+    - weblog: ratpack
+      declaration: bug (APPSEC-56871)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
