@@ -584,7 +584,10 @@ manifest:
         rails72: v2.16.0
         rails80: v2.16.0
         uds-rails: v2.16.0
-  tests/ffe/test_dynamic_evaluation.py: missing_feature
+  tests/ffe/test_dynamic_evaluation.py:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.23.0-dev
   tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
@@ -785,26 +788,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events:
-    - weblog_declaration:
-        "*": irrelevant (does not depend on a framework)
-        rails72: v2.23.0-dev
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty:
-    - weblog_declaration:
-        "*": irrelevant (does not depend on a framework)
-        rails72: v2.23.0-dev
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors:
-    - weblog_declaration:
-        "*": irrelevant (does not depend on a framework)
-        rails72: v2.23.0-dev
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start:
-    - weblog_declaration:
-        "*": irrelevant (does not depend on a framework)
-        rails72: v2.23.0-dev
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable:
-    - weblog_declaration:
-        "*": irrelevant (does not depend on a framework)
-        rails72: v2.23.0-dev
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": irrelevant (does not depend on a framework)
