@@ -868,3 +868,8 @@ manifest:
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
   tests/test_v1_payloads.py: missing_feature
+  tests/docker_ssi/test_docker_ssi.py:
+    - weblog_declaration:
+        "*": v2.19.0
+        rails6-app-deployment-mode: missing_feature
+        ruby-app-deployment-mode: missing_feature
