@@ -584,6 +584,11 @@ manifest:
         rails72: v2.16.0
         rails80: v2.16.0
         uds-rails: v2.16.0
+  tests/docker_ssi/test_docker_ssi.py:
+    - weblog_declaration:
+        "*": v2.19.0
+        rails6-app-deployment-mode: missing_feature
+        ruby-app-deployment-mode: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -868,8 +873,3 @@ manifest:
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
   tests/test_v1_payloads.py: missing_feature
-  tests/docker_ssi/test_docker_ssi.py:
-    - weblog_declaration:
-        "*": v2.19.0
-        rails6-app-deployment-mode: missing_feature
-        ruby-app-deployment-mode: missing_feature
