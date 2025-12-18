@@ -35,7 +35,8 @@ class JavaRuntimeInstallableVersions:
         for version_check in JavaRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id
-        raise ValueError(f"Java version {version} not supported")
+        #raise ValueError(f"Java version {version} not supported")
+        return "all_runtimes_in_one"
 
 
 class PHPRuntimeInstallableVersions:
