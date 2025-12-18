@@ -75,4 +75,4 @@ manifest:
   tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
   tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
   tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: ">2.0.0"
