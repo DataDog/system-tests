@@ -282,6 +282,12 @@ patterns:
         scenario_groups: end_to_end
     utils/k8s_lib_injection*:
         scenario_groups: lib_injection
+    utils/manifest/_internal/format.py:
+        scenario_groups: null
+        libraries: null
+    utils/manifest/format.py:
+        scenario_groups: null
+        libraries: null
     utils/manifest/_internal/validate.py:
         scenario_groups: null
         libraries: null
