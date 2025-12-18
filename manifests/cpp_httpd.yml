@@ -14,6 +14,8 @@ manifest:
   tests/apm_tracing_e2e/: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/: irrelevant (ASM is not implemented in C++)
   tests/debugger/: irrelevant
+  tests/ffe/test_dynamic_evaluation.py: missing_feature
+  tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/: missing_feature (Endpoint not implemented)
   tests/integrations/test_db_integrations_sql.py: missing_feature
   tests/integrations/test_dbm.py: missing_feature
@@ -65,11 +67,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature (APMAPI-869)
