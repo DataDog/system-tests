@@ -1,4 +1,4 @@
-"""Test Feature Flag Exposure (FFE) functionality via parametric tests."""
+"""Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
 import json
 import pytest
@@ -79,12 +79,11 @@ def _set_and_wait_ffe_rc(
 
 
 @scenarios.parametric
-@features.feature_flag_exposure
-class Test_Feature_Flag_Exposure:
-    """Test Feature Flag Exposure (FFE) functionality.
+@features.feature_flags_dynamic_evaluation
+class Test_Feature_Flag_Dynamic_Evaluation:
+    """Test Feature Flagging dynamic evaluation functionality.
 
-    This test suite focuses on FFE-specific behavior: flag evaluation logic,
-    OpenFeature provider integration, and exposure event generation.
+    This test suite focuses on flag evaluation logic.
 
     """
 
