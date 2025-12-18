@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import re
-from utils import context, weblog, interfaces, features, missing_feature, logger
+from utils import context, weblog, interfaces, features, missing_feature, bug, logger
 
 
 # those tests are linked to unix_domain_sockets_support_for_traces only for UDS weblogs
@@ -20,6 +20,7 @@ class Test_Backend:
         """Agent reads and use DD_SITE env var"""
         self._assert_good_backend(expected_domain=context.dd_site)
 
+    @bug(reason="APMRP-374")
     @missing_feature(context.agent_version < "7.67.0-dev")
     def test_good_backend_partial(self):
         """Agent reads and use DD_SITE env var"""
