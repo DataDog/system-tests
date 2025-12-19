@@ -1,7 +1,22 @@
 # frozen_string_literal: true
 
+require 'openfeature/sdk'
+require 'datadog/open_feature/provider'
+
 class OpenFeatureController < ApplicationController
   skip_before_action :verify_authenticity_token
+
+  def start
+    OpenFeature::SDK.set_provider(Datadog::OpenFeature::Provider.new)
+
+    # NOTE: There is no set_provider_and_wait in OpenFeature::SDK
+    loop do
+      break unless Datadog::OpenFeature.evaluator.ufc_json.nil?
+      sleep 0.1
+    end
+
+    render json: {}
+  end
 
   def evaluate
     client = OpenFeature::SDK.build_client
