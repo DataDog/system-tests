@@ -138,8 +138,10 @@ Then run the tests from the repo root folder:
 
 ## Python library
 
-1. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
-2. Clone the dd-trace-py repo inside `binaries`
+Use one of the two options:
+
+- Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
+- Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
 
 
 ## Ruby library
