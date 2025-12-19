@@ -1,6 +1,6 @@
 import pytest
 import semantic_version as semver
-from utils._decorators import CustomSpec
+from utils.manifest._internal.types import SemverRange as CustomSpec
 from utils._context.component_version import ComponentVersion, Version
 
 
@@ -200,3 +200,29 @@ def test_php_version():
     # but legit pre-release names are kept untouched
     assert str(ComponentVersion("php", "1.9.0-prerelease").version) == "1.9.0-prerelease"
     assert str(ComponentVersion("php", "1.9.0-dev").version) == "1.9.0-dev"
+
+
+def test_custom_spec():
+    def check(declaration: str, tested_version: str, *, should_be_inside: bool):
+        spec = CustomSpec(declaration)
+
+        if should_be_inside:
+            assert semver.Version(tested_version) in spec
+        else:
+            assert semver.Version(tested_version) not in spec
+
+    declaration = "^1.2.3 || ^2.3.4 || >=3.4.5"
+
+    check(declaration, "1.2.2", should_be_inside=False)
+    check(declaration, "2.0.0", should_be_inside=False)
+    check(declaration, "2.3.3", should_be_inside=False)
+    check(declaration, "3.0.0", should_be_inside=False)
+    check(declaration, "3.4.4", should_be_inside=False)
+
+    check(declaration, "1.2.3", should_be_inside=True)
+    check(declaration, "1.9.9", should_be_inside=True)
+    check(declaration, "2.3.4", should_be_inside=True)
+    check(declaration, "2.9.9", should_be_inside=True)
+    check(declaration, "3.4.5", should_be_inside=True)
+    check(declaration, "3.9.9", should_be_inside=True)
+    check(declaration, "4.0.0", should_be_inside=True)

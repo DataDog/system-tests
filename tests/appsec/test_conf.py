@@ -5,7 +5,6 @@
 
 from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
-from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -68,7 +67,6 @@ class Test_ConfigurationVariables:
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
@@ -86,7 +84,6 @@ class Test_ConfigurationVariables:
         self.r_op_value = weblog.get("/waf", headers=headers)
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""

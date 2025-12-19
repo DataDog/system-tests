@@ -450,7 +450,8 @@
                     "Ubuntu_24_arm64",
                     "Ubuntu_25_04_amd64",
                     "Ubuntu_25_04_arm64",
-                    "Rocky_Linux_9_amd64"
+                    "Rocky_Linux_9_amd64",
+                    "Fedora_41_arm64"
                 ]
             },
             {

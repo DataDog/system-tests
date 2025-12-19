@@ -6,17 +6,15 @@ from typing import Any, get_args, get_origin
 
 import yaml
 
-from utils._decorators import CustomSpec as SemverRange
-from utils._decorators import _TestDeclaration
-
+from .const import TestDeclaration
 from .declaration import Declaration
-from .types import Condition, ManifestData, SkipDeclaration
+from .types import Condition, ManifestData, SkipDeclaration, SemverRange
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:
     declaration = Declaration(raw_declaration, component, is_inline=True)
     if declaration.is_skip:
-        assert isinstance(declaration.value, _TestDeclaration)
+        assert isinstance(declaration.value, TestDeclaration)
         condition: Condition = {
             "component": component,
             "declaration": SkipDeclaration(declaration.value, declaration.reason),
@@ -148,7 +146,7 @@ class FieldProcessor:
     @processor
     def declaration(n: str, e: dict[str, Any], component: str) -> None:
         declaration = Declaration(e[n], component)
-        assert isinstance(declaration.value, _TestDeclaration)
+        assert isinstance(declaration.value, TestDeclaration)
         e[n] = SkipDeclaration(declaration.value, declaration.reason)
 
     @staticmethod

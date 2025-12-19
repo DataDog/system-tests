@@ -20,9 +20,8 @@
 
 ## Reviewer checklist
 
-* [ ] If PR title starts with `[<language>]`, double-check that only `<language>` is impacted by the change
-* [ ] No system-tests internal is modified. Otherwise, I have the approval from [R&P team](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
+* [ ] Anything but `tests/` or `manifests/` is modified ? I have the approval from [R&P team](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
 * [ ] A docker base image is modified?
     * [ ] the relevant `build-XXX-image` label is present
-* [ ] A scenario is added (or removed)?
+* [ ] A scenario is added, removed or renamed?
     * [ ] Get a review from [R&P team](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)

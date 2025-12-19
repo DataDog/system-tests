@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
@@ -11,7 +10,6 @@ from utils.dd_constants import SamplingPriority
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
 
 
-@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.envoy_external_processing
 @features.haproxy_stream_processing_offload
 @features.security_events_metadata
@@ -97,7 +95,6 @@ class Test_AppSecEventSpanTags:
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @bug(library="python_lambda", reason="APPSEC-58202")
-    @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="APMRP-360")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @bug(
         context.library < "nodejs@5.57.0",

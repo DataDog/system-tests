@@ -24,6 +24,40 @@ def assert_key_order(obj: dict, path: str = "") -> list[str]:
     return errors
 
 
+def _find_class_in_ast(module_ast: ast.Module, class_name: str) -> ast.ClassDef | None:
+    """Find a class definition by name in the AST."""
+    for node in ast.iter_child_nodes(module_ast):
+        if isinstance(node, ast.ClassDef) and node.name == class_name:
+            return node
+    return None
+
+
+def _function_exists_in_class(class_node: ast.ClassDef, function_name: str, module_ast: ast.Module) -> bool:
+    """Check if a function exists in a class, including inherited methods."""
+    # Check direct methods first
+    for child in ast.iter_child_nodes(class_node):
+        if isinstance(child, ast.FunctionDef) and child.name == function_name:
+            return True
+
+    # Check inherited methods from base classes
+    for base in class_node.bases:
+        # Handle simple name references (e.g., "BaseClass")
+        if isinstance(base, ast.Name):
+            base_class = _find_class_in_ast(module_ast, base.id)
+            if base_class and _function_exists_in_class(base_class, function_name, module_ast):
+                return True
+        # Handle attribute references (e.g., "module.BaseClass")
+        elif isinstance(base, ast.Attribute):
+            # For attribute references, try to resolve the name
+            # This handles cases like "module.BaseClass" or "parent.BaseClass"
+            if isinstance(base.value, ast.Name):
+                base_class = _find_class_in_ast(module_ast, base.attr)
+                if base_class and _function_exists_in_class(base_class, function_name, module_ast):
+                    return True
+
+    return False
+
+
 def assert_nodeids_exist(obj: dict) -> list[str]:
     obj = obj["manifest"]
     errors = []
@@ -42,19 +76,12 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
 
         found_class = False
         found_function = len(elements) < 3  # noqa: PLR2004
-        for node in ast.iter_child_nodes(test_ast):
-            if not isinstance(node, ast.ClassDef) or node.name != elements[1]:
-                continue
-            if found_class:
-                break
+        class_node = _find_class_in_ast(test_ast, elements[1])
 
+        if class_node:
             found_class = True
-            for child in ast.iter_child_nodes(node):
-                if found_function:
-                    break
-
-                if isinstance(child, ast.FunctionDef) and child.name == elements[2]:
-                    found_function = True
+            if len(elements) >= 3:  # noqa: PLR2004
+                found_function = _function_exists_in_class(class_node, elements[2], test_ast)
 
         if not found_class:
             errors.append(f"{elements[0]} does not contain class {elements[1]}")
