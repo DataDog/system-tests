@@ -9,6 +9,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: ">1.0.0"

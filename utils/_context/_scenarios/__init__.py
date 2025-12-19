@@ -25,6 +25,7 @@ from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
@@ -1162,12 +1163,12 @@ class _Scenarios:
 
     ai_guard = EndToEndScenario(
         "AI_GUARD",
-        include_vcr_proxy=True,
+        include_vcr_cassettes=True,
         weblog_env={
             "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr-proxy:{ProxyPorts.vcr_proxy}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "c4c472f7836d92af2f368c903bac3814",
+            "DD_APP_KEY": "c070aee8601fa28cf0b82a59fd0e178fb888b9af",
         },
         doc="AI Guard SDK tests",
         scenario_groups=[scenario_groups.appsec],
