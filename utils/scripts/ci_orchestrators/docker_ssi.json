@@ -14,7 +14,9 @@
                         "js-app"
                     ],
                     "ruby": [
+                        "rails6-app-deployment-mode",
                         "rails6-app",
+                        "ruby-app-deployment-mode",
                         "ruby-app"
                     ],
                     "python": [
@@ -188,6 +190,23 @@
         ],
         "ruby": [
             {
+                "name": "rails6-app-deployment-mode",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB26"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB26"
+                        ]
+                    }
+                ]
+            },
+            {
                 "name": "rails6-app",
                 "supported_images": [
                     {
@@ -200,6 +219,33 @@
                         "name": "Ubuntu_22_amd64",
                         "allowed_runtime_versions": [
                             "RB26"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "ruby-app-deployment-mode",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "RB27",
+                            "RB30",
+                            "RB31",
+                            "RB32",
+                            "RB33",
+                            "RB34"
                         ]
                     }
                 ]

@@ -584,6 +584,11 @@ manifest:
         rails72: v2.16.0
         rails80: v2.16.0
         uds-rails: v2.16.0
+  tests/docker_ssi/test_docker_ssi.py:
+    - weblog_declaration:
+        "*": v2.19.0
+        rails6-app-deployment-mode: missing_feature
+        ruby-app-deployment-mode: missing_feature
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
