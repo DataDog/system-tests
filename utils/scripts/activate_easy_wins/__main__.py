@@ -2,7 +2,7 @@ import argparse
 from os import environ
 from pathlib import Path
 from .const import ARTIFACT_URL, LIBRARIES
-from .core import update_manifest
+from .core import print_activation_report, update_manifest
 from .test_artifact import parse_artifact_data, pull_artifact
 from .manifest_editor import ManifestEditor
 
@@ -28,7 +28,8 @@ def main() -> None:
         pull_artifact(ARTIFACT_URL, token, Path("data"))
 
     test_data, weblogs = parse_artifact_data(Path("data/"), LIBRARIES)
-    update_manifest(manifest_editor, test_data)
+    tests_per_language = update_manifest(manifest_editor, test_data)
+    print_activation_report(tests_per_language)
 
     if not args.dry_run:
         manifest_editor.write()
