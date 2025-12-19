@@ -814,9 +814,18 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.54.0
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
+    - weblog_declaration:
+        "*": missing_feature
+        vertx3: v1.58.0-SNAPSHOT
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect:
+    - weblog_declaration:
+        "*": missing_feature
+        vertx3: v1.58.0-SNAPSHOT
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
+    - weblog_declaration:
+        "*": missing_feature
+        vertx3: v1.58.0-SNAPSHOT
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": missing_feature
@@ -841,8 +850,14 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.54.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:
+    - weblog_declaration:
+        "*": missing_feature
+        vertx3: v1.54.0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:
+    - weblog_declaration:
+        "*": missing_feature
+        vertx3: v1.54.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
