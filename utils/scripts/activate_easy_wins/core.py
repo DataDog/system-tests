@@ -27,8 +27,6 @@ def tups_to_rule(tups: list[tuple[str]]) -> list[str]:
     ret = []
     for tup in tups:
         ret.append(tup_to_rule(tup))
-    global count
-    count = len(ret)
     return ret
 
 
@@ -51,11 +49,7 @@ def update_manifest(manifest_editor: ManifestEditor, test_data: dict[Context, Te
             return reduce(lambda x, y: x + y, list(children), [])
         return []
 
-    counts = {}
-
     for context, (nodes, trie) in test_data.items():
-        if context.library not in counts:
-            counts[context.library] = 0
         manifest_editor.set_context(context)
         for node in nodes:
             rules = manifest_editor.get_matches(node)
@@ -64,40 +58,3 @@ def update_manifest(manifest_editor: ManifestEditor, test_data: dict[Context, Te
                 manifest_editor.add_rules(
                     tups_to_rule(trie.traverse(get_deactivation, rule.rule.replace("::", "/"))), rule
                 )
-                global count
-                counts[context.library] += count
-    print(counts)
-
-    # for view, contexts in manifest_editor.poked_views.items():
-    #     print(view.rule)
-    #     for context in contexts:
-    #         print(context)
-    # for rule, parents in manifest_editor.added_rule.items():
-    #     print(rule)
-    #     for parent in parents:
-    #         print(parent.condition)
-
-    # for context, nodeids in test_data.items():
-    #     manifest_editor.set_context(context)
-    #
-    #     for nodeid in nodeids:
-    #         rules = manifest_editor.get_matches(nodeid)
-    #
-    #         for rule in rules:
-    #             if rule.clause_key == "*":
-    #                 manifest_editor.update(rule, f"v{context.library_version}", append_key=context.variant)
-    #             else:
-    #                 manifest_editor.update(rule, f"v{context.library_version}")
-    #
-    #             print(rule.rule.replace("::", "/"))
-    #             if test_data.xfail[context].has_subtrie(rule.rule.replace("::", "/")):
-    #                 print(test_data.xfail[context].items(prefix=rule.rule.replace("::", "/")))
-    #
-    # for new_rules in impacted_nodeids.values():
-    #     for new_rule in new_rules:
-    #         if manifest_editor.contains(new_rule):
-    #             manifest_editor.add_condition(
-    #                 new_rule, {"weblog_declaration": {context.variant: context.library_version}}
-    #             )
-    #         else:
-    #             manifest_editor.add_rule(new_rule)

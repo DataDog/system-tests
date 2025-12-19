@@ -926,23 +926,25 @@ class Test_EndToEnd_Activation:
         # Python manifest with existing rule
         python_manifest = manifest_dir / "python.yml"
         python_manifest.write_text(
-            """---
-manifest:
-  tests/appsec/test_waf.py::Test_WAF_Rules:
-    - declaration: missing_feature
-      component: python
-"""
+            textwrap.dedent(
+                """---
+                manifest:
+                  tests/appsec/test_waf.py::Test_WAF_Rules:
+                    - declaration: missing_feature
+                """
+            )
         )
 
         # Java manifest with existing rule
         java_manifest = manifest_dir / "java.yml"
         java_manifest.write_text(
-            """---
-manifest:
-  tests/appsec/test_waf.py::Test_WAF_Rules:
-    - declaration: missing_feature
-      component: java
-"""
+            textwrap.dedent(
+                """---
+                manifest:
+                  tests/appsec/test_waf.py::Test_WAF_Rules:
+                    - declaration: missing_feature
+                """
+            )
         )
 
         # Create empty manifests for other libraries
@@ -959,11 +961,7 @@ manifest:
 
         for lib in libraries:
             manifest_file = manifest_dir / f"{lib}.yml"
-            manifest_file.write_text(
-                """---
-manifest: {}
-"""
-            )
+            manifest_file.write_text("---\nmanifest: {}\n")
 
         return manifest_dir
 
@@ -1106,12 +1104,13 @@ manifest: {}
             manifest_file = manifest_dir / f"{lib}.yml"
             if lib in ["python", "nodejs"]:
                 manifest_file.write_text(
-                    f"""---
-manifest:
-  tests/parametric/test_sampling.py::Test_Sampling:
-    - declaration: missing_feature
-      component: {lib}
-"""
+                    textwrap.dedent(
+                        f"""---
+                        manifest:
+                          tests/parametric/test_sampling.py::Test_Sampling:
+                            - declaration: missing_feature
+                        """
+                    )
                 )
             else:
                 manifest_file.write_text("---\nmanifest: {}\n")

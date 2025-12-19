@@ -25,8 +25,8 @@ class ManifestEditor:
     manifest: Manifest
     round_trip_parser: YAML
     context: Context
-    poked_views: dict[View, set[Context]] = {}
-    added_rules: dict[str, set[tuple[View, Context]]] = {}
+    poked_views: dict[View, set[Context]]
+    added_rules: dict[str, set[tuple[View, Context]]]
 
     @dataclass
     class View:
@@ -48,7 +48,9 @@ class ManifestEditor:
         for component in LIBRARIES:
             self.raw_data[component] = self.round_trip_parser.load(manifests_path.joinpath(f"{component}.yml"))
 
-        self.manifest = Manifest()
+        self.manifest = Manifest(path=manifests_path)
+        self.poked_views = {}
+        self.added_rules = {}
 
     def init_round_trip_parser(self) -> None:
         self.round_trip_parser = YAML()
@@ -176,9 +178,10 @@ class ManifestEditor:
 
     @staticmethod
     def specialize(condition: Condition, context: Context) -> Condition:
-        condition["weblog"] = [context.variant]
-        condition["component_version"] = CustomSpec(f">={context.library_version}")
-        return condition
+        ret = condition.copy()
+        ret["weblog"] = [context.variant]
+        ret["component_version"] = CustomSpec(f">={context.library_version}")
+        return ret
 
     def build_new_rules(self) -> dict[str, list[Condition]]:
         ret: dict[str, list[Condition]] = {}
@@ -270,16 +273,16 @@ class ManifestEditor:
                     "excluded_weblog"
                 ].fa.set_flow_style()
                 self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["weblog"].fa.set_flow_style()
-                # if "component_version" in view.condition:
-                #     print(view.rule)
-                #     print(view.condition)
-                #     print(self.raw_data[view.condition["component"]]["manifest"][view.rule])
-                #     self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["component_version"] = str(
-                #         view.condition["component_version"]
-                #     )
-                #     self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["component_version"] = str(
-                #         view.condition["component_version"]
-                #     )
+                if "component_version" in view.condition:
+                    print(view.rule)
+                    print(view.condition)
+                    print(self.raw_data[view.condition["component"]]["manifest"][view.rule])
+                    self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["component_version"] = str(
+                        view.condition["component_version"]
+                    )
+                    self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["component_version"] = str(
+                        view.condition["component_version"]
+                    )
             elif "weblog_declaration" in raw_data[view.condition_index]:
                 for weblog in weblogs:
                     raw_data[view.condition_index]["weblog_declaration"][weblog] = f"v{component_version}"
