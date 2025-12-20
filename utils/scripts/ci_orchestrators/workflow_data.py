@@ -280,6 +280,9 @@ def _get_endtoend_weblogs(
         # anthropic
         "anthropic-js": ["0.71.0"],
         "anthropic-py": ["0.75.0"],
+        # google_genai
+        "google_genai-py": ["1.55.0"],
+        "google_genai-js": ["1.34.0"],
     }
 
     folder = f"utils/build/docker/{library}"

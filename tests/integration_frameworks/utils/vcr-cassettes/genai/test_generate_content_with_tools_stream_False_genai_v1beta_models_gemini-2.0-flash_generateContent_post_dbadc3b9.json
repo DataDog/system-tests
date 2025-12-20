@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "User-Agent": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "x-goog-api-client": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "Content-Length": "385",
+      "x-datadog-trace-id": "2474385563950885527",
+      "x-datadog-parent-id": "10975409247173208674",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=5408348547780326119,_dd.p.llmobs_trace_id=139916472228493574385561381672970679588,_dd.p.tid=6942eeaf00000000",
+      "traceparent": "00-6942eeaf000000002256c88f80a5aa97-98507c8f624bea62-01",
+      "tracestate": "dd=p:98507c8f624bea62;s:1;t.dm:-0;t.llmobs_parent_id:5408348547780326119;t.llmobs_trace_id:139916472228493574385561381672970679588;t.tid:6942eeaf00000000"
+    },
+    "body": "{\"contents\": [{\"parts\": [{\"text\": \"What is the weather in Tokyo?\"}], \"role\": \"user\"}], \"tools\": [{\"functionDeclarations\": [{\"description\": \"Get the weather in a given location\", \"name\": \"get_weather\", \"parameters\": {\"properties\": {\"location\": {\"description\": \"The location to get the weather for\", \"type\": \"STRING\"}}, \"type\": \"OBJECT\"}}]}], \"generationConfig\": {\"maxOutputTokens\": 50}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Vary": "Origin, X-Origin, Referer",
+      "Content-Encoding": "gzip",
+      "Date": "Wed, 17 Dec 2025 17:56:00 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=465",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Transfer-Encoding": "chunked"
+    },
+    "body": "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\": [\n          {\n            \"functionCall\": {\n              \"name\": \"get_weather\",\n              \"args\": {\n                \"location\": \"Tokyo\"\n              }\n            }\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"avgLogprobs\": -0.15438081026077272\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 27,\n    \"candidatesTokenCount\": 5,\n    \"totalTokenCount\": 32,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 27\n      }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 5\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-2.0-flash\",\n  \"responseId\": \"sO5Cab_EBM3G-8YPi_ikgQ4\"\n}\n"
+  }
+}

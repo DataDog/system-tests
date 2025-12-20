@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent",
+    "headers": {
+      "Connection": "keep-alive",
+      "User-Agent": "google-genai-sdk/1.34.0 gl-node/v22.21.1",
+      "x-goog-api-client": "google-genai-sdk/1.34.0 gl-node/v22.21.1",
+      "Content-Type": "application/json",
+      "Accept": "*/*",
+      "Accept-Language": "*",
+      "sec-fetch-mode": "cors",
+      "Accept-Encoding": "gzip, deflate",
+      "Content-Length": "193"
+    },
+    "body": "{\"contents\":[{\"parts\":[{\"text\":\"If x + 9 = 10, what is the value of x?\"}],\"role\":\"user\"}],\"generationConfig\":{\"temperature\":0.1,\"thinkingConfig\":{\"thinkingBudget\":1024,\"includeThoughts\":true}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Vary": "Origin, X-Origin, Referer",
+      "Content-Encoding": "gzip",
+      "Date": "Wed, 17 Dec 2025 15:15:45 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=7479",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Transfer-Encoding": "chunked"
+    },
+    "body": "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\": [\n          {\n            \"text\": \"**Walking Through the Solution: Finding the Value of x**\\n\\nOkay, so the user wants to solve for 'x' in the equation x + 9 = 10.  It's a straightforward linear equation \u2013 a single step to isolate the variable.  My mind immediately jumps to the process.  The equation's x + 9 = 10.  The goal is crystal clear: get 'x' all alone on one side.\\n\\nThe '+ 9' is the obstacle.  I know the principle: I have to do the *opposite* of addition to get rid of it. Subtraction. And, crucially, whatever I do to one side of the equation, I must do to the *other* to keep things balanced.\\n\\nSo, I subtract 9 from both sides: (x + 9) - 9 = 10 - 9. That means on the left side, the '+9' and '-9' cancel each other out, leaving just 'x'.  On the right side, 10 minus 9 is 1.\\n\\nThe simplified equation then becomes x = 1.\\n\\nNow, to present this clearly and accessibly to the user. I'd begin with the answer: x = 1.  Then I'd break down the steps:\\n\\n1.  Start with the given equation: x + 9 = 10\\n2.  The goal: Isolate x on one side of the equation.\\n3.  Action: Subtract 9 from both sides.\\n4.  Calculation:\\n    *   x + 9 - 9 = 10 - 9\\n    *   x = 1\\n\\nThen to conclude, the final answer: x = 1.\\n\\nIt's clear, correct, and follows basic algebraic principles, which is perfect.\\n\",\n            \"thought\": true\n          },\n          {\n            \"text\": \"To find the value of x, you need to get x by itself on one side of the equation.\\n\\nGiven the equation:\\nx + 9 = 10\\n\\nSubtract 9 from both sides of the equation:\\nx + 9 - 9 = 10 - 9\\n\\nThis simplifies to:\\nx = 1\\n\\nSo, the value of **x is 1**.\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"index\": 0\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 18,\n    \"candidatesTokenCount\": 83,\n    \"totalTokenCount\": 579,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 18\n      }\n    ],\n    \"thoughtsTokenCount\": 478\n  },\n  \"modelVersion\": \"gemini-2.5-pro\",\n  \"responseId\": \"IclCaZrdF4a1_uMPvtWIqA4\"\n}\n"
+  }
+}

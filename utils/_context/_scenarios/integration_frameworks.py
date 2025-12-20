@@ -22,6 +22,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     _required_cassette_generation_api_keys: dict[str, list[str]] = {
         "openai": ["OPENAI_API_KEY"],
         "anthropic": ["ANTHROPIC_API_KEY"],
+        "google_genai": ["GEMINI_API_KEY"],
     }
 
     def __init__(self, name: str, doc: str) -> None:
