@@ -231,6 +231,12 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
 
     def destroy_cluster(self):
         logger.info("Destroying MiniKube cluster")
+        execute_command(
+            "helm uninstall datadog datadog-operator --namespace=datadog --ignore-not-found || true", timeout=30
+        )
+        execute_command(
+            "helm uninstall datadog datadog-operator --namespace=default --ignore-not-found || true", timeout=30
+        )
         execute_command("minikube delete")
 
 
@@ -378,6 +384,12 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
     def destroy_cluster(self):
         logger.info("Destroying kind cluster")
+        execute_command(
+            "helm uninstall datadog datadog-operator --namespace=datadog --ignore-not-found || true", timeout=30
+        )
+        execute_command(
+            "helm uninstall datadog datadog-operator --namespace=default --ignore-not-found || true", timeout=30
+        )
         try:
             execute_command(f"kind delete cluster --name {self.get_cluster_info().cluster_name}")
             execute_command(f"docker rm -f {self.get_cluster_info().cluster_name}-control-plane")
