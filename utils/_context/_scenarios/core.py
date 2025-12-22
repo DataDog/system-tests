@@ -61,8 +61,8 @@ class _ScenarioGroups:
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
+    ffe = ScenarioGroup()
     default = ScenarioGroup()
-    feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
