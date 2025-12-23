@@ -196,9 +196,9 @@ cd binaries/
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
 
-    curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
+    curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-java-agent.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
