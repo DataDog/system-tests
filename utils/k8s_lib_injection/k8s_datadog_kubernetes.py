@@ -176,6 +176,7 @@ class K8sDatadog:
         self._ensure_namespace_exists(namespace)
         if PrivateRegistryConfig.is_configured():
             self._copy_ecr_secret_to_namespace(namespace)
+
         operator_file = "utils/k8s_lib_injection/resources/helm/datadog-helm-chart-values.yaml"
         if self.dd_cluster_uds:
             logger.info("[Deploy datadog cluster] Using UDS")
@@ -205,6 +206,7 @@ class K8sDatadog:
             value_file=operator_file,
             set_dict=self.dd_cluster_feature,
             namespace=namespace,
+            chart_version="3.75.0",  # Pin to known good version instead of using latest
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
@@ -221,7 +223,6 @@ class K8sDatadog:
         self._ensure_namespace_exists(namespace)
         if PrivateRegistryConfig.is_configured():
             self._copy_ecr_secret_to_namespace(namespace)
-
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
         helm_install_chart(
             host_log_folder,
