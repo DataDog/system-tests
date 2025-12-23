@@ -657,6 +657,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
@@ -1144,15 +1145,19 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        flask-poc: v3.1.0
+        flask-poc: v3.1.0 && <=v4.0.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        flask-poc: v3.1.0
+        flask-poc: v3.1.0 && <=v4.0.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        flask-poc: v3.1.0
+        flask-poc: v3.1.0 && <=v4.0.0
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": irrelevant
+        flask-poc: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:

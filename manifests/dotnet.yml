@@ -300,6 +300,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v3.4.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v3.12.0
   tests/appsec/test_identify.py::Test_Basic: v2.7.0
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.16.0
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: v3.7.0
@@ -427,6 +428,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation: v3.15.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context: v3.15.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v3.15.0
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: v3.9.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.42.0

@@ -428,6 +428,7 @@ manifest:
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_identify.py::Test_Basic: v1.0.0
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.9.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
