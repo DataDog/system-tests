@@ -98,7 +98,20 @@ class Test_Endpoint_Discovery:
 
     def test_optional_method(self):
         endpoints = self._get_endpoints()
-        allowed = {"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "TRACE", "CONNECT", "*"}
+        allowed = {
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "HEAD",
+            "OPTIONS",
+            "TRACE",
+            "CONNECT",
+            "*",
+            "PROPFIND",
+            "REPORT",
+        }
         found = False
         for endpoint in endpoints:
             if "method" in endpoint:
@@ -124,7 +137,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        context.library in ["dotnet", "nodejs", "python", "ruby"],
+        context.library in ["dotnet", "golang", "nodejs", "python", "ruby"],
         reason="Not supported",
     )
     @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
@@ -146,7 +159,7 @@ class Test_Endpoint_Discovery:
         (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "golang", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -172,7 +185,7 @@ class Test_Endpoint_Discovery:
         (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "golang", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -193,7 +206,7 @@ class Test_Endpoint_Discovery:
         reason="Not applicable to weblog variant",
     )
     @irrelevant(
-        context.library in ["dotnet", "nodejs", "python", "ruby"],
+        context.library in ["dotnet", "golang", "nodejs", "python", "ruby"],
         reason="Not supported",
     )
     def test_optional_authentication(self):
