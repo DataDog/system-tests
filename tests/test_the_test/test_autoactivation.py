@@ -434,6 +434,24 @@ class Test_Parse_Artifact_Data:
 @scenarios.test_the_test
 @features.not_reported
 class Test_ManifestEditor:
+    @staticmethod
+    def _create_weblogs_dict(libraries: list[str] | None = None) -> dict[str, set[str]]:
+        """Create a weblogs dict for ManifestEditor with empty sets for each library"""
+        if libraries is None:
+            libraries = [
+                "cpp_httpd",
+                "cpp",
+                "dotnet",
+                "golang",
+                "java",
+                "nodejs",
+                "php",
+                "python_lambda",
+                "python",
+                "ruby",
+            ]
+        return {lib: set() for lib in libraries}
+
     def setup_manifest_editor(self, tmp_path: Path):
         """Create a temporary manifest file for testing"""
         manifest_dir = tmp_path / "manifests"
@@ -465,7 +483,8 @@ class Test_ManifestEditor:
                 )
             )
 
-        return ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict(libraries)
+        return ManifestEditor(weblogs, manifests_path=manifest_dir)
 
     def test_init(self, tmp_path: Path):
         """Test ManifestEditor initialization"""
@@ -632,7 +651,8 @@ class Test_ManifestEditor:
         for lib in ["cpp_httpd", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python_lambda", "ruby"]:
             (manifest_dir / f"{lib}.yml").write_text("---\nmanifest: {}\n")
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         editor.set_context(context)
@@ -662,7 +682,8 @@ class Test_ManifestEditor:
         for lib in ["cpp_httpd", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python_lambda", "ruby"]:
             (manifest_dir / f"{lib}.yml").write_text("---\nmanifest: {}\n")
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         editor.set_context(context)
@@ -704,7 +725,8 @@ class Test_ManifestEditor:
         for lib in ["cpp_httpd", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python_lambda", "ruby"]:
             (manifest_dir / f"{lib}.yml").write_text("---\nmanifest: {}\n")
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         editor.set_context(context)
@@ -738,7 +760,8 @@ class Test_ManifestEditor:
         for lib in ["cpp_httpd", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python_lambda", "ruby"]:
             (manifest_dir / f"{lib}.yml").write_text("---\nmanifest: {}\n")
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         editor.set_context(context)
@@ -770,7 +793,8 @@ class Test_ManifestEditor:
         for lib in ["cpp_httpd", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python_lambda", "ruby"]:
             (manifest_dir / f"{lib}.yml").write_text("---\nmanifest: {}\n")
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         editor.set_context(context)
@@ -806,7 +830,8 @@ class Test_ManifestEditor:
         for lib in ["cpp_httpd", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python_lambda", "ruby"]:
             (manifest_dir / f"{lib}.yml").write_text("---\nmanifest: {}\n")
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        weblogs = self._create_weblogs_dict()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         editor.set_context(context)
@@ -995,7 +1020,23 @@ class Test_EndToEnd_Activation:
         assert "tests/appsec/test_waf.py::Test_WAF_Rules::test_xss" in python_test_data.xpass_nodes
 
         # Step 2: Create manifest editor
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        # Ensure all libraries are in weblogs dict (add empty sets for missing ones)
+        all_libraries = [
+            "cpp_httpd",
+            "cpp",
+            "dotnet",
+            "golang",
+            "java",
+            "nodejs",
+            "php",
+            "python_lambda",
+            "python",
+            "ruby",
+        ]
+        for lib in all_libraries:
+            if lib not in weblogs:
+                weblogs[lib] = set()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
 
         # Verify that get_matches can find rules for our test nodeids
         # This ensures the manifest setup is correct
@@ -1119,7 +1160,23 @@ class Test_EndToEnd_Activation:
         test_data, weblogs = parse_artifact_data(data_dir, ["python", "nodejs"])
         assert len(test_data) == 2
 
-        editor = ManifestEditor(manifests_path=manifest_dir)
+        # Ensure all libraries are in weblogs dict (add empty sets for missing ones)
+        all_libraries = [
+            "cpp_httpd",
+            "cpp",
+            "dotnet",
+            "golang",
+            "java",
+            "nodejs",
+            "php",
+            "python_lambda",
+            "python",
+            "ruby",
+        ]
+        for lib in all_libraries:
+            if lib not in weblogs:
+                weblogs[lib] = set()
+        editor = ManifestEditor(weblogs, manifests_path=manifest_dir)
         update_manifest(editor, test_data)
 
         # Verify both libraries were processed

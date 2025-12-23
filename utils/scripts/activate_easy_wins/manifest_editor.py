@@ -41,7 +41,7 @@ class ManifestEditor:
         def __hash__(self) -> int:
             return hash(self.rule + str(self.condition) + str(self.condition_index))
 
-    def __init__(self, manifests_path: Path = Path("manifests/")):
+    def __init__(self, weblogs: dict[str, set[str]], manifests_path: Path = Path("manifests/")):
         self.init_round_trip_parser()
 
         self.raw_data = {}
@@ -51,6 +51,7 @@ class ManifestEditor:
         self.manifest = Manifest(path=manifests_path)
         self.poked_views = {}
         self.added_rules = {}
+        self.weblogs = weblogs
 
     def init_round_trip_parser(self) -> None:
         self.round_trip_parser = YAML()
@@ -214,8 +215,7 @@ class ManifestEditor:
         assert ret
         return ret
 
-    @staticmethod
-    def compress_rules(rules: dict[str, list[Condition]]) -> dict[str, list[Condition]]:
+    def compress_rules(self, rules: dict[str, list[Condition]]) -> dict[str, list[Condition]]:
         compressed: dict[str, dict[tuple, set[str]]] = {}
         ret: dict[str, list[Condition]] = {}
         non_var_conditions: dict[tuple, Condition] = {}
@@ -239,13 +239,14 @@ class ManifestEditor:
                 ret[rule] = []
             for condition_key, weblogs in conditions.items():
                 condition = non_var_conditions[condition_key]
-                condition["weblog"] = list(weblogs)
+                if set(weblogs) != self.weblogs[condition["component"]]:
+                    condition["weblog"] = list(weblogs)
                 ret[rule].append(condition)
         return ret
 
     def write_new_rules(self) -> None:
         new_rules = self.build_new_rules()
-        new_rules = ManifestEditor.compress_rules(new_rules)
+        new_rules = self.compress_rules(new_rules)
         for rule, conditions in new_rules.items():
             for condition in conditions:
                 manifest = self.raw_data[condition["component"]]["manifest"]
@@ -257,35 +258,37 @@ class ManifestEditor:
         for view, contexts in self.poked_views.items():
             raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
+            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]]
+
             if view.is_inline:
+                if "excluded_component_version" in view.condition:
+                    # TODO: Add comment to signal that there is a version problem
+                    print("test")
+                    continue
                 self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
                     {
                         "declaration": str(view.condition["declaration"]),
-                        "excluded_weblog": CommentedSeq(weblogs.copy()),
-                    },
-                    {
-                        "declaration": str(view.condition["declaration"]),
-                        "weblog": CommentedSeq(weblogs.copy()),
-                        "excluded_component_version": f">={component_version}",
+                        "component_version": f"<{component_version}",
                     },
                 ]
-                self.raw_data[view.condition["component"]]["manifest"][view.rule][0][
-                    "excluded_weblog"
-                ].fa.set_flow_style()
-                self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["weblog"].fa.set_flow_style()
-                if "component_version" in view.condition:
-                    print(view.rule)
-                    print(view.condition)
-                    print(self.raw_data[view.condition["component"]]["manifest"][view.rule])
-                    self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["component_version"] = str(
-                        view.condition["component_version"]
+                raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
+
+                if not all_weblogs:
+                    raw_data.append(
+                        {
+                            "declaration": str(view.condition["declaration"]),
+                            "excluded_weblog": CommentedSeq(weblogs.copy()),
+                        },
                     )
-                    self.raw_data[view.condition["component"]]["manifest"][view.rule][1]["component_version"] = str(
-                        view.condition["component_version"]
-                    )
+                    raw_data[0]["weblog"] = CommentedSeq(weblogs.copy())
+
+                    raw_data[1]["excluded_weblog"].fa.set_flow_style()
+                    raw_data[0]["weblog"].fa.set_flow_style()
+
             elif "weblog_declaration" in raw_data[view.condition_index]:
                 for weblog in weblogs:
                     raw_data[view.condition_index]["weblog_declaration"][weblog] = f"v{component_version}"
+
             else:
                 raw_data[view.condition_index]["excluded_weblog"] = CommentedSeq(
                     view.condition.get("excluded_weblog", []) + weblogs
@@ -294,11 +297,13 @@ class ManifestEditor:
                 raw_data.append(
                     {
                         "declaration": str(view.condition["declaration"]),
-                        "weblog": CommentedSeq(weblogs.copy()),
                         "excluded_component_version": f">={component_version}",
                     }
                 )
-                raw_data[-1]["weblog"].fa.set_flow_style()
+
+                if not all_weblogs:
+                    raw_data[-1]["weblog"] = CommentedSeq(weblogs.copy())
+                    raw_data[-1]["weblog"].fa.set_flow_style()
 
     def write(self, output_dir: Path = Path("manifests/")) -> None:
         self.write_new_rules()

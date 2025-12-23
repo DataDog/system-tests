@@ -21,13 +21,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    manifest_editor = ManifestEditor()
-
     if not args.no_download:
         token = environ["GITHUB_TOKEN"]
         pull_artifact(ARTIFACT_URL, token, Path("data"))
 
     test_data, weblogs = parse_artifact_data(Path("data/"), LIBRARIES)
+
+    manifest_editor = ManifestEditor(weblogs)
     (
         tests_per_language,
         modified_rules_by_level,
