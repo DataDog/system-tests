@@ -263,7 +263,6 @@ class ManifestEditor:
             if view.is_inline:
                 if "excluded_component_version" in view.condition:
                     # TODO: Add comment to signal that there is a version problem
-                    print("test")
                     continue
                 self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
                     {
@@ -297,7 +296,7 @@ class ManifestEditor:
                 raw_data.append(
                     {
                         "declaration": str(view.condition["declaration"]),
-                        "excluded_component_version": f">={component_version}",
+                        "component_version": f"<{component_version}",
                     }
                 )
 
