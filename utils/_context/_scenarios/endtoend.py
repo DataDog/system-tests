@@ -19,6 +19,7 @@ from utils._context.containers import (
     AgentContainer,
     ProxyContainer,
     PostgresContainer,
+    StripeMockContainer,
     MongoContainer,
     KafkaContainer,
     CassandraContainer,
@@ -65,6 +66,7 @@ class DockerScenario(Scenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         include_postgres_db: bool = False,
+        include_stripe_mock: bool = False,
         include_cassandra_db: bool = False,
         include_mongo_db: bool = False,
         include_kafka: bool = False,
@@ -102,6 +104,9 @@ class DockerScenario(Scenario):
         if include_postgres_db:
             self.postgres_container = PostgresContainer()
             self._supporting_containers.append(self.postgres_container)
+
+        if include_stripe_mock:
+            self._supporting_containers.append(StripeMockContainer())
 
         if include_mongo_db:
             self._supporting_containers.append(MongoContainer())
@@ -283,6 +288,7 @@ class EndToEndScenario(DockerScenario):
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_postgres_db: bool = False,
+        include_stripe_mock: bool = False,
         include_cassandra_db: bool = False,
         include_mongo_db: bool = False,
         include_kafka: bool = False,
@@ -312,6 +318,7 @@ class EndToEndScenario(DockerScenario):
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
             include_postgres_db=include_postgres_db,
+            include_stripe_mock=include_stripe_mock,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
             include_kafka=include_kafka,

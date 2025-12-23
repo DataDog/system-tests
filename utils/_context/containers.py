@@ -1144,6 +1144,9 @@ class PostgresContainer(SqlDbTestedContainer):
             db_instance="system_tests_dbname",
         )
 
+class StripeMockContainer(TestedContainer):
+    def __init__(self) -> None:
+        super().__init__(image_name="stripe/stripe-mock:latest", name="stripe-mock", allow_old_container=True)
 
 class MongoContainer(TestedContainer):
     def __init__(self) -> None:

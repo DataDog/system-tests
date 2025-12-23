@@ -601,6 +601,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
 
+    stripe = EndToEndScenario(
+        "STRIPE",
+        include_stripe_mock=True,
+        doc="https://www.youtube.com/watch?v=rrbXkUvOTVg"
+    )
+
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
         weblog_env={
