@@ -64,6 +64,8 @@ iast.initMiddlewares(app)
 
 require('./auth')(app, tracer)
 
+require('./stripe')(app)
+
 app.get('/', (req, res) => {
   console.log('Received a request')
   res.send('Hello\n')
