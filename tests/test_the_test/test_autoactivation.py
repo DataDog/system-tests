@@ -4,26 +4,23 @@ import json
 import tempfile
 import textwrap
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-import pytest
-from pygtrie import StringTrie
-
-from unittest.mock import Mock, patch
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from utils import scenarios, features
 from utils._context.component_version import Version
-from utils.manifest import Condition, TestDeclaration
 from utils.manifest._internal.types import SemverRange, SkipDeclaration
-from utils.scripts.activate_easy_wins.const import LIBRARIES
-from utils.scripts.activate_easy_wins.core import tup_to_rule, tups_to_rule, update_manifest
+from utils.scripts.activate_easy_wins.core import tup_to_rule, update_manifest
 from utils.scripts.activate_easy_wins.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins.test_artifact import (
     ActivationStatus,
-    TestData as TestDataClass,  # Rename to avoid pytest collection warning
     parse_artifact_data,
-    pull_artifact,
 )
 from utils.scripts.activate_easy_wins.types import Context
+
+if TYPE_CHECKING:
+    from utils.manifest import Condition
 
 
 @scenarios.test_the_test
@@ -607,7 +604,7 @@ class Test_ManifestEditor:
 
     def test_specialize(self, tmp_path: Path):
         """Test specializing a condition for a context"""
-        editor = self.setup_manifest_editor(tmp_path)
+        _ = self.setup_manifest_editor(tmp_path)
         context = Context.create("python", "3.12.0", "django-poc")
         assert context is not None
         condition: Condition = {"declaration": SkipDeclaration("missing_feature"), "component": "python"}
@@ -621,10 +618,8 @@ class Test_ManifestEditor:
         assert "component_version" not in condition
 
     @staticmethod
-    def _normalize_manifest_data(data):
+    def _normalize_manifest_data(data: Any) -> Any:  # noqa: ANN401
         """Convert CommentedSeq and other ruamel types to plain Python types for comparison"""
-        from ruamel.yaml.comments import CommentedSeq, CommentedMap
-
         if isinstance(data, CommentedSeq):
             return [Test_ManifestEditor._normalize_manifest_data(item) for item in data]
         if isinstance(data, CommentedMap):
@@ -930,7 +925,9 @@ class Test_EndToEnd_Activation:
 
         for scenario in scenarios_data:
             # Create scenario directory under parent_dir
-            scenario_dir = parent_dir / scenario["dir"]
+            directory = scenario["dir"]
+            assert isinstance(directory, str)
+            scenario_dir = parent_dir / directory
             scenario_dir.mkdir()
 
             report = {
@@ -1123,7 +1120,9 @@ class Test_EndToEnd_Activation:
         ]
 
         for scenario in scenarios:
-            scenario_dir = parent_dir / scenario["dir"]
+            directory = scenario["dir"]
+            assert isinstance(directory, str)
+            scenario_dir = parent_dir / directory
             scenario_dir.mkdir()
             report_file = scenario_dir / "report.json"
             report_file.write_text(json.dumps({"context": scenario["context"], "tests": scenario["tests"]}, indent=2))
@@ -1146,7 +1145,7 @@ class Test_EndToEnd_Activation:
             if lib in ["python", "nodejs"]:
                 manifest_file.write_text(
                     textwrap.dedent(
-                        f"""---
+                        """---
                         manifest:
                           tests/parametric/test_sampling.py::Test_Sampling:
                             - declaration: missing_feature
@@ -1182,7 +1181,7 @@ class Test_EndToEnd_Activation:
         # Verify both libraries were processed
         assert len(editor.poked_views) > 0
         poked_libraries = set()
-        for view, contexts in editor.poked_views.items():
+        for contexts in editor.poked_views.values():
             for ctx in contexts:
                 poked_libraries.add(ctx.library)
 

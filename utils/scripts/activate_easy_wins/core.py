@@ -32,11 +32,13 @@ def tups_to_rule(tups: list[tuple[str]]) -> list[str]:
 
 def _get_rule_level(rule: str) -> str:
     """Determine the level of a rule: dir, file, class, or function"""
+    class_len = 2
+    function_len = 3
     if "::" in rule:
         parts = rule.split("::")
-        if len(parts) == 2:
+        if len(parts) == class_len:
             return "class"
-        elif len(parts) >= 3:
+        if len(parts) >= function_len:
             return "function"
     if rule.endswith(".py"):
         return "file"
@@ -78,13 +80,13 @@ def update_manifest(
             tests_per_language[context.library] = 0
             unique_tests_per_language[context.library] = set()
         for node in nodes:
-            rules = manifest_editor.get_matches(node)
-            if rules:
+            views = manifest_editor.get_matches(node)
+            if views:
                 tests_with_rules += 1
                 tests_per_language[context.library] += 1
                 unique_tests_per_language[context.library].add(node)
-                for rule in rules:
-                    rule_str = rule.rule
+                for view in views:
+                    rule_str = view.rule
                     if rule_str not in rule_to_tests:
                         rule_to_tests[rule_str] = set()
                     rule_to_tests[rule_str].add(node)  # Use set to track unique test nodeids
@@ -92,9 +94,9 @@ def update_manifest(
                         modified_rules_set.add(rule_str)
                         level = _get_rule_level(rule_str)
                         modified_rules_by_level[level] += 1
-                    manifest_editor.poke(rule)
+                    manifest_editor.poke(view)
                     manifest_editor.add_rules(
-                        tups_to_rule(trie.traverse(get_deactivation, rule.rule.replace("::", "/"))), rule
+                        tups_to_rule(trie.traverse(get_deactivation, view.rule.replace("::", "/"))), view
                     )
             else:
                 tests_without_rules += 1
@@ -126,9 +128,7 @@ def update_manifest(
     )
 
 
-def print_activation_report(
-    tests_per_language: dict[str, int], unique_tests_per_language: dict[str, int]
-) -> None:
+def print_activation_report(tests_per_language: dict[str, int], unique_tests_per_language: dict[str, int]) -> None:
     """Print a report showing the number of tests activated per language"""
     if not tests_per_language:
         print("No tests were activated.")

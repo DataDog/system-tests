@@ -2,8 +2,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import ruamel.yaml
-from utils._context.component_version import Version
-from utils.manifest._internal.rule import match_condition
 from utils.manifest._internal.types import SemverRange as CustomSpec
 from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
@@ -11,9 +9,10 @@ from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 from utils.manifest import Condition, SkipDeclaration
 from .const import LIBRARIES
 import sys
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from utils._context.component_version import Version
     from .types import Context
 
 # Fix line wrapping bug in ruamel
@@ -157,8 +156,8 @@ class ManifestEditor:
         return rule in self.raw_data[self.context.library]["manifest"]
 
     @staticmethod
-    def serialize_condition(condition: Condition) -> dict[str, str]:
-        ret = {}
+    def serialize_condition(condition: Condition) -> dict[str, str | CommentedSeq]:
+        ret: dict[str, str | CommentedSeq] = {}
         for name, value in condition.items():
             if name == "declaration":
                 ret[name] = str(value)
@@ -170,9 +169,11 @@ class ManifestEditor:
                         ret[name] = value[0]
                     else:
                         ret[name] = CommentedSeq(value)
-                        ret[name].fa.set_flow_style()
+                        commented_seq = ret[name]
+                        assert isinstance(commented_seq, CommentedSeq)
+                        commented_seq.fa.set_flow_style()
                 else:
-                    ret[name] = value
+                    ret[name] = str(value)
             else:
                 ret[name] = str(value)
         return ret
@@ -196,13 +197,13 @@ class ManifestEditor:
 
     @staticmethod
     def condition_key(condition: Condition) -> tuple:
-        ret = []
+        ret: list[tuple[str, str | tuple[str]]] = []
         clauses = sorted(condition.items())
         for name, value in clauses:
             if isinstance(value, list):
                 ret.append((name, tuple(value)))
             else:
-                ret.append((name, value))
+                ret.append((name, str(value)))
         return tuple(ret)
 
     @staticmethod
@@ -234,10 +235,10 @@ class ManifestEditor:
 
                 compressed[rule][key] |= set(condition.get("weblog", []))
 
-        for rule, conditions in compressed.items():
+        for rule, weblog_conditions in compressed.items():
             if rule not in ret:
                 ret[rule] = []
-            for condition_key, weblogs in conditions.items():
+            for condition_key, weblogs in weblog_conditions.items():
                 condition = non_var_conditions[condition_key]
                 if set(weblogs) != self.weblogs[condition["component"]]:
                     condition["weblog"] = list(weblogs)
@@ -312,7 +313,7 @@ class ManifestEditor:
             self.round_trip_parser.dump(data, file)
             if False:
                 self.round_trip_parser.dump(data, sys.stdout)
-            data = file.read_text()
+            final_data = file.read_text()
             file.write_text(
-                f"# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n{data}"
+                f"# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n{final_data}"
             )
