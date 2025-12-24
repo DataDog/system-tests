@@ -158,6 +158,9 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
 
 def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
+    ci_project_name = os.getenv("CI_PROJECT_NAME")
+    ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
+    is_system_tests_nightly = ci_project_name == "system-tests" and ci_pipeline_source == "schedule"
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
     # Create the jobs by scenario.
     for scenario, weblogs in k8s_matrix.items():
@@ -175,12 +178,10 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
             k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
             if cluster_agent_versions:
                 filtered_versions = cluster_agent_versions
-                if should_run_fast_mode():
+                if not is_system_tests_nightly:
                     # we don't include in the matrix the cluster agent dev version
-                    # remove the image cluster-agent-dev image from cluster_agent_versions
-                    filtered_versions = [
-                        version for version in cluster_agent_versions if "cluster-agent-dev" not in version
-                    ]
+                    # remove the images that are in the the ssi-dev registry
+                    filtered_versions = [version for version in cluster_agent_versions if "ssi-dev" not in version]
 
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {
