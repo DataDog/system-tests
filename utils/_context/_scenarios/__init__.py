@@ -26,6 +26,7 @@ from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
+from utils._context.containers import InternalServerContainer
 
 update_environ_with_local_env()
 
@@ -603,9 +604,12 @@ class _Scenarios:
 
     stripe = EndToEndScenario(
         "STRIPE",
-        include_stripe_mock=True,
         doc="https://www.youtube.com/watch?v=rrbXkUvOTVg"
     )
+    stripe._internal_server = InternalServerContainer()
+    #stripe.weblog_container.depends_on.append(stripe._internal_server)
+    stripe._required_containers.append(stripe._internal_server)
+    #stripe._supporting_containers.append(stripe._internal_server)
 
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
