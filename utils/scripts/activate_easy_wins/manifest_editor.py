@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import ruamel.yaml
-from utils.manifest._internal.types import SemverRange as CustomSpec
+from utils.manifest._internal.const import TestDeclaration
 from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
@@ -143,7 +143,6 @@ class ManifestEditor:
             raw_data[view.rule][view.condition_index] = new_content
 
     def add_condition(self, rule: str, condition: dict) -> None:
-        print(type(self.raw_data), type(self.raw_data[rule]), self.raw_data[rule])
         self.raw_data[self.context.library]["manifest"][rule].append(condition)
 
     def add_rules(self, rules: list[str], parent: View) -> None:
@@ -156,7 +155,18 @@ class ManifestEditor:
         return rule in self.raw_data[self.context.library]["manifest"]
 
     @staticmethod
-    def serialize_condition(condition: Condition) -> dict[str, str | CommentedSeq]:
+    def serialize_condition(condition: Condition) -> dict[str, str | CommentedSeq | dict]:
+        if (
+            "weblog" in condition
+            and "component_version" in condition
+            and condition["declaration"] == TestDeclaration.MISSING_FEATURE
+            and not condition["declaration"].details
+        ):
+            return {"weblog_declaration": dict.fromkeys(condition["weblog"], str(condition["component_version"]))}
+
+        if "weblog" in condition and "component_version" not in condition and len(condition) <= 3:  # noqa: PLR2004
+            return {"weblog_declaration": dict.fromkeys(condition["weblog"], str(condition["declaration"]))}
+
         ret: dict[str, str | CommentedSeq] = {}
         for name, value in condition.items():
             if name == "declaration":
@@ -182,7 +192,7 @@ class ManifestEditor:
     def specialize(condition: Condition, context: Context) -> Condition:
         ret = condition.copy()
         ret["weblog"] = [context.variant]
-        ret["component_version"] = CustomSpec(f">={context.library_version}")
+        # ret["component_version"] = CustomSpec(f">={context.library_version}")
         return ret
 
     def build_new_rules(self) -> dict[str, list[Condition]]:
@@ -246,11 +256,24 @@ class ManifestEditor:
         return ret
 
     def write_new_rules(self) -> None:
+        def count_new_condition_per_component(new_conditions: list[Condition]) -> dict[str, int]:
+            ret = {}
+            for condition in new_conditions:
+                if condition["component"] not in ret:
+                    ret[condition["component"]] = 0
+                ret[condition["component"]] += 1
+            return ret
+
         new_rules = self.build_new_rules()
         new_rules = self.compress_rules(new_rules)
         for rule, conditions in new_rules.items():
+            counts = count_new_condition_per_component(conditions)
             for condition in conditions:
                 manifest = self.raw_data[condition["component"]]["manifest"]
+                if counts[condition["component"]] == 1 and "weblog" not in condition:
+                    manifest[rule] = str(condition["declaration"])
+                    continue
+
                 if rule not in manifest:
                     manifest[rule] = []
                 manifest[rule].append(self.serialize_condition(condition))
@@ -261,10 +284,26 @@ class ManifestEditor:
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
             all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]]
 
+            if "excluded_component_version" in view.condition:
+                # TODO: Add comment to signal that there is a version problem
+                continue
             if view.is_inline:
-                if "excluded_component_version" in view.condition:
-                    # TODO: Add comment to signal that there is a version problem
+                if (
+                    view.condition["declaration"] == TestDeclaration.MISSING_FEATURE
+                    and not view.condition["declaration"].details
+                ):
+                    if all_weblogs:
+                        self.raw_data[view.condition["component"]]["manifest"][view.rule] = f">={component_version}"
+                        continue
+                    self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
+                        {"weblog_declaration": {"*": str(view.condition["declaration"])}}
+                    ]
+                    for weblog in weblogs:
+                        self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["weblog_declaration"][
+                            weblog
+                        ] = f">={component_version}"
                     continue
+
                 self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
                     {
                         "declaration": str(view.condition["declaration"]),

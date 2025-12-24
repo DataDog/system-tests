@@ -32,10 +32,12 @@ class SkipDeclaration:
         self.details = details
 
     def __eq__(self, value: object, /) -> bool:
-        assert isinstance(value, SkipDeclaration), (
-            f"Comparison between 'SkipDeclaration and {type(value)} is not supported"
-        )
-        return self.value == value.value and self.details == value.details
+        if isinstance(value, SkipDeclaration):
+            return self.value == value.value and self.details == value.details
+        if isinstance(value, TestDeclaration):
+            return self.value == value
+
+        raise TypeError(f"Comparison between 'SkipDeclaration and {type(value)} is not supported")
 
     def __str__(self) -> str:
         return f"{self.value} ({self.details})" if self.details else f"{self.value}"
