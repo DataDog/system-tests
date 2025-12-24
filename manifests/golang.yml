@@ -280,7 +280,39 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:
+    - weblog_declaration:
+        '*': missing_feature
+        echo: '>=2.3.1'
+        chi: '>=2.3.1'
+        net-http-orchestrion: '>=2.3.1'
+        uds-echo: '>=2.3.1'
+        net-http: '>=2.3.1'
+        gin: '>=2.3.1'
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_different_endpoints:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_sampling_window_renewal:
+    - weblog_declaration:
+        gin: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0
@@ -340,11 +372,26 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
+    - weblog_declaration:
+        '*': missing_feature
+        gin: '>=2.3.1'
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_blocking:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_non_blocking:
+    - weblog_declaration:
+        gin: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: v1.51.0
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.3.0-dev
+        net-http-orchestrion: v2.3.1
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking:
+    - weblog_declaration:
+        net-http-orchestrion: missing_feature (path params are not supported)
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before:
+    - weblog_declaration:
         net-http-orchestrion: missing_feature (path params are not supported)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.44.1
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.0.0
@@ -372,7 +419,21 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.1.0-dev
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection:
+    - weblog_declaration:
+        '*': missing_feature
+        echo: '>=2.3.1'
+        chi: '>=2.3.1'
+        net-http-orchestrion: '>=2.3.1'
+        uds-echo: '>=2.3.1'
+        net-http: '>=2.3.1'
+        gin: '>=2.3.1'
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
+    - weblog_declaration:
+        gin: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
@@ -807,9 +868,31 @@ manifest:
     - weblog_declaration:
         "*": v2.1.0-dev
         net-http-orchestrion: bug (APMLP-659)
-  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: bug (APMLP-659)
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured: incomplete_test_app (weblog endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:
+    - declaration: bug (APMLP-659)
+      component_version: <2.3.1
+      weblog: [echo, chi, uds-echo, net-http, gin]
+    - declaration: bug (APMLP-659)
+      excluded_weblog: [echo, chi, uds-echo, net-http, gin]
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled::test_incoming_64bit_traceid:
+    - weblog_declaration:
+        gin: bug (APMLP-659)
+        chi: bug (APMLP-659)
+        uds-echo: bug (APMLP-659)
+        echo: bug (APMLP-659)
+        net-http: bug (APMLP-659)
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      component_version: <2.3.1
+      weblog: [echo, chi, uds-echo, net-http, gin]
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      excluded_weblog: [echo, chi, uds-echo, net-http, gin]
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      component_version: <2.3.1
+      weblog: [echo, chi, uds-echo, net-http, gin]
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      excluded_weblog: [echo, chi, uds-echo, net-http, gin]
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
@@ -824,7 +907,20 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog:  # the incoming headers are considered invalid
+    - declaration: bug (APMAPI-901)
+      component_version: <2.3.1
+      weblog: [echo, chi, net-http-orchestrion, uds-echo, net-http, gin]
+    - declaration: bug (APMAPI-901)
+      excluded_weblog: [echo, chi, net-http-orchestrion, uds-echo, net-http, gin]
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics_browser:
+    - weblog_declaration:
+        gin: bug (APMAPI-901)
+        net-http-orchestrion: bug (APMAPI-901)
+        chi: bug (APMAPI-901)
+        uds-echo: bug (APMAPI-901)
+        echo: bug (APMAPI-901)
+        net-http: bug (APMAPI-901)
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": irrelevant
@@ -888,7 +984,92 @@ manifest:
   tests/test_telemetry.py::Test_Log_Generation: v1.73.0-dev
   tests/test_telemetry.py::Test_MessageBatch: v1.73.0-dev
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: v1.73.0-dev
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled:
+    - declaration: missing_feature (checks for metrics from the tracer)
+      component_version: <2.3.1
+      weblog: [echo, chi, net-http-orchestrion, uds-echo, net-http, gin]
+    - declaration: missing_feature (checks for metrics from the tracer)
+      excluded_weblog: [echo, chi, net-http-orchestrion, uds-echo, net-http, gin]
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_created:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created:
+    - weblog_declaration:
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        echo: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
   tests/test_telemetry.py::Test_ProductsDisabled: v1.53
   tests/test_telemetry.py::Test_Telemetry: v1.49.0
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature

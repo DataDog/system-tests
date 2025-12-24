@@ -12,8 +12,8 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.50.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: '>=3.30.0'
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: '>=3.30.0'
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: v3.24.0
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.46.0
@@ -245,7 +245,8 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v2.27.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v3.26.3
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: '>=3.30.0'
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded::test_blocking_ipv6: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v2.29.0
@@ -284,7 +285,9 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v3.15.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: '>=3.30.0'
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
@@ -308,7 +311,9 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: v3.7.0
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: v3.7.0
   tests/appsec/test_rate_limiter.py::Test_Main: v2.6.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: missing_feature
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: '>=3.30.0'
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability: missing_feature
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v3.4.0
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v3.26.3
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
@@ -322,7 +327,7 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v2.26.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.16.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.16.0
-  tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: missing_feature
+  tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: '>=3.30.0'
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.26.3
@@ -373,7 +378,9 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_RFI: v1.28.6
   tests/appsec/waf/test_rules.py::Test_SSRF: v1.28.6
   tests/appsec/waf/test_rules.py::Test_Scanners: v1.28.6
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: '>=3.30.0'
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_headers_are_correct: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
@@ -568,6 +575,9 @@ manifest:
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v1.0  # real version not known
+        uds: v3.30.0
+  tests/test_profiling.py::Test_Profile::test_process_tags:
+    - weblog_declaration:
         uds: missing_feature (to be confirmed)
   tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
@@ -581,8 +591,11 @@ manifest:
   tests/test_scrubbing.py::Test_UrlQuery: v2.13.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_language_tag:
     - declaration: bug (AIT-8735)
+      excluded_weblog: [poc, uds]
     - component_version: <2.6.0
       declaration: missing_feature
+    - declaration: bug (AIT-8735)
+      component_version: <3.30.0
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v2.6.0
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.26.0
@@ -593,7 +606,8 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl: v2.13.0
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.13.0
   tests/test_telemetry.py::Test_DependencyEnable: v2.35.0
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: '>=3.30.0'
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature
   tests/test_telemetry.py::Test_MessageBatch: v2.35.0
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: v2.35.0
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: v2.35.0
