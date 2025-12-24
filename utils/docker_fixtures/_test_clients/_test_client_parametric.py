@@ -687,7 +687,7 @@ class ParametricTestClientApi:
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
     def ffe_start(self) -> bool:
-        """Initialize the FFE (Feature Flag Exposure) provider.
+        """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
@@ -1058,7 +1058,7 @@ class APMLibrary:
         return self._client.write_log(message, level, logger_name, logger_type, span_id)
 
     def ffe_start(self) -> bool:
-        """Initialize the FFE (Feature Flag Exposure) provider."""
+        """Initialize the FFE (Feature Flagging & Experimentation) provider."""
         return self._client.ffe_start()
 
     def ffe_evaluate(
