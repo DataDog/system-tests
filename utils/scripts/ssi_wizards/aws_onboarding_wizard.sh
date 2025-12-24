@@ -147,7 +147,7 @@ verify_aws_environment() {
         echo "🔍 Checking AWS environment..."
 
         # Run AWS environment check
-        if ! aws-vault exec sso-sandbox-account-admin -- aws s3 ls &>/dev/null; then
+        if ! aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- aws s3 ls &>/dev/null; then
             echo "❌ AWS environment check failed!"
             echo "🔗 Please follow the AWS SSO setup guide:"
             echo "   👉 https://datadoghq.atlassian.net/wiki/spaces/ENG/pages/2498068557/AWS+SSO+Getting+Started"
@@ -168,8 +168,8 @@ verify_aws_environment
 check_and_set_env_var "PULUMI_CONFIG_PASSPHRASE" "Passphrase to store secure data in Pulumi."
 check_and_set_env_var "DD_API_KEY_ONBOARDING" "🔑 API Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
 check_and_set_env_var "DD_APP_KEY_ONBOARDING" "🔑 Application Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
-check_and_set_env_var "ONBOARDING_AWS_INFRA_SUBNET_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command" "subnet-b89e00e2"
-check_and_set_env_var "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command" "sg-46506837,sg-7fedd80a"
+check_and_set_env_var "ONBOARDING_AWS_INFRA_SUBNET_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command" "subnet-00e689fa9557b1834"
+check_and_set_env_var "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command" "sg-0d402c7ec259b2a66"
 
 # Automatically set and offer to save some variables
 if ! is_var_in_env_file "ONBOARDING_LOCAL_TEST"; then
@@ -199,7 +199,7 @@ create_key_pair() {
 
     # Create key pair
     echo "🚀 Creating AWS Key Pair: $key_name ..."
-    aws-vault exec sso-sandbox-account-admin -- aws ec2 create-key-pair --key-name "$key_name" --output text > "$pem_path"
+    aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- aws ec2 create-key-pair --key-name "$key_name" --output text > "$pem_path"
 
     if [[ $? -ne 0 ]]; then
         echo "❌ Failed to create AWS Key Pair. Please check AWS permissions and try again."
@@ -438,7 +438,7 @@ run_test_command() {
     echo ""
 
     # Construct the command
-    TEST_COMMAND="aws-vault exec sso-sandbox-account-admin -- ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $CI_ENVIRONMENT --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only $VIRTUAL_MACHINE"
+    TEST_COMMAND="aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- ./run.sh $SCENARIO --vm-weblog $WEBLOG --vm-env $CI_ENVIRONMENT --vm-library $TEST_LIBRARY --vm-provider aws --vm-default-vms All --vm-only $VIRTUAL_MACHINE"
 
     echo "🖥️ Command:"
     echo "   $TEST_COMMAND"
@@ -461,7 +461,7 @@ run_test_command() {
                 echo "⚠️  🔥 **REMINDER: YOU MUST MANUALLY DESTROY THE PULUMI STACK!** 🔥 ⚠️"
                 echo "🖥️  Run the following command to stop your EC2 instance:"
                 echo ""
-                echo "   🛑 aws-vault exec sso-sandbox-account-admin -- pulumi destroy"
+                echo "   🛑 aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- pulumi destroy"
                 echo ""
                 echo "📝 **Why?** Since ONBOARDING_KEEP_VMS is set, your virtual machine will stay running."
                 echo "💡 **To avoid extra AWS costs, remember to manually destroy the stack when finished.**"
