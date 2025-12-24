@@ -50,6 +50,28 @@ async def redirect(request: fastapi.Request):
     return fastapi.responses.RedirectResponse(url=location, status_code=302)
 
 
+@app.post("/v1/checkout/sessions", response_class=fastapi.responses.JSONResponse)
+async def checkoutSessions(request: fastapi.Request):
+    return fastapi.responses.JSONResponse({
+        "id": "cs_test_aaaaa",
+        "amount_total": 406046392,
+        "client_reference_id": "superdiaz",
+        "currency": "eur",
+        "customer_email": "a@b.c",
+        "discounts": [
+            {
+                "coupon": "a",
+                "promotion_code": "a"
+            }
+        ],
+        "livemode": False,
+        "total_details": {
+            "amount_discount": 406046392,
+            "amount_shipping": 406046392
+        }
+    }, status_code=200)
+
+
 @app.get("/shutdown")
 async def shutdown():
     os.kill(os.getpid(), signal.SIGTERM)
