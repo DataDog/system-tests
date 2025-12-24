@@ -1,19 +1,13 @@
 'use strict'
 
-const stripe = require('stripe')('sk_test_FAKE_KEY', {
+const stripe = require('stripe')('sk_FAKE', {
   host: 'internal_server',
   port: 8089,
   protocol: 'http',
   telemetry: false
 })
 
-const webhookSecret = 'whsec_ddddd'
-
-const cryptoProvider = {
-  computeHMACSignature (payload, secret) {
-    return 'HARDCODED_SIGNATURE'
-  }
-}
+const webhookSecret = 'whsec_FAKE'
 
 function init (app) {
   app.post('/stripe/create_checkout_session', async (req, res) => {
@@ -32,10 +26,7 @@ function init (app) {
     const event = stripe.webhooks.constructEvent(
       req.rawBody,
       req.headers['stripe-signature'],
-      webhookSecret,
-      Infinity,
-      cryptoProvider,
-      1337
+      webhookSecret
     )
 
     res.json(event)
