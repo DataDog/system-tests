@@ -1,53 +1,45 @@
 'use strict'
 
-const stripe = require('stripe')('sk_test_FAKE', {
-  host: 'stripe-mock',
-  port: 12111,
+const stripe = require('stripe')('sk_test_FAKE_KEY', {
+  host: 'internal_server',
+  port: 8089,
   protocol: 'http',
   telemetry: false
 })
 
+const webhookSecret = 'whsec_ddddd'
+
+const cryptoProvider = {
+  computeHMACSignature (payload, secret) {
+    return 'HARDCODED_SIGNATURE'
+  }
+}
+
 function init (app) {
   app.post('/stripe/create_checkout_session', async (req, res) => {
-    console.log('received request')
-    const result = await stripe.checkout.sessions.create({
-      client_reference_id: 'superdiaz',
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: 'test'
-            },
-            unit_amount: 100
-          },
-          quantity: 100
-        }
-      ],
-      mode: 'payment',
-      customer_email: 'topkek@topkek.com',
-      discounts: [{
-        //coupon: 'J7BN15vk',
-        promotion_code: 'promo_1SEBV4A8AZcqnBxYVOzXjPVu'
-      }],
-      shipping_options: [{
-        shipping_rate_data: {
-          display_name: 'test',
-          fixed_amount: {
-            amount: 100,
-            currency: 'eur'
-          },
-          type: 'fixed_amount'
-        }
-      }]
-    })
-
-    console.log('strpie relut', result)
+    const result = await stripe.checkout.sessions.create(req.body)
 
     res.json(result)
   })
 
-  app.post('/webhook')
+  app.post('/stripe/create_payment_intent', async (req, res) => {
+    const result = await stripe.paymentIntents.create(req.body)
+
+    res.json(result)
+  })
+
+  app.post('/stripe/webhook', async (req, res) => {
+    const event = stripe.webhooks.constructEvent(
+      req.rawBody,
+      req.headers['stripe-signature'],
+      webhookSecret,
+      Infinity,
+      cryptoProvider,
+      1337
+    )
+
+    res.json(event)
+  })
 }
 
 module.exports = init
