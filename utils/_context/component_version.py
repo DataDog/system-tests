@@ -141,7 +141,7 @@ class ComponentVersion:
         library = other
         return self.name == library
 
-    def _extract_members(self, other: object) -> tuple[str | None, Version | None]:
+    def _extract_members(self, other: object) -> tuple[str, Version]:
         if isinstance(other, ComponentVersion):
             return other.name, other.version
 
