@@ -283,25 +283,25 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v1.11.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: '>=1.13.1'
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
-    - weblog_declaration:
-        php-fpm-7.4: missing_feature
-        php-fpm-8.2: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
     - weblog_declaration:
         php-fpm-7.4: missing_feature
         php-fpm-8.2: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  : - weblog_declaration:
+        php-fpm-7.4: missing_feature
+        php-fpm-8.2: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: '>=1.13.1'
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit:
-    - weblog_declaration:
-        php-fpm-7.4: missing_feature
-        php-fpm-8.2: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers:
-    - weblog_declaration:
-        php-fpm-7.4: missing_feature
-        php-fpm-8.2: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc:
     - weblog_declaration:
+        php-fpm-7.4: missing_feature
+        php-fpm-8.2: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers
+  : - weblog_declaration:
+        php-fpm-7.4: missing_feature
+        php-fpm-8.2: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit
+  : - weblog_declaration:
         php-fpm-7.4: missing_feature
         php-fpm-8.2: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
@@ -411,20 +411,20 @@ manifest:
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: '>=1.13.1'
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_variables:
-    - weblog_declaration:
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception
+  : - weblog_declaration:
         php-fpm-7.4: missing_feature
         php-fpm-8.2: missing_feature
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception:
-    - weblog_declaration:
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_variables
+  : - weblog_declaration:
         php-fpm-7.4: missing_feature
         php-fpm-8.2: missing_feature
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_collection_operations:
-    - weblog_declaration:
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_collection_operations
+  : - weblog_declaration:
         php-fpm-7.4: missing_feature
         php-fpm-8.2: missing_feature
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators:
-    - weblog_declaration:
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators
+  : - weblog_declaration:
         php-fpm-7.4: missing_feature
         php-fpm-8.2: missing_feature
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations:

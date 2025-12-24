@@ -426,7 +426,7 @@ manifest:
         sinatra41: '>=2.22.0'
         rails61: '>=2.22.0'
         rails72: '>=2.22.0'
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
     - weblog_declaration:
         sinatra41: missing_feature
         rails42: missing_feature
@@ -440,8 +440,8 @@ manifest:
         rails61: missing_feature
         sinatra22: missing_feature
         rack: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
-    - weblog_declaration:
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  : - weblog_declaration:
         sinatra41: missing_feature
         rails42: missing_feature
         rails80: missing_feature
@@ -463,36 +463,36 @@ manifest:
         rails52: '>=2.22.0'
         rails61: '>=2.22.0'
         rails72: '>=2.22.0'
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit:
-    - weblog_declaration:
-        sinatra41: missing_feature
-        rails42: missing_feature
-        rails80: missing_feature
-        uds-rails: missing_feature
-        uds-sinatra: missing_feature
-        sinatra32: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra14: missing_feature
-        rails61: missing_feature
-        sinatra22: missing_feature
-        rack: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers:
-    - weblog_declaration:
-        sinatra41: missing_feature
-        rails42: missing_feature
-        rails80: missing_feature
-        uds-rails: missing_feature
-        uds-sinatra: missing_feature
-        sinatra32: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra14: missing_feature
-        rails61: missing_feature
-        sinatra22: missing_feature
-        rack: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc:
     - weblog_declaration:
+        sinatra41: missing_feature
+        rails42: missing_feature
+        rails80: missing_feature
+        uds-rails: missing_feature
+        uds-sinatra: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers
+  : - weblog_declaration:
+        sinatra41: missing_feature
+        rails42: missing_feature
+        rails80: missing_feature
+        uds-rails: missing_feature
+        uds-sinatra: missing_feature
+        sinatra32: missing_feature
+        rails72: missing_feature
+        rails52: missing_feature
+        sinatra14: missing_feature
+        rails61: missing_feature
+        sinatra22: missing_feature
+        rack: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit
+  : - weblog_declaration:
         sinatra41: missing_feature
         rails42: missing_feature
         rails80: missing_feature

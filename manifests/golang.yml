@@ -289,29 +289,29 @@ manifest:
         uds-echo: '>=2.3.1'
         net-http: '>=2.3.1'
         gin: '>=2.3.1'
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1:
-    - weblog_declaration:
-        gin: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0:
-    - weblog_declaration:
-        gin: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1:
-    - weblog_declaration:
-        gin: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2:
-    - weblog_declaration:
-        gin: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0:
-    - weblog_declaration:
-        gin: missing_feature
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection:
     - weblog_declaration:
         gin: missing_feature
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_different_endpoints:
     - weblog_declaration:
         gin: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
+  : - weblog_declaration:
+        gin: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
+  : - weblog_declaration:
+        gin: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
+  : - weblog_declaration:
+        gin: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  : - weblog_declaration:
+        gin: missing_feature
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_sampling_window_renewal:
     - weblog_declaration:
+        gin: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0
+  : - weblog_declaration:
         gin: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -428,11 +428,11 @@ manifest:
         uds-echo: '>=2.3.1'
         net-http: '>=2.3.1'
         gin: '>=2.3.1'
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
-    - weblog_declaration:
-        gin: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:
     - weblog_declaration:
+        gin: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  : - weblog_declaration:
         gin: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
