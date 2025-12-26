@@ -978,7 +978,7 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
-  tests/ffe/test_exposures.py: bug (FFL-1623)
+  tests/ffe/test_exposures.py: v4.2.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
