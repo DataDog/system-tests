@@ -131,6 +131,7 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
             "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
+            "DD_SERVICE": "my-service-env-var",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
