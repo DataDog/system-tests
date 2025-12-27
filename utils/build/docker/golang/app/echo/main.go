@@ -56,6 +56,7 @@ func main() {
 	r := echo.New()
 
 	r.Use(echotrace.Middleware())
+	r.OnAddRouteHandler = echotrace.OnAddRouteHandler
 
 	r.Any("/", func(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
