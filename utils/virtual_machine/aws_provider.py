@@ -29,7 +29,7 @@ class AWSPulumiProvider(VmProvider):
         self.commander = AWSCommander()
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
-        self.stack_name = "system-tests_onboarding"
+        self.stack_name = "system-tests_dev_onboarding"
 
     def configure(self, virtual_machine):
         super().configure(virtual_machine)
@@ -58,7 +58,7 @@ class AWSPulumiProvider(VmProvider):
             )
             self._start_vm(self.vm)
 
-        project_name = "system-tests-vms"
+        project_name = "system-tests_dev-vms"
         try:
             self.stack = auto.create_or_select_stack(
                 stack_name=self.stack_name, project_name=project_name, program=pulumi_start_program
