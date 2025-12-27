@@ -50,7 +50,6 @@ def match_condition(
 def match_rule(rule: str, nodeid: str) -> bool:
     rule_elements = rule.strip("/").replace("::", "/").split("/")
 
-    nodeid = nodeid[: nodeid.find("[") % len(nodeid) + 1]
     nodeid_elements = nodeid.replace("::", "/").split("/")
 
     if len(rule_elements) > len(nodeid_elements):
@@ -66,11 +65,15 @@ def get_rules(
     agent_version: Version | None = None,
     dd_apm_inject_version: Version | None = None,
     k8s_cluster_agent_version: Version | None = None,
-) -> dict[str, list[SkipDeclaration]]:
+) -> tuple[dict[str, list[SkipDeclaration]], dict[str, list[tuple[int, int]]]]:
     rules: dict[str, list[SkipDeclaration]] = {}
+    tracker: dict[str, list[tuple[int, int]]] = {}
 
     for rule, conditions in manifest.items():
-        for condition in conditions:
+        in_component_index = -1
+        for condition_index, condition in enumerate(conditions):
+            if condition["component"] == library:
+                in_component_index += 1
             if not match_condition(
                 condition,
                 library,
@@ -85,5 +88,8 @@ def get_rules(
             if rule not in rules:
                 rules[rule] = []
             rules[rule].append(condition["declaration"])
+            if rule not in tracker:
+                tracker[rule] = []
+            tracker[rule].append((condition_index, in_component_index))
 
-    return rules
+    return rules, tracker

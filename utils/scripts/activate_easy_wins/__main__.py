@@ -1,0 +1,50 @@
+import argparse
+from os import environ
+from pathlib import Path
+from .const import ARTIFACT_URL, LIBRARIES
+from .core import print_activation_report, print_detailed_rules_report, update_manifest
+from .test_artifact import parse_artifact_data, pull_artifact
+from .manifest_editor import ManifestEditor
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Activate easy wins from test artifacts")
+    parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Skip downloading the artifact and use existing data directory",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Only display a summary of changes without writing anything to disk",
+    )
+    args = parser.parse_args()
+
+    if not args.no_download:
+        token = environ["GITHUB_TOKEN"]
+        pull_artifact(ARTIFACT_URL, token, Path("data"))
+
+    test_data, weblogs = parse_artifact_data(Path("data/"), LIBRARIES)
+
+    manifest_editor = ManifestEditor(weblogs)
+    (
+        tests_per_language,
+        modified_rules_by_level,
+        created_rules_count,
+        tests_without_rules,
+        unique_tests_per_language,
+    ) = update_manifest(manifest_editor, test_data)
+    total_tests_activated = sum(tests_per_language.values())
+    total_unique_tests = sum(unique_tests_per_language.values())
+    print_activation_report(tests_per_language, unique_tests_per_language)
+    print_detailed_rules_report(
+        modified_rules_by_level, created_rules_count, total_tests_activated, total_unique_tests, tests_without_rules
+    )
+
+    if not args.dry_run:
+        manifest_editor.write()
+
+
+if __name__ == "__main__":
+    main()
