@@ -604,9 +604,10 @@ class _Scenarios:
 
     stripe = EndToEndScenario(
         "STRIPE",
-        doc="https://www.youtube.com/watch?v=rrbXkUvOTVg"
+        doc="https://www.youtube.com/watch?v=rrbXkUvOTVg",
     )
     stripe._internal_server = InternalServerContainer()
+    # no clue which line is the correct one here
     #stripe.weblog_container.depends_on.append(stripe._internal_server)
     stripe._required_containers.append(stripe._internal_server)
     #stripe._supporting_containers.append(stripe._internal_server)
