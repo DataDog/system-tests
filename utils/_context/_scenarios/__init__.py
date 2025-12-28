@@ -39,6 +39,12 @@ class _Scenarios:
 
     default = DefaultScenario("DEFAULT")
 
+    default._internal_server = InternalServerContainer()
+    # no clue which line is the correct one here
+    #stripe.weblog_container.depends_on.append(stripe._internal_server)
+    default._required_containers.append(default._internal_server)
+    #stripe._supporting_containers.append(stripe._internal_server)
+
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
         "PERFORMANCES", doc="A not very used scenario : its aim is to measure CPU and MEM usage across a basic run"
@@ -601,17 +607,6 @@ class _Scenarios:
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
-
-    stripe = EndToEndScenario(
-        "STRIPE",
-        doc="https://www.youtube.com/watch?v=rrbXkUvOTVg",
-    )
-    stripe._internal_server = InternalServerContainer()
-    # no clue which line is the correct one here
-    #stripe.weblog_container.depends_on.append(stripe._internal_server)
-    stripe._required_containers.append(stripe._internal_server)
-    #stripe._supporting_containers.append(stripe._internal_server)
-
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
         weblog_env={
