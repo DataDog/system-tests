@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "User-Agent": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "x-goog-api-client": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "Content-Length": "425",
+      "x-datadog-trace-id": "11357777509583304458",
+      "x-datadog-parent-id": "13365059880097908075",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=9321618140321426764,_dd.p.llmobs_trace_id=139916475397620074950470186494265087332,_dd.p.tid=6942eed700000000",
+      "traceparent": "00-6942eed7000000009d9eee7808a2370a-b97a3b265b0f856b-01",
+      "tracestate": "dd=p:b97a3b265b0f856b;s:1;t.dm:-0;t.llmobs_parent_id:9321618140321426764;t.llmobs_trace_id:139916475397620074950470186494265087332;t.tid:6942eed700000000"
+    },
+    "body": "{\"contents\": [{\"parts\": [{\"text\": \"What is the weather in Tokyo?\"}], \"role\": \"user\"}, {\"parts\": [{\"functionCall\": {\"id\": \"abc123\", \"args\": {\"location\": \"Tokyo\"}, \"name\": \"get_weather\"}}], \"role\": \"model\"}, {\"parts\": [{\"functionResponse\": {\"id\": \"abc123\", \"name\": \"get_weather\", \"response\": {\"weather\": \"sunny\", \"temperature\": \"78\\u00b0F\"}}}], \"role\": \"user\"}], \"generationConfig\": {\"temperature\": 0.1, \"maxOutputTokens\": 50}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "text/event-stream",
+      "Content-Disposition": "attachment",
+      "Vary": "Origin, X-Origin, Referer",
+      "Transfer-Encoding": "chunked",
+      "Date": "Wed, 17 Dec 2025 17:56:39 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=372",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+    },
+    "body": "data: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"The\"}],\"role\": \"model\"}}],\"usageMetadata\": {\"promptTokenCount\": 47,\"totalTokenCount\": 47,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 47}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"1-5CaaayJoagxfcPp7LHoQY\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \" weather in Tokyo\"}],\"role\": \"model\"}}],\"usageMetadata\": {\"promptTokenCount\": 47,\"totalTokenCount\": 47,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 47}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"1-5CaaayJoagxfcPp7LHoQY\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \" is sunny with a temperature of 78\u00b0F.\\n\"}],\"role\": \"model\"},\"finishReason\": \"STOP\"}],\"usageMetadata\": {\"promptTokenCount\": 22,\"candidatesTokenCount\": 17,\"totalTokenCount\": 39,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 22}],\"candidatesTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 17}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"1-5CaaayJoagxfcPp7LHoQY\"}\r\n\r\n"
+  }
+}
