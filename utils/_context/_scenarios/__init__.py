@@ -38,12 +38,8 @@ class _Scenarios:
     mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
 
     default = DefaultScenario("DEFAULT")
-
     default._internal_server = InternalServerContainer()
-    # no clue which line is the correct one here
-    #stripe.weblog_container.depends_on.append(stripe._internal_server)
     default._required_containers.append(default._internal_server)
-    #stripe._supporting_containers.append(stripe._internal_server)
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
@@ -607,6 +603,7 @@ class _Scenarios:
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
+
     tracing_config_nondefault_2 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_2",
         weblog_env={
