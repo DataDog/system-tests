@@ -139,7 +139,9 @@ class FieldProcessor:
     @staticmethod
     @processor
     def ensure_list(n: str, e: dict[str, Any], _component: str) -> None:
-        if not isinstance(e[n], list):
+        if isinstance(e[n], tuple):
+            e[n] = list(e[n])
+        elif not isinstance(e[n], list):
             e[n] = [e[n]]
 
     @staticmethod
@@ -156,13 +158,16 @@ class FieldProcessor:
         all_weblogs: list[str] = []
         for weblog in e[n]:
             if weblog != "*":
-                all_weblogs.append(weblog)
+                if isinstance(weblog, str):
+                    all_weblogs.append(weblog)
+                else:
+                    all_weblogs.extend(weblog)
         for weblog, raw_declaration in e[n].items():
             condition = process_inline(raw_declaration, component)
             if weblog == "*":
                 condition["excluded_weblog"] = all_weblogs
             else:
-                condition["weblog"] = weblog if isinstance(weblog, list) else [weblog]
+                condition["weblog"] = list(weblog) if isinstance(weblog, (list, tuple)) else [weblog]
             new_entries.append(condition)
         return FieldProcessor.Return(new_entries, rule_entry_is_condition=False)
 
@@ -175,8 +180,14 @@ class FieldProcessor:
         ("excluded_weblog", ensure_list),
     ]
 
+def tuple_constructor(loader, node):
+    seq = loader.construct_sequence(node)
+    return tuple(seq)
 
 def _load_file(file: Path, component: str) -> ManifestData:
+    yaml.SafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_SEQUENCE_TAG,
+    tuple_constructor)
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
