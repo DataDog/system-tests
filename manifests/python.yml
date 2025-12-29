@@ -68,6 +68,7 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         fastapi: v2.15.0
+  tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection::test_secure: v3.0.0
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection: missing_feature
@@ -110,8 +111,9 @@ manifest:
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace: v3.9.0.dev
@@ -120,15 +122,17 @@ manifest:
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0-dev
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0-dev
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace: v3.9.0.dev
@@ -152,14 +156,11 @@ manifest:
         python3.12: v1.18.0
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: v3.9.0.dev
-  tests/appsec/iast/sink/test_ssrf.py::TestSSRF:
-    - weblog_declaration:
-        "*": v2.10.0
+  tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace: v3.9.0.dev
-  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak:
-    - weblog_declaration:
-        "*": v3.1.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: v3.1.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak::test_telemetry_metric_instrumented_sink: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation: missing_feature
@@ -180,6 +181,7 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
@@ -258,6 +260,8 @@ manifest:
     - weblog_declaration:
         "*": v2.9.0
         fastapi: v2.13.0
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_post_reported:
+    - declaration: irrelevant (Flask and Django need a header; otherwise, they return a 415 status code. TODO When FastAPI implements POST body source, verify if it does too.)
   tests/appsec/iast/source/test_path.py::TestPath:
     - weblog_declaration:
         "*": v2.9.0
@@ -281,6 +285,8 @@ manifest:
         flask-poc: v3.11.0.dev
         uds-flask: v3.11.0.dev
         uwsgi-poc: v3.11.0.dev
+  ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
+  : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
