@@ -1,6 +1,7 @@
 import hmac
 import json
 import time
+
 from utils import features, interfaces, scenarios, weblog
 
 WEBHOOK_SECRET = b'whsec_FAKE'
@@ -19,7 +20,7 @@ def make_webhook_request(data):
 
 @scenarios.default
 @features.appsec_automated_payment_events
-class Test_Payment_Events_Stripe:
+class Test_Automated_Payment_Events_Stripe:
     def setup_checkout_session(self):
         self.r = weblog.post("/stripe/create_checkout_session", json={
             "client_reference_id": "superdiaz",
@@ -58,16 +59,14 @@ class Test_Payment_Events_Stripe:
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.creation.id"] == "cs_FAKE"
-            assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 1050
+            assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 950
             assert span["meta"]["appsec.events.payments.creation.client_reference_id"] == "superdiaz"
             assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
             assert span["meta"]["appsec.events.payments.creation.customer_email"] == "gaben@valvesoftware.com"
             assert span["meta"]["appsec.events.payments.creation.discounts.coupon"] == "J7BN15vk"
             assert span["meta"]["appsec.events.payments.creation.discounts.promotion_code"] == "promo_1SEBV4A8AZcqnBxYVOzXjPVu"
-            #appsec.events.payments.creation.discounts.coupon
-            # appsec.events.payments.creation.discounts.promotion_code
             assert span["metrics"]["appsec.events.payments.creation.livemode"] == 1
-            assert span["metrics"]["appsec.events.payments.creation.total_details.amount_discount"] == 0
+            assert span["metrics"]["appsec.events.payments.creation.total_details.amount_discount"] == 100
             assert span["metrics"]["appsec.events.payments.creation.total_details.amount_shipping"] == 50
 
             return True
@@ -103,7 +102,7 @@ class Test_Payment_Events_Stripe:
             "data": {
                 "object": {
                     "id": "pi_FAKE",
-                    "amount": 1337,
+                    "amount": 420,
                     "currency": "eur",
                     "livemode": True,
                     "payment_method": "pm_FAKE",
@@ -116,7 +115,7 @@ class Test_Payment_Events_Stripe:
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.success.id"] == "pi_FAKE"
-            assert span["metrics"]["appsec.events.payments.success.amount"] == 1337
+            assert span["metrics"]["appsec.events.payments.success.amount"] == 420
             assert span["meta"]["appsec.events.payments.success.currency"] == "eur"
             assert span["metrics"]["appsec.events.payments.success.livemode"] == 1
             assert span["meta"]["appsec.events.payments.success.payment_method"] == "pm_FAKE"
@@ -133,8 +132,18 @@ class Test_Payment_Events_Stripe:
                     "id": "pi_FAKE",
                     "amount": 1337,
                     "currency": "eur",
+                    "last_payment_error": {
+                        "code": "card_declined",
+                        "decline_code": "stolen_card",
+                        "payment_method": {
+                            "id": "pm_FAKE",
+                            "billing_details": {
+                                "email": "gaben@valvesoftware.com",
+                            },
+                            "type": "card"
+                        },
+                    },
                     "livemode": True,
-                    "payment_method": "pm_FAKE",
                 },
             },
         })
@@ -144,6 +153,14 @@ class Test_Payment_Events_Stripe:
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.failure.id"] == "pi_FAKE"
+            #assert span["metrics"]["appsec.events.payments.failure.amount"] == 1337
+            assert span["meta"]["appsec.events.payments.failure.currency"] == "eur"
+            assert span["meta"]["appsec.events.payments.failure.last_payment_error.code"] == "card_declined"
+            assert span["meta"]["appsec.events.payments.failure.last_payment_error.decline_code"] == "stolen_card"
+            assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.id"] == "pm_FAKE"
+            assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email"] == "gaben@valvesoftware.com"
+            assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.type"] == "card"
+            assert span["metrics"]["appsec.events.payments.failure.livemode"] == 1
 
             return True
 
@@ -156,9 +173,10 @@ class Test_Payment_Events_Stripe:
                 "object": {
                     "id": "pi_FAKE",
                     "amount": 1337,
+                    "cancellation_reason": "requested_by_customer",
                     "currency": "eur",
                     "livemode": True,
-                    "payment_method": "pm_FAKE",
+                    "receipt_email": "gaben@valvesoftware.com",
                 },
             },
         })
@@ -168,6 +186,11 @@ class Test_Payment_Events_Stripe:
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.cancellation.id"] == "pi_FAKE"
+            assert span["metrics"]["appsec.events.payments.cancellation.amount"] == 1337
+            assert span["meta"]["appsec.events.payments.cancellation.cancellation_reason"] == "requested_by_customer"
+            assert span["meta"]["appsec.events.payments.cancellation.currency"] == "eur"
+            assert span["metrics"]["appsec.events.payments.cancellation.livemode"] == 1
+            assert span["meta"]["appsec.events.payments.cancellation.receipt_email"] == "gaben@valvesoftware.com"
 
             return True
 
