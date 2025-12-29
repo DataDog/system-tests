@@ -249,7 +249,7 @@ class ManifestEditor:
             if rule not in ret:
                 ret[rule] = []
             for condition_key, weblogs in weblog_conditions.items():
-                condition = non_var_conditions[condition_key]
+                condition = non_var_conditions[condition_key].copy()
                 if set(weblogs) != self.weblogs[condition["component"]]:
                     condition["weblog"] = list(weblogs)
                 ret[rule].append(condition)
