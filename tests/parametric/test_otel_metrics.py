@@ -1379,6 +1379,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
+        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1413,6 +1414,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
+        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1446,6 +1448,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
+        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1479,6 +1482,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],
         endpoint_env: str,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -1962,7 +1966,7 @@ class Test_Otel_Metrics_Telemetry:
             )
 
     @pytest.mark.parametrize(
-        ("library_env", "test_agent_otlp_http_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -1974,6 +1978,7 @@ class Test_Otel_Metrics_Telemetry:
                     "OTEL_METRIC_EXPORT_INTERVAL": "5000",
                     "OTEL_METRIC_EXPORT_TIMEOUT": "5000",
                 },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
             ),
         ],
@@ -1981,6 +1986,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -2015,7 +2021,7 @@ class Test_Otel_Metrics_Telemetry:
             )
 
     @pytest.mark.parametrize(
-        ("library_env", "test_agent_otlp_http_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -2025,6 +2031,7 @@ class Test_Otel_Metrics_Telemetry:
                     "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
                     "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
                 4325,
             ),
         ],
@@ -2032,6 +2039,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_metrics_configurations(
         self,
         library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
