@@ -252,6 +252,8 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_MULTICONFIG,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
     },
     "ruby": {Capabilities.APM_TRACING_ENABLED},
 }
@@ -268,13 +270,31 @@ class TestDynamicConfigTracingEnabled:
         reason="Added new FFE flag capabilities",
         force_skip=True,
     )
+    @missing_feature(context.library <= "golang@2.6.1", reason="Added new capabilities", force_skip=True)
     def test_default_capability_completeness(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
         if context.library is not None and context.library.name is not None:
             seen_capabilities = test_agent.wait_for_rc_capabilities()
-            expected_capabilities = DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.name]
+            expected_capabilities = set(DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.name])
+
+            # Dynamically add Remote Enablement capabilities for nodejs based on feature detection
+            # This is needed because:
+            # 1. System-tests must pass on master (without RE) before dd-trace-js PR lands
+            # 2. System-tests must pass on the dd-trace-js PR (with RE, version "6.0.0-pre")
+            # 3. The exact release version (5.82.0 vs 5.83.0 vs later) is unknown at merge time
+            # Solution: Detect RE support by checking if APM_TRACING_MULTICONFIG capability is present
+            #
+            # TODO: Once https://github.com/DataDog/dd-trace-js/pull/7137 lands and the minimum
+            # supported version includes Remote Enablement, move these capabilities to the static
+            # nodejs list above (DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG["nodejs"]) and remove this
+            # dynamic check.
+            if context.library.name == "nodejs" and Capabilities.APM_TRACING_MULTICONFIG in seen_capabilities:
+                expected_capabilities.add(Capabilities.APM_TRACING_MULTICONFIG)
+                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION)
+                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN)
+                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING)
 
             seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
             expected_but_not_seen_capabilities = expected_capabilities.difference(seen_capabilities)

@@ -155,26 +155,9 @@ class LibraryProcessor:
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file: str) -> bool:
-        if not self.user_choice:
-            return False
-
-        if self.branch_selector or len(self.impacted) == 0:
-            return True
-        # user specified a library in the PR title
-        # and there are some impacted libraries
-        if file.startswith("tests/") or self.impacted == {self.user_choice}:
-            # modification in tests files are complex, trust user
-            return True
-        # only acceptable use case : impacted library exactly matches user choice
-        raise ValueError(
-            f"""File {file} is modified, and it may impact {", ".join(self.impacted)}.
-                    Please remove the PR title prefix [{self.user_choice}]"""
-        )
-
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
-        if not self.is_manual(file):
+        if not (self.user_choice and self.branch_selector):
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
@@ -208,9 +191,6 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
-        if inputs.ref in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
-            self.scenario_groups |= {all_scenario_groups.all.name}
-            return
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
@@ -304,14 +284,13 @@ class Inputs:
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        if self.ref not in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
-            self.new_manifests: ManifestData = Manifest.parse(new_manifests)
-            self.old_manifests: ManifestData = Manifest.parse(old_manifests)
+        self.new_manifests: ManifestData = Manifest.parse(new_manifests)
+        self.old_manifests: ManifestData = Manifest.parse(old_manifests)
 
-            if not self.new_manifests:
-                raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
-            if not self.old_manifests:
-                raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
+        if not self.new_manifests:
+            raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
+        if not self.old_manifests:
+            raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
 
         self.load_raw_impacts()
         self.load_scenario_mappings()

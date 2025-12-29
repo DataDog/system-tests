@@ -1,8 +1,6 @@
 from utils._context.component_version import ComponentVersion
-from utils._decorators import CustomSpec as SemverRange
-from utils._decorators import parse_skip_declaration
-from utils._decorators import _TestDeclaration
-from .const import skip_declaration_regex, full_regex
+from .const import skip_declaration_regex, full_regex, TestDeclaration
+from .types import SemverRange
 import re
 
 
@@ -11,7 +9,7 @@ class Declaration:
 
     raw: str
     is_inline: bool
-    value: SemverRange | _TestDeclaration
+    value: SemverRange | TestDeclaration
     reason: str | None
     component: str
 
@@ -43,7 +41,7 @@ class Declaration:
         elements = re.fullmatch(skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
-            skip_declaration = parse_skip_declaration(self.raw)
+            skip_declaration = _parse_skip_declaration(self.raw)
             self.value = skip_declaration[0]
             if elements[1]:
                 self.reason = skip_declaration[1]
@@ -70,3 +68,18 @@ class Declaration:
         if self.reason:
             return f"{self.value} ({self.reason})"
         return f"{self.value}"
+
+
+def _parse_skip_declaration(skip_declaration: str) -> tuple[TestDeclaration, str | None]:
+    """Parse a skip declaration
+    returns the corresponding TestDeclaration, and if it exists, de declaration details
+    """
+
+    if not skip_declaration.startswith(tuple(TestDeclaration)):
+        raise ValueError(f"The declaration must be a skip declaration: {skip_declaration}")
+
+    match = re.match(r"^(\w+)( \((.*)\))?$", skip_declaration)
+    assert match is not None
+    declaration, _, declaration_details = match.groups()
+
+    return TestDeclaration(declaration), declaration_details

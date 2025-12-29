@@ -5,6 +5,7 @@ from .rule import get_rules, match_rule
 from .types import ManifestData, SkipDeclaration
 from .validate import validate_manifest_files as validate
 from .const import default_manifests_path
+from .format import yml_sort
 
 
 class Manifest:
@@ -59,3 +60,14 @@ class Manifest:
                 continue
             ret += declarations
         return ret
+
+    @staticmethod
+    def format(path: Path = default_manifests_path) -> None:
+        """Formats the manifest files:
+        - sorts the nodeids
+
+        Args:
+            path (str, optional): Path to the manifest directory. Defaults to 'manifests/'
+
+        """
+        yml_sort(path)
