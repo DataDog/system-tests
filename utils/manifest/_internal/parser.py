@@ -180,14 +180,14 @@ class FieldProcessor:
         ("excluded_weblog", ensure_list),
     ]
 
-def tuple_constructor(loader, node):
+
+def _tuple_constructor(loader, node):  # noqa: ANN001
     seq = loader.construct_sequence(node)
     return tuple(seq)
 
+
 def _load_file(file: Path, component: str) -> ManifestData:
-    yaml.SafeLoader.add_constructor(
-    yaml.resolver.BaseResolver.DEFAULT_SEQUENCE_TAG,
-    tuple_constructor)
+    yaml.SafeLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_SEQUENCE_TAG, _tuple_constructor)
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)

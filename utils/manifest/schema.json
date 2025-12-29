@@ -12,6 +12,18 @@
         "description": "YAML anchor definition (e.g., '&ref_name >=3.0.0 || ^2.13.0'). Reference it later using '*ref_name'"
       }
     },
+    "weblog_groups": {
+      "type": "array",
+      "description": "Optional YAML anchors (references) for reusable weblog groups. Use these to avoid repeating long or complex version ranges across multiple test declarations.",
+      "items": {
+        "type": "array",
+        "description": "YAML anchor definition (e.g., '&wl_name [django, flask]'). Reference it later using '*wl_name'",
+        "items": {
+          "type": "string",
+          "description": "weblog name"
+        }
+      }
+    },
     "manifest": {
       "type": "object",
       "description": "Main manifest section mapping test paths to activation conditions. Test paths follow the format: 'tests/path/to/file.py::Test_Class::test_method' (class and method are optional). Entries must be sorted alphabetically.",
