@@ -68,7 +68,7 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         fastapi: v2.15.0
-  tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection::test_secure:
+  tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection::test_secure: v3.0.0
     - weblog_declaration:
         "*": v3.0.0
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation: v3.1.0.dev
