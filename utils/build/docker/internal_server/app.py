@@ -64,17 +64,20 @@ async def checkout_sessions(request: fastapi.Request):
     try:
         body = await parse_form_data(request)
 
+        if body.get("mode") != "payment":
+            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only payment mode"}, status_code=400)
+
         if "line_items[1][quantity]" in body:
             return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only one product"}, status_code=400)
         
         if body.get("line_items[0][price_data][currency]") != "eur" or body.get("shipping_options[0][shipping_rate_data][fixed_amount][currency]") != "eur":
             return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only eur currency"}, status_code=400)
 
-        if body.get("mode") != "payment":
-            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only payment mode"}, status_code=400)
-
         if "shipping_options[1][shipping_rate_data]" in body:
             return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only one shipping option"}, status_code=400)
+
+        if "shiping_options[0][shipping_rate_data][type]" in body and body.get("shiping_options[0][shipping_rate_data][type]") != "fixed_amount":
+            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only fixed_amount shipping option"}, status_code=400)
 
         unit_amount = int(body.get("line_items[0][price_data][unit_amount]"))
         quantity = int(body.get("line_items[0][quantity]"))
