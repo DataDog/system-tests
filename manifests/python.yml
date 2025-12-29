@@ -68,6 +68,7 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         fastapi: v2.15.0
+  tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection::test_secure: v3.0.0
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection: missing_feature
@@ -110,8 +111,9 @@ manifest:
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace: v3.9.0.dev
@@ -120,15 +122,17 @@ manifest:
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0-dev
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0-dev
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace: v3.9.0.dev
@@ -152,14 +156,11 @@ manifest:
         python3.12: v1.18.0
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: v3.9.0.dev
-  tests/appsec/iast/sink/test_ssrf.py::TestSSRF:
-    - weblog_declaration:
-        "*": v2.10.0
+  tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace: v3.9.0.dev
-  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak:
-    - weblog_declaration:
-        "*": v3.1.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: v3.1.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak::test_telemetry_metric_instrumented_sink: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation: missing_feature
@@ -180,6 +181,7 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
@@ -258,6 +260,8 @@ manifest:
     - weblog_declaration:
         "*": v2.9.0
         fastapi: v2.13.0
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_post_reported:
+    - declaration: irrelevant (Flask and Django need a header; otherwise, they return a 415 status code. TODO When FastAPI implements POST body source, verify if it does too.)
   tests/appsec/iast/source/test_path.py::TestPath:
     - weblog_declaration:
         "*": v2.9.0
@@ -281,6 +285,7 @@ manifest:
         flask-poc: v3.11.0.dev
         uds-flask: v3.11.0.dev
         uwsgi-poc: v3.11.0.dev
+  tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature: irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
@@ -389,12 +394,12 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
-  : - component_version: ">=4.0.0"
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0:
+    - component_version: ">=4.0.0"
       declaration: bug (APPSEC-60241)
       weblog: uwsgi-poc
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
-  : - component_version: "<3.11.0"
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1:
+    - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
       weblog: [django-poc, django-py3.13, python3.12]
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
@@ -404,8 +409,8 @@ manifest:
         "*": v3.2.0.dev
         flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
         uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
-  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
-  : - component_version: ">=4.0.0"
+  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2:
+    - component_version: ">=4.0.0"
       declaration: bug (APPSEC-60241)
       weblog: uwsgi-poc
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
@@ -1017,14 +1022,131 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+        uds-flask: v3.18.1
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_name:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_user:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: uds-flask
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+        uds-flask: v3.18.1
+        uwsgi-poc: v3.18.1
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+        uds-flask: v3.18.1
+        uwsgi-poc: v3.18.1
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id:
+    - declaration: missing_feature
+      excluded_weblog: flask-poc
+      weblog: [uwsgi-poc, uds-flask]
   tests/integrations/test_dbm.py::Test_Dbm:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1163,6 +1285,8 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
+        uds-flask: v3.18.1
+        uwsgi-poc: v3.18.1
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
@@ -1261,18 +1385,27 @@ manifest:
         django-poc: v2.15.0
         flask-poc: v2.15.0
         python3.12: v2.15.0
+        uds-flask: v3.18.1
+        django-py3.13: v3.18.1
+        uwsgi-poc: v3.18.1
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload:
     - weblog_declaration:
         "*": missing_feature
         django-poc: v2.15.0
         flask-poc: v2.15.0
         python3.12: v2.15.0
+        uds-flask: v3.18.1
+        django-py3.13: v3.18.1
+        uwsgi-poc: v3.18.1
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject:
     - weblog_declaration:
         "*": missing_feature
         django-poc: v2.14.0
         flask-poc: v2.14.0
         python3.12: v2.14.0
+        uds-flask: v3.18.1
+        django-py3.13: v3.18.1
+        uwsgi-poc: v3.18.1
   tests/test_baggage.py::Test_Baggage_Headers_Basic:
     - weblog_declaration:
         "*": irrelevant
@@ -1343,6 +1476,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v1.5.0-rc2  # actual version unknown
+        uds-flask: v3.18.1
+        python3.12: v3.18.1
+        fastapi: v3.18.1
+        django-py3.13: v3.18.1
+        uwsgi-poc: v3.18.1
+        django-poc: v3.18.1
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -1376,8 +1515,11 @@ manifest:
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
-        django-py3.13: missing_feature (python 3.13 not supported yet)
+        django-py3.13: v3.18.1
         python3.12: v2.1.0
+  tests/test_profiling.py::Test_Profile::test_process_tags:
+    - weblog_declaration:
+        django-py3.13: missing_feature (python 3.13 not supported yet)
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
@@ -1405,6 +1547,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
         flask-poc: v3.0.0
+        uds-flask: v3.18.1
+        uwsgi-poc: v3.18.1
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
@@ -1417,10 +1561,23 @@ manifest:
         "*": v2.4.0
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
-  tests/test_telemetry.py::Test_MessageBatch: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: '>=3.18.1'
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature
+  tests/test_telemetry.py::Test_MessageBatch: '>=3.18.1'
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=3.18.1'
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_created: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: v3.4.0
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
