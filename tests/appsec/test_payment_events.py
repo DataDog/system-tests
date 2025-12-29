@@ -1,7 +1,7 @@
 import hmac
 import json
 import time
-from utils import interfaces, scenarios, weblog
+from utils import features, interfaces, scenarios, weblog
 
 WEBHOOK_SECRET = b'whsec_FAKE'
 
@@ -18,7 +18,7 @@ def make_webhook_request(data):
     }, data=jsonStr)
 
 @scenarios.default
-@features.payment_events_stripe
+@features.appsec_automated_payment_events
 class Test_Payment_Events_Stripe:
     def setup_checkout_session(self):
         self.r = weblog.post("/stripe/create_checkout_session", json={
@@ -143,7 +143,7 @@ class Test_Payment_Events_Stripe:
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
-            assert span["meta"]["appsec.events.payments.success.id"] == "pi_FAKE"
+            assert span["meta"]["appsec.events.payments.failure.id"] == "pi_FAKE"
 
             return True
 
@@ -167,7 +167,7 @@ class Test_Payment_Events_Stripe:
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
-            assert span["meta"]["appsec.events.payments.success.id"] == "pi_FAKE"
+            assert span["meta"]["appsec.events.payments.cancellation.id"] == "pi_FAKE"
 
             return True
 

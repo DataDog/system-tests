@@ -8,6 +8,7 @@ import fastapi.responses
 
 app = fastapi.FastAPI()
 
+
 async def parse_form_data(request: fastapi.Request):
     raw_body = await request.body()
     parsed_data = urllib.parse.parse_qs(raw_body.decode("utf-8"))
@@ -127,5 +128,3 @@ async def payment_intents(request: fastapi.Request):
 async def shutdown():
     os.kill(os.getpid(), signal.SIGTERM)
     return {"message": "shutting down"}
-
-
