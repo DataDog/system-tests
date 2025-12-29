@@ -67,7 +67,7 @@ async def checkout_sessions(request: fastapi.Request):
         if "line_items[1][quantity]" in body:
             return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only one product"}, status_code=400)
         
-        if body.get("line_items[0][price_data][currency]") != "eur":
+        if body.get("line_items[0][price_data][currency]") != "eur" or body.get("shipping_options[0][shipping_rate_data][fixed_amount][currency]") != "eur":
             return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only eur currency"}, status_code=400)
 
         if body.get("mode") != "payment":
@@ -90,20 +90,18 @@ async def checkout_sessions(request: fastapi.Request):
             "client_reference_id": body.get("client_reference_id"),
             "currency": "eur",
             "customer_email": body.get("customer_email"),
-            "discounts": [
-                {
-                    "coupon": body.get("discounts[0][coupon]"),
-                    "promotion_code": body.get("discounts[0][promotion_code]")
-                }
-            ],
+            "discounts": [{
+                "coupon": body.get("discounts[0][coupon]"),
+                "promotion_code": body.get("discounts[0][promotion_code]"),
+            }],
             "livemode": True,
             "total_details": {
                 "amount_discount": amount_discount,
-                "amount_shipping": amount_shipping
-            }
+                "amount_shipping": amount_shipping,
+            },
         }, status_code=200)
     except Exception as e:
-        return fastapi.responses.JSONResponse({"type": "api_error", "message": f"{e}"}, status_code=500)
+        return fastapi.responses.JSONResponse({"type": "api_error", "message": str(e)}, status_code=500)
 
 
 @app.post("/v1/payment_intents", response_class=fastapi.responses.JSONResponse)
@@ -121,7 +119,7 @@ async def payment_intents(request: fastapi.Request):
             "receipt_email": body.get("receipt_email"),
         }, status_code=200)
     except Exception as e:
-        return fastapi.responses.JSONResponse({"type": "api_error", "message": f"{e}"}, status_code=500)
+        return fastapi.responses.JSONResponse({"type": "api_error", "message": str(e)}, status_code=500)
 
 
 @app.get("/shutdown")
