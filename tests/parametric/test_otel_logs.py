@@ -257,6 +257,7 @@ class Test_FR05_Custom_Endpoints:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
+        otlp_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -636,7 +637,7 @@ class Test_FR11_Telemetry:
     """Test OTLP Logs generated via OpenTelemetry API generate telemetry configurations and metrics."""
 
     @pytest.mark.parametrize(
-        ("library_env", "test_agent_otlp_http_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -647,6 +648,7 @@ class Test_FR11_Telemetry:
                     "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
                     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
             ),
         ],
@@ -654,6 +656,7 @@ class Test_FR11_Telemetry:
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
+        otlp_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -685,7 +688,7 @@ class Test_FR11_Telemetry:
             )
 
     @pytest.mark.parametrize(
-        ("library_env", "test_agent_otlp_http_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -696,6 +699,7 @@ class Test_FR11_Telemetry:
                     "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "api-key=key,other-config-value=value",
                     "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
                 },
+                "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
                 4325,
             ),
         ],
@@ -703,6 +707,7 @@ class Test_FR11_Telemetry:
     def test_telemetry_exporter_logs_configurations(
         self,
         library_env: dict[str, str],
+        otlp_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
