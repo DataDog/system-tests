@@ -79,10 +79,14 @@ async def checkout_sessions(request: fastapi.Request):
         unit_amount = int(body.get("line_items[0][price_data][unit_amount]"))
         quantity = int(body.get("line_items[0][quantity]"))
 
-        amount_discount = 0
+        subtotal = unit_amount * quantity
+        
+        if body.get("discounts[0][promotion_code]") or body.get("discounts[0][coupon]"):
+            amount_discount = subtotal * 0.1 # hardcoded 10% discount
+
         amount_shipping = int(body.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]"))
 
-        amount_total = unit_amount * quantity - amount_discount + amount_shipping
+        amount_total = subtotal - amount_discount + amount_shipping
 
         return fastapi.responses.JSONResponse({
             "id": "cs_FAKE",
