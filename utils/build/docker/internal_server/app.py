@@ -57,7 +57,9 @@ async def redirect(request: fastapi.Request):
 
     return fastapi.responses.RedirectResponse(url=location, status_code=302)
 
-
+# The next two routes are used to mock the Stripe API for Automated Payment Events tests.
+# It hogs the "/v1/" path, and thus will conflict with any future mocking of other APIs.
+# A universal mocking system should be created instead of this.
 @app.post("/v1/checkout/sessions", response_class=fastapi.responses.JSONResponse)
 async def checkout_sessions(request: fastapi.Request):
     """Mock for Stripe Checkout Session creation"""
