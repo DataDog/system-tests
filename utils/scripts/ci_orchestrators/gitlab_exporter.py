@@ -66,20 +66,27 @@ def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_version
     return k8s_lib_init_img, k8s_injector_img
 
 
-def should_run_only_defaults_vm() -> bool:
-    """Default rules to run only default VMs or all VMs"""
+def should_run_fast_mode() -> bool:
+    """Default rules to run only a part of the full pipeline.
+
+    For example we only run the default vms if it's a commit in a PR, but we run all the vms
+    if it's a scheduled pipeline or a tag generation.
+    Other example, K8s tests are only run the cluster agent dev version for scheduled pipelines
+    or a tag generation.
+    """
+
     # Get gitlab variables from the environment
     ci_commit_tag = os.getenv("CI_COMMIT_TAG")
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
 
-    # If it is a scheduled pipeline or tag generation, we should run all the VMs always
+    # If it is a scheduled pipeline or tag generation, we should run the full pipeline
     # it doesn't matter the project pipeline
     if ci_pipeline_source == "schedule" or ci_commit_tag:
         return False
 
-    # if we run on system-tests repository and it's the main branch, we should run all the VMs
+    # if we run on system-tests repository and it's the main branch, we should run the full pipeline
     return not (ci_project_name == "system-tests" and ci_commit_branch == "main")
 
 
@@ -151,6 +158,9 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
 
 def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
+    ci_project_name = os.getenv("CI_PROJECT_NAME")
+    ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
+    is_system_tests_nightly = ci_project_name == "system-tests" and ci_pipeline_source == "schedule"
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
     # Create the jobs by scenario.
     for scenario, weblogs in k8s_matrix.items():
@@ -167,14 +177,20 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         for weblog_name, cluster_agent_versions in weblogs.items():
             k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
             if cluster_agent_versions:
+                filtered_versions = cluster_agent_versions
+                if not is_system_tests_nightly:
+                    # we don't include in the matrix the cluster agent dev version
+                    # remove the images that are in the the ssi-dev registry
+                    filtered_versions = [version for version in cluster_agent_versions if "ssi-dev" not in version]
+
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {
                         "K8S_WEBLOG": weblog_name,
                         "K8S_WEBLOG_IMG": k8s_weblog_img,
-                        "K8S_CLUSTER_IMG": cluster_agent_versions,
+                        "K8S_CLUSTER_IMG": filtered_versions,
                     }
                 )
-                cluster_agent_versions_scenario = cluster_agent_versions
+                cluster_agent_versions_scenario = filtered_versions
             else:
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {"K8S_WEBLOG": weblog_name, "K8S_WEBLOG_IMG": k8s_weblog_img, "K8S_CLUSTER_IMG": "None"}
@@ -267,7 +283,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         raw_data_virtual_machines = json.load(file)["virtual_machines"]
 
-    only_defaults = should_run_only_defaults_vm()
+    only_defaults = should_run_fast_mode()
 
     # Special filters from env variables
     dd_install_script_version = os.getenv("DD_INSTALL_SCRIPT_VERSION")
