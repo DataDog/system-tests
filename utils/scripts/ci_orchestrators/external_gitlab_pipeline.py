@@ -16,7 +16,7 @@ ALLOWED_VARIABLES = [
 LANG_STAGES = ["java", "python", "nodejs", "dotnet", "ruby", "php"]
 
 
-def main(language=None) -> None:
+def main(language: str | None = None) -> None:
     """Main function to generate the gitlab system-tests pipeline
     Args:
         language (str): The language to filter the pipeline for.
@@ -40,12 +40,12 @@ def main(language=None) -> None:
     print(yaml.dump(data, default_flow_style=False, sort_keys=False))
 
 
-def is_allowed_stage(stage, language) -> bool:
+def is_allowed_stage(stage: str | None, language: str) -> bool:
     """Check if a stage is allowed based on the language."""
     return stage in {language, "configure", "pipeline-status"}
 
 
-def filter_yaml(yaml_data, language) -> dict:
+def filter_yaml(yaml_data: dict, language: str) -> dict:
     """Filter the pipeline to run only the jobs for the specified language"""
 
     # Find all jobs where stage == language
@@ -68,7 +68,7 @@ def filter_yaml(yaml_data, language) -> dict:
     return filtered_data
 
 
-def handle_parallelism(yaml_data) -> None:
+def handle_parallelism(yaml_data: dict) -> None:
     """Update jobs that have 'needs:' containing 'compute_pipeline' and another value, keeping only ['compute_pipeline']
     We will launch all the languges in parallel when we run system-tests in external repositories.
     (For the system-tests repository we launch the tests sequentially for each language.)
