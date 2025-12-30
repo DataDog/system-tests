@@ -99,6 +99,7 @@ async def checkout_sessions(request: fastapi.Request):
             "client_reference_id": body.get("client_reference_id"),
             "currency": "eur",
             "customer_email": body.get("customer_email"),
+            "mode": "payment",
             "discounts": [{
                 "coupon": body.get("discounts[0][coupon]"),
                 "promotion_code": body.get("discounts[0][promotion_code]"),
