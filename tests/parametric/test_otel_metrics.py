@@ -234,9 +234,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
             },
         ],
     )
-    def test_otlp_metrics_enabled(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otlp_metrics_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that OTLP metrics are emitted."""
 
         name = "enabled-counter"
@@ -268,9 +266,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
             },
         ],
     )
-    def test_otlp_metrics_disabled(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otlp_metrics_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that OTLP metrics are not emitted."""
         name = "disabled-counter"
 
@@ -301,9 +297,7 @@ class Test_Otel_Metrics_Api_MeterProvider:
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @missing_feature(context.library == "ruby", reason="Measurements are not aggregated by Exporter")
-    def test_otel_get_meter_by_distinct(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otel_get_meter_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         name = "counter-test_get_meter_same_parameters"
         first_meter_name = DEFAULT_METER_NAME
         identical_meter_name = DEFAULT_METER_NAME
@@ -377,9 +371,7 @@ class Test_Otel_Metrics_Api_Meter:
         reason="Ruby exporter does not support aggregating multiple measurements",
         force_skip=True,
     )
-    def test_otel_create_instruments_by_distinct(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otel_create_instruments_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         counter_name = "test_otel_create_counter"
         updowncounter_name = "test_otel_create_updowncounter"
         gauge_name = "test_otel_create_gauge"
@@ -1396,8 +1388,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1432,8 +1423,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        test_agent_otlp_grpc_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1467,8 +1457,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1502,9 +1491,8 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         endpoint_env: str,
-        test_agent_otlp_grpc_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1546,9 +1534,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
             },
         ],
     )
-    def test_custom_http_headers_included_in_otlp_export(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """OTLP metrics are emitted when enabled."""
 
         name = "test_custom_http_headers_included_in_otlp_export-counter"
@@ -1578,7 +1564,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         ],
     )
     def test_custom_metrics_http_headers_included_in_otlp_export(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """OTLP metrics are emitted when enabled."""
 
@@ -1704,10 +1690,7 @@ class Test_Otel_Metrics_Host_Name:
             },
         ],
     )
-    @missing_feature(context.library == "ruby", reason="Telemetry is not reported")
-    def test_hostname_from_dd_hostname(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_hostname_from_dd_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is set from DD_HOSTNAME."""
         name = "test_hostname_from_dd_hostname"
 
@@ -1735,7 +1718,7 @@ class Test_Otel_Metrics_Host_Name:
         ids=["host.name"],
     )
     def test_hostname_from_otel_resources(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str], host_attribute: str
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, host_attribute: str
     ):
         """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
         name = "test_hostname_from_otel_resources"
@@ -1765,7 +1748,7 @@ class Test_Otel_Metrics_Host_Name:
         ],
         ids=["disabled", "default"],
     )
-    def test_hostname_omitted(self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]):
+    def test_hostname_omitted(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is omitted when not configured."""
         name = "test_hostname_omitted"
 
@@ -1954,9 +1937,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_default_configurations(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_telemetry_default_configurations(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test default configurations values for environment variables associated with the OTel Metrics features."""
         name = "test_telemetry_exporter_configurations"
 
@@ -2005,9 +1986,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
-        endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -2060,9 +2039,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_metrics_configurations(
         self,
         library_env: dict[str, str],
-        endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -2110,9 +2087,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_metrics_http_protobuf(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_metrics_http_protobuf(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 
@@ -2158,9 +2133,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_metrics_grpc(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_metrics_grpc(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 

@@ -1,9 +1,8 @@
 from pathlib import Path
 from utils import scenarios
 from utils._context.component_version import Version
-from utils._decorators import CustomSpec
-from utils._decorators import _TestDeclaration as TestDeclaration
-from utils.manifest import Manifest, SkipDeclaration
+from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
+from utils.manifest._internal.types import SemverRange as CustomSpec
 
 
 @scenarios.test_the_test
@@ -47,19 +46,7 @@ class TestManifest:
                     "component": "python",
                 },
                 {
-                    "weblog": ["django-poc"],
-                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
-                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
-                    "component": "python",
-                },
-                {
-                    "weblog": ["django-py3.13"],
-                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
-                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
-                    "component": "python",
-                },
-                {
-                    "weblog": ["python3.12"],
+                    "weblog": ["django-poc", "django-py3.13", "python3.12"],
                     "excluded_component_version": CustomSpec(">=3.12.0+dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
@@ -91,9 +78,21 @@ class TestManifest:
             "tests/appsec/iast/sink": [{"declaration": SkipDeclaration("missing_feature"), "component": "python"}],
             "tests/appsec/iast": [
                 {
-                    "excluded_component_version": CustomSpec(">=2.1.0"),
-                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.1.0"),
                     "component": "python",
+                    "component_version": CustomSpec("<3.11.0"),
+                    "declaration": SkipDeclaration(
+                        "missing_feature",
+                        "APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP",
+                    ),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12"],
+                }
+            ],
+            "tests/appsec/iast/test": [
+                {
+                    "component": "python",
+                    "component_version": CustomSpec("<3.11.0"),
+                    "declaration": SkipDeclaration("irrelevant"),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12", "fastapi"],
                 }
             ],
         }

@@ -7,3 +7,5 @@ gem 'opentelemetry-sdk'
 gem 'opentelemetry-exporter-otlp'
 gem 'opentelemetry-metrics-sdk', '>= 0.8'
 gem 'opentelemetry-exporter-otlp-metrics', '>= 0.6'
+# Used for OpenFeature testing
+gem 'openfeature-sdk'
