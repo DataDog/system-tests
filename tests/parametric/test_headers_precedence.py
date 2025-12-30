@@ -507,10 +507,8 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
     @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
     @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
-    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
+    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_library: APMLibrary) -> None:
+        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_library)
 
     @enable_datadog_tracecontext()
     def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_library: APMLibrary) -> None:
