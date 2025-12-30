@@ -695,6 +695,7 @@ class Test_Span_Sampling:
             }
         ],
     )
+    @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -768,6 +769,7 @@ class Test_Span_Sampling:
             }
         ],
     )
+    @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -835,6 +837,7 @@ class Test_Span_Sampling:
             }
         ],
     )
+    @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_entire_trace_dropped_when_dropping_policy_is_active018(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):

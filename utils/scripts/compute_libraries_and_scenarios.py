@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import sys
 from collections import OrderedDict, defaultdict
@@ -12,11 +13,12 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
-from manifests.parser.core import load as load_manifests
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios
 from utils._logger import logger
+from utils.manifest import Manifest
 
 if TYPE_CHECKING:
+    from utils.manifest import ManifestData
     from collections.abc import Iterable
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
@@ -36,7 +38,7 @@ LIBRARIES = {
     "python",
     "ruby",
     "python_lambda",
-    "rust",
+    # "rust",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
@@ -153,26 +155,9 @@ class LibraryProcessor:
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file: str) -> bool:
-        if not self.user_choice:
-            return False
-
-        if self.branch_selector or len(self.impacted) == 0:
-            return True
-        # user specified a library in the PR title
-        # and there are some impacted libraries
-        if file.startswith("tests/") or self.impacted == {self.user_choice}:
-            # modification in tests files are complex, trust user
-            return True
-        # only acceptable use case : impacted library exactly matches user choice
-        raise ValueError(
-            f"""File {file} is modified, and it may impact {", ".join(self.impacted)}.
-                    Please remove the PR title prefix [{self.user_choice}]"""
-        )
-
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
-        if not self.is_manual(file):
+        if not (self.user_choice and self.branch_selector):
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
@@ -291,16 +276,16 @@ class Inputs:
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
-        new_manifests: str = "manifests/",
-        old_manifests: str = "original/manifests/",
+        new_manifests: Path = Path("manifests/"),
+        old_manifests: Path = Path("original/manifests/"),
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        self.new_manifests = load_manifests(new_manifests)
-        self.old_manifests = load_manifests(old_manifests)
+        self.new_manifests: ManifestData = Manifest.parse(new_manifests)
+        self.old_manifests: ManifestData = Manifest.parse(old_manifests)
 
         if not self.new_manifests:
             raise FileNotFoundError(f"Manifest files not found: {new_manifests}")

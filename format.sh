@@ -133,9 +133,16 @@ if ! ./venv/bin/yamllint -s manifests/; then
 fi
 
 echo "Running parser checks..."
-if ! python ./manifests/parser/core.py; then
-  echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
-  exit 1
+if [ "$COMMAND" == "fix" ]; then
+    if ! python utils/manifest/format.py; then
+      echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
+      exit 1
+    fi
+else
+    if ! python utils/manifest/validate.py; then
+      echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
+      exit 1
+    fi
 fi
 
 echo "Running shellcheck checks..."

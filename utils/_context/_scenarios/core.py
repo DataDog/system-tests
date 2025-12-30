@@ -39,6 +39,7 @@ class _ScenarioGroups:
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
+    integration_frameworks = ScenarioGroup()
     ipv6 = ScenarioGroup()
     lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
@@ -59,10 +60,9 @@ class _ScenarioGroups:
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
-    parametric = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
+    ffe = ScenarioGroup()
     default = ScenarioGroup()
-    feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()

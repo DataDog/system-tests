@@ -41,6 +41,30 @@ The following text may be written to the body of the response:
 Hello headers!\n
 ```
 
+### GET /html
+
+This endpoint returns an HTML page instead of a JSON response. It is used to test features that require HTML content, such as RUM (Real User Monitoring) auto-injection.
+
+**Important:** This is a server-rendered HTML endpoint, not a REST/JSON endpoint. The tracer may inject additional scripts (like the RUM SDK) into the HTML response when RUM injection is enabled.
+
+The response content type must be `text/html`.
+
+The HTML content **must** be :
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello</title>
+</head>
+<body>
+    <h1>Hello</h1>
+</body>
+</html>
+```
+
+**Note:** When RUM injection is enabled via environment variables (`DD_RUM_ENABLED=true`), the tracer will automatically inject the RUM SDK script into the HTML response.
+
 ### GET /identify
 
 This endpoint must set the following tags on the local root span:

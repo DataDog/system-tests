@@ -74,6 +74,7 @@ class TestAgentFactory:
         worker_id: str,
         container_name: str,
         docker_network: str,
+        agent_env: dict[str, str],
         container_otlp_http_port: int,
         container_otlp_grpc_port: int,
     ) -> Generator["TestAgentAPI", None, None]:
@@ -87,6 +88,8 @@ class TestAgentFactory:
         }
         if os.getenv("DEV_MODE") is not None:
             env["SNAPSHOT_CI"] = "0"
+
+        env |= agent_env
 
         host_port = get_host_port(worker_id, 4600)
         container_port = 8126
@@ -125,6 +128,7 @@ class TestAgentFactory:
                 network=docker_network,
             )
             time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
+            expected_version = agent_env.get("TEST_AGENT_VERSION", "test")
             for _ in range(100):
                 try:
                     resp = client.info()
@@ -132,7 +136,7 @@ class TestAgentFactory:
                     logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
                     time.sleep(0.1)
                 else:
-                    if resp["version"] != "test":
+                    if resp["version"] != expected_version:
                         message = f"""Agent version {resp["version"]} is running instead of the test agent.
                         Stop the agent on port {container_port} and try again."""
                         pytest.fail(message, pytrace=False)
@@ -482,13 +486,10 @@ class TestAgentAPI:
             else:
                 num_received = len(llmobs_requests)
                 if num_received == num:
+                    llmobs_events = [span for request in llmobs_requests for span in request]
                     if sort_by_start:
-                        for trace in llmobs_requests:
-                            # The testagent may receive spans and trace chunks in any order,
-                            # so we sort the spans by start time if needed
-                            trace.sort(key=lambda x: x["start_ns"])
-                        return sorted(llmobs_requests, key=lambda t: t[0]["start_ns"])
-                    return llmobs_requests
+                        return sorted([event["spans"][0] for event in llmobs_events], key=lambda t: t["start_ns"])
+                    return llmobs_events
             time.sleep(0.1)
         raise ValueError(
             f"Number ({num}) of traces not available from test agent, got {num_received}:\n{llmobs_requests}"

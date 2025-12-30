@@ -80,6 +80,7 @@ class OpenTelemetryScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
         self._check_env_vars()
+
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
@@ -126,6 +127,10 @@ class OpenTelemetryScenario(DockerScenario):
         observer.start()
 
     def _wait_for_app_readiness(self):
+        supported_libraries = ("java_otel", "nodejs_otel", "python_otel")
+        if self.library.name not in supported_libraries:
+            pytest.exit(f"{self.name} scenario support only thoses libraries: {supported_libraries}", 1)
+
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 

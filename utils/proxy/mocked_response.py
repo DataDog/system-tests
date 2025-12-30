@@ -9,7 +9,15 @@ from mitmproxy.http import HTTPFlow
 
 from .ports import ProxyPorts
 
-MOCKED_RESPONSE_PATH = "/mocked_response"
+MOCKED_RESPONSES_PATH = "/mocked_responses"
+
+
+def _all_subclasses(cls: type["MockedResponse"]) -> list[type["MockedResponse"]]:
+    result = []
+    for subclass in cls.__subclasses__():
+        result.append(subclass)
+        result.extend(_all_subclasses(subclass))
+    return result
 
 
 class MockedResponse:
@@ -39,17 +47,14 @@ class MockedResponse:
         for key, value in self.mocked_headers.items():
             flow.response.headers[key] = value
 
-    @staticmethod
-    def build_from_json(source: dict) -> "MockedResponse":
+    @classmethod
+    def build_from_json(cls, source: dict) -> "MockedResponse":
         """Factory to create the right MockedResponse subclass from json data"""
         mocked_response_type = source.pop("type")
 
-        if mocked_response_type == StaticJsonMockedResponse.__name__:
-            return StaticJsonMockedResponse.from_json(source)
-        if mocked_response_type == MockedResponse.__name__:
-            return MockedResponse.from_json(source)
-        if mocked_response_type == SequentialRemoteConfigJsonMockedResponse.__name__:
-            return SequentialRemoteConfigJsonMockedResponse.from_json(source)
+        for klass in _all_subclasses(cls):
+            if klass.__name__ == mocked_response_type:
+                return klass.from_json(source)
 
         raise ValueError(f"Unknown MockedResponse type: {mocked_response_type}")
 
@@ -75,7 +80,7 @@ class MockedResponse:
             domain = "localhost"
 
         response = requests.put(
-            f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_RESPONSE_PATH}", json=self.to_json(), timeout=30
+            f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_RESPONSES_PATH}", json=[self.to_json()], timeout=30
         )
         response.raise_for_status()
 
@@ -83,10 +88,14 @@ class MockedResponse:
 class StaticJsonMockedResponse(MockedResponse):
     """Always overwrites the same static JSON content on request made on the given path"""
 
-    def __init__(self, path: str, mocked_json: dict | list):
+    def __init__(self, path: str, mocked_json: dict | list, status_code: int = 200):
         super().__init__(path=path, mocked_headers={"Content-Type": "application/json"})
         self.mocked_json = mocked_json
         """ Content of the static JSON response """
+        self.status_code = status_code
+
+    def _apply_status_code(self, flow: HTTPFlow) -> None:
+        flow.response.status_code = self.status_code
 
     def execute(self, flow: HTTPFlow) -> None:
         super().execute(flow)
@@ -97,6 +106,7 @@ class StaticJsonMockedResponse(MockedResponse):
             "type": self.__class__.__name__,
             "path": self.path,
             "mocked_json": self.mocked_json,
+            "status_code": self.status_code,
         }
 
 
@@ -133,8 +143,15 @@ class SequentialRemoteConfigJsonMockedResponse(MockedResponse):
 
 
 class _InternalMockedResponse(MockedResponse):
+    """Mocked responses that will be applied on the entire test session"""
+
     def send(self) -> None:
         raise ValueError("This mocked response cannot be sent directly")
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+        }
 
 
 class AddRemoteConfigEndpoint(_InternalMockedResponse):
@@ -180,3 +197,9 @@ class SetSpanEventFlags(_InternalMockedResponse):
             c = json.loads(flow.response.content)
             c["span_events"] = self.span_events
             flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "span_events": self.span_events,
+        }

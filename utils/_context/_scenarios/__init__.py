@@ -178,6 +178,7 @@ class _Scenarios:
             "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -496,15 +497,15 @@ class _Scenarios:
         ],
     )
 
-    feature_flag_exposure = EndToEndScenario(
-        "FEATURE_FLAG_EXPOSURE",
+    feature_flagging_and_experimentation = EndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
         },
         doc="",
-        scenario_groups=[scenario_groups.feature_flag_exposure],
+        scenario_groups=[scenario_groups.ffe],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -628,6 +629,7 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
@@ -1028,18 +1030,15 @@ class _Scenarios:
         },
     )
 
-    appsec_rasp_non_blocking = EndToEndScenario(
+    appsec_rasp_non_blocking = AppsecRaspScenario(
         "APPSEC_RASP_NON_BLOCKING",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
         weblog_volumes={
             "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
                 "bind": "/appsec_rasp_non_blocking_ruleset.json",
                 "mode": "ro",
             }
         },
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
     )
 
     appsec_ato_sdk = EndToEndScenario(
@@ -1147,6 +1146,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
+    appsec_lambda_inferred_spans = LambdaScenario(
+        "APPSEC_LAMBDA_INFERRED_SPANS",
+        doc="Lambda scenario with managed services tracing enabled",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        trace_managed_services=True,
+    )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)

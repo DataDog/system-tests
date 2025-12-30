@@ -12,7 +12,11 @@ COPY utils/build/docker/nodejs/openai_app /usr/app
 WORKDIR /usr/app
 
 RUN npm install || sleep 60 && npm install
-RUN npm install openai@$FRAMEWORK_VERSION
+RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
+        npm install openai; \
+    else \
+        npm install openai@$FRAMEWORK_VERSION; \
+    fi
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -20,5 +24,4 @@ RUN /binaries/install_ddtrace.sh
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node app.js' >> app.sh
-ENV NODE_OPTIONS="--import dd-trace/initialize.mjs"
 CMD ./app.sh

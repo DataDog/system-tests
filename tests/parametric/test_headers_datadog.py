@@ -90,9 +90,7 @@ class Test_Headers_Datadog:
         assert headers["x-datadog-origin"] == "synthetics"
         assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
-    def test_distributed_headers_extractandinject_datadog_invalid_D005(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_distributed_headers_extractandinject_datadog_invalid_D005(self, test_library: APMLibrary):
         """Ensure that invalid Datadog distributed tracing headers are not extracted
         and the new span context is injected properly.
         """

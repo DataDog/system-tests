@@ -16,14 +16,7 @@ from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize
 from .ports import ProxyPorts
-from .mocked_response import (
-    MOCKED_RESPONSE_PATH,
-    MockedResponse,
-    AddRemoteConfigEndpoint,
-    RemoveMetaStructsSupport,
-    SetSpanEventFlags,
-    StaticJsonMockedResponse,
-)
+from .mocked_response import MOCKED_RESPONSES_PATH, MockedResponse
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -53,31 +46,21 @@ class _RequestLogger:
 
         self.host_log_folder = "/app/logs"
 
-        self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
-        self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
-        self.span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS") != "False"
 
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
-        self.mocked_response: MockedResponse | None = None
+        self.mocked_responses: list[MockedResponse] = []
+        """Mocked responses controlled by setup methods"""
+
+        with open("/app/logs/internal_mocked_responses.json", encoding="utf-8", mode="r") as f:
+            data = json.load(f)
+
         self.internal_mocked_responses: list[MockedResponse] = [
-            SetSpanEventFlags(span_events=self.span_events),
+            MockedResponse.build_from_json(source) for source in data
         ]
-
-        if self.rc_api_enabled:
-            # add the remote config endpoint on available agent endpoints
-            self.internal_mocked_responses.append(AddRemoteConfigEndpoint())
-            # mimic the default response from the agent
-            self.internal_mocked_responses.append(StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}))
-
-        if self.span_meta_structs_disabled:
-            self.internal_mocked_responses.append(RemoveMetaStructsSupport())
-
-        logger.info(f"rc_api_enabled: {self.rc_api_enabled}")
-        logger.info(f"mocked_backend: {self.mocked_backend}")
-        logger.info(f"span_meta_structs_disabled: {self.span_meta_structs_disabled}")
+        """Mocked responses valid for the entire session, controlled by scenarios"""
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
@@ -91,15 +74,15 @@ class _RequestLogger:
         logger.info(f"{flow.request.method} {flow.request.pretty_url} using proxy port {port}")
 
         if port == ProxyPorts.proxy_commands:
-            if flow.request.path == MOCKED_RESPONSE_PATH and flow.request.method == "PUT":
-                source = json.loads(flow.request.content)
+            if flow.request.path == MOCKED_RESPONSES_PATH and flow.request.method == "PUT":
+                source: list[dict] = json.loads(flow.request.content)
                 try:
-                    self.mocked_response = MockedResponse.build_from_json(source) if source else None
+                    self.mocked_responses = [MockedResponse.build_from_json(item) for item in source]
                 except Exception as e:
                     logger.exception(f"Failed to build mocked response from {source}")
                     flow.response = self.get_error_response(f"Invalid mocked response definition: {e}".encode())
                 else:
-                    logger.info(f"Store mocked response :{self.mocked_response}")
+                    logger.info(f"Store mocked response :{self.mocked_responses}")
                     flow.response = http.Response.make(200, b"Ok")
             else:
                 flow.response = http.Response.make(404, b"Not found")
@@ -153,7 +136,10 @@ class _RequestLogger:
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
         elif port == ProxyPorts.agent and self.mocked_backend:
-            flow.response = http.Response.make(202, b"Ok")
+            if flow.request.path == "/support/flare":
+                flow.response = http.Response.make(200, b"Ok")
+            else:
+                flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
@@ -166,102 +152,94 @@ class _RequestLogger:
         if port == ProxyPorts.proxy_commands:
             return
 
-        try:
-            logger.info(f"    => {flow.request.pretty_url} Response {flow.response.status_code}")
+        logger.info(f"    => {flow.request.pretty_url} Response {flow.response.status_code}")
 
-            self._modify_response(flow)
+        self._modify_response(flow)
 
-            # get the interface name
-            if port == ProxyPorts.otel_collector:
-                interface = "otel_collector"
-            elif port == ProxyPorts.open_telemetry_weblog:
-                interface = "open_telemetry"
-            elif port == ProxyPorts.weblog:
-                interface = "library"
-            elif port == ProxyPorts.python_buddy:
-                interface = "python_buddy"
-            elif port == ProxyPorts.nodejs_buddy:
-                interface = "nodejs_buddy"
-            elif port == ProxyPorts.java_buddy:
-                interface = "java_buddy"
-            elif port == ProxyPorts.ruby_buddy:
-                interface = "ruby_buddy"
-            elif port == ProxyPorts.golang_buddy:
-                interface = "golang_buddy"
-            elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
-                interface = "agent"
-            else:
-                raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
+        # get the interface name
+        if port == ProxyPorts.otel_collector:
+            interface = "otel_collector"
+        elif port == ProxyPorts.open_telemetry_weblog:
+            interface = "open_telemetry"
+        elif port == ProxyPorts.weblog:
+            interface = "library"
+        elif port == ProxyPorts.python_buddy:
+            interface = "python_buddy"
+        elif port == ProxyPorts.nodejs_buddy:
+            interface = "nodejs_buddy"
+        elif port == ProxyPorts.java_buddy:
+            interface = "java_buddy"
+        elif port == ProxyPorts.ruby_buddy:
+            interface = "ruby_buddy"
+        elif port == ProxyPorts.golang_buddy:
+            interface = "golang_buddy"
+        elif port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
+            interface = "agent"
+        else:
+            raise ValueError(f"Unknown port provenance for {flow.request}: {port}")
 
-            # extract url info
-            if "?" in flow.request.path:
-                path, query = flow.request.path.split("?", 1)
-            else:
-                path, query = flow.request.path, ""
+        # extract url info
+        if "?" in flow.request.path:
+            path, query = flow.request.path.split("?", 1)
+        else:
+            path, query = flow.request.path, ""
 
-            # get destination
-            message_count = messages_counts[interface]
-            messages_counts[interface] += 1
-            log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
-            export_content_files_to = f"{log_foldename}/files"
-            log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
+        # get destination
+        message_count = messages_counts[interface]
+        messages_counts[interface] += 1
+        log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
+        export_content_files_to = f"{log_foldename}/files"
+        log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
-            data = {
-                "log_filename": log_filename,
-                "path": path,
-                "query": query,
-                "host": flow.request.host,
-                "port": flow.request.port,
-                "request": {
-                    "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
-                    "headers": list(flow.request.headers.items()),
-                    "length": len(flow.request.content) if flow.request.content else 0,
-                },
-                "response": {
-                    "status_code": flow.response.status_code,
-                    "headers": list(flow.response.headers.items()),
-                    "length": len(flow.response.content) if flow.response.content else 0,
-                },
-            }
+        data = {
+            "log_filename": log_filename,
+            "path": path,
+            "query": query,
+            "host": flow.request.host,
+            "port": flow.request.port,
+            "request": {
+                "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
+                "headers": list(flow.request.headers.items()),
+                "length": len(flow.request.content) if flow.request.content else 0,
+            },
+            "response": {
+                "status_code": flow.response.status_code,
+                "headers": list(flow.response.headers.items()),
+                "length": len(flow.response.content) if flow.response.content else 0,
+            },
+        }
 
+        deserialize(
+            data,
+            key="request",
+            content=flow.request.content,
+            interface=interface,
+            export_content_files_to=export_content_files_to,
+        )
+
+        if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
+            data["response"] = None
+        else:
             deserialize(
                 data,
-                key="request",
-                content=flow.request.content,
+                key="response",
+                content=flow.response.content,
                 interface=interface,
                 export_content_files_to=export_content_files_to,
             )
 
-            if flow.error and flow.error.msg == FlowError.KILLED_MESSAGE:
-                data["response"] = None
-            else:
-                deserialize(
-                    data,
-                    key="response",
-                    content=flow.response.content,
-                    interface=interface,
-                    export_content_files_to=export_content_files_to,
-                )
+        logger.info(f"    => Saving {flow.request.pretty_url} as {log_filename}")
 
-            logger.info(f"    => Saving {flow.request.pretty_url} as {log_filename}")
-
-            with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
-                json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
-
-        except:
-            logger.exception("Unexpected error")
+        with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
+            json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
     def _modify_response(self, flow: HTTPFlow):
         if self.request_is_from_tracer(flow.request):
-            for internal_mocked_response in self.internal_mocked_responses:
-                if internal_mocked_response.path == flow.request.path:
-                    logger.info(f"    => applying {internal_mocked_response}")
-                    internal_mocked_response.execute(flow)
-
-            if self.mocked_response is not None:
-                if self.mocked_response.path == flow.request.path:
-                    logger.info(f"    => applying {self.mocked_response}")
-                    self.mocked_response.execute(flow)
+            # apply internal mocks before those controlled by setup methods
+            for mocked_response in self.internal_mocked_responses + self.mocked_responses:
+                if mocked_response.path == flow.request.path:
+                    logger.info(f"    => applying {mocked_response}")
+                    mocked_response.execute(flow)
 
 
 def start_proxy() -> None:
