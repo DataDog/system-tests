@@ -1,6 +1,5 @@
 import pytest
 from utils import missing_feature, context, scenarios, features, irrelevant
-from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
 
@@ -32,7 +31,7 @@ class Test_Otel_Env_Vars:
             }
         ],
     )
-    def test_dd_env_var_take_precedence(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_env_var_take_precedence(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -73,7 +72,7 @@ class Test_Otel_Env_Vars:
             }
         ],
     )
-    def test_otel_env_vars_set(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_env_vars_set(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -101,7 +100,7 @@ class Test_Otel_Env_Vars:
     @missing_feature(context.library == "ruby", reason="DD_LOG_LEVEL is not supported in ruby")
     @missing_feature(context.library == "golang", reason="DD_LOG_LEVEL is not supported in go")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
-    def test_otel_log_level_env(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_log_level_env(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -116,7 +115,7 @@ class Test_Otel_Env_Vars:
             }
         ],
     )
-    def test_otel_attribute_mapping(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_attribute_mapping(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -132,14 +131,14 @@ class Test_Otel_Env_Vars:
         context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
     )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_traces_always_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_always_on(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
             assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
             assert float(resp["dd_trace_sample_rate"]) == 1.0
 
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_off", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_traces_always_off(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_always_off(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
@@ -149,7 +148,7 @@ class Test_Otel_Env_Vars:
         "library_env",
         [{"OTEL_TRACES_SAMPLER": "traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1", "DD_TRACE_OTEL_ENABLED": "true"}],
     )
-    def test_otel_traces_traceidratio(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_traceidratio(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
@@ -161,7 +160,7 @@ class Test_Otel_Env_Vars:
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_on", "DD_TRACE_OTEL_ENABLED": "true"}]
     )
-    def test_otel_traces_parentbased_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_parentbased_on(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
@@ -170,7 +169,7 @@ class Test_Otel_Env_Vars:
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]
     )
-    def test_otel_traces_parentbased_off(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_parentbased_off(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
@@ -186,14 +185,14 @@ class Test_Otel_Env_Vars:
             }
         ],
     )
-    def test_otel_traces_parentbased_ratio(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_parentbased_ratio(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_EXPORTER": "none", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_traces_exporter_none(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_traces_exporter_none(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_enabled"] == "false"
@@ -203,7 +202,7 @@ class Test_Otel_Env_Vars:
         reason="PHP uses DD_TRACE_DEBUG to set DD_TRACE_LOG_LEVEL=debug, so it does not do this mapping in the reverse direction",
     )
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "debug", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_log_level_to_debug_mapping(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_log_level_to_debug_mapping(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_debug"] == "true"
@@ -216,7 +215,7 @@ class Test_Otel_Env_Vars:
     )
     @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}])
-    def test_dd_trace_otel_enabled_takes_precedence(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_trace_otel_enabled_takes_precedence(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_otel_enabled"] == "true"
@@ -231,7 +230,7 @@ class Test_Otel_Env_Vars:
     )
     @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true", "DD_TRACE_OTEL_ENABLED": None}])
-    def test_otel_sdk_disabled_set(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_sdk_disabled_set(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_otel_enabled"] == "false"
@@ -241,7 +240,7 @@ class Test_Otel_Env_Vars:
         reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language",
     )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_dd_trace_sample_ignore_parent_true(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_trace_sample_ignore_parent_true(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_sample_ignore_parent"] == "true"
@@ -253,7 +252,7 @@ class Test_Otel_Env_Vars:
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]
     )
-    def test_dd_trace_sample_ignore_parent_false(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_trace_sample_ignore_parent_false(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_sample_ignore_parent"] == "false"
