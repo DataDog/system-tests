@@ -136,7 +136,10 @@ class _RequestLogger:
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
         elif port == ProxyPorts.agent and self.mocked_backend:
-            flow.response = http.Response.make(202, b"Ok")
+            if flow.request.path == "/support/flare":
+                flow.response = http.Response.make(200, b"Ok")
+            else:
+                flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
