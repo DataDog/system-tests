@@ -257,7 +257,7 @@ class Test_FR05_Custom_Endpoints:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        otlp_endpoint_library_env: dict[str, str],
+        otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -656,7 +656,7 @@ class Test_FR11_Telemetry:
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
-        otlp_endpoint_library_env: dict[str, str],
+        otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -707,7 +707,7 @@ class Test_FR11_Telemetry:
     def test_telemetry_exporter_logs_configurations(
         self,
         library_env: dict[str, str],
-        otlp_endpoint_library_env: dict[str, str],
+        otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):

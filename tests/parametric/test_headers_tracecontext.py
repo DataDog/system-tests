@@ -44,7 +44,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(test_library, [])
+            make_single_request_and_get_tracecontext(test_library, [])
 
     @temporary_enable_optin_tracecontext_single_key()
     @missing_feature(
@@ -55,7 +55,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -68,7 +68,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -123,11 +123,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("trace-parent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("trace.parent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -141,15 +141,15 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("TraceParent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("TrAcEpArEnT", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent3, tracestate = make_single_request_and_get_tracecontext(
+            traceparent3, _ = make_single_request_and_get_tracecontext(
                 test_library, [("TRACEPARENT", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -163,11 +163,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01.")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     (
@@ -220,7 +220,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "ff-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -233,11 +233,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", ".0-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "0.-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -250,11 +250,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "000-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "0000-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -267,7 +267,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "0-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -279,7 +279,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-00000000000000000000000000000000-1234567890123456-01")]
             )
 
@@ -291,11 +291,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-.2345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-1234567890123456789012345678901.-1234567890123456-01")]
             )
 
@@ -308,7 +308,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-123456789012345678901234567890123-1234567890123456-01")]
             )
 
@@ -322,7 +322,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-1234567890123456789012345678901-1234567890123456-01")]
             )
 
@@ -334,7 +334,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-0000000000000000-01")]
             )
 
@@ -346,11 +346,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-.234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-123456789012345.-01")]
             )
 
@@ -363,7 +363,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-12345678901234567-01")]
             )
 
@@ -375,7 +375,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-123456789012345-01")]
             )
 
@@ -387,11 +387,11 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-.0")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-0.")]
             )
 
@@ -416,7 +416,7 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-1")]
             )
 
@@ -428,23 +428,23 @@ class Test_Headers_Tracecontext:
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", " 00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "\t00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent3, tracestate = make_single_request_and_get_tracecontext(
+            traceparent3, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01 ")]
             )
 
-            traceparent4, tracestate = make_single_request_and_get_tracecontext(
+            traceparent4, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01\t")]
             )
 
-            traceparent5, tracestate = make_single_request_and_get_tracecontext(
+            traceparent5, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "\t 00-12345678901234567890123456789012-1234567890123456-01 \t")]
             )
 
@@ -493,7 +493,7 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be discarded
         """
         with test_library:
-            traceparent, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -501,7 +501,7 @@ class Test_Headers_Tracecontext:
                 ],
             )
 
-            traceparent, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -519,17 +519,17 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be inherited
         """
         with test_library:
-            traceparent, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), ("TraceState", "foo=1")],
             )
 
-            traceparent, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), ("TrAcEsTaTe", "foo=1")],
             )
 
-            traceparent, tracestate3 = make_single_request_and_get_tracecontext(
+            _, tracestate3 = make_single_request_and_get_tracecontext(
                 test_library,
                 [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), ("TRACESTATE", "foo=1")],
             )
@@ -1021,7 +1021,7 @@ class Test_Headers_Tracecontext:
         )
 
         with test_library:
-            traceparent1, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -1029,7 +1029,7 @@ class Test_Headers_Tracecontext:
                 ],
             )
 
-            traceparent2, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -1053,7 +1053,7 @@ class Test_Headers_Tracecontext:
         expects the tracestate to be inherited
         """
         with test_library:
-            traceparent1, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -1061,7 +1061,7 @@ class Test_Headers_Tracecontext:
                 ],
             )
 
-            traceparent2, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),

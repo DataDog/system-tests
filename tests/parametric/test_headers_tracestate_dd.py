@@ -244,7 +244,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers1["x-datadog-origin"] == "synthetics-browser"
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -254,7 +254,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers2["x-datadog-origin"] == "tracing2.0"
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -268,7 +268,7 @@ class Test_Headers_Tracestate_DD:
         # allow implementations to split origin at the first ','
         assert origin in ("synthetics~;=web,z", "synthetics~;=web")
 
-        traceparent3, tracestate3 = get_tracecontext(headers3)
+        _, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
         assert "traceparent" in headers3
         assert "tracestate" in headers3
@@ -279,7 +279,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin is not set
         assert "x-datadog-origin" not in headers4
 
-        traceparent4, tracestate4 = get_tracecontext(headers4)
+        _, tracestate4 = get_tracecontext(headers4)
         dd_items4 = tracestate4["dd"].split(";")
         assert "traceparent" in headers4
         assert "tracestate" in headers4
@@ -289,7 +289,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers5["x-datadog-origin"] == "synthetics-browser"
 
-        traceparent5, tracestate5 = get_tracecontext(headers5)
+        _, tracestate5 = get_tracecontext(headers5)
         dd_items5 = tracestate5["dd"].split(";")
         assert "traceparent" in headers5
         assert "tracestate" in headers5
@@ -299,7 +299,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers6["x-datadog-origin"] == "tracing2.0"
 
-        traceparent6, tracestate6 = get_tracecontext(headers6)
+        _, tracestate6 = get_tracecontext(headers6)
         dd_items6 = tracestate6["dd"].split(";")
         assert "traceparent" in headers6
         assert "tracestate" in headers6
@@ -368,7 +368,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         assert "_dd.p.usr.id=MTIz" in headers1["x-datadog-tags"]
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -380,7 +380,7 @@ class Test_Headers_Tracestate_DD:
         #         and "=" is replaced with ":"
         assert headers2["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64=="
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -392,7 +392,7 @@ class Test_Headers_Tracestate_DD:
         #         and "=" is replaced with ":"
         assert headers3["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
 
-        traceparent3, tracestate3 = get_tracecontext(headers3)
+        _, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
         assert "traceparent" in headers3
         assert "tracestate" in headers3
@@ -404,7 +404,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         #         and "=" is replaced with ":". Tags that may be added are:
         #         - _dd.p.dm
-        traceparent4, tracestate4 = get_tracecontext(headers4)
+        _, tracestate4 = get_tracecontext(headers4)
         dd_items4 = tracestate4["dd"].split(";")
         assert "traceparent" in headers4
 
@@ -464,7 +464,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.dm=-0" in dd_tags1
         assert "_dd.p.usr.id=baz64==" in dd_tags1
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -482,7 +482,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.usr.id=baz64==" in dd_tags2
         assert "_dd.p.url=http://localhost" in dd_tags2
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -528,7 +528,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.dm=-0" in dd_tags1
         assert "_dd.p.usr.id=baz64==" in dd_tags1
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -546,7 +546,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.usr.id=baz64==" in dd_tags2
         assert "_dd.p.url=http://localhost" in dd_tags2
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2

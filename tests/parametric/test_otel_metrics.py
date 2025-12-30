@@ -1379,7 +1379,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1414,7 +1414,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1448,7 +1448,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1482,7 +1482,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         endpoint_env: str,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -1986,7 +1986,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -2039,7 +2039,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_metrics_configurations(
         self,
         library_env: dict[str, str],
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
