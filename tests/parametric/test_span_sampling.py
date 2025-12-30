@@ -697,7 +697,7 @@ class Test_Span_Sampling:
     )
     @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016(
-        self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """Single spans selected by SSS must be kept and other spans expected to be dropped on the tracer side when
         dropping policy is active when tracer metrics enabled.
@@ -771,7 +771,7 @@ class Test_Span_Sampling:
     )
     @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017(
-        self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """Single spans selected by SSS must be kept and other spans expected to be dropped on the tracer side when
         dropping policy is active when tracer metrics enabled.
@@ -839,7 +839,7 @@ class Test_Span_Sampling:
     )
     @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_entire_trace_dropped_when_dropping_policy_is_active018(
-        self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """The entire dropped span expected to be dropped on the tracer side when
         dropping policy is active, which is the case when tracer metrics enabled.
