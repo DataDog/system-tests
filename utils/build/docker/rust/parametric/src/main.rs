@@ -73,16 +73,7 @@ async fn main() {
         }
     };
 
-    let meter_provider = match init_metrics() {
-        Ok(provider) => provider,
-        Err(ref error) => {
-            error!(
-                error = format!("{error:#}"),
-                "failed to initialize metrics"
-            );
-            return;
-        }
-    };
+    let meter_provider = init_metrics();
 
     // Replace the default panic hook with one that uses structured logging at ERROR level.
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
@@ -117,10 +108,9 @@ fn init_tracing() -> Result<SdkTracerProvider> {
         .init())
 }
 
-fn init_metrics() -> Result<SdkMeterProvider> {
+fn init_metrics() -> SdkMeterProvider {
     datadog_opentelemetry::metrics()
         .init()
-        .map_err(|e| anyhow::anyhow!("Failed to initialize metrics: {}", e))
 }
 
 fn log_error(error: &impl Display) {
