@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -26,7 +27,9 @@ import java.util.function.Consumer;
 public class Api10RouteProvider implements Consumer<Router> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Api10RouteProvider.class);
-    private static final String INTERNAL_SERVER_URL = "http://internal_server:8089/mirror/%s%s";
+    private static final String INTERNAL_SERVER_URL = "http://internal_server:8089";
+    private static final String MIRROR_URL = INTERNAL_SERVER_URL+ "/mirror/%s%s";
+    private static final String REDIRECT_URL = INTERNAL_SERVER_URL + "/redirect?totalRedirects=%s";
 
 
     private final ObjectMapper mapper;
@@ -34,14 +37,26 @@ public class Api10RouteProvider implements Consumer<Router> {
 
     public Api10RouteProvider() {
         mapper = new ObjectMapper();
-        client = new OkHttpClient.Builder().proxy(Proxy.NO_PROXY).build();
+        client = new OkHttpClient.Builder().proxy(Proxy.NO_PROXY).followRedirects(true).build();
     }
 
     @Override
     public void accept(final Router router) {
         router.route("/external_request").handler(BodyHandler.create());
+        router.route().path("/external_request/redirect")
+                .handler(rc -> {
+                    try {
+                        final Request downstream = prepareRedirect(rc);
+                        client.newCall(downstream).execute();
+                        rc.response().setStatusCode(200).end();
+                    } catch (Throwable e) {
+                        LOGGER.error("Failed to parse request", e);
+                        JsonObject json = new JsonObject().put("error", e.getMessage());
+                        rc.response().setStatusCode(500).end(json.encode());
+                    }
+                });
         router.route().path("/external_request")
-                .blockingHandler(rc -> {
+                .handler(rc -> {
                     try {
                         final Request downstream = prepareRequest(rc);
                         final Response response = client.newCall(downstream).execute();
@@ -52,6 +67,19 @@ public class Api10RouteProvider implements Consumer<Router> {
                         rc.response().setStatusCode(500).end(json.encode());
                     }
                 });
+    }
+
+    private Request prepareRedirect(final RoutingContext rc) {
+        final HttpUrl.Builder urlBuilder = HttpUrl.parse(REDIRECT_URL).newBuilder();
+        final HttpServerRequest request = rc.request();
+        urlBuilder.addQueryParameter("totalRedirects", request.getParam("totalRedirects"));
+        final Request.Builder builder = new Request.Builder()
+                .url(urlBuilder.build())
+                .get();
+        for (final Map.Entry<String, String> entry : request.params()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+        return builder.build();
     }
 
     private Request prepareRequest(final RoutingContext rc) throws IOException {
@@ -69,7 +97,7 @@ public class Api10RouteProvider implements Consumer<Router> {
                 downstream.header(name, value);
             }
         }
-        downstream.url(new URL(String.format(INTERNAL_SERVER_URL, status, urlExtra)));
+        downstream.url(new URL(String.format(MIRROR_URL, status, urlExtra)));
         RequestBody body = null;
         final String contentType = request.getHeader("Content-Type");
         if (contentType != null) {
