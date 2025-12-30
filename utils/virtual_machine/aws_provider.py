@@ -58,7 +58,7 @@ class AWSPulumiProvider(VmProvider):
             )
             self._start_vm(self.vm)
 
-        project_name = "system-tests_dev-vms"
+        project_name = "system-tests-vms"
         try:
             self.stack = auto.create_or_select_stack(
                 stack_name=self.stack_name, project_name=project_name, program=pulumi_start_program
