@@ -23,7 +23,7 @@ def make_webhook_request(data):
 class Test_Automated_Payment_Events_Stripe:
     def setup_checkout_session(self):
         self.r = weblog.post("/stripe/create_checkout_session", json={
-            "client_reference_id": "superdiaz",
+            "client_reference_id": "GabeN",
             "line_items": [
                 {
                     "price_data": {
@@ -39,8 +39,8 @@ class Test_Automated_Payment_Events_Stripe:
             "mode": "payment",
             "customer_email": "gaben@valvesoftware.com",
             "discounts": [{
-                "coupon": "J7BN15vk",
-                "promotion_code": "promo_1SEBV4A8AZcqnBxYVOzXjPVu",
+                "coupon": "COUPEZ",
+                "promotion_code": "promo_FAKE",
             }],
             "shipping_options": [{
                 "shipping_rate_data": {
@@ -59,12 +59,12 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.creation.id"] == "cs_FAKE"
-            assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 950
-            assert span["meta"]["appsec.events.payments.creation.client_reference_id"] == "superdiaz"
+            assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 950 # 100 * 10 * 0.9 + 50
+            assert span["meta"]["appsec.events.payments.creation.client_reference_id"] == "GabeN"
             assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
             assert span["meta"]["appsec.events.payments.creation.customer_email"] == "gaben@valvesoftware.com"
-            assert span["meta"]["appsec.events.payments.creation.discounts.coupon"] == "J7BN15vk"
-            assert span["meta"]["appsec.events.payments.creation.discounts.promotion_code"] == "promo_1SEBV4A8AZcqnBxYVOzXjPVu"
+            assert span["meta"]["appsec.events.payments.creation.discounts.coupon"] == "COUPEZ"
+            assert span["meta"]["appsec.events.payments.creation.discounts.promotion_code"] == "promo_FAKE"
             assert span["metrics"]["appsec.events.payments.creation.livemode"] == 1
             assert span["metrics"]["appsec.events.payments.creation.total_details.amount_discount"] == 100
             assert span["metrics"]["appsec.events.payments.creation.total_details.amount_shipping"] == 50
@@ -73,6 +73,43 @@ class Test_Automated_Payment_Events_Stripe:
 
         interfaces.library.validate_one_span(self.r, validator=validator)
     
+    def setup_checkout_session_unsupported(self):
+        self.r = weblog.post("/stripe/create_checkout_session", json={
+            "client_reference_id": "GabeN",
+            "line_items": [
+                {
+                    "price_data": {
+                        "currency": "eur",
+                        "product_data": {
+                            "name": "test",
+                        },
+                        "unit_amount": 100,
+                    },
+                    "quantity": 10,
+                },
+            ],
+            "mode": "subscription", # unsupported mode
+            "customer_email": "gaben@valvesoftware.com",
+            "discounts": [{
+                "coupon": "COUPEZ",
+                "promotion_code": "promo_FAKE",
+            }],
+            "shipping_options": [{
+                "shipping_rate_data": {
+                    "display_name": "test",
+                    "fixed_amount": {
+                        "amount": 50,
+                        "currency": "eur",
+                    },
+                    "type": "fixed_amount",
+                },
+            }],
+        })
+
+    def test_checkout_session_unsupported(self):
+        # how to assert for span absence ?
+        return True
+
     def setup_payment_intent(self):
         self.r = weblog.post("/stripe/create_payment_intent", json={
             "amount": 6969,
