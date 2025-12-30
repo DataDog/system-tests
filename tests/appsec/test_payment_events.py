@@ -4,14 +4,14 @@ import time
 
 from utils import features, interfaces, scenarios, weblog
 
-WEBHOOK_SECRET = b'whsec_FAKE'
+WEBHOOK_SECRET = b"whsec_FAKE"
 
-def make_webhook_request(data):
+def make_webhook_request(data, secret=WEBHOOK_SECRET):
     timestamp = int(time.time())
     jsonStr = json.dumps(data)
     payload = f"{timestamp}.{jsonStr}"
 
-    signature = hmac.new(WEBHOOK_SECRET, payload.encode("utf-8"), "sha256").hexdigest()
+    signature = hmac.new(secret, payload.encode("utf-8"), "sha256").hexdigest()
 
     return weblog.post("/stripe/webhook", headers={
         "content-type": "application/json",
@@ -55,6 +55,7 @@ class Test_Automated_Payment_Events_Stripe:
         })
 
     def test_checkout_session(self):
+        """R1"""
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
@@ -107,6 +108,7 @@ class Test_Automated_Payment_Events_Stripe:
         })
 
     def test_checkout_session_unsupported(self):
+        """R1.1"""
         # how to assert for span absence ?
         return True
 
@@ -119,6 +121,7 @@ class Test_Automated_Payment_Events_Stripe:
         })
 
     def test_payment_intent(self):
+        """R2"""
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
@@ -148,6 +151,7 @@ class Test_Automated_Payment_Events_Stripe:
         })
 
     def test_payment_success(self):
+        """R3"""
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
@@ -177,7 +181,7 @@ class Test_Automated_Payment_Events_Stripe:
                             "billing_details": {
                                 "email": "gaben@valvesoftware.com",
                             },
-                            "type": "card"
+                            "type": "card",
                         },
                     },
                     "livemode": True,
@@ -186,6 +190,7 @@ class Test_Automated_Payment_Events_Stripe:
         })
 
     def test_payment_failure(self):
+        """R4"""
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
@@ -219,6 +224,7 @@ class Test_Automated_Payment_Events_Stripe:
         })
 
     def test_payment_cancellation(self):
+        """R5"""
         def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
@@ -232,3 +238,37 @@ class Test_Automated_Payment_Events_Stripe:
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validator)
+
+    def setup_wrong_signature(self):
+        self.r = make_webhook_request({
+            "type": "payment_intent.succeeded",
+            "data": {
+                "object": {
+                    "id": "pi_FAKE",
+                    "amount": 420,
+                    "currency": "eur",
+                    "livemode": True,
+                },
+            },
+        }, b"WRONG_SECRET")
+
+    def test_wrong_signature(self):
+        """R6.1"""
+        return True
+
+    def setup_unsupported_event(self):
+        self.r = make_webhook_request({
+            "type": "payment_intent.created", # unsupported type
+            "data": {
+                "object": {
+                    "id": "pi_FAKE",
+                    "amount": 1337,
+                    "currency": "eur",
+                    "livemode": True,
+                },
+            },
+        })
+    
+    def test_unsupported_event(self):
+        """R6.2"""
+        return True
