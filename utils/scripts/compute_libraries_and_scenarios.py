@@ -59,11 +59,11 @@ def check_libraries(val: set[str]) -> bool:
     return all(library in ALL_LIBRARIES for library in val)
 
 
-def _setify(value: list[str] | set[str] | tuple[str] | str | None) -> set[str]:
+def _setify(value: list[str] | set[str] | str | None) -> set[str]:
     if isinstance(value, set):
         return value
 
-    if isinstance(value, (list, tuple)):
+    if isinstance(value, list):
         return {*value}
 
     if isinstance(value, str):

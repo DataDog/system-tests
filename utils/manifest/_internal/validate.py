@@ -1,5 +1,5 @@
 import json
-from jsonschema import Draft202012Validator, validators
+from jsonschema import validate
 import yaml
 from pathlib import Path
 import ast
@@ -129,19 +129,12 @@ def pretty(name: str, errors: dict[str, list]) -> str:
     return ret
 
 
-def _is_list_or_tuple(_checker: object, instance: object) -> bool:
-    return isinstance(instance, (list, tuple))
-
-
 def validate_manifest_files(path: Path = Path("manifests/")) -> None:
-    type_checker = Draft202012Validator.TYPE_CHECKER.redefine("array", _is_list_or_tuple)
-    custom_validator = validators.extend(Draft202012Validator, type_checker=type_checker)
-
     with open("utils/manifest/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
     validations: list[tuple[str, Callable]] = [
-        ("Syntax validation errors", lambda d: custom_validator(schema).validate(d) or []),
+        ("Syntax validation errors", lambda d: validate(schema, d) or []),
         ("Key order errors", assert_key_order),
         ("Node ID errors", assert_nodeids_exist),
         # ("Version order errors", assert_increasing_versions),
@@ -160,8 +153,6 @@ def validate_manifest_files(path: Path = Path("manifests/")) -> None:
                 try:
                     errors = validation(data)
                 except BaseException as e:
-                    if e.__class__ is TypeError and e.args == ("expected string or bytes-like object, got 'tuple'",):
-                        continue
                     errors = [e]
                 if errors:
                     if name not in all_errors:
