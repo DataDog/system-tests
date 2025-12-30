@@ -29,7 +29,7 @@ class AWSPulumiProvider(VmProvider):
         self.commander = AWSCommander()
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
-        self.stack_name = "system-tests_onboarding"
+        self.stack_name = "system-tests_dev_onboarding"
 
     def configure(self, virtual_machine):
         super().configure(virtual_machine)
