@@ -134,7 +134,7 @@ def validate_manifest_files(path: Path = Path("manifests/")) -> None:
         schema = json.load(f)
 
     validations: list[tuple[str, Callable]] = [
-        ("Syntax validation errors", lambda d: validate(schema, d) or []),
+        ("Syntax validation errors", lambda d: validate(d, schema) or []),
         ("Key order errors", assert_key_order),
         ("Node ID errors", assert_nodeids_exist),
         # ("Version order errors", assert_increasing_versions),

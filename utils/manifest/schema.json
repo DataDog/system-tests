@@ -19,9 +19,9 @@
         "^[$].*$": {
           "type": "array",
           "description": "YAML anchor definition (e.g., '$my_group: [django, flask]'). Reference it later using '$my_group'",
-            "items": {
-              "type": "string",
-              "description": "weblog name"
+          "items": {
+            "type": "string",
+            "description": "weblog name"
           }
         }
       }
