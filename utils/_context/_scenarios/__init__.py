@@ -1167,8 +1167,8 @@ class _Scenarios:
         weblog_env={
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "c4c472f7836d92af2f368c903bac3814",
-            "DD_APP_KEY": "c070aee8601fa28cf0b82a59fd0e178fb888b9af",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
         scenario_groups=[scenario_groups.appsec],
