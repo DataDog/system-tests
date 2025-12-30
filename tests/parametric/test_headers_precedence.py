@@ -110,9 +110,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
-    def test_headers_precedence_propagationstyle_datadog(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_datadog(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -233,9 +231,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -380,9 +376,7 @@ class Test_Headers_Precedence:
         assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_tracecontext()
-    def test_headers_precedence_propagationstyle_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -519,9 +513,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
 
     @enable_datadog_tracecontext()
-    def test_headers_precedence_propagationstyle_datadog_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
