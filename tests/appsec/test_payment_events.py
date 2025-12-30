@@ -190,7 +190,7 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.failure.id"] == "pi_FAKE"
-            #assert span["metrics"]["appsec.events.payments.failure.amount"] == 1337
+            assert span["metrics"]["appsec.events.payments.failure.amount"] == 1337
             assert span["meta"]["appsec.events.payments.failure.currency"] == "eur"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.code"] == "card_declined"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.decline_code"] == "stolen_card"
