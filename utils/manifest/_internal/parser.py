@@ -81,6 +81,10 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
     return condition
 
 
+def parse_weblogs(weblogs: str) -> list[str]:
+    return [w.strip() for w in weblogs.split(",")]
+
+
 class FieldProcessor:
     """Contains all processing functions that should be applied to raw fields from
     the manifest files.
@@ -122,23 +126,23 @@ class FieldProcessor:
 
     @staticmethod
     def processor(
-        transformation: Callable[[str, dict[str, Any], str, dict[str, list[str]]], Return | None],
+        transformation: Callable[[str, dict[str, Any], str], Return | None],
     ) -> Callable:
-        def field_processing(key: str, entry: dict[str, Any], component: str, groups: dict[str, list[str]]):
+        def field_processing(key: str, entry: dict[str, Any], component: str):
             if key in entry:
-                return transformation(key, entry, component, groups) or FieldProcessor.Return()
+                return transformation(key, entry, component) or FieldProcessor.Return()
             return FieldProcessor.Return()
 
         return field_processing
 
     @staticmethod
     @processor
-    def component_version(n: str, e: dict[str, Any], component: str, _groups: dict[str, list[str]]) -> None:
+    def component_version(n: str, e: dict[str, Any], component: str) -> None:
         e[n] = Declaration(e[n], component, is_inline=True).value
 
     @staticmethod
     @processor
-    def ensure_list(n: str, e: dict[str, Any], _component: str, groups: dict[str, list[str]]) -> None:
+    def ensure_list(n: str, e: dict[str, Any], _component: str) -> None:
         if not isinstance(e[n], list):
             e[n] = [e[n]]
         if n == "weblog":
@@ -146,38 +150,32 @@ class FieldProcessor:
             for w in e[n]:
                 if not isinstance(w, str):
                     continue
-                if w.startswith("$"):
-                    res.extend(groups.get(w, []))
-                else:
-                    res.append(w)
+                res.extend(parse_weblogs(w))
             e[n] = res
 
     @staticmethod
     @processor
-    def declaration(n: str, e: dict[str, Any], component: str, _groups: dict[str, list[str]]) -> None:
+    def declaration(n: str, e: dict[str, Any], component: str) -> None:
         declaration = Declaration(e[n], component)
         assert isinstance(declaration.value, TestDeclaration)
         e[n] = SkipDeclaration(declaration.value, declaration.reason)
 
     @staticmethod
     @processor
-    def weblog_declaration(n: str, e: dict[str, Any], component: str, groups: dict[str, list[str]]) -> Return:
+    def weblog_declaration(n: str, e: dict[str, Any], component: str) -> Return:
         new_entries: list[Condition] = []
         all_weblogs: list[str] = []
         for weblog in e[n]:
             if not isinstance(weblog, str):
                 continue
             if weblog != "*":
-                if weblog.startswith("$"):
-                    all_weblogs.extend(groups.get(weblog, []))
-                else:
-                    all_weblogs.append(weblog)
+                all_weblogs.extend(parse_weblogs(weblog))
         for weblog, raw_declaration in e[n].items():
             condition = process_inline(raw_declaration, component)
             if weblog == "*":
                 condition["excluded_weblog"] = all_weblogs
             else:
-                condition["weblog"] = groups.get(weblog, []) if weblog.startswith("$") else [weblog]
+                condition["weblog"] = parse_weblogs(weblog)
             new_entries.append(condition)
         return FieldProcessor.Return(new_entries, rule_entry_is_condition=False)
 
@@ -201,7 +199,6 @@ def _load_file(file: Path, component: str) -> ManifestData:
     field_processors = FieldProcessor.field_processors
 
     ret: ManifestData = ManifestData()
-    weblog_groups = data.get("weblog_groups", {})
     for nodeid, raw_value in data["manifest"].items():
         condition_list: list[Condition]
         if isinstance(raw_value, str):
@@ -211,7 +208,7 @@ def _load_file(file: Path, component: str) -> ManifestData:
             for entry in raw_value:
                 keep_entry = True
                 for key, func in field_processors:
-                    processor_return = func(key, entry, component, weblog_groups)
+                    processor_return = func(key, entry, component)
                     keep_entry &= processor_return.rule_entry_is_condition
                     condition_list += processor_return.new_conditions
                 if keep_entry:
