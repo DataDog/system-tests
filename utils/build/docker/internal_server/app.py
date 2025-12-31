@@ -66,20 +66,22 @@ async def checkout_sessions(request: fastapi.Request):
     try:
         body = await parse_form_data(request)
 
-        if body.get("mode") != "payment":
-            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only payment mode"}, status_code=400)
+        mode = body.get("mode")
+
+        if mode not in ["payment", "subscription"]:
+            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only payment and subscription mode"}}, status_code=400)
 
         if "line_items[1][quantity]" in body:
-            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only one product"}, status_code=400)
+            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only one product"}}, status_code=400)
         
         if body.get("line_items[0][price_data][currency]") != "eur" or body.get("shipping_options[0][shipping_rate_data][fixed_amount][currency]") != "eur":
-            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only eur currency"}, status_code=400)
+            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only eur currency"}}, status_code=400)
 
         if "shipping_options[1][shipping_rate_data]" in body:
-            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only one shipping option"}, status_code=400)
+            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only one shipping option"}}, status_code=400)
 
         if "shiping_options[0][shipping_rate_data][type]" in body and body.get("shiping_options[0][shipping_rate_data][type]") != "fixed_amount":
-            return fastapi.responses.JSONResponse({"type": "invalid_request_error", "message": "mock supports only fixed_amount shipping option"}, status_code=400)
+            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only fixed_amount shipping option"}}, status_code=400)
 
         unit_amount = int(body.get("line_items[0][price_data][unit_amount]"))
         quantity = int(body.get("line_items[0][quantity]"))
@@ -99,7 +101,7 @@ async def checkout_sessions(request: fastapi.Request):
             "client_reference_id": body.get("client_reference_id"),
             "currency": "eur",
             "customer_email": body.get("customer_email"),
-            "mode": "payment",
+            "mode": mode,
             "discounts": [{
                 "coupon": body.get("discounts[0][coupon]"),
                 "promotion_code": body.get("discounts[0][promotion_code]"),
@@ -129,7 +131,7 @@ async def payment_intents(request: fastapi.Request):
             "receipt_email": body.get("receipt_email"),
         }, status_code=200)
     except Exception as e:
-        return fastapi.responses.JSONResponse({"type": "api_error", "message": str(e)}, status_code=500)
+        return fastapi.responses.JSONResponse({"error": {"type": "api_error", "message": str(e)}}, status_code=500)
 
 
 @app.get("/shutdown")
