@@ -4,6 +4,7 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
+from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
 
@@ -261,14 +262,18 @@ class Test_Synthetics_APM_Datadog:
     @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        traces = list(interfaces.agent.get_traces(self.r))
+        assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
-        span, span_format = spans[0]
-        assert span.get("traceID") == "1234567890"
+        _, trace, trace_format = traces[0]
+        self.assert_trace_id_equals(trace, trace_format, "1234567890")
+        span = trace["spans"][0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert interfaces.agent.get_span_meta(span, span_format)[ORIGIN] == "synthetics"
-        assert span["metrics"][SAMPLING_PRIORITY_KEY] == 1
+
+        meta = interfaces.agent.get_span_meta(span, trace_format)
+        metrics = interfaces.agent.get_span_metrics(span, trace_format)
+        assert meta[ORIGIN] == "synthetics"
+        assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
     def setup_synthetics_browser(self):
         self.r = weblog.get(
@@ -284,11 +289,28 @@ class Test_Synthetics_APM_Datadog:
     @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        traces = list(interfaces.agent.get_traces(self.r))
+        assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
-        span, span_format = spans[0]
-        assert span.get("traceID") == "1234567891"
+        _, trace, trace_format = traces[0]
+        self.assert_trace_id_equals(trace, trace_format, "1234567891")
+        span = trace["spans"][0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert interfaces.agent.get_span_meta(span, span_format)[ORIGIN] == "synthetics-browser"
-        assert span["metrics"][SAMPLING_PRIORITY_KEY] == 1
+
+        meta = interfaces.agent.get_span_meta(span, trace_format)
+        metrics = interfaces.agent.get_span_metrics(span, trace_format)
+        assert meta[ORIGIN] == "synthetics-browser"
+        assert metrics[SAMPLING_PRIORITY_KEY] == 1
+
+    @staticmethod
+    def assert_trace_id_equals(trace: dict, trace_format: TraceAgentPayloadFormat, expected_trace_id: str) -> None:
+        actual_trace_id: str = trace["traceID"]
+
+        if trace_format == TraceAgentPayloadFormat.legacy:
+            assert expected_trace_id == actual_trace_id
+        elif trace_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            # In efficient trace payload format, traceID is in hex format
+            actual_trace_id = str(int(actual_trace_id, 16))
+            assert actual_trace_id == expected_trace_id
+        else:
+            raise ValueError(f"Unknown span format: {trace_format}")

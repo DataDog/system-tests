@@ -95,10 +95,10 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
-    def get_spans(
+    def get_traces(
         self, request: HttpResponse | None = None
     ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat], None, None]:
-        """Attempts to fetch the spans the agent will submit to the backend.
+        """Attempts to fetch the traces the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
@@ -114,24 +114,41 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                 content = data["request"]["content"]["tracerPayloads"]
 
                 for payload in content:
-                    for chunk in payload["chunks"]:
-                        for span in chunk["spans"]:
+                    for trace in payload["chunks"]:
+                        for span in trace["spans"]:
                             if rid is None or get_rid_from_span(span) == rid:
-                                logger.debug(f"Found a span in {data['log_filename']}")
-                                yield data, span, TraceAgentPayloadFormat.legacy
+                                logger.info(f"Found a trace in {data['log_filename']}")
+                                yield data, trace, TraceAgentPayloadFormat.legacy
+                                break
 
             if "idxTracerPayloads" in data["request"]["content"]:
                 content = data["request"]["content"]["idxTracerPayloads"]
 
                 for payload in content:
-                    for chunk in payload["chunks"]:
-                        for span in chunk["spans"]:
-                            logger.debug(f"Looking at agent span {span}")
+                    for trace in payload["chunks"]:
+                        for span in trace["spans"]:
                             if rid is None or get_rid_from_span(span) == rid:
-                                logger.debug(f"Found a span in {data['log_filename']}")
-                                yield data, chunk, TraceAgentPayloadFormat.efficient_trace_payload_format
-                                # TODO Andrew : the legacy code returns all spans, where get_chunks_v1 breaks at the
-                                # first one. We must have the same behavior here
+                                logger.info(f"Found a trace in {data['log_filename']}")
+                                yield data, trace, TraceAgentPayloadFormat.efficient_trace_payload_format
+                                break
+
+    def get_spans(
+        self, request: HttpResponse | None = None
+    ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat], None, None]:
+        """Attempts to fetch the spans the agent will submit to the backend.
+
+        When a valid request is given, then we filter the spans to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = request.get_rid() if request else None
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data, trace, trace_format in self.get_traces(request=request):
+            for span in trace["spans"]:
+                if rid is None or get_rid_from_span(span) == rid:
+                    yield data, span, trace_format
 
     @staticmethod
     def get_span_meta(span: dict, span_format: TraceAgentPayloadFormat) -> dict[str, str]:
@@ -140,11 +157,24 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             return span["meta"]
 
         if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            # in the new format, metrics and meta are joined in attributes
             return span["attributes"]
 
         raise ValueError(f"Unknown span format: {span_format}")
 
-    def get_chunks_v1(self, request: HttpResponse | None = None):  # TODO : remove this, and use get_spans instead
+    @staticmethod
+    def get_span_metrics(span: dict, span_format: TraceAgentPayloadFormat) -> dict[str, str]:
+        """Returns the metrics dictionary of a span according to its format"""
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["metrics"]
+
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            # in the new format, metrics and meta are joined in attributes
+            return span["attributes"]
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    def get_chunks_v1(self, request: HttpResponse | None = None):  # TODO : remove this, and use get_traces instead
         """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
 
         When a valid request is given, then we filter the chunks to the ones sampled
@@ -165,7 +195,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                 logger.debug(f"Looking at agent payload {payload}")
                 for chunk in payload["chunks"]:
                     for span in chunk["spans"]:
-                        logger.debug(f"Looking at agent span {span}")
                         if rid is None or get_rid_from_span(span) == rid:
                             logger.debug(f"Found a span in {data['log_filename']}")
                             yield data, chunk
