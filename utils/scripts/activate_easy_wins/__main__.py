@@ -19,15 +19,28 @@ def main() -> None:
         action="store_true",
         help="Only display a summary of changes without writing anything to disk",
     )
+    parser.add_argument(
+        "--components",
+        nargs="+",
+        help="List of components to process (e.g., python java nodejs). If not specified, all components are processed.",
+    )
     args = parser.parse_args()
+
+    # Filter libraries if components are specified
+    libraries_to_process = args.components if args.components else LIBRARIES
+    # Validate that all specified components exist in LIBRARIES
+    if args.components:
+        invalid_components = [c for c in args.components if c not in LIBRARIES]
+        if invalid_components:
+            parser.error(f"Invalid components: {invalid_components}. Valid components are: {', '.join(LIBRARIES)}")
 
     if not args.no_download:
         token = environ["GITHUB_TOKEN"]
         pull_artifact(ARTIFACT_URL, token, Path("data"))
 
-    test_data, weblogs = parse_artifact_data(Path("data/"), LIBRARIES)
+    test_data, weblogs = parse_artifact_data(Path("data/"), libraries_to_process)
 
-    manifest_editor = ManifestEditor(weblogs)
+    manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
     (
         tests_per_language,
         modified_rules_by_level,

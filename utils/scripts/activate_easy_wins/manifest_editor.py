@@ -41,11 +41,14 @@ class ManifestEditor:
         def __hash__(self) -> int:
             return hash(self.rule + str(self.condition) + str(self.condition_index))
 
-    def __init__(self, weblogs: dict[str, set[str]], manifests_path: Path = Path("manifests/")):
+    def __init__(
+        self, weblogs: dict[str, set[str]], manifests_path: Path = Path("manifests/"), components: list[str] | None = None
+    ):
         self.init_round_trip_parser()
 
         self.raw_data = {}
-        for component in LIBRARIES:
+        components_to_process = components if components is not None else LIBRARIES
+        for component in components_to_process:
             data = self.wrap_key_anchors(manifests_path.joinpath(f"{component}.yml"))
             self.raw_data[component] = self.round_trip_parser.load(data)
 
