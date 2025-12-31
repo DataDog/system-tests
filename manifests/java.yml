@@ -75,7 +75,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:
     - weblog_declaration:
         "*": v1.55.0
-        akka-http: v1.55.0+364bb8b68f
+        akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
     - weblog_declaration:
@@ -102,20 +102,6 @@ manifest:
         "*": missing_feature
         spring-boot: v1.52.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication:
-    - declaration: missing_feature
-      excluded_weblog: [spring-boot, spring-boot-3-native]
-      weblog: [spring-boot-wildfly, uds-spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code:
-    - declaration: missing_feature
-      excluded_weblog: [spring-boot, spring-boot-3-native]
-      weblog: [spring-boot-wildfly, uds-spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0
@@ -183,10 +169,7 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.55.0+364bb8b68f'
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
     - weblog_declaration:
         "*": v1.51.0-SNAPSHOT
@@ -831,10 +814,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.54.0
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.55.0+364bb8b68f'
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
@@ -861,14 +841,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.54.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.55.0+364bb8b68f'
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.55.0+364bb8b68f'
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -1158,7 +1132,7 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        vertx3: v1.55.0+364bb8b68f
+        vertx3: missing_feature (APPSEC-55781)
         vertx4: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
@@ -1721,20 +1695,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        resteasy-netty3: v1.55.0+364bb8b68f
-        ratpack: v1.55.0+364bb8b68f
-        vertx4: v1.55.0+364bb8b68f
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        vertx3: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        jersey-grizzly2: v1.55.0+364bb8b68f
-        spring-boot: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        akka-http: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-        play: v1.55.0+364bb8b68f
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
     - weblog_declaration:
@@ -1811,45 +1771,8 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:
-    - weblog_declaration:
-        '*': missing_feature
-        resteasy-netty3: '>=1.55.0+364bb8b68f'
-        ratpack: '>=1.55.0+364bb8b68f'
-        vertx4: '>=1.55.0+364bb8b68f'
-        spring-boot-openliberty: '>=1.55.0+364bb8b68f'
-        vertx3: '>=1.55.0+364bb8b68f'
-        spring-boot-jetty: '>=1.55.0+364bb8b68f'
-        jersey-grizzly2: '>=1.55.0+364bb8b68f'
-        spring-boot: '>=1.55.0+364bb8b68f'
-        spring-boot-payara: '>=1.55.0+364bb8b68f'
-        spring-boot-undertow: '>=1.55.0+364bb8b68f'
-        uds-spring-boot: '>=1.55.0+364bb8b68f'
-        akka-http: '>=1.55.0+364bb8b68f'
-        spring-boot-wildfly: '>=1.55.0+364bb8b68f'
-        play: '>=1.55.0+364bb8b68f'
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event:
-    - weblog_declaration:
-        akka-http: missing_feature
-        play: missing_feature
-        jersey-grizzly2: missing_feature
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability:
-    - weblog_declaration:
-        '*': missing_feature
-        resteasy-netty3: '>=1.55.0+364bb8b68f'
-        ratpack: '>=1.55.0+364bb8b68f'
-        vertx4: '>=1.55.0+364bb8b68f'
-        spring-boot-openliberty: '>=1.55.0+364bb8b68f'
-        vertx3: '>=1.55.0+364bb8b68f'
-        spring-boot-jetty: '>=1.55.0+364bb8b68f'
-        jersey-grizzly2: '>=1.55.0+364bb8b68f'
-        spring-boot: '>=1.55.0+364bb8b68f'
-        spring-boot-payara: '>=1.55.0+364bb8b68f'
-        spring-boot-undertow: '>=1.55.0+364bb8b68f'
-        uds-spring-boot: '>=1.55.0+364bb8b68f'
-        akka-http: '>=1.55.0+364bb8b68f'
-        spring-boot-wildfly: '>=1.55.0+364bb8b68f'
-        play: '>=1.55.0+364bb8b68f'
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: missing_feature
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: missing_feature
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
     - weblog_declaration:
         "*": v0.104.0
@@ -2281,15 +2204,6 @@ manifest:
         spring-boot-openliberty: v1.38.0
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
-        resteasy-netty3: v1.55.0+364bb8b68f
-        ratpack: v1.55.0+364bb8b68f
-        vertx3: v1.55.0+364bb8b68f
-        vertx4: v1.55.0+364bb8b68f
-        jersey-grizzly2: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        akka-http: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-        play: v1.55.0+364bb8b68f
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2327,131 +2241,14 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.0
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_not_obfuscate_query:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.0
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_system:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_not_obfuscate_query:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow]
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.0
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_system:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_not_obfuscate_query:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id:
-    - declaration: missing_feature
-      excluded_weblog: spring-boot
-      weblog: [spring-boot-jetty, uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
   tests/integrations/test_dbm.py::Test_Dbm: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
@@ -2496,7 +2293,7 @@ manifest:
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.55.0+364bb8b68f
+        spring-boot: bug (AIDM-325)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
     - weblog_declaration:
         "*": irrelevant
@@ -2524,12 +2321,6 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         spring-boot: v1.39.0
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.12.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: irrelevant (default hostname is resolved config-processing)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v1.41.1
@@ -2621,23 +2412,23 @@ manifest:
   tests/test_baggage.py::Test_Baggage_Headers_Malformed:
     - weblog_declaration:
         "*": v1.53.0
-        akka-http: v1.55.0+364bb8b68f
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        play: v1.55.0+364bb8b68f
-        ratpack: v1.55.0+364bb8b68f
+        play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot: v1.50.0
-        spring-boot-3-native: v1.55.0+364bb8b68f
+        spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2:
     - weblog_declaration:
         "*": v1.53.0
-        akka-http: v1.55.0+364bb8b68f
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        play: v1.55.0+364bb8b68f
-        ratpack: v1.55.0+364bb8b68f
+        play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot: v1.50.0
-        spring-boot-3-native: v1.55.0+364bb8b68f
+        spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -2669,12 +2460,7 @@ manifest:
         spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: v1.43.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: v1.43.0
-  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence:
-    - declaration: missing_feature (does not support x-forwarded header)
-      component_version: <1.55.0+364bb8b68f
-      weblog: [spring-boot-3-native, ratpack, resteasy-netty3, vertx4, spring-boot-openliberty, vertx3, spring-boot-jetty, spring-boot, spring-boot-payara, spring-boot-undertow, uds-spring-boot, akka-http, spring-boot-wildfly, play]
-    - declaration: missing_feature (does not support x-forwarded header)
-      excluded_weblog: [spring-boot-3-native, ratpack, resteasy-netty3, vertx4, spring-boot-openliberty, vertx3, spring-boot-jetty, spring-boot, spring-boot-payara, spring-boot-undertow, uds-spring-boot, akka-http, spring-boot-wildfly, play]
+  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured:
     - weblog_declaration:
         "*": v1.43.0
@@ -2717,12 +2503,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot-3-native: v1.48.0
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:
-    - declaration: missing_feature (dd attributes are not injected into logs))
-      component_version: <1.55.0+364bb8b68f
-      weblog: [spring-boot-3-native]
-    - declaration: missing_feature (dd attributes are not injected into logs))
-      excluded_weblog: [spring-boot-3-native]
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: missing_feature (dd attributes are not injected into logs))
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
@@ -2750,19 +2531,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v1.39.0
   tests/test_data_integrity.py::Test_LibraryHeaders: v1.29.0
-  tests/test_distributed.py::Test_DistributedHttp:
-    - weblog_declaration:
-        '*': missing_feature
-        vertx4: '>=1.55.0+364bb8b68f'
-        spring-boot-openliberty: '>=1.55.0+364bb8b68f'
-        vertx3: '>=1.55.0+364bb8b68f'
-        spring-boot-jetty: '>=1.55.0+364bb8b68f'
-        spring-boot: '>=1.55.0+364bb8b68f'
-        spring-boot-payara: '>=1.55.0+364bb8b68f'
-        spring-boot-undertow: '>=1.55.0+364bb8b68f'
-        uds-spring-boot: '>=1.55.0+364bb8b68f'
-        spring-boot-wildfly: '>=1.55.0+364bb8b68f'
-        play: '>=1.55.0+364bb8b68f'
+  tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v1.43.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -2803,51 +2572,18 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        vertx4: v1.55.0+364bb8b68f
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        vertx3: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.50.1
-        vertx4: v1.55.0+364bb8b68f
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        vertx3: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
-        play: v1.55.0+364bb8b68f
   tests/test_library_conf.py::Test_ExtractBehavior_Restart:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        vertx4: v1.55.0+364bb8b68f
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        vertx3: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        vertx4: v1.55.0+364bb8b68f
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        vertx3: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
   tests/test_library_conf.py::Test_HeaderTags:
     - weblog_declaration:
         "*": v1.35.0
@@ -2877,12 +2613,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.47.0
-        spring-boot-openliberty: v1.55.0+364bb8b68f
-        spring-boot-jetty: v1.55.0+364bb8b68f
-        spring-boot-payara: v1.55.0+364bb8b68f
-        spring-boot-undertow: v1.55.0+364bb8b68f
-        uds-spring-boot: v1.55.0+364bb8b68f
-        spring-boot-wildfly: v1.55.0+364bb8b68f
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py:
     - weblog_declaration:
@@ -2936,15 +2666,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.107.1
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.107.1
   tests/test_telemetry.py::Test_DependencyEnable: v1.7.0
-  tests/test_telemetry.py::Test_Log_Generation: '>=1.55.0+364bb8b68f'
-  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:
-    - weblog_declaration:
-        akka-http: missing_feature
-        jersey-grizzly2: missing_feature
-        play: missing_feature
-        resteasy-netty3: missing_feature
-        spring-boot-3-native: missing_feature
-        ratpack: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: missing_feature
   tests/test_telemetry.py::Test_MessageBatch:
     - weblog_declaration:
         "*": v1.23.0
@@ -2964,30 +2686,6 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry:
     - weblog_declaration:
         "*": v0.108.1
-        spring-boot-3-native: v1.55.0+364bb8b68f
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_seq_id:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_status_ok:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_data_size:
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
-    - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:

@@ -1323,125 +1323,18 @@ manifest:
         express4: v1.0.0
         express5: v1.0.0
         fastify: v1.0.0
-        uds-express4: v5.76.0
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         express4: v1.0.0
         express5: v1.0.0
         fastify: v1.0.0
-        uds-express4: v5.76.0
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_system:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         express4: v1.0.0
         express5: v1.0.0
         fastify: v1.0.0
-        uds-express4: v5.76.0
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_system:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_type:
-    - declaration: missing_feature
-      excluded_weblog: [express4, express5, fastify]
-      weblog: uds-express4
   tests/integrations/test_dbm.py::Test_Dbm: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2:
     - weblog_declaration:
@@ -1634,17 +1527,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: *ref_3_19_0
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: *ref_5_37_0
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (removes query strings by default)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default:
-    - weblog_declaration:
-        '*': missing_feature
-        nextjs: '>=5.76.0'
-        fastify: '>=5.76.0'
-        express5: '>=5.76.0'
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_400:
-    - weblog_declaration:
-        express5: missing_feature
-        nextjs: missing_feature
-        fastify: missing_feature
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
@@ -1746,12 +1629,10 @@ manifest:
   tests/test_semantic_conventions.py::Test_Meta:
     - weblog_declaration:
         "*": *ref_3_13_1
-        nextjs: v5.76.0          # nextjs makes some internal requests and we have different tag names
+        nextjs: missing_feature  # nextjs makes some internal requests and we have different tag names
   tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag:
     - component_version: ">=4.44.0"
       declaration: bug (APMAPI-921)
-    - weblog_declaration:
-        nextjs: missing_feature
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: *ref_3_13_1
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:
@@ -1779,39 +1660,16 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl: *ref_3_0_0
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.9.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_Log_Generation: '>=5.76.0'
-  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: missing_feature
   tests/test_telemetry.py::Test_MessageBatch: *ref_4_21_0
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=5.76.0'
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: *ref_4_21_0
   tests/test_telemetry.py::Test_Telemetry:
     - weblog_declaration:
         "*": *ref_3_2_0
-        nextjs: v5.76.0
+        nextjs: missing_feature
         uds-express4: *ref_3_7_0
-  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded:
-    - weblog_declaration:
-        nextjs: missing_feature
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change:
-    - weblog_declaration:
-        nextjs: missing_feature
-  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
-    - weblog_declaration:
-        nextjs: missing_feature
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
-    - weblog_declaration:
-        nextjs: missing_feature
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant
