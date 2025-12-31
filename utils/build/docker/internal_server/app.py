@@ -113,7 +113,7 @@ async def checkout_sessions(request: fastapi.Request):
             },
         }, status_code=200)
     except Exception as e:
-        return fastapi.responses.JSONResponse({"type": "api_error", "message": str(e)}, status_code=500)
+        return fastapi.responses.JSONResponse({"error": {"type": "api_error", "message": str(e)}}, status_code=500)
 
 
 @app.post("/v1/payment_intents", response_class=fastapi.responses.JSONResponse)
