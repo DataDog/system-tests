@@ -7,6 +7,7 @@ from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
 from utils.manifest import Condition, SkipDeclaration
+from utils.manifest._internal.const import simple_regex as simple_version_regex
 from .const import LIBRARIES
 import sys
 from typing import TYPE_CHECKING
@@ -42,7 +43,10 @@ class ManifestEditor:
             return hash(self.rule + str(self.condition) + str(self.condition_index))
 
     def __init__(
-        self, weblogs: dict[str, set[str]], manifests_path: Path = Path("manifests/"), components: list[str] | None = None
+        self,
+        weblogs: dict[str, set[str]],
+        manifests_path: Path = Path("manifests/"),
+        components: list[str] | None = None,
     ):
         self.init_round_trip_parser()
 
@@ -366,8 +370,14 @@ class ManifestEditor:
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
             all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]]
 
-            if "excluded_component_version" in view.condition:
-                # TODO: Add comment to signal that there is a version problem
+            if "excluded_component_version" in view.condition and (
+                not isinstance(raw_data, str) or not re.fullmatch(simple_version_regex, raw_data)
+            ):
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"This entry should be updated to allow the test to run for weblogs: {weblog_list}"
+                manifest_map = self.raw_data[view.condition["component"]]["manifest"]
+                self.write_comment(manifest_map, view.rule, comment_text, "before")
                 continue
             if view.is_inline:
                 if (
