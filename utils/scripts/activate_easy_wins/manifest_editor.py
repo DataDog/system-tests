@@ -230,6 +230,8 @@ class ManifestEditor:
     @staticmethod
     def specialize(condition: Condition, context: Context) -> Condition:
         ret = condition.copy()
+        if "excluded_weblog" in ret:
+            del ret["excluded_weblog"]
         ret["weblog"] = [context.variant]
         # ret["component_version"] = CustomSpec(f">={context.library_version}")
         return ret
@@ -294,6 +296,38 @@ class ManifestEditor:
                 ret[rule].append(condition)
         return ret
 
+    def write_comment(
+        self,
+        obj: CommentedMap | CommentedSeq,
+        key_or_index: str | int,
+        comment: str,
+        position: str = "after",
+    ) -> None:
+        """Add a comment to a YAML structure.
+
+        Args:
+            obj: The CommentedMap or CommentedSeq to add the comment to
+            key_or_index: The key (for CommentedMap) or index (for CommentedSeq)
+            comment: The comment text to add
+            position: Where to place the comment - "before", "after", or "inline"
+        """
+        if not isinstance(obj, (CommentedMap, CommentedSeq)):
+            return
+
+        # ruamel.yaml adds the # automatically, so we don't include it in the comment text
+        if isinstance(obj, CommentedMap):
+            if not isinstance(key_or_index, str) or key_or_index not in obj:
+                return
+            if position == "before":
+                obj.yaml_set_comment_before_after_key(key_or_index, before=comment)
+            else:  # "after" or "inline" - both use end-of-line comments
+                obj.yaml_add_eol_comment(comment, key=key_or_index)
+        elif isinstance(obj, CommentedSeq):
+            if not isinstance(key_or_index, int) or key_or_index < 0 or key_or_index >= len(obj):
+                return
+            # For sequences, use end-of-line comments for all positions
+            obj.yaml_add_eol_comment(comment, key=key_or_index)
+
     def write_new_rules(self) -> None:
         def count_new_condition_per_component(new_conditions: list[Condition]) -> dict[str, int]:
             ret = {}
@@ -311,11 +345,17 @@ class ManifestEditor:
                 manifest = self.raw_data[condition["component"]]["manifest"]
                 if counts[condition["component"]] == 1 and "weblog" not in condition:
                     manifest[rule] = str(condition["declaration"])
+                    self.write_comment(manifest, rule, "Created by easy win activation script", "before")
                     continue
 
                 if rule not in manifest:
                     manifest[rule] = []
-                manifest[rule].append(self.serialize_condition(condition))
+                    self.write_comment(manifest, rule, "Created by easy win activation script", "before")
+                condition_dict = self.serialize_condition(condition)
+                manifest[rule].append(condition_dict)
+                if isinstance(manifest[rule], CommentedSeq) and len(manifest[rule]) > 0:
+                    last_index = len(manifest[rule]) - 1
+                    self.write_comment(manifest[rule], last_index, "Added by easy win activation script", "before")
 
     def write_poke(self) -> None:
         for view, contexts in self.poked_views.items():
@@ -333,10 +373,14 @@ class ManifestEditor:
                 ):
                     if all_weblogs:
                         self.raw_data[view.condition["component"]]["manifest"][view.rule] = f">={component_version}"
+                        manifest_map = self.raw_data[view.condition["component"]]["manifest"]
+                        self.write_comment(manifest_map, view.rule, "Modified by easy win activation script", "before")
                         continue
                     self.raw_data[view.condition["component"]]["manifest"][view.rule] = [
                         {"weblog_declaration": {"*": str(view.condition["declaration"])}}
                     ]
+                    manifest_map = self.raw_data[view.condition["component"]]["manifest"]
+                    self.write_comment(manifest_map, view.rule, "Modified by easy win activation script", "before")
                     for weblog in weblogs:
                         self.raw_data[view.condition["component"]]["manifest"][view.rule][0]["weblog_declaration"][
                             weblog
@@ -349,6 +393,8 @@ class ManifestEditor:
                         "component_version": f"<{component_version}",
                     },
                 ]
+                manifest_map = self.raw_data[view.condition["component"]]["manifest"]
+                self.write_comment(manifest_map, view.rule, "Modified by easy win activation script", "before")
                 raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
 
                 if not all_weblogs:
@@ -370,20 +416,34 @@ class ManifestEditor:
                         skip = True
                 if skip:
                     continue
+                weblog_declaration = raw_data[view.condition_index]["weblog_declaration"]
+                # Add comments to the individual weblog lines that were modified
                 for weblog in weblogs:
-                    raw_data[view.condition_index]["weblog_declaration"][weblog] = f"v{component_version}"
+                    weblog_declaration[weblog] = f"v{component_version}"
+                    # Add comment to the specific weblog key that was modified
+                    # weblog_declaration is a dict loaded from YAML, so it should be a CommentedMap
+                    if isinstance(weblog_declaration, CommentedMap):
+                        self.write_comment(
+                            weblog_declaration, weblog, "Modified by easy win activation script", "after"
+                        )
 
             else:
                 raw_data[view.condition_index]["excluded_weblog"] = CommentedSeq(
                     view.condition.get("excluded_weblog", []) + weblogs
                 )
                 raw_data[view.condition_index]["excluded_weblog"].fa.set_flow_style()
+                condition_item = raw_data[view.condition_index]
+                self.write_comment(
+                    condition_item, "excluded_weblog", "Modified by easy win activation script", "inline"
+                )
                 raw_data.append(
                     {
                         "declaration": str(view.condition["declaration"]),
                         "component_version": f"<{component_version}",
                     }
                 )
+                if isinstance(raw_data, CommentedSeq) and len(raw_data) > 0:
+                    self.write_comment(raw_data, len(raw_data) - 1, "Added by easy win activation script", "before")
 
                 if not all_weblogs:
                     raw_data[-1]["weblog"] = CommentedSeq(weblogs.copy())
