@@ -95,9 +95,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
-    def get_traces(
-        self, request: HttpResponse | None = None
-    ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat], None, None]:
+    def get_traces(self, request: HttpResponse | None = None) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat]]:
         """Attempts to fetch the traces the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
