@@ -1,15 +1,22 @@
 import time
+from paramiko.channel import Channel
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils import context, logger
 from threading import Timer
 
 
 class AutoInjectBaseTest:
     def _test_install(
-        self, virtual_machine, *, profile: bool = False, appsec: bool = False, origin_detection: bool = False
+        self,
+        virtual_machine: _VirtualMachine,
+        *,
+        profile: bool = False,
+        appsec: bool = False,
+        origin_detection: bool = False,
     ):
         """If there is a multicontainer app, we need to make a request to each app"""
 
@@ -30,8 +37,8 @@ class AutoInjectBaseTest:
 
     def _check_install(
         self,
-        virtual_machine,
-        vm_context_url,
+        virtual_machine: _VirtualMachine,
+        vm_context_url: str,
         *,
         profile: bool = False,
         appsec: bool = False,
@@ -74,7 +81,7 @@ class AutoInjectBaseTest:
             self._log_trace_debug_message(e, request_uuid)
             raise
 
-    def _appsec_validator(self, _, trace_data):
+    def _appsec_validator(self, _: str, trace_data: dict):
         """Validator for Appsec traces that checks if the trace contains an Appsec event."""
         root_id = trace_data["trace"]["root_id"]
         root_span = trace_data["trace"]["spans"][root_id]
@@ -95,7 +102,7 @@ class AutoInjectBaseTest:
 
         return True
 
-    def _container_tags_validator(self, _, trace_data):
+    def _container_tags_validator(self, _: str, trace_data: dict):
         root_id = trace_data["trace"]["root_id"]
         root_span = trace_data["trace"]["spans"][root_id]
 
@@ -120,14 +127,14 @@ class AutoInjectBaseTest:
             f"- A problem processing the intake in the backend (manually locate the trace id [{request_uuid}] in the DD console, using the system-tests organization)\n"
         )
 
-    def close_channel(self, channel) -> None:
+    def close_channel(self, channel: Channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
         except Exception as e:
             logger.error(f"Error closing the channel: {e}")
 
-    def execute_command(self, virtual_machine, command) -> str:
+    def execute_command(self, virtual_machine: _VirtualMachine, command: str) -> str:
         # Env for the command
         prefix_env = ""
         for key, value in virtual_machine.get_command_environment().items():
@@ -158,7 +165,12 @@ class AutoInjectBaseTest:
             return command_output
 
     def _test_uninstall_commands(
-        self, virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
+        self,
+        virtual_machine: _VirtualMachine,
+        stop_weblog_command: str,
+        start_weblog_command: str,
+        uninstall_command: str,
+        install_command: str,
     ):
         """We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
@@ -221,7 +233,7 @@ class AutoInjectBaseTest:
         self._test_install(virtual_machine)
         logger.info(f"Success _test_uninstall for : [{virtual_machine.name}]")
 
-    def _test_uninstall(self, virtual_machine):
+    def _test_uninstall(self, virtual_machine: _VirtualMachine):
         header = "----------------------------------------------------------------------"
         vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
@@ -243,7 +255,7 @@ class AutoInjectBaseTest:
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
 
-    def _test_no_world_writeable(self, virtual_machine):
+    def _test_no_world_writeable(self, virtual_machine: _VirtualMachine):
         """Checks that there are no world writeable files in /opt/datadog-packages/datadog-apm*"""
         logger = vm_logger(context.scenario.host_log_folder, virtual_machine.name)
         logger.info(
