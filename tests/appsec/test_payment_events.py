@@ -138,20 +138,7 @@ class Test_Automated_Payment_Events_Stripe:
 
     def test_payment_intent(self):
         """R2"""
-        def validator(span: dic
-        assert_no_payment_event(self.r, 403)
-
-    def setup_unsupported_event(self):
-        self.r = make_webhook_request({
-            "type": "payment_intent.created", # unsupported type
-            "data": {
-                "object": {
-                    "id": "pi_FAKE",
-                    "amount": 420,
-                    "currency": "eur",
-                    "livemode": True,
-                },
-            },t):
+        def validator(span: dict):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.creation.id"] == "pi_FAKE"
