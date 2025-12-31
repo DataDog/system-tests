@@ -18,6 +18,15 @@ def make_webhook_request(data, secret=WEBHOOK_SECRET):
         "stripe-signature": f"t={timestamp},v1={signature}"
     }, data=jsonStr)
 
+def assert_payment_event(request, validator):
+    assert request.status_code == 200
+
+    # make sure a stripe object was returned by the API
+    # all mocked objects will have an id field like "xx_FAKE"
+    assert "_FAKE\"" in request.text
+
+    interfaces.library.validate_one_span(request, validator=validator)
+
 def assert_no_payment_event(request, status_code):
     assert request.status_code == status_code
 
@@ -80,7 +89,7 @@ class Test_Automated_Payment_Events_Stripe:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validator)
+        assert_payment_event(self.r, validator=validator)
     
     def setup_checkout_session_unsupported(self):
         self.r = weblog.post("/stripe/create_checkout_session", json={
@@ -129,7 +138,20 @@ class Test_Automated_Payment_Events_Stripe:
 
     def test_payment_intent(self):
         """R2"""
-        def validator(span: dict):
+        def validator(span: dic
+        assert_no_payment_event(self.r, 403)
+
+    def setup_unsupported_event(self):
+        self.r = make_webhook_request({
+            "type": "payment_intent.created", # unsupported type
+            "data": {
+                "object": {
+                    "id": "pi_FAKE",
+                    "amount": 420,
+                    "currency": "eur",
+                    "livemode": True,
+                },
+            },t):
             assert span["metrics"]["_sampling_priority_v1"] == 1
             assert span["meta"]["appsec.events.payments.integration"] == "stripe"
             assert span["meta"]["appsec.events.payments.creation.id"] == "pi_FAKE"
@@ -141,7 +163,7 @@ class Test_Automated_Payment_Events_Stripe:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validator)
+        assert_payment_event(self.r, validator=validator)
 
     def setup_payment_success(self):
         self.r = make_webhook_request({
@@ -170,7 +192,7 @@ class Test_Automated_Payment_Events_Stripe:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validator)
+        assert_payment_event(self.r, validator=validator)
 
     def setup_payment_failure(self):
         self.r = make_webhook_request({
@@ -213,7 +235,7 @@ class Test_Automated_Payment_Events_Stripe:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validator)
+        assert_payment_event(self.r, validator=validator)
 
     def setup_payment_cancellation(self):
         self.r = make_webhook_request({
@@ -244,7 +266,7 @@ class Test_Automated_Payment_Events_Stripe:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validator)
+        assert_payment_event(self.r, validator=validator)
 
     def setup_wrong_signature(self):
         self.r = make_webhook_request({
@@ -269,7 +291,7 @@ class Test_Automated_Payment_Events_Stripe:
             "data": {
                 "object": {
                     "id": "pi_FAKE",
-                    "amount": 1337,
+                    "amount": 420,
                     "currency": "eur",
                     "livemode": True,
                 },
