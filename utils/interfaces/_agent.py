@@ -79,7 +79,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     yield data
 
     def assert_trace_exists(self, request: HttpResponse):
-        for _, _, _ in self.get_spans(request=request):
+        for _, _, _ in self.get_traces(request=request):
             return
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
@@ -102,6 +102,8 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
+
+        Returns data, trace and trace_format
         """
 
         rid = request.get_rid() if request else None
@@ -139,6 +141,8 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
+
+        Returns data, span and trace_format
         """
 
         rid = request.get_rid() if request else None
