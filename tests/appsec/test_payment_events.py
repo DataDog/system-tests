@@ -109,8 +109,7 @@ class Test_Automated_Payment_Events_Stripe:
 
     def test_checkout_session_unsupported(self):
         """R1.1"""
-        # how to assert for span absence ?
-        return True
+        assert_no_payment_event(self.r, 200)
 
     def setup_payment_intent(self):
         self.r = weblog.post("/stripe/create_payment_intent", json={
@@ -250,11 +249,11 @@ class Test_Automated_Payment_Events_Stripe:
                     "livemode": True,
                 },
             },
-        }, b"WRONG_SECRET")
+        }, b"WRONG_SECRET") # wrong signature secret 
 
     def test_wrong_signature(self):
         """R6.1"""
-        return True
+        assert_no_payment_event(self.r, 403)
 
     def setup_unsupported_event(self):
         self.r = make_webhook_request({
@@ -271,4 +270,4 @@ class Test_Automated_Payment_Events_Stripe:
     
     def test_unsupported_event(self):
         """R6.2"""
-        return True
+        assert_no_payment_event(self.r, 200)
