@@ -5,8 +5,9 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
+from typing import Any
 from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority
+from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -245,13 +246,18 @@ class Test_Agent:
         """Agent does not drop traces"""
 
         # get list of trace ids reported by the agent
-        trace_ids_reported_by_agent = set()
-        for _, chunk in interfaces.agent.get_chunks_v1():
-            # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
-            # We need to convert it to an integer taking only the lower 64 bits
-            # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
-            trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
-            trace_ids_reported_by_agent.add(trace_id)
+        trace_ids_reported_by_agent = set[int]()
+        for _, chunk, chunk_format in interfaces.agent.get_traces():
+            if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+                # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
+                # We need to convert it to an integer taking only the lower 64 bits
+                # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
+                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+                trace_ids_reported_by_agent.add(trace_id)
+            elif chunk_format == TraceAgentPayloadFormat.legacy:
+                for span in chunk["spans"]:
+                    trace_ids_reported_by_agent.add(int(span["traceID"]))
+                    break
 
         def get_span_with_sampling_data(trace: list):
             # The root span is not necessarily the span wherein the sampling priority can be found.

@@ -68,7 +68,8 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         assert _get_span_type(spans[0], span_format) == "web"
-        assert spans[0]["attributes"]["http.status_code"] == "400"
+        span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
+        assert span_meta["http.status_code"] == "400"
         assert "error" not in spans[0] or spans[0]["error"] == 0
 
     def setup_status_code_500(self):
@@ -78,13 +79,15 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert self.r.status_code == 500
 
         interfaces.library.assert_trace_exists(self.r)
-        chunks = interfaces.agent.get_chunks_v1(self.r)
-        chunks = [chunk for _, chunk in chunks]
+        chunks = interfaces.agent.get_traces(self.r)
+        chunks = [(chunk, format) for _, chunk, format in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        spans = chunks[0]["spans"]
+        span_format = chunks[0][1]
+        spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert spans[0]["attributes"]["http.status_code"] == "500"
+        span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
+        assert span_meta["http.status_code"] == "500"
         assert spans[0]["error"]
 
 
@@ -476,7 +479,6 @@ class Test_Config_UnifiedServiceTagging_Default:
         interfaces.library.assert_trace_exists(self.r)
         chunks = interfaces.agent.get_traces(self.r)
         chunks = [(chunk, format) for _, chunk, format in chunks]
-        chunks = [chunk for _, chunk in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
         span_format = chunks[0][1]
         spans = chunks[0][0]["spans"]
