@@ -127,32 +127,11 @@ class ManifestEditor:
             self.poked_views[view] = set()
         self.poked_views[view].add(self.context)
 
-    def update(self, view: View, new_content: Condition | SkipDeclaration | str, append_key: str | None = None) -> None:
-        if isinstance(new_content, SkipDeclaration):
-            new_content = str(new_content)
-
-        raw_data = self.raw_data[view.condition["component"]]["manifest"]
-
-        if view.is_inline:
-            raw_data[view.rule] = new_content
-        elif view.clause_key and append_key:
-            raw_data[view.rule][view.condition_index]["weblog_declaration"][append_key] = new_content
-        elif view.clause_key:
-            raw_data[view.rule][view.condition_index]["weblog_declaration"][view.clause_key] = new_content
-        else:
-            raw_data[view.rule][view.condition_index] = new_content
-
-    def add_condition(self, rule: str, condition: dict) -> None:
-        self.raw_data[self.context.library]["manifest"][rule].append(condition)
-
     def add_rules(self, rules: list[str], parent: View) -> None:
         for rule in rules:
             if rule not in self.added_rules:
                 self.added_rules[rule] = set()
             self.added_rules[rule].add((parent, self.context))
-
-    def contains(self, rule: str) -> bool:
-        return rule in self.raw_data[self.context.library]["manifest"]
 
     @staticmethod
     def serialize_condition(condition: Condition) -> dict[str, str | CommentedSeq | dict]:
