@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, StrEnum
 
 
 # Key used in the metrics map to indicate tracer sampling priority
@@ -114,3 +114,17 @@ class SpanKind(IntEnum):
     CLIENT = 3
     PRODUCER = 4
     CONSUMER = 5
+
+
+class TraceAgentPayloadFormat(StrEnum):
+    """Describe which format is used to carry trace payloads from the agent to the backend
+    This enum is used only in system-tests to differentiate between different agent payloads
+    and is not exposed directly in trace payloads.
+    """
+
+    legacy = "legacy"
+    """ Legacy format before agent version XX.XX.XX """
+
+    efficient_trace_payload_format = "efficient_trace_payload_format"
+    """ Efficient format introduced in agent version XX.XX.XX. Uses idxTracerPayloads field instead of tracerPayloads
+    TODO : RFC link"""

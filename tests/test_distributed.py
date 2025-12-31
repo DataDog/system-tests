@@ -264,11 +264,11 @@ class Test_Synthetics_APM_Datadog:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") == "1234567890"
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert span.get("meta")[ORIGIN] == "synthetics"
-        assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
+        assert interfaces.agent.get_span_meta(span, span_format)[ORIGIN] == "synthetics"
+        assert span["metrics"][SAMPLING_PRIORITY_KEY] == 1
 
     def setup_synthetics_browser(self):
         self.r = weblog.get(
@@ -287,8 +287,8 @@ class Test_Synthetics_APM_Datadog:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") == "1234567891"
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert span.get("meta")[ORIGIN] == "synthetics-browser"
-        assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
+        assert interfaces.agent.get_span_meta(span, span_format)[ORIGIN] == "synthetics-browser"
+        assert span["metrics"][SAMPLING_PRIORITY_KEY] == 1

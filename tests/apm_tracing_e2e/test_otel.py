@@ -1,4 +1,5 @@
 from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features, flaky
+from utils.dd_constants import TraceAgentPayloadFormat
 
 
 @features.otel_api
@@ -27,21 +28,23 @@ class Test_Otel_Span:
         assert len(spans) >= 2, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
-        parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
+        parent, parent_span_format = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
-        if parent.get("meta")["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
+        parent_meta = interfaces.agent.get_span_meta(parent, parent_span_format)
+        if parent_meta["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
-        assert parent.get("meta").get("attributes") == "values"
-        assert parent.get("meta").get("error.message") == "testing_end_span_options"
+        assert parent_meta.get("attributes") == "values"
+        assert parent_meta.get("error.message") == "testing_end_span_options"
         assert parent["metrics"]["_dd.top_level"] == 1.0
         # Assert the child sent by the agent.
         # childName is no longer the operation name, rather the resource name
         # after remapping the OTel attributes to Datadog semantics
-        child = _get_span_by_resource(spans, "otel-name.dd-resource")
+        child, child_span_format = _get_span_by_resource(spans, "otel-name.dd-resource")
+        child_meta = interfaces.agent.get_span_meta(child, child_span_format)
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
-        assert child.get("meta").get("span.kind") == "internal"
+        assert child_meta.get("span.kind") == "internal"
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
@@ -59,19 +62,19 @@ class Test_Otel_Span:
         assert len(spans) >= 3, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
-        parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
+        parent, _parent_span_format = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent["name"] == "internal"
         assert parent.get("parentID") is None
         assert parent["metrics"]["_dd.top_level"] == 1.0
 
         # Assert the Roundtrip child span sent by the agent, this span is created by an external OTel contrib package
-        roundtrip_span = _get_span_by_name(spans, "client.request")
+        roundtrip_span, _roundtrip_span_format = _get_span_by_name(spans, "client.request")
         assert roundtrip_span["name"] == "client.request"
         assert roundtrip_span["resource"] == "HTTP GET"
         assert roundtrip_span.get("parentID") == parent.get("spanID")
 
         # Assert the Handler function child span sent by the agent.
-        handler_span = _get_span_by_name(spans, "server.request")
+        handler_span, _handler_span_format = _get_span_by_name(spans, "server.request")
         assert handler_span["resource"] == "testOperation"
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
@@ -80,15 +83,19 @@ class Test_Otel_Span:
         assert len(spans) == 3
 
 
-def _get_span_by_name(spans: list[dict], span_name: str):
-    for s in spans:
+def _get_span_by_name(
+    spans: list[tuple[dict, TraceAgentPayloadFormat]], span_name: str
+) -> tuple[dict, TraceAgentPayloadFormat]:
+    for s, span_format in spans:
         if s["name"] == span_name:
-            return s
-    return {}
+            return s, span_format
+    return {}, TraceAgentPayloadFormat.legacy
 
 
-def _get_span_by_resource(spans: list[dict], resource_name: str):
-    for s in spans:
+def _get_span_by_resource(
+    spans: list[tuple[dict, TraceAgentPayloadFormat]], resource_name: str
+) -> tuple[dict, TraceAgentPayloadFormat]:
+    for s, span_format in spans:
         if s["resource"] == resource_name:
-            return s
-    return {}
+            return s, span_format
+    return {}, TraceAgentPayloadFormat.legacy

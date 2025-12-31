@@ -4,10 +4,11 @@
 
 """Validate data flow between agent and backend"""
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Generator, Iterable
 import copy
 import threading
 
+from utils.dd_constants import TraceAgentPayloadFormat
 from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -78,7 +79,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     yield data
 
     def assert_trace_exists(self, request: HttpResponse):
-        for _, _ in self.get_spans(request=request):
+        for _, _, _ in self.get_spans(request=request):
             return
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
@@ -94,7 +95,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
-    def get_spans(self, request: HttpResponse | None = None):
+    def get_spans(
+        self, request: HttpResponse | None = None
+    ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat], None, None]:
         """Attempts to fetch the spans the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
@@ -106,18 +109,42 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                raise ValueError("Trace property is missing in agent payload")
+            logger.debug(f"Looking at agent data {data['log_filename']}")
+            if "tracerPayloads" in data["request"]["content"]:
+                content = data["request"]["content"]["tracerPayloads"]
 
-            content = data["request"]["content"]["tracerPayloads"]
+                for payload in content:
+                    for chunk in payload["chunks"]:
+                        for span in chunk["spans"]:
+                            if rid is None or get_rid_from_span(span) == rid:
+                                logger.debug(f"Found a span in {data['log_filename']}")
+                                yield data, span, TraceAgentPayloadFormat.legacy
 
-            for payload in content:
-                for chunk in payload["chunks"]:
-                    for span in chunk["spans"]:
-                        if rid is None or get_rid_from_span(span) == rid:
-                            yield data, span
+            if "idxTracerPayloads" in data["request"]["content"]:
+                content = data["request"]["content"]["idxTracerPayloads"]
 
-    def get_chunks_v1(self, request: HttpResponse | None = None):
+                for payload in content:
+                    for chunk in payload["chunks"]:
+                        for span in chunk["spans"]:
+                            logger.debug(f"Looking at agent span {span}")
+                            if rid is None or get_rid_from_span(span) == rid:
+                                logger.debug(f"Found a span in {data['log_filename']}")
+                                yield data, chunk, TraceAgentPayloadFormat.efficient_trace_payload_format
+                                # TODO Andrew : the legacy code returns all spans, where get_chunks_v1 breaks at the
+                                # first one. We must have the same behavior here
+
+    @staticmethod
+    def get_span_meta(span: dict, span_format: TraceAgentPayloadFormat) -> dict[str, str]:
+        """Returns the meta dictionary of a span according to its format"""
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["meta"]
+
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["attributes"]
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    def get_chunks_v1(self, request: HttpResponse | None = None):  # TODO : remove this, and use get_spans instead
         """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
 
         When a valid request is given, then we filter the chunks to the ones sampled
@@ -144,8 +171,8 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                             yield data, chunk
                             break
 
-    def get_spans_list(self, request: HttpResponse):
-        return [span for _, span in self.get_spans(request)]
+    def get_spans_list(self, request: HttpResponse) -> list[tuple[dict, TraceAgentPayloadFormat]]:
+        return [(span, span_format) for _, span, span_format in self.get_spans(request)]
 
     def get_metrics(self):
         """Attempts to fetch the metrics the agent will submit to the backend."""
