@@ -18,6 +18,14 @@ def make_webhook_request(data, secret=WEBHOOK_SECRET):
         "stripe-signature": f"t={timestamp},v1={signature}"
     }, data=jsonStr)
 
+def assert_no_payment_event(request, status_code):
+    assert request.status_code == status_code
+
+    def validator(span: dict):
+        assert "appsec.events.payments.integration" not in span["meta"]
+
+    interfaces.library.validate_all_spans(request, validator=validator)
+
 @scenarios.default
 @features.appsec_automated_payment_events
 class Test_Automated_Payment_Events_Stripe:
