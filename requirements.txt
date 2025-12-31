@@ -40,6 +40,7 @@ setuptools==75.8.0
 shellcheck-py==0.11.0.1
 types-aiofiles==24.1.0.20241221
 types-mock==5.2.0.20250924
+types-paramiko==4.0.0.20250822
 types-protobuf==5.29.1.20241207
 types-python-dateutil==2.9.0.20241206
 types-PyYAML==6.0.12.20241230

@@ -8,7 +8,7 @@ from utils._logger import logger
 from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from .core import Scenario
+from .core import Scenario, ScenarioGroup
 
 
 class _VirtualMachineScenario(Scenario):
@@ -20,10 +20,10 @@ class _VirtualMachineScenario(Scenario):
         *,
         github_workflow: str,
         doc: str,
-        vm_provision=None,
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
+        vm_provision: str | None = None,
+        agent_env: dict[str, str] | None = None,
+        app_env: dict[str, str] | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
@@ -36,7 +36,7 @@ class _VirtualMachineScenario(Scenario):
         self.app_env = app_env
         self.only_default_vms = ""
         # Current selected vm for the scenario (set empty by default)
-        self.virtual_machine = _VirtualMachine(
+        self.virtual_machine: _VirtualMachine = _VirtualMachine(
             name="",
             aws_config=None,
             vagrant_config=None,
@@ -144,7 +144,7 @@ class _VirtualMachineScenario(Scenario):
                 # different version
                 del self.components[key]
 
-    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
         self.close_targets()
 
     def close_targets(self):
@@ -218,13 +218,13 @@ class _VirtualMachineScenario(Scenario):
 class InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(
         self,
-        name,
-        doc,
-        vm_provision="installer-auto-inject",
-        agent_env=None,
-        app_env=None,
-        scenario_groups=None,
-        github_workflow=None,
+        name: str,
+        doc: str,
+        vm_provision: str = "installer-auto-inject",
+        agent_env: dict[str, str] | None = None,
+        app_env: dict[str, str] | None = None,
+        scenario_groups: list[ScenarioGroup] | None = None,
+        github_workflow: str | None = None,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {

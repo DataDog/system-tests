@@ -2,6 +2,8 @@ import os
 import json
 import hashlib
 
+from .virtual_machine_provisioner import Provision
+
 
 class AWSInfraConfig:
     def __init__(self) -> None:
@@ -99,7 +101,7 @@ class _VirtualMachine:
         self.os_distro = os_distro
         self.os_branch = os_branch
         self.os_cpu = os_cpu
-        self._vm_provision = None
+        self._vm_provision: Provision | None = None
         self.tested_components = {}
         self.deffault_open_port = 5985
         self.agent_env = None
@@ -139,7 +141,7 @@ class _VirtualMachine:
             f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
         )
 
-    def add_provision(self, provision):
+    def add_provision(self, provision: Provision):
         self._vm_provision = provision
 
     def get_provision(self):

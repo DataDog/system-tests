@@ -201,7 +201,6 @@ ignore = [
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
 "tests/auto_inject/*" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "RUF059",   # unused-unpacked-variable: TODO
     "SLF001",  # private-member-access: TODO
 ]
@@ -222,7 +221,6 @@ ignore = [
     "S605",      # start-process-with-a-shell: test the test needs to run shell commands
 ]
 "utils/_context/_scenarios/auto_injection.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "PLC0415",  # import-outside-top-level TODO
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
