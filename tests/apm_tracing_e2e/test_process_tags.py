@@ -18,12 +18,18 @@ class Test_Process_Tags:
     def test_tracing_process_tags(self):
         # Get all the spans from the agent
         found = False
-        for data, _ in interfaces.agent.get_chunks_v1(self.req):
+        for data, _, _ in interfaces.agent.get_traces(self.req):
             # Check that the agent managed to extract the process tags from the first chunk
-            for payload in data["request"]["content"]["idxTracerPayloads"]:
-                process_tags = payload["attributes"]["_dd.tags.process"]
-                validate_process_tags(process_tags)
-                found = True
+            if "idxTracerPayloads" in data["request"]["content"]:
+                for payload in data["request"]["content"]["idxTracerPayloads"]:
+                    process_tags = payload["attributes"]["_dd.tags.process"]
+                    validate_process_tags(process_tags)
+                    found = True
+            elif "tracerPayloads" in data["request"]["content"]:
+                for payload in data["request"]["content"]["tracerPayloads"]:
+                    process_tags = payload["tags"]["_dd.tags.process"]
+                    validate_process_tags(process_tags)
+                    found = True
         assert found, "Process tags are missing"
 
     def setup_remote_config_process_tags(self):

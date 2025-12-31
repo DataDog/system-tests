@@ -17,6 +17,7 @@ from utils import (
     logger,
     incomplete_test_app,
 )
+from utils.dd_constants import TraceAgentPayloadFormat
 
 # get the default log output
 stdout = interfaces.library_stdout
@@ -30,6 +31,22 @@ runtime_metrics_lang_map = {
     "ruby": ("language", "ruby"),
 }
 
+def _get_span_type(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        return span["typeRef"]
+    elif span_format == TraceAgentPayloadFormat.legacy:
+        return span["type"]
+    else:
+        raise ValueError(f"Unknown span format: {span_format}")
+
+
+def _get_span_service(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        return span["serviceRef"]
+    elif span_format == TraceAgentPayloadFormat.legacy:
+        return span["service"]
+    else:
+        raise ValueError(f"Unknown span format: {span_format}")
 
 @scenarios.default
 @features.trace_http_server_error_statuses
@@ -43,13 +60,14 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert self.r.status_code == 400
 
         interfaces.library.assert_trace_exists(self.r)
-        chunks = interfaces.agent.get_chunks_v1(self.r)
-        chunks = [chunk for _, chunk in chunks]
+        chunks = interfaces.agent.get_traces(self.r)
+        chunks = [(chunk, format) for _, chunk, format in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        spans = chunks[0]["spans"]
+        span_format = chunks[0][1]
+        spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert spans[0]["typeRef"] == "web"
+        assert _get_span_type(spans[0], span_format) == "web"
         assert spans[0]["attributes"]["http.status_code"] == "400"
         assert "error" not in spans[0] or spans[0]["error"] == 0
 
@@ -82,14 +100,16 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        chunks = interfaces.agent.get_chunks_v1(self.r)
-        chunks = [chunk for _, chunk in chunks]
+        chunks = interfaces.agent.get_traces(self.r)
+        chunks = [(chunk, format) for _, chunk, format in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        spans = chunks[0]["spans"]
+        span_format = chunks[0][1]
+        spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert spans[0]["typeRef"] == "web"
-        assert spans[0]["attributes"]["http.status_code"] == "200"
+        assert _get_span_type(spans[0], span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
+        assert span_meta["http.status_code"] == "200"
         assert spans[0]["error"]
 
     def setup_status_code_202(self):
@@ -99,14 +119,16 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        chunks = interfaces.agent.get_chunks_v1(self.r)
-        chunks = [chunk for _, chunk in chunks]
+        chunks = interfaces.agent.get_traces(self.r)
+        chunks = [(chunk, format) for _, chunk, format in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        spans = chunks[0]["spans"]
+        span_format = chunks[0][1]
+        spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert spans[0]["typeRef"] == "web"
-        assert spans[0]["attributes"]["http.status_code"] == "202"
+        assert _get_span_type(spans[0], span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
+        assert span_meta["http.status_code"] == "202"
         assert spans[0]["error"]
 
 
@@ -433,12 +455,13 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     )
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        chunks = interfaces.agent.get_chunks_v1(self.r)
-        chunks = [chunk for _, chunk in chunks]
+        chunks = interfaces.agent.get_traces(self.r)
+        chunks = [(chunk, format) for _, chunk, format in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        spans = chunks[0]["spans"]
+        span_format = chunks[0][1]
+        spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        assert spans[0]["serviceRef"] == "service_test"
+        assert _get_span_service(spans[0], span_format) == "service_test"
 
 
 @scenarios.default
@@ -451,13 +474,15 @@ class Test_Config_UnifiedServiceTagging_Default:
 
     def test_default_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        chunks = interfaces.agent.get_chunks_v1(self.r)
+        chunks = interfaces.agent.get_traces(self.r)
+        chunks = [(chunk, format) for _, chunk, format in chunks]
         chunks = [chunk for _, chunk in chunks]
         assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        spans = chunks[0]["spans"]
+        span_format = chunks[0][1]
+        spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         assert (
-            spans[0]["serviceRef"] != "service_test"
+            _get_span_service(spans[0], span_format) != "service_test"
         )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
 
 
