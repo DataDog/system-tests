@@ -10,6 +10,7 @@ from utils.manifest import Condition, SkipDeclaration
 from .const import LIBRARIES
 import sys
 from typing import TYPE_CHECKING
+import re
 
 if TYPE_CHECKING:
     from utils._context.component_version import Version
@@ -45,12 +46,71 @@ class ManifestEditor:
 
         self.raw_data = {}
         for component in LIBRARIES:
-            self.raw_data[component] = self.round_trip_parser.load(manifests_path.joinpath(f"{component}.yml"))
+            data = self.wrap_key_anchors(manifests_path.joinpath(f"{component}.yml"))
+            self.raw_data[component] = self.round_trip_parser.load(data)
 
         self.manifest = Manifest(path=manifests_path)
         self.poked_views = {}
         self.added_rules = {}
         self.weblogs = weblogs
+
+    def wrap_key_anchors(self, file: Path) -> str:
+        """Wrap anchor references used as keys in quotes for ruamel.yaml parsing.
+
+        Converts lines like:
+            *django: v3.12.0.dev
+            *django : v3.12.0.dev  (with space before colon)
+        to:
+            '*django': v3.12.0.dev
+            '*django' : v3.12.0.dev
+
+        This allows ruamel.yaml to parse anchor references used as unquoted keys.
+        """
+        lines = []
+        for line in file.read_text().splitlines():
+            # Match anchor reference with optional spaces before colon
+            # Pattern: indentation, anchor ref, optional spaces, colon
+            match = re.match(r"^(\s+)(\*[a-zA-Z_][a-zA-Z0-9_]*)(\s*)(:)", line)
+            if match:
+                indentation = match.group(1)
+                anchor_ref = match.group(2)  # e.g., *django
+                spaces_before_colon = match.group(3)  # Preserve any spaces before colon
+                colon = match.group(4)
+                rest_of_line = line[match.end() :]  # Everything after the colon
+                lines.append(f"{indentation}'{anchor_ref}'{spaces_before_colon}{colon}{rest_of_line}")
+            else:
+                lines.append(line)
+        return "\n".join(lines)
+
+    def unwrap_key_anchors(self, content: str) -> str:
+        """Unwrap anchor references used as keys, restoring them to unquoted state.
+
+        Converts lines like:
+            '*django': v3.12.0.dev
+            '*django' : v3.12.0.dev  (with space before colon)
+            "*django": v3.12.0.dev  (double quotes)
+        to:
+            *django: v3.12.0.dev
+            *django : v3.12.0.dev
+
+        This restores anchor references to their original unquoted format.
+        """
+        lines = []
+        for line in content.splitlines():
+            # Match quoted anchor reference with optional spaces before colon
+            # Pattern: indentation, quote, anchor ref, quote, optional spaces, colon
+            # Handles both single and double quotes
+            match = re.match(r"^(\s+)(['\"])(\*[a-zA-Z_][a-zA-Z0-9_]*)\2(\s*)(:)", line)
+            if match:
+                indentation = match.group(1)
+                anchor_ref = match.group(3)  # e.g., *django (without quotes)
+                spaces_before_colon = match.group(4)  # Preserve any spaces before colon
+                colon = match.group(5)
+                rest_of_line = line[match.end() :]  # Everything after the colon
+                lines.append(f"{indentation}{anchor_ref}{spaces_before_colon}{colon}{rest_of_line}")
+            else:
+                lines.append(line)
+        return "\n".join(lines)
 
     def init_round_trip_parser(self) -> None:
         self.round_trip_parser = YAML()
@@ -304,6 +364,12 @@ class ManifestEditor:
                     raw_data[0]["weblog"].fa.set_flow_style()
 
             elif "weblog_declaration" in raw_data[view.condition_index]:
+                skip = False
+                for weblog in raw_data[view.condition_index]["weblog_declaration"]:
+                    if re.match(r"\*\w", weblog):
+                        skip = True
+                if skip:
+                    continue
                 for weblog in weblogs:
                     raw_data[view.condition_index]["weblog_declaration"][weblog] = f"v{component_version}"
 
@@ -329,9 +395,8 @@ class ManifestEditor:
         for component, data in self.raw_data.items():
             file = output_dir.joinpath(f"{component}.yml")
             self.round_trip_parser.dump(data, file)
-            if False:
-                self.round_trip_parser.dump(data, sys.stdout)
             final_data = file.read_text()
+            final_data = self.unwrap_key_anchors(final_data)
             file.write_text(
                 f"# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n{final_data}"
             )
