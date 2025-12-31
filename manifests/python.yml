@@ -389,10 +389,6 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
-  : - component_version: ">=4.0.0"
-      declaration: bug (APPSEC-60241)
-      weblog: uwsgi-poc
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
@@ -404,10 +400,6 @@ manifest:
         "*": v3.2.0.dev
         flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
         uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
-  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
-  : - component_version: ">=4.0.0"
-      declaration: bug (APPSEC-60241)
-      weblog: uwsgi-poc
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
