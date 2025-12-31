@@ -124,10 +124,10 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                                 break
 
             if "idxTracerPayloads" in data["request"]["content"]:
-                content = data["request"]["content"]["idxTracerPayloads"]
+                content: list[dict] = data["request"]["content"]["idxTracerPayloads"]
 
                 for payload in content:
-                    for trace in payload["chunks"]:
+                    for trace in payload.get("chunks", []):
                         for span in trace["spans"]:
                             if rid is None or get_rid_from_span(span) == rid:
                                 logger.info(f"Found a trace in {data['log_filename']}")
@@ -197,7 +197,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for payload in content:
                 logger.debug(f"Looking at agent payload {payload}")
-                for chunk in payload["chunks"]:
+                for chunk in payload.get("chunks", []):
                     for span in chunk["spans"]:
                         if rid is None or get_rid_from_span(span) == rid:
                             logger.debug(f"Found a span in {data['log_filename']}")
