@@ -74,7 +74,7 @@ async def checkout_sessions(request: fastapi.Request):
                 {
                     "error": {
                         "type": "invalid_request_error",
-                        "message": "mock supports only payment and subscription mode"
+                        "message": "mock supports only payment and subscription mode",
                     },
                 },
                 status_code=400,
@@ -85,7 +85,7 @@ async def checkout_sessions(request: fastapi.Request):
                 {"error": {"type": "invalid_request_error", "message": "mock supports only one product"}},
                 status_code=400,
             )
-        
+
         if (
             body.get("line_items[0][price_data][currency]") != "eur"
             or body.get("shipping_options[0][shipping_rate_data][fixed_amount][currency]") != "eur"
@@ -106,7 +106,12 @@ async def checkout_sessions(request: fastapi.Request):
             and body.get("shiping_options[0][shipping_rate_data][type]") != "fixed_amount"
         ):
             return fastapi.responses.JSONResponse(
-                {"error": {"type": "invalid_request_error", "message": "mock supports only fixed_amount shipping option"}},
+                {
+                    "error": {
+                        "type": "invalid_request_error",
+                        "message": "mock supports only fixed_amount shipping option",
+                    },
+                },
                 status_code=400,
             )
 
