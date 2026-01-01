@@ -210,7 +210,11 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
-  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant (only api gateway inferred spans are specified for now)
+        apigw-http: v8.121.0
+        apigw-rest: v8.121.0
   tests/appsec/test_only_python.py::Test_ImportError: v7.112.0
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v7.112.0
   tests/appsec/test_reports.py::Test_Info: v7.112.0

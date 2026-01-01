@@ -92,10 +92,6 @@ class Test_Login_Events:
         self.r_pii_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
-    @irrelevant(
-        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
-        reason="APM reports all user id for now on Django",
-    )
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -110,10 +106,6 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
-    @irrelevant(
-        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
-        reason="APM reports all user id for now on Django",
-    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
