@@ -24,7 +24,7 @@ def make_webhook_request(data, secret=WEBHOOK_SECRET):
         "/stripe/webhook",
         headers={
             "content-type": "application/json",
-            "stripe-signature": f"t={timestamp},v1={signature}"
+            "stripe-signature": f"t={timestamp},v1={signature}",
         },
         data=jsonStr,
     )
