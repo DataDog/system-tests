@@ -14,7 +14,7 @@ from utils._weblog import HttpResponse
 WEBHOOK_SECRET = b"whsec_FAKE"
 
 
-def make_webhook_request(data: dict, secret: bytes=WEBHOOK_SECRET):
+def make_webhook_request(data: dict, secret: bytes = WEBHOOK_SECRET):
     timestamp = int(time.time())
     json_str = json.dumps(data)
     payload = f"{timestamp}.{json_str}"
