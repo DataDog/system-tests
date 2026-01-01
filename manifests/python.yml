@@ -452,6 +452,7 @@ manifest:
         django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
         python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev

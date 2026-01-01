@@ -321,6 +321,7 @@ manifest:
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: irrelevant
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v2.16.0
