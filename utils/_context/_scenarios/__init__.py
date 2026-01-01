@@ -26,7 +26,6 @@ from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
-from utils._context.containers import InternalServerContainer
 
 update_environ_with_local_env()
 
@@ -38,8 +37,6 @@ class _Scenarios:
     mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
 
     default = DefaultScenario("DEFAULT")
-    default._internal_server = InternalServerContainer()
-    default._required_containers.append(default._internal_server)
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
