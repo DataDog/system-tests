@@ -1,7 +1,7 @@
+from collections.abc import Callable
 import hmac
 import json
 import time
-
 from utils import (
     features,
     interfaces,
@@ -9,14 +9,15 @@ from utils import (
     scenarios,
     weblog,
 )
+from utils._weblog import HttpResponse
 
 WEBHOOK_SECRET = b"whsec_FAKE"
 
 
-def make_webhook_request(data: dict, secret: str=WEBHOOK_SECRET):
+def make_webhook_request(data: dict, secret: bytes=WEBHOOK_SECRET):
     timestamp = int(time.time())
     json_str = json.dumps(data)
-    payload = f"{timestamp}.{jsonStr}"
+    payload = f"{timestamp}.{json_str}"
 
     signature = hmac.new(secret, payload.encode("utf-8"), "sha256").hexdigest()
 
@@ -26,7 +27,7 @@ def make_webhook_request(data: dict, secret: str=WEBHOOK_SECRET):
             "content-type": "application/json",
             "stripe-signature": f"t={timestamp},v1={signature}",
         },
-        data=jsonStr,
+        data=json_str,
     )
 
 
