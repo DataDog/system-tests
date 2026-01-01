@@ -13,9 +13,9 @@ from utils import (
 WEBHOOK_SECRET = b"whsec_FAKE"
 
 
-def make_webhook_request(data, secret=WEBHOOK_SECRET):
+def make_webhook_request(data: dict, secret: str=WEBHOOK_SECRET):
     timestamp = int(time.time())
-    jsonStr = json.dumps(data)
+    json_str = json.dumps(data)
     payload = f"{timestamp}.{jsonStr}"
 
     signature = hmac.new(secret, payload.encode("utf-8"), "sha256").hexdigest()
@@ -30,14 +30,14 @@ def make_webhook_request(data, secret=WEBHOOK_SECRET):
     )
 
 
-def assert_payment_event(request, validator):
+def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool]):
     assert request.status_code == 200
 
     # make sure a Stripe object was returned by the Stripe SDK
     # all mocked objects will have a field "id"="xx_FAKE" and "livemode"=True
     body = json.loads(request.text)
     assert body.get("id") in ["cs_FAKE", "pi_FAKE"]
-    assert body.get("livemode") == True
+    assert body.get("livemode")
 
     # wrap validator for asserts common to all tests
     def _validator(span: dict):
@@ -53,7 +53,7 @@ def assert_payment_event(request, validator):
     interfaces.library.validate_one_span(request, validator=_validator)
 
 
-def assert_no_payment_event(request, status_code):
+def assert_no_payment_event(request: HttpResponse, status_code: int):
     assert request.status_code == status_code
 
     def validator(span: dict):
