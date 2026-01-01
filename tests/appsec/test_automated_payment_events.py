@@ -26,8 +26,9 @@ def make_webhook_request(data, secret=WEBHOOK_SECRET):
             "content-type": "application/json",
             "stripe-signature": f"t={timestamp},v1={signature}"
         },
-        data=jsonStr
+        data=jsonStr,
     )
+
 
 def assert_payment_event(request, validator):
     assert request.status_code == 200
@@ -84,20 +85,24 @@ class Test_Automated_Payment_Events_Stripe:
                 ],
                 "mode": "payment",
                 "customer_email": "gaben@valvesoftware.com",
-                "discounts": [{
-                    "coupon": "COUPEZ",
-                    "promotion_code": "promo_FAKE",
-                }],
-                "shipping_options": [{
-                    "shipping_rate_data": {
-                        "display_name": "test",
-                        "fixed_amount": {
-                            "amount": 50,
-                            "currency": "eur",
-                        },
-                        "type": "fixed_amount",
+                "discounts": [
+                    {
+                        "coupon": "COUPEZ",
+                        "promotion_code": "promo_FAKE",
                     },
-                }],
+                ],
+                "shipping_options": [
+                    {
+                        "shipping_rate_data": {
+                            "display_name": "test",
+                            "fixed_amount": {
+                                "amount": 50,
+                                "currency": "eur",
+                            },
+                            "type": "fixed_amount",
+                        },
+                    },
+                ],
             },
         )
 
@@ -137,22 +142,26 @@ class Test_Automated_Payment_Events_Stripe:
                         "quantity": 10,
                     },
                 ],
-                "mode": "subscription", # unsupported mode
+                "mode": "subscription",  # unsupported mode
                 "customer_email": "gaben@valvesoftware.com",
-                "discounts": [{
-                    "coupon": "COUPEZ",
-                    "promotion_code": "promo_FAKE",
-                }],
-                "shipping_options": [{
-                    "shipping_rate_data": {
-                        "display_name": "test",
-                        "fixed_amount": {
-                            "amount": 50,
-                            "currency": "eur",
-                        },
-                        "type": "fixed_amount",
+                "discounts": [
+                    {
+                        "coupon": "COUPEZ",
+                        "promotion_code": "promo_FAKE",
                     },
-                }],
+                ],
+                "shipping_options": [
+                    {
+                        "shipping_rate_data": {
+                            "display_name": "test",
+                            "fixed_amount": {
+                                "amount": 50,
+                                "currency": "eur",
+                            },
+                            "type": "fixed_amount",
+                        },
+                    },
+                ],
             },
         )
 
@@ -252,7 +261,10 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.code"] == "card_declined"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.decline_code"] == "stolen_card"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.id"] == "pm_FAKE"
-            assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email"] == "gaben@valvesoftware.com"
+            assert (
+                span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email"]
+                == "gaben@valvesoftware.com"
+            )
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.type"] == "card"
             assert span["metrics"]["appsec.events.payments.failure.livemode"] == 1
 
@@ -305,7 +317,7 @@ class Test_Automated_Payment_Events_Stripe:
                     },
                 },
             },
-            b"WRONG_SECRET",  # wrong signature secret 
+            b"WRONG_SECRET",  # wrong signature secret
         )
 
     def test_wrong_signature(self):
@@ -315,7 +327,7 @@ class Test_Automated_Payment_Events_Stripe:
     def setup_unsupported_event(self):
         self.r = make_webhook_request(
             {
-                "type": "payment_intent.created", # unsupported type
+                "type": "payment_intent.created",  # unsupported type
                 "data": {
                     "object": {
                         "id": "pi_FAKE",
@@ -326,7 +338,7 @@ class Test_Automated_Payment_Events_Stripe:
                 },
             },
         )
-    
+
     def test_unsupported_event(self):
         """R6.2"""
         assert_no_payment_event(self.r, 200)
