@@ -35,7 +35,7 @@ function init (app) {
         req.headers['stripe-signature'],
         webhookSecret
       )
-      res.json(event)
+      res.json(event?.data?.object)
     } catch (error) {
       res.status(403).json({ error })
     }
