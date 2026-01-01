@@ -57,6 +57,7 @@ async def redirect(request: fastapi.Request):
 
     return fastapi.responses.RedirectResponse(url=location, status_code=302)
 
+
 # The next two routes are used to mock the Stripe API for Automated Payment Events tests.
 # It hogs the "/v1/" path, and thus will conflict with any future mocking of other APIs.
 # A universal mocking system should be created instead of this.
@@ -69,49 +70,80 @@ async def checkout_sessions(request: fastapi.Request):
         mode = body.get("mode")
 
         if mode not in ["payment", "subscription"]:
-            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only payment and subscription mode"}}, status_code=400)
+            return fastapi.responses.JSONResponse(
+                {
+                    "error": {
+                        "type": "invalid_request_error",
+                        "message": "mock supports only payment and subscription mode"
+                    },
+                },
+                status_code=400,
+            )
 
         if "line_items[1][quantity]" in body:
-            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only one product"}}, status_code=400)
+            return fastapi.responses.JSONResponse(
+                {"error": {"type": "invalid_request_error", "message": "mock supports only one product"}},
+                status_code=400,
+            )
         
-        if body.get("line_items[0][price_data][currency]") != "eur" or body.get("shipping_options[0][shipping_rate_data][fixed_amount][currency]") != "eur":
-            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only eur currency"}}, status_code=400)
+        if (
+            body.get("line_items[0][price_data][currency]") != "eur"
+            or body.get("shipping_options[0][shipping_rate_data][fixed_amount][currency]") != "eur"
+        ):
+            return fastapi.responses.JSONResponse(
+                {"error": {"type": "invalid_request_error", "message": "mock supports only eur currency"}},
+                status_code=400,
+            )
 
         if "shipping_options[1][shipping_rate_data]" in body:
-            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only one shipping option"}}, status_code=400)
+            return fastapi.responses.JSONResponse(
+                {"error": {"type": "invalid_request_error", "message": "mock supports only one shipping option"}},
+                status_code=400,
+            )
 
-        if "shiping_options[0][shipping_rate_data][type]" in body and body.get("shiping_options[0][shipping_rate_data][type]") != "fixed_amount":
-            return fastapi.responses.JSONResponse({"error": {"type": "invalid_request_error", "message": "mock supports only fixed_amount shipping option"}}, status_code=400)
+        if (
+            "shiping_options[0][shipping_rate_data][type]" in body
+            and body.get("shiping_options[0][shipping_rate_data][type]") != "fixed_amount"
+        ):
+            return fastapi.responses.JSONResponse(
+                {"error": {"type": "invalid_request_error", "message": "mock supports only fixed_amount shipping option"}},
+                status_code=400,
+            )
 
         unit_amount = int(body.get("line_items[0][price_data][unit_amount]"))
         quantity = int(body.get("line_items[0][quantity]"))
 
         subtotal = unit_amount * quantity
-        
+
         if body.get("discounts[0][promotion_code]") or body.get("discounts[0][coupon]"):
-            amount_discount = subtotal * 0.1 # hardcoded 10% discount
+            amount_discount = subtotal * 0.1  # hardcoded 10% discount
 
         amount_shipping = int(body.get("shipping_options[0][shipping_rate_data][fixed_amount][amount]"))
 
         amount_total = subtotal - amount_discount + amount_shipping
 
-        return fastapi.responses.JSONResponse({
-            "id": "cs_FAKE",
-            "amount_total": amount_total,
-            "client_reference_id": body.get("client_reference_id"),
-            "currency": "eur",
-            "customer_email": body.get("customer_email"),
-            "mode": mode,
-            "discounts": [{
-                "coupon": body.get("discounts[0][coupon]"),
-                "promotion_code": body.get("discounts[0][promotion_code]"),
-            }],
-            "livemode": True,
-            "total_details": {
-                "amount_discount": amount_discount,
-                "amount_shipping": amount_shipping,
+        return fastapi.responses.JSONResponse(
+            {
+                "id": "cs_FAKE",
+                "amount_total": amount_total,
+                "client_reference_id": body.get("client_reference_id"),
+                "currency": "eur",
+                "customer_email": body.get("customer_email"),
+                "mode": mode,
+                "discounts": [
+                    {
+                        "coupon": body.get("discounts[0][coupon]"),
+                        "promotion_code": body.get("discounts[0][promotion_code]"),
+                    },
+                ],
+                "livemode": True,
+                "total_details": {
+                    "amount_discount": amount_discount,
+                    "amount_shipping": amount_shipping,
+                },
             },
-        }, status_code=200)
+            status_code=200,
+        )
     except Exception as e:
         return fastapi.responses.JSONResponse({"error": {"type": "api_error", "message": str(e)}}, status_code=500)
 
@@ -122,14 +154,17 @@ async def payment_intents(request: fastapi.Request):
     try:
         body = await parse_form_data(request)
 
-        return fastapi.responses.JSONResponse({
-            "id": "pi_FAKE",
-            "amount": int(body.get("amount")),
-            "currency": body.get("currency"),
-            "livemode": True,
-            "payment_method": body.get("payment_method"),
-            "receipt_email": body.get("receipt_email"),
-        }, status_code=200)
+        return fastapi.responses.JSONResponse(
+            {
+                "id": "pi_FAKE",
+                "amount": int(body.get("amount")),
+                "currency": body.get("currency"),
+                "livemode": True,
+                "payment_method": body.get("payment_method"),
+                "receipt_email": body.get("receipt_email"),
+            },
+            status_code=200,
+        )
     except Exception as e:
         return fastapi.responses.JSONResponse({"error": {"type": "api_error", "message": str(e)}}, status_code=500)
 
