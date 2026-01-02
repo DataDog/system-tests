@@ -18,6 +18,7 @@ import requests
 
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
+from utils._context.ports import ContainerPorts
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -1389,6 +1390,39 @@ class APMTestAgentContainer(TestedContainer):
             "bind": "/var/run/datadog/",
             "mode": "rw",
         }
+
+
+class VCRCassettesContainer(TestedContainer):
+    """VCR cassettes container for recording and replaying HTTP interactions.
+
+    Will mount the folder ./utils/build/docker/vcr_proxy/cassettes to /cassettes inside the container.
+
+    The endpoint will be made available to weblogs at 'http://vcr_cassettes:{proxy_port}/vcr'
+    """
+
+    def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
+            name="vcr_cassettes",
+            environment={
+                "PORT": str(vcr_port),
+                "VCR_CASSETTES_DIRECTORY": "/cassettes",
+                # cassettes are pre-recorded and the real service will never be used in testing
+                "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{vcr_port}/info",
+                "retries": 60,
+            },
+            volumes={
+                "./utils/build/docker/vcr/cassettes": {
+                    "bind": "/cassettes",
+                    "mode": "ro",
+                },
+            },
+            ports={vcr_port: ("127.0.0.1", vcr_port)},
+            allow_old_container=False,
+        )
 
 
 class MountInjectionVolume(TestedContainer):
