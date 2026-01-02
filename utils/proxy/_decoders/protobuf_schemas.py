@@ -27,3 +27,12 @@ SketchPayload = _messages["datadog.agentpayload.SketchPayload"]
 
 _backend_messages = _get_mesages("backend.descriptor")
 BackendResponsePayload = _backend_messages["datadoghq.api.series.v2.Response"]
+
+_remoteconfig_messages = _get_mesages("remoteconfig.descriptor")
+LatestConfigsResponse = _remoteconfig_messages["datadog.config.LatestConfigsResponse"]
+ConfigMetas = _remoteconfig_messages["datadog.config.ConfigMetas"]
+DirectorMetas = _remoteconfig_messages["datadog.config.DirectorMetas"]
+TopMeta = _remoteconfig_messages["datadog.config.TopMeta"]
+File = _remoteconfig_messages["datadog.config.File"]
+OrgDataResponse = _remoteconfig_messages["datadog.config.OrgDataResponse"]
+OrgStatusResponse = _remoteconfig_messages["datadog.config.OrgStatusResponse"]

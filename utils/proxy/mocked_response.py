@@ -10,6 +10,7 @@ from mitmproxy.http import HTTPFlow
 from .ports import ProxyPorts
 
 MOCKED_RESPONSES_PATH = "/mocked_responses"
+RC_BACKEND_STATE_PATH = "/rc_backend_state"
 
 
 def _all_subclasses(cls: type["MockedResponse"]) -> list[type["MockedResponse"]]:
@@ -203,3 +204,39 @@ class SetSpanEventFlags(_InternalMockedResponse):
             "type": self.__class__.__name__,
             "span_events": self.span_events,
         }
+
+
+class RCBackendState:
+    """Stores RC backend state to be served to the agent via protobuf API.
+
+    This is used when rc_backend_enabled=True in scenarios. The agent polls
+    the proxy's RC backend port and receives TUF-signed configurations.
+
+    Unlike MockedResponse which intercepts and modifies responses, this stores
+    state that the proxy serves when the agent polls /api/v0.1/configurations.
+    """
+
+    def __init__(self, rc_state: dict):
+        """Initialize with RC state.
+
+        Args:
+            rc_state: Dict with 'targets' (base64 signed JSON), 'target_files'
+                      (list of {path, raw} dicts), and 'client_configs' (list of paths)
+
+        """
+        self.rc_state = rc_state
+
+    def send(self) -> None:
+        """Send RC backend state to the proxy."""
+        if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
+            domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
+        elif "DOCKER_HOST" in os.environ:
+            m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
+            domain = m.group(1) if m is not None else "localhost"
+        else:
+            domain = "localhost"
+
+        response = requests.put(
+            f"http://{domain}:{ProxyPorts.proxy_commands}{RC_BACKEND_STATE_PATH}", json=self.rc_state, timeout=30
+        )
+        response.raise_for_status()

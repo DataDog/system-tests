@@ -16,7 +16,8 @@ from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize
 from .ports import ProxyPorts
-from .mocked_response import MOCKED_RESPONSES_PATH, MockedResponse
+from .mocked_response import MOCKED_RESPONSES_PATH, RC_BACKEND_STATE_PATH, MockedResponse
+from .rc_backend import build_rc_protobuf_response, build_org_data_response, build_org_status_response
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
@@ -47,6 +48,8 @@ class _RequestLogger:
         self.host_log_folder = "/app/logs"
 
         self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
+        self.rc_backend_mode = os.environ.get("SYSTEM_TEST_RC_BACKEND_MODE") == "True"
+        self.rc_backend_state: dict = {}
 
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
@@ -73,6 +76,39 @@ class _RequestLogger:
 
         logger.info(f"{flow.request.method} {flow.request.pretty_url} using proxy port {port}")
 
+        # Handle RC backend requests (can come through HTTP proxy or direct connection)
+        if (port == ProxyPorts.rc_backend) or (
+            flow.request.host == "proxy" and flow.request.port == ProxyPorts.rc_backend
+        ):
+            # Agent RC backend uses protobuf API at /api/v0.1/configurations (POST)
+            if flow.request.path == "/api/v0.1/configurations" and flow.request.method == "POST":
+                # Core agent is polling for RC configurations via protobuf
+                # Return properly formatted TUF metadata with any stored RC state
+                rc_state = self.rc_backend_state if self.rc_backend_state else None
+                response_pb = build_rc_protobuf_response(rc_state)
+                logger.info(
+                    f"RC backend: Serving protobuf response for /api/v0.1/configurations ({len(response_pb)} bytes)"
+                )
+                flow.response = http.Response.make(200, response_pb, {"Content-Type": "application/x-protobuf"})
+            elif flow.request.path == "/api/v0.1/org" and flow.request.method == "GET":
+                logger.debug("RC backend: Serving org data")
+                flow.response = http.Response.make(
+                    200, build_org_data_response(), {"Content-Type": "application/x-protobuf"}
+                )
+            elif flow.request.path == "/api/v0.1/status" and flow.request.method == "GET":
+                logger.debug("RC backend: Serving status (enabled=true, authorized=true)")
+                flow.response = http.Response.make(
+                    200, build_org_status_response(), {"Content-Type": "application/x-protobuf"}
+                )
+            elif flow.request.path == "/api/v0.2/echo-test" and flow.request.method == "GET":
+                # Echo test endpoint
+                logger.debug("RC backend: echo-test")
+                flow.response = http.Response.make(200, b"ok")
+            else:
+                logger.debug(f"RC backend: 404 for {flow.request.method} {flow.request.path}")
+                flow.response = http.Response.make(404, b"Not found")
+            return
+
         if port == ProxyPorts.proxy_commands:
             if flow.request.path == MOCKED_RESPONSES_PATH and flow.request.method == "PUT":
                 source: list[dict] = json.loads(flow.request.content)
@@ -84,6 +120,15 @@ class _RequestLogger:
                 else:
                     logger.info(f"Store mocked response :{self.mocked_responses}")
                     flow.response = http.Response.make(200, b"Ok")
+            elif flow.request.path == RC_BACKEND_STATE_PATH and flow.request.method == "PUT":
+                # Store RC backend state for core agent polling
+                try:
+                    self.rc_backend_state = json.loads(flow.request.content)
+                    logger.info(f"Store RC backend state: {self.rc_backend_state.get('targets', '...')[:100]}")
+                    flow.response = http.Response.make(200, b"Ok")
+                except Exception as e:
+                    logger.exception("Failed to parse RC backend state")
+                    flow.response = self.get_error_response(f"Invalid RC backend state: {e}".encode())
             else:
                 flow.response = http.Response.make(404, b"Not found")
 
@@ -235,6 +280,11 @@ class _RequestLogger:
 
     def _modify_response(self, flow: HTTPFlow):
         if self.request_is_from_tracer(flow.request):
+            # Skip tracer RC mocks in backend mode - let requests pass through to agent
+            if self.rc_backend_mode and flow.request.path == "/v0.7/config":
+                logger.debug("    => RC backend mode: passing /v0.7/config through to agent")
+                return
+
             # apply internal mocks before those controlled by setup methods
             for mocked_response in self.internal_mocked_responses + self.mocked_responses:
                 if mocked_response.path == flow.request.path:
@@ -255,6 +305,7 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.rc_backend}",  # RC backend for core agent polling
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
