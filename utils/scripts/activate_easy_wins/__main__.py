@@ -2,10 +2,10 @@ import argparse
 import sys
 from os import environ
 from pathlib import Path
-from .const import ARTIFACT_URL, LIBRARIES
-from .core import print_activation_report, print_detailed_rules_report, update_manifest
-from .test_artifact import parse_artifact_data, pull_artifact
-from .manifest_editor import ManifestEditor
+from ._internal.const import ARTIFACT_URL, LIBRARIES
+from ._internal.core import print_activation_report, print_detailed_rules_report, update_manifest
+from ._internal.test_artifact import parse_artifact_data, pull_artifact
+from ._internal.manifest_editor import ManifestEditor
 
 
 def main() -> None:

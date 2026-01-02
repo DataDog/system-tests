@@ -5,12 +5,12 @@ from functools import reduce
 from typing import TYPE_CHECKING
 
 
-from utils.scripts.activate_easy_wins.test_artifact import ActivationStatus, TestData
+from .test_artifact import ActivationStatus, TestData
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from .types import Context
-    from utils.scripts.activate_easy_wins.manifest_editor import ManifestEditor
+    from .manifest_editor import ManifestEditor
 
 
 def tup_to_rule(tup: tuple[str, ...]) -> str:
