@@ -25,6 +25,8 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/error", SpanSetError);
         app.MapPost("/trace/span/set_meta", SpanSetMeta);
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
+        app.MapPost("/trace/span/manual_keep", SpanManualKeep);
+        app.MapPost("/trace/span/manual_drop", SpanManualDrop);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
     }
@@ -186,6 +188,24 @@ public abstract class ApmTestApi
         span.SetTag(key, value);
         _logger?.LogInformation("Set numeric span attribute {key}:{value} on span {spanId}.", key, value, span.SpanId);
     }
+
+    private static async Task SpanManualKeep(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
+        span.SetTag(Tags.ManualKeep, true);
+    }
+
+    private static async Task SpanManualDrop(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
+        span.SetTag(Tags.ManualDrop, true);
+    }
+
+    private static async Task SpanManualDrop(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
 
     private static async Task SpanSetError(HttpRequest request)
     {
