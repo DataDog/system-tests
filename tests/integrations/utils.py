@@ -3,6 +3,7 @@ import hashlib
 import struct
 
 from utils import weblog, interfaces, logger, HttpResponse
+from utils.dd_constants import TraceAgentPayloadFormat
 
 
 class BaseDbIntegrationsTestClass:
@@ -108,38 +109,42 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
     @staticmethod
-    def get_span_from_agent(weblog_request: HttpResponse) -> dict:
-        for data, chunk in interfaces.agent.get_chunks_v1(weblog_request):
-            logger.debug(f"Chunk found: trace id={chunk['traceID']}; ({data['log_filename']})")
+    def get_span_from_agent(weblog_request: HttpResponse) -> tuple[dict, TraceAgentPayloadFormat]:
+        for data, chunk, chunk_format in interfaces.agent.get_traces(weblog_request):
+            trace_id = interfaces.agent.get_trace_id(chunk, chunk_format)
+            logger.debug(f"Chunk found: trace id={trace_id}; ({data['log_filename']})")
 
             # iterate over everything to be sure to miss nothing
             for span in chunk["spans"]:
                 logger.debug(f"Checking if span {span['spanID']} could match")
-
-                if span.get("typeRef") not in ("sql", "db"):
-                    logger.debug(f"Wrong type:{span.get('typeRef')}, continue...")
+                span_type = interfaces.agent.get_span_type(span, chunk_format)
+                if span_type not in ("sql", "db"):
+                    logger.debug(f"Wrong type:{span_type}, continue...")
                     # no way it's the span we're looking for
                     continue
 
                 # workaround to avoid conflicts on connection check on mssql
                 # workaround to avoid conflicts on connection check on mssql + nodejs + opentelemetry (there is a bug in the sql obfuscation)
-                if span.get("resourceRef") in ("SELECT ?", "SELECT 1;"):
-                    logger.debug(f"Wrong resource:{span.get('resourceRef')}, continue...")
+                span_resource = interfaces.agent.get_span_resource(span, chunk_format)
+                if span_resource in ("SELECT ?", "SELECT 1;"):
+                    logger.debug(f"Wrong resource:{span_resource}, continue...")
                     continue
 
                 # workaround to avoid conflicts on postgres + nodejs + opentelemetry
-                if span.get("nameRef") == "pg.connect":
-                    logger.debug(f"Wrong name:{span.get('nameRef')}, continue...")
+                span_name = interfaces.agent.get_span_name(span, chunk_format)
+                if span_name == "pg.connect":
+                    logger.debug(f"Wrong name:{span_name}, continue...")
                     continue
 
                 # workaround to avoid conflicts on mssql + nodejs + opentelemetry
-                if span.get("attributes", {}).get("db.statement") == "SELECT 1;":
-                    logger.debug(f"Wrong db.statement:{span.get('attributes', {}).get('db.statement')}, continue...")
+                span_meta = interfaces.agent.get_span_meta(span, chunk_format)
+                if span_meta.get("db.statement") == "SELECT 1;":
+                    logger.debug(f"Wrong db.statement:{span_meta.get('db.statement')}, continue...")
                     continue
 
                 logger.info(f"Span type==sql found: spanId={span['spanID']}")
 
-                return span
+                return span, chunk_format
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 

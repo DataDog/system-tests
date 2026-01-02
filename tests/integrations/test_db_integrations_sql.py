@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, irrelevant, scenarios, features, logger
+from utils import context, bug, interfaces, missing_feature, irrelevant, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
 
@@ -209,23 +209,25 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_sql_query(self):
         """Usually the query"""
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
-            span = self.get_span_from_agent(request)
-            assert db_operation in span["meta"]["sql.query"].lower(), (
+            span, span_format = self.get_span_from_agent(request)
+            span_meta = interfaces.agent.get_span_meta(span, span_format)
+            assert db_operation in span_meta["sql.query"].lower(), (
                 f"sql.query span not found for operation {db_operation}"
             )
 
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
         for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
+            span, span_format = self.get_span_from_agent(request)
+            span_meta = interfaces.agent.get_span_meta(span, span_format)
             # We launch all queries with two parameters (from weblog)
             # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
             if db_operation in ["insert", "procedure"]:
-                assert span["meta"]["sql.query"].count("?") == 1, (
+                assert span_meta["sql.query"].count("?") == 1, (
                     f"The query is not properly obfuscated for operation {db_operation}"
                 )
             else:
-                assert span["meta"]["sql.query"].count("?") == 2, (
+                assert span_meta["sql.query"].count("?") == 2, (
                     f"The query is not properly obfuscated for operation {db_operation}"
                 )
 
@@ -298,7 +300,8 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
         for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
+            span, span_format = self.get_span_from_agent(request)
+            span_meta = interfaces.agent.get_span_meta(span, span_format)
             # We launch all queries with two parameters (from weblog)
             if db_operation == "insert":
                 expected_obfuscation_count = 1
@@ -309,9 +312,9 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             else:
                 expected_obfuscation_count = 2
 
-            observed_obfuscation_count = span["meta"]["sql.query"].count("?")
+            observed_obfuscation_count = span_meta["sql.query"].count("?")
             assert observed_obfuscation_count == expected_obfuscation_count, (
-                f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['sql.query']}"
+                f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span_meta['sql.query']}"
             )
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")

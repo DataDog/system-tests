@@ -17,7 +17,6 @@ from utils import (
     logger,
     incomplete_test_app,
 )
-from utils.dd_constants import TraceAgentPayloadFormat
 
 # get the default log output
 stdout = interfaces.library_stdout
@@ -30,24 +29,6 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-
-
-def _get_span_type(span: dict, span_format: TraceAgentPayloadFormat) -> str:
-    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-        return span["typeRef"]
-    elif span_format == TraceAgentPayloadFormat.legacy:
-        return span["type"]
-    else:
-        raise ValueError(f"Unknown span format: {span_format}")
-
-
-def _get_span_service(span: dict, span_format: TraceAgentPayloadFormat) -> str:
-    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-        return span["serviceRef"]
-    elif span_format == TraceAgentPayloadFormat.legacy:
-        return span["service"]
-    else:
-        raise ValueError(f"Unknown span format: {span_format}")
 
 
 @scenarios.default
@@ -69,7 +50,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
         spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert _get_span_type(spans[0], span_format) == "web"
+        assert interfaces.agent.get_span_type(spans[0], span_format) == "web"
         span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
         assert span_meta["http.status_code"] == "400"
         assert "error" not in spans[0] or spans[0]["error"] == 0
@@ -112,7 +93,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert _get_span_type(spans[0], span_format) == "web"
+        assert interfaces.agent.get_span_type(spans[0], span_format) == "web"
         span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
         assert span_meta["http.status_code"] == "200"
         assert spans[0]["error"]
@@ -131,7 +112,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        assert _get_span_type(spans[0], span_format) == "web"
+        assert interfaces.agent.get_span_type(spans[0], span_format) == "web"
         span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
         assert span_meta["http.status_code"] == "202"
         assert spans[0]["error"]
@@ -466,7 +447,7 @@ class Test_Config_UnifiedServiceTagging_CustomService:
         span_format = chunks[0][1]
         spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        assert _get_span_service(spans[0], span_format) == "service_test"
+        assert interfaces.agent.get_span_service(spans[0], span_format) == "service_test"
 
 
 @scenarios.default
@@ -486,7 +467,7 @@ class Test_Config_UnifiedServiceTagging_Default:
         spans = chunks[0][0]["spans"]
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         assert (
-            _get_span_service(spans[0], span_format) != "service_test"
+            interfaces.agent.get_span_service(spans[0], span_format) != "service_test"
         )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
 
 

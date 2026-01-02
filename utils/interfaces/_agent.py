@@ -253,3 +253,51 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     for client_grouped_stat in client_stats_buckets["Stats"]:
                         if resource == "" or client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat
+
+    @staticmethod
+    def get_trace_id(chunk: dict, chunk_format: TraceAgentPayloadFormat) -> str:
+        if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return chunk["traceID"]
+        if chunk_format == TraceAgentPayloadFormat.legacy:
+            return chunk["spans"][0]["traceID"]
+        raise ValueError(f"Unknown chunk format: {chunk_format}")
+
+    @staticmethod
+    def get_span_type(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["typeRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["type"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_name(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["nameRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["name"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_resource(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["resourceRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["resource"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_service(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["serviceRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["service"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_kind(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["kind"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["meta"]["span.kind"]
+        raise ValueError(f"Unknown span format: {span_format}")
