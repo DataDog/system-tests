@@ -86,17 +86,14 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        traces = interfaces.agent.get_traces(self.r)
-        chunks = [(chunk, fmt) for _, chunk, fmt in traces]
-        assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        span_format = chunks[0][1]
-        spans = chunks[0][0]["spans"]
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
+        span_format = spans[0][1]
 
-        assert interfaces.agent.get_span_type(spans[0], span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
+        assert interfaces.agent.get_span_type(spans[0][0], span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(spans[0][0], span_format)
         assert span_meta["http.status_code"] == "200"
-        assert spans[0]["error"]
+        assert spans[0][0]["error"]
 
     def setup_status_code_202(self):
         self.r = weblog.get("/status?code=202")
@@ -105,17 +102,14 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        traces = interfaces.agent.get_traces(self.r)
-        chunks = [(chunk, fmt) for _, chunk, fmt in traces]
-        assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        span_format = chunks[0][1]
-        spans = chunks[0][0]["spans"]
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
+        span_format = spans[0][1]
 
-        assert interfaces.agent.get_span_type(spans[0], span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(spans[0], span_format)
+        assert interfaces.agent.get_span_type(spans[0][0], span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(spans[0][0], span_format)
         assert span_meta["http.status_code"] == "202"
-        assert spans[0]["error"]
+        assert spans[0][0]["error"]
 
 
 # Tests for verifying default query string obfuscation behavior can be found in the Test_StandardTagsUrl test class
@@ -441,13 +435,10 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     )
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = interfaces.agent.get_traces(self.r)
-        chunks = [(chunk, fmt) for _, chunk, fmt in traces]
-        assert len(chunks) == 1, "Agent received the incorrect amount of chunks"
-        span_format = chunks[0][1]
-        spans = chunks[0][0]["spans"]
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        assert interfaces.agent.get_span_service(spans[0], span_format) == "service_test"
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1, f"Agent received the incorrect amount of spans, Spans: {spans}"
+        span_format = spans[0][1]
+        assert interfaces.agent.get_span_service(spans[0][0], span_format) == "service_test"
 
 
 @scenarios.default
