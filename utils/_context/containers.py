@@ -22,10 +22,11 @@ from utils._context.ports import ContainerPorts
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
-    MockedResponse,
+    MockedTracerResponse,
+    MockedBackendResponse,
     SetSpanEventFlags,
     AddRemoteConfigEndpoint,
-    StaticJsonMockedResponse,
+    StaticJsonMockedTracerResponse,
 )
 from utils._logger import logger
 from utils._weblog import weblog
@@ -589,29 +590,38 @@ class ProxyContainer(TestedContainer):
             },
         )
 
-        self.internal_mocked_responses: list[MockedResponse] = [SetSpanEventFlags(span_events=span_events)]
+        self.internal_mocked_tracer_responses: list[MockedTracerResponse] = [SetSpanEventFlags(span_events=span_events)]
 
         if meta_structs_disabled:
-            self.internal_mocked_responses.append(RemoveMetaStructsSupport())
+            self.internal_mocked_tracer_responses.append(RemoveMetaStructsSupport())
 
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints
-            self.internal_mocked_responses.append(AddRemoteConfigEndpoint())
-            # mimic the default response from the agent
-            self.internal_mocked_responses.append(StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}))
+            self.internal_mocked_tracer_responses.append(AddRemoteConfigEndpoint())
+            self.internal_mocked_tracer_responses.append(
+                StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
+            )
+        # Backend mocked responses (create responses from scratch)
+        self.internal_mocked_backend_responses: list[MockedBackendResponse] = []
 
         self.mocked_backend = mocked_backend
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
-        mocked_responses_path = f"{self.log_folder_path}/internal_mocked_responses.json"
+        # Write tracer mocked responses JSON
+        tracer_mocks_path = f"{self.log_folder_path}/internal_mocked_tracer_responses.json"
+        with Path(tracer_mocks_path).open(encoding="utf-8", mode="w") as f:
+            json.dump([resp.to_json() for resp in self.internal_mocked_tracer_responses], f, indent=2)
 
-        with Path(mocked_responses_path).open(encoding="utf-8", mode="w") as f:
-            json.dump([resp.to_json() for resp in self.internal_mocked_responses], f, indent=2)
+        # Write backend mocked responses JSON
+        backend_mocks_path = f"{self.log_folder_path}/internal_mocked_backend_responses.json"
+        with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
+            json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
         self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
-        self.volumes[mocked_responses_path] = {"bind": "/app/logs/internal_mocked_responses.json", "mode": "ro"}
+        self.volumes[tracer_mocks_path] = {"bind": "/app/logs/internal_mocked_tracer_responses.json", "mode": "ro"}
+        self.volumes[backend_mocks_path] = {"bind": "/app/logs/internal_mocked_backend_responses.json", "mode": "ro"}
 
 
 class LambdaProxyContainer(TestedContainer):
