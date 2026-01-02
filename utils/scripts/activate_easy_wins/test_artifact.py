@@ -6,6 +6,7 @@ import requests
 import zipfile
 from tqdm import tqdm
 from pygtrie import StringTrie
+import shutil
 
 from .types import Context
 import json
@@ -57,7 +58,7 @@ def pull_artifact(url: str, token: str, data_dir: Path) -> None:
                     pbar.update(len(chunk))
 
     # Extract the downloaded zip file
-    # shutil.rmtree(data_dir)
+    shutil.rmtree(data_dir)
     with zipfile.ZipFile("data.zip") as z:
         z.extractall(data_dir)
 
