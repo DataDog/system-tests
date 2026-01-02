@@ -19,6 +19,7 @@ import requests
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context.ports import ContainerPorts
+from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -27,6 +28,11 @@ from utils.proxy.mocked_response import (
     SetSpanEventFlags,
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
+)
+from utils.proxy.rc_response_builder import (
+    build_rc_configurations_protobuf,
+    build_org_data_protobuf,
+    build_org_status_protobuf,
 )
 from utils._logger import logger
 from utils._weblog import weblog
@@ -554,6 +560,7 @@ class ProxyContainer(TestedContainer):
         self,
         *,
         rc_api_enabled: bool,
+        rc_backend_enabled: bool = False,
         meta_structs_disabled: bool,
         span_events: bool,
         enable_ipv6: bool,
@@ -561,6 +568,7 @@ class ProxyContainer(TestedContainer):
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
+        rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
 
         """
 
@@ -598,11 +606,40 @@ class ProxyContainer(TestedContainer):
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints
             self.internal_mocked_tracer_responses.append(AddRemoteConfigEndpoint())
-            self.internal_mocked_tracer_responses.append(
-                StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
-            )
+            # Only add static tracer-facing RC mock if NOT in backend mode
+            # In backend mode, tracer requests pass through to agent
+            if not rc_backend_enabled:
+                self.internal_mocked_tracer_responses.append(
+                    StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
+                )
+
         # Backend mocked responses (create responses from scratch)
         self.internal_mocked_backend_responses: list[MockedBackendResponse] = []
+
+        if rc_backend_enabled:
+            # Set up internal backend mocks for backend endpoints
+            self.internal_mocked_backend_responses = [
+                MockedBackendResponse(
+                    path="/api/v0.1/org",
+                    content=build_org_data_protobuf(),
+                    content_type="application/x-protobuf",
+                ),
+                MockedBackendResponse(
+                    path="/api/v0.1/status",
+                    content=build_org_status_protobuf(),
+                    content_type="application/x-protobuf",
+                ),
+                MockedBackendResponse(
+                    path="/api/v0.2/echo-test",
+                    content=b"ok",
+                    content_type="text/plain",
+                ),
+                MockedBackendResponse(
+                    path="/api/v0.1/configurations",
+                    content=build_rc_configurations_protobuf(None),
+                    content_type="application/x-protobuf",
+                ),
+            ]
 
         self.mocked_backend = mocked_backend
 
@@ -662,7 +699,13 @@ class AgentContainer(TestedContainer):
     dogstatsd_port: int = 8125
     agent_version: Version
 
-    def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        use_proxy: bool = True,
+        rc_backend_enabled: bool = False,
+        environment: dict[str, str | None] | None = None,
+    ) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -678,6 +721,17 @@ class AgentContainer(TestedContainer):
         if use_proxy:
             environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
+
+        # Configure backend mode via environment variables
+        # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
+        # We set RC_DD_URL to a fake hostname - HTTP_PROXY will intercept it on the agent port
+        if rc_backend_enabled:
+            tuf_root_json = get_tuf_root_json()
+            environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
+            environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
+            environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
+            environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
+            environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
         super().__init__(
             name="agent",
@@ -751,47 +805,6 @@ class BuddyContainer(TestedContainer):
 class WeblogContainer(TestedContainer):
     appsec_rules_file: str | None
     stdout_interface: LibraryStdoutInterface
-    _dd_rc_tuf_root: dict = {
-        "signed": {
-            "_type": "root",
-            "spec_version": "1.0",
-            "version": 1,
-            "expires": "2032-05-29T12:49:41.030418-04:00",
-            "keys": {
-                "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e": {
-                    "keytype": "ed25519",
-                    "scheme": "ed25519",
-                    "keyid_hash_algorithms": ["sha256", "sha512"],
-                    "keyval": {"public": "7d3102e39abe71044d207550bda239c71380d013ec5a115f79f51622630054e6"},
-                }
-            },
-            "roles": {
-                "root": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-                "snapshot": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-                "targets": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-                "timestsmp": {
-                    "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
-                    "threshold": 1,
-                },
-            },
-            "consistent_snapshot": True,
-        },
-        "signatures": [
-            {
-                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-                "sig": "d7e24828d1d3104e48911860a13dd6ad3f4f96d45a9ea28c4a0f04dbd3ca6c205ed406523c6c4cacfb7ebba68f7e122e42746d1c1a83ffa89c8bccb6f7af5e06",  # noqa: E501
-            }
-        ],
-    }
 
     def __init__(
         self,
@@ -821,7 +834,7 @@ class WeblogContainer(TestedContainer):
             "DD_ENV": "system-tests",
             "DD_TRACE_LOG_DIRECTORY": "/var/log/system-tests",
             # for remote configuration tests
-            "DD_RC_TUF_ROOT": json.dumps(self._dd_rc_tuf_root),
+            "DD_RC_TUF_ROOT": get_tuf_root_json(),
         }
 
         # Basic env set for all scenarios
