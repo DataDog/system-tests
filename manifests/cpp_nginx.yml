@@ -56,6 +56,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: missing_feature
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v1.2.0
