@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import pytest
 from utils import weblog, interfaces, scenarios, features, missing_feature
+from utils.dd_constants import TraceAgentPayloadFormat
 from utils._context.header_tag_vars import (
     CONFIG_COLON_LEADING,
     CONFIG_COLON_TRAILING,
@@ -401,9 +402,9 @@ class Test_HeaderTags_Wildcard_Request_Headers:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1
 
-        span = spans[0]
+        span, span_format = spans[0]
         for tag in tags:
-            assert tag in span["meta"]
+            assert tag in interfaces.agent.get_span_meta(span, span_format)
 
 
 @scenarios.tracing_config_nondefault
@@ -419,25 +420,28 @@ class Test_HeaderTags_Wildcard_Response_Headers:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1
 
-        span = spans[0]
+        span, span_format = spans[0]
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
         for key in response_headers:
-            assert RESPONSE_PREFIX + key.lower() in span["meta"]
-            assert span["meta"][RESPONSE_PREFIX + key.lower()] == response_headers[key]
+            assert RESPONSE_PREFIX + key.lower() in span_meta
+            assert span_meta[RESPONSE_PREFIX + key.lower()] == response_headers[key]
 
 
 # The Datadog specific tracecontext flags to mark flags are set
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
-def retrieve_span_links(span: dict):
+def retrieve_span_links(span: dict, span_format: TraceAgentPayloadFormat):
     if span.get("spanLinks") is not None:
         return span["spanLinks"]
 
-    if span["meta"].get("_dd.span_links") is None:
+    span_meta = interfaces.agent.get_span_meta(span, span_format)
+
+    if span_meta.get("_dd.span_links") is None:
         return None
 
     # Convert span_links tags into msgpack v0.4 format
-    json_links = json.loads(span["meta"].get("_dd.span_links"))
+    json_links = json.loads(span_meta["_dd.span_links"])
     links = []
     for json_link in json_links:
         link = {}
@@ -487,10 +491,10 @@ class Test_ExtractBehavior_Default:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") == "1"
         assert span.get("parentID") == "1"
-        assert retrieve_span_links(span) is None
+        assert retrieve_span_links(span, span_format) is None
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -525,12 +529,12 @@ class Test_ExtractBehavior_Default:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") == "2"
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
         # Assert the W3C Trace Context (conflicting trace context) span link
@@ -578,14 +582,14 @@ class Test_ExtractBehavior_Restart:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -628,7 +632,7 @@ class Test_ExtractBehavior_Restart:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -640,7 +644,7 @@ class Test_ExtractBehavior_Restart:
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -683,7 +687,7 @@ class Test_ExtractBehavior_Restart:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -694,7 +698,7 @@ class Test_ExtractBehavior_Restart:
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -742,10 +746,10 @@ class Test_ExtractBehavior_Ignore:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the local span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
-        assert retrieve_span_links(span) is None
+        assert retrieve_span_links(span, span_format) is None
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -780,7 +784,7 @@ class Test_ExtractBehavior_Ignore:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the local span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -788,7 +792,7 @@ class Test_ExtractBehavior_Ignore:
             span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
-        assert retrieve_span_links(span) is None
+        assert retrieve_span_links(span, span_format) is None
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -828,14 +832,14 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -878,7 +882,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -890,7 +894,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
