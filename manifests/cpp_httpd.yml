@@ -58,21 +58,28 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: missing_feature
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: '>=1.0.3'  # Modified by easy win activation script
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: missing_feature
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts:  # Modified by easy win activation script
+    - declaration: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+      component_version: <1.0.3
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)  # Created by easy win activation script
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature (APMAPI-869)
   tests/test_library_conf.py: irrelevant
   tests/test_miscs.py: irrelevant
-  tests/test_profiling.py: missing_feature (missing profiling module in weblog)
+  tests/test_profiling.py:  # Modified by easy win activation script
+    - declaration: missing_feature (missing profiling module in weblog)
+      component_version: <1.0.3
+  tests/test_profiling.py::Test_Profile::test_agent: missing_feature (missing profiling module in weblog)  # Created by easy win activation script
+  tests/test_profiling.py::Test_Profile::test_library: missing_feature (missing profiling module in weblog)  # Created by easy win activation script
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
@@ -88,10 +95,18 @@ manifest:
   tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind: bug (APMAPI-924)
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py: irrelevant
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
-  tests/test_telemetry.py::Test_MessageBatch: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_MessageBatch: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_v1_payloads.py: missing_feature
