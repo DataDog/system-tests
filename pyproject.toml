@@ -297,8 +297,6 @@ ignore = [
     "PLR2004",  # magic-value-comparison: TODO
 ]
      
-"utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
-"utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
     "INP001",   # implicit-namespace-package: this is not a package
     "LOG015",   # usage of logging
