@@ -1,4 +1,5 @@
 import argparse
+import sys
 from os import environ
 from pathlib import Path
 from .const import ARTIFACT_URL, LIBRARIES
@@ -56,8 +57,16 @@ def main() -> None:
         modified_rules_by_level, created_rules_count, total_tests_activated, total_unique_tests, tests_without_rules
     )
 
+    # Check if any updates were made
+    total_modified_rules = sum(modified_rules_by_level.values())
+    has_updates = total_modified_rules > 0 or created_rules_count > 0
+
     if not args.dry_run:
         manifest_editor.write()
+
+    # Exit with status 1 if no updates were made
+    if not has_updates:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
