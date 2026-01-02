@@ -10,6 +10,18 @@ System tests is a test workbench that allows any kind of functional testing over
 * Tests multiple tracer library implementations in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust
 * Uses pytest to implement tests that are valid across ALL tracer library implementations
 
+## A question? Use AI
+
+The recommended way to get started with system tests is to use an AI coding agent such as `cursor-agent`. This agent can both execute tasks on your behalf and serve as an interactive source of documentation for system tests.
+
+In particular, `cursor-agent` can:
+
+- Provide concrete, step-by-step guidance for implementing specific system test workflows
+- Answer conceptual questions about system test architecture and internal behavior
+- Help interpret existing system test code and configuration
+
+There are rules and conventions specifically designed for use with Cursor, so this agent should be preferred when working with system tests.
+
 ## Repository Structure
 
 ```
