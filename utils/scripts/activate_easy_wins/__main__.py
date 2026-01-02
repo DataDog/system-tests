@@ -22,7 +22,8 @@ def main() -> None:
     parser.add_argument(
         "--components",
         nargs="+",
-        help="List of components to process (e.g., python java nodejs). If not specified, all components are processed.",
+        help="List of components to process (e.g., python java nodejs). If not \
+                specified, all components are processed.",
     )
     args = parser.parse_args()
 

@@ -57,6 +57,7 @@ def pull_artifact(url: str, token: str, data_dir: Path) -> None:
                     pbar.update(len(chunk))
 
     # Extract the downloaded zip file
+    # shutil.rmtree(data_dir)
     with zipfile.ZipFile("data.zip") as z:
         z.extractall(data_dir)
 
