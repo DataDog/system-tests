@@ -18,7 +18,10 @@ from utils._logger import logger
 from utils.proxy.mocked_response import (
     StaticJsonMockedTracerResponse,
     SequentialRemoteConfigJsonMockedTracerResponse,
+    MockedBackendResponse,
 )
+from utils.proxy.tuf import build_signed_targets
+from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 
 
 class RemoteConfigStateResults:
@@ -67,10 +70,17 @@ def send_state(
 
     assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
 
+    # Route to RC backend if enabled, otherwise use legacy proxy mock
+    if getattr(context.scenario, "rc_backend_enabled", False):
+        # Build protobuf on test runner side, send bytes to proxy
+        rc_protobuf = build_rc_configurations_protobuf(raw_payload)
+        MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
+    else:
+        StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
+
     client_configs = raw_payload.get("client_configs", [])
 
     current_states = RemoteConfigStateResults(version=state_version)
-    version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
     for client_config in client_configs:
@@ -169,27 +179,6 @@ def _create_base_rcm():
     return {"targets": "", "target_files": [], "client_configs": []}
 
 
-def _create_base_signed(version: int):
-    return {
-        "signed": {
-            "_type": "targets",
-            "custom": {"opaque_backend_state": "eyJmb28iOiAiYmFyIn0="},  # where does this come from ?
-            "expires": "3000-01-01T00:00:00Z",
-            "spec_version": "1.0",
-            "targets": {},
-            "version": version,
-        },
-        "signatures": [
-            {
-                # where does this come from ?
-                "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-                "sig": "e2279a554d52503f5bd68e0a9910c7e90c9bb81744fe9c8824ea3737b279d9e6"
-                "9b3ce5f4b463c402ebe34964fb7a69625eb0e91d3ddbd392cc8b3210373d9b0f",
-            }
-        ],
-    }
-
-
 def _build_base_command(path_payloads: Mapping[str, Any], version: int):
     """Helper function to build a remote config command with common logic.
 
@@ -199,23 +188,27 @@ def _build_base_command(path_payloads: Mapping[str, Any], version: int):
 
     """
     rcm = _create_base_rcm()
-    signed = _create_base_signed(version)
 
     if not path_payloads:
+        signed = build_signed_targets(version, {})
         rcm["targets"] = _json_to_base64(signed)
         return rcm
 
+    # Build targets dict first, then sign
+    targets_dict = {}
     for path, payload in path_payloads.items():
         payload_64 = _json_to_base64(payload)
         payload_length = len(base64.b64decode(payload_64))
 
         target = {"custom": {"v": 1}, "hashes": {"sha256": _sha256(payload_64)}, "length": payload_length}
-        signed["signed"]["targets"][path] = target
+        targets_dict[path] = target
 
         target_file = {"path": path, "raw": payload_64}
         rcm["target_files"].append(target_file)
         rcm["client_configs"].append(path)
 
+    # Sign after all targets are added
+    signed = build_signed_targets(version, targets_dict)
     rcm["targets"] = _json_to_base64(signed)
     return rcm
 
@@ -382,13 +375,6 @@ class _RemoteConfigState:
     backend_state = '{"foo": "bar"}'
     expires = "3000-01-01T00:00:00Z"
     spec_version = "1.0"
-    signatures = [
-        {
-            "keyid": "ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e",
-            "sig": "f5f2f27035339ed841447713eb93e5c62c34f4fa709fac0f9edca4ef5dc77340"
-            "e1e81e779c5b536304fe568173c9c0e9125b17c84ce8a58a907bb2f27e7d890b",
-        }
-    ]
     _uniq = True
 
     def __init__(self, expires: str | None = None) -> None:
@@ -423,17 +409,13 @@ class _RemoteConfigState:
         return self
 
     def serialize_targets(self, *, deserialized: bool = False):
-        result = {
-            "signed": {
-                "_type": "targets",
-                "custom": {"opaque_backend_state": self.opaque_backend_state},
-                "expires": self.expires,
-                "spec_version": self.spec_version,
-                "targets": {path: target.get_target() for path, target in self.targets.items()},
-                "version": self.version,
-            },
-            "signatures": self.signatures,
-        }
+        targets_dict = {path: target.get_target() for path, target in self.targets.items()}
+        result = build_signed_targets(
+            version=self.version,
+            targets=targets_dict,
+            opaque_backend_state=self.opaque_backend_state,
+            expires=self.expires,
+        )
 
         return _json_to_base64(result) if not deserialized else result
 
