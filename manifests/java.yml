@@ -75,7 +75,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:
     - weblog_declaration:
         "*": v1.55.0
-        akka-http: v1.57.0+7f969ea309  # Modified by easy win activation script
+        akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
     - weblog_declaration:
@@ -102,28 +102,6 @@ manifest:
         "*": missing_feature
         spring-boot: v1.52.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0
@@ -191,10 +169,7 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.57.0+7f969ea309'
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
     - weblog_declaration:
         "*": v1.51.0-SNAPSHOT
@@ -839,10 +814,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.54.0
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.57.0+7f969ea309'
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
@@ -869,14 +841,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         vertx3: v1.54.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.57.0+7f969ea309'
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.57.0+7f969ea309'
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -1166,7 +1132,7 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
+        vertx3: missing_feature (APPSEC-55781)
         vertx4: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
@@ -1188,53 +1154,11 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:
     - weblog_declaration:
         "*": v1.50.0-SNAPSHOT
-        akka-http: v1.57.0+7f969ea309  # Modified by easy win activation script
-        play: v1.57.0+7f969ea309  # Modified by easy win activation script
+        akka-http: bug (APPSEC-56888)
+        play: bug (APPSEC-56869)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0
-  :  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-    - weblog_declaration:
-        play: bug (APPSEC-56869)
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1
-  :  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-    - weblog_declaration:
-        play: bug (APPSEC-56869)
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1
-  :  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-    - weblog_declaration:
-        play: bug (APPSEC-56869)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection:  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_different_endpoints:  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_first_request_retained:  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0
-  :  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-    - weblog_declaration:
-        play: bug (APPSEC-56869)
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1
-  :  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
-    - weblog_declaration:
-        play: bug (APPSEC-56869)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_sampling_window_renewal:  # Created by easy win activation script
-    - weblog_declaration:
-        akka-http: bug (APPSEC-56888)
+        vertx3: bug (APPSEC-56870)
+        vertx4: bug (APPSEC-56871)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
@@ -1771,20 +1695,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
-        jersey-grizzly2: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        resteasy-netty3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        akka-http: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        play: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
-        ratpack: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
     - weblog_declaration:
@@ -1861,45 +1771,8 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        spring-boot: '>=1.57.0+7f969ea309'
-        jersey-grizzly2: '>=1.57.0+7f969ea309'
-        spring-boot-undertow: '>=1.57.0+7f969ea309'
-        resteasy-netty3: '>=1.57.0+7f969ea309'
-        akka-http: '>=1.57.0+7f969ea309'
-        spring-boot-openliberty: '>=1.57.0+7f969ea309'
-        play: '>=1.57.0+7f969ea309'
-        spring-boot-jetty: '>=1.57.0+7f969ea309'
-        spring-boot-wildfly: '>=1.57.0+7f969ea309'
-        spring-boot-payara: '>=1.57.0+7f969ea309'
-        vertx4: '>=1.57.0+7f969ea309'
-        vertx3: '>=1.57.0+7f969ea309'
-        uds-spring-boot: '>=1.57.0+7f969ea309'
-        ratpack: '>=1.57.0+7f969ea309'
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event:  # Created by easy win activation script
-    - weblog_declaration:
-        play: missing_feature
-        akka-http: missing_feature
-        jersey-grizzly2: missing_feature
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        spring-boot: '>=1.57.0+7f969ea309'
-        jersey-grizzly2: '>=1.57.0+7f969ea309'
-        spring-boot-undertow: '>=1.57.0+7f969ea309'
-        resteasy-netty3: '>=1.57.0+7f969ea309'
-        akka-http: '>=1.57.0+7f969ea309'
-        spring-boot-openliberty: '>=1.57.0+7f969ea309'
-        play: '>=1.57.0+7f969ea309'
-        spring-boot-jetty: '>=1.57.0+7f969ea309'
-        spring-boot-wildfly: '>=1.57.0+7f969ea309'
-        spring-boot-payara: '>=1.57.0+7f969ea309'
-        vertx4: '>=1.57.0+7f969ea309'
-        vertx3: '>=1.57.0+7f969ea309'
-        uds-spring-boot: '>=1.57.0+7f969ea309'
-        ratpack: '>=1.57.0+7f969ea309'
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: missing_feature
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: missing_feature
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
     - weblog_declaration:
         "*": v0.104.0
@@ -2185,47 +2058,6 @@ manifest:
         "*": missing_feature
         spring-boot: v1.56.0-SNAPSHOT
         uds-spring-boot: v1.56.0-SNAPSHOT
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_rockpaperscissors:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_simple:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
@@ -2372,15 +2204,6 @@ manifest:
         spring-boot-openliberty: v1.38.0
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
-        jersey-grizzly2: v1.57.0+7f969ea309  # Modified by easy win activation script
-        resteasy-netty3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        akka-http: v1.57.0+7f969ea309  # Modified by easy win activation script
-        play: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        ratpack: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2418,223 +2241,14 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_not_obfuscate_query:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_system:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_not_obfuscate_query:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id:  # Created by easy win activation script
-    - weblog_declaration:
-        uds-spring-boot: missing_feature
-        spring-boot-wildfly: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.12.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_system:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_not_obfuscate_query:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-undertow: missing_feature
-        spring-boot-jetty: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
@@ -2679,7 +2293,7 @@ manifest:
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
+        spring-boot: bug (AIDM-325)
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
     - weblog_declaration:
         "*": irrelevant
@@ -2707,12 +2321,6 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         spring-boot: v1.39.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.12.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: irrelevant (default hostname is resolved config-processing)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v1.41.1
@@ -2804,23 +2412,23 @@ manifest:
   tests/test_baggage.py::Test_Baggage_Headers_Malformed:
     - weblog_declaration:
         "*": v1.53.0
-        akka-http: v1.57.0+7f969ea309  # Modified by easy win activation script
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        play: v1.57.0+7f969ea309  # Modified by easy win activation script
-        ratpack: v1.57.0+7f969ea309  # Modified by easy win activation script
+        play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot: v1.50.0
-        spring-boot-3-native: v1.57.0+7f969ea309  # Modified by easy win activation script
+        spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2:
     - weblog_declaration:
         "*": v1.53.0
-        akka-http: v1.57.0+7f969ea309  # Modified by easy win activation script
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        play: v1.57.0+7f969ea309  # Modified by easy win activation script
-        ratpack: v1.57.0+7f969ea309  # Modified by easy win activation script
+        play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot: v1.50.0
-        spring-boot-3-native: v1.57.0+7f969ea309  # Modified by easy win activation script
+        spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -2852,12 +2460,7 @@ manifest:
         spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: v1.43.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: v1.43.0
-  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence:  # Modified by easy win activation script
-    - declaration: missing_feature (does not support x-forwarded header)
-      component_version: <1.57.0+7f969ea309
-      weblog: [spring-boot-3-native, spring-boot, spring-boot-undertow, resteasy-netty3, akka-http, spring-boot-openliberty, play, spring-boot-jetty, spring-boot-wildfly, spring-boot-payara, vertx4, vertx3, uds-spring-boot, ratpack]
-    - declaration: missing_feature (does not support x-forwarded header)
-      excluded_weblog: [spring-boot-3-native, spring-boot, spring-boot-undertow, resteasy-netty3, akka-http, spring-boot-openliberty, play, spring-boot-jetty, spring-boot-wildfly, spring-boot-payara, vertx4, vertx3, uds-spring-boot, ratpack]
+  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: missing_feature (does not support x-forwarded header)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured:
     - weblog_declaration:
         "*": v1.43.0
@@ -2900,12 +2503,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot-3-native: v1.48.0
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:  # Modified by easy win activation script
-    - declaration: missing_feature (dd attributes are not injected into logs))
-      component_version: <1.57.0+7f969ea309
-      weblog: [spring-boot-3-native]
-    - declaration: missing_feature (dd attributes are not injected into logs))
-      excluded_weblog: [spring-boot-3-native]
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: missing_feature (dd attributes are not injected into logs))
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
@@ -2933,19 +2531,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v1.39.0
   tests/test_data_integrity.py::Test_LibraryHeaders: v1.29.0
-  tests/test_distributed.py::Test_DistributedHttp:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        spring-boot: '>=1.57.0+7f969ea309'
-        spring-boot-undertow: '>=1.57.0+7f969ea309'
-        spring-boot-openliberty: '>=1.57.0+7f969ea309'
-        play: '>=1.57.0+7f969ea309'
-        spring-boot-jetty: '>=1.57.0+7f969ea309'
-        spring-boot-wildfly: '>=1.57.0+7f969ea309'
-        vertx4: '>=1.57.0+7f969ea309'
-        vertx3: '>=1.57.0+7f969ea309'
-        spring-boot-payara: '>=1.57.0+7f969ea309'
-        uds-spring-boot: '>=1.57.0+7f969ea309'
+  tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v1.43.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -2986,51 +2572,18 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.50.1
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        play: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/test_library_conf.py::Test_ExtractBehavior_Restart:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First:
     - weblog_declaration:
         "*": incomplete_test_app (weblog endpoint not implemented)
         spring-boot: v1.48.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx4: v1.57.0+7f969ea309  # Modified by easy win activation script
-        vertx3: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/test_library_conf.py::Test_HeaderTags:
     - weblog_declaration:
         "*": v1.35.0
@@ -3060,12 +2613,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.47.0
-        spring-boot-undertow: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-openliberty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-jetty: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-wildfly: v1.57.0+7f969ea309  # Modified by easy win activation script
-        spring-boot-payara: v1.57.0+7f969ea309  # Modified by easy win activation script
-        uds-spring-boot: v1.57.0+7f969ea309  # Modified by easy win activation script
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py:
     - weblog_declaration:
@@ -3119,15 +2666,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.107.1
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.107.1
   tests/test_telemetry.py::Test_DependencyEnable: v1.7.0
-  tests/test_telemetry.py::Test_Log_Generation: '>=1.57.0+7f969ea309'  # Modified by easy win activation script
-  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:  # Created by easy win activation script
-    - weblog_declaration:
-        play: missing_feature
-        ratpack: missing_feature
-        spring-boot-3-native: missing_feature
-        jersey-grizzly2: missing_feature
-        akka-http: missing_feature
-        resteasy-netty3: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: missing_feature
   tests/test_telemetry.py::Test_MessageBatch:
     - weblog_declaration:
         "*": v1.23.0
@@ -3147,30 +2686,6 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry:
     - weblog_declaration:
         "*": v0.108.1
-        spring-boot-3-native: v1.57.0+7f969ea309  # Modified by easy win activation script
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_seq_id:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_status_ok:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_data_size:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:  # Created by easy win activation script
-    - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:

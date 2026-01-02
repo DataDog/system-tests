@@ -282,16 +282,8 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v1.11.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v1.11.0
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: '>=1.15.2'  # Modified by easy win activation script
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection: missing_feature  # Created by easy win activation script
-  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
-  : missing_feature  # Created by easy win activation script
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: '>=1.15.2'  # Modified by easy win activation script
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc: missing_feature  # Created by easy win activation script
-  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_and_authentication_headers
-  : missing_feature  # Created by easy win activation script
-  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection::test_extended_data_collection_with_rc_header_limit
-  : missing_feature  # Created by easy win activation script
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
@@ -376,32 +368,14 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_SSRF: v0.68.3
   tests/appsec/waf/test_rules.py::Test_Scanners: v0.68.3
   tests/appsec/waf/test_rules.py::Test_XSS: v0.68.3
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: '>=1.15.2'  # Modified by easy win activation script
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_headers_are_correct: missing_feature  # Created by easy win activation script
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests: missing_feature  # Created by easy win activation script
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests: missing_feature  # Created by easy win activation script
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: '>=1.15.2'  # Modified by easy win activation script
-  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception
-  : missing_feature  # Created by easy win activation script
-  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_variables
-  : missing_feature  # Created by easy win activation script
-  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_collection_operations
-  : missing_feature  # Created by easy win activation script
-  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators
-  :  # Created by easy win activation script
-    - weblog_declaration:
-        php-fpm-8.2: missing_feature
-        apache-mod-8.1-zts: missing_feature
-        php-fpm-7.3: missing_feature
-        php-fpm-7.2: missing_feature
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: missing_feature  # Created by easy win activation script
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of: missing_feature  # Created by easy win activation script
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
@@ -556,8 +530,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v1.4.0
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: '>=1.15.2'  # Modified by easy win activation script
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts: missing_feature  # Created by easy win activation script
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
@@ -584,45 +557,9 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
-  tests/test_profiling.py::Test_Profile:  # Modified by easy win activation script
-    - declaration: missing_feature (profiling seems not to be activated)
-      component_version: <1.15.2
-  tests/test_profiling.py::Test_Profile::test_agent:  # Created by easy win activation script
-    - weblog_declaration:
-        apache-mod-7.0-zts: missing_feature (profiling seems not to be activated)
-        apache-mod-7.0: missing_feature (profiling seems not to be activated)
-        php-fpm-7.0: missing_feature (profiling seems not to be activated)
-  tests/test_profiling.py::Test_Profile::test_library:  # Created by easy win activation script
-    - weblog_declaration:
-        apache-mod-7.0-zts: missing_feature (profiling seems not to be activated)
-        apache-mod-7.0: missing_feature (profiling seems not to be activated)
-        php-fpm-7.0: missing_feature (profiling seems not to be activated)
-  tests/test_profiling.py::Test_Profile::test_process_tags:  # Created by easy win activation script
-    - weblog_declaration:
-        php-fpm-7.4: missing_feature (profiling seems not to be activated)
-        apache-mod-7.2: missing_feature (profiling seems not to be activated)
-        apache-mod-7.1: missing_feature (profiling seems not to be activated)
-        php-fpm-8.0: missing_feature (profiling seems not to be activated)
-        apache-mod-7.3-zts: missing_feature (profiling seems not to be activated)
-        apache-mod-7.4-zts: missing_feature (profiling seems not to be activated)
-        php-fpm-8.2: missing_feature (profiling seems not to be activated)
-        apache-mod-8.1: missing_feature (profiling seems not to be activated)
-        apache-mod-8.2: missing_feature (profiling seems not to be activated)
-        php-fpm-7.3: missing_feature (profiling seems not to be activated)
-        apache-mod-7.3: missing_feature (profiling seems not to be activated)
-        apache-mod-8.0-zts: missing_feature (profiling seems not to be activated)
-        apache-mod-8.1-zts: missing_feature (profiling seems not to be activated)
-        php-fpm-7.2: missing_feature (profiling seems not to be activated)
-        apache-mod-7.2-zts: missing_feature (profiling seems not to be activated)
-        apache-mod-7.4: missing_feature (profiling seems not to be activated)
-        apache-mod-7.1-zts: missing_feature (profiling seems not to be activated)
-        php-fpm-7.1: missing_feature (profiling seems not to be activated)
-        php-fpm-8.1: missing_feature (profiling seems not to be activated)
-        apache-mod-8.0: missing_feature (profiling seems not to be activated)
-        apache-mod-8.2-zts: missing_feature (profiling seems not to be activated)
+  tests/test_profiling.py::Test_Profile: missing_feature (profiling seems not to be activated)
   tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: '>=1.15.2'  # Modified by easy win activation script
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature  # Created by easy win activation script
+  tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.7.2  # real version unknown
@@ -645,22 +582,10 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.76.0
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v0.75.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_Log_Generation: '>=1.15.2'  # Modified by easy win activation script
-  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Log_Generation: missing_feature
   tests/test_telemetry.py::Test_MessageBatch: v0.90
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=1.15.2'  # Modified by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed: missing_feature  # Created by easy win activation script
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: missing_feature
   tests/test_telemetry.py::Test_Telemetry: v0.90
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
