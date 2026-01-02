@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/DataDog/dd-trace-go/ddtrace/ext"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
 	"github.com/sirupsen/logrus"
@@ -87,6 +88,38 @@ func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	span.SetTag(args.Key, args.InferredValue())
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct{}{})
+}
+
+func (s *apmClientServer) spanManualKeepHandler(w http.ResponseWriter, r *http.Request) {
+	s.manualSamplingHandler(w, r, true)
+}
+
+func (s *apmClientServer) spanManualDropHandler(w http.ResponseWriter, r *http.Request) {
+	s.manualSamplingHandler(w, r, false)
+}
+
+func (s *apmClientServer) manualSamplingHandler(w http.ResponseWriter, r *http.Request, keep bool) {
+	var args SpanIDArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	span, exists := s.spans[args.SpanId]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
+
+	if keep {
+		span.SetTag(ext.ManualKeep, true)
+	} else {
+		span.SetTag(ext.ManualDrop, true)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

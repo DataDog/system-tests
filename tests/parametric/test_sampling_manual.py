@@ -6,7 +6,6 @@ libraries.
 
 import pytest
 from utils import features, rfc, scenarios
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
 from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
 from utils.dd_constants import SAMPLING_PRIORITY_KEY
 from utils.dd_constants import SamplingMechanism
@@ -48,7 +47,7 @@ class Test_Manual_Keep_Sampling:
             "parent_id": parent_id,
         }
         with test_library, test_library.dd_start_span(**span_args) as span:
-            span.set_meta(MANUAL_KEEP_KEY, "1")
+            span.manual_keep()
 
         (trace,) = test_agent.wait_for_num_traces(1)
         assert len(trace) == 1

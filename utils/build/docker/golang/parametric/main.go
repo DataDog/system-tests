@@ -82,6 +82,8 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/trace/span/manual_keep", s.spanSetMetaHandler)
+	http.HandleFunc("/trace/span/manual_drop", s.spanSetMetaHandler)
 
 	// openfeature endpoints
 	http.HandleFunc("/ffe/start", s.ffeStart)
