@@ -24,8 +24,8 @@ def make_webhook_request(data: dict, secret: bytes = WEBHOOK_SECRET):
     return weblog.post(
         "/stripe/webhook",
         headers={
-            "content-type": "application/json",
-            "stripe-signature": f"t={timestamp},v1={signature}",
+            "Content-Type": "application/json",
+            "Stripe-Signature": f"t={timestamp},v1={signature}",
         },
         data=json_str,
     )
