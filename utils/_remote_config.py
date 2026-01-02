@@ -15,7 +15,10 @@ from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils._logger import logger
-from utils.proxy.mocked_response import StaticJsonMockedResponse, SequentialRemoteConfigJsonMockedResponse
+from utils.proxy.mocked_response import (
+    StaticJsonMockedTracerResponse,
+    SequentialRemoteConfigJsonMockedTracerResponse,
+)
 
 
 class RemoteConfigStateResults:
@@ -81,6 +84,8 @@ def send_state(
 
     state = {}
 
+    StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
+
     def remote_config_applied(data: dict) -> bool:
         nonlocal state
         if data["path"] != "/v0.7/config":
@@ -111,8 +116,6 @@ def send_state(
         current_states.state = ApplyState.ACKNOWLEDGED
         return True
 
-    StaticJsonMockedResponse(path="/v0.7/config", mocked_json=raw_payload).send()
-
     library.wait_for(remote_config_applied, timeout=30)
     # ensure the library has enough time to apply the config to all subprocesses
     time.sleep(2)
@@ -126,7 +129,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     if len(commands) == 0:
         raise ValueError("No commands to send")
 
-    SequentialRemoteConfigJsonMockedResponse(mocked_json_sequence=commands).send()
+    SequentialRemoteConfigJsonMockedTracerResponse(mocked_json_sequence=commands).send()
 
     if not wait_for_all_command:
         return
