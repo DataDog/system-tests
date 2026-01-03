@@ -12,6 +12,8 @@ class ProxyPorts(IntEnum):
 
     agent = 8200
 
+    rc_backend = 8888  # RC backend port for core agent polling
+
     python_buddy = 9001
     nodejs_buddy = 9002
     java_buddy = 9003
