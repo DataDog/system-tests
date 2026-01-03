@@ -1150,6 +1150,29 @@ Examples:
 
 This endpoint will be used for `Resource Renaming` tests, it allows all subpaths.
 
+### POST /stripe/create_checkout_session
+
+This endpoint takes a JSON request body, that must be passed directly to the Stripe SDK method that creates a Checkout Session (`stripe.checkout.sessions.create()` or equivalent).
+The object returned by that Stripe SDK method must be returned as JSON in the response body.
+If an error happens, the endpoint must respond with a 500 error code.
+
+**Important: The SDK should be configured to use the Stripe API mock located at `http://internal_server:8089`, and use API key `sk_FAKE`, instead of using the public Stripe API backend.**
+
+### POST /stripe/create_payment_intent
+
+This endpoint takes a JSON request body, that must be passed directly to the Stripe SDK method that creates a Payment Intent (`stripe.paymentIntents.create()` or equivalent).
+The object returned by that Stripe SDK method must be returned as JSON in the response body.
+If an error happens, the endpoint must respond with a 500 error code.
+
+**Important: The SDK should be configured to use the Stripe API mock located at `http://internal_server:8089`, and use API key `sk_FAKE`, instead of using the public Stripe API backend.**
+
+### POST /stripe/webhook
+
+This endpoint acts as a webhook receiver of events sent by the Stripe backend.
+It takes a raw (unparsed) request body, and a signature located in header `Stripe-Signature`, that must be passed directly, along the secret key `whsec_FAKE`, to the Stripe SDK method that parses webhook events (`stripe.webhooks.constructEvent()` or equivalent).
+The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
+If an error happens, the endpoint must respond with a 403 error code.
+
 ## Weblog specification
 
 There are several rules shared between all the existing end-to-end weblogs.
