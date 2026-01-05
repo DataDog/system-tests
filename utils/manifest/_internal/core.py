@@ -25,7 +25,7 @@ class Manifest:
         """
         self.data = load(path)
         self.rules = None
-        if components:
+        if components is not None:
             self.update_rules(components, weblog)
 
     def update_rules(
