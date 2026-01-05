@@ -115,6 +115,13 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/resource_renaming/*", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+	mux.HandleFunc("/resource_renaming", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("OK"))
+	})
+
 	mux.HandleFunc("/tag_value/{tag_value}/{status_code}", func(w http.ResponseWriter, r *http.Request) {
 		ctx := chi.RouteContext(r.Context())
 		tag := ctx.URLParam("tag_value")

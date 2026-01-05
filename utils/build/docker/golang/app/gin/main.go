@@ -103,6 +103,10 @@ func main() {
 		ctx.Writer.Write([]byte("OK"))
 	})
 
+	r.Any("/resource_renaming/*path", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "OK")
+	})
+
 	r.Any("/tag_value/:tag_value/:status_code", func(ctx *gin.Context) {
 		tag := ctx.Param("tag_value")
 		status, _ := strconv.Atoi(ctx.Param("status_code"))
