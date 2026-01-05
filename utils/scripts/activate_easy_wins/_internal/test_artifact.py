@@ -74,6 +74,7 @@ class ActivationStatus(enum.Enum):
 class TestData:
     xpass_nodes: list[str] = field(default_factory=list)
     trie: StringTrie = field(default_factory=StringTrie)
+    nodeid_to_owners: dict[str, set[str]] = field(default_factory=dict)
 
     def __iter__(self):
         yield self.xpass_nodes
@@ -120,6 +121,9 @@ def parse_artifact_data(
                 test_owners = set()
                 if "metadata" in test and "owners" in test["metadata"]:
                     test_owners = set(test["metadata"]["owners"])
+
+                # Store nodeid to owners mapping
+                test_data[context].nodeid_to_owners[test["nodeid"]] = test_owners
 
                 # If test is xpassed and has excluded owners, treat it as xfailed instead
                 outcome = test["outcome"]

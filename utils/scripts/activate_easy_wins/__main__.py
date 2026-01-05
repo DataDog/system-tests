@@ -58,12 +58,18 @@ def main() -> None:
         created_rules_count,
         tests_without_rules,
         unique_tests_per_language,
+        activations_per_owner,
     ) = update_manifest(manifest_editor, test_data)
     total_tests_activated = sum(tests_per_language.values())
     total_unique_tests = sum(unique_tests_per_language.values())
     print_activation_report(tests_per_language, unique_tests_per_language)
     print_detailed_rules_report(
-        modified_rules_by_level, created_rules_count, total_tests_activated, total_unique_tests, tests_without_rules
+        modified_rules_by_level,
+        created_rules_count,
+        total_tests_activated,
+        total_unique_tests,
+        tests_without_rules,
+        activations_per_owner,
     )
 
     # Check if any updates were made
