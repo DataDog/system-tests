@@ -2082,6 +2082,11 @@ def external_request_redirect():
 @app.route("/ai_guard/evaluate", methods=["POST"])
 def ai_guard_evaluate():
     """AI Guard evaluation endpoint."""
+    from ddtrace.internal.settings.asm import ai_guard_config
+
+    if not ai_guard_config._ai_guard_enabled:
+        return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
+
     try:
         from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
 
