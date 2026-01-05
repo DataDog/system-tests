@@ -50,7 +50,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: missing_feature
   tests/parametric/test_process_discovery.py: missing_feature
-  tests/parametric/test_sampling_manual.py::Test_Manual_Keep_Sampling: bug (APMAPI-1720)  # The manual decision does not override existing decision
+  tests/parametric/test_sampling_manual.py::Test_Manual_Keep_Sampling: missing_feature
   tests/parametric/test_sampling_span_tags.py: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: missing_feature
