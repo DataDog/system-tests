@@ -92,10 +92,6 @@ class Test_Login_Events:
         self.r_pii_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
-    @irrelevant(
-        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
-        reason="APM reports all user id for now on Django",
-    )
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -110,10 +106,6 @@ class Test_Login_Events:
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
-    @irrelevant(
-        context.library == "python" and context.weblog_variant in ["django-poc", "python3.12"],
-        reason="APM reports all user id for now on Django",
-    )
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -1505,15 +1497,6 @@ class Test_V3_Login_Events:
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
     @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="No signup in framework",
-    )
-    @missing_feature(
-        context.library < "python@3.2.0.dev"
-        and context.weblog_variant in ["django-poc", "python3.12", "django-py3.13"],
-        reason="Signup events not implemented yet",
-    )
     def test_signup_local(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
@@ -1826,15 +1809,6 @@ class Test_V3_Login_Events_Anon:
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
     @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="No signup in framework",
-    )
-    @missing_feature(
-        context.library < "python@3.2.0.dev"
-        and context.weblog_variant in ["django-poc", "python3.12", "django-py3.13"],
-        reason="Signup events not implemented yet",
-    )
     def test_signup_local(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):

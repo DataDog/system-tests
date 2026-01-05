@@ -373,7 +373,7 @@ class Test_Knuth_Sample_Rate:
         ids=["truncate_trailing_zeros", "percision_of_6_digits"],
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str], sample_rate: str
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, sample_rate: str
     ):
         """When a trace is sampled via a sampling rule, the knuth sample rate
         is sent to the agent on the chunk root span with the _dd.p.ksr key in the meta field.
