@@ -35,7 +35,7 @@ class Test_Client_Stats:
         reason="play and ratpack controllers also generate stats and the test will fail",
     )
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
@@ -74,7 +74,7 @@ class Test_Client_Stats:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
@@ -97,7 +97,7 @@ class Test_Client_Stats:
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
@@ -124,7 +124,7 @@ class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
@@ -205,7 +205,7 @@ class Test_Peer_Tags:
             weblog.get("/healthcheck")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
@@ -261,11 +261,12 @@ class Test_Transport_Headers:
 
     def setup_transport_headers(self):
         """Setup for transport headers test - generates stats to trigger transport"""
+        interfaces.library.wait_for_client_side_stats_payload()
         for _ in range(2):
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
@@ -276,27 +277,27 @@ class Test_Transport_Headers:
 
         # Test the most recent stats request
         stats_request = stats_requests[-1]
-        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+        headers = {header[0].lower(): header[1] for header in stats_request["request"]["headers"]}
 
         logger.debug(f"Stats request headers: {headers}")
 
-        assert "Content-Type" in headers, "Stats request should have Content-Type header"
-        assert headers["Content-Type"] == "application/msgpack", (
-            f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
+        assert "content-type" in headers, "Stats request should have Content-Type header"
+        assert headers["content-type"] == "application/msgpack", (
+            f"Content-Type should be application/msgpack, found: {headers['content-type']}"
         )
 
-        content_length = headers.get("Content-Length")
-        assert content_length, f"Content-Length should not be empty, found: {content_length}"
-        assert int(content_length) > 0, f"Content-Length should be positive, found: {content_length}"
+        content_length = headers.get("content-length")
+        assert content_length, f"content-length should not be empty, found: {content_length}"
+        assert int(content_length) > 0, f"content-length should be positive, found: {content_length}"
 
-        assert "Datadog-Meta-Lang" in headers, "Datadog-Meta-Lang header not found"
-        assert headers["Datadog-Meta-Lang"], "Datadog-Meta-Lang header should not be empty"
+        assert "datadog-meta-lang" in headers, "datadog-meta-lang header not found"
+        assert headers["datadog-meta-lang"], "datadog-meta-lang header should not be empty"
 
-        assert "Datadog-Meta-Tracer-Version" in headers, "Datadog-Meta-Tracer-Version header not found"
-        assert headers["Datadog-Meta-Tracer-Version"], "Datadog-Meta-Tracer-Version header should not be empty"
+        assert "datadog-meta-tracer-version" in headers, "datadog-meta-tracer-version header not found"
+        assert headers["datadog-meta-tracer-version"], "datadog-meta-tracer-version header should not be empty"
 
-        if "Datadog-Obfuscation-Version" in headers:
-            obfuscation_version = headers["Datadog-Obfuscation-Version"]
+        if "datadog-obfuscation-version" in headers:
+            obfuscation_version = headers["datadog-obfuscation-version"]
             # Validate it's a positive integer string
             assert obfuscation_version.isdigit(), (
                 f"Obfuscation version should be positive integer, found: {obfuscation_version}"
@@ -306,7 +307,7 @@ class Test_Transport_Headers:
             )
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_container_id_header(self):
@@ -316,7 +317,7 @@ class Test_Transport_Headers:
 
         # Test the most recent stats request
         stats_request = stats_requests[-1]
-        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+        headers = {header[0].lower(): header[1] for header in stats_request["request"]["headers"]}
 
         logger.debug(f"Stats request headers: {headers}")
 
@@ -336,11 +337,12 @@ class Test_Time_Bucketing:
 
     def setup_client_side_stats(self):
         """Setup for time bucketing test - generates spans across time"""
+        interfaces.library.wait_for_client_side_stats_payload()
         for _ in range(3):
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_side_stats(self):
@@ -388,7 +390,7 @@ class Test_Time_Bucketing:
                 assert stat["Duration"] >= 0, f"Duration should be non-negative, found: {stat['Duration']}"
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_side_stats_bucket_alignment(self):
@@ -424,7 +426,7 @@ class Test_Time_Bucketing:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_agent_aggregated_stats(self):
