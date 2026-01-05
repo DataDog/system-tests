@@ -42,7 +42,7 @@ def _assert_key(values: dict, key: str, value: object | None = None):
 @features.ai_guard
 @scenarios.ai_guard
 class Test_Evaluation:
-    def _assert_span(self, action: str, messages: list, *, blocking: bool):
+    def _assert_span(self, action: str, messages: list, *, blocking: str):
         def validate(span: dict):
             if span["resource"] != "ai_guard":
                 return False
@@ -66,7 +66,7 @@ class Test_Evaluation:
             ai_guard = _assert_key(meta_struct, "ai_guard")
             meta_struct_messages = _assert_key(ai_guard, "messages")
             assert meta_struct_messages == messages, "Invalid messages stored in the meta struct"
-            if action != "ALLOW" and blocking:
+            if action != "ALLOW" and blocking == "true":
                 assert span["error"] == 1
                 assert meta["ai_guard.blocked"] == "true", f"'ai_guard.blocked' with value 'true' not found in '{meta}'"
                 assert "AIGuardAbortError".lower() in meta["error.type"].lower()
@@ -80,8 +80,8 @@ class Test_Evaluation:
     def setup_allow(self):
         self.messages = MESSAGES["ALLOW"]
         self.r = {
-            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: str(block).lower()}, json=self.messages)
-            for block in [True, False]
+            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: block}, json=self.messages)
+            for block in ["true", "false"]
         }
 
     def test_allow(self):
@@ -99,8 +99,8 @@ class Test_Evaluation:
     def setup_deny(self):
         self.messages = MESSAGES["DENY"]
         self.r = {
-            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: str(block).lower()}, json=self.messages)
-            for block in [True, False]
+            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: block}, json=self.messages)
+            for block in ["true", "false"]
         }
 
     def test_deny(self):
@@ -109,7 +109,7 @@ class Test_Evaluation:
         Span should have action="DENY" and error flag should be set when blocking.
         """
         for block, request in self.r.items():
-            assert request.status_code == 403 if block else 200
+            assert request.status_code == 403 if block == "true" else 200
             interfaces.library.validate_one_span(
                 request,
                 validator=self._assert_span(action="DENY", messages=self.messages, blocking=block),
@@ -119,8 +119,8 @@ class Test_Evaluation:
     def setup_abort(self):
         self.messages = MESSAGES["ABORT"]
         self.r = {
-            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: str(block).lower()}, json=self.messages)
-            for block in [True, False]
+            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: block}, json=self.messages)
+            for block in ["true", "false"]
         }
 
     def test_abort(self):
@@ -129,7 +129,7 @@ class Test_Evaluation:
         Span should have action="ABORT" and target="tool" with tool_name.
         """
         for block, request in self.r.items():
-            assert request.status_code == 403 if block else 200
+            assert request.status_code == 403 if block == "true" else 200
             interfaces.library.validate_one_span(
                 request,
                 validator=self._assert_span(action="ABORT", messages=self.messages, blocking=block),
@@ -139,8 +139,8 @@ class Test_Evaluation:
     def setup_non_blocking(self):
         self.messages = MESSAGES["NON_BLOCKING"]
         self.r = {
-            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: str(block).lower()}, json=self.messages)
-            for block in [True, False]
+            block: weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: block}, json=self.messages)
+            for block in ["true", "false"]
         }
 
     def test_non_blocking(self):
@@ -152,7 +152,7 @@ class Test_Evaluation:
             assert request.status_code == 200
             interfaces.library.validate_one_span(
                 request,
-                validator=self._assert_span(action="DENY", messages=self.messages, blocking=False),
+                validator=self._assert_span(action="DENY", messages=self.messages, blocking="false"),
                 full_trace=True,
             )
 
