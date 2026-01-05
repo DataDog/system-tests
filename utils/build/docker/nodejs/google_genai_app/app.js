@@ -23,7 +23,7 @@ app.post('/generate_content', async (req, res) => {
     const options = {
       model,
       contents: normalizeGoogleGenAiContents(contents),
-      config: normalizeGoogleGenAiConfig(config)
+      config: normalizeConfig(config)
     }
 
     let response;
@@ -42,17 +42,17 @@ app.post('/generate_content', async (req, res) => {
 });
 
 app.post('/embed_content', async (req, res) => {
-  const { model, contents } = req.body;
-  const response = await genai.models.embedContent({ model, contents });
+  const { model, contents, config = {} } = req.body;
+  const response = await genai.models.embedContent({ model, contents, config: normalizeConfig(config) });
   res.json({ response });
 });
 
-function normalizeSnakeCaseConfigToCamelCase (generationConfig) {
+function normalizeSnakeCaseConfigToCamelCase (obj) {
   const normalizedConfig = {};
-  for (const key of Object.keys(generationConfig)) {
+  for (const key of Object.keys(obj)) {
     // turn keys into camelCase
     const camelKey = key.replace(/_([a-z])/g, (_, p1) => p1.toUpperCase());
-    normalizedConfig[camelKey] = generationConfig[key];
+    normalizedConfig[camelKey] = obj[key];
     if (key !== camelKey) {
       delete normalizedConfig[key];
     }
@@ -62,6 +62,10 @@ function normalizeSnakeCaseConfigToCamelCase (generationConfig) {
 }
 
 function normalizeGoogleGenAiContents (contents) {
+  if (typeof contents === 'string') {
+    return contents;
+  }
+
   if (!Array.isArray(contents)) {
     contents = [contents];
   }
@@ -85,13 +89,15 @@ function normalizeGoogleGenAiContents (contents) {
   })
 }
 
-function normalizeGoogleGenAiConfig (config) {
+function normalizeConfig (config) {
   const normalizedConfig = normalizeSnakeCaseConfigToCamelCase(config);
 
+  // special-case thinking config
   if (normalizedConfig.thinkingConfig) {
     normalizedConfig.thinkingConfig = normalizeSnakeCaseConfigToCamelCase(normalizedConfig.thinkingConfig);
   }
 
+  // special-case tools configs
   if (Array.isArray(normalizedConfig.tools)) {
     normalizedConfig.tools = normalizedConfig.tools.map(tool => {
       const normalizedTool = {};
