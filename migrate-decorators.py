@@ -1,6 +1,7 @@
 import ast
 import os
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -85,6 +86,7 @@ def _collect_decorator_info(
     filename: str,
     source: str,
     class_name: Optional[str] = None,
+    decorator_index: Optional[int] = None,
 ) -> DecoratorInfo:
     """
     Build a dictionary with information about one decorator usage on a function or class.
@@ -123,6 +125,9 @@ def _collect_decorator_info(
         "decorator_source": _expr_to_source(decorator, source),
         "args": args,
         "keywords": keywords,
+        "decorator_index": decorator_index,  # Index in decorator_list for deletion
+        "decorator_node": decorator,  # Store AST node for deletion
+        "node_ast": node,  # Store the node AST for deletion
     }
 
 
@@ -179,7 +184,7 @@ def find_decorator_usages(
             """Recursively visit AST nodes, tracking the current class context."""
             if isinstance(node, ast.ClassDef):
                 # Enter a new class context
-                for dec in node.decorator_list:
+                for idx, dec in enumerate(node.decorator_list):
                     if _decorator_call_matches(dec, decorator_name):
                         info = _collect_decorator_info(
                             node=node,
@@ -187,6 +192,7 @@ def find_decorator_usages(
                             filename=str(path),
                             source=source,
                             class_name=None,  # Classes themselves don't have a parent class
+                            decorator_index=idx,
                         )
                         results.append(info)
                 # Visit children with this class as the current context
@@ -194,7 +200,7 @@ def find_decorator_usages(
                     visit_node(child, node.name)
             elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 # Check decorators on functions
-                for dec in node.decorator_list:
+                for idx, dec in enumerate(node.decorator_list):
                     if _decorator_call_matches(dec, decorator_name):
                         info = _collect_decorator_info(
                             node=node,
@@ -202,6 +208,7 @@ def find_decorator_usages(
                             filename=str(path),
                             source=source,
                             class_name=current_class,
+                            decorator_index=idx,
                         )
                         results.append(info)
                 # Visit children (nested functions) with the same class context
@@ -243,7 +250,7 @@ def find_decorator_usages(
 def _build_nodeid(file_path: str, class_name: Optional[str], function_name: Optional[str]) -> str:
     """
     Build a pytest nodeid from file path, class name, and function name.
-    
+
     Format: tests/path/to/file.py::ClassName::method_name
     or: tests/path/to/file.py::ClassName (for class-level)
     or: tests/path/to/file.py::function_name (for module-level)
@@ -263,32 +270,32 @@ def _build_nodeid(file_path: str, class_name: Optional[str], function_name: Opti
                 path = Path(path.name)
         except Exception:
             path = Path(path.name)
-    
+
     # Ensure it starts with tests/
     if not str(path).startswith("tests/"):
         path = Path("tests") / path
-    
+
     nodeid_parts = [str(path)]
-    
+
     if class_name:
         nodeid_parts.append(class_name)
-    
+
     if function_name:
         nodeid_parts.append(function_name)
-    
+
     return "::".join(nodeid_parts)
 
 
 def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, Any]]:
     """
     Parse conditions involving context.weblog_variant.
-    
+
     Handles patterns like:
     - context.weblog_variant == "spring-boot"
     - context.weblog_variant != "rails70"
     - context.weblog_variant not in ["express4", "express5"]
     - "spring-boot" not in context.weblog_variant
-    
+
     Returns a dict with:
     - weblog_names: list of weblog names (positive matches)
     - excluded_weblog_names: list of weblog names (negative matches)
@@ -298,7 +305,7 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         "weblog_names": [],
         "excluded_weblog_names": [],
     }
-    
+
     # Pattern 1: context.weblog_variant == "weblog-name"
     pattern1 = r'context\.weblog_variant\s*==\s*"([^"]+)"'
     match1 = re.search(pattern1, condition_str)
@@ -306,7 +313,7 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["weblog_names"].append(match1.group(1))
         result["operator"] = "=="
         return result
-    
+
     # Pattern 2: context.weblog_variant != "weblog-name"
     pattern2 = r'context\.weblog_variant\s*!=\s*"([^"]+)"'
     match2 = re.search(pattern2, condition_str)
@@ -314,9 +321,9 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["excluded_weblog_names"].append(match2.group(1))
         result["operator"] = "!="
         return result
-    
+
     # Pattern 3: context.weblog_variant not in ["weblog1", "weblog2"]
-    pattern3 = r'context\.weblog_variant\s+not\s+in\s+\[([^\]]+)\]'
+    pattern3 = r"context\.weblog_variant\s+not\s+in\s+\[([^\]]+)\]"
     match3 = re.search(pattern3, condition_str)
     if match3:
         # Extract weblog names from the list
@@ -326,9 +333,9 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["excluded_weblog_names"].extend(weblog_names)
         result["operator"] = "not_in"
         return result
-    
+
     # Pattern 4: context.weblog_variant in ["weblog1", "weblog2"] or in ("weblog1", "weblog2")
-    pattern4a = r'context\.weblog_variant\s+in\s+\[([^\]]+)\]'
+    pattern4a = r"context\.weblog_variant\s+in\s+\[([^\]]+)\]"
     match4a = re.search(pattern4a, condition_str)
     if match4a:
         weblog_list_str = match4a.group(1)
@@ -336,9 +343,9 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["weblog_names"].extend(weblog_names)
         result["operator"] = "in"
         return result
-    
+
     # Pattern 4b: context.weblog_variant in ("weblog1", "weblog2")
-    pattern4b = r'context\.weblog_variant\s+in\s+\(([^)]+)\)'
+    pattern4b = r"context\.weblog_variant\s+in\s+\(([^)]+)\)"
     match4b = re.search(pattern4b, condition_str)
     if match4b:
         weblog_list_str = match4b.group(1)
@@ -346,7 +353,7 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["weblog_names"].extend(weblog_names)
         result["operator"] = "in"
         return result
-    
+
     # Pattern 5: "weblog-name" not in context.weblog_variant
     pattern5 = r'"([^"]+)"\s+not\s+in\s+context\.weblog_variant'
     match5 = re.search(pattern5, condition_str)
@@ -354,7 +361,7 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["excluded_weblog_names"].append(match5.group(1))
         result["operator"] = "not_in_string"
         return result
-    
+
     # Pattern 6: "weblog-name" in context.weblog_variant
     pattern6 = r'"([^"]+)"\s+in\s+context\.weblog_variant'
     match6 = re.search(pattern6, condition_str)
@@ -362,19 +369,35 @@ def _parse_weblog_variant_condition(condition_str: str) -> Optional[Dict[str, An
         result["weblog_names"].append(match6.group(1))
         result["operator"] = "in_string"
         return result
-    
+
     return None
+
+
+def _is_complex_condition(condition_str: str) -> bool:
+    """
+    Check if a condition string contains complex operators (AND, OR) that we don't support.
+    
+    Args:
+        condition_str: The condition string to check
+        
+    Returns:
+        True if the condition contains AND/OR operators, False otherwise
+    """
+    # Check for 'and' or 'or' operators (case-insensitive)
+    # Use word boundaries to avoid matching words like "android" or "orchestrion"
+    pattern = r'\b(and|or)\b'
+    return bool(re.search(pattern, condition_str, re.IGNORECASE))
 
 
 def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
     """
     Parse a condition string like 'context.library < "dotnet@2.21.0"' or
     'context.agent_version >= "7.36.0"'.
-    
+
     Also handles:
     - context.library in ["java", "python"]
     - context.library in ("java", "python")
-    
+
     Returns a dict with:
     - component: component name (e.g., "dotnet", "agent") or list of components for "in" operator
     - operator: comparison operator (e.g., "<", ">=", "in")
@@ -385,7 +408,7 @@ def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
     """
     # First check for "in" operator with library
     # Pattern: context.library in ["java", "python"] or context.library in ("java", "python")
-    pattern_in_list = r'context\.library\s+in\s+\[([^\]]+)\]'
+    pattern_in_list = r"context\.library\s+in\s+\[([^\]]+)\]"
     match_in_list = re.search(pattern_in_list, condition_str)
     if match_in_list:
         component_list_str = match_in_list.group(1)
@@ -399,9 +422,9 @@ def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
             "is_equality": False,
             "component_list": component_names,
         }
-    
+
     # Pattern: context.library in ("java", "python")
-    pattern_in_tuple = r'context\.library\s+in\s+\(([^)]+)\)'
+    pattern_in_tuple = r"context\.library\s+in\s+\(([^)]+)\)"
     match_in_tuple = re.search(pattern_in_tuple, condition_str)
     if match_in_tuple:
         component_list_str = match_in_tuple.group(1)
@@ -415,18 +438,18 @@ def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
             "is_equality": False,
             "component_list": component_names,
         }
-    
+
     # Pattern to match: context.library < "dotnet@2.21.0" or context.agent_version >= "7.36.0"
     pattern = r'context\.(library|agent_version|weblog)\s*(<|<=|>|>=|==|!=)\s*"([^"]+)"'
     match = re.search(pattern, condition_str)
-    
+
     if not match:
         return None
-    
+
     component_type, operator, version_str = match.groups()
-    
+
     is_equality = operator in ("==", "!=")
-    
+
     # Extract component name from version string if it's library
     if component_type == "library":
         if "@" in version_str:
@@ -448,7 +471,7 @@ def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
         # Fallback: try to infer component from context
         component = None
         version = version_str
-    
+
     return {
         "component": component,
         "component_type": component_type,
@@ -462,16 +485,29 @@ def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
 def _is_component_name(name: str) -> bool:
     """
     Check if a name is a component name (like "python", "java") rather than a weblog name.
-    
+
     Args:
         name: Name to check
-    
+
     Returns:
         True if it's a component name, False if it's likely a weblog name
     """
     component_names = {
-        "python", "java", "nodejs", "php", "ruby", "dotnet", "golang", "go",
-        "cpp", "cpp_nginx", "cpp_httpd", "rust", "agent", "python_lambda", "python_otel"
+        "python",
+        "java",
+        "nodejs",
+        "php",
+        "ruby",
+        "dotnet",
+        "golang",
+        "go",
+        "cpp",
+        "cpp_nginx",
+        "cpp_httpd",
+        "rust",
+        "agent",
+        "python_lambda",
+        "python_otel",
     }
     return name.lower() in component_names
 
@@ -482,7 +518,7 @@ def _parse_library_keyword(keywords: Dict[str, str]) -> Optional[str]:
     """
     if "library" in keywords:
         # Remove quotes if present
-        lib = keywords["library"].strip('"\'')
+        lib = keywords["library"].strip("\"'")
         return lib
     return None
 
@@ -493,8 +529,19 @@ def _extract_reason(keywords: Dict[str, str]) -> Optional[str]:
     """
     if "reason" in keywords:
         # Remove quotes if present
-        reason = keywords["reason"].strip('"\'')
+        reason = keywords["reason"].strip("\"'")
         return reason
+    return None
+
+
+def _parse_weblog_variant_keyword(keywords: Dict[str, str]) -> Optional[str]:
+    """
+    Extract weblog variant name from keywords dict if 'weblog_variant' key exists.
+    """
+    if "weblog_variant" in keywords:
+        # Remove quotes if present
+        variant = keywords["weblog_variant"].strip("\"'")
+        return variant
     return None
 
 
@@ -512,71 +559,79 @@ def build_manifest_entries(
     decorator_usages: List[DecoratorInfo],
     *,
     component: Optional[str] = None,
-) -> Dict[str, List[Dict[str, Any]]]:
+) -> tuple[Dict[str, List[Dict[str, Any]]], List[DecoratorInfo]]:
     """
     Build manifest entries from decorator usage information.
-    
+
     Args:
         decorator_usages: List of decorator usage dictionaries from find_decorator_usages()
         component: Optional component name to filter by (e.g., "python", "java")
-    
+
     Returns:
-        Dictionary mapping nodeid to list of manifest entry dictionaries.
-        Each entry dict contains fields like:
-        - declaration: "bug", "missing_feature", or "irrelevant"
-        - component_version or excluded_component_version: version spec string
-        - component: component name
-        - weblog or excluded_weblog: list of weblog names
-        - reason: optional reason string
-        - weblog_declaration: dict mapping weblog names to declarations
+        Tuple of:
+        - Dictionary mapping nodeid to list of manifest entry dictionaries.
+          Each entry dict contains fields like:
+          - declaration: "bug", "missing_feature", or "irrelevant"
+          - component_version: version spec string
+          - component: component name
+          - weblog or excluded_weblog: list of weblog names
+          - reason: optional reason string
+          - weblog_declaration: dict mapping weblog names to declarations
+        - List of successfully migrated decorator usage info (for deletion)
     """
     manifest_data: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     unhandled_cases: List[Dict[str, Any]] = []
-    
+    successfully_migrated: List[DecoratorInfo] = []
+
     def _log_unhandled(reason: str, usage: Dict[str, Any], **extra_info: Any) -> None:
         """Log an unhandled case with all available information."""
-        unhandled_cases.append({
-            "file": usage.get("file"),
-            "line": usage.get("lineno"),
-            "decorator": usage.get("decorator_base_name"),
-            "decorated_type": usage.get("decorated_type"),
-            "decorated_name": usage.get("decorated_name"),
-            "class_name": usage.get("class_name"),
-            "args": usage.get("args", []),
-            "keywords": usage.get("keywords", {}),
-            "reason": reason,
-            **extra_info,
-        })
-    
+        unhandled_cases.append(
+            {
+                "file": usage.get("file"),
+                "line": usage.get("lineno"),
+                "decorator": usage.get("decorator_base_name"),
+                "decorated_type": usage.get("decorated_type"),
+                "decorated_name": usage.get("decorated_name"),
+                "class_name": usage.get("class_name"),
+                "args": usage.get("args", []),
+                "keywords": usage.get("keywords", {}),
+                "reason": reason,
+                **extra_info,
+            }
+        )
+
     for usage in decorator_usages:
         # Skip if not a function or class
         if usage["decorated_type"] not in ("function", "async_function", "class"):
             continue
-        
+
         # Build nodeid
         nodeid = _build_nodeid(
             usage["file"],
             usage.get("class_name"),
             usage.get("decorated_name"),
         )
-        
+
         # Get declaration type from decorator name
         decorator_name = usage.get("decorator_base_name", "")
         if decorator_name not in ("bug", "missing_feature", "irrelevant", "flaky"):
             continue
-        
+
         declaration = decorator_name
-        
+
         # Extract reason
         reason = _extract_reason(usage.get("keywords", {}))
-        
+
         # Parse arguments and keywords
         args = usage.get("args", [])
         keywords = usage.get("keywords", {})
-        
+
         # Check for library keyword (e.g., library="php")
         library_filter = _parse_library_keyword(keywords)
         
+        # Check for weblog_variant keyword (e.g., weblog_variant="express4")
+        weblog_variant_keyword = _parse_weblog_variant_keyword(keywords)
+
         # Parse condition from first positional argument if present
         condition_info = None
         weblog_variant_info = None
@@ -591,28 +646,41 @@ def build_manifest_entries(
                     all_args=args,
                 )
                 continue
-            
+
             condition_str = args[0]
-            condition_info = _parse_component_condition(condition_str)
-            weblog_variant_info = _parse_weblog_variant_condition(condition_str)
             
-            # Fail fast: If we have a condition string but can't parse it properly, skip
-            # This handles complex expressions we don't support (e.g., 'or' operators, nested conditions)
-            if condition_str and not condition_info and not weblog_variant_info:
-                # Unparseable condition - skip to avoid unclear entries
+            # Fail fast: Check for complex conditions (AND/OR) BEFORE parsing
+            # If found, skip entirely to avoid partial handling
+            if _is_complex_condition(condition_str):
                 _log_unhandled(
-                    "Unparseable condition (complex expressions like 'or' operators or nested conditions not supported)",
+                    "Complex condition with AND/OR operators (not supported - skipping to avoid partial handling)",
                     usage,
                     condition_str=condition_str,
                 )
                 continue
             
+            condition_info = _parse_component_condition(condition_str)
+            weblog_variant_info = _parse_weblog_variant_condition(condition_str)
+
+            # Fail fast: If we have a condition string but can't parse it properly, skip
+            # This handles complex expressions we don't support (e.g., nested conditions)
+            if condition_str and not condition_info and not weblog_variant_info:
+                # Unparseable condition - skip to avoid unclear entries
+                _log_unhandled(
+                    "Unparseable condition (complex expressions like nested conditions not supported)",
+                    usage,
+                    condition_str=condition_str,
+                )
+                continue
+
             # Fail fast: If we have a version comparison that's not equality, we need proper parsing
             # Skip this check for "in" operator (handled separately)
-            if (condition_info and 
-                not condition_info.get("is_equality") and 
-                condition_info["component_type"] == "library" and
-                condition_info.get("operator") != "in"):
+            if (
+                condition_info
+                and not condition_info.get("is_equality")
+                and condition_info["component_type"] == "library"
+                and condition_info.get("operator") != "in"
+            ):
                 # Version comparison - check if we have a valid version
                 if not condition_info.get("version"):
                     # Invalid version comparison - skip
@@ -623,7 +691,7 @@ def build_manifest_entries(
                         condition_info=condition_info,
                     )
                     continue
-        
+
         # Fail fast: If we have both library keyword and condition, this creates ambiguity
         # We can't handle both library keyword and condition simultaneously
         if library_filter and (condition_info or weblog_variant_info):
@@ -636,10 +704,10 @@ def build_manifest_entries(
                 weblog_variant_info=weblog_variant_info,
             )
             continue
-        
+
         # Build manifest entry
         entry: Dict[str, Any] = {}
-        
+
         # Handle complex conditions with both library and weblog_variant
         # These should create weblog_declaration entries
         if condition_info and weblog_variant_info:
@@ -648,7 +716,20 @@ def build_manifest_entries(
             library_name = None
             if condition_info.get("is_equality") and condition_info["component_type"] == "library":
                 library_name = condition_info.get("component")
-            
+                # Extract base component name (remove version suffix like @2.1.0)
+                if library_name and "@" in library_name:
+                    library_name = library_name.split("@")[0]
+            elif condition_info.get("operator") == "in" and condition_info["component_type"] == "library":
+                # Handle "in" operator: extract base component from component_list
+                component_list = condition_info.get("component_list", [])
+                if component_list:
+                    # Get the first component and extract base name
+                    first_component = component_list[0]
+                    if "@" in first_component:
+                        library_name = first_component.split("@")[0]
+                    else:
+                        library_name = first_component
+
             # Fail fast: If we have both conditions but can't extract library name, skip
             # This handles cases like version comparisons with weblog_variant (unhandled edge case)
             if not library_name:
@@ -660,24 +741,24 @@ def build_manifest_entries(
                     weblog_variant_info=weblog_variant_info,
                 )
                 continue
-            
+
             if library_name:
                 # Build declaration string
                 decl_str = declaration
                 if reason:
                     decl_str = f"{declaration} ({reason})"
-                
+
                 # Determine which weblogs to include/exclude
                 weblog_names = weblog_variant_info.get("weblog_names", [])
                 excluded_weblog_names = weblog_variant_info.get("excluded_weblog_names", [])
-                
+
                 # Handle different cases:
                 if weblog_names:
                     # Specific weblogs mentioned (e.g., context.weblog_variant == "spring-boot-3-native")
                     # Create weblog_declaration entry
                     if nodeid not in manifest_data:
                         manifest_data[nodeid] = []
-                    
+
                     # Check if there's already a weblog_declaration entry for this nodeid with the same component
                     weblog_decl_entry = None
                     for existing_entry in manifest_data[nodeid]:
@@ -687,7 +768,7 @@ def build_manifest_entries(
                             if existing_component is None or existing_component == library_name:
                                 weblog_decl_entry = existing_entry
                                 break
-                    
+
                     if weblog_decl_entry is None:
                         weblog_decl_entry = {"component": library_name, "weblog_declaration": {}}
                         manifest_data[nodeid].append(weblog_decl_entry)
@@ -695,9 +776,10 @@ def build_manifest_entries(
                     # This must happen AFTER appending to ensure the reference is correct
                     if weblog_decl_entry is not None:
                         weblog_decl_entry["component"] = library_name
-                    
+
                     for weblog_name in weblog_names:
                         weblog_decl_entry["weblog_declaration"][weblog_name] = decl_str
+                    successfully_migrated.append(usage)
                     continue
                 elif excluded_weblog_names:
                     # Excluded weblogs - we can't automatically list all weblogs for a component
@@ -711,6 +793,7 @@ def build_manifest_entries(
                     # excluded_weblog must be a list[str] according to the manifest parser
                     entry["excluded_weblog"] = excluded_weblog_names
                     manifest_data[nodeid].append(entry)
+                    successfully_migrated.append(usage)
                     continue
                 else:
                     # No specific weblog conditions, just library - create simple component declaration
@@ -719,14 +802,15 @@ def build_manifest_entries(
                         entry["reason"] = reason
                     entry["component"] = library_name
                     manifest_data[nodeid].append(entry)
+                    successfully_migrated.append(usage)
                     continue
-        
+
         # Handle weblog_variant conditions without library conditions
         # (e.g., just context.weblog_variant == "something")
         if weblog_variant_info and not condition_info:
             weblog_names = weblog_variant_info.get("weblog_names", [])
             excluded_weblog_names = weblog_variant_info.get("excluded_weblog_names", [])
-            
+
             # Fail fast: Weblog variant exclusions without library context are unclear
             # We can't determine which component's weblogs to exclude
             if excluded_weblog_names and not weblog_names:
@@ -738,17 +822,17 @@ def build_manifest_entries(
                     excluded_weblog_names=excluded_weblog_names,
                 )
                 continue
-            
+
             if weblog_names or excluded_weblog_names:
                 if nodeid not in manifest_data:
                     manifest_data[nodeid] = []
-                
+
                 weblog_decl_entry = None
                 for existing_entry in manifest_data[nodeid]:
                     if "weblog_declaration" in existing_entry:
                         weblog_decl_entry = existing_entry
                         break
-                
+
                 if weblog_decl_entry is None:
                     # For weblog-only conditions without library, we can't determine component
                     # This case should have been caught earlier, but if we get here, skip
@@ -758,26 +842,37 @@ def build_manifest_entries(
                         weblog_variant_info=weblog_variant_info,
                     )
                     continue
-                
+
                 # Ensure component is set if we have library_name
                 if library_name and "component" not in weblog_decl_entry:
                     weblog_decl_entry["component"] = library_name
-                
+
                 decl_str = declaration
                 if reason:
                     decl_str = f"{declaration} ({reason})"
-                
+
                 for weblog_name in weblog_names:
                     weblog_decl_entry["weblog_declaration"][weblog_name] = decl_str
-                
+
+                successfully_migrated.append(usage)
                 continue
-        
+
         # Handle "in" operator for library (e.g., context.library in ["java", "python"])
         if condition_info and condition_info.get("operator") == "in" and condition_info["component_type"] == "library":
             component_list = condition_info.get("component_list", [])
             if component_list:
-                # Create a declaration entry for each component in the list
+                # Extract base component names (remove version suffixes like @2.7.2)
+                base_components = set()
                 for component_name in component_list:
+                    # If component name contains @, extract just the base name
+                    if "@" in component_name:
+                        base_component = component_name.split("@")[0]
+                        base_components.add(base_component)
+                    else:
+                        base_components.add(component_name)
+                
+                # Create a declaration entry for each unique base component
+                for component_name in sorted(base_components):
                     entry_copy = {
                         "declaration": declaration,
                         "component": component_name,
@@ -785,8 +880,9 @@ def build_manifest_entries(
                     if reason:
                         entry_copy["reason"] = reason
                     manifest_data[nodeid].append(entry_copy)
+                successfully_migrated.append(usage)
                 continue
-        
+
         # Handle equality checks on library (e.g., context.library == "java" or context.library == "cpp_httpd")
         # These should be treated as simple declarations with component field
         if condition_info and condition_info.get("is_equality") and condition_info["component_type"] == "library":
@@ -801,14 +897,19 @@ def build_manifest_entries(
                     condition_info=condition_info,
                 )
                 continue
-            
+
+            # Extract base component name (remove version suffix like @2.1.0)
+            if "@" in library_name:
+                library_name = library_name.split("@")[0]
+
             entry["declaration"] = declaration
             if reason:
                 entry["reason"] = reason
             entry["component"] = library_name
             manifest_data[nodeid].append(entry)
+            successfully_migrated.append(usage)
             continue
-        
+
         # Handle library filter (could be component name or weblog name)
         if library_filter:
             # Fail fast: Skip invalid library names (like "not a lib" used in test cases)
@@ -830,16 +931,43 @@ def build_manifest_entries(
                     library_filter=library_filter,
                 )
                 continue
-            
-            # Check if library_filter is a component name (like "python", "java") 
+
+            # Check if library_filter is a component name (like "python", "java")
             # vs an actual weblog name (like "django-poc", "spring-boot")
             if _is_component_name(library_filter):
-                # This is a component filter, create a regular declaration with component field
+                # If we also have weblog_variant keyword, create weblog_declaration entry
+                if weblog_variant_keyword:
+                    if nodeid not in manifest_data:
+                        manifest_data[nodeid] = []
+                    
+                    # Check if there's already a weblog_declaration entry for this nodeid
+                    weblog_decl_entry = None
+                    for existing_entry in manifest_data[nodeid]:
+                        if "weblog_declaration" in existing_entry:
+                            existing_component = existing_entry.get("component")
+                            if existing_component is None or existing_component == library_filter:
+                                weblog_decl_entry = existing_entry
+                                break
+                    
+                    if weblog_decl_entry is None:
+                        weblog_decl_entry = {"component": library_filter, "weblog_declaration": {}}
+                        manifest_data[nodeid].append(weblog_decl_entry)
+                    
+                    # Build declaration string
+                    decl_str = declaration
+                    if reason:
+                        decl_str = f"{declaration} ({reason})"
+                    
+                    weblog_decl_entry["weblog_declaration"][weblog_variant_keyword] = decl_str
+                    continue
+                
+                # This is a component filter without weblog_variant, create a regular declaration with component field
                 entry["declaration"] = declaration
                 if reason:
                     entry["reason"] = reason
                 entry["component"] = library_filter
                 manifest_data[nodeid].append(entry)
+                successfully_migrated.append(usage)
                 continue
             else:
                 # This is a weblog-specific declaration
@@ -847,32 +975,32 @@ def build_manifest_entries(
                 # We need to group by nodeid and build weblog_declaration structure
                 if nodeid not in manifest_data:
                     manifest_data[nodeid] = []
-                
+
                 # Check if there's already a weblog_declaration entry for this nodeid
                 weblog_decl_entry = None
                 for existing_entry in manifest_data[nodeid]:
                     if "weblog_declaration" in existing_entry:
                         weblog_decl_entry = existing_entry
                         break
-                
+
                 if weblog_decl_entry is None:
                     weblog_decl_entry = {"weblog_declaration": {}}
                     manifest_data[nodeid].append(weblog_decl_entry)
-                
+
                 # Build declaration string
                 # Note: weblog_declaration entries should NOT include component fields
                 decl_str = declaration
                 if reason:
                     decl_str = f"{declaration} ({reason})"
-                
+
                 weblog_decl_entry["weblog_declaration"][library_filter] = decl_str
                 # Explicitly ensure no component information is added to weblog_declaration entries
                 continue
-            
+
         elif condition_info and condition_info.get("version"):
             # Component version condition (has a version to compare)
             component_name = condition_info["component"]
-            
+
             # Fail fast: Must have a component name for version conditions
             if not component_name:
                 # Version condition without component - unhandled edge case, skip
@@ -882,22 +1010,22 @@ def build_manifest_entries(
                     condition_info=condition_info,
                 )
                 continue
-            
+
             if component and component_name and component_name != component:
                 continue  # Skip if component filter doesn't match
-            
+
             entry["declaration"] = declaration
             if reason:
                 entry["reason"] = reason
-            
-            # Determine if this is excluded_component_version or component_version
+
+            # Determine component_version based on operator
             operator = condition_info["operator"]
             version = condition_info["version"]
-            
+
             # Fail fast: Only handle specific operators we understand
             if operator in ("<", "<="):
-                # This is an excluded_component_version (skip if version is less than X)
-                entry["excluded_component_version"] = _build_version_spec(operator, version)
+                # Use component_version (skip if version is less than X)
+                entry["component_version"] = _build_version_spec(operator, version)
             elif operator in (">", ">="):
                 # This is a component_version (skip if version is greater/equal than X)
                 entry["component_version"] = _build_version_spec(operator, version)
@@ -910,11 +1038,12 @@ def build_manifest_entries(
                     operator=operator,
                 )
                 continue
-            
+
             entry["component"] = component_name
             manifest_data[nodeid].append(entry)
+            successfully_migrated.append(usage)
             continue
-        
+
         # Fail fast: If we have any unhandled conditions, skip rather than creating unclear entries
         if condition_info or weblog_variant_info:
             # Unhandled condition type - skip to avoid unclear entry
@@ -925,7 +1054,7 @@ def build_manifest_entries(
                 weblog_variant_info=weblog_variant_info,
             )
             continue
-        
+
         # Fail fast: If we have library_filter but it wasn't handled above, skip
         if library_filter:
             # Library filter wasn't handled - unhandled edge case, skip
@@ -935,75 +1064,234 @@ def build_manifest_entries(
                 library_filter=library_filter,
             )
             continue
-        
+
         # Simple declaration without conditions
+        # Only add if we have component information (otherwise skip - no component to map to)
+        if not component:
+            # No component information - cannot create manifest entry, skip
+            _log_unhandled(
+                "No component information available (cannot determine which manifest file to use)",
+                usage,
+            )
+            continue
+        
         entry["declaration"] = declaration
         if reason:
             entry["reason"] = reason
-        
-        if component:
-            entry["component"] = component
-        
+        entry["component"] = component
+
         manifest_data[nodeid].append(entry)
-    
+        successfully_migrated.append(usage)
+
     # Print unhandled cases summary to stderr
     if unhandled_cases:
-        print("\n" + "="*80, file=sys.stderr)
+        print("\n" + "=" * 80, file=sys.stderr)
         print(f"UNHANDLED CASES SUMMARY: {len(unhandled_cases)} entries skipped", file=sys.stderr)
-        print("="*80, file=sys.stderr)
+        print("=" * 80, file=sys.stderr)
         for i, case in enumerate(unhandled_cases, 1):
             print(f"\n[{i}] {case['reason']}", file=sys.stderr)
             print(f"    File: {case['file']}", file=sys.stderr)
             print(f"    Line: {case['line']}", file=sys.stderr)
             print(f"    Decorator: {case['decorator']}", file=sys.stderr)
             print(f"    Decorated: {case['decorated_type']} {case['decorated_name']}", file=sys.stderr)
-            if case.get('class_name'):
+            if case.get("class_name"):
                 print(f"    Class: {case['class_name']}", file=sys.stderr)
-            if case.get('args'):
+            if case.get("args"):
                 print(f"    Args: {case['args']}", file=sys.stderr)
-            if case.get('keywords'):
+            if case.get("keywords"):
                 print(f"    Keywords: {case['keywords']}", file=sys.stderr)
             # Print additional context
             for key, value in case.items():
-                if key not in ('file', 'line', 'decorator', 'decorated_type', 'decorated_name', 
-                              'class_name', 'args', 'keywords', 'reason'):
+                if key not in (
+                    "file",
+                    "line",
+                    "decorator",
+                    "decorated_type",
+                    "decorated_name",
+                    "class_name",
+                    "args",
+                    "keywords",
+                    "reason",
+                ):
                     print(f"    {key}: {value}", file=sys.stderr)
-        print("\n" + "="*80, file=sys.stderr)
+        print("\n" + "=" * 80, file=sys.stderr)
+
+    return dict(manifest_data), successfully_migrated
+
+
+def delete_decorators_from_files(successfully_migrated: List[DecoratorInfo]) -> None:
+    """
+    Delete decorators from source files that were successfully migrated to manifests.
     
-    return dict(manifest_data)
+    Args:
+        successfully_migrated: List of decorator usage info that were successfully migrated
+    """
+    # Group by file to process each file once
+    files_to_modify: Dict[str, List[DecoratorInfo]] = defaultdict(list)
+    for usage in successfully_migrated:
+        files_to_modify[usage["file"]].append(usage)
+    
+    for filepath, usages in files_to_modify.items():
+        try:
+            # Read the source file
+            with open(filepath, "r", encoding="utf-8") as f:
+                source_lines = f.readlines()
+            
+            # Read full source for AST parsing
+            source = "".join(source_lines)
+            try:
+                tree = ast.parse(source, filename=filepath)
+            except SyntaxError:
+                print(f"Warning: Could not parse {filepath}, skipping decorator deletion", file=sys.stderr)
+                continue
+            
+            # Build a map of nodeid -> list of decorator sources to delete
+            decorators_to_delete: Dict[tuple[int, int], str] = {}
+            for usage in usages:
+                lineno = usage["lineno"]
+                decorator_index = usage.get("decorator_index")
+                decorator_source = usage.get("decorator_source", "")
+                if decorator_index is not None and decorator_source:
+                    decorators_to_delete[(lineno, decorator_index)] = decorator_source
+            
+            # Find lines to delete by visiting AST
+            lines_to_delete: set[int] = set()
+            
+            def visit_node(node: ast.AST, current_class: Optional[str] = None) -> None:
+                """Recursively visit AST nodes to find decorators to delete."""
+                if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+                    node_lineno = node.lineno
+                    for idx, dec in enumerate(node.decorator_list):
+                        key = (node_lineno, idx)
+                        if key in decorators_to_delete:
+                            # Find the line(s) containing this decorator
+                            dec_source = decorators_to_delete[key]
+                            dec_lines = _find_decorator_lines_by_source(source_lines, node_lineno, dec_source)
+                            lines_to_delete.update(dec_lines)
+                    
+                    # Visit children
+                    if isinstance(node, ast.ClassDef):
+                        for child in ast.iter_child_nodes(node):
+                            visit_node(child, node.name)
+                    else:
+                        for child in ast.iter_child_nodes(node):
+                            visit_node(child, current_class)
+                else:
+                    # Visit children
+                    for child in ast.iter_child_nodes(node):
+                        visit_node(child, current_class)
+            
+            visit_node(tree)
+            
+            # Delete the lines (in reverse order to maintain indices)
+            if lines_to_delete:
+                # Sort in reverse order
+                sorted_lines = sorted(lines_to_delete, reverse=True)
+                modified_lines = source_lines[:]
+                for line_num in sorted_lines:
+                    # Convert to 0-based index
+                    idx = line_num - 1
+                    if 0 <= idx < len(modified_lines):
+                        # Remove the line
+                        del modified_lines[idx]
+                        # Clean up: if previous line is now empty or only whitespace, consider removing it
+                        # But be careful - we don't want to remove too much
+                
+                # Write back to file
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.writelines(modified_lines)
+                
+                print(f"Deleted {len(lines_to_delete)} decorator line(s) from {filepath}", file=sys.stderr)
+        
+        except Exception as e:
+            print(f"Error processing {filepath}: {e}", file=sys.stderr)
+            import traceback
+            traceback.print_exc()
+            continue
+
+
+def _find_decorator_lines_by_source(source_lines: List[str], node_lineno: int, decorator_source: str) -> List[int]:
+    """
+    Find line numbers that contain the given decorator source.
+    Decorators appear on lines before the node definition.
+    
+    Args:
+        source_lines: List of source file lines
+        node_lineno: Line number (1-based) where the decorated node starts
+        decorator_source: Source code of the decorator to find
+    
+    Returns:
+        List of line numbers (1-based) that contain this decorator
+    """
+    lines: List[int] = []
+    
+    # Normalize decorator source for matching
+    decorator_clean = decorator_source.strip()
+    # Remove leading @ if present for matching
+    decorator_without_at = decorator_clean.lstrip("@").strip()
+    
+    # Search backwards from node_lineno (decorators appear before the definition)
+    # Look back up to 50 lines (should be more than enough)
+    for i in range(node_lineno - 1, max(-1, node_lineno - 51), -1):
+        if i < 0:
+            break
+        line_content = source_lines[i].rstrip()
+        
+        # Check if this line contains the decorator
+        # Match if line contains the decorator source (with or without @)
+        if decorator_clean in line_content or decorator_without_at in line_content:
+            # Additional check: line should start with @ (it's a decorator)
+            if line_content.lstrip().startswith("@"):
+                lines.append(i + 1)  # Convert to 1-based
+                # Check if decorator spans multiple lines (doesn't end with closing paren)
+                # If it does, we need to find the continuation
+                if "(" in line_content and not line_content.rstrip().endswith(")"):
+                    # Multi-line decorator - continue searching
+                    continue
+                else:
+                    # Found the decorator line(s)
+                    break
+    
+    return sorted(lines)
 
 
 def format_manifest_yaml(manifest_data: Dict[str, List[Dict[str, Any]]]) -> str:
     """
     Format manifest data as YAML string.
-    
+
     Args:
         manifest_data: Dictionary mapping nodeid to list of manifest entries
-    
+
     Returns:
         YAML string representation of the manifest
     """
     try:
         import ruamel.yaml
+
         use_ruamel = True
     except ImportError:
         import yaml
+
         use_ruamel = False
-    
+
     # Sort nodeids alphabetically
     sorted_nodeids = sorted(manifest_data.keys())
-    
+
     formatted_manifest = {"manifest": {}}
-    
+
     for nodeid in sorted_nodeids:
         entries = manifest_data[nodeid]
-        
+
         # If there's only one entry and it's a simple declaration, use inline format
         if len(entries) == 1:
             entry = entries[0]
-            
+
             # Check if it's a simple inline declaration
-            if "weblog_declaration" not in entry and "component_version" not in entry and "excluded_component_version" not in entry and "component" not in entry:
+            if (
+                "weblog_declaration" not in entry
+                and "component_version" not in entry
+                and "component" not in entry
+            ):
                 # Simple inline format: nodeid: declaration (reason)
                 decl = entry.get("declaration", "")
                 reason = entry.get("reason")
@@ -1012,17 +1300,14 @@ def format_manifest_yaml(manifest_data: Dict[str, List[Dict[str, Any]]]) -> str:
                 else:
                     formatted_manifest["manifest"][nodeid] = decl
                 continue
-        
+
         # Multi-entry format
         formatted_entries = []
         for entry in entries:
             formatted_entry = {}
-            
+
             if "weblog_declaration" in entry:
                 formatted_entry["weblog_declaration"] = entry["weblog_declaration"]
-                # Also include component if present
-                if "component" in entry:
-                    formatted_entry["component"] = entry["component"]
             else:
                 # Format declaration with reason inline: "declaration (reason)"
                 if "declaration" in entry:
@@ -1034,64 +1319,63 @@ def format_manifest_yaml(manifest_data: Dict[str, List[Dict[str, Any]]]) -> str:
                         formatted_entry["declaration"] = decl
                 if "component_version" in entry:
                     formatted_entry["component_version"] = entry["component_version"]
-                if "excluded_component_version" in entry:
-                    formatted_entry["excluded_component_version"] = entry["excluded_component_version"]
-                if "component" in entry:
-                    formatted_entry["component"] = entry["component"]
                 if "weblog" in entry:
                     formatted_entry["weblog"] = entry["weblog"]
                 if "excluded_weblog" in entry:
                     formatted_entry["excluded_weblog"] = entry["excluded_weblog"]
-            
+
             formatted_entries.append(formatted_entry)
-        
+
         formatted_manifest["manifest"][nodeid] = formatted_entries
-    
+
     if use_ruamel:
         yaml_writer = ruamel.yaml.YAML()
         yaml_writer.width = 4096  # Very wide to prevent line breaks
         yaml_writer.preserve_quotes = True
         yaml_writer.default_flow_style = False
-        
+
         # Use CommentedMap to ensure proper formatting without ? for keys
         from ruamel.yaml.comments import CommentedMap
+
         cm = CommentedMap(formatted_manifest)
-        
+
         from io import StringIO
+
         stream = StringIO()
         yaml_writer.dump(cm, stream)
         output = stream.getvalue()
-        
+
         # Post-process to ensure nodeids with :: don't get the ? format
         # Replace ? key\n  : value with key: value
         import re
+
         # Pattern to match: ? key\n  : (with 2 spaces before :)
         # This handles both quoted and unquoted keys
-        lines = output.split('\n')
+        lines = output.split("\n")
         result_lines = []
         i = 0
         while i < len(lines):
             line = lines[i]
             # Check if this line starts with ? (complex key indicator)
-            if line.strip().startswith('?'):
+            if line.strip().startswith("?"):
                 # Extract the key (remove ? and leading spaces)
                 key = line.strip()[1:].strip()
                 # Remove quotes if present
-                key = key.strip('"\'')
+                key = key.strip("\"'")
                 # Check if next line starts with '  :' (2 spaces + colon)
-                if i + 1 < len(lines) and lines[i + 1].strip().startswith(':'):
+                if i + 1 < len(lines) and lines[i + 1].strip().startswith(":"):
                     # Get the value line
                     value_line = lines[i + 1]
                     # Check what comes after the colon
-                    colon_pos = value_line.find(':')
-                    after_colon = value_line[colon_pos + 1:].lstrip()
-                    
+                    colon_pos = value_line.find(":")
+                    after_colon = value_line[colon_pos + 1 :].lstrip()
+
                     # If the value starts with '-', it's a list and should be on next line
-                    if after_colon.startswith('-'):
+                    if after_colon.startswith("-"):
                         result_lines.append(f"  {key}:")
                         # Add the list items with proper indentation (4 spaces for list items)
                         # The value_line has '  : -', we want just '    -' (4 spaces)
-                        list_content = value_line[value_line.find('-'):]
+                        list_content = value_line[value_line.find("-") :]
                         result_lines.append(f"    {list_content.lstrip()}")
                     else:
                         # Simple value, can be on same line
@@ -1103,8 +1387,8 @@ def format_manifest_yaml(manifest_data: Dict[str, List[Dict[str, Any]]]) -> str:
                     continue
             result_lines.append(line)
             i += 1
-        output = '\n'.join(result_lines)
-        
+        output = "\n".join(result_lines)
+
         return output
     else:
         # Fallback to pyyaml with very wide width
@@ -1120,50 +1404,50 @@ def format_manifest_yaml(manifest_data: Dict[str, List[Dict[str, Any]]]) -> str:
 def _infer_component_from_weblog(weblog_name: str) -> Optional[str]:
     """
     Infer component name from weblog name based on common patterns.
-    
+
     Args:
         weblog_name: Name of the weblog (e.g., "spring-boot", "django-poc", "express4")
-    
+
     Returns:
         Component name if inference is possible, None otherwise.
     """
     weblog_lower = weblog_name.lower()
-    
+
     # Java weblogs
     java_patterns = ["spring", "akka", "play", "vertx", "jersey", "ratpack", "resteasy", "quarkus", "tomcat", "jetty"]
     if any(pattern in weblog_lower for pattern in java_patterns):
         return "java"
-    
+
     # Python weblogs
     python_patterns = ["django", "flask", "fastapi", "bottle", "tornado", "aiohttp", "sanic", "starlette", "cherrypy"]
     if any(pattern in weblog_lower for pattern in python_patterns):
         return "python"
-    
+
     # Node.js weblogs
     nodejs_patterns = ["express", "koa", "hapi", "next", "nuxt", "fastify", "nest", "sails"]
     if any(pattern in weblog_lower for pattern in nodejs_patterns):
         return "nodejs"
-    
+
     # PHP weblogs
     php_patterns = ["laravel", "symfony", "slim", "zend", "codeigniter", "cakephp", "yii"]
     if any(pattern in weblog_lower for pattern in php_patterns):
         return "php"
-    
+
     # Ruby weblogs
     ruby_patterns = ["rails", "sinatra", "grape", "hanami", "padrino"]
     if any(pattern in weblog_lower for pattern in ruby_patterns):
         return "ruby"
-    
+
     # .NET weblogs
     dotnet_patterns = ["aspnet", "asp-net", "dotnet", ".net"]
     if any(pattern in weblog_lower for pattern in dotnet_patterns):
         return "dotnet"
-    
+
     # Go weblogs
     golang_patterns = ["gin", "echo", "fiber", "gorilla", "chi", "beego"]
     if any(pattern in weblog_lower for pattern in golang_patterns):
         return "golang"
-    
+
     # C++ weblogs
     cpp_patterns = ["cpp", "nginx", "httpd", "apache"]
     if any(pattern in weblog_lower for pattern in cpp_patterns):
@@ -1172,34 +1456,34 @@ def _infer_component_from_weblog(weblog_name: str) -> Optional[str]:
         elif "httpd" in weblog_lower or "apache" in weblog_lower:
             return "cpp_httpd"
         return "cpp"
-    
+
     # Rust weblogs
     rust_patterns = ["rust", "actix", "rocket", "warp", "axum"]
     if any(pattern in weblog_lower for pattern in rust_patterns):
         return "rust"
-    
+
     # Direct component name matches
     component_names = ["java", "python", "nodejs", "php", "ruby", "dotnet", "golang", "cpp", "rust"]
     if weblog_lower in component_names:
         return weblog_lower
-    
+
     return None
 
 
 def _extract_component_from_entry(entry: Dict[str, Any]) -> Optional[str]:
     """
     Extract component name from a manifest entry.
-    
+
     Args:
         entry: Manifest entry dictionary
-    
+
     Returns:
         Component name if found, None otherwise.
     """
     # Direct component field
     if "component" in entry:
         return entry["component"]
-    
+
     # Try to infer from weblog_declaration
     if "weblog_declaration" in entry:
         weblog_decl = entry["weblog_declaration"]
@@ -1210,8 +1494,518 @@ def _extract_component_from_entry(entry: Dict[str, Any]) -> Optional[str]:
                     inferred = _infer_component_from_weblog(weblog_name)
                     if inferred:
                         return inferred
-    
+
     return None
+
+
+def _wrap_key_anchors(content: str) -> str:
+    """Wrap anchor references used as keys in quotes for ruamel.yaml parsing.
+    
+    Converts lines like:
+        *django: v3.12.0.dev
+    to:
+        '*django': v3.12.0.dev
+    """
+    import re
+    lines = []
+    for line in content.splitlines():
+        match = re.match(r"^(\s+)(\*[a-zA-Z_][a-zA-Z0-9_]*)(\s*)(:)", line)
+        if match:
+            indentation = match.group(1)
+            anchor_ref = match.group(2)
+            spaces_before_colon = match.group(3)
+            colon = match.group(4)
+            rest_of_line = line[match.end() :]
+            lines.append(f"{indentation}'{anchor_ref}'{spaces_before_colon}{colon}{rest_of_line}")
+        else:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _unwrap_key_anchors(content: str) -> str:
+    """Unwrap anchor references used as keys, restoring them to unquoted state."""
+    import re
+    lines = []
+    for line in content.splitlines():
+        match = re.match(r"^(\s+)(['\"])(\*[a-zA-Z_][a-zA-Z0-9_]*)\2(\s*)(:)", line)
+        if match:
+            indentation = match.group(1)
+            anchor_ref = match.group(3)
+            spaces_before_colon = match.group(4)
+            colon = match.group(5)
+            rest_of_line = line[match.end() :]
+            lines.append(f"{indentation}{anchor_ref}{spaces_before_colon}{colon}{rest_of_line}")
+        else:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def _normalize_entry_for_comparison(entry: Any) -> Dict[str, Any]:
+    """Normalize an entry for comparison by converting it to a canonical form."""
+    if entry is None:
+        return {}
+    if not isinstance(entry, dict):
+        # Convert non-dict entries (like strings) to dict format
+        if isinstance(entry, str):
+            return {"declaration": entry}
+        return {}
+    normalized = {}
+    # Sort keys for consistent comparison
+    for key in sorted(entry.keys()):
+        value = entry[key]
+        if isinstance(value, dict):
+            # Recursively normalize nested dicts
+            normalized[key] = {k: v for k, v in sorted(value.items())}
+        elif isinstance(value, list):
+            # Sort lists for comparison
+            normalized[key] = sorted(value) if all(isinstance(x, (str, int, float)) for x in value) else value
+        else:
+            normalized[key] = value
+    return normalized
+
+
+def _entry_matches(entry1: Any, entry2: Dict[str, Any]) -> bool:
+    """Check if two entries are effectively the same."""
+    norm1 = _normalize_entry_for_comparison(entry1)
+    norm2 = _normalize_entry_for_comparison(entry2)
+    return norm1 == norm2
+
+
+def _convert_excluded_component_version(data: Any) -> Any:
+    """Recursively convert excluded_component_version to component_version in manifest data."""
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            if key == "excluded_component_version":
+                # Convert to component_version
+                result["component_version"] = _convert_excluded_component_version(value)
+            elif key == "manifest" and isinstance(value, dict):
+                # Recursively process manifest entries
+                result[key] = {}
+                for nodeid, entries in value.items():
+                    if isinstance(entries, list):
+                        result[key][nodeid] = [_convert_excluded_component_version(entry) for entry in entries]
+                    else:
+                        result[key][nodeid] = _convert_excluded_component_version(entries)
+            else:
+                result[key] = _convert_excluded_component_version(value)
+        return result
+    elif isinstance(data, list):
+        return [_convert_excluded_component_version(item) for item in data]
+    else:
+        return data
+
+
+def _merge_manifest_entries(
+    existing_data: Dict[str, Any],
+    new_entries: Dict[str, List[Dict[str, Any]]],
+) -> Dict[str, Any]:
+    """
+    Merge new manifest entries into existing manifest data.
+    
+    Args:
+        existing_data: Existing manifest data loaded from YAML
+        new_entries: New entries to merge in (nodeid -> list of entries)
+    
+    Returns:
+        Merged manifest data
+    """
+    # Ensure manifest section exists
+    if "manifest" not in existing_data:
+        existing_data["manifest"] = {}
+    
+    manifest = existing_data["manifest"]
+    
+    # Merge new entries
+    for nodeid, entries in new_entries.items():
+        if nodeid not in manifest:
+            # New nodeid - add all entries
+            if len(entries) == 1:
+                entry = entries[0]
+                # Check if it's a simple inline declaration
+                if (
+                    "weblog_declaration" not in entry
+                    and "component_version" not in entry
+                    and "component" not in entry
+                ):
+                    decl = entry.get("declaration", "")
+                    reason = entry.get("reason")
+                    if reason:
+                        manifest[nodeid] = f"{decl} ({reason})"
+                    else:
+                        manifest[nodeid] = decl
+                else:
+                    # Convert to list format
+                    formatted_entry = {}
+                    if "weblog_declaration" in entry:
+                        formatted_entry["weblog_declaration"] = entry["weblog_declaration"]
+                    if "declaration" in entry:
+                        decl = entry["declaration"]
+                        reason = entry.get("reason")
+                        if reason:
+                            formatted_entry["declaration"] = f"{decl} ({reason})"
+                        else:
+                            formatted_entry["declaration"] = decl
+                    if "component_version" in entry:
+                        formatted_entry["component_version"] = entry["component_version"]
+                    if "weblog" in entry:
+                        formatted_entry["weblog"] = entry["weblog"]
+                    if "excluded_weblog" in entry:
+                        formatted_entry["excluded_weblog"] = entry["excluded_weblog"]
+                    manifest[nodeid] = [formatted_entry]
+            else:
+                # Multiple entries - convert to list format
+                formatted_entries = []
+                for entry in entries:
+                    formatted_entry = {}
+                    if "weblog_declaration" in entry:
+                        formatted_entry["weblog_declaration"] = entry["weblog_declaration"]
+                    if "declaration" in entry:
+                        decl = entry["declaration"]
+                        reason = entry.get("reason")
+                        if reason:
+                            formatted_entry["declaration"] = f"{decl} ({reason})"
+                        else:
+                            formatted_entry["declaration"] = decl
+                    if "component_version" in entry:
+                        formatted_entry["component_version"] = entry["component_version"]
+                    if "weblog" in entry:
+                        formatted_entry["weblog"] = entry["weblog"]
+                    if "excluded_weblog" in entry:
+                        formatted_entry["excluded_weblog"] = entry["excluded_weblog"]
+                    formatted_entries.append(formatted_entry)
+                manifest[nodeid] = formatted_entries
+        else:
+            # Existing nodeid - merge entries
+            existing_value = manifest[nodeid]
+            
+            # Convert existing string to list if needed
+            if isinstance(existing_value, str):
+                existing_value = [{"declaration": existing_value}]
+                manifest[nodeid] = existing_value
+            
+            # Ensure it's a list
+            if not isinstance(existing_value, list):
+                existing_value = [existing_value]
+                manifest[nodeid] = existing_value
+            
+            # Add new entries that don't already exist
+            for new_entry in entries:
+                # Format the new entry
+                formatted_entry = {}
+                if "weblog_declaration" in new_entry:
+                    formatted_entry["weblog_declaration"] = new_entry["weblog_declaration"]
+                if "declaration" in new_entry:
+                    decl = new_entry["declaration"]
+                    reason = new_entry.get("reason")
+                    if reason:
+                        formatted_entry["declaration"] = f"{decl} ({reason})"
+                    else:
+                        formatted_entry["declaration"] = decl
+                if "component_version" in new_entry:
+                    formatted_entry["component_version"] = new_entry["component_version"]
+                if "weblog" in new_entry:
+                    formatted_entry["weblog"] = new_entry["weblog"]
+                if "excluded_weblog" in new_entry:
+                    formatted_entry["excluded_weblog"] = new_entry["excluded_weblog"]
+                
+                # Check if this entry already exists
+                entry_exists = False
+                for existing_entry in existing_value:
+                    if existing_entry is not None and _entry_matches(existing_entry, formatted_entry):
+                        entry_exists = True
+                        break
+                
+                if not entry_exists:
+                    existing_value.append(formatted_entry)
+    
+    return existing_data
+
+
+def _extract_existing_nodeids(content: str) -> set[str]:
+    """Extract existing nodeids from manifest file content without full parsing.
+    
+    This preserves comments by only doing a simple regex match for nodeid patterns.
+    """
+    import re
+    # Pattern to match nodeids: they start with "tests/" and end with ":" or "::"
+    # Examples:
+    #   tests/path/to/file.py::ClassName::method_name:
+    #   tests/path/to/file.py::ClassName:
+    #   tests/path/to/file.py:
+    pattern = r'^  (tests/[^\s:]+(?:::[^\s:]+)*(?:::)?):'
+    nodeids = set()
+    for line in content.splitlines():
+        match = re.match(pattern, line)
+        if match:
+            nodeid = match.group(1)
+            nodeids.add(nodeid)
+    return nodeids
+
+
+def _format_entry_as_yaml(entry_or_list: Union[Dict[str, Any], List[Dict[str, Any]]], nodeid: str) -> str:
+    """Format an entry or list of entries as YAML string for appending to manifest file."""
+    try:
+        import ruamel.yaml
+        from ruamel.yaml import YAML
+        use_ruamel = True
+    except ImportError:
+        import yaml
+        use_ruamel = False
+    
+    # Determine if it's a single entry or list
+    if isinstance(entry_or_list, list):
+        entries = entry_or_list
+        is_list = True
+    else:
+        entries = [entry_or_list]
+        is_list = False
+    
+    entry = entries[0] if entries else {}
+    
+    # Check if it's a simple inline declaration (only for single entry)
+    is_simple = (
+        not is_list
+        and "weblog_declaration" not in entry
+        and "component_version" not in entry
+        and "weblog" not in entry
+        and "excluded_weblog" not in entry
+        and "declaration" in entry
+    )
+    
+    if is_simple:
+        # Simple inline format: nodeid: declaration (2 spaces for nodeid)
+        decl = entry["declaration"]
+        return f"  {nodeid}: {decl}"
+    else:
+        # List format: nodeid:\n    - entry (2 spaces for nodeid, 4 spaces for list items)
+        if use_ruamel:
+            yaml_writer = YAML()
+            yaml_writer.width = 10000
+            yaml_writer.preserve_quotes = True
+            yaml_writer.default_flow_style = False
+            yaml_writer.indent(mapping=2, sequence=4, offset=2)
+            from io import StringIO
+            stream = StringIO()
+            yaml_writer.dump({nodeid: entries}, stream)
+            output = stream.getvalue().strip()
+            # Process lines to ensure correct indentation matching manifest format:
+            # - Nodeid line: 2 spaces
+            # - List items (-): 4 spaces
+            # - Keys in regular entries: 6 spaces
+            # - Keys in weblog_declaration: 8 spaces
+            # Also handle ? syntax for complex keys (long nodeids)
+            lines = output.split("\n")
+            result_lines = []
+            in_weblog_declaration = False
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if line.strip().startswith("manifest:") or line.strip().startswith("---"):
+                    i += 1
+                    continue
+                stripped = line.lstrip()
+                if not stripped:
+                    result_lines.append("")
+                    i += 1
+                    continue
+                
+                # Handle ? syntax for complex keys (long nodeids)
+                # Format: "      ? key\n      :   - item" -> "  key:\n    - item"
+                if stripped.startswith("?"):
+                    # Extract the key (remove ? and any quotes)
+                    key = stripped[1:].strip().strip("\"'")
+                    # Check if next line starts with ':'
+                    if i + 1 < len(lines) and lines[i + 1].strip().startswith(":"):
+                        value_line = lines[i + 1]
+                        value_stripped = value_line.lstrip()
+                        # Get what comes after the colon
+                        colon_pos = value_stripped.find(":")
+                        after_colon = value_stripped[colon_pos + 1 :].lstrip()
+                        
+                        # Format as: "  key:" (2 spaces for nodeid)
+                        result_lines.append(f"  {key}:")
+                        
+                        if after_colon.startswith("-"):
+                            # List item on same line: "  :   - item" -> "    - item"
+                            list_content = after_colon
+                            result_lines.append(f"    {list_content}")
+                            i += 2  # Skip both ? line and : line
+                            continue
+                        elif after_colon:
+                            # Simple value on same line: "  : value" -> "  key: value"
+                            result_lines.append(f"  {key}: {after_colon}")
+                            i += 2  # Skip both ? line and : line
+                            continue
+                        else:
+                            # Empty value, check next lines for list items
+                            i += 2  # Skip ? and : lines
+                            # Process subsequent lines that belong to this entry
+                            while i < len(lines):
+                                next_line = lines[i]
+                                next_stripped = next_line.lstrip()
+                                if not next_stripped:
+                                    i += 1
+                                    continue
+                                # Check if this is still part of the same entry (indented more than 2 spaces)
+                                next_indent = len(next_line) - len(next_stripped)
+                                if next_indent <= 2 and next_stripped and not next_stripped.startswith(" "):
+                                    # New top-level entry, stop processing
+                                    break
+                                if next_stripped.startswith("-"):
+                                    # List item - ensure 4 spaces
+                                    result_lines.append(f"    {next_stripped}")
+                                elif ":" in next_stripped:
+                                    # Nested key - ensure 6 spaces
+                                    result_lines.append(f"      {next_stripped}")
+                                else:
+                                    # Other content - preserve relative indentation but ensure minimum 6 spaces
+                                    if next_indent < 6:
+                                        result_lines.append(f"      {next_stripped}")
+                                    else:
+                                        result_lines.append(next_line)
+                                i += 1
+                            continue
+                    else:
+                        # Malformed ? syntax, skip
+                        i += 1
+                        continue
+                
+                current_indent = len(line) - len(stripped)
+                
+                # Track if we're inside a weblog_declaration
+                if "weblog_declaration" in stripped:
+                    in_weblog_declaration = True
+                elif stripped.startswith("-") and "weblog_declaration" not in stripped:
+                    in_weblog_declaration = False
+                
+                if nodeid in stripped and stripped.endswith(":"):
+                    # Nodeid line - ensure 2 spaces
+                    result_lines.append("  " + stripped)
+                elif stripped.startswith("-"):
+                    # List item - ensure 4 spaces
+                    result_lines.append("    " + stripped)
+                elif in_weblog_declaration and ":" in stripped and not stripped.startswith("-"):
+                    # Keys inside weblog_declaration - ensure 8 spaces
+                    result_lines.append("        " + stripped)
+                elif current_indent >= 6:
+                    # Already properly indented nested item (6+ spaces, not in weblog_declaration)
+                    result_lines.append(line)
+                elif ":" in stripped and not stripped.startswith("-"):
+                    # Nested mapping key (not in weblog_declaration) - ensure 6 spaces
+                    result_lines.append("      " + stripped)
+                else:
+                    # Other lines - preserve as is
+                    result_lines.append(line)
+                i += 1
+            return "\n".join(result_lines)
+        else:
+            import yaml
+            output = yaml.dump({nodeid: entries}, default_flow_style=False, sort_keys=False, width=4096)
+            lines = output.split("\n")
+            result_lines = []
+            in_weblog_declaration = False
+            i = 0
+            while i < len(lines):
+                line = lines[i]
+                if line.strip().startswith("manifest:") or line.strip().startswith("---"):
+                    i += 1
+                    continue
+                stripped = line.lstrip()
+                if not stripped:
+                    result_lines.append("")
+                    i += 1
+                    continue
+                
+                # Handle ? syntax for complex keys (long nodeids)
+                # Format: "      ? key\n      :   - item" -> "  key:\n    - item"
+                if stripped.startswith("?"):
+                    # Extract the key (remove ? and any quotes)
+                    key = stripped[1:].strip().strip("\"'")
+                    # Check if next line starts with ':'
+                    if i + 1 < len(lines) and lines[i + 1].strip().startswith(":"):
+                        value_line = lines[i + 1]
+                        value_stripped = value_line.lstrip()
+                        # Get what comes after the colon
+                        colon_pos = value_stripped.find(":")
+                        after_colon = value_stripped[colon_pos + 1 :].lstrip()
+                        
+                        # Format as: "  key:" (2 spaces for nodeid)
+                        result_lines.append(f"  {key}:")
+                        
+                        if after_colon.startswith("-"):
+                            # List item on same line: "  :   - item" -> "    - item"
+                            list_content = after_colon
+                            result_lines.append(f"    {list_content}")
+                            i += 2  # Skip both ? line and : line
+                            continue
+                        elif after_colon:
+                            # Simple value on same line: "  : value" -> "  key: value"
+                            result_lines.append(f"  {key}: {after_colon}")
+                            i += 2  # Skip both ? line and : line
+                            continue
+                        else:
+                            # Empty value, check next lines for list items
+                            i += 2  # Skip ? and : lines
+                            # Process subsequent lines that belong to this entry
+                            while i < len(lines):
+                                next_line = lines[i]
+                                next_stripped = next_line.lstrip()
+                                if not next_stripped:
+                                    i += 1
+                                    continue
+                                # Check if this is still part of the same entry (indented more than 2 spaces)
+                                next_indent = len(next_line) - len(next_stripped)
+                                if next_indent <= 2 and next_stripped and not next_stripped.startswith(" "):
+                                    # New top-level entry, stop processing
+                                    break
+                                if next_stripped.startswith("-"):
+                                    # List item - ensure 4 spaces
+                                    result_lines.append(f"    {next_stripped}")
+                                elif ":" in next_stripped:
+                                    # Nested key - ensure 6 spaces
+                                    result_lines.append(f"      {next_stripped}")
+                                else:
+                                    # Other content - preserve relative indentation but ensure minimum 6 spaces
+                                    if next_indent < 6:
+                                        result_lines.append(f"      {next_stripped}")
+                                    else:
+                                        result_lines.append(next_line)
+                                i += 1
+                            continue
+                    else:
+                        # Malformed ? syntax, skip
+                        i += 1
+                        continue
+                
+                current_indent = len(line) - len(stripped)
+                
+                # Track if we're inside a weblog_declaration
+                if "weblog_declaration" in stripped:
+                    in_weblog_declaration = True
+                elif stripped.startswith("-") and "weblog_declaration" not in stripped:
+                    in_weblog_declaration = False
+                
+                if nodeid in stripped and stripped.endswith(":"):
+                    # Nodeid line - ensure 2 spaces
+                    result_lines.append("  " + stripped)
+                elif stripped.startswith("-"):
+                    # List item - ensure 4 spaces
+                    result_lines.append("    " + stripped)
+                elif in_weblog_declaration and ":" in stripped and not stripped.startswith("-"):
+                    # Keys inside weblog_declaration - ensure 8 spaces
+                    result_lines.append("        " + stripped)
+                elif current_indent >= 6:
+                    # Already properly indented nested item (6+ spaces, not in weblog_declaration)
+                    result_lines.append(line)
+                elif ":" in stripped and not stripped.startswith("-"):
+                    # Nested mapping key (not in weblog_declaration) - ensure 6 spaces
+                    result_lines.append("      " + stripped)
+                else:
+                    # Other lines - preserve as is
+                    result_lines.append(line)
+                i += 1
+            return "\n".join(result_lines)
 
 
 def write_manifest_files_by_component(
@@ -1220,65 +2014,145 @@ def write_manifest_files_by_component(
 ) -> Dict[str, str]:
     """
     Write manifest entries grouped by component to separate YAML files.
-    
+    If files already exist, append new entries at the end to preserve all comments.
+
     Args:
         manifest_data: Dictionary mapping nodeid to list of manifest entries
         output_dir: Directory to write manifest files to (default: "new.manifests")
-    
+
     Returns:
         Dictionary mapping component name to file path of written file.
     """
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Group entries by component
     component_manifests: Dict[str, Dict[str, List[Dict[str, Any]]]] = defaultdict(lambda: {})
-    
+
     for nodeid, entries in manifest_data.items():
         for entry in entries:
             component = _extract_component_from_entry(entry)
-            
-            # If no component found, skip this entry (or put in "general" file)
-            # For now, we'll skip entries without a component
+
+            # If no component found, skip this entry
             if component is None:
                 continue
-            
+
             # Add entry to component-specific manifest
             if nodeid not in component_manifests[component]:
                 component_manifests[component][nodeid] = []
             component_manifests[component][nodeid].append(entry)
-    
+
     # Write one file per component
     written_files: Dict[str, str] = {}
-    
+
     for component, component_data in component_manifests.items():
         if not component_data:
             continue
-        
-        # Format YAML for this component
-        yaml_content = format_manifest_yaml(component_data)
-        
-        # Write to file
+
         filename = f"{component}.yml"
         filepath = output_path / filename
         
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(yaml_content)
+        # Get existing nodeids to avoid duplicates
+        existing_nodeids: set[str] = set()
+        existing_content = ""
+        if filepath.exists():
+            existing_content = filepath.read_text(encoding="utf-8")
+            existing_nodeids = _extract_existing_nodeids(existing_content)
         
+        # Filter out entries that already exist
+        new_entries: Dict[str, List[Dict[str, Any]]] = {}
+        for nodeid, entries in component_data.items():
+            if nodeid not in existing_nodeids:
+                new_entries[nodeid] = entries
+        
+        if not new_entries:
+            # No new entries to add
+            continue
+        
+        # Format new entries
+        new_lines = []
+        for nodeid, entries in sorted(new_entries.items()):
+            # Format entries for this nodeid
+            if len(entries) == 1:
+                # Single entry - format it
+                entry = entries[0]
+                formatted_entry = {}
+                if "weblog_declaration" in entry:
+                    formatted_entry["weblog_declaration"] = entry["weblog_declaration"]
+                if "declaration" in entry:
+                    decl = entry["declaration"]
+                    reason = entry.get("reason")
+                    if reason:
+                        formatted_entry["declaration"] = f"{decl} ({reason})"
+                    else:
+                        formatted_entry["declaration"] = decl
+                if "component_version" in entry:
+                    formatted_entry["component_version"] = entry["component_version"]
+                if "weblog" in entry:
+                    formatted_entry["weblog"] = entry["weblog"]
+                if "excluded_weblog" in entry:
+                    formatted_entry["excluded_weblog"] = entry["excluded_weblog"]
+                
+                yaml_str = _format_entry_as_yaml(formatted_entry, nodeid)
+                if yaml_str:
+                    new_lines.append(yaml_str)
+            else:
+                # Multiple entries - format as list
+                formatted_entries = []
+                for entry in entries:
+                    formatted_entry = {}
+                    if "weblog_declaration" in entry:
+                        formatted_entry["weblog_declaration"] = entry["weblog_declaration"]
+                    if "declaration" in entry:
+                        decl = entry["declaration"]
+                        reason = entry.get("reason")
+                        if reason:
+                            formatted_entry["declaration"] = f"{decl} ({reason})"
+                        else:
+                            formatted_entry["declaration"] = decl
+                    if "component_version" in entry:
+                        formatted_entry["component_version"] = entry["component_version"]
+                    if "weblog" in entry:
+                        formatted_entry["weblog"] = entry["weblog"]
+                    if "excluded_weblog" in entry:
+                        formatted_entry["excluded_weblog"] = entry["excluded_weblog"]
+                    formatted_entries.append(formatted_entry)
+                
+                # Format as YAML list
+                yaml_str = _format_entry_as_yaml(formatted_entries, nodeid)
+                if yaml_str:
+                    new_lines.append(yaml_str)
+        
+        # Append new entries to file
+        if filepath.exists():
+            # Append mode - preserve all existing content including comments
+            with open(filepath, "a", encoding="utf-8") as f:
+                if new_lines:
+                    # Ensure there's a newline before adding new entries
+                    if not existing_content.endswith("\n"):
+                        f.write("\n")
+                    f.write("\n".join(new_lines))
+                    f.write("\n")
+        else:
+            # New file - write header and entries
+            header = "# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n---\nmanifest:\n"
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(header)
+                f.write("\n".join(new_lines))
+                f.write("\n")
+
         written_files[component] = str(filepath)
-    
+
     return written_files
 
 
 if __name__ == "__main__":
-    import sys
-    
     # Parse arguments
     args = sys.argv[1:]
     manifest_mode = "--manifest" in args
     write_files_mode = "--write-files" in args
     errors_only_mode = "--errors-only" in args or "--unhandled-only" in args
-    
+
     if manifest_mode:
         args.remove("--manifest")
     if write_files_mode:
@@ -1289,20 +2163,20 @@ if __name__ == "__main__":
             args.remove("--errors-only")
         if "--unhandled-only" in args:
             args.remove("--unhandled-only")
-    
+
     # Default: find bug decorators
     decorator_name = args[0] if args else "bug"
-    
+
     usages = find_decorator_usages("tests/", decorator_name)
-    
+
     if not usages:
         print(f"No usages of '{decorator_name}' decorator found in tests/", file=sys.stderr)
         sys.exit(1)
-    
+
     if manifest_mode or write_files_mode or errors_only_mode:
         # Build manifest entries (this will collect unhandled cases)
-        manifest_data = build_manifest_entries(usages)
-        
+        manifest_data, successfully_migrated = build_manifest_entries(usages)
+
         if errors_only_mode:
             # Only show unhandled cases (already printed to stderr by build_manifest_entries)
             # Don't exit even if no manifest entries - we want to show the errors
@@ -1317,18 +2191,32 @@ if __name__ == "__main__":
                 print(f"Written {len(written_files)} manifest file(s):", file=sys.stderr)
                 for component, filepath in sorted(written_files.items()):
                     print(f"  {component}: {filepath}", file=sys.stderr)
+                # Delete decorators from source files
+                if successfully_migrated:
+                    delete_decorators_from_files(successfully_migrated)
             else:
                 print(f"No manifest files written (no entries with component information)", file=sys.stderr)
                 sys.exit(1)
         elif manifest_mode:
-            # Print manifest entries as YAML
-            yaml_output = format_manifest_yaml(manifest_data)
-            print(yaml_output)
+            # Write files grouped by component to manifests/ directory
+            written_files = write_manifest_files_by_component(manifest_data, output_dir="manifests")
+            if written_files:
+                print(f"Written {len(written_files)} manifest file(s):", file=sys.stderr)
+                for component, filepath in sorted(written_files.items()):
+                    print(f"  {component}: {filepath}", file=sys.stderr)
+                # Delete decorators from source files
+                if successfully_migrated:
+                    delete_decorators_from_files(successfully_migrated)
+            else:
+                print(f"No manifest files written (no entries with component information)", file=sys.stderr)
+                sys.exit(1)
     else:
         # Print detailed usage information
         for u in usages:
             class_info = f" (class: {u['class_name']})" if u.get("class_name") else ""
-            print(f"{u['file']}:{u['lineno']} {u['decorated_type']} {u['decorated_name']}{class_info} -> {u['decorator_source']}")
+            print(
+                f"{u['file']}:{u['lineno']} {u['decorated_type']} {u['decorated_name']}{class_info} -> {u['decorator_source']}"
+            )
             print("  args:", u["args"])
             print("  kwargs:", u["keywords"])
             print()
