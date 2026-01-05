@@ -3,6 +3,7 @@
 refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: 0.0.1
