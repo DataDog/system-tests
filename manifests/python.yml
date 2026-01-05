@@ -46,6 +46,7 @@ manifest:
         "*": irrelevant
         fastapi: v3.13.0.dev
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_type: irrelevant
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0

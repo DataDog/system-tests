@@ -118,6 +118,7 @@ manifest:
         "*": *ref_5_74_0
         fastify: *ref_5_64_0
         nextjs: missing_feature
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0
