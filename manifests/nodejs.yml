@@ -79,6 +79,7 @@ refs:
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
   - &ref_5_81_0 '>=5.81.0'
+  - &ref_5_82_0 '>=5.82.0'
 manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -1042,7 +1043,12 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: missing_feature
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
-  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: *ref_5_82_0
+        express5: *ref_5_82_0
+        fastify: *ref_5_82_0
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: *ref_3_11_0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
@@ -1433,7 +1439,12 @@ manifest:
         express4: *ref_5_37_0
         express5: *ref_5_37_0
         fastify: *ref_5_37_0
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: *ref_5_82_0
+        express5: *ref_5_82_0
+        fastify: *ref_5_82_0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
