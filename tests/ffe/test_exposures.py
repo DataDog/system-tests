@@ -596,32 +596,6 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
             assert subject_count == 1, f"Expected exactly 1 exposure for subject '{subject}', but found {subject_count}"
 
 
-# UFC fixture with doLog=false
-UFC_EXPOSURE_DOLOG_FALSE_FIXTURE = {
-    "createdAt": "2024-04-17T19:40:53.716Z",
-    "format": "SERVER",
-    "environment": {"name": "Test"},
-    "flags": {
-        "no-log-flag": {
-            "key": "no-log-flag",
-            "enabled": True,
-            "variationType": "STRING",
-            "variations": {
-                "variant-a": {"key": "variant-a", "value": "value-a"},
-            },
-            "allocations": [
-                {
-                    "key": "default-allocation",
-                    "rules": [],
-                    "splits": [{"variationKey": "variant-a", "shards": []}],
-                    "doLog": False,  # Exposure logging disabled
-                }
-            ],
-        }
-    },
-}
-
-
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_exposures
 class Test_FFE_Exposure_Caching_Allocation_Cycle:
@@ -864,6 +838,32 @@ class Test_FFE_Exposure_Missing_Flag:
         assert exposure_count == 0, (
             f"Expected 0 exposure events for missing flag '{self.flag_key}', but found {exposure_count} events"
         )
+
+
+# UFC fixture with doLog=false
+UFC_EXPOSURE_DOLOG_FALSE_FIXTURE = {
+    "createdAt": "2024-04-17T19:40:53.716Z",
+    "format": "SERVER",
+    "environment": {"name": "Test"},
+    "flags": {
+        "no-log-flag": {
+            "key": "no-log-flag",
+            "enabled": True,
+            "variationType": "STRING",
+            "variations": {
+                "variant-a": {"key": "variant-a", "value": "value-a"},
+            },
+            "allocations": [
+                {
+                    "key": "default-allocation",
+                    "rules": [],
+                    "splits": [{"variationKey": "variant-a", "shards": []}],
+                    "doLog": False,  # Exposure logging disabled
+                }
+            ],
+        }
+    },
+}
 
 
 @scenarios.feature_flagging_and_experimentation

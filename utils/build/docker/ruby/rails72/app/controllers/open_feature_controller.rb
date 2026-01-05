@@ -43,7 +43,7 @@ class OpenFeatureController < ApplicationController
         when 'BOOLEAN'then client.fetch_boolean_value(**options)
         when 'STRING' then client.fetch_string_value(**options)
         when 'INTEGER' then client.fetch_integer_value(**options)
-        when 'NUMERIC' then client.fetch_number_value(**options)
+        when 'NUMERIC' then client.fetch_float_value(**options)
         when 'JSON' then client.fetch_object_value(**options)
         else 'FATAL_UNEXPECTED_VARIATION_TYPE'
         end
