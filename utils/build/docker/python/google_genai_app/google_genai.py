@@ -25,9 +25,7 @@ class GenAiGenerateContentRequest(BaseModel):
     config: Optional[dict] = None
 
 
-class GenAiEmbedContentRequest(BaseModel):
-    model: str
-    contents: Any
+GenAiEmbedContentRequest = GenAiGenerateContentRequest
 
 
 @app.post("/generate_content")
@@ -49,5 +47,6 @@ def genai_generate_content(req: GenAiGenerateContentRequest):
 
 @app.post("/embed_content")
 def genai_embed_content(req: GenAiEmbedContentRequest):
-    response = client.models.embed_content(model=req.model, contents=req.contents)
+    config = req.config or {}
+    response = client.models.embed_content(model=req.model, contents=req.contents, config=config)
     return {"response": response}

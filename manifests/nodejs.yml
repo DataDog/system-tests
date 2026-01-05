@@ -1276,7 +1276,7 @@ manifest:
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: bug (MLOB-1234)  # TODO: put a real ticket here or fix before landing tests
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: bug (MLOB-5070)  # does not record metadata
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: *ref_5_81_0

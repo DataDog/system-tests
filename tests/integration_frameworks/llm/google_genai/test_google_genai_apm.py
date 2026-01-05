@@ -46,7 +46,7 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
                 method="POST",
                 url="/embed_content",
                 body=dict(
-                    model="gemini-embedding-001",
+                    model="text-embedding-004",
                     contents="Why did the chicken cross the road?",
                 ),
             )
@@ -56,5 +56,5 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
 
         assert span["name"] == "google_genai.request"
         assert span["resource"] == "Models.embed_content"
-        assert span["meta"]["google_genai.request.model"] == "gemini-embedding-001"
+        assert span["meta"]["google_genai.request.model"] == "text-embedding-004"
         assert span["meta"]["google_genai.request.provider"] == "google"

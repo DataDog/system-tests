@@ -263,7 +263,7 @@ class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
     # python does not have reasoning output messages for streamed responses
-    @bug(context.library == "python", reason="MLOB-1234")  # TODO: put a real ticket here or fix before landing tests
+    @bug(context.library == "python", reason="MLOB-5071")
     @pytest.mark.parametrize("stream", [True, False])
     def test_generate_content_reasoning_output(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -396,7 +396,7 @@ class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContentWithTools(BaseGoogleGenaiTest):
     # tool definitions do not seem to be formatted correctly
-    @bug(context.library == "python", reason="MLOB-1234")  # TODO: put a real ticket here or fix before landing tests
+    @bug(context.library == "python", reason="MLOB-5071")
     @missing_feature(
         context.library == "nodejs",
         reason="Node.js LLM Observability Google GenAI integration does not submit tool definitions",
@@ -554,7 +554,7 @@ class TestGoogleGenAiGenerateContentWithTools(BaseGoogleGenaiTest):
         )  # there are some subtle character formatting differences for the degree symbol in different client libraries
 
     # Node.js does not have 4 output messages for non-streamed responses
-    @bug(context.library == "nodejs", reason="MLOB-1234")  # TODO: put a real ticket here or fix before landing tests
+    @bug(context.library == "nodejs", reason="MLOB-5070")
     @pytest.mark.parametrize("stream", [True, False])
     def test_generate_content_executable_code(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -634,7 +634,7 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
                 method="POST",
                 url="/embed_content",
                 body=dict(
-                    model="gemini-embedding-001",
+                    model="text-embedding-004",
                     contents="Why did the chicken cross the road?",
                 ),
             )
@@ -648,12 +648,12 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
             integration="google_genai",
             name="google_genai.request",
             span_kind="embedding",
-            model_name="gemini-embedding-001",
+            model_name="text-embedding-004",
             model_provider="google",
             input_documents=[{"text": "Why did the chicken cross the road?"}],
-            output_value="[1 embedding(s) returned with size 3072]",
+            output_value="[1 embedding(s) returned with size 768]",
             metadata={},
-            metrics={},  # TODO: this is probably not correct
+            metrics={},  # metrics are not returned directly with google genai embedding models
         )
 
     def test_embed_content_multiple_strings_input(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -662,7 +662,7 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
                 method="POST",
                 url="/embed_content",
                 body=dict(
-                    model="gemini-embedding-001",
+                    model="text-embedding-004",
                     contents=["Why did the chicken cross the road?", "What is 2 + 2?"],
                 ),
             )
@@ -676,12 +676,12 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
             integration="google_genai",
             name="google_genai.request",
             span_kind="embedding",
-            model_name="gemini-embedding-001",
+            model_name="text-embedding-004",
             model_provider="google",
             input_documents=[{"text": "Why did the chicken cross the road?"}, {"text": "What is 2 + 2?"}],
-            output_value="[2 embedding(s) returned with size 3072]",
+            output_value="[2 embedding(s) returned with size 768]",
             metadata={},
-            metrics={},  # TODO: this is probably not correct
+            metrics={},
         )
 
     def test_embed_content_parts_input(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -690,7 +690,7 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
                 method="POST",
                 url="/embed_content",
                 body=dict(
-                    model="gemini-embedding-001",
+                    model="text-embedding-004",
                     contents=[{"text": "Why did the chicken cross the road?"}, {"text": "What is 2 + 2?"}],
                 ),
             )
@@ -704,12 +704,12 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
             integration="google_genai",
             name="google_genai.request",
             span_kind="embedding",
-            model_name="gemini-embedding-001",
+            model_name="text-embedding-004",
             model_provider="google",
             input_documents=[{"text": "Why did the chicken cross the road?"}, {"text": "What is 2 + 2?"}],
-            output_value="[2 embedding(s) returned with size 3072]",
+            output_value="[2 embedding(s) returned with size 768]",
             metadata={},
-            metrics={},  # TODO: this is probably not correct
+            metrics={},
         )
 
     def test_embed_content_content_block_input(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
@@ -718,7 +718,7 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
                 method="POST",
                 url="/embed_content",
                 body=dict(
-                    model="gemini-embedding-001",
+                    model="text-embedding-004",
                     contents=[
                         {
                             "parts": [
@@ -740,10 +740,47 @@ class TestGoogleGenAiEmbedContent(BaseGoogleGenaiTest):
             integration="google_genai",
             name="google_genai.request",
             span_kind="embedding",
-            model_name="gemini-embedding-001",
+            model_name="text-embedding-004",
             model_provider="google",
             input_documents=[{"text": "Why did the chicken cross the road?"}, {"text": "What is 2 + 2?"}],
-            output_value="[1 embedding(s) returned with size 3072]",  # the inputs are combined into a single input for google genai purposes
+            output_value="[1 embedding(s) returned with size 768]",  # the inputs are combined into a single input for google genai purposes
             metadata={},
-            metrics={},  # TODO: this is probably not correct
+            metrics={},
+        )
+
+    def test_embed_content_with_metadata(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
+        with test_agent.vcr_context():
+            test_client.request(
+                method="POST",
+                url="/embed_content",
+                body=dict(
+                    model="text-embedding-004",
+                    contents="Why did the chicken cross the road?",
+                    config=dict(
+                        output_dimensionality=10,
+                    ),
+                ),
+            )
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        llm_span_event = span_events[0]
+        assert_llmobs_span_event(
+            llm_span_event,
+            integration="google_genai",
+            name="google_genai.request",
+            span_kind="embedding",
+            model_name="text-embedding-004",
+            model_provider="google",
+            input_documents=[{"text": "Why did the chicken cross the road?"}],
+            output_value="[1 embedding(s) returned with size 10]",
+            metadata={
+                "auto_truncate": None,
+                "mime_type": None,
+                "output_dimensionality": 10,
+                "task_type": None,
+                "title": None,
+            },
+            metrics={},
         )
