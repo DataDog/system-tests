@@ -2,7 +2,6 @@ import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, scenarios, features
-from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -20,7 +19,7 @@ def temporary_enable_propagationstyle_default() -> pytest.MarkDecorator:
 @features.datadog_headers_propagation
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
-    def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_headers_tracestate_dd_propagate_samplingpriority(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
@@ -184,7 +183,7 @@ class Test_Headers_Tracestate_DD:
             assert "s:0" in dd_items8 or not any(item.startswith("s:") for item in dd_items8)
 
     @temporary_enable_propagationstyle_default()
-    def test_headers_tracestate_dd_propagate_origin(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_headers_tracestate_dd_propagate_origin(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
@@ -245,7 +244,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers1["x-datadog-origin"] == "synthetics-browser"
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -255,7 +254,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers2["x-datadog-origin"] == "tracing2.0"
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -269,7 +268,7 @@ class Test_Headers_Tracestate_DD:
         # allow implementations to split origin at the first ','
         assert origin in ("synthetics~;=web,z", "synthetics~;=web")
 
-        traceparent3, tracestate3 = get_tracecontext(headers3)
+        _, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
         assert "traceparent" in headers3
         assert "tracestate" in headers3
@@ -280,7 +279,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin is not set
         assert "x-datadog-origin" not in headers4
 
-        traceparent4, tracestate4 = get_tracecontext(headers4)
+        _, tracestate4 = get_tracecontext(headers4)
         dd_items4 = tracestate4["dd"].split(";")
         assert "traceparent" in headers4
         assert "tracestate" in headers4
@@ -290,7 +289,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers5["x-datadog-origin"] == "synthetics-browser"
 
-        traceparent5, tracestate5 = get_tracecontext(headers5)
+        _, tracestate5 = get_tracecontext(headers5)
         dd_items5 = tracestate5["dd"].split(";")
         assert "traceparent" in headers5
         assert "tracestate" in headers5
@@ -300,7 +299,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value
         assert headers6["x-datadog-origin"] == "tracing2.0"
 
-        traceparent6, tracestate6 = get_tracecontext(headers6)
+        _, tracestate6 = get_tracecontext(headers6)
         dd_items6 = tracestate6["dd"].split(";")
         assert "traceparent" in headers6
         assert "tracestate" in headers6
@@ -321,7 +320,7 @@ class Test_Headers_Tracestate_DD:
         context.library == "rust",
         reason="can't guarantee the order of strings in the tracestate since they came from the map.",
     )
-    def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_headers_tracestate_dd_propagate_propagatedtags(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
@@ -369,7 +368,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         assert "_dd.p.usr.id=MTIz" in headers1["x-datadog-tags"]
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -381,7 +380,7 @@ class Test_Headers_Tracestate_DD:
         #         and "=" is replaced with ":"
         assert headers2["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64=="
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -393,7 +392,7 @@ class Test_Headers_Tracestate_DD:
         #         and "=" is replaced with ":"
         assert headers3["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
 
-        traceparent3, tracestate3 = get_tracecontext(headers3)
+        _, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
         assert "traceparent" in headers3
         assert "tracestate" in headers3
@@ -405,7 +404,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         #         and "=" is replaced with ":". Tags that may be added are:
         #         - _dd.p.dm
-        traceparent4, tracestate4 = get_tracecontext(headers4)
+        _, tracestate4 = get_tracecontext(headers4)
         dd_items4 = tracestate4["dd"].split(";")
         assert "traceparent" in headers4
 
@@ -433,9 +432,7 @@ class Test_Headers_Tracestate_DD:
     )
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
-    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
@@ -467,7 +464,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.dm=-0" in dd_tags1
         assert "_dd.p.usr.id=baz64==" in dd_tags1
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -485,7 +482,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.usr.id=baz64==" in dd_tags2
         assert "_dd.p.url=http://localhost" in dd_tags2
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -499,9 +496,7 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
-    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
@@ -533,7 +528,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.dm=-0" in dd_tags1
         assert "_dd.p.usr.id=baz64==" in dd_tags1
 
-        traceparent1, tracestate1 = get_tracecontext(headers1)
+        _, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
@@ -551,7 +546,7 @@ class Test_Headers_Tracestate_DD:
         assert "_dd.p.usr.id=baz64==" in dd_tags2
         assert "_dd.p.url=http://localhost" in dd_tags2
 
-        traceparent2, tracestate2 = get_tracecontext(headers2)
+        _, tracestate2 = get_tracecontext(headers2)
         dd_items2 = tracestate2["dd"].split(";")
         assert "traceparent" in headers2
         assert "tracestate" in headers2
@@ -562,9 +557,7 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     @bug(library="php", reason="APMAPI-916")
-    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_library: APMLibrary):
         """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
         number of list-members in the tracestate is less than or equal to 32
@@ -635,9 +628,7 @@ class Test_Headers_Tracestate_DD:
     @bug(library="nodejs", reason="APMAPI-914")
     @bug(library="python", reason="APMAPI-914")
     @bug(library="php", reason="APMAPI-916")
-    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output
         tracestate string because the maximum number of list-members is 32.
