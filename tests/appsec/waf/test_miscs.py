@@ -5,7 +5,6 @@
 from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules, missing_feature
 
 
-@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.appsec_response_blocking
 class Test_404:
     """Appsec WAF misc tests"""

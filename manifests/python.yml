@@ -1,4 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
+refs:
+  - &django "django-poc, django-py3.13, python3.12"
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -17,9 +21,19 @@ manifest:
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": v3.13.0.dev
-        django-poc: v3.12.0.dev
-        django-py3.13: v3.12.0.dev
-        python3.12: v3.12.0.dev
+        *django: v3.12.0.dev
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_metadata: irrelevant
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type:
+    - weblog_declaration:
+        "*": irrelevant
+        fastapi: v3.13.0.dev
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code:
+    - weblog_declaration:
+        "*": irrelevant
+        fastapi: v3.13.0.dev
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_type: irrelevant
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0
@@ -67,6 +81,7 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         fastapi: v2.15.0
+  tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection::test_secure: v3.0.0
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection: missing_feature
@@ -82,9 +97,7 @@ manifest:
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection:
     - weblog_declaration:
         "*": irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
-        django-poc: v3.10.0.dev
-        django-py3.13: v3.10.0.dev
-        python3.12: v3.10.0.dev
+        *django: v3.10.0.dev
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionAccessControlAllow: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionContentEncoding: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionPragma: missing_feature
@@ -92,15 +105,11 @@ manifest:
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_ExtendedLocation:
     - weblog_declaration:
         "*": irrelevant (was v3.1.0.dev but algorithm was updated will be updated)
-        django-poc: v3.10.0.dev
-        django-py3.13: v3.10.0.dev
-        python3.12: v3.10.0.dev
+        *django: v3.10.0.dev
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_StackTrace:
     - weblog_declaration:
         "*": irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
-        django-poc: v3.10.0.dev
-        django-py3.13: v3.10.0.dev
-        python3.12: v3.10.0.dev
+        *django: v3.10.0.dev
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_StackTrace: missing_feature
@@ -109,8 +118,9 @@ manifest:
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace: v3.9.0.dev
@@ -119,15 +129,17 @@ manifest:
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0-dev
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
-        "*": v1.19.0  (v3.1.0.dev, add telemetry metrics support)
-        fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
+        "*": v1.19.0
+        fastapi: v2.16.0-dev
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace: v3.9.0.dev
@@ -145,20 +157,15 @@ manifest:
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
     - weblog_declaration:
-        django-poc: v1.18.0
+        '*': v1.18.0
         fastapi: v2.15.0
-        flask-poc: v1.18.0
-        python3.12: v1.18.0
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: v3.9.0.dev
-  tests/appsec/iast/sink/test_ssrf.py::TestSSRF:
-    - weblog_declaration:
-        "*": v2.10.0
+  tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace: v3.9.0.dev
-  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak:
-    - weblog_declaration:
-        "*": v3.1.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: v3.1.0.dev
+  tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak::test_telemetry_metric_instrumented_sink: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation: missing_feature
@@ -179,6 +186,7 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
@@ -220,12 +228,9 @@ manifest:
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace: v3.9.0.dev
   tests/appsec/iast/source/test_body.py::TestRequestBody:
     - weblog_declaration:
-        django-poc: v1.20.0
+        '*': v1.20.0
         fastapi: v2.14.0
         flask-poc: v2.13.0
-        python3.12: v1.20.0
-        uds-flask: v1.20.0
-        uwsgi-poc: v1.20.0
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName:
     - weblog_declaration:
         "*": v2.10.0
@@ -243,9 +248,7 @@ manifest:
     - weblog_declaration:
         "*": v1.18.0
         fastapi: v2.13.0
-        flask-poc: v3.1.0.dev
-        uds-flask: v3.1.0.dev
-        uwsgi-poc: v3.1.0.dev
+        *flask: v3.1.0.dev
   tests/appsec/iast/source/test_kafka_key.py::TestKafkaKey: missing_feature
   tests/appsec/iast/source/test_kafka_value.py::TestKafkaValue: missing_feature
   tests/appsec/iast/source/test_multipart.py::TestMultipart: missing_feature
@@ -257,29 +260,27 @@ manifest:
     - weblog_declaration:
         "*": v2.9.0
         fastapi: v2.13.0
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_post_reported:
+    - declaration: irrelevant (Flask and Django need a header; otherwise, they return a 415 status code. TODO When FastAPI implements POST body source, verify if it does too.)
   tests/appsec/iast/source/test_path.py::TestPath:
     - weblog_declaration:
         "*": v2.9.0
         fastapi: v2.13.0
-        flask-poc: v2.13.0
-        uds-flask: v2.13.0
-        uwsgi-poc: v2.13.0
+        *flask: v2.13.0
   tests/appsec/iast/source/test_path_parameter.py::TestPathParameter:
     - weblog_declaration:
         "*": v2.9.0
         fastapi: v2.13.0
-        flask-poc: v2.13.0
-        uds-flask: v2.13.0
-        uwsgi-poc: v2.13.0
+        *flask: v2.13.0
   tests/appsec/iast/source/test_sql_row.py::TestSqlRow: missing_feature
   tests/appsec/iast/source/test_uri.py::TestURI: missing_feature
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: v3.9.0.dev
   tests/appsec/iast/test_security_controls.py::TestSecurityControls:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v3.11.0.dev
-        uds-flask: v3.11.0.dev
-        uwsgi-poc: v3.11.0.dev
+        *flask: v3.11.0.dev
+  ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
+  : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
@@ -386,7 +387,12 @@ manifest:
     - weblog_declaration:
         "*": v1.1.0-rc2
         fastapi: v2.4.0
+  tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  : - component_version: "<3.11.0"
+      declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
+      weblog: *django
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:
@@ -396,6 +402,9 @@ manifest:
         uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
+    - declaration: irrelevant (no signup events in Python except for django)
+      weblog: [*flask, fastapi]
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v3.9.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v3.9.0
   tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -407,40 +416,42 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
     - weblog_declaration:
         "*": v2.20.0.dev
-        django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_signup_local:
+    - weblog_declaration:
+        "*": irrelevant (No signup in frameworks except django)
+        *django: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
     - weblog_declaration:
         "*": v2.20.0.dev
-        django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_signup_local:
+    - weblog_declaration:
+        "*": irrelevant (No signup in frameworks except django)
+        *django: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
     - weblog_declaration:
         "*": v2.20.0.dev
-        django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev
-        django-poc: v3.3.0.dev
-        django-py3.13: v3.3.0.dev
-        python3.12: v3.3.0.dev
+        *django: v3.3.0.dev
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
+        *django: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_auto:
+    - weblog_declaration:
+        "*": irrelevant (no possible auto-instrumentation for python except on Django)
         django-poc: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
         django-py3.13: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
         python3.12: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
     - weblog_declaration:
         "*": v3.1.0.dev
-        django-poc: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        *django: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
     - weblog_declaration:
@@ -453,11 +464,9 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-        python3.12: v3.7.0.dev (is v1.16.1.dev but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.16.1
@@ -467,51 +476,39 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.13
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.15 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.15 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.15
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
     - weblog_declaration:
         "*": v1.16.1
@@ -527,21 +524,17 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
     - weblog_declaration:
         "*": v1.16.1
-        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.4.0
-        django-poc: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.5.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:
     - weblog_declaration:
-        "*": v1.5.0rc1.dev
+        "*": v1.5.0
         fastapi: v2.4.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
   tests/appsec/test_customconf.py::Test_ConfRuleSet: v1.1.0-rc2
@@ -550,23 +543,17 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
     - weblog_declaration:
         "*": v1.10.0
-        django-poc: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent:
     - weblog_declaration:
         "*": v2.10.0
-        django-poc: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
     - weblog_declaration:
         "*": v2.10.0
-        django-poc: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
@@ -623,10 +610,12 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: v2.11.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v2.17.0.dev
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v3.0.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v2.17.0.dev
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: v4.2.0
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
@@ -634,7 +623,7 @@ manifest:
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: v3.11.0.dev
-  tests/appsec/test_only_python.py::Test_ImportError: v3.3.0.dev (was v2.20.0.dev but a regression was introduced in v3.2/v3.1)
+  tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
   tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
@@ -647,9 +636,9 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: v2.10.1
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.14.0
-  tests/appsec/test_reports.py::Test_Info: v1.1.0-rc2
-  tests/appsec/test_reports.py::Test_RequestHeaders: v1.1.0-rc2
-  tests/appsec/test_reports.py::Test_StatusCode: v1.1.0-rc2
+  tests/appsec/test_reports.py::Test_Info: v1.1.1
+  tests/appsec/test_reports.py::Test_RequestHeaders: v1.1.1
+  tests/appsec/test_reports.py::Test_StatusCode: v1.1.1
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
     - weblog_declaration:
         "*": v1.10.0
@@ -665,6 +654,7 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v0.58.5
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: v1.5.0
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
     - weblog_declaration:
         "*": v1.5.0-rc1
@@ -675,13 +665,11 @@ manifest:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v2.9.0
-  tests/appsec/test_traces.py::Test_RetainTraces: v1.1.0-rc2
+  tests/appsec/test_traces.py::Test_RetainTraces: v1.1.1
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist:
     - weblog_declaration:
         "*": v2.11.0
-        django-poc: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
-        django-py3.13: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
-        python3.12: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        *django: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
   tests/appsec/test_versions.py::Test_Events: v0.58.5
   tests/appsec/waf/test_addresses.py::Test_BodyJson:
     - weblog_declaration:
@@ -703,22 +691,21 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_Cookies:
     - weblog_declaration:
-        django-poc: v1.1.0-rc2
+        *django: v1.1.0
         fastapi: v2.4.0
         flask-poc: v1.4.0-rc1
-        python3.12: v1.1.0-rc2
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.16.1
+  tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (Not handled by the Python standard cookie parser)
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.6
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
-        django-poc: v1.1.0-rc2
+        *django: v1.1.0
         fastapi: v2.4.0
         flask-poc: v1.4.0-rc1
-        python3.12: v1.1.0-rc2
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.5.2
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus:
@@ -744,6 +731,10 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept: v1.16.1
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v2.10.0
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse:
     - weblog_declaration:
@@ -765,7 +756,7 @@ manifest:
         django-poc: v1.12
         fastapi: v2.4.0
         flask-poc: v1.12
-  tests/appsec/waf/test_miscs.py::Test_404: v1.1.0-rc2
+  tests/appsec/waf/test_miscs.py::Test_404: v1.1.1
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
     - weblog_declaration:
         "*": v1.1.0
@@ -782,6 +773,7 @@ manifest:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.4.0
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v1.2.1
@@ -844,100 +836,71 @@ manifest:
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v3.4.0
-        uds-flask: v3.4.0
-        uwsgi-poc: v3.4.0
+        *flask: v3.4.0
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v3.5.0
-        uds-flask: v3.5.0
-        uwsgi-poc: v3.5.0
+        *flask: v3.5.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v3.5.0
-        uds-flask: v3.5.0
-        uwsgi-poc: v3.5.0
+        *flask: v3.5.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v3.5.0
-        uds-flask: v3.5.0
-        uwsgi-poc: v3.5.0
+        *flask: v3.5.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v3.7.0
-        uds-flask: v3.7.0
-        uwsgi-poc: v3.7.0
+        *flask: v3.7.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": missing_feature
-        flask-poc: v2.11.0
-        uds-flask: v2.11.0
-        uwsgi-poc: v2.11.0
+        *flask: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
+  tests/ffe/test_exposures.py: v4.2.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
@@ -999,21 +962,15 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1023,33 +980,23 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1059,9 +1006,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
-        flask-poc: v2.9.0
-        uds-flask: v2.9.0
-        uwsgi-poc: v2.9.0
+        *flask: v2.9.0
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -1110,15 +1055,21 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        flask-poc: v3.1.0
+        flask-poc: ">=3.1.0 <4.2.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        flask-poc: v3.1.0
+        flask-poc: ">=3.1.0 <4.2.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        flask-poc: v3.1.0
+        flask-poc: ">=3.1.0 <4.2.0"
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": irrelevant
+        flask-poc: v4.2.0
+        uwsgi-poc: v4.2.0
+        uds-flask: v4.2.0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
@@ -1141,7 +1092,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.0.0
-  tests/parametric/test_feature_flag_exposure/test_feature_flag_exposure.py::Test_Feature_Flag_Exposure: v4.0.0
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_headers_b3.py::Test_Headers_B3: v2.8.0
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi: v2.8.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: v2.16.0
@@ -1307,11 +1258,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: v4.0.0
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: v4.0.0
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: v4.0.0
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: v4.0.0
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature

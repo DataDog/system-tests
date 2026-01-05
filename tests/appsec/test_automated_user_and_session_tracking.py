@@ -7,7 +7,6 @@ from typing import Any
 from utils import context
 from utils import features
 from utils import interfaces
-from utils import irrelevant
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
@@ -152,10 +151,6 @@ class Test_Automated_User_Blocking:
             cookies=self.r_login.cookies,
         )
 
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="no possible auto-instrumentation for python except on Django",
-    )
     def test_user_blocking_auto(self):
         assert self.r_login.status_code == 200
 

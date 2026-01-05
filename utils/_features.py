@@ -23,7 +23,7 @@ class _Owner(StrEnum):
     remote_config = "@DataDog/remote-config"
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
     sdk_capabilities = "@DataDog/apm-sdk-capabilities"
-    feature_flag_exposure = "@DataDog/feature-flagging-and-experimentation-sdk"
+    ffe = "@DataDog/feature-flagging-and-experimentation-sdk"  # Feature Flagging & Experimentation
 
 
 def _mark_test_object(test_object, feature_id: int, owner: _Owner):
@@ -2567,12 +2567,20 @@ class _Features:
         return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
 
     @staticmethod
-    def feature_flag_exposure(test_object):
-        """Feature Flag Exposure
+    def feature_flags_dynamic_evaluation(test_object):
+        """Feature Flags Dynamic Evaluation
 
-        https://feature-parity.us1.prod.dog/#/?feature=492
+        https://feature-parity.us1.prod.dog/#/?feature=538
         """
-        return _mark_test_object(test_object, feature_id=492, owner=_Owner.feature_flag_exposure)
+        return _mark_test_object(test_object, feature_id=538, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_exposures(test_object):
+        """Feature Flags & Experimentation (FFE)
+
+        https://feature-parity.us1.prod.dog/#/?feature=535
+        """
+        return _mark_test_object(test_object, feature_id=535, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
