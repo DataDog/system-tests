@@ -222,6 +222,9 @@ patterns:
 # This section contains rules to apply to script files.
 ################################################################################
 
+    utils/scripts/activate-easy-wins/*:
+      scenario_groups: null
+      libraries: null
     utils/scripts/add-system-tests-label-on-known-tickets.py:
         scenario_groups: null
     utils/scripts/ai/*:
@@ -509,9 +512,3 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
     tests/*:
         scenario_groups: null # dynamic selection
-
-
-  utils/scripts/activate-easy-wins/*:
-    scenario_groups: null
-    libraries: null
-
