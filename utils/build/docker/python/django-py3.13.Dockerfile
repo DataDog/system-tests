@@ -1,4 +1,4 @@
-FROM datadog/system-tests:django-py3.13.base-v8
+FROM datadog/system-tests:django-py3.13.base-v9
 
 WORKDIR /app
 
