@@ -48,7 +48,6 @@ def match_condition(
 
 
 def match_rule(rule: str, nodeid: str) -> bool:
-
     # replace "::" with "/" to have a uniform separator, and removes leading/trailing slashes
     rule_elements = rule.strip("/").replace("::", "/").split("/")
 
