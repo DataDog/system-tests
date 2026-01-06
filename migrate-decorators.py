@@ -1147,10 +1147,11 @@ def build_manifest_entries(
                 continue
 
         # Handle equality checks on library (e.g., context.library == "java" or context.library == "cpp_httpd")
-        # These should be treated as simple declarations with component field
+        # Also handle negation checks (e.g., context.library != "python")
         if condition_info and condition_info.get("is_equality") and condition_info["component_type"] == "library":
-            # For equality checks, create a declaration with component field
+            operator = condition_info.get("operator")
             library_name = condition_info.get("component")
+            
             # Fail fast: If we can't extract library name, skip
             if not library_name:
                 # Invalid library equality - skip
@@ -1174,21 +1175,35 @@ def build_manifest_entries(
                 )
                 continue
 
-            entry["declaration"] = _quote_yaml_value_if_needed(declaration)
-            if reason:
-                entry["reason"] = _quote_yaml_value_if_needed(reason)
-            entry["component"] = library_name
-            manifest_data[nodeid].append(entry)
+            # Determine which components to create entries for
+            if operator == "==":
+                # Equality: create entry only for the specified component
+                components_to_create = [library_name]
+            elif operator == "!=":
+                # Negation: create entries for all valid components EXCEPT the specified one
+                valid_components = _get_valid_component_names()
+                components_to_create = [c for c in valid_components if c != library_name]
+            else:
+                # Unknown operator - skip
+                _log_unhandled(
+                    f"Unknown equality operator '{operator}'",
+                    usage,
+                    condition_info=condition_info,
+                )
+                continue
+
+            # Create entries for each component
+            for component_name in components_to_create:
+                entry_copy = {
+                    "declaration": _quote_yaml_value_if_needed(declaration),
+                    "component": component_name,
+                }
+                if reason:
+                    entry_copy["reason"] = _quote_yaml_value_if_needed(reason)
+                
+                _add_entry_with_inheritance(nodeid, entry_copy, usage)
+            
             successfully_migrated.append(usage)
-            
-            # If this method is inherited by child classes, create entries for them too
-            child_classes = usage.get("_child_classes", [])
-            for child_file, child_class_name in child_classes:
-                child_nodeid = _build_nodeid(child_file, child_class_name, method_name)
-                # Create a copy of the entry for the child class
-                child_entry = entry.copy()
-                manifest_data[child_nodeid].append(child_entry)
-            
             continue
 
         # Handle library filter (could be component name or weblog name)
@@ -2433,11 +2448,9 @@ def write_manifest_files_by_component(
             # No new entries to add
             continue
         
-        # Track nodeids that will be written
-        written_nodeids.update(new_entries.keys())
-        
-        # Format new entries
+        # Format new entries BEFORE writing (so we can catch formatting errors)
         new_lines = []
+        nodeids_to_write: set[str] = set()  # Track which nodeids we're about to write
         for nodeid, entries in sorted(new_entries.items()):
             # Format entries for this nodeid
             if len(entries) == 1:
@@ -2463,6 +2476,7 @@ def write_manifest_files_by_component(
                 yaml_str = _format_entry_as_yaml(formatted_entry, nodeid)
                 if yaml_str:
                     new_lines.append(yaml_str)
+                    nodeids_to_write.add(nodeid)
             else:
                 # Multiple entries - format as list
                 formatted_entries = []
@@ -2489,26 +2503,42 @@ def write_manifest_files_by_component(
                 yaml_str = _format_entry_as_yaml(formatted_entries, nodeid)
                 if yaml_str:
                     new_lines.append(yaml_str)
+                    nodeids_to_write.add(nodeid)
         
-        # Append new entries to file
-        if filepath.exists():
-            # Append mode - preserve all existing content including comments
-            with open(filepath, "a", encoding="utf-8") as f:
-                if new_lines:
-                    # Ensure there's a newline before adding new entries
-                    if not existing_content.endswith("\n"):
+        # Only add nodeids to written_nodeids AFTER successful write
+        try:
+            # Append new entries to file
+            if filepath.exists():
+                # Append mode - preserve all existing content including comments
+                with open(filepath, "a", encoding="utf-8") as f:
+                    if new_lines:
+                        # Ensure there's a newline before adding new entries
+                        if not existing_content.endswith("\n"):
+                            f.write("\n")
+                        f.write("\n".join(new_lines))
                         f.write("\n")
+            else:
+                # New file - write header and entries
+                header = "# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n---\nmanifest:\n"
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(header)
                     f.write("\n".join(new_lines))
                     f.write("\n")
-        else:
-            # New file - write header and entries
-            header = "# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n---\nmanifest:\n"
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(header)
-                f.write("\n".join(new_lines))
-                f.write("\n")
 
-        written_files[component] = str(filepath)
+            # Only add to written_nodeids if write succeeded
+            written_nodeids.update(nodeids_to_write)
+            written_files[component] = str(filepath)
+        except Exception as e:
+            # If write fails, don't add nodeids to written_nodeids
+            # This ensures decorators aren't deleted if entries weren't successfully written
+            print(
+                f"Error writing to {filepath}: {e}",
+                file=sys.stderr
+            )
+            import traceback
+            traceback.print_exc()
+            # Continue to next component - don't add failed nodeids to written_nodeids
+            continue
 
     return written_files, written_nodeids
 
