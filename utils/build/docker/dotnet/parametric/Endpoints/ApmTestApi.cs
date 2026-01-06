@@ -193,19 +193,15 @@ public abstract class ApmTestApi
     {
         var requestJson = await ParseJsonAsync(request.Body);
         var span = FindSpan(requestJson);
-        span.SetTag(Tags.ManualKeep, true);
+        span.SetTag(Tags.ManualKeep, "true");
     }
 
     private static async Task SpanManualDrop(HttpRequest request)
     {
         var requestJson = await ParseJsonAsync(request.Body);
         var span = FindSpan(requestJson);
-        span.SetTag(Tags.ManualDrop, true);
+        span.SetTag(Tags.ManualDrop, "true");
     }
-
-    private static async Task SpanManualDrop(HttpRequest request)
-    {
-        var requestJson = await ParseJsonAsync(request.Body);
 
     private static async Task SpanSetError(HttpRequest request)
     {

@@ -6,7 +6,7 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
-const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/packages/dd-trace/src/ext')
+const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 

@@ -417,10 +417,16 @@ class ParametricTestClientApi:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_manual_keep(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/span/manual_keep"), json={"span_id": span_id})
+        self._session.post(
+            self._url("/trace/span/manual_keep"),
+            json={"span_id": span_id},
+        )
 
     def span_manual_drop(self, span_id: int) -> None:
-        self._session.post(self._url("/trace/span/manual_drop"), json={"span_id": span_id})
+        self._session.post(
+            self._url("/trace/span/manual_drop"),
+            json={"span_id": span_id},
+        )
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(

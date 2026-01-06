@@ -717,7 +717,6 @@ manifest:
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: missing_feature
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
-  tests/parametric/test_sampling_manual.py::Test_Manual_Keep_Sampling: bug (APMAPI-1720)  # The manual decision does not override existing decision
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py::Test_Span_Events: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: v2.0.0

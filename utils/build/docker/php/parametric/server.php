@@ -199,12 +199,12 @@ $router->addRoute('POST', '/trace/span/set_metric', new ClosureRequestHandler(fu
 }));
 $router->addRoute('POST', '/trace/span/manual_keep', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
-    $span->setTag(Tag::MANUAL_KEEP, true);
+    $span->meta[Tag::MANUAL_KEEP] = true;
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/manual_drop', new ClosureRequestHandler(function (Request $req) use (&$spans) {
     $span = $spans[arg($req, 'span_id')];
-    $span->setTag(Tag::MANUAL_DROP, true);
+    $span->meta[Tag::MANUAL_DROP] = true;
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(function (Request $req) use (&$spans) {
