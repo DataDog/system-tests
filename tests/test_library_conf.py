@@ -607,9 +607,10 @@ class Test_ExtractBehavior_Restart:
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1
-        assert int(link["traceIDHigh"]) == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -662,9 +663,10 @@ class Test_ExtractBehavior_Restart:
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1
-        assert int(link["traceIDHigh"]) == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -716,9 +718,11 @@ class Test_ExtractBehavior_Restart:
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_format)
+
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1311768467284833366
-        assert int(link["traceIDHigh"]) == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -729,6 +733,16 @@ class Test_ExtractBehavior_Restart:
         assert data["request_headers"]["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
+
+def _get_span_link_trace_id(link: dict, span_format: TraceAgentPayloadFormat) -> tuple[int, int]:
+    """Returns the trace ID of a span link according to its format split into high and low 64 bits"""
+    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        trace_id_low = int(link["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+        trace_id_high = (int(link["traceID"], 16) >> 64) & 0xFFFFFFFFFFFFFFFF
+    else:
+        trace_id_low = int(link["traceID"])
+        trace_id_high = int(link["traceIDHigh"])
+    return trace_id_high, trace_id_low
 
 
 @scenarios.tracing_config_nondefault_2
