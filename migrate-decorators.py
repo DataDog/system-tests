@@ -574,14 +574,62 @@ def _parse_weblog_variant_keyword(keywords: Dict[str, str]) -> Optional[str]:
     return None
 
 
+def _normalize_version(version: str) -> str:
+    """
+    Normalize a version string for manifest entries.
+    
+    Rules:
+    1. Remove "v" prefix if present (e.g., "v2.1.0" -> "2.1.0")
+    2. Separate dev/rc/etc. suffixes from version with "-" instead of "."
+       (e.g., "1.1.1.dev" -> "1.1.1-dev", "1.1.1dev" -> "1.1.1-dev")
+    
+    Args:
+        version: Version string to normalize
+        
+    Returns:
+        Normalized version string
+    """
+    if not version:
+        return version
+    
+    # Remove "v" prefix if present
+    if version.startswith("v") or version.startswith("V"):
+        version = version[1:]
+    
+    # Pattern to match dev/rc/alpha/beta/pre/post suffixes
+    # Matches: .dev, .rc, .alpha, .beta, .pre, .post, .a, .b, .rc, etc.
+    # Also matches without dot: dev, rc, etc.
+    import re
+    
+    # Pattern for suffixes with dot: .dev, .rc1, .alpha1, etc.
+    pattern_with_dot = r'\.(dev|rc\d*|alpha\d*|beta\d*|pre\d*|post\d*|a\d*|b\d*)(.*)$'
+    match = re.search(pattern_with_dot, version, re.IGNORECASE)
+    if match:
+        suffix = match.group(1) + match.group(2)
+        base_version = version[:match.start()]
+        return f"{base_version}-{suffix}"
+    
+    # Pattern for suffixes without dot: dev, rc1, etc. (at end of string)
+    pattern_without_dot = r'([\d.]+)(dev|rc\d*|alpha\d*|beta\d*|pre\d*|post\d*|a\d*|b\d*)(.*)$'
+    match = re.search(pattern_without_dot, version, re.IGNORECASE)
+    if match:
+        base_version = match.group(1)
+        suffix = match.group(2) + match.group(3)
+        return f"{base_version}-{suffix}"
+    
+    return version
+
+
 def _build_version_spec(operator: str, version: str) -> str:
     """
     Convert operator and version to a version spec string.
     Examples:
     - ("<", "2.21.0") -> "<2.21.0"
     - (">=", "7.36.0") -> ">=7.36.0"
+    - (">=", "v1.1.1.dev") -> ">=1.1.1-dev"
     """
-    return f"{operator}{version}"
+    normalized_version = _normalize_version(version)
+    return f"{operator}{normalized_version}"
 
 
 def build_manifest_entries(
