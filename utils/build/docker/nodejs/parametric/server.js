@@ -711,8 +711,8 @@ app.post('/metrics/otel/force_flush', (req, res) => {
 });
 
 // add LLM Observability routes
-const addLlmObsRoutes = require('./llmobs')
-addLlmObsRoutes(app)
+const addLlmObsRoutes = require('./llmobs');
+addLlmObsRoutes(app);
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {
