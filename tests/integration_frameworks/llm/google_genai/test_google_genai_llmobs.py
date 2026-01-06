@@ -1,6 +1,6 @@
 import json
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
-from utils import features, missing_feature, scenarios, bug, context
+from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 import pytest
@@ -262,8 +262,6 @@ class TestGoogleGenAiGenerateContent(BaseGoogleGenaiTest):
 @features.llm_observability_google_genai_generate_content_reasoning
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
-    # python does not have reasoning output messages for streamed responses
-    @bug(context.library == "python", reason="MLOB-5071")
     @pytest.mark.parametrize("stream", [True, False])
     def test_generate_content_reasoning_output(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -395,12 +393,6 @@ class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
 @features.llm_observability_google_genai_generate_content_with_tools
 @scenarios.integration_frameworks
 class TestGoogleGenAiGenerateContentWithTools(BaseGoogleGenaiTest):
-    # tool definitions do not seem to be formatted correctly
-    @bug(context.library == "python", reason="MLOB-5071")
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Node.js LLM Observability Google GenAI integration does not submit tool definitions",
-    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_generate_content_with_tools(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -553,8 +545,6 @@ class TestGoogleGenAiGenerateContentWithTools(BaseGoogleGenaiTest):
             "78" in tool_result["temperature"]
         )  # there are some subtle character formatting differences for the degree symbol in different client libraries
 
-    # Node.js does not have 4 output messages for non-streamed responses
-    @bug(context.library == "nodejs", reason="MLOB-5070")
     @pytest.mark.parametrize("stream", [True, False])
     def test_generate_content_executable_code(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool

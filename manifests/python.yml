@@ -908,7 +908,11 @@ manifest:
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: v3.13.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: v3.13.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: v3.13.0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning::test_generate_content_reasoning_output
+  : bug (MLOB-5071)
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: v3.13.0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
+  : bug (MLOB-5071)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: v3.13.0
