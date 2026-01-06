@@ -18,6 +18,7 @@
 /tests/parametric/ @DataDog/system-tests-core @DataDog/apm-sdk-capabilities
 /tests/parametric/test_config_consistency.py @DataDog/apm-sdk-capabilities
 /tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/tests/parametric/test_llm_observability.py @DataDog/ml-observability
 /tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
