@@ -1,4 +1,5 @@
-const { llmobs } = require('dd-trace'); // should already be initialized globally by the parent server
+const tracer = require('dd-trace'); // should already be initialized globally by the parent server
+const { llmobs } = tracer;
 const telemetry = require('dd-trace/packages/dd-trace/src/telemetry');
 
 /**
@@ -9,10 +10,12 @@ const telemetry = require('dd-trace/packages/dd-trace/src/telemetry');
  */
 function addRoutes (app) {
   app.post('/llm_observability/trace', async (req, res) => {
-    const maybeExportedSpanCtx = await createTrace(req.body.trace_structure_request);
-    telemetry.appClosing();
-
-    res.json(maybeExportedSpanCtx ?? {});
+    try {
+      const maybeExportedSpanCtx = await createTrace(req.body.trace_structure_request);
+      res.json(maybeExportedSpanCtx ?? {});
+    } finally {
+      telemetry.appClosing();
+    }
   });
 
   app.post('/sdk/flush', async (req, res) => {
