@@ -45,7 +45,7 @@ def _find_event_tag(event: dict, tag: str) -> str | None:
 
 
 @scenarios.parametric
-class TestEnablement:
+class Test_Enablement:
     @pytest.mark.parametrize("llmobs_ml_app", ["overridden-test-ml-app", "", None])
     def test_ml_app(self, test_agent: TestAgentAPI, test_library: APMLibrary, llmobs_ml_app: str | None):
         llmobs_span_request = LlmObsSpanRequest(kind="task")
