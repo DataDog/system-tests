@@ -74,13 +74,16 @@ class ActivationStatus(enum.Enum):
 class TestData:
     xpass_nodes: list[str] = field(default_factory=list)
     trie: StringTrie = field(default_factory=StringTrie)
+    nodeid_to_owners: dict[str, set[str]] = field(default_factory=dict)
 
     def __iter__(self):
         yield self.xpass_nodes
         yield self.trie
 
 
-def parse_artifact_data(data_dir: Path, libraries: list[str]) -> tuple[dict[Context, TestData], dict[str, set[str]]]:
+def parse_artifact_data(
+    data_dir: Path, libraries: list[str], excluded_owners: set[str] | None = None
+) -> tuple[dict[Context, TestData], dict[str, set[str]]]:
     test_data: dict[Context, TestData] = {}
     weblogs: dict[str, set[str]] = {}
 
@@ -112,27 +115,41 @@ def parse_artifact_data(data_dir: Path, libraries: list[str]) -> tuple[dict[Cont
                 weblogs[library_name] = set()
             weblogs[library_name].add(scenario_data["context"]["weblog_variant"])
 
+            excluded_owners_set = excluded_owners or set()
             for test in scenario_data["tests"]:
-                if test["outcome"] == "xpassed":
+                # Get code owners from test metadata
+                test_owners = set()
+                if "metadata" in test and "owners" in test["metadata"]:
+                    test_owners = set(test["metadata"]["owners"])
+
+                # Store nodeid to owners mapping
+                test_data[context].nodeid_to_owners[test["nodeid"]] = test_owners
+
+                # If test is xpassed and has excluded owners, treat it as xfailed instead
+                outcome = test["outcome"]
+                if outcome == "xpassed" and excluded_owners_set and test_owners & excluded_owners_set:
+                    outcome = "xfailed"
+
+                if outcome == "xpassed":
                     test_data[context].xpass_nodes.append(test["nodeid"])
                 nodeid = test["nodeid"].replace("::", "/") + "/"
                 parts = re.finditer("/", nodeid)
                 for part in parts:
                     nodeid_slice = nodeid[: part.end()].rstrip("/")
                     previous = test_data[context].trie.get(nodeid_slice)
-                    if test["outcome"] == "xpassed":
+                    if outcome == "xpassed":
                         if previous in (ActivationStatus.XFAIL, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XPASS
 
-                    if test["outcome"] == "xfailed":
+                    if outcome == "xfailed":
                         if previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
 
-                    if test["outcome"] == "passed":
+                    if outcome == "passed":
                         if previous in (ActivationStatus.XFAIL, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:

@@ -26,6 +26,12 @@ def main() -> None:
         help="List of components to process (e.g., python java nodejs). If not \
                 specified, all components are processed.",
     )
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        help="List of code owners to exclude (e.g., @DataDog/apm-python @DataDog/asm-libraries). \
+                Tests owned by these teams will be excluded from activation.",
+    )
     args = parser.parse_args()
 
     # Filter libraries if components are specified
@@ -40,7 +46,10 @@ def main() -> None:
         token = environ["GITHUB_TOKEN"]
         pull_artifact(ARTIFACT_URL, token, Path("data"))
 
-    test_data, weblogs = parse_artifact_data(Path("data/"), libraries_to_process)
+    # Get excluded owners from command line
+    excluded_owners: set[str] = set(args.exclude) if args.exclude else set()
+
+    test_data, weblogs = parse_artifact_data(Path("data/"), libraries_to_process, excluded_owners=excluded_owners)
 
     manifest_editor = ManifestEditor(weblogs, components=libraries_to_process)
     (
@@ -49,12 +58,18 @@ def main() -> None:
         created_rules_count,
         tests_without_rules,
         unique_tests_per_language,
+        activations_per_owner,
     ) = update_manifest(manifest_editor, test_data)
     total_tests_activated = sum(tests_per_language.values())
     total_unique_tests = sum(unique_tests_per_language.values())
     print_activation_report(tests_per_language, unique_tests_per_language)
     print_detailed_rules_report(
-        modified_rules_by_level, created_rules_count, total_tests_activated, total_unique_tests, tests_without_rules
+        modified_rules_by_level,
+        created_rules_count,
+        total_tests_activated,
+        total_unique_tests,
+        tests_without_rules,
+        activations_per_owner,
     )
 
     # Check if any updates were made
