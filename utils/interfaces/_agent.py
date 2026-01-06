@@ -202,7 +202,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                             yield data, chunk
                             break
 
-    def get_spans_list(self, request: HttpResponse) -> list[tuple[dict, TraceAgentPayloadFormat]]:
+    def get_spans_list(self, request: HttpResponse | None = None) -> list[tuple[dict, TraceAgentPayloadFormat]]:
         return [(span, span_format) for _, span, span_format in self.get_spans(request)]
 
     def get_metrics(self):
@@ -256,8 +256,11 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
     @staticmethod
     def get_trace_id(chunk: dict, chunk_format: TraceAgentPayloadFormat) -> str:
+        """Returns the trace ID of a chunk according to its format
+        Returns only the lower 64 bits of the trace ID
+        """
         if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-            return chunk["traceID"]
+            return str(int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF)
         if chunk_format == TraceAgentPayloadFormat.legacy:
             return chunk["spans"][0]["traceID"]
         raise ValueError(f"Unknown chunk format: {chunk_format}")

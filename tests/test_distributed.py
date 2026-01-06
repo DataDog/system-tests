@@ -304,11 +304,11 @@ class Test_Synthetics_APM_Datadog:
 
     @staticmethod
     def assert_trace_id_equals(trace: dict, trace_format: TraceAgentPayloadFormat, expected_trace_id: str) -> None:
-        actual_trace_id: str = trace["traceID"]
-
         if trace_format == TraceAgentPayloadFormat.legacy:
+            actual_trace_id = str(trace["spans"][0]["traceID"])
             assert expected_trace_id == actual_trace_id
         elif trace_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            actual_trace_id = str(trace["traceID"])
             # In efficient trace payload format, traceID is in hex format
             actual_trace_id = str(int(actual_trace_id, 16))
             assert actual_trace_id == expected_trace_id

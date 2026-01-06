@@ -9,7 +9,8 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
+from utils import interfaces, scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
+from utils.dd_constants import TraceAgentPayloadFormat
 
 
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
@@ -93,13 +94,15 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             for snapshot in snapshots:
                 snapshot_id = snapshot["id"]
                 for spans in self.probe_spans.values():
-                    for span in spans:
+                    for span, span_format in spans:
                         snapshot_ids_in_span = {
-                            key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
+                            key: value
+                            for key, value in interfaces.agent.get_span_meta(span, span_format).items()
+                            if key.endswith("snapshot_id")
                         }.values()
 
                         if snapshot_id in snapshot_ids_in_span:
-                            filtered_spans[snapshot_id] = span
+                            filtered_spans[snapshot_id] = (span, span_format)
                             break
 
             return filtered_spans
@@ -111,9 +114,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 snapshot_id = content["debugger"]["snapshot"]["id"]
 
                 for spans_list in self.probe_spans.values():
-                    for span in spans_list:
+                    for span, span_format in spans_list:
                         if span.get("spanID") == span_id:
-                            filtered_spans[snapshot_id] = span
+                            filtered_spans[snapshot_id] = (span, span_format)
                             break
 
             return filtered_spans
@@ -285,8 +288,60 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self.snapshots = snapshots
         __approve(snapshots)
 
-    def _validate_spans(self, test_name: str, spans: dict[str, dict]):
-        def __scrub(data: dict[str, dict]) -> dict[str, dict]:
+    def _validate_spans(self, test_name: str, spans: dict[str, tuple[dict, TraceAgentPayloadFormat]]):
+        def __normalize_span(span: dict, span_format: TraceAgentPayloadFormat) -> dict:
+            """Normalize span from efficient format to legacy format for consistent comparison."""
+            if span_format == TraceAgentPayloadFormat.legacy:
+                return span.copy()
+
+            # Efficient format normalization
+            normalized: dict = {}
+
+            # Map efficient format fields to legacy format
+            field_mapping = {
+                "nameRef": "name",
+                "serviceRef": "service",
+                "typeRef": "type",
+                "resourceRef": "resource",
+            }
+
+            # Fields to skip (efficient format specific or redundant)
+            skip_fields = {"componentRef", "envRef", "kind", "versionRef"}
+
+            for key, value in span.items():
+                if key in skip_fields:
+                    continue
+                elif key == "attributes":
+                    # In efficient format, attributes contains both meta (strings) and metrics (numbers) combined.
+                    # Split them back to match legacy format where meta has only strings.
+                    meta = {}
+                    metrics = {}
+                    for attr_key, attr_value in value.items():
+                        if isinstance(attr_value, str):
+                            meta[attr_key] = attr_value
+                        elif isinstance(attr_value, (int, float)):
+                            metrics[attr_key] = attr_value
+                        else:
+                            # For any other types, put in meta as string
+                            meta[attr_key] = str(attr_value)
+                    normalized["meta"] = meta
+                    normalized["metrics"] = metrics
+                elif key in field_mapping:
+                    normalized[field_mapping[key]] = value
+                elif key == "error" and isinstance(value, bool):
+                    # Convert boolean to int for legacy format compatibility
+                    normalized[key] = 1 if value else 0
+                else:
+                    normalized[key] = value
+
+            # In efficient format, traceID is at chunk level, not span level.
+            # Add a placeholder to match legacy format structure.
+            if "traceID" not in normalized:
+                normalized["traceID"] = ""
+
+            return normalized
+
+        def __scrub(data: dict[str, tuple[dict, TraceAgentPayloadFormat]]) -> dict[str, dict]:
             def scrub_span(key: str, value: dict | list):
                 if key in {"traceID", "spanID", "parentID", "start", "duration", "metrics"}:
                     return "<scrubbed>"
@@ -295,12 +350,13 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     keys_to_remove = []
                     for meta_key, meta_value in value.items():
                         # These keys are present in some library versions but not others,
-                        # but are unrelated to the functionality under test
+                        # or are specific to efficient trace payload format and unrelated to the functionality under test
                         if meta_key in {
                             "_dd.appsec.fp.http.endpoint",
                             "_dd.appsec.fp.http.header",
                             "_dd.appsec.fp.http.network",
                             "_dd.appsec.fp.session",
+                            "_dd.convertedv1",  # Efficient format marker
                         }:
                             keys_to_remove.append(meta_key)
                         elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
@@ -323,8 +379,11 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             scrubbed_spans = {}
 
-            spans = [{k: scrub_span(k, v) for k, v in span.items()} for span in data.values()]
-            sorted_spans = sorted(spans, key=lambda x: x["meta"]["error.type"])
+            # Normalize spans: extract span dict and convert to legacy format for consistent approval comparison
+            normalized_spans = [__normalize_span(span, span_format) for span, span_format in data.values()]
+
+            spans_list = [{k: scrub_span(k, v) for k, v in span.items()} for span in normalized_spans]
+            sorted_spans = sorted(spans_list, key=lambda x: x["meta"]["error.type"])
 
             # Assign scrubbed spans with unique snapshot labels
             for span_number, span in enumerate(sorted_spans):
@@ -362,11 +421,17 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
         assert spans, "Spans not found"
 
-        if not _SKIP_SCRUB:
-            spans = __scrub(spans)
+        scrubbed_spans: dict[str, dict] = (
+            __scrub(spans)
+            if not _SKIP_SCRUB
+            else {
+                k: v[0]
+                for k, v in spans.items()  # Extract just the span dict from tuples
+            }
+        )
 
-        self.spans = spans
-        __approve(spans)
+        self.spans = scrubbed_spans
+        __approve(scrubbed_spans)
 
     def _validate_recursion_snapshots(self, snapshots: list[dict], limit: int):
         assert len(snapshots) == limit + 1, (
@@ -419,9 +484,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         found_expected_reason = False
         actual_reasons = []
 
-        for span in spans_with_no_capture_reason:
-            meta = span.get("meta", {})
-            actual_reason = meta["_dd.debug.error.no_capture_reason"]
+        for span, span_format in spans_with_no_capture_reason:
+            meta = interfaces.agent.get_span_meta(span, span_format)
+            actual_reason = meta.get("_dd.debug.error.no_capture_reason", "")
             actual_reasons.append(actual_reason)
 
             logger.debug(f"Found _dd.debug.error.no_capture_reason: {actual_reason}")

@@ -435,6 +435,9 @@ def retrieve_span_links(span: dict, span_format: TraceAgentPayloadFormat):
     if span.get("spanLinks") is not None:
         return span["spanLinks"]
 
+    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format and span.get("links") is not None:
+        return span["links"]
+
     span_meta = interfaces.agent.get_span_meta(span, span_format)
 
     if span_meta.get("_dd.span_links") is None:
@@ -487,12 +490,14 @@ class Test_ExtractBehavior_Default:
     )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
+        traces = [(trace, trace_format) for _, trace, trace_format in interfaces.agent.get_traces(self.r)]
+        trace_id = interfaces.agent.get_trace_id(traces[0][0], traces[0][1])
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
         span, span_format = spans[0]
-        assert span.get("traceID") == "1"
+        assert trace_id == "1"
         assert span.get("parentID") == "1"
         assert retrieve_span_links(span, span_format) is None
 
@@ -525,24 +530,32 @@ class Test_ExtractBehavior_Default:
     )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
+        traces = [(trace, trace_format) for _, trace, trace_format in interfaces.agent.get_traces(self.r)]
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        assert len(traces) > 0, "Agent received the incorrect amount of traces"
 
         # Test the extracted span context
         span, span_format = spans[0]
-        assert span.get("traceID") == "2"
+        trace_id = interfaces.agent.get_trace_id(traces[0][0], traces[0][1])
+        assert trace_id == "2"
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context
         span_links = retrieve_span_links(span, span_format)
         assert len(span_links) == 1
 
-        # Assert the W3C Trace Context (conflicting trace context) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 8687463697196027922  # int(0x7890123456789012)
-        assert int(link["spanID"]) == 1311768467284833366  # int (0x1234567890123456)
-        assert int(link["traceIDHigh"]) == 1311768467284833366  # int(0x1234567890123456)
-        assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
+        # Assert the W3C Trace Context (conflicting trace context) span link according to the format
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            assert link["traceID"] == "0x12345678901234567890123456789012"
+            assert int(link["spanID"]) == 1311768467284833366  # int (0x1234567890123456)
+            assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
+        elif span_format == TraceAgentPayloadFormat.legacy:
+            assert int(link["traceID"]) == 8687463697196027922  # int(0x7890123456789012)
+            assert int(link["spanID"]) == 1311768467284833366  # int (0x1234567890123456)
+            assert int(link["traceIDHigh"]) == 1311768467284833366  # int(0x1234567890123456)
+            assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Test the next outbound span context
         assert self.r.status_code == 200
