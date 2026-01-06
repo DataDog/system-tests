@@ -787,6 +787,8 @@ def build_manifest_entries(
                 decl_str = declaration
                 if reason:
                     decl_str = f"{declaration} ({reason})"
+                # Quote declaration string if it contains special characters
+                decl_str = _quote_yaml_value_if_needed(decl_str)
 
                 # Determine which weblogs to include/exclude
                 weblog_names = weblog_variant_info.get("weblog_names", [])
@@ -826,9 +828,9 @@ def build_manifest_entries(
                     # Excluded weblogs - we can't automatically list all weblogs for a component
                     # So we'll create a simple declaration with component field
                     # The user will need to manually convert this to weblog_declaration with specific weblogs
-                    entry["declaration"] = declaration
+                    entry["declaration"] = _quote_yaml_value_if_needed(declaration)
                     if reason:
-                        entry["reason"] = reason
+                        entry["reason"] = _quote_yaml_value_if_needed(reason)
                     entry["component"] = library_name
                     # Add excluded_weblog field to indicate which weblogs are excluded
                     # excluded_weblog must be a list[str] according to the manifest parser
@@ -838,9 +840,9 @@ def build_manifest_entries(
                     continue
                 else:
                     # No specific weblog conditions, just library - create simple component declaration
-                    entry["declaration"] = declaration
+                    entry["declaration"] = _quote_yaml_value_if_needed(declaration)
                     if reason:
-                        entry["reason"] = reason
+                        entry["reason"] = _quote_yaml_value_if_needed(reason)
                     entry["component"] = library_name
                     manifest_data[nodeid].append(entry)
                     successfully_migrated.append(usage)
@@ -891,6 +893,8 @@ def build_manifest_entries(
                 decl_str = declaration
                 if reason:
                     decl_str = f"{declaration} ({reason})"
+                # Quote declaration string if it contains special characters
+                decl_str = _quote_yaml_value_if_needed(decl_str)
 
                 for weblog_name in weblog_names:
                     weblog_decl_entry["weblog_declaration"][weblog_name] = decl_str
@@ -931,11 +935,11 @@ def build_manifest_entries(
                 
                 for component_name in valid_components:
                     entry_copy = {
-                        "declaration": declaration,
+                        "declaration": _quote_yaml_value_if_needed(declaration),
                         "component": component_name,
                     }
                     if reason:
-                        entry_copy["reason"] = reason
+                        entry_copy["reason"] = _quote_yaml_value_if_needed(reason)
                     manifest_data[nodeid].append(entry_copy)
                 successfully_migrated.append(usage)
                 continue
@@ -968,9 +972,9 @@ def build_manifest_entries(
                 )
                 continue
 
-            entry["declaration"] = declaration
+            entry["declaration"] = _quote_yaml_value_if_needed(declaration)
             if reason:
-                entry["reason"] = reason
+                entry["reason"] = _quote_yaml_value_if_needed(reason)
             entry["component"] = library_name
             manifest_data[nodeid].append(entry)
             successfully_migrated.append(usage)
@@ -1023,6 +1027,8 @@ def build_manifest_entries(
                     decl_str = declaration
                     if reason:
                         decl_str = f"{declaration} ({reason})"
+                    # Quote declaration string if it contains special characters
+                    decl_str = _quote_yaml_value_if_needed(decl_str)
                     
                     weblog_decl_entry["weblog_declaration"][weblog_variant_keyword] = decl_str
                     successfully_migrated.append(usage)
@@ -1068,7 +1074,9 @@ def build_manifest_entries(
                 decl_str = declaration
                 if reason:
                     decl_str = f"{declaration} ({reason})"
-
+                # Quote declaration string if it contains special characters
+                decl_str = _quote_yaml_value_if_needed(decl_str)
+                
                 weblog_decl_entry["weblog_declaration"][library_filter] = decl_str
                 # Explicitly ensure no component information is added to weblog_declaration entries
                 continue
@@ -1829,6 +1837,52 @@ def _extract_existing_nodeids(content: str) -> set[str]:
     return nodeids
 
 
+def _quote_yaml_value_if_needed(value: str) -> str:
+    """
+    Quote a YAML value if it contains special characters like ":" or "*" that require quoting.
+    
+    Args:
+        value: String value to potentially quote
+        
+    Returns:
+        Quoted string if special characters are present, original string otherwise
+    """
+    if not isinstance(value, str):
+        return value
+    
+    # If already quoted, check if it needs re-quoting (might have been partially quoted)
+    already_quoted = (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'"))
+    
+    # Remove existing quotes for checking
+    unquoted_value = value
+    if already_quoted:
+        unquoted_value = value[1:-1]
+    
+    # Check if value contains special characters that require quoting in YAML
+    # Focus on ":" and "*" as requested, but also handle other common special chars
+    special_chars = [':', '*', '&', '|', '<', '>', '{', '}', '[', ']', '@', '`', '\\', '#', '%', '!', '?', '^']
+    
+    needs_quotes = (
+        any(char in unquoted_value for char in special_chars) or
+        (unquoted_value.strip() != unquoted_value) or  # Leading/trailing whitespace
+        (unquoted_value and unquoted_value[0].isdigit())  # Starts with digit
+    )
+    
+    if needs_quotes:
+        if already_quoted:
+            # Already quoted, but might need to escape internal quotes
+            if '"' in unquoted_value:
+                escaped = unquoted_value.replace('"', '\\"')
+                return f'"{escaped}"'
+            return value  # Keep existing quotes
+        else:
+            # Escape any existing quotes and wrap in quotes
+            escaped = unquoted_value.replace('"', '\\"')
+            return f'"{escaped}"'
+    
+    return value
+
+
 def _format_entry_as_yaml(entry_or_list: Union[Dict[str, Any], List[Dict[str, Any]]], nodeid: str) -> str:
     """Format an entry or list of entries as YAML string for appending to manifest file."""
     try:
@@ -1862,7 +1916,9 @@ def _format_entry_as_yaml(entry_or_list: Union[Dict[str, Any], List[Dict[str, An
     if is_simple:
         # Simple inline format: nodeid: declaration (2 spaces for nodeid)
         decl = entry["declaration"]
-        return f"  {nodeid}: {decl}"
+        # Quote declaration value if it contains special characters
+        decl_quoted = _quote_yaml_value_if_needed(decl)
+        return f"  {nodeid}: {decl_quoted}"
     else:
         # List format: nodeid:\n    - entry (2 spaces for nodeid, 4 spaces for list items)
         if use_ruamel:
