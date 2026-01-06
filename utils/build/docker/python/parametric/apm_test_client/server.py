@@ -61,6 +61,8 @@ except ImportError:
 
 from opentelemetry._logs import get_logger_provider
 
+from .llmobs import router as llmobs_router
+
 log = logging.getLogger(__name__)
 
 # OpenFeature client initialization
@@ -1311,6 +1313,9 @@ async def rc_start() -> JSONResponse:
         return JSONResponse({}, status_code=200)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+app.include_router(llmobs_router)
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests
