@@ -51,6 +51,10 @@ class Test_Process_Tags:
         found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())
         for data in telemetry_data:
+            # for python, libdatadog also send telemetry on its own not containing process_tags
+            if data["request"]["content"]["request_type"] == "sketches":
+                continue
+
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
             found = True
         assert found, "Process tags are missing"

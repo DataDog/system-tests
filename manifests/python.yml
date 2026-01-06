@@ -1295,6 +1295,7 @@ manifest:
         "*": v0.1  # actual version unknown
         django-py3.13: missing_feature (python 3.13 not supported yet)
         python3.12: v2.1.0
+  tests/test_profiling.py::Test_Profile::test_process_tags: v4.2.0+dev
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
