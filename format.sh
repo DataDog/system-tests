@@ -95,7 +95,7 @@ fi
 echo "Running yamlfmt checks..."
 if ! which yamlfmt > /dev/null; then
   echo "yamlfmt is not installed, installing it (ETA 5s)"
-  YAMLFMT_VERSION="0.16.0"
+  YAMLFMT_VERSION="0.20.0"
 
   YAMLFMT_OS=""
   case "$(uname -s)" in
