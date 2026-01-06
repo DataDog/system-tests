@@ -734,6 +734,7 @@ class Test_ExtractBehavior_Restart:
         assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
 
+
 def _get_span_link_trace_id(link: dict, span_format: TraceAgentPayloadFormat) -> tuple[int, int]:
     """Returns the trace ID of a span link according to its format split into high and low 64 bits"""
     if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:

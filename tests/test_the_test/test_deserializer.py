@@ -1,6 +1,7 @@
 from utils import scenarios
 from utils.proxy.traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
 import msgpack
+import base64
 
 
 @scenarios.test_the_test
@@ -77,8 +78,6 @@ def test_deserialize_http_message():
 @scenarios.test_the_test
 def test_uncompress_agent_v1_trace_with_span_links():
     """Test that span links traceID is properly deserialized from base64 in idxTracerPayloads."""
-    import base64
-
     # Create a 16-byte trace ID and encode it as base64 (mimics what protobuf returns)
     trace_id_bytes = bytes(
         [0x12, 0x34, 0x56, 0x78, 0x90, 0x12, 0x34, 0x56, 0x78, 0x90, 0x12, 0x34, 0x56, 0x78, 0x90, 0x12]
