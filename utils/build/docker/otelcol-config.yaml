@@ -32,12 +32,12 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [datadog, logging]
+      exporters: [datadog, debug]
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [datadog, logging]
+      exporters: [datadog, debug]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [datadog, logging]
+      exporters: [datadog, debug]
