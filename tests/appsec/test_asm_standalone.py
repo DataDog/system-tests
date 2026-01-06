@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import json
 from abc import ABC, abstractmethod
 import time
@@ -6,13 +7,16 @@ from requests.structures import CaseInsensitiveDict
 
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger, flaky
+from utils._weblog import HttpResponse, _Weblog
+from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
 
 USER = "test"
 NEW_USER = "testnew"
 INVALID_USER = "invalidUser"
 UUID_USER = "testuuid"
 PASSWORD = "1234"
+
+TRUTHY_VALUES = ["yes", "true", "t", "1"]
 
 
 # This methods exist to test the 2 different ways of setting the tags in the tracers.
@@ -28,20 +32,20 @@ PASSWORD = "1234"
 #   - The value can be None to assert that the tag is not present
 #   - The value can be a string to assert the value of the tag
 #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
-def assert_tags(first_trace, span, obj, expected_tags) -> bool:
-    def _assert_tags_value(span, obj, expected_tags):
+def assert_tags(first_span: dict, span: dict, obj: str, expected_tags: dict[str, str | None | Callable]) -> bool:
+    def _assert_tags_value(span: dict, obj: str, expected_tags: dict[str, str | None | Callable]):
         struct = span if obj is None else span[obj]
         for tag, value in expected_tags.items():
             if value is None:
                 assert tag not in struct
             elif tag == SAMPLING_PRIORITY_KEY:  # special case, it's a lambda to check for a condition
-                assert value(struct[tag])
+                assert value(struct[tag])  # type: ignore[operator]
             else:
                 assert struct[tag] == value
 
     # Case 1: The tags are set on the first span of every trace chunk
     try:
-        _assert_tags_value(first_trace, obj, expected_tags)
+        _assert_tags_value(first_span, obj, expected_tags)
         return True
     except (KeyError, AssertionError):
         pass  # should try the second case
@@ -66,7 +70,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     tested_product: str | None = None
 
     @staticmethod
-    def assert_product_is_enabled(response, product) -> None:
+    def assert_product_is_enabled(response: HttpResponse, product: str | None) -> None:
         assert response.status_code is not None, "Request has not being processed by HTPP app"
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
@@ -87,17 +91,17 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert product_enabled, f"{product} is not available"
 
     @abstractmethod
-    def propagated_tag(self):
+    def propagated_tag(self) -> str:
         return ""  # To be overloaded in final classes
 
     @abstractmethod
-    def propagated_tag_value(self):
+    def propagated_tag_value(self) -> str:
         return ""  # To be overloaded in final classes
 
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
-    def setup_product_is_enabled(self, session=None):
+    def setup_product_is_enabled(self, session: _Weblog):
         headers = {}
         if self.tested_product == "appsec":
             headers = {
@@ -121,7 +125,9 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 },
             )
 
-    def fix_priority_lambda(self, span, default_checks):
+    def fix_priority_lambda(
+        self, span: dict, default_checks: dict[str, str | Callable | None]
+    ) -> dict[str, str | Callable | None]:
         if "_dd.appsec.s.req.headers" in span["meta"]:
             return {
                 SAMPLING_PRIORITY_KEY: lambda x: x == SamplingPriority.USER_KEEP
@@ -129,19 +135,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         else:
             return default_checks
 
-    @missing_feature(
-        condition=(
-            context.scenario.name == scenarios.appsec_standalone_api_security.name
-            and context.weblog_variant in ("django-poc", "django-py3.13", "python3.12")
-            and context.library < "python@3.11.0.dev"
-        ),
-        reason="APPSEC-57830 (python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)",
-    )
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -153,7 +151,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -186,8 +184,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -199,7 +197,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -232,8 +230,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -245,7 +243,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -278,8 +276,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -291,7 +289,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -322,8 +320,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -335,7 +333,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -366,8 +364,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -379,7 +377,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -412,8 +410,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x in [0, 2]}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -425,7 +423,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -457,8 +455,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x in [1, 2]}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x in [1, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -470,7 +468,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -502,8 +500,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -515,7 +513,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -544,8 +542,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -557,7 +555,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -586,8 +584,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -599,7 +597,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -628,8 +626,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         spans_checked = 0
-        tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
+        tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
+        tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -641,7 +639,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             spans_checked += 1
@@ -719,7 +717,7 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
 class BaseSCAStandaloneTelemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
-    def assert_standalone_is_enabled(self, request0, request1):
+    def assert_standalone_is_enabled(self, request0: HttpResponse, request1: HttpResponse):
         # test standalone is enabled and dropping traces
         spans_checked = 0
         for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
@@ -747,7 +745,7 @@ class BaseSCAStandaloneTelemetry:
                 if item["name"] not in configuration_by_name:
                     configuration_by_name[item["name"]] = []
                 configuration_by_name[item["name"]].append(item)
-        if len(configuration_by_name):
+        if configuration_by_name:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configuration_by_name))
             if "seq_id" in configuration_by_name[sample_key][0]:
@@ -831,10 +829,10 @@ class Test_AppSecStandalone_NotEnabled:
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    def propagated_tag(self):
+    def propagated_tag(self) -> str:
         return "_dd.p.ts"
 
-    def propagated_tag_value(self):
+    def propagated_tag_value(self) -> str:
         return "02"
 
 
@@ -844,10 +842,10 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamP
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    def propagated_tag(self):
+    def propagated_tag(self) -> str:
         return "_dd.p.ts"
 
-    def propagated_tag_value(self):
+    def propagated_tag_value(self) -> str:
         return "02"
 
 
@@ -857,28 +855,27 @@ class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropa
 class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    def propagated_tag(self):
+    def propagated_tag(self) -> str:
         return "_dd.p.ts"
 
-    def propagated_tag_value(self):
+    def propagated_tag_value(self) -> str:
         return "02"
 
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.api_security_configuration
 @scenarios.appsec_standalone_api_security
-@flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
-    def propagated_tag(self):
+    def propagated_tag(self) -> str:
         return "_dd.p.ts"
 
-    def propagated_tag_value(self):
+    def propagated_tag_value(self) -> str:
         return "02"
 
     @staticmethod
-    def get_schema(request, address) -> list | None:
+    def get_schema(request: HttpResponse, address: str) -> list | None:
         """Extract API security schema from span metadata"""
         for _, _, span in interfaces.library.get_spans(request=request):
             meta = span.get("meta", {})
@@ -887,11 +884,13 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         return None
 
     @staticmethod
-    def check_trace_retained(request, *, should_be_retained: bool) -> bool:
+    def check_trace_retained(request: HttpResponse, *, should_be_retained: bool) -> bool:
         """Check if trace is retained with expected sampling priority"""
 
         spans_checked = 0
-        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0}
+        tested_metrics: dict[str, str | Callable | None] = {
+            SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0
+        }
         for data, trace, span in interfaces.library.get_spans(request=request):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
@@ -901,14 +900,14 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
             # Check for client-computed-stats header
             headers = data["request"]["headers"]
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in headers
             )
             spans_checked += 1
 
         return spans_checked == 1
 
-    def verify_trace_sampling(self, request, *, should_be_retained: bool, should_have_schema: bool):
+    def verify_trace_sampling(self, request: HttpResponse, *, should_be_retained: bool, should_have_schema: bool):
         """Verify trace is sampled with expected sampling priority and schema presence
 
         Args:
@@ -930,7 +929,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         else:
             assert schema is None, "Schema found when it should be absent"
 
-    def _get_headers(self, trace_id=1212121212121212121):
+    def _get_headers(self, trace_id: int = 1212121212121212121):
         """Standard test headers"""
         return {
             "x-datadog-trace-id": str(trace_id),
@@ -1031,7 +1030,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
 class Test_UserEventsStandalone_Automated:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    def _get_test_headers(self, trace_id):
+    def _get_test_headers(self, trace_id: int):
         return {
             "x-datadog-trace-id": str(trace_id),
             "x-datadog-parent-id": str(34343434),
@@ -1040,7 +1039,7 @@ class Test_UserEventsStandalone_Automated:
             "x-datadog-tags": "_dd.p.other=1",
         }
 
-    def _login_data(self, context, user, password):
+    def _login_data(self, user: str, password: str):
         """In Rails the parameters are group by scope. In the case of the test the scope is user.
         The syntax to group parameters in a POST request is scope[parameter]
         """
@@ -1048,8 +1047,8 @@ class Test_UserEventsStandalone_Automated:
         password_key = "user[password]" if "rails" in context.weblog_variant else "password"
         return {username_key: user, password_key: password}
 
-    def _get_standalone_span_meta(self, trace_id):
-        tested_meta = {
+    def _get_standalone_span_meta(self, trace_id: int):
+        tested_meta: dict[str, str | Callable | None] = {
             "_dd.p.ts": "02",
         }
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -1061,18 +1060,18 @@ class Test_UserEventsStandalone_Automated:
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             return span["meta"]
 
         return None
 
-    def _call_endpoint(self, endpoint, user, trace_id):
+    def _call_endpoint(self, endpoint: str, user: str, trace_id: int):
         self.r = weblog.post(
             endpoint,
             headers=self._get_test_headers(trace_id),
-            data=self._login_data(context, user, PASSWORD),
+            data=self._login_data(user, PASSWORD),
         )
 
     def setup_user_login_success_event_generates_asm_event(self):
@@ -1099,10 +1098,6 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212133
         self._call_endpoint("/signup", NEW_USER, trace_id)
 
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="no signup events in Python except for django",
-    )
     @missing_feature(context.library == "nodejs", reason="no signup events in passport")
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
@@ -1117,7 +1112,7 @@ class Test_UserEventsStandalone_Automated:
 class Test_UserEventsStandalone_SDK_V1:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    def _get_test_headers(self, trace_id):
+    def _get_test_headers(self, trace_id: int):
         return {
             "x-datadog-trace-id": str(trace_id),
             "x-datadog-parent-id": str(34343434),
@@ -1126,8 +1121,8 @@ class Test_UserEventsStandalone_SDK_V1:
             "x-datadog-tags": "_dd.p.other=1",
         }
 
-    def _get_standalone_span_meta(self, trace_id):
-        tested_meta = {
+    def _get_standalone_span_meta(self, trace_id: int):
+        tested_meta: dict[str, str | Callable | None] = {
             "_dd.p.ts": "02",
         }
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -1139,14 +1134,14 @@ class Test_UserEventsStandalone_SDK_V1:
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             return span["meta"]
 
         return None
 
-    def _call_endpoint(self, endpoint, trace_id):
+    def _call_endpoint(self, endpoint: str, trace_id: int):
         self.r = weblog.get(
             endpoint,
             headers=self._get_test_headers(trace_id),
@@ -1181,7 +1176,7 @@ class Test_UserEventsStandalone_SDK_V1:
 class Test_UserEventsStandalone_SDK_V2:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
-    def _get_test_headers(self, trace_id):
+    def _get_test_headers(self, trace_id: int):
         return {
             "x-datadog-trace-id": str(trace_id),
             "x-datadog-parent-id": str(34343434),
@@ -1190,8 +1185,8 @@ class Test_UserEventsStandalone_SDK_V2:
             "x-datadog-tags": "_dd.p.other=1",
         }
 
-    def _get_standalone_span_meta(self, trace_id):
-        tested_meta = {
+    def _get_standalone_span_meta(self, trace_id: int):
+        tested_meta: dict[str, str | Callable | None] = {
             "_dd.p.ts": "02",
         }
         for data, trace, span in interfaces.library.get_spans(request=self.r):
@@ -1203,14 +1198,14 @@ class Test_UserEventsStandalone_SDK_V2:
 
             # Some tracers use true while others use yes
             assert any(
-                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in TRUTHY_VALUES
                 for header, value in data["request"]["headers"]
             )
             return span["meta"]
 
         return None
 
-    def _call_endpoint(self, endpoint, data, trace_id):
+    def _call_endpoint(self, endpoint: str, data: dict, trace_id: int):
         self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), json=data)
 
     def setup_user_login_success_event_generates_asm_event(self):

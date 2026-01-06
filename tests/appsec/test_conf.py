@@ -2,9 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
 from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
-from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -67,36 +67,34 @@ class Test_ConfigurationVariables:
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+            assert not nested_lookup(self.SECRET, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_key, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_key, allow_no_data=True)
 
     def setup_obfuscation_parameter_value(self):
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
         self.r_op_value = weblog.get("/waf", headers=headers)
 
     @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+            assert not nested_lookup(self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
@@ -117,11 +115,11 @@ class Test_ConfigurationVariables_New_Obfuscation:
     def test_partial_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+            assert not nested_lookup(self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         # previously, the value was obfuscated as "<Redacted>", now only the secret part is obfuscated
         interfaces.library.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
-        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)

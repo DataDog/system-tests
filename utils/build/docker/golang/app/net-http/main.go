@@ -143,19 +143,36 @@ func main() {
 				w.Header().Add(key, value)
 			}
 		}
-		w.WriteHeader(status)
-		w.Write([]byte("Value tagged"))
 
+		var parsedBody any
 		switch {
 		case r.Header.Get("Content-Type") == "application/json":
 			body, _ := io.ReadAll(r.Body)
 			var bodyMap map[string]any
 			if err := json.Unmarshal(body, &bodyMap); err == nil {
 				appsec.MonitorParsedHTTPBody(r.Context(), bodyMap)
+				parsedBody = bodyMap
 			}
 		case r.ParseForm() == nil:
 			appsec.MonitorParsedHTTPBody(r.Context(), r.PostForm)
+			parsedBody = r.PostForm
 		}
+
+		if r.Method == http.MethodPost && strings.HasPrefix(tag, "payload_in_response_body") {
+			responsePayload := map[string]any{"payload": parsedBody}
+
+			appsec.MonitorHTTPResponseBody(r.Context(), responsePayload)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(status)
+			if json.NewEncoder(w).Encode(responsePayload); err != nil {
+				logrus.Errorf("Failed to encode response body: %v", err)
+			}
+			return
+		}
+
+		w.WriteHeader(status)
+		w.Write([]byte("Value tagged"))
 	})
 
 	mux.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
@@ -739,9 +756,13 @@ func main() {
 	})
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
 
-	mux.HandleFunc("/debugger/log", logProbe)
-	mux.HandleFunc("/debugger/mix", mixProbe)
+	mux.HandleFunc("/ffe", common.FFeEval())
+
+	var d DebuggerController
+	mux.HandleFunc("/debugger/log", d.logProbe)
+	mux.HandleFunc("/debugger/mix", d.mixProbe)
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -901,10 +922,12 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 // They need to be free-standing functions to avoid inlining and to make sure
 // make sure the debugger can probe them.
 
-func logProbe(w http.ResponseWriter, r *http.Request) {
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Log probe"))
 }
 
-func mixProbe(w http.ResponseWriter, r *http.Request) {
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Mix probe"))
 }

@@ -6,7 +6,6 @@
 
 from collections.abc import Callable
 import json
-import os
 from pathlib import Path
 import re
 
@@ -27,7 +26,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
         self.timeout = 0
         self._data_list: list[dict] = []
 
-    def _get_files(self):
+    def _get_files(self) -> list[Path]:
         raise NotImplementedError
 
     def _clean_line(self, line: str):
@@ -43,16 +42,15 @@ class _LogsInterfaceValidator(InterfaceValidator):
         return level
 
     def _read(self):
-        for filename in self._get_files():
-            logger.info(f"For {self}, reading {filename}")
+        for file in self._get_files():
+            logger.info(f"For {self}, reading {file!s}")
             log_count = 0
             try:
-                with open(filename, encoding="utf-8") as f:
+                with file.open(encoding="utf-8") as f:
                     buffer: list[str] = []
                     for raw_line in f:
                         line = raw_line
-                        if line.endswith("\n"):
-                            line = line[:-1]  # remove tailing \n
+                        line = line.removesuffix("\n")
                         line = self._clean_line(line)
 
                         if self._is_skipped_line(line):
@@ -68,9 +66,9 @@ class _LogsInterfaceValidator(InterfaceValidator):
                     log_count += 1
                     yield "\n".join(buffer) + "\n"
 
-                logger.info(f"Reading {filename} is finished, {log_count} has been treated")
+                logger.info(f"Reading {file!s} is finished, {log_count} has been treated")
             except FileNotFoundError:
-                logger.debug(f"File not found, skipping it: {filename}")
+                logger.debug(f"File not found, skipping it: {file!s}")
 
     def load_data(self):
         logger.debug(f"Load data for log interface {self.name}")
@@ -92,25 +90,32 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator: Callable, *, success_by_default: bool = False):
+    def validate_one(self, validator: Callable[[dict], bool]):
         for data in self.get_data():
             try:
-                if validator(data) is True:
+                if validator(data):
                     return
             except Exception:
                 logger.error(f"{data} did not validate this test")
                 raise
 
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
+        raise ValueError("Test has not been validated by any data")
+
+    def validate_all(self, validator: Callable[[dict], None]):
+        for data in self.get_data():
+            try:
+                validator(data)
+            except Exception:
+                logger.error(f"{data} did not validate this test")
+                raise
 
     def assert_presence(self, pattern: str, **extra_conditions: str):
         validator = _LogPresence(pattern, **extra_conditions)
-        self.validate(validator.check, success_by_default=False)
+        self.validate_one(validator.check)
 
     def assert_absence(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         validator = _LogAbsence(pattern, allowed_patterns)
-        self.validate(validator.check, success_by_default=True)
+        self.validate_all(validator.check)
 
 
 class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
@@ -118,10 +123,10 @@ class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
         super().__init__(f"{container_name} stdout", new_log_line_pattern=new_log_line_pattern)
         self.container_name = container_name
 
-    def _get_files(self):
+    def _get_files(self) -> list[Path]:
         return [
-            f"{self.host_log_folder}/docker/{self.container_name}/stdout.log",
-            f"{self.host_log_folder}/docker/{self.container_name}/stderr.log",
+            Path(f"{self.host_log_folder}/docker/{self.container_name}/stdout.log"),
+            Path(f"{self.host_log_folder}/docker/{self.container_name}/stderr.log"),
         ]
 
 
@@ -183,10 +188,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._parsers.append(re.compile(p("message", r".*")))
 
     def _clean_line(self, line: str):
-        if line.startswith("weblog_1         | "):
-            line = line[19:]
-
-        return line
+        return line.removeprefix("weblog_1         | ")
 
     def _get_standardized_level(self, level: str):
         if self.library in ("php", "cpp_nginx"):
@@ -214,19 +216,17 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         message = p("message", r".*")
         self._parsers.append(re.compile(rf"^{timestamp} \[{level}\] {message}"))
 
-    def _get_files(self):
+    def _get_files(self) -> list[Path]:
         result = []
 
         try:
-            files = os.listdir(f"{self.host_log_folder}/docker/weblog/logs/")
+            files = list(Path(f"{self.host_log_folder}/docker/weblog/logs/").iterdir())
         except FileNotFoundError:
             files = []
 
-        for f in files:
-            filename = os.path.join(f"{self.host_log_folder}/docker/weblog/logs/", f)
-
-            if Path(filename).is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
-                result.append(filename)
+        for file in files:
+            if file.is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", file.name):
+                result.append(file)
 
         return result
 
@@ -301,24 +301,3 @@ class _LogAbsence:
 
             logger.error(json.dumps(data["raw"], indent=2))
             raise ValueError("Found unexpected log")
-
-
-class Test:
-    def test_main(self):
-        """Test example"""
-
-        from utils._context._scenarios import scenarios
-        from utils import context
-
-        context.scenario = scenarios.default
-
-        i = _PostgresStdout()
-        i.configure(scenarios.default.host_log_folder, replay=True)
-        i.load_data()
-
-        for item in i.get_data():
-            print(item)  # noqa: T201
-
-
-if __name__ == "__main__":
-    Test().test_main()

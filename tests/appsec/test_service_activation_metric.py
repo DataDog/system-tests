@@ -11,7 +11,7 @@ from tests.appsec.utils import find_configuration
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
 
-def _send_config(config):
+def _send_config(config: dict):
     if config is not None:
         rc.rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
@@ -19,7 +19,7 @@ def _send_config(config):
     return rc.rc_state.apply().state
 
 
-def validate_metric_tag(origin, metric):
+def validate_metric_tag(origin: str, metric: dict):
     return metric.get("type") == "gauge" and f"origin:{origin}" in metric.get("tags", ())
 
 
@@ -56,7 +56,9 @@ class BaseServiceActivationConfigurationMetric:
 
     def test_service_activation_metric(self):
         assert any(
-            c["origin"] == self.origin and c["name"] == "DD_APPSEC_ENABLED" and c["value"] in ["1", 1, True]
+            c["origin"] == self.origin
+            and (c["name"] == "DD_APPSEC_ENABLED" or c["name"] == "appsec.enabled")
+            and c["value"] in ["1", 1, True]
             for payload_configuration in find_configuration()
             for c in payload_configuration
         )

@@ -1,0 +1,62 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/responses",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.14",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "137",
+      "x-datadog-trace-id": "13962596126416819145",
+      "x-datadog-parent-id": "8518176096735017328",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=1257963090000563627,_dd.p.llmobs_trace_id=139804560230553625604241829242461116767,_dd.p.tid=692d60ff00000000",
+      "traceparent": "00-692d60ff00000000c1c51b333151d3c9-7636a4075c1d3970-01",
+      "tracestate": "dd=p:7636a4075c1d3970;s:1;t.dm:-0;t.llmobs_parent_id:1257963090000563627;t.llmobs_trace_id:139804560230553625604241829242461116767;t.tid:692d60ff00000000"
+    },
+    "body": "{\"prompt\":{\"id\":\"pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191\",\"version\":\"2\",\"variables\":{\"price\":\"$99.99\",\"item\":\"groceries\"}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Mon, 01 Dec 2025 09:33:56 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999777",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "openai-version": "2020-10-01",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "x-request-id": "req_2bb6d7dad71a4ad09788003653d94833",
+      "openai-processing-ms": "4025",
+      "x-envoy-upstream-service-time": "4029",
+      "cf-cache-status": "DYNAMIC",
+      "Set-Cookie": "__cf_bm=Uh3to.7lkWpS4BHRUAFCijEgvHDNN3euYGTQkcqZyD8-1764581636-1.0.1.1-K6MR9IL24BU2EiYMb.LaTxhFpuuR5Fay2PhcPBCa64TbPZVBJndrTgzUBMHPWPq1XLwjX87IxozeQ8l2SLr4KZH7fGco_EnN3zl4kupRP.I; path=/; expires=Mon, 01-Dec-25 10:03:56 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=FQZ0pPgdDp6CjQGvEn3k7PQw.pklw0TMJ_YfPMjh_Ck-1764581636146-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Server": "cloudflare",
+      "CF-RAY": "9a7195de18236ec7-CDG",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"resp_0998c2b7e42eee0d01692d6100111081908c3fa3f3aab6b5a1\",\n  \"object\": \"response\",\n  \"created_at\": 1764581632,\n  \"status\": \"completed\",\n  \"background\": false,\n  \"billing\": {\n    \"payer\": \"developer\"\n  },\n  \"error\": null,\n  \"incomplete_details\": null,\n  \"instructions\": [\n    {\n      \"type\": \"message\",\n      \"content\": [],\n      \"role\": \"developer\"\n    },\n    {\n      \"type\": \"message\",\n      \"content\": [\n        {\n          \"type\": \"input_text\",\n          \"text\": \"The price of groceries is $99.99.\"\n        }\n      ],\n      \"role\": \"user\"\n    }\n  ],\n  \"max_output_tokens\": null,\n  \"max_tool_calls\": null,\n  \"model\": \"o4-mini-2025-04-16\",\n  \"output\": [\n    {\n      \"id\": \"rs_0998c2b7e42eee0d01692d6100891c81909770e34d6939be99\",\n      \"type\": \"reasoning\",\n      \"summary\": []\n    },\n    {\n      \"id\": \"msg_0998c2b7e42eee0d01692d61033d8c8190a3fb4798b7260663\",\n      \"type\": \"message\",\n      \"status\": \"completed\",\n      \"content\": [\n        {\n          \"type\": \"output_text\",\n          \"annotations\": [],\n          \"logprobs\": [],\n          \"text\": \"You\\u2019ve got groceries totaling $99.99. What would you like to do next? For example:\\n\\n\\u2022 Add sales tax (please specify your rate or location)  \\n\\u2022 Apply a discount or coupon  \\n\\u2022 Split the total among people  \\n\\u2022 Convert to another currency  \\n\\nLet me know which calculation or operation you need!\"\n        }\n      ],\n      \"role\": \"assistant\"\n    }\n  ],\n  \"parallel_tool_calls\": true,\n  \"previous_response_id\": null,\n  \"prompt\": {\n    \"id\": \"pmpt_6911a99a3eec81959d5f2e408a2654380b2b15731a51f191\",\n    \"variables\": {\n      \"price\": {\n        \"type\": \"input_text\",\n        \"text\": \"$99.99\"\n      },\n      \"item\": {\n        \"type\": \"input_text\",\n        \"text\": \"groceries\"\n      }\n    },\n    \"version\": \"2\"\n  },\n  \"prompt_cache_key\": null,\n  \"prompt_cache_retention\": null,\n  \"reasoning\": {\n    \"effort\": \"medium\",\n    \"summary\": null\n  },\n  \"safety_identifier\": null,\n  \"service_tier\": \"default\",\n  \"store\": false,\n  \"temperature\": 1.0,\n  \"text\": {\n    \"format\": {\n      \"type\": \"text\"\n    },\n    \"verbosity\": \"medium\"\n  },\n  \"tool_choice\": \"auto\",\n  \"tools\": [],\n  \"top_logprobs\": 0,\n  \"top_p\": 1.0,\n  \"truncation\": \"disabled\",\n  \"usage\": {\n    \"input_tokens\": 16,\n    \"input_tokens_details\": {\n      \"cached_tokens\": 0\n    },\n    \"output_tokens\": 326,\n    \"output_tokens_details\": {\n      \"reasoning_tokens\": 256\n    },\n    \"total_tokens\": 342\n  },\n  \"user\": null,\n  \"metadata\": {}\n}"
+  }
+}

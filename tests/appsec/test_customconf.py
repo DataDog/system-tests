@@ -59,7 +59,7 @@ class Test_CorruptedRules_Telemetry:
 @scenarios.appsec_missing_rules
 @features.threats_configuration
 class Test_MissingRules:
-    """AppSec do not report anything if rule file is missing"""
+    """AppSec does not report anything if rule file is missing"""
 
     def setup_c04(self):
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})

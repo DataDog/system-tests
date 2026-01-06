@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from http import HTTPStatus
 import os
-import sys
 import pytest
 from _pytest.reports import TestReport
 
@@ -15,6 +13,7 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
+from utils._context.docker import get_docker_client
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -30,7 +29,6 @@ from utils._context.containers import (
     TestedContainer,
     LocalstackContainer,
     ElasticMQContainer,
-    _get_client as get_docker_client,
 )
 
 from utils._logger import logger
@@ -50,6 +48,8 @@ class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
     _network: Network = None
+
+    postgres_container: PostgresContainer
 
     def __init__(
         self,
@@ -100,7 +100,8 @@ class DockerScenario(Scenario):
             self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._supporting_containers.append(PostgresContainer())
+            self.postgres_container = PostgresContainer()
+            self._supporting_containers.append(self.postgres_container)
 
         if include_mongo_db:
             self._supporting_containers.append(MongoContainer())
@@ -139,9 +140,14 @@ class DockerScenario(Scenario):
         if not self.replay:
             docker_info = get_docker_client().info()
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+            self.warmups.append(self._create_network)
+            self.warmups.append(self._start_containers)
 
         for container in reversed(self._required_containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
+
+        for container in self._required_containers:
+            self.warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -197,20 +203,8 @@ class DockerScenario(Scenario):
         else:
             self._network = get_docker_client().networks.create(name, check_duplicate=True)
 
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.append(lambda: logger.stdout("Starting containers..."))
-            warmups.append(self._create_network)
-            warmups.append(self._start_containers)
-
-        for container in self._required_containers:
-            warmups.append(container.post_start)
-
-        return warmups
-
     def _start_containers(self):
+        logger.stdout("Starting containers...")
         threads = []
 
         for container in self._required_containers:
@@ -228,10 +222,37 @@ class DockerScenario(Scenario):
 
     def close_targets(self):
         for container in reversed(self._required_containers):
-            try:
-                container.remove()
-            except:
-                logger.exception(f"Failed to remove container {container}")
+            container.remove()
+
+    def test_schemas(
+        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
+    ) -> None:
+        long_repr = []
+
+        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+
+        for error in interface.get_schemas_errors():
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
+                long_repr.append(f"* {error.message}")
+
+        if len(long_repr) != 0:
+            report = TestReport(
+                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::test_schemas",
+                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
+                {},
+                "failed",
+                "\n".join(long_repr),
+                "call",
+            )
+
+            if "error" not in logger.terminal.stats:
+                logger.terminal.stats["error"] = []
+
+            logger.terminal.stats["error"].append(report)
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
 
 class EndToEndScenario(DockerScenario):
@@ -428,6 +449,13 @@ class EndToEndScenario(DockerScenario):
         else:
             self.library_interface_timeout = self._library_interface_timeout
 
+        if not self.replay:
+            self.warmups.insert(1, self._start_interfaces_watchdog)
+            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self._wait_for_app_readiness)
+            self.warmups.append(self._set_weblog_domain)
+            self.warmups.append(self._set_components)
+
     def _get_weblog_system_info(self):
         try:
             code, (stdout, stderr) = self.weblog_container.exec_run("uname -a", demux=True)
@@ -452,36 +480,11 @@ class EndToEndScenario(DockerScenario):
 
     def _set_weblog_domain(self):
         if self.enable_ipv6:
-            from utils import weblog  # TODO better interface
-
-            if sys.platform == "linux":
-                # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
-                # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
-                weblog.domain = self.weblog_container.network_ip(self._network)
-                logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
-
-            elif sys.platform == "darwin":
-                # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
-                # as they are on an network intermal to the docker VM. But we can still use localhost.
-                logger.info("Mac => Using localhost as weblog domain")
-            else:
-                pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+            self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(1, self._start_interfaces_watchdog)
-            warmups.append(self._get_weblog_system_info)
-            warmups.append(self._wait_for_app_readiness)
-            warmups.append(self._set_weblog_domain)
-            warmups.append(self._set_components)
-
-        return warmups
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
@@ -540,17 +543,7 @@ class EndToEndScenario(DockerScenario):
                 "nodejs",
                 "ruby",
             ):
-                from utils import weblog  # TODO better interface
-
-                # for weblogs who supports it, call the flush endpoint
-                try:
-                    r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == HTTPStatus.OK
-                except:
-                    self.weblog_container.healthy = False
-                    logger.stdout(
-                        f"Warning: Failed to flush weblog, please check {self.host_log_folder}/docker/weblog/stdout.log"
-                    )
+                self.weblog_container.flush()
 
             self.weblog_container.stop()
             interfaces.library.check_deserialization_errors()
@@ -658,18 +651,12 @@ class EndToEndScenario(DockerScenario):
                 data_path=None,
                 condition=self.library
                 in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
-                and self.name in ("TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
+                and self.name in ("APPSEC_BLOCKING", "TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
                 ticket="APMSP-2158",
-            ),
-            _SchemaBug(
-                endpoint="/symdb/v1/input",
-                data_path="$[].content",
-                condition=self.library >= "golang@2.4.0-dev" and self.name == "DEBUGGER_SYMDB",
-                ticket="DEBUG-4541",
             ),
         ]
 
-        self._test_schemas(session, interfaces.library, library_bugs)
+        self.test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
             _SchemaBug(
@@ -725,39 +712,9 @@ class EndToEndScenario(DockerScenario):
                 ticket="DEBUG-3709",
             ),
         ]
-        self._test_schemas(session, interfaces.agent, agent_bugs)
+        self.test_schemas(session, interfaces.agent, agent_bugs)
 
         return super().pytest_sessionfinish(session, exitstatus)
-
-    def _test_schemas(
-        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
-    ) -> None:
-        long_repr = []
-
-        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
-
-        for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points and (
-                error.endpoint,
-                None,
-            ) not in excluded_points:
-                long_repr.append(f"* {error.message}")
-
-        if len(long_repr) != 0:
-            report = TestReport(
-                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::_test_schemas",
-                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
-                {},
-                "failed",
-                "\n".join(long_repr),
-                "call",
-            )
-
-            if "error" not in logger.terminal.stats:
-                logger.terminal.stats["error"] = []
-
-            logger.terminal.stats["error"].append(report)
-            session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
     @property
     def dd_site(self):

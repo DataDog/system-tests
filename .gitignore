@@ -8,6 +8,7 @@ binaries/*
 
 venv
 venv.
+.venv
 /vendor/python
 system_tests.egg-info/
 
@@ -63,8 +64,6 @@ node_modules/
 *.swp
 *.swo
 
-utils/build/docker/*/parametric/Dockerfile
-
 # debugger
 /tests/debugger/approvals/**/*received*
 .aider*
@@ -76,3 +75,6 @@ tmp/
 
 # Go
 go.work*
+
+# Hypothesis Python package
+.hypothesis/

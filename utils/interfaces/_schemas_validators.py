@@ -17,6 +17,8 @@ from typing import Any
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
+from utils._logger import logger
+
 
 def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
@@ -31,6 +33,7 @@ def _get_schemas_filenames():
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
+        "utils/interfaces/schemas/otel_collector/",
     ):
         for root, _, files in os.walk(schema_dir):
             for f in files:
@@ -102,6 +105,7 @@ class SchemaValidator:
         schema_id = f"/{self.interface}{path}-request.json"
 
         if schema_id not in _get_schemas_store():
+            logger.info(f"Schema {schema_id} does not exists")
             return []
 
         validator = _get_schema_validator(schema_id)
@@ -181,13 +185,13 @@ class SchemaValidator:
 def _main():
     for interface in ("agent", "library"):
         validator = SchemaValidator(interface)
-        folders = [folder for folder in os.listdir(".") if Path(folder).is_dir() and folder.startswith("logs")]
+        folders = [folder for folder in Path().iterdir() if folder.is_dir() and str(folder).startswith("logs")]
         for folder in folders:
-            path = f"{folder}/interfaces/{interface}"
+            path = folder / f"/interfaces/{interface}"
 
             if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if Path(os.path.join(path, file)).is_file()]
+            files = [file for file in path.iterdir() if file.is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)

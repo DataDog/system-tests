@@ -38,7 +38,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Remove manual instrumentation from RASP tests
-	rasp.HTTPClient = http.DefaultClient
+	rasp.HTTPClient = &http.Client{Transport: http.DefaultTransport}
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "/" is the default route when the others don't match
@@ -606,9 +606,13 @@ func main() {
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
 
-	mux.HandleFunc("/debugger/log", logProbe)
-	mux.HandleFunc("/debugger/mix", mixProbe)
+	mux.HandleFunc("/ffe", common.FFeEval())
+
+	var d DebuggerController
+	mux.HandleFunc("/debugger/log", d.logProbe)
+	mux.HandleFunc("/debugger/mix", d.mixProbe)
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -722,10 +726,12 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 	}
 }
 
-func logProbe(w http.ResponseWriter, r *http.Request) {
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Log probe"))
 }
 
-func mixProbe(w http.ResponseWriter, r *http.Request) {
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Mix probe"))
 }

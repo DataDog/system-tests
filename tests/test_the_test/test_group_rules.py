@@ -24,11 +24,12 @@ def test_tracer_release():
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
         scenarios.todo,
-        # Is it targeting tracers ?
+        # targetting OTEL
         scenarios.otel_integrations,
         scenarios.otel_log_e2e,
         scenarios.otel_metric_e2e,
         scenarios.otel_tracing_e2e,
+        scenarios.otel_collector,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
         scenarios.container_auto_injection_install_script_appsec,
@@ -65,18 +66,19 @@ def test_tracer_release():
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
         scenarios.demo_aws,
+        scenarios.otel_collector_e2e,
     ]
 
     for scenario in get_all_scenarios():
         if scenario in not_in_tracer_release_group:
-            assert (
-                scenario_groups.tracer_release not in scenario.scenario_groups
-            ), f"Scenario {scenario} should not be part of {scenario_groups.tracer_release}"
+            assert scenario_groups.tracer_release not in scenario.scenario_groups, (
+                f"Scenario {scenario} should not be part of {scenario_groups.tracer_release}"
+            )
 
         if scenario_groups.tracer_release not in scenario.scenario_groups:
-            assert (
-                scenario in not_in_tracer_release_group
-            ), f"Scenario {scenario} is not part of {scenario_groups.tracer_release}"
+            assert scenario in not_in_tracer_release_group, (
+                f"Scenario {scenario.name} is not part of {scenario_groups.tracer_release.name} group"
+            )
 
             if scenario in not_in_tracer_release_group:
                 assert scenario_groups.tracer_release not in scenario.scenario_groups

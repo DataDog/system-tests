@@ -79,10 +79,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional type test."""
         self.main_setup()
 
-    @irrelevant(
-        context.library in ["python"],
-        reason="Not supported",
-    )
     def test_optional_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -124,7 +120,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        context.library in ["dotnet", "nodejs", "python"],
+        context.library in ["dotnet", "nodejs", "ruby"],
         reason="Not supported",
     )
     @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
@@ -142,11 +138,7 @@ class Test_Endpoint_Discovery:
         """Setup for optional response body type test."""
         self.main_setup()
 
-    @irrelevant(
-        (context.library == "python" and context.weblog_variant != "fastapi"),
-        reason="Not applicable to weblog variant",
-    )
-    @irrelevant(context.library in ["dotnet", "nodejs"], reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -168,11 +160,7 @@ class Test_Endpoint_Discovery:
         ],
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(
-        (context.library == "python" and context.weblog_variant != "fastapi"),
-        reason="Not applicable to weblog variant",
-    )
-    @irrelevant(context.library in ["dotnet", "nodejs"], reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -193,7 +181,7 @@ class Test_Endpoint_Discovery:
         reason="Not applicable to weblog variant",
     )
     @irrelevant(
-        context.library in ["dotnet", "nodejs", "python"],
+        context.library in ["dotnet", "nodejs", "ruby"],
         reason="Not supported",
     )
     def test_optional_authentication(self):
@@ -212,7 +200,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        context.library in ["python", "dotnet", "nodejs"],
+        context.library in ["dotnet", "nodejs", "ruby"],
         reason="Not supported",
     )
     def test_optional_metadata(self):

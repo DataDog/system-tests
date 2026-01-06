@@ -52,7 +52,7 @@ def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
         raise ValueError("Some path has not been transmitted")
 
 
-def priority_should_be_kept(sampling_priority):
+def priority_should_be_kept(sampling_priority: SamplingPriority):
     """Returns if a given sampling priority means its trace has to be kept.
 
     See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms
@@ -61,7 +61,7 @@ def priority_should_be_kept(sampling_priority):
     return sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP)
 
 
-def trace_should_be_kept(sampling_rate, trace_id):
+def trace_should_be_kept(sampling_rate: float, trace_id: int):
     """Given a trace_id and a sampling rate, returns if a trace should be kept.
 
     Reference algorithm described in the priority sampling RFC
@@ -71,7 +71,7 @@ def trace_should_be_kept(sampling_rate, trace_id):
     return ((trace_id * SAMPLING_KNUTH_FACTOR) % SAMPLING_MODULO) <= (sampling_rate * MAX_UINT64)
 
 
-def _spans_with_parent(traces, parent_ids):
+def _spans_with_parent(traces: list, parent_ids: list):
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
         yield from []  # do not fail here, it's schema's job
@@ -132,7 +132,7 @@ class Test_SamplingRates:
             raise ValueError(
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
+                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True] / trace_count}, "
                 f"which is outside of the confidence interval of +-{confidence_interval}\n"
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
@@ -151,7 +151,7 @@ class Test_SamplingDecisions:
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        def validator(datum, root_span):
+        def validator(datum: dict, root_span: dict):
             sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
             if sampling_priority is None:
                 raise ValueError(
@@ -197,8 +197,8 @@ class Test_SamplingDecisionAdded:
         traces = {trace["parent_id"]: trace for trace in self.traces}
         spans = []
 
-        def validator(data):
-            for span in _spans_with_parent(data["request"]["content"], traces.keys()):
+        def validator(data: dict):
+            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
                 expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
@@ -214,7 +214,7 @@ class Test_SamplingDecisionAdded:
                     f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
                 )
 
-        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         if len(spans) != len(traces):
             raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
@@ -247,8 +247,8 @@ class Test_SamplingDeterminism:
         traces = {trace["parent_id"]: trace for trace in self.traces_determinism}
         sampling_decisions_per_trace_id = defaultdict(list)
 
-        def validator(data):
-            for span in _spans_with_parent(data["request"]["content"], traces.keys()):
+        def validator(data: dict):
+            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
                 expected_trace_id = traces[(span["parent_id"])]["trace_id"]
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
                 sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
@@ -259,11 +259,11 @@ class Test_SamplingDeterminism:
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
                 )
 
-                assert (
-                    sampling_priority is not None
-                ), f"Message: {data['log_filename']}: sampling priority should be set"
+                assert sampling_priority is not None, (
+                    f"Message: {data['log_filename']}: sampling priority should be set"
+                )
 
-        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         for trace_id, decisions in sampling_decisions_per_trace_id.items():
             if len(decisions) < 2:
@@ -277,12 +277,12 @@ class Test_SamplingDeterminism:
 @features.ensure_that_sampling_is_consistent_across_languages
 class Test_SampleRateFunction:
     @staticmethod
-    def _load_csv_sampling_decisions() -> list[tuple[int, float, int]]:
+    def _load_csv_sampling_decisions() -> list[tuple[int, float, SamplingPriority]]:
         cases = []
         with open("tests/fixtures/sampling_rates.csv", newline="", encoding="utf-8") as csv_file:
             r = csv.reader(csv_file)
             for row in r:
-                trace_id, sampling_rate, sampling_priority = (int(row[0]), float(row[1]), int(row[2]))
+                trace_id, sampling_rate, sampling_priority = (int(row[0]), float(row[1]), SamplingPriority(int(row[2])))
                 if sampling_rate != context.tracer_sampling_rate:
                     # This test can only run on an app with a static sampling rate (default: 0.5).
                     logger.warning(
@@ -325,13 +325,13 @@ class Test_SampleRateFunction:
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
                 logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
-                assert (
-                    sampling_priority is not None
-                ), f"trace_id={trace_id}: Root span has no sampling priority attached"
+                assert sampling_priority is not None, (
+                    f"trace_id={trace_id}: Root span has no sampling priority attached"
+                )
                 actual_sampling_decision = priority_should_be_kept(sampling_priority)
-                assert (
-                    priority_should_be_kept(sampling_priority) is expected_sampling_decision
-                ), f"trace_id={trace_id}, sampling_priority={sampling_priority}, expected_sampling_decision={expected_sampling_decision}, actual_sampling_decision={actual_sampling_decision}"
+                assert priority_should_be_kept(sampling_priority) is expected_sampling_decision, (
+                    f"trace_id={trace_id}, sampling_priority={sampling_priority}, expected_sampling_decision={expected_sampling_decision}, actual_sampling_decision={actual_sampling_decision}"
+                )
                 break
             else:
                 raise ValueError(f"Did not receive spans for req:{req.request}")

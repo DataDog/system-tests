@@ -56,7 +56,7 @@ DSM_REQUEST_TIMEOUT = 61
 WEBLOG_VARIANT_SANITIZED = context.weblog_variant.replace(".", "_").replace(" ", "_").replace("/", "_")
 
 
-def get_message(test, system):
+def get_message(test: str, system: str) -> str:
     return f"[test_dsm.py::{test}] [{system.upper()}] Hello from {context.library.name} DSM test: {scenarios.integrations_aws.unique_id}"
 
 
@@ -517,6 +517,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
+    @flaky(context.weblog_variant == "spring-boot", reason="AIDM-117")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"
@@ -635,14 +636,14 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
 class DsmHelper:
     @staticmethod
-    def is_tags_included(actual_tags, expected_tags) -> bool:
+    def is_tags_included(actual_tags: tuple, expected_tags: tuple) -> bool:
         assert isinstance(actual_tags, tuple)
         assert isinstance(expected_tags, tuple)
 
         return all(expected_tag in actual_tags for expected_tag in expected_tags)
 
     @staticmethod
-    def assert_checkpoint_presence(hash_, parent_hash, tags) -> None:
+    def assert_checkpoint_presence(hash_: int, parent_hash: int, tags: tuple) -> None:
         assert isinstance(tags, tuple)
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")

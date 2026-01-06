@@ -15,7 +15,9 @@ class _BaseSQS:
     unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, operation) -> dict | None:
+    def get_span(
+        cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], queue: str, operation: str
+    ) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -66,7 +68,7 @@ class _BaseSQS:
         return None
 
     @staticmethod
-    def get_queue(span) -> str | None:
+    def get_queue(span: dict) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
@@ -200,7 +202,12 @@ class _BaseSQS:
         assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_sqs_spans(self, producer_interface, consumer_interface, queue):
+    def validate_sqs_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        queue: str,
+    ):
         """Validates production/consumption of sqs message.
         It works the same for both test_produce and test_consume
         """

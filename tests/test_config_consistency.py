@@ -4,7 +4,6 @@
 
 import re
 import json
-import time
 from utils import (
     weblog,
     interfaces,
@@ -373,20 +372,19 @@ class Test_Config_ClientIPHeader_Precedence:
 
             logger.info(f"Checking request with header {header_name}={ip}")
 
-            if ip.startswith("for="):
-                ip = ip[4:]
+            ip = ip.removeprefix("for=")
 
             trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-def _get_span_by_tags(spans, tags):
+def _get_span_by_tags(spans: list, tags: dict):
     logger.info(f"Try to find span with metag tags {tags}")
 
     for span in spans:
         meta = span["meta"]
-        logger.debug(f"Checking span {span['span_id']} meta:\n{'\n'.join(map(str,meta.items()))}")
+        logger.debug(f"Checking span {span['span_id']} meta:\n{'\n'.join(map(str, meta.items()))}")
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
@@ -465,13 +463,13 @@ class Test_Config_IntegrationEnabled_False:
         # Ruby kafka integration generates a span with the name "kafka.producer.*",
         # unlike python/dotnet/etc. which generates a "kafka.produce" span
         if context.library == "php":
-            assert (
-                list(filter(lambda span: "pdo" in span.get("service"), spans)) == []
-            ), f"PDO span was found in trace: {spans}"
+            assert list(filter(lambda span: "pdo" in span.get("service"), spans)) == [], (
+                f"PDO span was found in trace: {spans}"
+            )
         else:
-            assert (
-                list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == []
-            ), f"kafka.produce span was found in trace: {spans}"
+            assert list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == [], (
+                f"kafka.produce span was found in trace: {spans}"
+            )
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -493,15 +491,15 @@ class Test_Config_IntegrationEnabled_True:
         assert spans, "No spans found in trace"
         # PHP uses the pdo integration
         if context.library == "php":
-            assert list(
-                filter(lambda span: "pdo" in span.get("service"), spans)
-            ), f"No PDO span found in trace: {spans}"
+            assert list(filter(lambda span: "pdo" in span.get("service"), spans)), (
+                f"No PDO span found in trace: {spans}"
+            )
         else:
             # Ruby kafka integration generates a span with the name "kafka.producer.*",
             # unlike python/dotnet/etc. which generates a "kafka.produce" span
-            assert list(
-                filter(lambda span: "kafka.produce" in span.get("name"), spans)
-            ), f"No kafka.produce span found in trace: {spans}"
+            assert list(filter(lambda span: "kafka.produce" in span.get("name"), spans)), (
+                f"No kafka.produce span found in trace: {spans}"
+            )
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -702,13 +700,10 @@ class Test_Config_RuntimeMetrics_Enabled:
     def setup_main(self):
         self.req = weblog.get("/")
 
-        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
-        time.sleep(10)
-
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
         assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
 
@@ -739,13 +734,10 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     def setup_main(self):
         self.req = weblog.get("/")
 
-        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
-        time.sleep(10)
-
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
         assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
 
@@ -766,28 +758,25 @@ class Test_Config_RuntimeMetrics_Default:
     def setup_main(self):
         self.req = weblog.get("/")
 
-        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
-        time.sleep(10)
-
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
         assert len(runtime_metrics_gauges) == 0
         assert len(runtime_metrics_sketches) == 0
 
 
-def get_runtime_metrics(agent):
+def get_runtime_metrics():
     runtime_metrics_gauges = [
         metric
-        for _, metric in agent.get_metrics()
+        for _, metric in interfaces.agent.get_metrics()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
     runtime_metrics_sketches = [
         metric
-        for _, metric in agent.get_sketches()
+        for _, metric in interfaces.agent.get_sketches()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 

@@ -2,15 +2,13 @@ import inspect
 import os
 import re
 from functools import partial
-import enum
 from types import FunctionType, MethodType
 from typing import Any
 
 import pytest
-import semantic_version as semver
 
+from utils.manifest import TestDeclaration
 from utils._context.core import context
-from utils._context.component_version import Version
 
 
 _jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
@@ -20,45 +18,16 @@ def configure(config: pytest.Config):
     pass  # nothing to do right now
 
 
-class _TestDeclaration(enum.StrEnum):
-    BUG = "bug"
-    FLAKY = "flaky"
-    INCOMPLETE_TEST_APP = "incomplete_test_app"
-    IRRELEVANT = "irrelevant"
-    MISSING_FEATURE = "missing_feature"
-
-
-SKIP_DECLARATIONS = (
-    _TestDeclaration.MISSING_FEATURE,
-    _TestDeclaration.BUG,
-    _TestDeclaration.FLAKY,
-    _TestDeclaration.IRRELEVANT,
-    _TestDeclaration.INCOMPLETE_TEST_APP,
-)
-
-
-# semver module offers two spec engine :
-# 1. SimpleSpec : not a good fit because it does not allows OR clause
-# 2. NpmSpec : not a good fit because it disallow prerelease version by default (6.0.0-pre is not in ">=5.0.0")
-# So we use a custom one, based on NPM spec, allowing pre-release versions
-class CustomParser(semver.NpmSpec.Parser):
-    @classmethod
-    def range(cls, operator: Any, target: Any) -> semver.base.Range:  # noqa: ANN401
-        return semver.base.Range(operator, target, prerelease_policy=semver.base.Range.PRERELEASE_ALWAYS)
-
-
-class CustomSpec(semver.NpmSpec):
-    Parser = CustomParser
-
-
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def _is_jira_ticket(declaration_details: str | None):
-    return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details)
+def _is_jira_ticket(declaration_details: str | None) -> bool:
+    return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details) is not None
 
 
-def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None):
+def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None) -> None:
+    if isinstance(item, pytest.Function):
+        item = item.function
     if not _is_jira_ticket(declaration_details):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
@@ -67,36 +36,50 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
         pytest.exit(f"Please set a jira ticket for {nodeid}, instead of reason: {declaration_details}", 1)
 
 
-def _add_pytest_marker(
-    item: type[Any] | FunctionType | MethodType,
-    declaration: _TestDeclaration,
+def add_pytest_marker(
+    item: pytest.Module | pytest.Function | FunctionType | MethodType,
+    declaration: TestDeclaration,
     declaration_details: str | None,
     *,
     force_skip: bool = False,
-):
-    if not inspect.isfunction(item) and not inspect.isclass(item):
+) -> pytest.Module | pytest.Function | FunctionType | MethodType:
+    if (
+        not inspect.isfunction(item)
+        and not inspect.isclass(item)
+        and not isinstance(item, pytest.Module)
+        and not isinstance(item, pytest.Function)
+    ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
-    if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
+    if declaration in (TestDeclaration.BUG, TestDeclaration.FLAKY):
         _ensure_jira_ticket_as_reason(item, declaration_details)
 
-    if force_skip or declaration in (_TestDeclaration.IRRELEVANT, _TestDeclaration.FLAKY):
+    if force_skip or declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
         marker = pytest.mark.skip
     else:
         marker = pytest.mark.xfail
 
     reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
-    if not hasattr(item, "pytestmark"):
-        item.pytestmark = []  # type: ignore[attr-defined]
+    if isinstance(item, (pytest.Module, pytest.Function)):
+        add_marker = item.add_marker
+    else:
+        if not hasattr(item, "pytestmark"):
+            item.pytestmark = []  # type: ignore[attr-defined, union-attr]
 
-    item.pytestmark.append(marker(reason=reason))  # type: ignore[union-attr]
-    item.pytestmark.append(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))  # type: ignore[union-attr]
+        add_marker = item.pytestmark.append  # type: ignore[union-attr]
+
+    add_marker(marker(reason=reason))
+    add_marker(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))
 
     return item
 
 
-def _expected_to_fail(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None):
+def _expected_to_fail(
+    condition: bool | None = None,  # noqa: FBT001
+    library: str | None = None,
+    weblog_variant: str | None = None,
+) -> bool:
     if condition is False:
         return False
 
@@ -131,12 +114,12 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
 
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
-    declaration: _TestDeclaration,
+    *,
+    declaration: TestDeclaration,
     condition: bool | None,
     library: str | None,
     weblog_variant: str | None,
     declaration_details: str | None,
-    *,
     force_skip: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
@@ -147,13 +130,13 @@ def _decorator(
     if not expected_to_fail:
         return function_or_class
 
-    return _add_pytest_marker(
+    return add_pytest_marker(
         function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
     )
 
 
 def missing_feature(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -163,7 +146,7 @@ def missing_feature(
     """decorator, allow to mark a test function/class as missing"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.MISSING_FEATURE,
+        declaration=TestDeclaration.MISSING_FEATURE,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -173,7 +156,7 @@ def missing_feature(
 
 
 def incomplete_test_app(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -181,7 +164,7 @@ def incomplete_test_app(
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.INCOMPLETE_TEST_APP,
+        declaration=TestDeclaration.INCOMPLETE_TEST_APP,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -190,7 +173,7 @@ def incomplete_test_app(
 
 
 def irrelevant(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
@@ -198,7 +181,7 @@ def irrelevant(
     """decorator, allow to mark a test function/class as not relevant"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.IRRELEVANT,
+        declaration=TestDeclaration.IRRELEVANT,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -207,7 +190,7 @@ def irrelevant(
 
 
 def bug(
-    condition: bool | None = None,
+    condition: bool | None = None,  # noqa: FBT001
     library: str | None = None,
     weblog_variant: str | None = None,
     *,
@@ -219,7 +202,7 @@ def bug(
     """
     return partial(
         _decorator,
-        declaration=_TestDeclaration.BUG,
+        declaration=TestDeclaration.BUG,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -228,11 +211,11 @@ def bug(
     )
 
 
-def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):
+def flaky(condition: bool | None = None, library: str | None = None, weblog_variant: str | None = None, *, reason: str):  # noqa: FBT001
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     return partial(
         _decorator,
-        declaration=_TestDeclaration.FLAKY,
+        declaration=TestDeclaration.FLAKY,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -240,115 +223,8 @@ def flaky(condition: bool | None = None, library: str | None = None, weblog_vari
     )
 
 
-def released(
-    cpp: str | None = None,
-    cpp_httpd: str | None = None,
-    cpp_nginx: str | None = None,
-    dotnet: str | None = None,
-    golang: str | None = None,
-    java: str | None = None,
-    nodejs: str | None = None,
-    php: str | None = None,
-    python: str | None = None,
-    python_otel: str | None = None,
-    nodejs_otel: str | None = None,
-    ruby: str | None = None,
-    rust: str | None = None,
-    agent: str | None = None,
-    dd_apm_inject: str | None = None,
-    k8s_cluster_agent: str | None = None,
-    python_lambda: str | None = None,
-):
-    """Class decorator, allow to mark a test class with a version number of a component"""
-
-    def wrapper(test_class: type[Any]):
-        if not inspect.isclass(test_class):
-            raise TypeError(f"{test_class} is not a class")
-
-        def compute_declaration(
-            only_for_library: str, component_name: str, full_declaration: str | None, tested_version: Version
-        ) -> tuple[str | None, str | None]:
-            if full_declaration is None:
-                # nothing declared
-                return None, None
-
-            if only_for_library != "*":
-                # this declaration is applied only if the tested library is <only_for_library>
-                if context.library != only_for_library:
-                    # the tested library is not concerned by this declaration
-                    return None, None
-
-            full_declaration = _resolve_declaration(full_declaration)
-
-            if full_declaration is None:
-                return None, None
-
-            if full_declaration.startswith(SKIP_DECLARATIONS):
-                match = re.match(r"^(\w+)( \((.*)\))?$", full_declaration)
-                assert match is not None
-                declaration, _, declaration_details = match.groups()
-                return _TestDeclaration(declaration), declaration_details
-
-            # declaration must be now a version number
-            if full_declaration.startswith("v"):
-                if tested_version >= full_declaration:
-                    return None, None
-            elif semver.Version(str(tested_version)) in CustomSpec(full_declaration):
-                return None, None
-
-            return (
-                _TestDeclaration.MISSING_FEATURE,
-                f"declared version for {component_name} is {full_declaration}, tested version is {tested_version}",
-            )
-
-        skip_reasons = [
-            compute_declaration("cpp", "cpp", cpp, context.library.version),
-            compute_declaration("cpp_httpd", "cpp_httpd", cpp_httpd, context.library.version),
-            compute_declaration("cpp_nginx", "cpp_nginx", cpp_nginx, context.library.version),
-            compute_declaration("dotnet", "dotnet", dotnet, context.library.version),
-            compute_declaration("golang", "golang", golang, context.library.version),
-            compute_declaration("java", "java", java, context.library.version),
-            compute_declaration("nodejs", "nodejs", nodejs, context.library.version),
-            compute_declaration("nodejs_otel", "nodejs_otel", nodejs_otel, context.library.version),
-            compute_declaration("php", "php", php, context.library.version),
-            compute_declaration("python", "python", python, context.library.version),
-            compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
-            compute_declaration("python_lambda", "python_lambda", python_lambda, context.library.version),
-            compute_declaration("ruby", "ruby", ruby, context.library.version),
-            compute_declaration("rust", "rust", rust, context.library.version),
-            compute_declaration("*", "agent", agent, context.agent_version),
-            compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
-            compute_declaration("*", "k8s_cluster_agent", k8s_cluster_agent, context.k8s_cluster_agent_version),
-        ]
-
-        for declaration, declaration_details in skip_reasons:
-            if declaration is not None:
-                return _add_pytest_marker(test_class, _TestDeclaration(declaration), declaration_details)
-
-        return test_class
-
-    return wrapper
-
-
 def rfc(link: str):  # noqa: ARG001
     def wrapper(item: type[Any]):
         return item
 
     return wrapper
-
-
-def _resolve_declaration(released_declaration: str | dict[str, str]) -> str | None:
-    """If the declaration is a dict, resolve it regarding the tested weblog"""
-    if isinstance(released_declaration, str):
-        return released_declaration
-
-    if isinstance(released_declaration, dict):
-        if context.weblog_variant in released_declaration:
-            return released_declaration[context.weblog_variant]
-
-        if "*" in released_declaration:
-            return released_declaration["*"]
-
-        return None
-
-    raise TypeError(f"Unsuported release info: {released_declaration}")

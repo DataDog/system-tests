@@ -2,7 +2,6 @@ import os
 
 if os.environ.get("UWSGI_ENABLED", "false") == "false":
     # Patch with gevent but not for uwsgi-poc
-    import ddtrace.auto  # noqa: E402
     import gevent  # noqa: E402
     from gevent import monkey  # noqa: E402
 
@@ -103,13 +102,24 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+from openfeature import api
+from ddtrace.openfeature import DataDogProvider
+from openfeature.evaluation_context import EvaluationContext
+
+api.set_provider(DataDogProvider())
+openfeature_client = api.get_client()
+
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
@@ -251,23 +261,27 @@ def check_and_create_users_table():
     cur = postgres_db.cursor()
 
     # Check if 'users' exists
-    cur.execute("""
+    cur.execute(
+        """
         SELECT EXISTS (
             SELECT FROM information_schema.tables
             WHERE table_name = 'users'
         );
-    """)
+    """
+    )
     table_exists = cur.fetchone()[0]
 
     if not table_exists:
-        cur.execute("""
+        cur.execute(
+            """
             CREATE TABLE users (
                 id VARCHAR(255) PRIMARY KEY,
                 username VARCHAR(255),
                 email VARCHAR(255),
                 password VARCHAR(255)
             );
-        """)
+        """
+        )
         postgres_db.commit()
 
         users_data = [
@@ -1731,10 +1745,9 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1752,10 +1765,9 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1991,7 +2003,34 @@ def view_iast_sc_iv_overloaded_insecure():
     return Response("OK")
 
 
-@app.route("/external_request", methods=["GET", "TRACE", "POST"])
+@app.route("/ffe", methods=["POST"])
+def ffe():
+    """OpenFeature evaluation endpoint."""
+    body = flask_request.get_json()
+    flag = body.get("flag")
+    variation_type = body.get("variationType")
+    default_value = body.get("defaultValue")
+    targeting_key = body.get("targetingKey")
+    attributes = body.get("attributes", {})
+
+    # Build context
+    context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+    # Evaluate based on variation type
+    if variation_type == "BOOLEAN":
+        value = openfeature_client.get_boolean_value(flag, default_value, context)
+    elif variation_type == "STRING":
+        value = openfeature_client.get_string_value(flag, default_value, context)
+    elif variation_type in ["INTEGER", "NUMERIC"]:
+        value = openfeature_client.get_integer_value(flag, default_value, context)
+    elif variation_type == "JSON":
+        value = openfeature_client.get_object_value(flag, default_value, context)
+    else:
+        return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+    return jsonify({"value": value}), 200
+
+
+@app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
 def external_request():
     import urllib.request
     import urllib.error
@@ -2007,6 +2046,28 @@ def external_request():
         method=flask_request.method,
         headers=queries,
         data=body,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})
+
+
+@app.route("/external_request/redirect", methods=["GET"])
+def external_request_redirect():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
+    request = urllib.request.Request(
+        full_url,
+        method="GET",
+        headers=queries,
     )
     try:
         with urllib.request.urlopen(request, timeout=10) as fp:

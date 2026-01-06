@@ -1,22 +1,27 @@
 import pytest
 
-from utils import bug, irrelevant, scenarios
+from utils import bug, irrelevant, scenarios, features
+from utils._context._scenarios import Scenario
 
 from .utils import run_system_tests
 
 FILENAME = "tests/test_the_test/test_force_option.py"
 
 
-def execute_process(scenario=scenarios.mock_the_test, forced_test=None, env: dict[str, str] | None = None):
+def execute_process(
+    scenario: Scenario = scenarios.mock_the_test, forced_test: str | None = None, env: dict[str, str] | None = None
+):
     return run_system_tests(scenario=scenario.name, test_path=FILENAME, forced_test=forced_test, env=env)
 
 
 @scenarios.test_the_test
+@features.adaptive_sampling
 class Test_ForceOption:
     def test_force_bug(self):
         nodeid = f"{FILENAME}::Test_Direct::test_bug"
         tests = execute_process(forced_test=nodeid)
 
+        assert nodeid in tests
         assert tests[nodeid]["outcome"] == "passed"
 
     def test_force_irrelevant(self):
@@ -65,6 +70,7 @@ class Test_ForceOption:
 
 @bug(condition=True, reason="FAKE-001")
 @scenarios.mock_the_test
+@features.adaptive_sampling
 class Test_Bug:
     def test_forced(self):
         assert True
@@ -75,6 +81,7 @@ class Test_Bug:
 
 @irrelevant(condition=True)
 @scenarios.mock_the_test
+@features.adaptive_sampling
 class Test_Irrelevant:
     def test_forced(self):
         assert True
@@ -84,6 +91,7 @@ class Test_Irrelevant:
 
 
 @scenarios.mock_the_test
+@features.adaptive_sampling
 class Test_Direct:
     @bug(condition=True, reason="FAKE-001")
     def test_bug(self):
@@ -95,6 +103,7 @@ class Test_Direct:
 
 
 @scenarios.mock_the_test_2
+@features.adaptive_sampling
 class Test_Another:
     @bug(condition=True, reason="FAKE-001")
     def test_main(self):

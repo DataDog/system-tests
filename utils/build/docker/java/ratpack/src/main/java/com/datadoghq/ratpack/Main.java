@@ -144,6 +144,24 @@ public class Main {
                                 response.getHeaders().add("X-Test-Header-5", "value5");
                                 response.send("text/plain", "Response with custom headers");
                             })
+                            .get("authorization_related_headers", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Authorization-related headers
+                                response.getHeaders().add("Authorization", "value1");
+                                response.getHeaders().add("Proxy-Authorization", "value2");
+                                response.getHeaders().add("WWW-Authenticate", "value3");
+                                response.getHeaders().add("Proxy-Authenticate", "value4");
+                                response.getHeaders().add("Authentication-Info", "value5");
+                                response.getHeaders().add("Proxy-Authentication-Info", "value6");
+                                response.getHeaders().add("Cookie", "value7");
+                                response.getHeaders().add("Set-Cookie", "value8");
+
+                                // Standard headers
+                                response.getHeaders().add("Content-Language", "en-US");
+                                response.getHeaders().add("content-type", "text/plain");
+
+                                response.send("text/plain", "Response with custom headers");
+                            })
                             // Endpoint exceeding default header budget with 50 headers
                             .get("exceedResponseHeaders", ctx -> {
                                 Response response = ctx.getResponse();

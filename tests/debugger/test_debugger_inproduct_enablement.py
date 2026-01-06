@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, missing_feature, context, logger
+from utils import features, scenarios, missing_feature, context, logger, bug
 import json
 import time
 
@@ -26,7 +26,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(enabled=None):
+        def _send_config(*, enabled: bool | None = None):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
@@ -51,6 +51,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config(enabled=False)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
+    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
     def test_inproduct_enablement_di(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
@@ -63,22 +64,21 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerTest):
     ############ exception replay ############
     _max_retries = 2
 
     def _send_config(
         self,
-        enabled: bool | None = None,
         service_name: str = "weblog",
         env: str = "system-tests",
         *,
+        enabled: bool | None = None,
         reset: bool = True,
     ):
         self.send_rc_apm_tracing(exception_replay_enabled=enabled, service_name=service_name, env=env, reset=reset)
 
-    def _wait_for_exception_snapshot_received(self, request_path, exception_message):
+    def _wait_for_exception_snapshot_received(self, request_path: str, exception_message: str):
         self.weblog_responses = []
 
         retries = 0
@@ -157,7 +157,8 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
         )
 
     @missing_feature(context.library == "python", force_skip=True)
-    @missing_feature(context.library == "java", force_skip=True)
+    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
+    @bug(context.library == "java", reason="DEBUG-4736", force_skip=True)
     def test_inproduct_enablement_exception_replay_apm_multiconfig(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -175,7 +176,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):
-        def _send_config(enabled=None):
+        def _send_config(*, enabled: bool | None = None):
             self.send_rc_apm_tracing(code_origin_enabled=enabled)
             self.send_weblog_request("/healthcheck")
 
@@ -194,6 +195,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         _send_config(enabled=False)
         self.er_explicit_disabled = not self.wait_for_code_origin_span(TIMEOUT)
 
+    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
     def test_inproduct_enablement_code_origin(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()

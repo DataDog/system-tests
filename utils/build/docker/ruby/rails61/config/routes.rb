@@ -1,6 +1,13 @@
 Rails.application.routes.draw do
   # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
 
+  class ResourceRenamingRackApp
+    def call(_env)
+      [200, {'Content-Type' => 'text/plain'}, ['OK']]
+    end
+  end
+  mount ResourceRenamingRackApp.new => '/resource_renaming'
+
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 

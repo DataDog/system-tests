@@ -103,7 +103,7 @@ class Harness:
             if not scenario:
                 return Harness(scenario_provision_str, k8s_client, {}), ValueError("Empty scenario")
 
-            logging.info(f"Loaded scenario at {scenario_provision_str}")
+            logging.info(f"Loaded scenario at {scenario_provision_str}")  # noqa: LOG015
             return Harness(scenario_provision_str, k8s_client, scenario), None
 
         except Exception as e:
@@ -149,7 +149,7 @@ class Harness:
         found = False
         for app in self.apps():
             if app.get("namespace") == namespace and app.get("name") == deployment:
-                logging.info(f"Found app {namespace}/{deployment} in scenario")
+                logging.info(f"Found app {namespace}/{deployment} in scenario")  # noqa: LOG015
                 found = True
                 break
 

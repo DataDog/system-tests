@@ -82,7 +82,11 @@ system-tests/
 ### Step 3: Build and Test
 1. **Build the weblog**:
    ```bash
-   ./utils/build/build.sh --library java --weblog-variant [framework]
+   ./build.sh java -w [framework]
+   # or using long form:
+   ./build.sh java --weblog-variant [framework]
+   # Example:
+   ./build.sh java -w spring-boot
    ```
    
 2. **Run the test to validate**:

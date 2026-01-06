@@ -1,6 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
-
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/928fb698cf31451f05a180239468e9eb490ac88172a185990df8ca12d2f37d44/single-step-instrumentation-tests.yml
 stages:
   - configure
   - nodejs
@@ -36,7 +35,7 @@ compute_pipeline:
         echo "Branch was created from commit--> $BASE_COMMIT"
         git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
         cat modified_files.txt
-        python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
+        python utils/scripts/compute_libraries_and_scenarios.py >> impacted_scenarios.txt
         cat impacted_scenarios.txt
         source impacted_scenarios.txt
       else

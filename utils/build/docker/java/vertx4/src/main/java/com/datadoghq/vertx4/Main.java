@@ -315,6 +315,23 @@ public class Main {
                     ctx.response().end("Response with custom headers");
                 });
 
+        router.get("/authorization_related_headers")
+                .handler(ctx -> {
+                    // Headers with sensitive or authentication-related information
+                    ctx.response().putHeader("Authorization", "value1");
+                    ctx.response().putHeader("Proxy-Authorization", "value2");
+                    ctx.response().putHeader("WWW-Authenticate", "value3");
+                    ctx.response().putHeader("Proxy-Authenticate", "value4");
+                    ctx.response().putHeader("Authentication-Info", "value5");
+                    ctx.response().putHeader("Proxy-Authentication-Info", "value6");
+                    ctx.response().putHeader("Cookie", "value7");
+                    ctx.response().putHeader("Set-Cookie", "value8");
+
+                    // Additional headers
+                    ctx.response().putHeader("content-type", "text/plain");
+                    ctx.response().end("Response with sensitive headers");
+                });
+
         // Exceed response headers endpoint
         router.get("/exceedResponseHeaders")
                 .handler(ctx -> {

@@ -3,6 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
+from utils._weblog import HttpResponse
 
 
 @features.envoy_external_processing
@@ -349,7 +350,7 @@ class Test_StandardTagsClientIp:
             assert tag in meta, f"missing {tag} tag"
             assert meta[tag] == value
 
-    def _get_root_span_meta(self, request):
+    def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})
 
@@ -402,17 +403,17 @@ class Test_StandardTagsReferrerHostname:
         for i, (request, expected_hostname) in enumerate(self.test_cases, 1):
             meta = self._get_root_span_meta(request)
             if expected_hostname is None:
-                assert (
-                    "http.referrer_hostname" not in meta
-                ), f'Test case #{i}: Expected no referrer hostname, but got "{meta.get('http.referrer_hostname')}"'
+                assert "http.referrer_hostname" not in meta, (
+                    f'Test case #{i}: Expected no referrer hostname, but got "{meta.get("http.referrer_hostname")}"'
+                )
             else:
-                assert (
-                    "http.referrer_hostname" in meta
-                ), f'Test case #{i}: Missing referrer hostname, but expected "{expected_hostname}"'
-                assert (
-                    meta["http.referrer_hostname"] == expected_hostname
-                ), f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
+                assert "http.referrer_hostname" in meta, (
+                    f'Test case #{i}: Missing referrer hostname, but expected "{expected_hostname}"'
+                )
+                assert meta["http.referrer_hostname"] == expected_hostname, (
+                    f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
+                )
 
-    def _get_root_span_meta(self, request):
+    def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})
