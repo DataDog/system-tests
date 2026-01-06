@@ -632,6 +632,111 @@ def _build_version_spec(operator: str, version: str) -> str:
     return f"{operator}{normalized_version}"
 
 
+# Module cache to avoid re-importing the same module multiple times
+_module_cache: Dict[str, Any] = {}
+
+
+def _find_child_classes_with_inherited_methods(
+    root_dir: Union[str, Path],
+    parent_class_name: str,
+    method_name: str,
+    parent_file: str,
+) -> List[tuple[str, str]]:
+    """
+    Find all child classes that inherit a method from a parent class.
+    
+    Uses Python's import mechanism to inspect actual class hierarchies,
+    which is faster and more reliable than AST parsing. Modules are cached
+    to avoid re-importing the same module multiple times.
+    
+    Args:
+        root_dir: Root directory to search (not used, kept for compatibility)
+        parent_class_name: Name of the parent class
+        method_name: Name of the method to check
+        parent_file: File path where parent class is defined
+        
+    Returns:
+        List of tuples (child_file, child_class_name) for classes that inherit the method
+    """
+    from pathlib import Path
+    
+    child_classes = []
+    
+    try:
+        # Use AST parsing instead of importing to avoid decorator evaluation issues
+        # (decorators may require context to be set up, which isn't available during migration)
+        parent_path = Path(parent_file)
+        if not parent_path.exists():
+            return child_classes
+        
+        # Check cache first for this specific lookup
+        cache_key = f"{parent_file}:{parent_class_name}:{method_name}"
+        if cache_key in _module_cache:
+            return _module_cache[cache_key]
+        
+        # Read and parse the file using AST (doesn't execute code, so decorators aren't evaluated)
+        with open(parent_path, "r", encoding="utf-8") as f:
+            source = f.read()
+        
+        try:
+            tree = ast.parse(source, filename=str(parent_path))
+        except SyntaxError:
+            # File has syntax errors, skip
+            return child_classes
+        
+        # Find the parent class definition
+        parent_class_node = None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == parent_class_name:
+                parent_class_node = node
+                break
+        
+        if parent_class_node is None:
+            return child_classes
+        
+        # Check if parent class has the method
+        parent_has_method = False
+        for item in parent_class_node.body:
+            if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == method_name:
+                parent_has_method = True
+                break
+        
+        if not parent_has_method:
+            return child_classes
+        
+        # Find all classes that inherit from parent_class_name
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name != parent_class_name:
+                # Check if this class inherits from parent_class_name
+                inherits_from_parent = False
+                for base in node.bases:
+                    if isinstance(base, ast.Name) and base.id == parent_class_name:
+                        inherits_from_parent = True
+                        break
+                
+                if inherits_from_parent:
+                    # Check if this class overrides the method
+                    overrides_method = False
+                    for item in node.body:
+                        if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name == method_name:
+                            overrides_method = True
+                            break
+                    
+                    if not overrides_method:
+                        # Method is inherited (not overridden)
+                        child_classes.append((parent_file, node.name))
+        
+        # Cache the result for this specific lookup
+        _module_cache[cache_key] = child_classes
+        
+    except Exception:
+        # If anything goes wrong, return empty list (fail gracefully)
+        # This ensures the script continues even if parsing fails
+        pass
+    
+    return child_classes
+
+
 def build_manifest_entries(
     decorator_usages: List[DecoratorInfo],
     *,
@@ -660,6 +765,33 @@ def build_manifest_entries(
     unhandled_cases: List[Dict[str, Any]] = []
     successfully_migrated: List[DecoratorInfo] = []
 
+    def _add_entry_with_inheritance(
+        nodeid: str,
+        entry: Dict[str, Any],
+        usage: DecoratorInfo,
+    ) -> None:
+        """
+        Add a manifest entry and also add entries for child classes that inherit the method.
+        
+        Args:
+            nodeid: Nodeid for the parent class method
+            entry: Manifest entry dictionary
+            usage: Decorator usage info (contains child class information)
+        """
+        manifest_data[nodeid].append(entry)
+        
+        # Check if this method is inherited by child classes
+        child_classes = usage.get("_child_classes", [])
+        parent_class_name = usage.get("class_name")
+        method_name = usage["decorated_name"]
+        
+        if child_classes and parent_class_name:
+            for child_file, child_class_name in child_classes:
+                child_nodeid = _build_nodeid(child_file, child_class_name, method_name)
+                # Create a copy of the entry for the child class
+                child_entry = entry.copy()
+                manifest_data[child_nodeid].append(child_entry)
+
     def _log_unhandled(reason: str, usage: Dict[str, Any], **extra_info: Any) -> None:
         """Log an unhandled case with all available information."""
         unhandled_cases.append(
@@ -681,6 +813,28 @@ def build_manifest_entries(
         # Skip if not a function or class
         if usage["decorated_type"] not in ("function", "async_function", "class"):
             continue
+
+        # Check if this is a method in a parent class that might be inherited
+        # If so, we need to create manifest entries for child classes too
+        parent_class_name = usage.get("class_name")
+        method_name = usage.get("decorated_name")
+        parent_file = usage["file"]
+        
+        # Only check inheritance for methods (not functions or classes)
+        # Also skip if this is already a child class method (we'll handle it via parent)
+        if parent_class_name and usage["decorated_type"] in ("function", "async_function"):
+            # Find child classes that inherit this method (don't override it)
+            child_classes = _find_child_classes_with_inherited_methods(
+                "tests/",
+                parent_class_name,
+                method_name,
+                parent_file,
+            )
+            
+            # Store child classes info for later use
+            usage["_child_classes"] = child_classes
+        else:
+            usage["_child_classes"] = []
 
         # Build nodeid
         nodeid = _build_nodeid(
@@ -883,7 +1037,7 @@ def build_manifest_entries(
                     # Add excluded_weblog field to indicate which weblogs are excluded
                     # excluded_weblog must be a list[str] according to the manifest parser
                     entry["excluded_weblog"] = excluded_weblog_names
-                    manifest_data[nodeid].append(entry)
+                    _add_entry_with_inheritance(nodeid, entry, usage)
                     successfully_migrated.append(usage)
                     continue
                 else:
@@ -892,7 +1046,7 @@ def build_manifest_entries(
                     if reason:
                         entry["reason"] = _quote_yaml_value_if_needed(reason)
                     entry["component"] = library_name
-                    manifest_data[nodeid].append(entry)
+                    _add_entry_with_inheritance(nodeid, entry, usage)
                     successfully_migrated.append(usage)
                     continue
 
@@ -988,7 +1142,7 @@ def build_manifest_entries(
                     }
                     if reason:
                         entry_copy["reason"] = _quote_yaml_value_if_needed(reason)
-                    manifest_data[nodeid].append(entry_copy)
+                    _add_entry_with_inheritance(nodeid, entry_copy, usage)
                 successfully_migrated.append(usage)
                 continue
 
@@ -1026,6 +1180,15 @@ def build_manifest_entries(
             entry["component"] = library_name
             manifest_data[nodeid].append(entry)
             successfully_migrated.append(usage)
+            
+            # If this method is inherited by child classes, create entries for them too
+            child_classes = usage.get("_child_classes", [])
+            for child_file, child_class_name in child_classes:
+                child_nodeid = _build_nodeid(child_file, child_class_name, method_name)
+                # Create a copy of the entry for the child class
+                child_entry = entry.copy()
+                manifest_data[child_nodeid].append(child_entry)
+            
             continue
 
         # Handle library filter (could be component name or weblog name)
@@ -1092,11 +1255,11 @@ def build_manifest_entries(
                     )
                     continue
                 
-                entry["declaration"] = declaration
+                entry["declaration"] = _quote_yaml_value_if_needed(declaration)
                 if reason:
-                    entry["reason"] = reason
+                    entry["reason"] = _quote_yaml_value_if_needed(reason)
                 entry["component"] = library_filter
-                manifest_data[nodeid].append(entry)
+                _add_entry_with_inheritance(nodeid, entry, usage)
                 successfully_migrated.append(usage)
                 continue
             else:
@@ -1182,7 +1345,7 @@ def build_manifest_entries(
                 continue
             
             entry["component"] = component_name
-            manifest_data[nodeid].append(entry)
+            _add_entry_with_inheritance(nodeid, entry, usage)
             successfully_migrated.append(usage)
             continue
 
@@ -2201,7 +2364,7 @@ def _format_entry_as_yaml(entry_or_list: Union[Dict[str, Any], List[Dict[str, An
 def write_manifest_files_by_component(
     manifest_data: Dict[str, List[Dict[str, Any]]],
     output_dir: Union[str, Path] = "new.manifests",
-) -> Dict[str, str]:
+) -> tuple[Dict[str, str], set[str]]:
     """
     Write manifest entries grouped by component to separate YAML files.
     If files already exist, append new entries at the end to preserve all comments.
@@ -2211,7 +2374,9 @@ def write_manifest_files_by_component(
         output_dir: Directory to write manifest files to (default: "new.manifests")
 
     Returns:
-        Dictionary mapping component name to file path of written file.
+        Tuple of:
+        - Dictionary mapping component name to file path of written file
+        - Set of nodeids that were actually written to manifest files
     """
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -2242,6 +2407,7 @@ def write_manifest_files_by_component(
 
     # Write one file per component
     written_files: Dict[str, str] = {}
+    written_nodeids: set[str] = set()  # Track which nodeids were actually written
 
     for component, component_data in component_manifests.items():
         if not component_data:
@@ -2266,6 +2432,9 @@ def write_manifest_files_by_component(
         if not new_entries:
             # No new entries to add
             continue
+        
+        # Track nodeids that will be written
+        written_nodeids.update(new_entries.keys())
         
         # Format new entries
         new_lines = []
@@ -2341,7 +2510,7 @@ def write_manifest_files_by_component(
 
         written_files[component] = str(filepath)
 
-    return written_files
+    return written_files, written_nodeids
 
 
 if __name__ == "__main__":
@@ -2423,15 +2592,32 @@ if __name__ == "__main__":
             sys.exit(1)
 
         output_dir = "manifests" if manifest_mode else "new.manifests"
-        written_files = write_manifest_files_by_component(all_manifest_data, output_dir=output_dir)
+        written_files, written_nodeids = write_manifest_files_by_component(all_manifest_data, output_dir=output_dir)
         
         if written_files:
             print(f"Written {len(written_files)} manifest file(s):", file=sys.stderr)
             for component, filepath in sorted(written_files.items()):
                 print(f"  {component}: {filepath}", file=sys.stderr)
+            
+            # Only delete decorators for entries that were actually written
+            # Filter successfully_migrated to only include decorators for written nodeids
+            decorators_to_delete = []
+            for usage in all_successfully_migrated:
+                # Build nodeid using the same function as in find_decorator_usages
+                file_path = usage["file"]
+                decorated_name = usage["decorated_name"]
+                class_name = usage.get("class_name")
+                
+                # Use _build_nodeid to ensure exact match with how nodeids were created
+                nodeid = _build_nodeid(file_path, class_name, decorated_name)
+                
+                # Check if this nodeid was actually written
+                if nodeid in written_nodeids:
+                    decorators_to_delete.append(usage)
+            
             # Delete decorators from source files
-            if all_successfully_migrated:
-                delete_decorators_from_files(all_successfully_migrated)
+            if decorators_to_delete:
+                delete_decorators_from_files(decorators_to_delete)
         else:
             print(f"No manifest files written (no entries with component information)", file=sys.stderr)
             sys.exit(1)
