@@ -482,17 +482,17 @@ def _parse_component_condition(condition_str: str) -> Optional[Dict[str, Any]]:
     }
 
 
-def _is_component_name(name: str) -> bool:
+def _get_valid_component_names() -> set[str]:
     """
-    Check if a name is a component name (like "python", "java") rather than a weblog name.
-
-    Args:
-        name: Name to check
-
+    Get the set of valid component names that have corresponding manifest files.
+    
     Returns:
-        True if it's a component name, False if it's likely a weblog name
+        Set of valid component names (e.g., {"python", "java", "nodejs", ...})
     """
-    component_names = {
+    # Valid component names based on existing manifest files in HEAD
+    # These should match the actual manifest files in manifests/ directory
+    # Only include components that actually have manifest files in the repository
+    valid_components = {
         "python",
         "java",
         "nodejs",
@@ -508,8 +508,37 @@ def _is_component_name(name: str) -> bool:
         "agent",
         "python_lambda",
         "python_otel",
+        "k8s_cluster_agent",
     }
-    return name.lower() in component_names
+    return valid_components
+
+
+def _is_component_name(name: str) -> bool:
+    """
+    Check if a name is a component name (like "python", "java") rather than a weblog name.
+
+    Args:
+        name: Name to check
+
+    Returns:
+        True if it's a component name, False if it's likely a weblog name
+    """
+    return name.lower() in _get_valid_component_names()
+
+
+def _is_valid_component(component: str) -> bool:
+    """
+    Check if a component name is valid (has a corresponding manifest file).
+    
+    Args:
+        component: Component name to validate
+        
+    Returns:
+        True if component is valid, False otherwise
+    """
+    if not component:
+        return False
+    return component.lower() in _get_valid_component_names()
 
 
 def _parse_library_keyword(keywords: Dict[str, str]) -> Optional[str]:
@@ -743,6 +772,17 @@ def build_manifest_entries(
                 continue
 
             if library_name:
+                # Validate component name - skip if not a valid component
+                if not _is_valid_component(library_name):
+                    _log_unhandled(
+                        f"Invalid component name '{library_name}' (not a valid manifest component)",
+                        usage,
+                        component=library_name,
+                        condition_info=condition_info,
+                        weblog_variant_info=weblog_variant_info,
+                    )
+                    continue
+                
                 # Build declaration string
                 decl_str = declaration
                 if reason:
@@ -774,6 +814,7 @@ def build_manifest_entries(
                         manifest_data[nodeid].append(weblog_decl_entry)
                     # Always ensure component is set (in case we're reusing an existing entry)
                     # This must happen AFTER appending to ensure the reference is correct
+                    # Note: library_name was already validated above, so it's safe to set here
                     if weblog_decl_entry is not None:
                         weblog_decl_entry["component"] = library_name
 
@@ -872,7 +913,23 @@ def build_manifest_entries(
                         base_components.add(component_name)
                 
                 # Create a declaration entry for each unique base component
-                for component_name in sorted(base_components):
+                # Filter out invalid components
+                valid_components = [c for c in sorted(base_components) if _is_valid_component(c)]
+                invalid_components = [c for c in base_components if not _is_valid_component(c)]
+                
+                if invalid_components:
+                    _log_unhandled(
+                        f"Invalid component name(s) in 'in' condition: {invalid_components}",
+                        usage,
+                        invalid_components=invalid_components,
+                        component_list=component_list,
+                    )
+                
+                if not valid_components:
+                    # All components were invalid, skip this decorator
+                    continue
+                
+                for component_name in valid_components:
                     entry_copy = {
                         "declaration": declaration,
                         "component": component_name,
@@ -901,6 +958,15 @@ def build_manifest_entries(
             # Extract base component name (remove version suffix like @2.1.0)
             if "@" in library_name:
                 library_name = library_name.split("@")[0]
+
+            # Validate component name - skip if not a valid component
+            if not _is_valid_component(library_name):
+                _log_unhandled(
+                    f"Invalid component name '{library_name}' (not a valid manifest component)",
+                    usage,
+                    component=library_name,
+                )
+                continue
 
             entry["declaration"] = declaration
             if reason:
@@ -959,9 +1025,19 @@ def build_manifest_entries(
                         decl_str = f"{declaration} ({reason})"
                     
                     weblog_decl_entry["weblog_declaration"][weblog_variant_keyword] = decl_str
+                    successfully_migrated.append(usage)
                     continue
                 
                 # This is a component filter without weblog_variant, create a regular declaration with component field
+                # Validate component name - skip if not a valid component
+                if not _is_valid_component(library_filter):
+                    _log_unhandled(
+                        f"Invalid component name '{library_filter}' (not a valid manifest component)",
+                        usage,
+                        component=library_filter,
+                    )
+                    continue
+                
                 entry["declaration"] = declaration
                 if reason:
                     entry["reason"] = reason
@@ -1039,6 +1115,16 @@ def build_manifest_entries(
                 )
                 continue
 
+            # Validate component name - skip if not a valid component
+            if not _is_valid_component(component_name):
+                _log_unhandled(
+                    f"Invalid component name '{component_name}' (not a valid manifest component)",
+                    usage,
+                    component=component_name,
+                    condition_info=condition_info,
+                )
+                continue
+            
             entry["component"] = component_name
             manifest_data[nodeid].append(entry)
             successfully_migrated.append(usage)
@@ -2037,6 +2123,14 @@ def write_manifest_files_by_component(
             if component is None:
                 continue
 
+            # Validate component name - skip if not a valid component
+            if not _is_valid_component(component):
+                print(
+                    f"Warning: Skipping entry for invalid component '{component}' (nodeid: {nodeid})",
+                    file=sys.stderr
+                )
+                continue
+
             # Add entry to component-specific manifest
             if nodeid not in component_manifests[component]:
                 component_manifests[component][nodeid] = []
@@ -2164,59 +2258,76 @@ if __name__ == "__main__":
         if "--unhandled-only" in args:
             args.remove("--unhandled-only")
 
-    # Default: find bug decorators
-    decorator_name = args[0] if args else "bug"
-
-    usages = find_decorator_usages("tests/", decorator_name)
-
-    if not usages:
-        print(f"No usages of '{decorator_name}' decorator found in tests/", file=sys.stderr)
-        sys.exit(1)
-
-    if manifest_mode or write_files_mode or errors_only_mode:
-        # Build manifest entries (this will collect unhandled cases)
-        manifest_data, successfully_migrated = build_manifest_entries(usages)
-
-        if errors_only_mode:
-            # Only show unhandled cases (already printed to stderr by build_manifest_entries)
-            # Don't exit even if no manifest entries - we want to show the errors
-            pass
-        elif len(manifest_data) == 0:
-            print(f"No manifest entries generated for '{decorator_name}' decorator", file=sys.stderr)
-            sys.exit(1)
-        elif write_files_mode:
-            # Write files grouped by component
-            written_files = write_manifest_files_by_component(manifest_data)
-            if written_files:
-                print(f"Written {len(written_files)} manifest file(s):", file=sys.stderr)
-                for component, filepath in sorted(written_files.items()):
-                    print(f"  {component}: {filepath}", file=sys.stderr)
-                # Delete decorators from source files
-                if successfully_migrated:
-                    delete_decorators_from_files(successfully_migrated)
-            else:
-                print(f"No manifest files written (no entries with component information)", file=sys.stderr)
-                sys.exit(1)
-        elif manifest_mode:
-            # Write files grouped by component to manifests/ directory
-            written_files = write_manifest_files_by_component(manifest_data, output_dir="manifests")
-            if written_files:
-                print(f"Written {len(written_files)} manifest file(s):", file=sys.stderr)
-                for component, filepath in sorted(written_files.items()):
-                    print(f"  {component}: {filepath}", file=sys.stderr)
-                # Delete decorators from source files
-                if successfully_migrated:
-                    delete_decorators_from_files(successfully_migrated)
-            else:
-                print(f"No manifest files written (no entries with component information)", file=sys.stderr)
-                sys.exit(1)
+    # Determine which decorators to process
+    all_decorators_mode = "--all" in args
+    if all_decorators_mode:
+        args.remove("--all")
+        # Process all supported decorator types
+        decorator_names = ["bug", "missing_feature", "irrelevant", "flaky"]
     else:
-        # Print detailed usage information
-        for u in usages:
-            class_info = f" (class: {u['class_name']})" if u.get("class_name") else ""
-            print(
+        # Default: find bug decorators, or use specified decorator name
+        decorator_name = args[0] if args else "bug"
+        decorator_names = [decorator_name]
+
+    # Process each decorator type
+    all_manifest_data: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    all_successfully_migrated: List[DecoratorInfo] = []
+
+    for decorator_name in decorator_names:
+        usages = find_decorator_usages("tests/", decorator_name)
+
+        if not usages:
+            if not all_decorators_mode:
+                print(f"No usages of '{decorator_name}' decorator found in tests/", file=sys.stderr)
+                sys.exit(1)
+            continue
+
+        if manifest_mode or write_files_mode or errors_only_mode:
+            # Build manifest entries (this will collect unhandled cases)
+            manifest_data, successfully_migrated = build_manifest_entries(usages)
+
+            # Merge into combined results
+            for nodeid, entries in manifest_data.items():
+                all_manifest_data[nodeid].extend(entries)
+            all_successfully_migrated.extend(successfully_migrated)
+
+            if errors_only_mode:
+                # Only show unhandled cases (already printed to stderr by build_manifest_entries)
+                # Don't exit even if no manifest entries - we want to show the errors
+                continue
+            elif len(manifest_data) == 0:
+                if not all_decorators_mode:
+                    print(f"No manifest entries generated for '{decorator_name}' decorator", file=sys.stderr)
+                    sys.exit(1)
+                continue
+        else:
+            # Print detailed usage information
+            for u in usages:
+                class_info = f" (class: {u['class_name']})" if u.get("class_name") else ""
+                print(
                 f"{u['file']}:{u['lineno']} {u['decorated_type']} {u['decorated_name']}{class_info} -> {u['decorator_source']}"
-            )
-            print("  args:", u["args"])
-            print("  kwargs:", u["keywords"])
-            print()
+                )
+                print("  args:", u["args"])
+                print("  kwargs:", u["keywords"])
+                print()
+
+
+    # Write manifest files if in manifest/write mode
+    if manifest_mode or write_files_mode:
+        if len(all_manifest_data) == 0:
+            print(f"No manifest entries generated for decorator(s): {', '.join(decorator_names)}", file=sys.stderr)
+            sys.exit(1)
+
+        output_dir = "manifests" if manifest_mode else "new.manifests"
+        written_files = write_manifest_files_by_component(all_manifest_data, output_dir=output_dir)
+        
+        if written_files:
+            print(f"Written {len(written_files)} manifest file(s):", file=sys.stderr)
+            for component, filepath in sorted(written_files.items()):
+                print(f"  {component}: {filepath}", file=sys.stderr)
+            # Delete decorators from source files
+            if all_successfully_migrated:
+                delete_decorators_from_files(all_successfully_migrated)
+        else:
+            print(f"No manifest files written (no entries with component information)", file=sys.stderr)
+            sys.exit(1)
