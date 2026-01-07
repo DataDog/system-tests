@@ -176,8 +176,6 @@ patterns:
         scenario: PARAMETRIC
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
-    .github/workflows/run-stream-processing-offload.yml:
-        scenario_groups: stream_processing_offload
     .github/*:
         scenario_groups: null
 
@@ -214,8 +212,8 @@ patterns:
         scenario: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
-    utils/_context/_scenarios/stream_processing_offload.py:
-        scenario_groups: stream_processing_offload
+    utils/_context/_scenarios/go_proxies.py:
+        scenario_groups: go_proxies
 
 
 ############################### Script file rules ##############################
@@ -299,7 +297,7 @@ patterns:
     utils/telemetry/*:
         scenario_groups: telemetry
     utils/proxy/*:
-        scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
+        scenario_groups: [ end_to_end, open_telemetry, go_proxies ]
     utils/virtual_machine/*:
         scenario_groups: onboarding
 

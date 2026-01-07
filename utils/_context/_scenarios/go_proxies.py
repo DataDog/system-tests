@@ -1,49 +1,81 @@
+import os
+from typing import Optional, Union
+
 import pytest
 
-from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer, AgentContainer
+from utils._context.containers import (
+    AgentContainer,
+    DummyServerContainer,
+    EnvoyContainer,
+    ExternalProcessingContainer,
+    HAProxyContainer,
+    StreamProcessingOffloadContainer,
+)
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-
 from utils._logger import logger
 
 from .core import scenario_groups
 from .endtoend import DockerScenario
 
+ProcessorContainer = Union[ExternalProcessingContainer, StreamProcessingOffloadContainer]
+ProxyRuntimeContainer = Union[EnvoyContainer, HAProxyContainer]
 
-class ExternalProcessingScenario(DockerScenario):
+
+class GoProxiesScenario(DockerScenario):
     def __init__(
         self,
         name: str,
         doc: str,
         *,
-        extproc_env: dict[str, str | None] | None = None,
-        extproc_volumes: dict[str, dict[str, str]] | None = None,
+        processor_env: Optional[dict[str, Optional[str]]] = None,
+        processor_volumes: Optional[dict[str, dict[str, str]]] = None,
         rc_api_enabled: bool = False,
     ) -> None:
+        self._weblog_variant = os.environ.get("WEBLOG_VARIANT", "envoy")
+        self._processor_env = processor_env
+        self._processor_volumes = processor_volumes
+
         super().__init__(
             name,
             doc=doc,
             github_workflow="endtoend",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing, scenario_groups.all],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.go_proxies, scenario_groups.all],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
 
         self._agent_container = AgentContainer()
-        self._external_processing_container = ExternalProcessingContainer(
-            env=extproc_env,
-            volumes=extproc_volumes,
-        )
-        self._envoy_container = EnvoyContainer()
+        self._processor_container: ProcessorContainer = self._build_processor_container()
+        self._proxy_runtime_container: ProxyRuntimeContainer = self._build_proxy_runtime_container()
         self._http_app_container = DummyServerContainer()
 
         self._agent_container.depends_on.append(self.proxy_container)
-        self._external_processing_container.depends_on.append(self.proxy_container)
+        self._processor_container.depends_on.append(self.proxy_container)
+
+        self._proxy_runtime_container.depends_on.append(self._processor_container)
+        self._proxy_runtime_container.depends_on.append(self._http_app_container)
 
         self._required_containers.append(self._agent_container)
-        self._required_containers.append(self._external_processing_container)
-        self._required_containers.append(self._envoy_container)
+        self._required_containers.append(self._processor_container)
+        self._required_containers.append(self._proxy_runtime_container)
         self._required_containers.append(self._http_app_container)
+
+
+    def _build_processor_container(self) -> ProcessorContainer:
+        env = dict(self._processor_env or {})
+        volumes = dict(self._processor_volumes or {})
+
+        if self._weblog_variant == "envoy":
+            return ExternalProcessingContainer(env=env, volumes=volumes)
+
+        return StreamProcessingOffloadContainer(env=env, volumes=volumes)
+
+    def _build_proxy_runtime_container(self) -> ProxyRuntimeContainer:
+        if self._weblog_variant == "envoy":
+            return EnvoyContainer()
+
+        return HAProxyContainer()
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -54,15 +86,16 @@ class ExternalProcessingScenario(DockerScenario):
         if not self.replay:
             self.warmups.insert(1, self._start_interfaces_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
+            self.warmups.append(lambda: logger.stdout(f"Weblog variant: {self._weblog_variant}"))
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _wait_for_app_readiness(self):
-        logger.debug("Wait for app readiness")
+        logger.debug("Wait for app readiness (%s)", self._weblog_variant)
 
         if not interfaces.library.ready.wait(40):
-            pytest.exit("Nothing received from external processing", 1)
+            pytest.exit("Nothing received from the security processor", 1)
         logger.debug("Library ready")
 
         if not interfaces.agent.ready.wait(40):
@@ -90,8 +123,8 @@ class ExternalProcessingScenario(DockerScenario):
             self._wait_interface(interfaces.library, 5)
 
             self._http_app_container.stop()
-            self._envoy_container.stop()
-            self._external_processing_container.stop()
+            self._proxy_runtime_container.stop()
+            self._processor_container.stop()
 
             interfaces.library.check_deserialization_errors()
 
@@ -106,8 +139,8 @@ class ExternalProcessingScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return "gcp-service-extension"
+        return self._weblog_variant
 
     @property
     def library(self):
-        return self._external_processing_container.library
+        return self._processor_container.library
