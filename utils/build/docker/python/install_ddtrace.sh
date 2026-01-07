@@ -11,6 +11,10 @@ if [ "$(ls *.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl))
     echo "Install ddtrace from ${path}"
     pip install "ddtrace @ file://${path}"
+elif [ $(ls python-load-from-s3 | wc -l) = 1 ]; then 
+    GIT_REF=$(cat python-load-from-s3)
+    echo "Install ddtrace from S3, git ref: ${GIT_REF}"
+    pip install --find-links https://dd-trace-py-builds.s3.amazonaws.com/${GIT_REF}/index.html --pre ddtrace
 elif [ $(ls python-load-from-pip | wc -l) = 1 ]; then
     echo "Install ddtrace from $(cat python-load-from-pip)"
     pip install "$(cat python-load-from-pip)"
