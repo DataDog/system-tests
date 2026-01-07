@@ -61,6 +61,105 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
 
 
 @features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement_di_env_true
+class Test_Debugger_InProduct_Enablement_DI_Env_Precedence_True(debugger.BaseDebuggerTest):
+    """Test DI RC precedence when DD_DYNAMIC_INSTRUMENTATION_ENABLED=true.
+
+    This is a functional test that verifies DI actually works when already enabled locally.
+    Complementary config test: test_dynamic_instrumentation_env_precedence (parametric)
+
+    Expected: DI already enabled locally, RC doesn't change anything, probe should emit.
+    """
+
+    _probe_template = """
+    {
+        "version": 0,
+        "where": {
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": ["20"]
+        }
+    }
+    """
+
+    def setup_inproduct_enablement_di_env_precedence_true(self):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+        self.rc_states = []
+
+        probe = json.loads(self._probe_template)
+        probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes([probe])
+
+        # Send RC with dynamic_instrumentation_enabled=true (but DI already enabled via env)
+        self.send_rc_apm_tracing(dynamic_instrumentation_enabled=True)
+        self.send_rc_probes()
+        self.send_weblog_request("/debugger/log")
+
+        # Check if probe emits - it should because DI was already enabled locally
+        self.di_remains_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
+    def test_inproduct_enablement_di_env_precedence_true(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.di_remains_enabled, (
+            "Expected probe to emit when DD_DYNAMIC_INSTRUMENTATION_ENABLED=true (already enabled)"
+        )
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement_di_env_false
+class Test_Debugger_InProduct_Enablement_DI_Env_Precedence_False(debugger.BaseDebuggerTest):
+    """Test DI RC precedence when DD_DYNAMIC_INSTRUMENTATION_ENABLED=false (CRITICAL TEST).
+
+    This is the most important functional test for env var precedence - verifies that local
+    DD_DYNAMIC_INSTRUMENTATION_ENABLED=false actually prevents RC from enabling DI.
+    Complementary config test: test_dynamic_instrumentation_env_precedence (parametric)
+
+    Expected: Local env var takes precedence, RC cannot enable DI, probe should NOT emit.
+    """
+
+    _probe_template = """
+    {
+        "version": 0,
+        "where": {
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": ["20"]
+        }
+    }
+    """
+
+    def setup_inproduct_enablement_di_env_precedence_false(self):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+        self.rc_states = []
+
+        probe = json.loads(self._probe_template)
+        probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes([probe])
+
+        # Send RC with dynamic_instrumentation_enabled=true (but env has it disabled)
+        self.send_rc_apm_tracing(dynamic_instrumentation_enabled=True)
+        self.send_rc_probes()
+        self.send_weblog_request("/debugger/log")
+
+        # Check if probe emits - it should NOT because local DD_DYNAMIC_INSTRUMENTATION_ENABLED=false takes precedence
+        self.di_blocked_by_env = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
+    def test_inproduct_enablement_di_env_precedence_false(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.di_blocked_by_env, (
+            "Expected probe to NOT emit when DD_DYNAMIC_INSTRUMENTATION_ENABLED=false (local env takes precedence over RC)"
+        )
+
+
+@features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerTest):
     ############ exception replay ############
