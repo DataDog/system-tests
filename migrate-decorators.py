@@ -769,6 +769,8 @@ def build_manifest_entries(
         nodeid: str,
         entry: Dict[str, Any],
         usage: DecoratorInfo,
+        *,
+        skip_parent: bool = False,
     ) -> None:
         """
         Add a manifest entry and also add entries for child classes that inherit the method.
@@ -777,8 +779,10 @@ def build_manifest_entries(
             nodeid: Nodeid for the parent class method
             entry: Manifest entry dictionary
             usage: Decorator usage info (contains child class information)
+            skip_parent: If True, don't add entry to parent nodeid (already added)
         """
-        manifest_data[nodeid].append(entry)
+        if not skip_parent:
+            manifest_data[nodeid].append(entry)
         
         # Check if this method is inherited by child classes
         child_classes = usage.get("_child_classes", [])
@@ -788,9 +792,35 @@ def build_manifest_entries(
         if child_classes and parent_class_name:
             for child_file, child_class_name in child_classes:
                 child_nodeid = _build_nodeid(child_file, child_class_name, method_name)
-                # Create a copy of the entry for the child class
-                child_entry = entry.copy()
-                manifest_data[child_nodeid].append(child_entry)
+                
+                # Initialize child_nodeid entries if needed
+                if child_nodeid not in manifest_data:
+                    manifest_data[child_nodeid] = []
+                
+                # Check if this is a weblog_declaration entry
+                if "weblog_declaration" in entry:
+                    # Check if child already has a weblog_declaration entry
+                    existing_weblog_decl_entry = None
+                    for existing_entry in manifest_data[child_nodeid]:
+                        if isinstance(existing_entry, dict) and "weblog_declaration" in existing_entry:
+                            # Check if component matches (if present)
+                            existing_component = existing_entry.get("component")
+                            entry_component = entry.get("component")
+                            if existing_component == entry_component:
+                                existing_weblog_decl_entry = existing_entry
+                                break
+                    
+                    if existing_weblog_decl_entry:
+                        # Merge weblog declarations instead of creating duplicate
+                        existing_weblog_decl_entry["weblog_declaration"].update(entry["weblog_declaration"])
+                    else:
+                        # Create a copy of the entry for the child class
+                        child_entry = entry.copy()
+                        manifest_data[child_nodeid].append(child_entry)
+                else:
+                    # For non-weblog_declaration entries, just add a copy
+                    child_entry = entry.copy()
+                    manifest_data[child_nodeid].append(child_entry)
 
     def _log_unhandled(reason: str, usage: Dict[str, Any], **extra_info: Any) -> None:
         """Log an unhandled case with all available information."""
@@ -1257,6 +1287,9 @@ def build_manifest_entries(
                     decl_str = _quote_yaml_value_if_needed(decl_str)
                     
                     weblog_decl_entry["weblog_declaration"][weblog_variant_keyword] = decl_str
+                    # Add entries for child classes that inherit this method
+                    # Skip adding to parent since weblog_decl_entry is already in manifest_data[nodeid]
+                    _add_entry_with_inheritance(nodeid, weblog_decl_entry, usage, skip_parent=True)
                     successfully_migrated.append(usage)
                     continue
                 
@@ -1304,7 +1337,11 @@ def build_manifest_entries(
                 decl_str = _quote_yaml_value_if_needed(decl_str)
                 
                 weblog_decl_entry["weblog_declaration"][library_filter] = decl_str
+                # Add entries for child classes that inherit this method
+                # Skip adding to parent since weblog_decl_entry is already in manifest_data[nodeid]
+                _add_entry_with_inheritance(nodeid, weblog_decl_entry, usage, skip_parent=True)
                 # Explicitly ensure no component information is added to weblog_declaration entries
+                successfully_migrated.append(usage)
                 continue
 
         elif condition_info and condition_info.get("version"):
@@ -2396,10 +2433,37 @@ def write_manifest_files_by_component(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
+    # Deduplicate weblog_declaration entries before grouping
+    deduplicated_data: Dict[str, List[Dict[str, Any]]] = {}
+    for nodeid, entries in manifest_data.items():
+        deduplicated_entries = []
+        weblog_decl_entries_by_component: Dict[Optional[str], Dict[str, Any]] = {}
+        
+        for entry in entries:
+            if isinstance(entry, dict) and "weblog_declaration" in entry:
+                # Group weblog_declaration entries by component
+                component = entry.get("component")
+                if component not in weblog_decl_entries_by_component:
+                    # First weblog_declaration entry for this component
+                    weblog_decl_entries_by_component[component] = entry.copy()
+                else:
+                    # Merge weblog declarations into existing entry
+                    existing_entry = weblog_decl_entries_by_component[component]
+                    existing_entry["weblog_declaration"].update(entry["weblog_declaration"])
+            else:
+                # Non-weblog_declaration entry, add as-is
+                deduplicated_entries.append(entry)
+        
+        # Add merged weblog_declaration entries
+        for merged_entry in weblog_decl_entries_by_component.values():
+            deduplicated_entries.append(merged_entry)
+        
+        deduplicated_data[nodeid] = deduplicated_entries
+
     # Group entries by component
     component_manifests: Dict[str, Dict[str, List[Dict[str, Any]]]] = defaultdict(lambda: {})
 
-    for nodeid, entries in manifest_data.items():
+    for nodeid, entries in deduplicated_data.items():
         for entry in entries:
             component = _extract_component_from_entry(entry)
 
