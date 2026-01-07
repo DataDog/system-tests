@@ -7,7 +7,7 @@ from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
-    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command):
+    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command: str):
         """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
