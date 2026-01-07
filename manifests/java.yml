@@ -2359,6 +2359,9 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py: missing_feature
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020:
+    - component_version: ">=1.57.0"
+      declaration: flaky (APMAPI-1785)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: v1.31.0
   tests/parametric/test_telemetry.py::Test_Environment: v1.31.0

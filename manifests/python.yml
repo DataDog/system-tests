@@ -616,7 +616,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
-  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: v4.2.0
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
@@ -910,7 +910,7 @@ manifest:
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmResponses: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: v3.13.0
-  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: missing_feature
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: v4.1.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
