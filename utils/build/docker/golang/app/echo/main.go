@@ -115,6 +115,10 @@ func main() {
 		return c.String(http.StatusOK, "OK")
 	})
 
+	r.Any("/resource_renaming/*", func(c echo.Context) error {
+		return c.String(http.StatusOK, "OK")
+	})
+
 	r.Any("/tag_value/:tag_value/:status_code", func(c echo.Context) error {
 		tag := c.Param("tag_value")
 		status, _ := strconv.Atoi(c.Param("status_code"))
