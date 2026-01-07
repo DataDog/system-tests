@@ -870,14 +870,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    demo_aws = InstallerAutoInjectionScenario(
-        "DEMO_AWS",
-        "Demo aws scenario",
-        vm_provision="demo",
-        scenario_groups=[],
-        github_workflow="aws_ssi",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
