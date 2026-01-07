@@ -672,7 +672,7 @@ class TestAgentAPI:
         for _ in range(wait_loops):
             for event in self.telemetry(clear=False):
                 telemetry_event = self._get_telemetry_event(event, "generate-metrics")
-                # logger.debug("Found telemetry event: %s", telemetry_event)
+                logger.debug("Found telemetry event: %s", telemetry_event)
                 if telemetry_event is None:
                     continue
                 for series in telemetry_event["payload"]["series"]:
