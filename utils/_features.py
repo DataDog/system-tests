@@ -2710,5 +2710,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
 
+    @staticmethod
+    def appsec_automated_payment_events(test_object):
+        """Business Logic Events for payment processors
+
+        https://feature-parity.us1.prod.dog/#/?feature=541
+        """
+        return _mark_test_object(test_object, feature_id=541, owner=_Owner.asm)
+
 
 features = _Features()
