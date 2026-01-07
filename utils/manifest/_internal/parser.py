@@ -307,6 +307,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "cpp_nginx",
         "dotnet",
         "golang",
+        "golang_proxies",
         "java",
         "nodejs",
         "php",

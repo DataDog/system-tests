@@ -14,6 +14,7 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
+    "golang_proxies": "go",
 }
 
 """

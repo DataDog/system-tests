@@ -80,6 +80,7 @@ class GoProxiesScenario(DockerScenario):
             self.warmups.insert(1, self._start_interfaces_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(lambda: logger.stdout(f"Weblog variant: {self._weblog_variant}"))
+            self.warmups.append(self._set_components)
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
@@ -94,6 +95,12 @@ class GoProxiesScenario(DockerScenario):
         if not interfaces.agent.ready.wait(40):
             pytest.exit("Datadog agent not ready", 1)
         logger.debug("Agent ready")
+
+    def _set_components(self) -> None:
+        self.components["agent"] = self._agent_container.agent_version
+        lib = self.library
+        self.components["library"] = lib.version
+        self.components[lib.name] = lib.version
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
         try:
