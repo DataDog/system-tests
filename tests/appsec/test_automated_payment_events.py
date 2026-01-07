@@ -15,7 +15,7 @@ WEBHOOK_SECRET = b"whsec_FAKE"
 
 
 def make_webhook_request(data: dict, secret: bytes = WEBHOOK_SECRET):
-    timestamp = int(time.time())
+    timestamp = int(time.time())  # the stripe backend signs the payload with a timestamp for security reasons
     json_str = json.dumps(data)
     payload = f"{timestamp}.{json_str}"
 
