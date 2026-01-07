@@ -268,7 +268,7 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
-    def test_otel_span_is_recording(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_span_is_recording(self, test_library: APMLibrary):
         """Test functionality of ending a span.
         - before ending - span.is_recording() is true
         - after ending - span.is_recording() is false
