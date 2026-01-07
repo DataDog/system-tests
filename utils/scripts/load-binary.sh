@@ -19,7 +19,7 @@
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
 # * C++:           Direct from github source
-# * Python:        Clone locally the github repo
+# * Python:        S3 https://dd-trace-py-builds.s3.amazonaws.com/<GIT_REF>/index.html
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
@@ -219,9 +219,8 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
+    echo "Using $LIBRARY_TARGET_BRANCH in S3 for DataDog/dd-trace-py"
+    echo $LIBRARY_TARGET_BRANCH > python-load-from-s3
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
