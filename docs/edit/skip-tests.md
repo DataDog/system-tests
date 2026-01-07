@@ -6,8 +6,7 @@ Three decorators allow you to skip test functions or classes for a library:
 * `@bug`: The lib does not implement the feature correctly/up to spec. **The test will be executed** and being ignored if it fails. If it passes, a warning will be added in thee output (`XPASS`)
 * `@flaky` (subclass of `bug`): The feature sometimes fails, sometimes passes. It's not reliable, so don't run it.
 
-To skip specific test functions within a test class, use them as in-line decorators (Example below).
-To skip test classes or test files, use the decorator in the library's [manifest file](./manifest.md).
+To skip test classes, test files or test functions, use the library's [manifest file](./manifest.md).
 
 The decorators take several arguments:
 

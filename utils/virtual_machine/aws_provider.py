@@ -29,7 +29,7 @@ class AWSPulumiProvider(VmProvider):
         self.commander = AWSCommander()
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
-        self.stack_name = "system-tests_onboarding"
+        self.stack_name = "system-tests_dev_onboarding"
 
     def configure(self, virtual_machine):
         super().configure(virtual_machine)
@@ -54,7 +54,7 @@ class AWSPulumiProvider(VmProvider):
             self._configure_cached_amis(self.vm)
 
             logger.info(
-                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{ self.vm.datadog_config.skip_cache}] --"
+                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{self.vm.datadog_config.skip_cache}] --"
             )
             self._start_vm(self.vm)
 
@@ -82,7 +82,7 @@ class AWSPulumiProvider(VmProvider):
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
             logger.stdout(f"(Please, check the log file: tests.log and search for the text chain 'Diagnostics:')")
-            logger.debug(f"The error class name: { pulumi_exception.__class__.__name__}")
+            logger.debug(f"The error class name: {pulumi_exception.__class__.__name__}")
             self._handle_provision_error(pulumi_exception)
 
     def get_windows_user_data(self):

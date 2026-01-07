@@ -25,6 +25,7 @@ const api = require('@opentelemetry/api')
 const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
+const { OpenFeature } = require('@openfeature/server-sdk')
 
 const { spawnSync } = require('child_process')
 
@@ -666,21 +667,77 @@ app.get('/add_event', (req, res) => {
 
 require('./rasp')(app)
 
-const startServer = () => {
-  return new Promise((resolve) => {
-    app.listen(7777, '0.0.0.0', () => {
-      tracer.trace('init.service', () => {})
-      console.log('listening')
-      resolve()
-    })
-  })
+let openFeatureClient = null
+
+// Initialize OpenFeature provider if FFE is enabled
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  const { openfeature } = tracer
+  OpenFeature.setProvider(openfeature)
+  openFeatureClient = OpenFeature.getClient()
 }
+
+// Single FFE endpoint that evaluates feature flags
+app.post('/ffe', async (req, res) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
+
+    if (!openFeatureClient) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const context = { targetingKey, ...attributes }
+
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break
+      case 'INTEGER':
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break
+      default:
+        return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+    }
+
+    res.status(200).json({ value })
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
 
 // apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
 const initGraphQL = () => {
   return graphQLEnabled
     ? require('./graphql')(app)
     : Promise.resolve()
+}
+
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req, res) => {
+      if (req.url.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve()
+    })
+  })
 }
 
 initGraphQL()

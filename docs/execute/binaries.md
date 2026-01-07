@@ -118,8 +118,9 @@ There are three ways to run system-tests with a custom node tracer.
 
 ## PHP library
 
-- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-aarch64-linux-gnu.tar.gz` (or the `x86_64` if you're not on ARM) in `/binaries` folder
-  - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
+- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-*-linux-gnu.tar.gz` in `/binaries` folder
+  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline), from a CI run of your branch.
+  - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
 - Copy it in the binaries folder
 
 Then run the tests from the repo root folder:
@@ -137,15 +138,13 @@ Then run the tests from the repo root folder:
 
 ## Python library
 
-1. Add a file `binaries/python-load-from-pip`, the content will be installed by pip. Content example:
-  * `ddtrace @ git+https://github.com/DataDog/dd-trace-py.git`
-2. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
-3. Clone the dd-trace-py repo inside `binaries`
+Use one of the four options:
 
-You can also run:
-```bash
-echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-branch>” > binaries/python-load-from-pip
-```
+- Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
+- Add a `python-load-from-pip` file in `binaries`, its content will be sent to `pip install`
+- Add a `python-load-from-s3` file in `binaries`, with a dd-trace-py commit ID or branch inside, the corresponding wheel will be loaded from S3
+- Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
+
 
 ## Ruby library
 

@@ -126,20 +126,20 @@ class BaseGraphQLOperationError:
         assert f"{self.extensions_prefix}.not_captured" not in attributes
 
     @staticmethod
-    def _is_graphql_execute_span(span) -> bool:
+    def _is_graphql_execute_span(span: dict) -> bool:
         name = span["name"]
         lang = span.get("meta", {}).get("language", "")
         component = span.get("meta", {}).get("component", "")
         return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
 
     @staticmethod
-    def _has_location(span) -> bool:
+    def _has_location(span: dict) -> bool:
         lang = span.get("meta", {}).get("language", "")
         component = span.get("meta", {}).get("component", "")
         return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
 
     @staticmethod
-    def _get_events(span) -> dict:
+    def _get_events(span: dict) -> dict:
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
@@ -153,7 +153,7 @@ class BaseGraphQLOperationError:
             return events
 
     @staticmethod
-    def _parse_event_value(value) -> int | str | bool | float | list[Any]:
+    def _parse_event_value(value: dict) -> int | str | bool | float | list[Any]:
         type_ = value["type"]
         if type_ == 0:
             return value["string_value"]

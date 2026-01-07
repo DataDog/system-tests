@@ -23,6 +23,10 @@ on:
         description: How many jobs
         default: "10"
         type: string
+      dev_or_prod:
+        description: Run scenario against last release (prod) or last commit on main (dev)?
+        default: "prod"
+        type: string
 
 env:
   LIBRARY:      ${{ (github.event_name == 'workflow_dispatch' && inputs.library)     || 'php' }}
@@ -30,6 +34,7 @@ env:
   SCENARIO:     ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)    || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
   JOB_COUNT:    ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)   || '10' }}
   AGENT_IMAGE:  ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image) || 'datadog/agent:latest' }}
+  DEV_OR_PROD:  ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod) || 'prod' }}
 
 jobs:
   generate-matrix:
@@ -51,6 +56,9 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Select agent image
         run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
+      - name: Get dev artifact
+        if: env.DEV_OR_PROD == 'dev'
+        run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

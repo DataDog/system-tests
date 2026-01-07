@@ -19,8 +19,8 @@ from utils import (
 )
 
 
-def _assert_custom_event_tag_presence(expected_value):
-    def wrapper(span):
+def _assert_custom_event_tag_presence(expected_value: str):
+    def wrapper(span: dict):
         tag = "appsec.events.system_tests_appsec_event.value"
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
@@ -31,7 +31,7 @@ def _assert_custom_event_tag_presence(expected_value):
 
 
 def _assert_custom_event_tag_absence():
-    def wrapper(span):
+    def wrapper(span: dict):
         tag = "appsec.events.system_tests_appsec_event.value"
         assert tag not in span["meta"], f"Found {tag} in span's meta"
         return True
@@ -754,8 +754,8 @@ class Test_Blocking_response_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""

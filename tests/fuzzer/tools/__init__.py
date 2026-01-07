@@ -10,7 +10,7 @@ from ._data import _Data
 data = _Data()
 
 
-def apply_method(obj: str | bool | float | list | dict | None, key_callback: Callable, value_callback: Callable) -> Any:  # noqa: ANN401
+def apply_method(obj: str | bool | float | list | dict | None, key_callback: Callable, value_callback: Callable) -> Any:  # noqa: ANN401, FBT001
     """Recursyvly apply methods on a JSON-like object"""
     if obj is None or isinstance(obj, (str, float, int, bool)):
         return value_callback(obj)

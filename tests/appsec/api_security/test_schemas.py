@@ -2,10 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky
+from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky
+from utils._weblog import HttpResponse
+from types import EllipsisType
 
 
-def get_schema(request, address):
+def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
     span = interfaces.library.get_root_span(request)
     meta = span.get("meta", {})
@@ -19,16 +21,18 @@ def get_schema(request, address):
 ANY = ...
 
 
-def contains(t1, t2):
+def contains(t1: list | EllipsisType | None, t2: list | EllipsisType | None):
     """Validate that schema t1 contains all keys and values from t2"""
     if t2 is ANY:
         return True
     if t1 is None or t2 is None:
         return False
+    assert isinstance(t1, list)
+    assert isinstance(t2, list)
     return equal_value(t1[0], t2[0])
 
 
-def equal_value(t1, t2):
+def equal_value(t1: list | dict | int | EllipsisType, t2: list | dict | int | EllipsisType):
     """Compare two schema type values, ignoring any metadata"""
     if t2 is ANY:
         return True
@@ -74,7 +78,6 @@ class Test_Schema_Request_Cookies:
             "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
@@ -314,7 +317,6 @@ class Test_Scanners:
             headers={"authorization": "digest a0b1c2"},
         )
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     def test_request_method(self):
         """Can provide request header schema"""
         schema_cookies = get_schema(self.request, "req.cookies")

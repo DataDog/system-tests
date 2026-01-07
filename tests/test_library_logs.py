@@ -86,6 +86,7 @@ class Test_NoExceptions:
             # APPSEC-56726:
             re.escape("Attempt to replace context value for {}"),
             r"Failed to find the jdk.internal\.jvmstat module.*",
+            re.escape("Source value lost due to GC, origin={}"),
         ]
         if context.weblog_variant == "spring-boot-openliberty":
             # AIDM-588:

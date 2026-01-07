@@ -24,7 +24,8 @@ from .external_processing import ExternalProcessingScenario
 from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
-from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
+from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -177,6 +178,7 @@ class _Scenarios:
             "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -495,6 +497,17 @@ class _Scenarios:
         ],
     )
 
+    feature_flagging_and_experimentation = EndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+        },
+        doc="",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
@@ -529,6 +542,9 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
             "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+        },
+        agent_env={
+            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
         },
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
@@ -613,6 +629,7 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
@@ -623,6 +640,8 @@ class _Scenarios:
     tracing_config_nondefault_4 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_4",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
@@ -668,6 +687,8 @@ class _Scenarios:
     debugger_pii_redaction = DebuggerScenario(
         "DEBUGGER_PII_REDACTION",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
@@ -686,7 +707,8 @@ class _Scenarios:
     debugger_exception_replay = DebuggerScenario(
         "DEBUGGER_EXCEPTION_REPLAY",
         weblog_env={
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         doc="Check exception replay",
@@ -719,7 +741,7 @@ class _Scenarios:
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
         library_interface_timeout=5,
@@ -779,8 +801,9 @@ class _Scenarios:
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
         github_workflow="aws_ssi",
@@ -793,7 +816,11 @@ class _Scenarios:
         ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -803,7 +830,11 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        app_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "5",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )
@@ -910,20 +941,32 @@ class _Scenarios:
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
         doc="Kubernetes lib injection with admission controller and profiling disabled by default",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
         doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
         doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
-        weblog_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        weblog_env={
+            "DD_PROFILING_UPLOAD_PERIOD": "10",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
         dd_cluster_feature={
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
@@ -987,18 +1030,15 @@ class _Scenarios:
         },
     )
 
-    appsec_rasp_non_blocking = EndToEndScenario(
+    appsec_rasp_non_blocking = AppsecRaspScenario(
         "APPSEC_RASP_NON_BLOCKING",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
         weblog_volumes={
             "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
                 "bind": "/appsec_rasp_non_blocking_ruleset.json",
                 "mode": "ro",
             }
         },
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
     )
 
     appsec_ato_sdk = EndToEndScenario(
@@ -1105,8 +1145,20 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+    appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
+    appsec_lambda_inferred_spans = LambdaScenario(
+        "APPSEC_LAMBDA_INFERRED_SPANS",
+        doc="Lambda scenario with managed services tracing enabled",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        trace_managed_services=True,
+    )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
+    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
+
+    integration_frameworks = IntegrationFrameworksScenario(
+        "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
 
 
 scenarios = _Scenarios()

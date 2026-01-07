@@ -1,13 +1,13 @@
 import json
 from utils import scenarios, features, context, logger
 
-from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
+from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info, K8sClusterInfo
 
 
 @features.djm_ssi_k8s
 @scenarios.k8s_lib_injection_spark_djm
 class TestK8sLibInjectionSparkJdm:
-    def _get_spark_application_traces(self, k8s_cluster_info):
+    def _get_spark_application_traces(self, k8s_cluster_info: K8sClusterInfo):
         traces_json = get_dev_agent_traces(k8s_cluster_info)
         logger.debug(f"Traces received: {traces_json}")
         return [

@@ -1,0 +1,16 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "captureSnapshot": true,
+        "where": {
+            "typeName": null,
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": [
+                "20"
+            ]
+        }
+    }
+]

@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features, scenarios
+from utils._weblog import HttpResponse
 from tests.appsec.iast.utils import BaseSourceTest, get_all_iast_events, get_iast_sources
 
 
@@ -16,6 +17,6 @@ class TestKafkaKey(BaseSourceTest):
     source_type = "kafka.message.key"
     source_value = "hello key!"
 
-    def get_sources(self, request):  # noqa: ARG002
+    def get_sources(self, request: HttpResponse):  # noqa: ARG002
         iast_event = get_all_iast_events()
         return get_iast_sources(iast_event)

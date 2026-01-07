@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
@@ -18,6 +19,7 @@ from tests.appsec.rasp.utils import (
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_UrlQuery:
     """Server-side request forgery through query parameters"""
@@ -45,6 +47,7 @@ class Test_Ssrf_UrlQuery:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyUrlEncoded:
     """Server-side request forgery through a url-encoded body parameter"""
@@ -78,6 +81,7 @@ class Test_Ssrf_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyXml:
     """Server-side request forgery through an xml body parameter"""
@@ -112,6 +116,7 @@ class Test_Ssrf_BodyXml:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyJson:
     """Server-side request forgery through a json body parameter"""
@@ -147,6 +152,7 @@ class Test_Ssrf_BodyJson:
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
@@ -162,6 +168,7 @@ class Test_Ssrf_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
@@ -183,6 +190,7 @@ class Test_Ssrf_Optional_SpanTags:
 @features.rasp_stack_trace
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_StackTrace:
     """Validate stack trace generation on exploit attempts"""
@@ -197,6 +205,7 @@ class Test_Ssrf_StackTrace:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Telemetry:
     """Validate Telemetry data on exploit attempts"""
@@ -221,6 +230,7 @@ class Test_Ssrf_Telemetry:
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""

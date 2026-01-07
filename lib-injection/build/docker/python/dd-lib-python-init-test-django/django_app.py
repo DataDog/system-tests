@@ -1,3 +1,4 @@
+import ctypes
 import os
 import signal
 import sys
@@ -26,8 +27,6 @@ def index(request):
 
 
 def crashme(request):
-    import ctypes
-
     ctypes.string_at(0)
 
 

@@ -2,7 +2,7 @@ import json
 from utils import weblog, interfaces, features, scenarios
 
 
-def extract_baggage_value(request_headers):
+def extract_baggage_value(request_headers: dict | list):
     """Helper function that returns the baggage header value from the given headers.
     Supports both a list of header objects and a dict.
     """

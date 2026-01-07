@@ -6,7 +6,7 @@ The `system-tests` repository includes built-in AI integration capabilities desi
 
 Knowledge of AI tools is drawn from the project's documentation (found in the docs directory), the source code itself, and predefined rules and instructions (.cursor/rules). Users are strongly encouraged to actively participate in continuous improvement efforts and contribute new capabilities to enhance the AI tools' functionality and effectiveness.
 
-The default and recommended AI tool for developing with system-tests is Cursor AI, although using alternative tools is also fully supported and encouraged.
+The default and recommended AI tool for developing with system-tests is Cursor AI. Additionally, **Claude CLI** and other AI coding agents are fully supported through dedicated configuration files. Using alternative tools is encouraged.
 
 ## The AI tools
 
@@ -67,4 +67,73 @@ Cursor supports Model Context Protocol (MCP) servers that extend AI capabilities
 Additional MCP servers are planned to further enhance the development experience. These may include integrations for cloud services, testing frameworks, and other development tools commonly used with system-tests.
 
 To set up MCP servers, follow the specific setup guides for each server. All MCP servers integrate seamlessly with Cursor's AI assistant, providing enhanced context and capabilities for working with the system-tests repository.
+
+### Claude CLI
+
+The system-tests repository provides native support for **Claude CLI** (Anthropic's command-line interface for Claude) through a dedicated configuration in the `.claude/` directory.
+
+#### Configuration Files
+
+```
+.claude/
+├── CLAUDE.md      # Claude-specific instructions and rules pointer
+└── settings.json  # Claude CLI settings (permissions, environment)
+```
+
+* **`.claude/CLAUDE.md`**: Contains Claude-specific instructions and points to the shared rules in `.cursor/rules/`
+* **`.claude/settings.json`**: Configures Claude CLI behavior, including default permission mode and environment variables
+
+#### Setting up Claude CLI
+
+1. **Install Claude CLI** following the [official Anthropic documentation](https://docs.anthropic.com/en/docs/claude-code/overview)
+
+2. **Run Claude from the repository root**:
+
+   ```bash
+   cd system-tests
+   claude
+   ```
+
+   Claude CLI automatically reads the `.claude/CLAUDE.md` file and follows the shared rules defined in `.cursor/rules/`.
+
+3. **For non-interactive usage** (e.g., scripts or automation):
+
+   ```bash
+   claude --permission-mode acceptEdits -p "Your prompt here"
+   ```
+
+#### Running Promptfoo Evaluations with Claude
+
+Use the interactive wizard script to run prompt evaluations:
+
+```bash
+./utils/scripts/ai/promptfoo_eval.sh
+```
+
+The wizard guides you through:
+1. Selecting the AI agent (**cursor-agent** or **claude**)
+2. Choosing which test scenarios to run
+3. Automatically executing the evaluation
+
+See [Prompt validation](ai-tools-prompt-validation.md) for more details on the evaluation process.
+
+### Supported AI Tools via AGENTS.md
+
+For compatibility with other AI coding agents (such as Aider, Windsurf, Cline, etc.), the repository includes an `AGENTS.md` file at the root level.
+
+The `AGENTS.md` file serves as a **unified entry point for AI coding agents** that follow the AGENTS.md convention. It:
+
+* Points to the shared rules in `.cursor/rules/` directory
+* Lists all "always applied" rules that agents must follow
+* Identifies "manual" rules that require explicit activation
+* Provides a quick reference for project context
+
+This approach ensures **consistent behavior across all AI tools** by maintaining a single source of truth for rules and instructions.
+
+Any AI coding tool that reads `AGENTS.md` files can benefit from the system-tests configuration, including:
+
+* **Aider** - AI pair programming in your terminal
+* **Windsurf** - AI-powered IDE
+* **Cline** - Autonomous coding agent for VS Code
+* Other tools following the AGENTS.md convention
 

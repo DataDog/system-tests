@@ -8,8 +8,27 @@ from utils.scripts.compute_libraries_and_scenarios import Inputs, process
 from utils import scenarios
 
 
-all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "otel_collector", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]'
-all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
+all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "otel_collector", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "ruby", "version": "dev"}]'
+all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"]'
+
+
+@pytest.fixture(autouse=True)
+def set_default_env():
+    default_env = {
+        "CI_PIPELINE_SOURCE": "",
+        "CI_COMMIT_REF_NAME": "",
+        "GITHUB_EVENT_NAME": "pull_request",
+        "GITHUB_REF": "",
+        "GITHUB_PR_TITLE": "",
+    }
+    monkeypatch = pytest.MonkeyPatch()
+    try:
+        monkeypatch.delenv("GITLAB_CI", raising=False)
+        for name, value in default_env.items():
+            monkeypatch.setenv(name, value)
+        yield
+    finally:
+        monkeypatch.undo()
 
 
 def set_env(key: str, value: str):
@@ -32,14 +51,13 @@ def set_env(key: str, value: str):
 
 def build_inputs(
     modified_files: list | None = None,
-    new_manifests: str = "./tests/test_the_test/manifests/manifests_ref/",
-    old_manifests: str = "./tests/test_the_test/manifests/manifests_ref/",
+    new_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
+    old_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
 ):
     if modified_files is None:
         modified_files = []
     with open("modified_files.txt", "w") as f:
-        for file in modified_files:
-            f.write(f"{file}\n")
+        f.writelines(f"{line}\n" for line in modified_files)
     inputs = Inputs(
         scenario_map_file="tests/test_the_test/scenarios.json",
         new_manifests=new_manifests,
@@ -125,8 +143,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_manifest(self):
         inputs = build_inputs(
             ["manifests/python.yml"],
-            new_manifests="./tests/test_the_test/manifests/manifests_python_edit/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_python_edit/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
         strings_out = process(inputs)
 
@@ -135,15 +153,15 @@ class Test_ComputeLibrariesAndScenarios:
             'libraries_with_dev=["python"]',
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
+            'scenarios="APM_TRACING_E2E_OTEL,APPSEC_API_SECURITY,DEFAULT"',
             'scenarios_groups=""',
         ]
 
     def test_manifest_agent(self):
         inputs = build_inputs(
             ["manifests/agent.yml"],
-            new_manifests="./tests/test_the_test/manifests/manifests_agent_edit/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_agent_edit/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
         strings_out = process(inputs)
 
@@ -217,8 +235,16 @@ class Test_ComputeLibrariesAndScenarios:
     def test_wrong_library_tag(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        with pytest.raises(ValueError):
-            process(inputs)
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "java", "version": "dev"}, {"library": "python", "version": "dev"}]',
+            'libraries_with_dev=["java", "python"]',
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="end_to_end,open_telemetry"',
+        ]
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
     def test_wrong_library_tag_with_branch(self):
@@ -242,9 +268,9 @@ class Test_ComputeLibrariesAndScenarios:
         strings_out = process(inputs)
 
         assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
             'scenarios_groups=""',
@@ -256,8 +282,8 @@ class Test_ComputeLibrariesAndScenarios:
         strings_out = process(inputs)
 
         assert strings_out == [
-            'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
-            'libraries_with_dev=["python_lambda"]',
+            'library_matrix=[{"library": "python_lambda", "version": "prod"}]',
+            "libraries_with_dev=[]",
             "desired_execution_time=600",
             "rebuild_lambda_proxy=true",
             'scenarios="DEFAULT"',
@@ -296,8 +322,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_manifest_no_edit(self):
         inputs = build_inputs(
             ["manifests/java.yml"],
-            new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
         strings_out = process(inputs)
 
@@ -339,18 +365,32 @@ class Test_ComputeLibrariesAndScenarios:
             'scenarios_groups="open_telemetry"',
         ]
 
+    def test_json_modification(self):
+        inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4"',
+            'scenarios_groups=""',
+        ]
+
     def test_missing_modified_files(self):
         with pytest.raises(FileNotFoundError):
             Inputs(
                 scenario_map_file="tests/test_the_test/scenarios.json",
-                new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-                old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+                new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+                old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
             )
 
     def test_missing_original_manifest(self):
         with pytest.raises(FileNotFoundError):
             Inputs(
                 scenario_map_file="tests/test_the_test/scenarios.json",
-                new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-                old_manifests="./wrong/path",
+                new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+                old_manifests=Path("./wrong/path"),
             )

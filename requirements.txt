@@ -9,7 +9,8 @@ filelock==3.12.2  # for parametric tests
 jsonschema==4.16.0
 kubernetes==29.0.0  #lib-injection kubernetes
 matplotlib  # for performance tests
-# mitmproxy==9.0.1  # sueful for proxy development, but failing on gitlab
+mitmproxy==9.0.1
+mock==5.2.0
 msgpack==1.0.4
 mypy==1.15.0
 opentelemetry-api==1.27.0 # for parametric tests
@@ -32,11 +33,13 @@ pyyaml==6.0.1  #On Boarding requirements
 requests==2.31.0
 retry==0.9.2
 rfc3339-validator==0.1.4
-ruff==0.8.1
+ruff==0.14.5
 scp==0.14.5
 semantic-version==2.10.0
 setuptools==75.8.0
+shellcheck-py==0.11.0.1
 types-aiofiles==24.1.0.20241221
+types-mock==5.2.0.20250924
 types-protobuf==5.29.1.20241207
 types-python-dateutil==2.9.0.20241206
 types-PyYAML==6.0.12.20241230

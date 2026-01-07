@@ -11,6 +11,9 @@ const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/sp
 
 const { millisToHrTime } = require('@opentelemetry/core')
 
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
+
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
 tracerProvider.register()
@@ -354,6 +357,51 @@ app.get('/trace/config', (req, res) => {
   });
 });
 
+app.post("/log/write", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  const logger = logs.getLogger(req?.body?.logger_name)
+  const otelSpan = otelSpans[req?.body?.span_id]
+  const ddSpan = spans[req?.body?.span_id]
+  let context = undefined
+  if (otelSpan) {
+    context = trace.setSpan(ROOT_CONTEXT, otelSpan)
+  } else if (ddSpan) {
+    const ddSpanContext = ddSpan.context()
+    const sp = {spanId: ddSpanContext.toSpanId(true), traceId: ddSpanContext.toTraceId(true), flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0}
+    context = trace.setSpanContext(ROOT_CONTEXT, sp)
+  }
+
+  logger.emit({
+    severityText: req.body.level,
+    body: req.body.message,
+    context: context
+  })
+  res.status(200).json({})
+})
+
+app.post("/log/otel/flush", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  try {
+    // Get the current logs provider
+    const logsProvider = logs.getLoggerProvider()
+    const providerType = logsProvider.constructor.name
+
+    // Force flush all logs with timeout
+    const timeoutMs = (req.body.seconds || 5) * 1000
+    logsProvider.forceFlush(timeoutMs)
+      .then(() => {
+        res.status(200).json({ success: true, message: providerType })
+      })
+      .catch((error) => {
+        res.status(200).json({ success: false, message: `Error: ${error.message}` })
+      })
+  } catch (error) {
+    res.status(200).json({ success: false, message: `Error: ${error.message}` })
+  }
+})
+
 app.post("/trace/otel/add_event", (req, res) => {
   const { span_id, name, timestamp, attributes } = req.body;
   const span = otelSpans[span_id]
@@ -376,6 +424,52 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
   const context = propagation.setBaggage(ROOT_CONTEXT, bag)
   const value = propagation.getBaggage(context).getEntry(req.body.key).value
   res.json({ value });
+});
+
+// Feature Flag & Experimentation endpoints
+app.post('/ffe/start', async (req, res) => {
+  const { openfeature } = tracer
+  await OpenFeature.setProviderAndWait(openfeature)
+  openFeatureClient = OpenFeature.getClient()
+  res.json({})
+})
+
+app.post('/ffe/evaluate', async (req, res) => {
+  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  let value, reason;
+  const context = { targetingKey, ...attributes }
+
+  try {
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break;
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break;
+      case 'INTEGER':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break;
+      default:
+        value = defaultValue;
+    }
+
+    reason = 'DEFAULT';
+  } catch (error) {
+    value = defaultValue;
+    reason = 'ERROR';
+  }
+
+  res.json({
+    value: value,
+    reason: reason
+  });
 });
 
 // OpenTelemetry Metrics Endpoints
@@ -608,8 +702,8 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
 
 app.post('/metrics/otel/force_flush', (req, res) => {
   const meterProvider = metrics.getMeterProvider();
-  if (meterProvider.forceFlush) {
-    meterProvider.forceFlush()
+  if (meterProvider.reader) {
+    meterProvider.reader.forceFlush()
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Force flush not supported' });

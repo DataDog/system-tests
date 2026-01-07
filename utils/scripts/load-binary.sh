@@ -19,7 +19,7 @@
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
 # * C++:           Direct from github source
-# * Python:        Clone locally the github repo
+# * Python:        S3 https://dd-trace-py-builds.s3.amazonaws.com/<GIT_REF>/index.html
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
@@ -131,11 +131,16 @@ get_github_action_artifact() {
     BRANCH=$3
     ARTIFACT_NAME=$4
     PATTERN=$5
+    IGNORE_FAILED_WORKFLOW=${6:-true}  # 6th arg, with default "true"
 
     # query filter seems not to be working ??
     WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
-    QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    if [ "$IGNORE_FAILED_WORKFLOW" = "true" ]; then
+        QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    else
+        QUERY="[.workflow_runs[] | select(.head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+    fi
 
     # this wil fail if there are more than 100 artifacts
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
@@ -214,9 +219,9 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
+
+    # hard coded ref for now
+    echo 08c30976b4d688ea70f4bdcd3e5b7c4b75cd5548 > python-load-from-s3
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
@@ -346,9 +351,9 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
 
 elif [ "$TARGET" = "python_lambda" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
 
-    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" $LIBRARY_TARGET_BRANCH "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip" "false"
 
 elif [ "$TARGET" = "otel_collector" ]; then
     assert_version_is_dev
