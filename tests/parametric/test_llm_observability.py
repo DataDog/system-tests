@@ -1,4 +1,4 @@
-from utils import scenarios
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 from utils.docker_fixtures.spec.llm_observability import LlmObsSpanRequest
@@ -44,6 +44,7 @@ def _find_event_tag(event: dict, tag: str) -> str | None:
     return None
 
 
+@features.llm_observability_sdk_enablement
 @scenarios.parametric
 class Test_Enablement:
     @pytest.mark.parametrize("llmobs_ml_app", ["overridden-test-ml-app", "", None])
