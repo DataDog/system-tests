@@ -11,6 +11,7 @@
 /utils/build/docker/ruby*/ @DataDog/ruby-guild @DataDog/asm-ruby @DataDog/system-tests-core
 /utils/build/docker/rust*/ @DataDog/apm-rust @DataDog/system-tests-core
 
+/utils/docker_fixtures/spec/llm_observability.py @DataDog/ml-observability
 /utils/telemetry/intake/ @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
 /utils/telemetry/intake/static/ @DataDog/apm-sdk
 
