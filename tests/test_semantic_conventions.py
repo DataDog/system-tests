@@ -143,6 +143,8 @@ def get_component_name(span_name: str):
         expected_component = "aspnet_core"
     elif language == "cpp":
         expected_component = "nginx"
+    elif language == "golang" and context.weblog_variant == "haproxy":
+        expected_component = "haproxy-spoa"
     else:
         # using weblog variant to get name of component that should be on set within each span's metadata
         expected_component = VARIANT_COMPONENT_MAP.get(context.weblog_variant, context.weblog_variant)
@@ -160,12 +162,9 @@ optional_uds_feature = (
 )
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -338,11 +337,8 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_one_span(validator=validator)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.trace_data_integrity
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

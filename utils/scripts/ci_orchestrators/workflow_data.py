@@ -554,14 +554,13 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
-    # external processing and streamm processing
-    is_stream_processing_scenario = scenario in ("STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING")
-    is_external_processing_scenario = scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING")
+    # Go proxies (Envoy / HAProxy)
+    is_go_proxies_scenario = scenario in ("GO_PROXIES", "GO_PROXIES_BLOCKING")
 
     if weblog == "no-weblog-golang":
-        if not is_stream_processing_scenario and not is_external_processing_scenario:
+        if not is_go_proxies_scenario:
             return False
-    if is_stream_processing_scenario or is_external_processing_scenario:
+    if is_go_proxies_scenario:
         if weblog != "no-weblog-golang":
             return False
 

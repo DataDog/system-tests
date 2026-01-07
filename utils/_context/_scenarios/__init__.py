@@ -20,8 +20,7 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .external_processing import ExternalProcessingScenario
-from .stream_processing_offload import StreamProcessingOffloadScenario
+from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
@@ -1064,32 +1063,17 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    external_processing = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING",
-        doc="Envoy + external processing",
+    go_proxies = GoProxiesScenario(
+        name="GO_PROXIES",
+        doc="Go security processor proxies (Envoy or HAProxy)",
         rc_api_enabled=True,
     )
 
-    external_processing_blocking = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING_BLOCKING",
-        doc="Envoy + external processing + blocking rule file",
-        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    )
-
-    stream_processing_offload = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD",
-        doc="HAProxy + stream processing offload agent",
-        rc_api_enabled=True,
-    )
-
-    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
-        doc="HAProxy + stream processing offload agent + blocking rule file",
-        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        stream_processing_offload_volumes={
-            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
-        },
+    go_proxies_blocking = GoProxiesScenario(
+        name="GO_PROXIES_BLOCKING",
+        doc="Go security processor proxies with blocking rule file",
+        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
     )
 
     ipv6 = IPV6Scenario("IPV6")

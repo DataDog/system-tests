@@ -2167,18 +2167,6 @@ class _Features:
         return _mark_test_object(test_object, feature_id=485, owner=_Owner.idm)
 
     @staticmethod
-    def envoy_external_processing(test_object):
-        """Support for Envoy External Processing
-
-        https://feature-parity.us1.prod.dog/#/?feature=350
-        """
-        from utils import context  # noqa: PLC0415
-
-        return _mark_test_object(
-            test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
-        )
-
-    @staticmethod
     def context_propagation_extract_behavior(test_object):
         """Context Propagation: Extraction behavior can be configured at the service level
 
@@ -2521,18 +2509,6 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=484
         """
         return _mark_test_object(test_object, feature_id=484, owner=_Owner.sdk_capabilities)
-
-    @staticmethod
-    def haproxy_stream_processing_offload(test_object):
-        """HAProxy Stream Processing Offload
-
-        https://feature-parity.us1.prod.dog/#/?feature=489
-        """
-        from utils import context  # noqa: PLC0415
-
-        return _mark_test_object(
-            test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
-        )
 
     @staticmethod
     def efficient_trace_payload(test_object):
