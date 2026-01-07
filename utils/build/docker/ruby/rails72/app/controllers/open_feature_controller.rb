@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require 'openfeature/sdk'
-require 'datadog/open_feature/provider'
-
 class OpenFeatureController < ApplicationController
   skip_before_action :verify_authenticity_token
 
