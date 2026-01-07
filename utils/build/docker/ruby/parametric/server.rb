@@ -157,6 +157,20 @@ class SpanSetMetricReturn
   end
 end
 
+class ManualSamplingArgs
+  attr_accessor :span_id
+
+  def initialize(params)
+    @span_id = params['span_id']
+  end
+end
+
+class ManualSamplingReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
 class SpanInjectArgs
   attr_accessor :span_id
 
@@ -629,6 +643,10 @@ class MyApp
       handle_trace_config(req, res)
     when '/trace/span/set_metric'
       handle_trace_span_set_metric(req, res)
+    when '/trace/span/manual_keep'
+      handle_trace_span_manual_keep(req, res)
+    when '/trace/span/manual_drop'
+      handle_trace_span_manual_drop(req, res)
     when '/trace/span/inject_headers'
       handle_trace_span_inject_headers(req, res)
     when '/trace/span/extract_headers'
@@ -739,6 +757,22 @@ class MyApp
     span = find_span(args.span_id)
     span.set_metric(args.key, args.value)
     res.write(SpanSetMetricReturn.new.to_json)
+  end
+
+  def handle_trace_span_manual_keep(req, res)
+    args = ManualSamplingArgs.new(JSON.parse(req.body.read))
+    span = find_span(args.span_id)
+    trace = DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
+    trace.keep!
+    res.write(ManualSamplingReturn.new.to_json)
+  end
+
+  def handle_trace_span_manual_drop(req, res)
+    args = ManualSamplingArgs.new(JSON.parse(req.body.read))
+    span = find_span(args.span_id)
+    trace = DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
+    trace.reject!
+    res.write(ManualSamplingReturn.new.to_json)
   end
 
   def handle_trace_span_inject_headers(req, res)
