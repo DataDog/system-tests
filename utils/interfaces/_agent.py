@@ -268,9 +268,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     @staticmethod
     def get_span_type(span: dict, span_format: TraceAgentPayloadFormat) -> str:
         if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-            return span["typeRef"]
+            return span.get("typeRef", "")
         if span_format == TraceAgentPayloadFormat.legacy:
-            return span["type"]
+            return span.get("type", "")
         raise ValueError(f"Unknown span format: {span_format}")
 
     @staticmethod
