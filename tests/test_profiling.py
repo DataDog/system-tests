@@ -49,12 +49,18 @@ class Test_Profile:
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name != "java",
+        condition=context.library.name not in ("java", "dotnet", "golang"),
         reason="Not yet implemented",
+    )
+    @missing_feature(
+        condition=context.library < "dotnet@3.35.0",
+        reason="Not implemented in older versions",
     )
     def test_process_tags(self):
         """All profiling libraries payload have process tags field"""
         profiling_data_list = list(interfaces.agent.get_profiling_data())
+        if not profiling_data_list:
+            raise ValueError("No profiling data received")
         for data in profiling_data_list:
             for content in data["request"]["content"]:
                 if "content" in content:
