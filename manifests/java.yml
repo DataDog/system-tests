@@ -809,7 +809,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": missing_feature
@@ -836,7 +836,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": missing_feature
