@@ -1926,19 +1926,19 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect:
     - weblog_declaration:
-        "*": v1.57.0-SNAPSHOT
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response:
     - weblog_declaration:
-        "*": v1.57.0-SNAPSHOT
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers:
     - weblog_declaration:
-        "*": v1.57.0-SNAPSHOT
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response:
     - weblog_declaration:
-        "*": v1.57.0-SNAPSHOT
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
