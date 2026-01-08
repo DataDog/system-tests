@@ -8,6 +8,9 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
