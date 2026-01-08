@@ -38,7 +38,12 @@ def match_condition(
 
 
 def match_rule(rule: str, nodeid: str) -> bool:
+    # replace "::" with "/" to have a uniform separator, and removes leading/trailing slashes
     rule_elements = rule.strip("/").replace("::", "/").split("/")
+
+    # some node id may contains argument after the method name, enclosed in square brackets
+    # clean them before matching
+    nodeid = nodeid.split("[")[0]
 
     nodeid_elements = nodeid.replace("::", "/").split("/")
 

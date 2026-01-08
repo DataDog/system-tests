@@ -47,7 +47,7 @@ def _get_rule_level(rule: str) -> str:
 
 def update_manifest(
     manifest_editor: ManifestEditor, test_data: dict[Context, TestData]
-) -> tuple[dict[str, int], dict[str, int], int, int, dict[str, int]]:
+) -> tuple[dict[str, int], dict[str, int], int, int, dict[str, int], dict[str, int]]:
     def get_activation(
         _: object, path: tuple[str], children: Iterable, value: ActivationStatus = ActivationStatus.NONE
     ):
@@ -73,8 +73,11 @@ def update_manifest(
     tests_with_rules: int = 0
     rule_to_tests: dict[str, set[str]] = {}  # Track unique test nodeids per rule
     unique_tests_per_language: dict[str, set[str]] = {}  # Track unique test nodeids per language
+    activations_per_owner: dict[str, int] = {}  # Track activations per code owner
 
-    for context, (nodes, trie) in test_data.items():
+    for context, test_data_item in test_data.items():
+        nodes, trie = test_data_item.xpass_nodes, test_data_item.trie
+        nodeid_to_owners = test_data_item.nodeid_to_owners
         manifest_editor.set_context(context)
         if context.library not in tests_per_language:
             tests_per_language[context.library] = 0
@@ -85,6 +88,10 @@ def update_manifest(
                 tests_with_rules += 1
                 tests_per_language[context.library] += 1
                 unique_tests_per_language[context.library].add(node)
+                # Track activations per code owner
+                test_owners = nodeid_to_owners.get(node, set())
+                for owner in test_owners:
+                    activations_per_owner[owner] = activations_per_owner.get(owner, 0) + 1
                 for view in views:
                     rule_str = view.rule
                     if rule_str not in rule_to_tests:
@@ -125,6 +132,7 @@ def update_manifest(
         created_rules_count,
         tests_without_rules,
         unique_tests_per_language_count,
+        activations_per_owner,
     )
 
 
@@ -161,6 +169,7 @@ def print_detailed_rules_report(
     total_tests_activated: int,
     total_unique_tests: int,
     tests_without_rules: int = 0,
+    activations_per_owner: dict[str, int] | None = None,
 ) -> None:
     """Print a detailed report showing rules modified by level and rules created"""
     print("=" * 50)
@@ -200,4 +209,14 @@ def print_detailed_rules_report(
         print(f"{'Avg Unique Tests per Rule':<30} {avg_unique_tests_per_rule:>10.1f}")
         if tests_without_rules > 0:
             print(f"{'Tests Without Matching Rules':<30} {tests_without_rules:>10}")
-    print("=" * 50 + "\n")
+
+    # Code owner summary
+    if activations_per_owner:
+        print("\nTop 5 Code Owners by Activations:")
+        print("-" * 50)
+        print(f"{'Code Owner':<40} {'Activations':>10}")
+        print("-" * 50)
+        sorted_owners = sorted(activations_per_owner.items(), key=lambda x: x[1], reverse=True)
+        for owner, count in sorted_owners[:5]:
+            print(f"{owner:<40} {count:>10}")
+        print("=" * 50 + "\n")

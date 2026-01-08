@@ -903,13 +903,23 @@ manifest:
   tests/ffe/test_exposures.py: v4.2.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: v3.11.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: v3.13.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: v3.13.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: v3.13.0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning::test_generate_content_reasoning_output
+  : bug (MLOB-5071)
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: v3.13.0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
+  : bug (MLOB-5071)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmResponses: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: v3.13.0
-  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: missing_feature
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: v4.1.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:

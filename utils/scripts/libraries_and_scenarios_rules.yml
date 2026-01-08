@@ -222,12 +222,9 @@ patterns:
 # This section contains rules to apply to script files.
 ################################################################################
 
-    utils/scripts/activate-easy-wins.py:
-        scenario_groups: null
-        libraries: null
-    utils/scripts/activate-easy-wins.sh:
-        scenario_groups: null
-        libraries: null
+    utils/scripts/activate-easy-wins/*:
+      scenario_groups: null
+      libraries: null
     utils/scripts/add-system-tests-label-on-known-tickets.py:
         scenario_groups: null
     utils/scripts/ai/*:
@@ -455,16 +452,16 @@ patterns:
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
 
-    # manifests/rust.yml:
-    #     scenario_groups: null  # already handled by the manifest comparison
-    #     libraries: rust
-    # utils/build/docker/rust/*:
-    #     scenario_groups: [ end_to_end, open_telemetry]
-    #     libraries: rust
-    # lib-injection/build/docker/rust/*:
-    #     libraries: rust
-    # utils/build/build_rust_base_images.sh:
-    #     libraries: rust
+    manifests/rust.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: rust
+    utils/build/docker/rust/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: rust
+    lib-injection/build/docker/rust/*:
+        libraries: rust
+    utils/build/build_rust_base_images.sh:
+        libraries: rust
 
     manifests/python_otel.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -515,6 +512,3 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
     tests/*:
         scenario_groups: null # dynamic selection
-
-
-
