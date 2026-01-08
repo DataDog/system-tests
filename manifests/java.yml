@@ -827,6 +827,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
     - weblog_declaration:
         "*": missing_feature
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.58.0-SNAPSHOT
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
