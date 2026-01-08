@@ -196,6 +196,12 @@ def test_python_version():
     assert v2 < v3
     assert v3 < v4
 
+    v5 = ComponentVersion("python", "1.2.3+dev")  # if ever they declare explicity a + in manifest, keep it
+    assert v5 == "python@1.2.3+dev"
+    # build metadata is ignored in comparizon
+    assert v5 >= "python@1.2.3"
+    assert v5 <= "python@1.2.3"
+
 
 def test_php_version():
     v1 = ComponentVersion("php", "1.8.9")
