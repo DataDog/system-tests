@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, missing_feature, context, rfc, logger
+from utils import scenarios, features, missing_feature, context, rfc, logger, interfaces
 
 
 @features.debugger_code_origins
@@ -27,8 +27,6 @@ class Test_Debugger_Code_Origins(debugger.BaseDebuggerTest):
     @missing_feature(context.library == "nodejs", reason="Not yet implemented for express", force_skip=True)
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     def test_code_origin_entry_present(self):
-        from utils import interfaces
-
         self.collect()
 
         self.assert_setup_ok()

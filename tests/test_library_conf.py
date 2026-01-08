@@ -1,7 +1,6 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from typing import Tuple
 import pytest
 from utils import weblog, interfaces, scenarios, features, missing_feature
 from utils.dd_constants import TraceAgentPayloadFormat
@@ -432,7 +431,9 @@ class Test_HeaderTags_Wildcard_Response_Headers:
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
-def retrieve_span_links(span: dict, span_format: TraceAgentPayloadFormat) -> Tuple[list[dict] | None, TraceAgentPayloadFormat]:
+def retrieve_span_links(
+    span: dict, span_format: TraceAgentPayloadFormat
+) -> tuple[list[dict] | None, TraceAgentPayloadFormat]:
     """Retrieves span links from a span.
     Returns the format of the span links as it may differ from the trace format emitted by the agent
     """
@@ -467,7 +468,7 @@ def retrieve_span_links(span: dict, span_format: TraceAgentPayloadFormat) -> Tup
         else:
             link["flags"] = 0
         links.append(link)
-    return links, TraceAgentPayloadFormat.legacy # Legacy format is used for span links that arrived in the meta
+    return links, TraceAgentPayloadFormat.legacy  # Legacy format is used for span links that arrived in the meta
 
 
 @scenarios.default
@@ -548,6 +549,7 @@ class Test_ExtractBehavior_Default:
 
         # Test the extracted span links: One span link per conflicting trace context
         span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         link = span_links[0]
@@ -604,6 +606,7 @@ class Test_ExtractBehavior_Restart:
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
         span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -660,6 +663,7 @@ class Test_ExtractBehavior_Restart:
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
         span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -715,6 +719,7 @@ class Test_ExtractBehavior_Restart:
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
         span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -871,6 +876,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
         span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
@@ -927,6 +933,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
         span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link

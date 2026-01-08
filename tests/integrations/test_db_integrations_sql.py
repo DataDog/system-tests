@@ -42,7 +42,9 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_sql_success(self, excluded_operations: tuple[str, ...] = ()):
         """We check all sql launched for the app work"""
 
-        for db_operation, (span, span_format) in self.get_spans(excluded_operations=excluded_operations + ("select_error",)):
+        for db_operation, (span, span_format) in self.get_spans(
+            excluded_operations=excluded_operations + ("select_error",)
+        ):
             if "error" in span and span["error"] != 0:
                 span_meta = interfaces.agent.get_span_meta(span, span_format)
                 logger.error(f"Error message: {span_meta.get('error.message')}")
@@ -139,16 +141,16 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_db_operation(self, excluded_operations: tuple[str, ...] = ()):
         """The name of the operation being executed"""
 
-        for db_operation, (span, span_format) in self.get_spans(excluded_operations=excluded_operations + ("select_error",)):
+        for db_operation, (span, span_format) in self.get_spans(
+            excluded_operations=excluded_operations + ("select_error",)
+        ):
             span_meta = interfaces.agent.get_span_meta(span, span_format)
             if db_operation == "procedure":
                 assert any(substring in span_meta["db.operation"].lower() for substring in ["call", "exec"]), (
                     "db.operation span not found for procedure operation"
                 )
             else:
-                assert db_operation.lower() in span_meta["db.operation"].lower(), (
-                    f"Test is failing for {db_operation}"
-                )
+                assert db_operation.lower() in span_meta["db.operation"].lower(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
@@ -170,7 +172,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
         for _, (span, span_format) in self.get_spans(operations=["select"]):
             span_meta = interfaces.agent.get_span_meta(span, span_format)
-            assert span_meta["db.row_count"] > 0, "Test is failing for select"
+            assert int(span_meta["db.row_count"]) > 0, "Test is failing for select"
 
     def test_db_password(self, excluded_operations: tuple[str, ...] = ()):
         """The database password should not show in the traces"""

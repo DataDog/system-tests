@@ -267,11 +267,13 @@ class Test_Synthetics_APM_Datadog:
 
         _, trace, trace_format = traces[0]
         self.assert_trace_id_equals(trace, trace_format, "1234567890")
-        span = trace["spans"][0]
+        spans = list(interfaces.agent.get_spans(self.r))
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        _, span, span_format = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, trace_format)
-        metrics = interfaces.agent.get_span_metrics(span, trace_format)
+        meta = interfaces.agent.get_span_meta(span, span_format)
+        metrics = interfaces.agent.get_span_metrics(span, span_format)
         assert meta[ORIGIN] == "synthetics"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
@@ -291,14 +293,16 @@ class Test_Synthetics_APM_Datadog:
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
-
         _, trace, trace_format = traces[0]
         self.assert_trace_id_equals(trace, trace_format, "1234567891")
-        span = trace["spans"][0]
+
+        spans = list(interfaces.agent.get_spans(self.r))
+        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        _, span, span_format = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, trace_format)
-        metrics = interfaces.agent.get_span_metrics(span, trace_format)
+        meta = interfaces.agent.get_span_meta(span, span_format)
+        metrics = interfaces.agent.get_span_metrics(span, span_format)
         assert meta[ORIGIN] == "synthetics-browser"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
