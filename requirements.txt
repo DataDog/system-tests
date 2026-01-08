@@ -36,7 +36,7 @@ rfc3339-validator==0.1.4
 ruff==0.14.5
 scp==0.14.5
 semantic-version==2.10.0
-setuptools==75.8.0
+setuptools==80.9.0
 shellcheck-py==0.11.0.1
 types-aiofiles==24.1.0.20241221
 types-mock==5.2.0.20250924
