@@ -145,12 +145,12 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>8.0.33</version>
+            <version>8.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
+            <version>42.6.2</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
@@ -483,7 +483,7 @@
         </plugins>
     </build>
     <properties>
-        <protobuf.version>3.25.3</protobuf.version>
+        <protobuf.version>3.25.8</protobuf.version>
         <grpc.version>1.65.1</grpc.version>
         <packaging.type>jar</packaging.type>
         <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
