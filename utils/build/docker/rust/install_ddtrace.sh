@@ -5,7 +5,7 @@ set -eu
 cd /usr/app
 
 REPO_URL=https://github.com/DataDog/dd-trace-rs
-PROD_TAG=v0.2.0
+PROD_TAG=datadog-opentelemetry-v0.2.1
 
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
