@@ -219,9 +219,8 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-
-    # hard coded ref for now
-    echo 08c30976b4d688ea70f4bdcd3e5b7c4b75cd5548 > python-load-from-s3
+    echo "Using $LIBRARY_TARGET_BRANCH in S3 for DataDog/dd-trace-py"
+    echo $LIBRARY_TARGET_BRANCH > python-load-from-s3
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
