@@ -29,6 +29,7 @@ from utils._context.containers import (
     TestedContainer,
     LocalstackContainer,
     ElasticMQContainer,
+    VCRCassettesContainer,
 )
 
 from utils._logger import logger
@@ -73,6 +74,7 @@ class DockerScenario(Scenario):
         include_sqlserver: bool = False,
         include_localstack: bool = False,
         include_elasticmq: bool = False,
+        include_vcr_cassettes: bool = False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -126,6 +128,9 @@ class DockerScenario(Scenario):
 
         if include_elasticmq:
             self._supporting_containers.append(ElasticMQContainer())
+
+        if include_vcr_cassettes:
+            self._supporting_containers.append(VCRCassettesContainer())
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -291,6 +296,7 @@ class EndToEndScenario(DockerScenario):
         include_sqlserver: bool = False,
         include_localstack: bool = False,
         include_elasticmq: bool = False,
+        include_vcr_cassettes: bool = False,
         include_otel_drop_in: bool = False,
         include_buddies: bool = False,
         require_api_key: bool = False,
@@ -320,6 +326,7 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
             include_localstack=include_localstack,
             include_elasticmq=include_elasticmq,
+            include_vcr_cassettes=include_vcr_cassettes,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
