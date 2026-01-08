@@ -2,6 +2,7 @@ from utils import weblog, interfaces, scenarios, features
 
 
 @scenarios.go_proxies
+@features.go_proxies
 class Test_GoProxies_Tracing:
     def setup_correct_span_structure(self):
         self.r = weblog.get("/")

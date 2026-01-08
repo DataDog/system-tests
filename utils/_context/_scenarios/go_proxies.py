@@ -1,5 +1,4 @@
 import os
-from typing import Optional, Union
 
 import pytest
 
@@ -18,8 +17,8 @@ from utils._logger import logger
 from .core import scenario_groups
 from .endtoend import DockerScenario
 
-ProcessorContainer = Union[ExternalProcessingContainer, StreamProcessingOffloadContainer]
-ProxyRuntimeContainer = Union[EnvoyContainer, HAProxyContainer]
+ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContainer
+ProxyRuntimeContainer = EnvoyContainer | HAProxyContainer
 
 
 class GoProxiesScenario(DockerScenario):
@@ -28,8 +27,8 @@ class GoProxiesScenario(DockerScenario):
         name: str,
         doc: str,
         *,
-        processor_env: Optional[dict[str, Optional[str]]] = None,
-        processor_volumes: Optional[dict[str, dict[str, str]]] = None,
+        processor_env: dict[str, str | None] | None = None,
+        processor_volumes: dict[str, dict[str, str]] | None = None,
         rc_api_enabled: bool = False,
     ) -> None:
         self._weblog_variant = os.environ.get("WEBLOG_VARIANT", "envoy")
@@ -60,7 +59,6 @@ class GoProxiesScenario(DockerScenario):
         self._required_containers.append(self._processor_container)
         self._required_containers.append(self._proxy_runtime_container)
         self._required_containers.append(self._http_app_container)
-
 
     def _build_processor_container(self) -> ProcessorContainer:
         env = dict(self._processor_env or {})
