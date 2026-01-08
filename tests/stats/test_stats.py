@@ -96,6 +96,7 @@ class Test_Client_Stats:
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
+    @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
@@ -103,7 +104,7 @@ class Test_Client_Stats:
     )
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
-        Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
+        Note: Once all tracers have implemented it and the test xpasses for all of them, we can move these
         assertions to `test_client_stats` method.
         """
         root_found = False
@@ -115,7 +116,7 @@ class Test_Client_Stats:
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
-        assert len(requests) == 0, "Stats should be disabled by default"
+        assert len(requests) == 0, "Client-side stats should be disabled by default"
 
 
 @features.client_side_stats_supported
