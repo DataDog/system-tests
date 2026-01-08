@@ -2511,6 +2511,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=484, owner=_Owner.sdk_capabilities)
 
     @staticmethod
+    def go_proxies(test_object):
+        """Go-based proxies proxy
+
+        https://feature-parity.us1.prod.dog/#/?feature=350
+        """
+        return _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
+
+    @staticmethod
     def efficient_trace_payload(test_object):
         """Efficient Trace Payload
 

@@ -34,6 +34,7 @@ class Test_StandardTagsMethod:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
+@features.security_events_metadata
 @scenarios.go_proxies
 @scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
