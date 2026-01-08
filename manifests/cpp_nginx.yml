@@ -87,6 +87,7 @@ manifest:
   tests/appsec/test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_fingerprinting.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_identify.py: irrelevant (ASM is not implemented in C++)
+  tests/appsec/test_inferred_spans.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v1.3.0
   tests/appsec/test_logs.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_metastruct.py: irrelevant (ASM is not implemented in C++)

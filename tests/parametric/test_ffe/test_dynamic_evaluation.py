@@ -88,20 +88,17 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_remote_config(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_ffe_remote_config(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 
+        assert test_library.is_alive(), "library container is not alive"
         apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(
-        self, library_env: dict[str, str], test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test FFE flag evaluation logic with various targeting scenarios.
 
         This is the core FFE test that validates the OpenFeature provider correctly:

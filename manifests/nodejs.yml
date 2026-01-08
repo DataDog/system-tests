@@ -1042,6 +1042,7 @@ manifest:
         fastify: *ref_5_57_0
         nextjs: missing_feature
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: *ref_3_11_0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
@@ -1273,13 +1274,23 @@ manifest:
         express4: *ref_5_77_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: bug (MLOB-5070)  # does not record metadata
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: *ref_5_81_0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: *ref_5_81_0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_executable_code
+  : bug (MLOB-5070)
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
+  : missing_feature (Node.js LLM Observability Google GenAI integration does not submit tool definitions)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmResponses: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: *ref_5_80_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: *ref_5_80_0
-  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: missing_feature
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: *ref_5_81_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
@@ -1432,6 +1443,7 @@ manifest:
         express4: *ref_5_37_0
         express5: *ref_5_37_0
         fastify: *ref_5_37_0
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
@@ -1486,6 +1498,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: *ref_5_72_0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: bug (APMLP-270)
   tests/parametric/test_process_discovery.py: missing_feature
+  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # The manual decision does not override existing decision
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: *ref_5_3_0

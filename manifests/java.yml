@@ -1671,6 +1671,7 @@ manifest:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": v0.111.0
@@ -2324,6 +2325,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0-SNAPSHOT
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
@@ -2368,9 +2370,13 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
+  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # dm=-4 tag is not applied
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py: missing_feature
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020:
+    - component_version: ">=1.57.0"
+      declaration: flaky (APMAPI-1785)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: v1.31.0
   tests/parametric/test_telemetry.py::Test_Environment: v1.31.0
