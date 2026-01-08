@@ -28,7 +28,7 @@ class Test_Client_Stats:
         for _ in range(3):
             weblog.get("/stats-unique?code=204")
 
-    @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
+    @bug(context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"), library="python", reason="APMSP-1375")
     @missing_feature(
         context.weblog_variant in ("play", "ratpack"),
         library="java",
@@ -96,7 +96,7 @@ class Test_Client_Stats:
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
-    @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
+    @bug(context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"), library="python", reason="APMSP-1375")
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
         or context.library <= "java@1.53.0",
