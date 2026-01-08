@@ -69,6 +69,10 @@ type FinishSpanArgs struct {
 	Id uint64 `json:"span_id"`
 }
 
+type SpanIDArgs struct {
+	SpanId uint64 `json:"span_id"`
+}
+
 type SpanSetMetaArgs struct {
 	SpanId uint64 `json:"span_id"`
 	Key    string `json:"key"`

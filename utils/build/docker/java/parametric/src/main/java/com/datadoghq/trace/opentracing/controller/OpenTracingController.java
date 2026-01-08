@@ -135,6 +135,24 @@ public class OpenTracingController implements Closeable {
     }
   }
 
+  @PostMapping("manual_keep")
+  public void manualKeep(@RequestBody SpanManualSamplingArgs args) {
+    LOGGER.info("Setting OT span manual keep: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      span.setTag(DDTags.MANUAL_KEEP, true);
+    }
+  }
+
+  @PostMapping("manual_drop")
+  public void manualDrop(@RequestBody SpanManualSamplingArgs args) {
+    LOGGER.info("Setting OT span manual drop: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      span.setTag(DDTags.MANUAL_DROP, true);
+    }
+  }
+
   @PostMapping("error")
   public void setError(@RequestBody SpanErrorArgs args) {
     LOGGER.info("Setting OT span error: {}", args);
