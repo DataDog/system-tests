@@ -101,7 +101,7 @@ class BaseDebuggerTest:
     probe_diagnostics: ProbeDiagnosticsCollection = {}
     probe_snapshots: dict[str, list[dict[str, Any]]] = {}
     probe_spans: dict[str, list[tuple[dict[str, Any], TraceAgentPayloadFormat]]] = {}
-    all_spans: list[dict[str, Any]] = []
+    all_spans: list[tuple[dict[str, Any], TraceAgentPayloadFormat]] = []
     symbols: list[dict[str, Any]] = []
 
     start_time: int | None = None
@@ -617,7 +617,7 @@ class BaseDebuggerTest:
 
             spans_list = interfaces.agent.get_spans_list()
             for span, span_format in spans_list:
-                self.all_spans.append(span)
+                self.all_spans.append((span, span_format))
 
                 span_name = interfaces.agent.get_span_name(span, span_format)
                 meta = interfaces.agent.get_span_meta(span, span_format)
