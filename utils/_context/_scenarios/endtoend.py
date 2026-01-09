@@ -461,7 +461,7 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._get_weblog_system_info)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
-            self.warmups.append(self._set_components)
+        self.warmups.append(self._set_components)
 
     def _get_weblog_system_info(self):
         try:
@@ -492,6 +492,7 @@ class EndToEndScenario(DockerScenario):
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:
