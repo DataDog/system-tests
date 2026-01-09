@@ -10,7 +10,7 @@ from utils import (
     features,
     remote_config as rc,
 )
-from utils.proxy.mocked_response import StaticJsonMockedResponse
+from utils.proxy.mocked_response import StaticJsonMockedTracerResponse
 
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -81,7 +81,7 @@ class Test_FFE_RC_Unavailable:
         )
 
         # Simulate RC unavailability by returning 503 errors
-        StaticJsonMockedResponse(
+        StaticJsonMockedTracerResponse(
             path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
         ).send()
 
@@ -113,7 +113,7 @@ class Test_FFE_RC_Unavailable:
         )
 
         # Restore normal RC behavior (empty response)
-        StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}).send()
+        StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
 
     def test_ffe_rc_unavailable_graceful_degradation(self):
         """Test that cached flag configs continue working when RC is unavailable."""
@@ -160,7 +160,7 @@ class Test_FFE_RC_Down_From_Start:
                 return True
             return False
 
-        StaticJsonMockedResponse(
+        StaticJsonMockedTracerResponse(
             path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
         ).send()
 
@@ -181,7 +181,7 @@ class Test_FFE_RC_Down_From_Start:
             },
         )
 
-        StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}).send()
+        StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
 
     def test_ffe_rc_down_from_start(self):
         """Test that default value is returned when RC is down from start."""
