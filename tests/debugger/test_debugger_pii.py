@@ -223,7 +223,6 @@ class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     def setup_pii_redaction_method_full(self):
         self._setup()
 
-    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted", force_skip=True)
     @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted", force_skip=True)
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")

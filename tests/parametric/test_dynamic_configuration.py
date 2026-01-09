@@ -345,10 +345,8 @@ class TestDynamicConfigTracingEnabled:
     )
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
-    @irrelevant(library="java", reason="APMAPI-1592")
     @irrelevant(library="cpp", reason="APMAPI-1592")
     @irrelevant(library="nodejs", reason="APMAPI-1592")
-    @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
     def test_tracing_client_tracing_disable_one_way(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -571,7 +569,6 @@ class TestDynamicConfigV1_EmptyServiceTargets:
             ]
         ],
     )
-    @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
     def test_not_match_service_target_empty_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty."""
         assert test_library.is_alive(), "library container is not alive"
@@ -623,7 +620,6 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs", reason="APMAPI-865")
-    @irrelevant(library="java", reason="APMAPI-1003")
     @irrelevant(library="cpp", reason="APMAPI-1003")
     @irrelevant(library="golang", reason="APMAPI-1003")
     def test_not_match_service_target(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

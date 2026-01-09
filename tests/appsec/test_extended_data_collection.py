@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, scenarios, features, weblog, context, bug, remote_config as rc
+from utils import interfaces, scenarios, features, weblog, context, remote_config as rc
 from utils.dd_constants import Capabilities
 
 
@@ -508,7 +508,6 @@ class Test_ExtendedRequestBodyCollection:
             "/tag_value/extended_body_collection/200", data={"param": "collect", "body_key": "A" * 5000}
         )
 
-    @bug(library="java", weblog_variant="vertx3", reason="APPSEC-57811")
     def test_extended_request_body_collection_truncated(self):
         """Test that extended request body data collection properly truncates large bodies when configured via remote config"""
         # Verify remote config was applied successfully

@@ -12,7 +12,6 @@ class Test_StatusCode:
     def setup_basic(self):
         self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_basic(self):
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(self.r)

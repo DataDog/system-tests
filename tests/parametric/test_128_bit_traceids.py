@@ -171,7 +171,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library < "nodejs@4.19.0", reason="Implemented in 4.19.0 & 3.40.0")
     @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}])

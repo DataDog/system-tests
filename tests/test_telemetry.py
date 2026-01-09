@@ -339,10 +339,8 @@ class Test_Telemetry:
 
     @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
-    @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
     @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
@@ -462,7 +460,6 @@ class Test_Telemetry:
     @irrelevant(library="dotnet")
     @irrelevant(library="python")
     @irrelevant(library="php")
-    @irrelevant(library="java")
     @irrelevant(library="nodejs")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
@@ -1002,7 +999,6 @@ class Test_Metric_Generation_Enabled:
                 break
         assert found, "No metrics found in telemetry data"
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_general_logs_created(self):
         self.assert_count_metric("general", "logs_created", expect_at_least=1)
@@ -1013,47 +1009,38 @@ class Test_Metric_Generation_Enabled:
     def test_metric_tracers_spans_finished(self):
         self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_spans_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_created(self):
         self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_sent(self):
         self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_closed(self):
         self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_requests(self):
         self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_responses(self):
         self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_telemetry_api_requests(self):
         self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
 
-    @missing_feature(library="java", reason="Not implemented")
     @missing_feature(library="nodejs")
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)

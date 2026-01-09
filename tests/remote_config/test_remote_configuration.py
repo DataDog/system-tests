@@ -198,7 +198,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
     @bug(library="golang", reason="APPSEC-56064")
-    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -295,7 +294,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -349,7 +347,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
     @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
-    @bug(context.library <= "java@1.12.1", reason="APMRP-360")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 

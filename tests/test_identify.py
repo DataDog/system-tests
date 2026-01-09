@@ -65,7 +65,6 @@ class Test_Propagate_Legacy:
         self.r_outgoing = weblog.get("/identify-propagate")
 
     @missing_feature(library="nodejs", reason="only supports incoming tags for now")
-    @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_one_span(self.r_outgoing, validator=validate_identify_tags(tag_table))
@@ -91,7 +90,6 @@ class Test_Propagate:
         self.r_outgoing = weblog.get("/identify-propagate")
 
     @missing_feature(library="nodejs", reason="only supports incoming tags for now")
-    @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tag_table = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_one_span(self.r_outgoing, validator=validate_identify_tags(tag_table))

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features, rfc, scenarios, flaky
+from utils import missing_feature, weblog, features, rfc, scenarios, flaky
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     BaseTestCookieNameFilter,
@@ -25,7 +25,6 @@ class TestNoHttponlyCookie(BaseSinkTest):
         "nodejs": get_nodejs_iast_file_paths(),
     }
 
-    @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 
@@ -35,12 +34,10 @@ class TestNoHttponlyCookie(BaseSinkTest):
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metric not implemented")
     @flaky(weblog_variant="vertx4", reason="APPSEC-56453")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

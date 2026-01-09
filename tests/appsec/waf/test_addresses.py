@@ -185,7 +185,6 @@ class Test_Cookies:
 
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0", reason="APMRP-360")
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
@@ -222,7 +221,6 @@ class Test_BodyUrlEncoded:
         """AppSec detects attacks in URL encoded body values"""
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
-    @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
@@ -311,7 +309,6 @@ class Test_ResponseStatus:
     def setup_basic(self):
         self.r = weblog.get("/mysql")
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_basic(self):
         """AppSec reports 404 responses"""
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
