@@ -892,6 +892,83 @@ def build_manifest_entries(
         
         # Check for weblog_variant keyword (e.g., weblog_variant="express4")
         weblog_variant_keyword = _parse_weblog_variant_keyword(keywords)
+        
+        # If component filter is specified, check if this decorator affects ONLY that component
+        if component:
+            # Parse condition to determine affected components
+            condition_info = None
+            if args:
+                condition_str = args[0]
+                if not _is_complex_condition(condition_str):
+                    condition_info = _parse_component_condition(condition_str)
+            
+            affected_components = set()
+            
+            # Case 1: library keyword (e.g., library="java")
+            if library_filter:
+                if _is_component_name(library_filter):
+                    affected_components.add(library_filter)
+                else:
+                    # Weblog name, not component - affects all components (for that weblog)
+                    # Skip this decorator as it affects multiple/all components
+                    continue
+            
+            # Case 2: Condition with equality (e.g., context.library == "java")
+            if condition_info and condition_info.get("is_equality"):
+                operator = condition_info.get("operator")
+                component_list = condition_info.get("component_list", [])
+                
+                if operator == "==":
+                    # Affects only the specified component(s)
+                    for comp in component_list:
+                        if "@" in comp:
+                            base_comp = comp.split("@")[0]
+                        else:
+                            base_comp = comp
+                        if _is_valid_component(base_comp):
+                            affected_components.add(base_comp)
+                    # If multiple components, affects multiple - skip
+                    if len(affected_components) > 1:
+                        continue
+                elif operator == "!=":
+                    # Affects all components EXCEPT the specified one(s)
+                    # This means it affects multiple components - skip
+                    continue
+                elif operator == "in":
+                    # Affects multiple components (the ones in the list) - skip
+                    continue
+            
+            # Case 3: Condition with "in" operator (e.g., context.library in ["java", "python"])
+            if condition_info and condition_info.get("operator") == "in" and condition_info.get("component_type") == "library":
+                # Affects multiple components - skip
+                continue
+            
+            # Case 4: Condition with version comparison (e.g., context.library < "java@2.0.0")
+            elif condition_info and condition_info.get("version"):
+                component_name = condition_info.get("component")
+                if component_name:
+                    if "@" in component_name:
+                        base_comp = component_name.split("@")[0]
+                    else:
+                        base_comp = component_name
+                    if _is_valid_component(base_comp):
+                        affected_components.add(base_comp)
+            
+            # Case 5: No library filter and no condition -> affects all components - skip
+            if not library_filter and not condition_info:
+                continue
+            
+            # Check if this decorator affects ONLY the specified component
+            if not affected_components:
+                # No specific components identified - skip
+                continue
+            elif component not in affected_components:
+                # Decorator doesn't affect the specified component - skip
+                continue
+            elif len(affected_components) > 1:
+                # Decorator affects multiple components - skip (we only want single-component decorators)
+                continue
+            # At this point, affected_components == {component}, so we can proceed
 
         # Parse condition from first positional argument if present
         condition_info = None
@@ -2614,6 +2691,24 @@ if __name__ == "__main__":
     write_files_mode = "--write-files" in args
     errors_only_mode = "--errors-only" in args or "--unhandled-only" in args
 
+    # Parse --component argument
+    component_filter = None
+    if "--component" in args:
+        component_index = args.index("--component")
+        if component_index + 1 < len(args):
+            component_filter = args[component_index + 1]
+            # Remove --component and its value from args
+            args.pop(component_index)
+            args.pop(component_index)  # Now the value is at component_index
+        else:
+            print("Error: --component requires a component name (e.g., --component java)", file=sys.stderr)
+            sys.exit(1)
+        
+        # Validate component name
+        if not _is_valid_component(component_filter):
+            print(f"Error: Invalid component name '{component_filter}'. Valid components: {', '.join(sorted(_get_valid_component_names()))}", file=sys.stderr)
+            sys.exit(1)
+
     if manifest_mode:
         args.remove("--manifest")
     if write_files_mode:
@@ -2651,7 +2746,8 @@ if __name__ == "__main__":
 
         if manifest_mode or write_files_mode or errors_only_mode:
             # Build manifest entries (this will collect unhandled cases)
-            manifest_data, successfully_migrated = build_manifest_entries(usages)
+            # If component filter is specified, pass it to build_manifest_entries
+            manifest_data, successfully_migrated = build_manifest_entries(usages, component=component_filter)
 
             # Merge into combined results
             for nodeid, entries in manifest_data.items():
@@ -2684,6 +2780,25 @@ if __name__ == "__main__":
         if len(all_manifest_data) == 0:
             print(f"No manifest entries generated for decorator(s): {', '.join(decorator_names)}", file=sys.stderr)
             sys.exit(1)
+
+        # Filter by component if specified
+        if component_filter:
+            filtered_manifest_data: Dict[str, List[Dict[str, Any]]] = {}
+            for nodeid, entries in all_manifest_data.items():
+                filtered_entries = []
+                for entry in entries:
+                    entry_component = _extract_component_from_entry(entry)
+                    if entry_component == component_filter:
+                        filtered_entries.append(entry)
+                if filtered_entries:
+                    filtered_manifest_data[nodeid] = filtered_entries
+            
+            if len(filtered_manifest_data) == 0:
+                print(f"No manifest entries found for component '{component_filter}'", file=sys.stderr)
+                sys.exit(1)
+            
+            all_manifest_data = filtered_manifest_data
+            print(f"Filtering to component: {component_filter}", file=sys.stderr)
 
         output_dir = "manifests" if manifest_mode else "new.manifests"
         written_files, written_nodeids = write_manifest_files_by_component(all_manifest_data, output_dir=output_dir)
