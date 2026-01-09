@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -44,21 +45,8 @@ class GoProxiesScenario(DockerScenario):
             rc_api_enabled=rc_api_enabled,
         )
 
-        self._agent_container = AgentContainer()
-        self._processor_container: ProcessorContainer = self._build_processor_container()
-        self._proxy_runtime_container: ProxyRuntimeContainer = self._build_proxy_runtime_container()
-        self._http_app_container = DummyServerContainer()
-
-        self._agent_container.depends_on.append(self.proxy_container)
-        self._processor_container.depends_on.append(self.proxy_container)
-
-        self._proxy_runtime_container.depends_on.append(self._processor_container)
-        self._proxy_runtime_container.depends_on.append(self._http_app_container)
-
-        self._required_containers.append(self._agent_container)
-        self._required_containers.append(self._processor_container)
-        self._required_containers.append(self._proxy_runtime_container)
-        self._required_containers.append(self._http_app_container)
+        self._base_required_containers = list(self._required_containers)
+        self._init_containers()
 
     def _build_processor_container(self) -> ProcessorContainer:
         env = dict(self._processor_env or {})
@@ -76,6 +64,13 @@ class GoProxiesScenario(DockerScenario):
         return HAProxyContainer()
 
     def configure(self, config: pytest.Config):
+        if self.replay:
+            variant_from_logs = self._discover_weblog_variant_from_logs()
+
+            if variant_from_logs and variant_from_logs != self._weblog_variant:
+                logger.stdout(f"Replay detected weblog variant from logs: {variant_from_logs}")
+                self._set_weblog_variant(variant_from_logs)
+
         super().configure(config)
 
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
@@ -134,6 +129,41 @@ class GoProxiesScenario(DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
+
+    def _init_containers(self) -> None:
+        self._agent_container = AgentContainer()
+        self._processor_container = self._build_processor_container()
+        self._proxy_runtime_container = self._build_proxy_runtime_container()
+        self._http_app_container = DummyServerContainer()
+
+        self._agent_container.depends_on = [self.proxy_container]
+        self._processor_container.depends_on = [self.proxy_container]
+        self._proxy_runtime_container.depends_on = [self._processor_container, self._http_app_container]
+
+        self._required_containers = [
+            *self._base_required_containers,
+            self._agent_container,
+            self._processor_container,
+            self._proxy_runtime_container,
+            self._http_app_container,
+        ]
+
+    def _set_weblog_variant(self, weblog_variant: str) -> None:
+        if self._weblog_variant == weblog_variant:
+            return
+
+        self._weblog_variant = weblog_variant
+        self._init_containers()
+
+    def _discover_weblog_variant_from_logs(self) -> str | None:
+        docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
+        docker_logs_dir = docker_logs_dir / self.host_log_folder / "docker"
+
+        for variant in ("haproxy", "envoy"):
+            if (docker_logs_dir / variant).is_dir():
+                return variant
+
+        return None
 
     @property
     def weblog_variant(self):
