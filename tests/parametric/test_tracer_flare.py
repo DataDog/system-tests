@@ -239,7 +239,6 @@ class TestTracerFlareV1:
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
-    @missing_feature(context.library < "java@1.42.0", reason="config id needed to be a specific string before 1.42.0")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_content_with_debug(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         log_cfg_id = _set_log_level(test_agent, "debug")

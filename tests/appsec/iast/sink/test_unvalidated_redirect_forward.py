@@ -28,7 +28,6 @@ class TestUnvalidatedForward(BaseSinkTestWithoutTelemetry):
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
 
-    @missing_feature(library="java", reason="weblog responds 500")
     def test_secure(self):
         super().test_secure()
 

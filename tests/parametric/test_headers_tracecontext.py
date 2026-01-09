@@ -702,7 +702,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -745,7 +744,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -766,7 +764,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.50.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -821,7 +818,6 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.39.0", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -964,7 +960,6 @@ class Test_Headers_Tracecontext:
         assert case1["parent_id"] == 987654320
         assert "_dd.parent_id" not in case1["meta"]
 
-    @missing_feature(context.library < "java@1.36", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_context_leak(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure high order bits do not leak between traces"""

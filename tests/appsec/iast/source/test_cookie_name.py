@@ -17,7 +17,6 @@ class TestCookieName(BaseSourceTest):
     source_value = "table"
 
     @missing_feature(library="dotnet", reason="Not implemented")
-    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
@@ -27,7 +26,6 @@ class TestCookieName(BaseSourceTest):
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @missing_feature(weblog_variant="akka-http", reason="Not working as expected")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

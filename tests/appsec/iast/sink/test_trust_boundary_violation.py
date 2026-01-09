@@ -18,12 +18,10 @@ class Test_TrustBoundaryViolation(BaseSinkTest):
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="dotnet", reason="Metrics implemented")
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
     @missing_feature(library="nodejs", reason="Metrics implemented")
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
