@@ -61,7 +61,7 @@ def get_context_tracer_version() -> Version:
         # python version scheme uses a dot to separate prerelease tag
         version = f"{major}.{minor}.{patch}"
         if prerelease:
-            version += f".{prerelease}"
+            version += f".{'.'.join(prerelease)}"
 
         return Version(version)
     else:
