@@ -381,6 +381,20 @@ class Test_Blocking_request_query:
             assert response.status_code == 403
             interfaces.library.assert_waf_attack(response, rule="tst-037-001")
 
+    def setup_blocking_case(self):
+        self.case_req_block1 = weblog.get("/waf?attack=none&Attack=magic_key_oe1rh0goiw8jef&ATTACK=none")
+
+    def test_blocking_case(self):
+        """Test if requests that should not be blocked are not blocked"""
+        assert self.case_req_block1.status_code == 403
+
+    def setup_non_blocking_case(self):
+        self.case_req_nonblock2 = weblog.get("/waf?attack=magic_key_oe1rh0goiw8jef&Attack=none&ATTACK=magic_key_oe1rh0goiw8jef")
+
+    def test_non_blocking_case(self):
+        """Test if requests that should not be blocked are not blocked"""
+        assert self.case_req_nonblock2.status_code == 200
+
     def setup_non_blocking(self):
         self.setup_blocking()
         # path parameters are not a part of query parameters

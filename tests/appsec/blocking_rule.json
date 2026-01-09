@@ -301,6 +301,35 @@
       ]
     },
     {
+      "id": "tst-037-001b",
+      "name": "Test block on query uppercase",
+      "tags": {
+        "type": "lfi",
+        "crs_id": "000001b",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.query",
+                "key_path": [
+                  "Attack"
+                ]
+              }
+            ],
+            "regex": "magic_key_oe1rh0goiw8jef"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
       "id": "tst-037-002",
       "name": "Test block on uri",
       "tags": {
