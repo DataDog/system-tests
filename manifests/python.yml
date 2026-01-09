@@ -564,9 +564,7 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         "*": v3.7.0.dev
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf:
-    - weblog_declaration:
-        "*": v3.7.0.dev
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf: bug (APPSEC-60527)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
     - weblog_declaration:
         "*": v3.7.0.dev
