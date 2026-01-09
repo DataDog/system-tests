@@ -17,6 +17,7 @@ use Amp\Http\Server\Middleware;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
 use DDTrace\Configuration;
+use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
@@ -194,6 +195,16 @@ $router->addRoute('POST', '/trace/span/set_metric', new ClosureRequestHandler(fu
     } else {
         $span->metrics[arg($req, 'key')] = arg($req, 'value');
     }
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/span/manual_keep', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $span->meta[Tag::MANUAL_KEEP] = true;
+    return jsonResponse([]);
+}));
+$router->addRoute('POST', '/trace/span/manual_drop', new ClosureRequestHandler(function (Request $req) use (&$spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $span->meta[Tag::MANUAL_DROP] = true;
     return jsonResponse([]);
 }));
 $router->addRoute('POST', '/trace/span/error', new ClosureRequestHandler(function (Request $req) use (&$spans) {

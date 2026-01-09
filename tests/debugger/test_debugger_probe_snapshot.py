@@ -434,8 +434,20 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+        condition=context.library.name not in ("java", "dotnet", "python"),
         reason="Not yet implemented",
+    )
+    @missing_feature(
+        condition=context.weblog_variant == "spring-boot-3-native",
+        reason="Not yet implemented",
+    )
+    @missing_feature(
+        condition=context.library < "dotnet@3.32.0",
+        reason="Not implemented in older versions",
+    )
+    @missing_feature(
+        condition=context.library < "python@4.1.0",
+        reason="Not implemented in older versions",
     )
     def test_process_tags_snapshot(self):
         self._assert()

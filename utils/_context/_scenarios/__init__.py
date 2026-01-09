@@ -25,6 +25,7 @@ from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
@@ -497,15 +498,15 @@ class _Scenarios:
         ],
     )
 
-    feature_flag_exposure = EndToEndScenario(
-        "FEATURE_FLAG_EXPOSURE",
+    feature_flagging_and_experimentation = EndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
         },
         doc="",
-        scenario_groups=[scenario_groups.feature_flag_exposure],
+        scenario_groups=[scenario_groups.ffe],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -869,14 +870,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    demo_aws = InstallerAutoInjectionScenario(
-        "DEMO_AWS",
-        "Demo aws scenario",
-        vm_provision="demo",
-        scenario_groups=[],
-        github_workflow="aws_ssi",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
@@ -1158,6 +1151,19 @@ class _Scenarios:
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
+
+    ai_guard = EndToEndScenario(
+        "AI_GUARD",
+        include_vcr_cassettes=True,
+        weblog_env={
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+        },
+        doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.appsec],
     )
 
 

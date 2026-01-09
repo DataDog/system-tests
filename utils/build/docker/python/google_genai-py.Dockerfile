@@ -1,0 +1,23 @@
+
+FROM python:3.11-slim
+ARG FRAMEWORK_VERSION
+
+# install bin dependancies
+RUN apt-get update && apt-get install -y curl
+
+WORKDIR /app
+
+RUN python -m pip install fastapi==0.100.0 uvicorn==0.20.0
+RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
+        python -m pip install google-genai; \
+    else \
+        python -m pip install google-genai==$FRAMEWORK_VERSION; \
+    fi
+
+COPY utils/build/docker/python/google_genai_app/system_tests_library_version.sh system_tests_library_version.sh
+COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
+
+RUN /binaries/install_ddtrace.sh
+RUN mkdir /integration-framework-tracer-logs
+
+CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "google_genai"]

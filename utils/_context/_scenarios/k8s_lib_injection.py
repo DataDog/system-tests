@@ -79,10 +79,13 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         # Get component versions: lib init, cluster agent, injector
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
-        self.components["cluster_agent"] = self.k8s_cluster_img.version
+        self.components[self._library.name] = self._library.version
+        self.components["k8s_cluster_agent"] = ComponentVersion("cluster_agent", self.k8s_cluster_img.version).version
         self._configuration["cluster_agent"] = self.k8s_cluster_img.version
         self._datadog_apm_inject_version = f"v{self.k8s_injector_img.version}"
-        self.components["datadog-apm-inject"] = self._datadog_apm_inject_version
+        self.components["datadog-apm-inject"] = ComponentVersion(
+            "cluster_agent", self._datadog_apm_inject_version
+        ).version
 
         # Configure the K8s cluster provider
         # By default we are going to use kind cluster provider
@@ -202,7 +205,8 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
         self.k8s_lib_init_img = K8sComponentImage(config.option.k8s_lib_init_img, extract_library_version)
         # Get Lib init version
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
-        self.components["library"] = str(self._library)
+        self.components["library"] = self._library.version
+        self.components[self._library.name] = self._library.version
 
         # Configure the K8s cluster provider
         # By default we are going to use kind cluster provider

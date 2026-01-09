@@ -4,7 +4,9 @@ from pathlib import Path
 import shutil
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
+    from utils._context.component_version import Version
     from collections.abc import Callable
 
 import pytest
@@ -61,8 +63,8 @@ class _ScenarioGroups:
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
+    ffe = ScenarioGroup()
     default = ScenarioGroup()
-    feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -111,7 +113,7 @@ class Scenario:
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
         # key value pair of what is actually tested
-        self.components: dict[str, str] = {}
+        self.components: dict[str, Version | str] = {}
 
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
