@@ -72,9 +72,12 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         # Setup container volumes with app code
         container_volumes = {f"./utils/build/docker/{library}/{framework_dir}_app": "/app/integration_frameworks"}
 
-        # Add nodejs-load-from-local volume support if needed
         if library == "nodejs":
             container_volumes.update(self.get_node_volumes())
+        elif library == "python":
+            python_env, python_volumes = self.get_python_env_and_volumes()
+            self.environment.update(python_env)
+            container_volumes.update(python_volumes)
 
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
