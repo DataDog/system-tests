@@ -163,13 +163,13 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
-                probe["evaluateAt"] = "EXIT"
 
                 # PHP validates that the segments field is present.
                 if "segments" not in probe:
                     probe["segments"] = []
 
                 if probe["where"]["typeName"] == "ACTUAL_TYPE_NAME":
+                    probe["evaluateAt"] = "EXIT"
                     if language == "dotnet":
                         probe["where"]["typeName"] = "weblog.DebuggerController"
                     elif language == "java":
