@@ -60,7 +60,7 @@ class TestManifest:
                 },
                 {
                     "weblog": ["django-poc", "django-py3.13", "python3.12"],
-                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
+                    "excluded_component_version": CustomSpec(">=3.12.0-dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
