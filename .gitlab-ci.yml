@@ -249,8 +249,8 @@ check_merge_labels:
   before_script:
     # Get a token
     - dd-octo-sts version
-    - dd-octo-sts debug --scope DataDog/dd-octo-sts-sandbox --policy YOUR_POLICY
-    - dd-octo-sts token --scope DataDog/dd-octo-sts-sandbox --policy YOUR_POLICY > token.txt
+    - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
+    - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
