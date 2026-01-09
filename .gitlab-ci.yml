@@ -244,6 +244,7 @@ check_merge_labels:
   id_tokens:
     DDOCTOSTS_ID_TOKEN:
       aud: dd-octo-sts
+  needs: []
   stage: system-tests-utils
   before_script:
     # Get a token
