@@ -54,7 +54,7 @@ class Test_Process_Tags:
             # for python, libdatadog also send telemetry on its own not containing process_tags
             payload = data["request"]["content"].get("payload")
             if payload is not None and "series" in payload:
-                if any("src_library:libdatadog" in series["tags"] for series in payload["series"]):
+                if any("src_library:libdatadog" in series.get("tags", []) for series in payload["series"]):
                     continue
 
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
