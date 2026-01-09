@@ -130,7 +130,7 @@ class ManifestEditor:
 
     def set_context(self, context: Context) -> ManifestEditor:
         self.context = context
-        self.manifest.update_rules(context.library, context.library_version, context.variant)
+        self.manifest.update_rules({context.library: context.library_version}, context.variant)
         return self
 
     def get_matches(self, nodeid: str) -> set[View]:
