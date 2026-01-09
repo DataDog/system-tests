@@ -104,6 +104,12 @@ class ComponentVersion:
                 # the we can hack to move it to the built part:
                 version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
+            elif name == "python":
+                # dd-trace-py has to use 4.3.0.dev0 because that is the PyPI/pip compatible version tag,
+                # otherwise it isn't compatible with the Python packaging ecosystem. We need to translate 4.3.0.dev0
+                # into 4.3.0-dev0, otherwise, coerce will set dev0 as build metadata, instead of pre-release.
+                version = re.sub(r"(\d+\.\d+.\d+)\.([^.]+)", r"\1-\2", version)
+
             self.version = Version(version)
 
             self.add_known_version(self.version)
