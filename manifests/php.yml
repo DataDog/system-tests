@@ -1,5 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v1.6.2
@@ -297,6 +301,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v1.12.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v1.12.0
   tests/appsec/test_identify.py::Test_Basic: v0.85.0
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
@@ -394,6 +399,8 @@ manifest:
         apache-mod-8.0: v1.8.3
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
+  tests/ffe/test_dynamic_evaluation.py: missing_feature
+  tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: missing_feature
@@ -425,6 +432,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation: v1.8.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context: v1.8.0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v1.8.0
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: v1.9.0
@@ -447,7 +455,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v1.4.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature
-  tests/parametric/test_feature_flag_exposure/test_feature_flag_exposure.py::Test_Feature_Flag_Exposure: missing_feature
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0
@@ -527,11 +535,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature

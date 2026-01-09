@@ -169,9 +169,7 @@ class Test_Span_Events:
         self._test_span_with_meta_event(library_env, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
-    def test_span_with_invalid_event_attributes(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_span_with_invalid_event_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event, with invalid attributes, to an active span.
         Span events with invalid attributes should be discarded.
         Valid attributes should be kept.

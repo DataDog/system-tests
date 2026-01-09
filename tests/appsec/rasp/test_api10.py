@@ -9,7 +9,7 @@ from utils import features, weblog, interfaces, scenarios, rfc
 
 from tests.appsec.rasp.utils import (
     find_series,
-    validate_metric_variant_v2,
+    validate_metric_variant_v2_exists,
 )
 
 
@@ -265,22 +265,13 @@ class Test_API10_downstream_ssrf_telemetry(API10):
     def test_api10_req(self):
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
-        assert any(validate_metric_variant_v2("rasp.rule.eval", "ssrf", "request", s) for s in series_eval), [
-            s.get("tags") for s in series_eval
-        ]
-        assert any(validate_metric_variant_v2("rasp.rule.eval", "ssrf", "response", s) for s in series_eval), [
-            s.get("tags") for s in series_eval
-        ]
+        assert validate_metric_variant_v2_exists("rasp.rule.eval", "ssrf", "request", series_eval)
+        assert validate_metric_variant_v2_exists("rasp.rule.eval", "ssrf", "response", series_eval)
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
-
-        assert any(validate_metric_variant_v2("rasp.rule.match", "ssrf", "request", s) for s in series_match), [
-            s.get("tags") for s in series_match
-        ]
-        assert any(validate_metric_variant_v2("rasp.rule.match", "ssrf", "response", s) for s in series_match), [
-            s.get("tags") for s in series_match
-        ]
+        assert validate_metric_variant_v2_exists("rasp.rule.match", "ssrf", "request", series_match)
+        assert validate_metric_variant_v2_exists("rasp.rule.match", "ssrf", "response", series_match)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7Cwg/edit#heading=h.giijrtyn1fdx")

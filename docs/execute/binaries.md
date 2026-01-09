@@ -138,8 +138,12 @@ Then run the tests from the repo root folder:
 
 ## Python library
 
-1. Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
-2. Clone the dd-trace-py repo inside `binaries`
+Use one of the four options:
+
+- Add a `.tar.gz` or a `.whl` file in `binaries`, pip will install it
+- Add a `python-load-from-pip` file in `binaries`, its content will be sent to `pip install`
+- Add a `python-load-from-s3` file in `binaries`, with a dd-trace-py commit ID or branch inside, the corresponding wheel will be loaded from S3
+- Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
 
 
 ## Ruby library

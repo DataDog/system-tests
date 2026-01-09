@@ -1,12 +1,12 @@
 from utils import weblog, interfaces, scenarios, features, context
-from utils._decorators import missing_feature, irrelevant
+from utils import missing_feature, irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 
 @scenarios.tracing_config_nondefault
 @features.process_tags
 @missing_feature(
-    condition=context.library.name not in ("java", "golang"),
+    condition=context.library.name not in ("java", "golang", "dotnet"),
     reason="Not yet implemented",
 )
 class Test_Process_Tags:

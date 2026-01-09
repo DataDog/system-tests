@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 #
 # For features that are not yet available in the latest release,
@@ -8,16 +9,19 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v1.8.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v1.8.0
   tests/appsec/api_security/test_apisec_sampling.py: "irrelevant (sampling works differently in proxies: RFC 1035)"
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v1.10.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v1.10.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v1.10.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v1.10.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v1.10.0
   tests/appsec/api_security/test_endpoint_discovery.py: irrelevant (not applicable to proxies)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.8.0
@@ -86,6 +90,7 @@ manifest:
   tests/appsec/test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_fingerprinting.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_identify.py: irrelevant (ASM is not implemented in C++)
+  tests/appsec/test_inferred_spans.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v1.3.0
   tests/appsec/test_logs.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_metastruct.py: irrelevant (ASM is not implemented in C++)
@@ -150,6 +155,8 @@ manifest:
   tests/appsec/waf/test_telemetry.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/waf/test_truncation.py: missing_feature (WAF truncation metrics not implemented)
   tests/debugger/: irrelevant
+  tests/ffe/test_dynamic_evaluation.py: missing_feature
+  tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: missing_feature
@@ -222,11 +229,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Empty: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_Exposure_Events_Errors: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Down_From_Start: missing_feature
-  tests/test_feature_flag_exposures.py::Test_FFE_RC_Unavailable: missing_feature
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature (APMAPI-869)

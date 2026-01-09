@@ -38,7 +38,7 @@ LIBRARIES = {
     "python",
     "ruby",
     "python_lambda",
-    # "rust",
+    "rust",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
@@ -167,6 +167,7 @@ class LibraryProcessor:
                 "version": "prod",
             }
             for library in sorted(self.selected)
+            if library not in ("rust",)
         ] + [
             {
                 "library": library,
@@ -191,9 +192,6 @@ class ScenarioProcessor:
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
     def process_manifests(self, inputs: Inputs) -> None:
-        if inputs.ref in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
-            self.scenario_groups |= {all_scenario_groups.all.name}
-            return
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
@@ -287,14 +285,13 @@ class Inputs:
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        if self.ref not in {"refs/pull/5575/merge", "nccatoni/manifest-migration"}:
-            self.new_manifests: ManifestData = Manifest.parse(new_manifests)
-            self.old_manifests: ManifestData = Manifest.parse(old_manifests)
+        self.new_manifests: ManifestData = Manifest.parse(new_manifests)
+        self.old_manifests: ManifestData = Manifest.parse(old_manifests)
 
-            if not self.new_manifests:
-                raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
-            if not self.old_manifests:
-                raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
+        if not self.new_manifests:
+            raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
+        if not self.old_manifests:
+            raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
 
         self.load_raw_impacts()
         self.load_scenario_mappings()

@@ -1,9 +1,16 @@
 from pathlib import Path
 from utils import scenarios
 from utils._context.component_version import Version
-from utils._decorators import CustomSpec
-from utils._decorators import _TestDeclaration as TestDeclaration
-from utils.manifest import Manifest, SkipDeclaration
+from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
+from utils.manifest._internal.types import SemverRange as CustomSpec
+
+
+def manifest_init(
+    components: dict[str, Version],
+    weblog: str = "some_variant",
+    path: Path = Path("tests/test_the_test/manifests/manifests_parser_test/"),
+):
+    return Manifest(components, weblog, path)
 
 
 @scenarios.test_the_test
@@ -26,6 +33,11 @@ class TestManifest:
                 },
             ],
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners": [
+                {
+                    "excluded_component_version": CustomSpec(">=2.6.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for agent is v2.6.0"),
+                    "component": "agent",
+                },
                 {"declaration": SkipDeclaration("missing_feature"), "component": "java"},
                 {
                     "excluded_component_version": CustomSpec(">=2.6.0"),
@@ -47,20 +59,8 @@ class TestManifest:
                     "component": "python",
                 },
                 {
-                    "weblog": ["django-poc"],
-                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
-                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
-                    "component": "python",
-                },
-                {
-                    "weblog": ["django-py3.13"],
-                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
-                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
-                    "component": "python",
-                },
-                {
-                    "weblog": ["python3.12"],
-                    "excluded_component_version": CustomSpec(">=3.12.0+dev"),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12"],
+                    "excluded_component_version": CustomSpec(">=3.12.0-dev"),
                     "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
                     "component": "python",
                 },
@@ -91,25 +91,33 @@ class TestManifest:
             "tests/appsec/iast/sink": [{"declaration": SkipDeclaration("missing_feature"), "component": "python"}],
             "tests/appsec/iast": [
                 {
-                    "excluded_component_version": CustomSpec(">=2.1.0"),
-                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.1.0"),
                     "component": "python",
+                    "component_version": CustomSpec("<3.11.0"),
+                    "declaration": SkipDeclaration(
+                        "missing_feature",
+                        "APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP",
+                    ),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12"],
+                }
+            ],
+            "tests/appsec/iast/test": [
+                {
+                    "component": "python",
+                    "component_version": CustomSpec("<3.11.0"),
+                    "declaration": SkipDeclaration("irrelevant"),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12", "fastapi"],
                 }
             ],
         }
 
     def test_all_missing_feature(self):
-        manifest = Manifest(
-            "python", Version("3.12.0"), "django-poc", path=Path("tests/test_the_test/manifests/manifests_parser_test/")
-        )
+        manifest = manifest_init({"python": Version("3.12.0")}, "django-poc")
         assert manifest.get_declarations("tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_function") == [
             SkipDeclaration(TestDeclaration.MISSING_FEATURE, "missing /e2e_otel_span endpoint on weblog")
         ]
 
     def test_variant_conditions(self):
-        manifest = Manifest(
-            "python", Version("3.12.0"), "django-poc", path=Path("tests/test_the_test/manifests/manifests_parser_test/")
-        )
+        manifest = manifest_init({"python": Version("3.12.0")}, "django-poc")
         assert (
             manifest.get_declarations(
                 "tests/apm_tracing_e2e/test_otel.py::Test_API_Security_RC_ASM_DD_scanners::test_function"
@@ -130,23 +138,13 @@ class TestManifest:
         )
 
     def test_variant_star(self):
-        manifest = Manifest(
-            "python",
-            Version("3.12.0"),
-            "some-variant",
-            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
-        )
+        manifest = manifest_init({"python": Version("3.12.0")})
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery"
         ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)]
 
     def test_variant_lower_version(self):
-        manifest = Manifest(
-            "python",
-            Version("2.4.0"),
-            "some-variant",
-            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
-        )
+        manifest = manifest_init({"python": Version("2.4.0")})
 
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners"
@@ -157,13 +155,15 @@ class TestManifest:
         ]
 
     def test_parametric_test(self):
-        manifest = Manifest(
-            "python",
-            Version("3.12.0"),
-            "some-variant",
-            path=Path("tests/test_the_test/manifests/manifests_parser_test/"),
-        )
+        manifest = manifest_init({"python": Version("3.12.0")})
 
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::func[param]"
         ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE)]
+
+    def test_non_library_component(self):
+        manifest = manifest_init({"python": Version("3.12.0"), "agent": Version("1.12.0")})
+
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners::func"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, details="declared version for agent is v2.6.0")]

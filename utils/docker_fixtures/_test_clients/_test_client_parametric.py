@@ -158,6 +158,12 @@ class _TestSpan:
     def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._client.span_add_event(self.span_id, name, time_unix_nano, attributes)
 
+    def manual_keep(self):
+        self._client.span_manual_keep(self.span_id)
+
+    def manual_drop(self):
+        self._client.span_manual_drop(self.span_id)
+
     def finish(self):
         self._client.finish_span(self.span_id)
 
@@ -409,6 +415,18 @@ class ParametricTestClientApi:
 
     def span_set_metric(self, span_id: int, key: str, value: float | list[int] | None) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
+
+    def span_manual_keep(self, span_id: int) -> None:
+        self._session.post(
+            self._url("/trace/span/manual_keep"),
+            json={"span_id": span_id},
+        )
+
+    def span_manual_drop(self, span_id: int) -> None:
+        self._session.post(
+            self._url("/trace/span/manual_drop"),
+            json={"span_id": span_id},
+        )
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -687,7 +705,7 @@ class ParametricTestClientApi:
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
     def ffe_start(self) -> bool:
-        """Initialize the FFE (Feature Flag Exposure) provider.
+        """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
@@ -1058,7 +1076,7 @@ class APMLibrary:
         return self._client.write_log(message, level, logger_name, logger_type, span_id)
 
     def ffe_start(self) -> bool:
-        """Initialize the FFE (Feature Flag Exposure) provider."""
+        """Initialize the FFE (Feature Flagging & Experimentation) provider."""
         return self._client.ffe_start()
 
     def ffe_evaluate(

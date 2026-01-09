@@ -165,7 +165,6 @@ class Test_Cookies:
         "encoded to represent disallowed octets",
     )
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
-    @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
     @scenarios.appsec_custom_rules
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""
