@@ -6,37 +6,6 @@
 
 set -eu
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SYSTEM_TESTS_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-
-# Default values
-PYTHON_VERSION="3.11"
-DOCKER_PLATFORM=""
-
-# Path to dd-trace-py (can be overridden with DD_TRACE_PY_PATH env var)
-DD_TRACE_PY_PATH="${DD_TRACE_PY_PATH:-}"
-
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -h|--help)
-            usage
-            ;;
-        --platform)
-            DOCKER_PLATFORM="$2"
-            shift 2
-            ;;
-        -*)
-            echo "Unknown option: $1"
-            usage
-            ;;
-        *)
-            PYTHON_VERSION="$1"
-            shift
-            ;;
-    esac
-done
-
 usage() {
     cat <<EOF
 Usage: $0 [OPTIONS] [PYTHON_VERSION]
@@ -73,6 +42,37 @@ EOF
     exit 0
 }
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SYSTEM_TESTS_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+# Default values
+PYTHON_VERSION="3.11"
+DOCKER_PLATFORM=""
+
+# Path to dd-trace-py (can be overridden with DD_TRACE_PY_PATH env var)
+DD_TRACE_PY_PATH="${DD_TRACE_PY_PATH:-}"
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            usage
+            ;;
+        --platform)
+            DOCKER_PLATFORM="$2"
+            shift 2
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            usage
+            ;;
+        *)
+            PYTHON_VERSION="$1"
+            shift
+            ;;
+    esac
+done
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     usage
 fi
@@ -80,7 +80,7 @@ fi
 # Determine dd-trace-py path
 if [[ -z "$DD_TRACE_PY_PATH" ]]; then
     PYTHON_LOAD_FROM_LOCAL="${SYSTEM_TESTS_ROOT}/binaries/python-load-from-local"
-    
+
     if [[ ! -f "$PYTHON_LOAD_FROM_LOCAL" ]]; then
         echo "ERROR: Cannot find dd-trace-py path."
         echo "Either:"
@@ -88,7 +88,7 @@ if [[ -z "$DD_TRACE_PY_PATH" ]]; then
         echo "  2. Set DD_TRACE_PY_PATH environment variable to the absolute path"
         exit 1
     fi
-    
+
     # Read relative path and convert to absolute
     RELATIVE_PATH=$(cat "$PYTHON_LOAD_FROM_LOCAL" | tr -d ' \r\n')
     DD_TRACE_PY_PATH="$(cd "${SYSTEM_TESTS_ROOT}/${RELATIVE_PATH}" && pwd)"
@@ -103,7 +103,7 @@ fi
 if [[ -z "$DOCKER_PLATFORM" ]]; then
     ARCH=$(uname -m)
     case $ARCH in
-        arm64|aarch64) 
+        arm64|aarch64)
             DOCKER_PLATFORM="linux/arm64/v8"
             ;;
         *)
