@@ -1,6 +1,8 @@
 Datadog.configure do |c|
   c.diagnostics.debug = true
   c.appsec.instrument :active_record
+
+  c.ai_guard.enabled = true
 end
 
 # Send non-web init event
