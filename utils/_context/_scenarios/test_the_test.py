@@ -1,3 +1,4 @@
+import pytest
 from utils._context.component_version import ComponentVersion
 from .core import Scenario
 
@@ -17,3 +18,13 @@ class TestTheTestScenario(Scenario):
     @property
     def weblog_variant(self):
         return "spring"
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+
+        self.warmups.append(self._set_components)
+
+    def _set_components(self) -> None:
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
+        self.components["agent"] = self.agent_version

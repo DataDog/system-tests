@@ -102,12 +102,15 @@ def assert_scope_metric(
 ):
     assert scope_metric["scope"]["name"] == meter_name
     assert scope_metric["scope"]["version"] == meter_version
-    assert (
-        expected_scope_attributes.items()
-        == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
-    )
 
-    if context.library != "dotnet":  # .NET does not support schema_url
+    if context.library != "ruby":
+        # Ruby Exporter is still in beta, it does not support scope attributes
+        assert (
+            expected_scope_attributes.items()
+            == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
+        )
+
+    if context.library not in ("dotnet", "ruby"):  # .NET and Ruby do not support schema_url
         assert scope_metric["schema_url"] == schema_url
 
 
@@ -214,7 +217,6 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
@@ -281,7 +283,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_MeterProvider:
     """Tests the OpenTelemetry MeterProvider API functionality.
@@ -352,7 +353,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Meter:
     """Tests the OpenTelemetry Meter API functionality.
@@ -574,7 +574,6 @@ class Test_Otel_Metrics_Api_Meter:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Instrument:
     """Tests the OpenTelemetry Instrument API functionality.
@@ -1161,7 +1160,6 @@ class Test_Otel_Metrics_Api_Instrument:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Temporality_Preference:
     """Tests the OpenTelemetry metrics aggregation temporality preference configuration.
@@ -1353,7 +1351,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """Tests the OpenTelemetry OTLP exporter metrics endpoint configuration.
@@ -1396,7 +1393,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1465,7 +1462,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1507,7 +1504,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
@@ -1540,12 +1536,10 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert metrics_requests[0]["headers"].get("api-key") == "key", (
-            f"Expected api-key, got {metrics_requests[0]['headers']}"
-        )
-        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
-        )
+        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
+        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
+        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
+        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1573,12 +1567,10 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert metrics_requests[0]["headers"].get("api-key") == "key", (
-            f"Expected api-key, got {metrics_requests[0]['headers']}"
-        )
-        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
-        )
+        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
+        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
+        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
+        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
 
 @features.otel_metrics_api
@@ -1587,7 +1579,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
     """Tests the OpenTelemetry OTLP exporter metrics protocol configuration.
@@ -1664,7 +1655,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
@@ -1766,7 +1756,6 @@ class Test_Otel_Metrics_Host_Name:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Resource_Attributes:
     """Tests the OpenTelemetry metrics resource attributes configuration.
@@ -1917,7 +1906,6 @@ class Test_Otel_Metrics_Resource_Attributes:
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Telemetry:
     """Tests the OpenTelemetry metrics telemetry configuration reporting.
@@ -2081,6 +2069,8 @@ class Test_Otel_Metrics_Telemetry:
             {
                 **DEFAULT_ENVVARS,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # Required by ruby metrics exporter, defaults to 10 seconds
+                "DD_TELEMETRY_METRICS_AGGREGATION_INTERVAL": "0.1",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             },
         ],
