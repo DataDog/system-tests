@@ -30,6 +30,9 @@ static_resources:
                       grpc_service:
                         envoy_grpc:
                           cluster_name: ext_proc_cluster
+                        initial_metadata:
+                          - key: x-datadog-envoy-integration
+                            value: '1'
                         timeout: 0.25s
                   - name: envoy.filters.http.router
                     typed_config:
