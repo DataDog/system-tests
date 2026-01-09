@@ -32,12 +32,6 @@ class ProfilingScenario(EndToEndScenario):
             self.weblog_container.environment["LD_PRELOAD"] = (
                 "/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so"
             )
-        elif library == "python":
-            # https://ddtrace.readthedocs.io/en/stable/configuration.html#DD_PROFILING_STACK_V2_ENABLED
-            # profiling is known to be unstable on python3.11, and this value is here to fix that
-            # it's not yet the default behaviour, but it will be in the future
-            self.weblog_container.environment["DD_PROFILING_STACK_V2_ENABLED"] = "true"
-
         elif library == "nodejs":
             # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
             self._require_api_key = True
