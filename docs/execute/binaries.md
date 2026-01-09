@@ -145,6 +145,12 @@ Use one of the four options:
 - Add a `python-load-from-s3` file in `binaries`, with a dd-trace-py commit ID or branch inside, the corresponding wheel will be loaded from S3
 - Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
 
+For fast local development (for `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios):
+- Add a `python-load-from-local` file in `binaries`, with its contents being the relative path to the dd-trace-py repo on your machine
+- Run `utils/scripts/build_ddtrace_py_native.sh` to build the native extensions for the Python version you are using, if they are not already built for the scenario you are running (for example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the python:3.11-slim image). Skip this step if the native extensions are already built for the python version used by the scenario you are running (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` exists).
+  - If you are actively testing features in `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios that require native extensions changes, you will need to rebuild these files each time they are changed.
+- Run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
+
 
 ## Ruby library
 
