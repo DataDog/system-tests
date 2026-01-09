@@ -33,16 +33,16 @@ class Test_SingleSpan:
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
-        span = spans[0]
+        span, _span_format = spans[0]
         assert span["name"] == "parent.span.single_span_submitted"
         assert span.get("parentID") is None
         assert span["metrics"]["_dd.top_level"] == 1.0
         _assert_single_span_metrics(span)
 
         # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_single_spans_exist(self.req)
-        assert len(spans) == 1
-        _assert_single_span_event(spans[0], "parent.span.single_span_submitted", is_root=True)
+        backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
+        assert len(backend_spans) == 1
+        _assert_single_span_event(backend_spans[0], "parent.span.single_span_submitted", is_root=True)
 
     def setup_child_span_is_single_span(self):
         self.req = weblog.get(
@@ -56,15 +56,15 @@ class Test_SingleSpan:
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
-        span = spans[0]
+        span, _span_format = spans[0]
         assert span["name"] == "child.span.single_span_submitted"
         assert span["parentID"] is not None
         _assert_single_span_metrics(span)
 
         # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_single_spans_exist(self.req)
-        assert len(spans) == 1
-        _assert_single_span_event(spans[0], "child.span.single_span_submitted", is_root=False)
+        backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
+        assert len(backend_spans) == 1
+        _assert_single_span_event(backend_spans[0], "child.span.single_span_submitted", is_root=False)
 
 
 def _assert_single_span_event(event: dict, name: str, *, is_root: bool):

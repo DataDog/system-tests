@@ -73,7 +73,22 @@ class V1AnyValueKeys(IntEnum):
 
 # Keys that are strings so may arrive as indexes into the strings list
 _chunk_key_strings = ["origin"]
-_span_key_strings = ["service", "name_value", "resource", "type_value", "env", "version", "component"]
+_span_key_strings = [
+    "service",
+    "name_value",
+    "resource",
+    "type_value",
+    "env",
+    "version",
+    "component",
+    "serviceRef",
+    "typeRef",
+    "nameRef",
+    "resourceRef",
+    "envRef",
+    "versionRef",
+    "componentRef",
+]
 
 
 def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
@@ -273,13 +288,29 @@ def deserialize_v1_trace(content: bytes) -> dict:
     return data
 
 
+def _uncompress_span_link(link: dict, strings: list[str]) -> None:
+    """Uncompress a span link by deserializing traceID, attributes, and tracestate."""
+    # Deserialize the base64-encoded traceID
+    _deserialize_base64_trace_id(link)
+
+    # Uncompress attributes
+    if "attributes" in link:
+        link["attributes"] = _uncompress_attributes(link["attributes"], strings)
+
+    # Resolve tracestateRef to tracestate
+    if "tracestateRef" in link:
+        tracestate_ref = link.pop("tracestateRef")
+        if isinstance(tracestate_ref, int) and tracestate_ref < len(strings):
+            link["tracestate"] = strings[tracestate_ref]
+
+
 def _uncompress_agent_v1_trace(data: dict, interface: str):
     if interface != "agent":
         return None
     if "idxTracerPayloads" not in data:
         return None
     for idx, idx_tracer_payload in enumerate(data.get("idxTracerPayloads", [])):
-        strings = idx_tracer_payload.get("strings")
+        strings = idx_tracer_payload.get("strings", [])
         data["idxTracerPayloads"][idx] = _uncompress_values(idx_tracer_payload, strings)
         data["idxTracerPayloads"][idx]["attributes"] = _uncompress_attributes(
             data["idxTracerPayloads"][idx].get("attributes", {}), strings
@@ -289,4 +320,7 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
             chunk["attributes"] = _uncompress_attributes(chunk.get("attributes", {}), strings)
             for span in chunk.get("spans", []):
                 span["attributes"] = _uncompress_attributes(span.get("attributes", {}), strings)
+                # Uncompress span links
+                for link in span.get("links", []):
+                    _uncompress_span_link(link, strings)
     return data

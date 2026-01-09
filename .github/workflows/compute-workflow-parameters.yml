@@ -155,7 +155,7 @@ jobs:
     - name: Get dev artifacts
       if: ${{ inputs._system_tests_dev_mode }}
       run: |
-        ./utils/scripts/load-binary.sh agent
+        echo 'datadog/agent-dev:andrew-glaude-convertingv1-py3' > binaries/agent-image
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
         LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
