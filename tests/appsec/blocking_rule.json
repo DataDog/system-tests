@@ -319,9 +319,9 @@
                 ]
               }
             ],
-            "regex": "magic_key_oe1rh0goiw8jef"
+            "list": ["magic_key_oe1rh0goiw8jef"]
           },
-          "operator": "match_regex"
+          "operator": "exact_match"
         }
       ],
       "transformers": [],
