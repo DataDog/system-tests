@@ -25,6 +25,7 @@ from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
@@ -1150,6 +1151,19 @@ class _Scenarios:
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
+
+    ai_guard = EndToEndScenario(
+        "AI_GUARD",
+        include_vcr_cassettes=True,
+        weblog_env={
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+        },
+        doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.appsec],
     )
 
 

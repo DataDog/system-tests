@@ -1,6 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v3.34.0
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)

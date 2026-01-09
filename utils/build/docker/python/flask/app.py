@@ -2077,3 +2077,30 @@ def external_request_redirect():
             )
     except urllib.error.HTTPError as e:
         return jsonify({"status": int(e.status), "error": repr(e)})
+
+
+@app.route("/ai_guard/evaluate", methods=["POST"])
+def ai_guard_evaluate():
+    """AI Guard evaluation endpoint."""
+    from ddtrace.internal.settings.asm import ai_guard_config
+
+    if not ai_guard_config._ai_guard_enabled:
+        return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
+
+    try:
+        from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+
+        should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
+        messages = flask_request.get_json()
+
+        client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
+        evaluation = client.evaluate(messages, Options(block=should_block))
+        return jsonify(evaluation), 200
+
+    except Exception as e:
+        if isinstance(e, AIGuardAbortError):
+            return jsonify(
+                {"action": getattr(e, "action", ""), "reason": getattr(e, "reason", ""), "tags": getattr(e, "tags", [])}
+            ), 403
+        else:
+            return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
