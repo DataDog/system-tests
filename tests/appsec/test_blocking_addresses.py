@@ -149,7 +149,6 @@ class Test_Blocking_user_id:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.go_proxies_blocking
-@scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_method:
@@ -205,7 +204,6 @@ class Test_Blocking_request_method:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
 @scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
@@ -274,7 +272,6 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.go_proxies_blocking
-@scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_path_params:
@@ -342,7 +339,6 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.go_proxies_blocking
-@scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_query:
@@ -402,7 +398,6 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.go_proxies_blocking
-@scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_headers:
@@ -461,7 +456,6 @@ class Test_Blocking_request_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
 @scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
@@ -675,7 +669,6 @@ class Test_Blocking_response_status:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenarios.go_proxies_blocking
 @scenarios.go_proxies_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
