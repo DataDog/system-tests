@@ -1,8 +1,17 @@
 import os
+from typing import TYPE_CHECKING
 
+import pulumi_aws
+import pulumi_command
 from utils._logger import logger
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.vm_logger import vm_logger
+from utils.virtual_machine.virtual_machine_provisioner import Installation
 from utils import context
+
+
+if TYPE_CHECKING:
+    from utils.virtual_machine.aws_provider import AWSCommander
 
 
 class VmProviderFactory:
@@ -35,9 +44,9 @@ class VmProvider:
         self.vm = None
         self.provision = None
         # Responsibility of the commander to execute commands on the VM
-        self.commander = None
+        self.commander: AWSCommander | None = None
 
-    def configure(self, virtual_machine):
+    def configure(self, virtual_machine: _VirtualMachine):
         self.vm = virtual_machine
 
     def stack_up(self):
@@ -50,7 +59,12 @@ class VmProvider:
         """Stop and destroy machines"""
         raise NotImplementedError
 
-    def install_provision(self, vm, server, server_connection):
+    def install_provision(
+        self,
+        vm: _VirtualMachine,
+        server: pulumi_aws.ec2.Instance,
+        server_connection: pulumi_command.remote.ConnectionArgs,
+    ):
         """Orchestrate the provision installation for a machine
         Vm object contains the provision for the machine.
         The provision structure must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Provision
@@ -131,7 +145,15 @@ class VmProvider:
                 logger_name=f"{vm.name}_var_log",
             )
 
-    def _remote_install(self, server_connection, vm, last_task, installation, logger_name=None, output_callback=None):
+    def _remote_install(
+        self,
+        server_connection: pulumi_command.remote.ConnectionArgs,
+        vm: _VirtualMachine,
+        last_task: pulumi_command.remote.Command,
+        installation: Installation,
+        logger_name=None,
+        output_callback=None,
+    ):
         """Manages a installation.
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation
         """

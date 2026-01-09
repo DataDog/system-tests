@@ -175,7 +175,7 @@ class MySFTPClient(paramiko.SFTPClient):
                 self.mkdir("%s/%s" % (target, item), ignore_existing=True)
                 self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
 
-    def mkdir(self, path, mode=511, ignore_existing=False):
+    def mkdir(self, path, mode=511, *, ignore_existing=False):
         """Augments mkdir by adding an option to not fail if the folder exists"""
         try:
             super(MySFTPClient, self).mkdir(path, mode)

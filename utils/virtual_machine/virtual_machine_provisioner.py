@@ -259,7 +259,7 @@ class Provision:
     def __init__(self, provision_name: str):
         self.provision_name = provision_name
         self.env = {}
-        self.installations = []
+        self.installations: list[Installation] = []
         self.lang_variant_installation = None
         self.weblog_installation = None
         self.tested_components_installation = None
@@ -334,7 +334,7 @@ class Installation:
         self.remote_command = None
         self.version = None
         self.nginx_config = None
-        self.copy_files = []
+        self.copy_files: list[CopyFile] = []
 
     def __repr__(self):
         """We use this method to calculate the hash of the object (cache)"""

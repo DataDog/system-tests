@@ -21,6 +21,7 @@ from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
 class AWSPulumiProvider(VmProvider):
@@ -31,7 +32,7 @@ class AWSPulumiProvider(VmProvider):
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_dev_onboarding"
 
-    def configure(self, virtual_machine):
+    def configure(self, virtual_machine: _VirtualMachine):
         super().configure(virtual_machine)
         # Configure the ssh connection for the VMs
         self.pulumi_ssh = PulumiSSH()
@@ -120,7 +121,7 @@ class AWSPulumiProvider(VmProvider):
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
 
-    def _start_vm(self, vm):
+    def _start_vm(self, vm: _VirtualMachine):
         ec2_user_data = None
         if vm.os_type == "windows":
             if vm.aws_config.ami_id == "AMI_FROM_SSM":
@@ -317,7 +318,7 @@ class AWSPulumiProvider(VmProvider):
 
 
 class AWSCommander(Commander):
-    def create_cache(self, vm, server, last_task):
+    def create_cache(self, vm: _VirtualMachine, server: aws.ec2.Instance, last_task: command.remote.Command):
         """Create a cache : Create an AMI from the server current status."""
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
@@ -360,15 +361,16 @@ class AWSCommander(Commander):
 
     def remote_command(
         self,
-        vm,
-        installation_id,
-        remote_command,
-        env,
+        vm: _VirtualMachine,
+        installation_id: str,
+        remote_command: str,
+        env: dict[str, str],
         connection,
         last_task,
-        logger_name=None,
+        logger_name: str | None = None,
         output_callback=None,
-        populate_env=True,
+        *,
+        populate_env: bool = True,
     ):
         if not populate_env:
             ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
@@ -405,7 +407,15 @@ class AWSCommander(Commander):
         return cmd_exec_install
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
+        self,
+        source_folder: str,
+        destination_folder: str | None,
+        command_id: str,
+        connection: command.remote.ConnectionArgs,
+        depends_on,
+        *,
+        relative_path=False,
+        vm=None,
     ):
         # If we don't use remote_path, the remote_path will be a default remote user home
         if not destination_folder:
@@ -469,7 +479,7 @@ class PulumiSSH:
     aws_key_resource = None
     pem_file = None
 
-    def load(self, virtual_machine):
+    def load(self, virtual_machine: _VirtualMachine):
         # Optional parameters. You can use for local testing
         user_provided_keyPairName = os.getenv("ONBOARDING_AWS_INFRA_KEYPAIR_NAME")
         user_provided_privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
