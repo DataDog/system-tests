@@ -238,7 +238,7 @@ count_amis:
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/images/dd-octo-sts-ci-base
+  image: registry.ddbuild.io/images/dd-octo-sts-ci-base:2025.07-1
   tags:
     - arch:arm64
   id_tokens:
