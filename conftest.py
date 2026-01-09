@@ -46,6 +46,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+    parser.addoption("--declaration-report", action="store_true", help="Produce a report on nodeids and their scenario")
     parser.addoption(
         "--skip-empty-scenario",
         action="store_true",
@@ -284,6 +285,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     deselected = []
 
     all_declared_scenarios = {}
+    all_declarations = {}
 
     def iter_markers(self: pytest.Item, name: str | None = None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
@@ -300,6 +302,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
         all_declared_scenarios[item.nodeid] = declared_scenarios
+        all_declarations[item.nodeid] = [str(marker) for marker in item.own_markers if marker.name in ("xfail", "skip")]
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
@@ -336,6 +339,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
+    if config.option.declaration_report:
+        with open(f"{context.scenario.host_log_folder}/declarations.json", "w", encoding="utf-8") as f:
+            json.dump(all_declarations, f, indent=2)
+            pytest.exit("Declaration collection mode, not running the tests")
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
@@ -364,6 +371,9 @@ def _item_is_skipped(item: pytest.Item):
 
 def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
+        return
+
+    if session.config.option.declaration_report:
         return
 
     if session.config.option.sleep:  # on this mode, we simply sleep, not running any test or setup
