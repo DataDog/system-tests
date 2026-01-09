@@ -11,7 +11,6 @@ if [ $(ls python-load-from-local | wc -l) = 1 ]; then
     echo "Using local dd-trace-py set in PYTHONPATH"
     echo "Installing remaining dependencies from the official ddtrace package"
     pip install ddtrace
-    exit 0
 elif [ "$(ls *.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl))
     echo "Install ddtrace from ${path}"
