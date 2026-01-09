@@ -86,4 +86,6 @@ Rails.application.routes.draw do
   post '/ffe' => 'open_feature#evaluate'
   post '/ffe/start' => 'open_feature#start'
   post '/ffe/evaluate' => 'open_feature#evaluate'
+
+  post '/ai_guard/evaluate' => 'ai_guard#evaluate'
 end
