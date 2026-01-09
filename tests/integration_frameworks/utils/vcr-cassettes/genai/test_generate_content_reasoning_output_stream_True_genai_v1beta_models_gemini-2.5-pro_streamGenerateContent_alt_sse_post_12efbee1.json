@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:streamGenerateContent?alt=sse",
+    "headers": {
+      "Connection": "keep-alive",
+      "User-Agent": "google-genai-sdk/1.34.0 gl-node/v22.21.1",
+      "x-goog-api-client": "google-genai-sdk/1.34.0 gl-node/v22.21.1",
+      "Content-Type": "application/json",
+      "Accept": "*/*",
+      "Accept-Language": "*",
+      "sec-fetch-mode": "cors",
+      "Accept-Encoding": "gzip, deflate",
+      "Content-Length": "193"
+    },
+    "body": "{\"contents\":[{\"parts\":[{\"text\":\"If x + 9 = 10, what is the value of x?\"}],\"role\":\"user\"}],\"generationConfig\":{\"temperature\":0.1,\"thinkingConfig\":{\"thinkingBudget\":1024,\"includeThoughts\":true}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "text/event-stream",
+      "Content-Disposition": "attachment",
+      "Vary": "Origin, X-Origin, Referer",
+      "Transfer-Encoding": "chunked",
+      "Date": "Wed, 17 Dec 2025 15:11:50 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=2719",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+    },
+    "body": "data: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"**Focusing on Simplification**\\n\\nCurrently, I'm focusing on the essential simplification needed for the user's equation, `x + 9 = 10`. I've quickly identified it as a straightforward linear equation requiring only one step to isolate 'x'. My next step is to formulate the required operations explicitly.\\n\\n\\n\",\"thought\": true}],\"role\": \"model\"},\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"totalTokenCount\": 86,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 68},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"**Decomposing the Solution**\\n\\nI've carefully decomposed the solution process. First, I pinpointed the user's objective: determine 'x'. Then, I analyzed the linear equation `x + 9 = 10`. Next, I formulated the required subtraction. I then carefully outlined the steps, ensuring the equation remains balanced by applying the subtraction to both sides. Finally, I verified the solution by substituting it back into the original equation and confirming the equality holds, leading to the correct answer.\\n\\n\\n\",\"thought\": true}],\"role\": \"model\"},\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"totalTokenCount\": 418,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 400},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"**Developing the Response**\\n\\nI've just structured the final response, starting with the answer for clarity. The explanation now includes isolating the variable and subtraction from both sides. I'll include a verification step to ensure confidence, and plan to use clear, helpful language. I'm focusing on simplicity and directness in my phrasing.\\n\\n\\n\",\"thought\": true}],\"role\": \"model\"},\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"totalTokenCount\": 580,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 562},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"To find the value of x, you need to get x by itself on one side of the equation.\\n\\nHere's the\"}],\"role\": \"model\"},\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"candidatesTokenCount\": 23,\"totalTokenCount\": 603,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 562},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \" equation:\\nx + 9 = 10\\n\\nTo isolate x, subtract 9 from both sides of the equation:\"}],\"role\": \"model\"},\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"candidatesTokenCount\": 49,\"totalTokenCount\": 629,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 562},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"\\nx + 9 - 9 = 10 - 9\\nx = 1\\n\\nSo, the\"}],\"role\": \"model\"},\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"candidatesTokenCount\": 72,\"totalTokenCount\": 652,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 562},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \" value of **x is 1**.\"}],\"role\": \"model\"},\"finishReason\": \"STOP\",\"index\": 0}],\"usageMetadata\": {\"promptTokenCount\": 18,\"candidatesTokenCount\": 80,\"totalTokenCount\": 660,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 18}],\"thoughtsTokenCount\": 562},\"modelVersion\": \"gemini-2.5-pro\",\"responseId\": \"NchCaWuZ4P7jD_axwbkK\"}\r\n\r\n"
+  }
+}

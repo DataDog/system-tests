@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "User-Agent": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "x-goog-api-client": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "Content-Length": "185",
+      "x-datadog-trace-id": "8692246980083946329",
+      "x-datadog-parent-id": "947178462235507295",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=9972825684557756341,_dd.p.llmobs_trace_id=139915606977730756102040759953950026393,_dd.p.tid=6942c40600000000",
+      "traceparent": "00-6942c4060000000078a110932bdd9359-0d250dcb0472ba5f-01",
+      "tracestate": "dd=p:0d250dcb0472ba5f;s:1;t.dm:-0;t.llmobs_parent_id:9972825684557756341;t.llmobs_trace_id:139915606977730756102040759953950026393;t.tid:6942c40600000000"
+    },
+    "body": "{\"contents\": [{\"parts\": [{\"text\": \"Why did the chicken cross the road?\"}, {\"text\": \"What is 2 + 2?\"}], \"role\": \"user\"}], \"generationConfig\": {\"temperature\": 0.1, \"maxOutputTokens\": 50}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Vary": "Origin, X-Origin, Referer",
+      "Content-Encoding": "gzip",
+      "Date": "Wed, 17 Dec 2025 14:53:59 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=635",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Transfer-Encoding": "chunked"
+    },
+    "body": "{\n  \"candidates\": [\n    {\n      \"content\": {\n        \"parts\": [\n          {\n            \"text\": \"Okay, here are the answers to your questions:\\n\\n*   **Why did the chicken cross the road?** To get to the other side.\\n\\n*   **What is 2 + 2?** 4\"\n          }\n        ],\n        \"role\": \"model\"\n      },\n      \"finishReason\": \"STOP\",\n      \"avgLogprobs\": -0.0479884147644043\n    }\n  ],\n  \"usageMetadata\": {\n    \"promptTokenCount\": 16,\n    \"candidatesTokenCount\": 45,\n    \"totalTokenCount\": 61,\n    \"promptTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 16\n      }\n    ],\n    \"candidatesTokensDetails\": [\n      {\n        \"modality\": \"TEXT\",\n        \"tokenCount\": 45\n      }\n    ]\n  },\n  \"modelVersion\": \"gemini-2.0-flash\",\n  \"responseId\": \"BsRCaeKoOaqV_uMP_N_xsAQ\"\n}\n"
+  }
+}

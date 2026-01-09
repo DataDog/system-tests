@@ -61,13 +61,13 @@ manifest:
         alb: missing_feature
         alb-multi: missing_feature
         function-url: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v8.117.0.dev

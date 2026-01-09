@@ -1,7 +1,9 @@
 """manual keep sampling
 
-These tests verify the behavior manual keep sampling for APM tracing
+This test verifies the behavior manual keep sampling for APM tracing
 libraries.
+
+Manual keep sampling should take precedence over any other sampling decision.
 """
 
 import pytest
@@ -34,7 +36,14 @@ class Test_Manual_Sampling:
         ],
     )
     def test_sampling_manual_keep(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Test that the manual keep sampling override is respected"""
+        """Test that the manual keep sampling takes precedence over a
+        transmitted sampling decision
+
+        The upstream drop decision should be replaced by a user keep decision.
+
+        _sampling_priority_v1: 4 (user keep)
+        _dd.p.dm: -4 (manual)
+        """
         kept_trace_id = 1212121212121212121
         kept_parent_id = 34343434
         test_library.dd_extract_headers(
