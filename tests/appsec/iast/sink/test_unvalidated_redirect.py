@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, irrelevant, features, missing_feature, rfc, weblog
+from utils import context, features, missing_feature, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 

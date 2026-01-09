@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features, rfc, scenarios, flaky
+from utils import missing_feature, weblog, features, rfc, scenarios, flaky
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     BaseTestCookieNameFilter,
