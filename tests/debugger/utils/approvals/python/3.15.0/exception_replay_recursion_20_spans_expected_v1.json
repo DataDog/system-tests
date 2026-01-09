@@ -2,7 +2,7 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -59,6 +59,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -72,7 +73,7 @@
   "snapshot_1": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -129,6 +130,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -142,7 +144,7 @@
   "snapshot_2": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -199,6 +201,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -212,7 +215,7 @@
   "snapshot_3": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -269,6 +272,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -282,7 +286,7 @@
   "snapshot_4": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -339,6 +343,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -352,7 +357,7 @@
   "snapshot_5": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -409,6 +414,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -422,7 +428,7 @@
   "snapshot_6": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -479,6 +485,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -492,7 +499,7 @@
   "snapshot_7": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -549,6 +556,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -562,7 +570,7 @@
   "snapshot_8": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -619,6 +627,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",
@@ -632,7 +641,7 @@
   "snapshot_9": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.14.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.14.function": "exceptionReplayRecursionHelper",
         "_dd.debug.error.14.line": "21",
@@ -689,6 +698,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayRecursion",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/recursion",

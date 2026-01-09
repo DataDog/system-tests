@@ -2,7 +2,7 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.2.function": "exception_replay_multiframe",
         "_dd.debug.error.2.line": "60",
@@ -35,6 +35,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exception_replay_multiframe",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/multiframe",
@@ -48,7 +49,7 @@
   "snapshot_1": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.2.function": "exception_replay_multiframe",
         "_dd.debug.error.2.line": "60",
@@ -81,6 +82,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exception_replay_multiframe",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/multiframe",
@@ -94,7 +96,7 @@
   "snapshot_2": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.2.function": "exception_replay_multiframe",
         "_dd.debug.error.2.line": "60",
@@ -127,6 +129,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exception_replay_multiframe",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/multiframe",
@@ -140,7 +143,7 @@
   "snapshot_3": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.2.function": "exception_replay_multiframe",
         "_dd.debug.error.2.line": "60",
@@ -173,6 +176,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exception_replay_multiframe",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/multiframe",

@@ -322,6 +322,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         span_meta[meta_key] = "<scrubbed>"
                     elif meta_key == "error.stack":
                         span_meta[meta_key] = meta_value[:128] + "<scrubbed>"
+                    elif type(meta_value) in (float, int):
+                        keys_to_remove.append(meta_key)
 
                 for k in keys_to_remove:
                     span_meta.pop(k, None)

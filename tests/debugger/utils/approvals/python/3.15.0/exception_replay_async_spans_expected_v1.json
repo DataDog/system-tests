@@ -2,7 +2,7 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.7.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.7.function": "exception_replay_async",
         "_dd.debug.error.7.line": "69",
@@ -27,6 +27,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "flask.dispatch_request",
       "parentID": "<scrubbed>",
       "resourceRef": "flask.dispatch_request",
@@ -40,7 +41,7 @@
   "snapshot_1": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.7.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.7.function": "exception_replay_async",
         "_dd.debug.error.7.line": "69",
@@ -65,6 +66,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "flask.dispatch_request",
       "parentID": "<scrubbed>",
       "resourceRef": "flask.dispatch_request",

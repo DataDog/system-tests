@@ -2,7 +2,7 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.1.file": "/app/exception_replay_controller.py",
         "_dd.debug.error.1.function": "exceptionReplayInner",
         "_dd.debug.error.1.line": "29",
@@ -27,6 +27,7 @@
       "duration": "<scrubbed>",
       "envRef": "system-tests",
       "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
       "nameRef": "exceptionreplay.exceptionReplayInner",
       "parentID": "<scrubbed>",
       "resourceRef": "/exceptionreplay/inner",

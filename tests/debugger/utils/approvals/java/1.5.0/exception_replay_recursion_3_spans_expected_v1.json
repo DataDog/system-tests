@@ -2,7 +2,7 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -10,11 +10,8 @@
         "_dd.debug.error.4.snapshot_id": "<scrubbed>",
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
-        "_dd.dsm.enabled": 1.0,
         "_dd.integration": "spring-web-controller",
-        "_dd.measured": 1.0,
         "_dd.p.tid": "<scrubbed>",
-        "_sampling_priority_v1": 1.0,
         "component": "spring-web-controller",
         "env": "system-tests",
         "error.debug_info_captured": "true",
@@ -48,7 +45,7 @@
   "snapshot_1": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -56,11 +53,8 @@
         "_dd.debug.error.4.snapshot_id": "<scrubbed>",
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
-        "_dd.dsm.enabled": 1.0,
         "_dd.integration": "spring-web-controller",
-        "_dd.measured": 1.0,
         "_dd.p.tid": "<scrubbed>",
-        "_sampling_priority_v1": 1.0,
         "component": "spring-web-controller",
         "env": "system-tests",
         "error.debug_info_captured": "true",
@@ -94,7 +88,7 @@
   "snapshot_2": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -102,11 +96,8 @@
         "_dd.debug.error.4.snapshot_id": "<scrubbed>",
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
-        "_dd.dsm.enabled": 1.0,
         "_dd.integration": "spring-web-controller",
-        "_dd.measured": 1.0,
         "_dd.p.tid": "<scrubbed>",
-        "_sampling_priority_v1": 1.0,
         "component": "spring-web-controller",
         "env": "system-tests",
         "error.debug_info_captured": "true",
@@ -140,7 +131,7 @@
   "snapshot_3": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -148,11 +139,8 @@
         "_dd.debug.error.4.snapshot_id": "<scrubbed>",
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
-        "_dd.dsm.enabled": 1.0,
         "_dd.integration": "spring-web-controller",
-        "_dd.measured": 1.0,
         "_dd.p.tid": "<scrubbed>",
-        "_sampling_priority_v1": 1.0,
         "component": "spring-web-controller",
         "env": "system-tests",
         "error.debug_info_captured": "true",
@@ -186,7 +174,7 @@
   "snapshot_4": [
     {
       "attributes": {
-        "_dd.convertedv1": "true",
+        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -194,11 +182,8 @@
         "_dd.debug.error.4.snapshot_id": "<scrubbed>",
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
-        "_dd.dsm.enabled": 1.0,
         "_dd.integration": "spring-web-controller",
-        "_dd.measured": 1.0,
         "_dd.p.tid": "<scrubbed>",
-        "_sampling_priority_v1": 1.0,
         "component": "spring-web-controller",
         "env": "system-tests",
         "error.debug_info_captured": "true",
