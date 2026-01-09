@@ -159,7 +159,7 @@ nodejs_dirs=("express" "fastify")
 for dir in "${nodejs_dirs[@]}"; do
 
   docker run \
-    --rm -it \
+    --rm \
     -w /app \
     -v "$PWD"/utils/build/docker/nodejs/"$dir":/app \
     -e NODE_NO_WARNINGS=1 \
