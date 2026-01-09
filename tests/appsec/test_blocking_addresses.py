@@ -389,7 +389,9 @@ class Test_Blocking_request_query:
         assert self.case_req_block1.status_code == 403
 
     def setup_non_blocking_case(self):
-        self.case_req_nonblock2 = weblog.get("/waf?attack=magic_key_oe1rh0goiw8jef&Attack=none&ATTACK=magic_key_oe1rh0goiw8jef")
+        self.case_req_nonblock2 = weblog.get(
+            "/waf?attack=magic_key_oe1rh0goiw8jef&Attack=none&ATTACK=magic_key_oe1rh0goiw8jef"
+        )
 
     def test_non_blocking_case(self):
         """Test if requests that should not be blocked are not blocked"""
