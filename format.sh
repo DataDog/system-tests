@@ -162,7 +162,16 @@ if which npm > /dev/null; then
   nodejs_dirs=("express" "fastify")
 
   for dir in "${nodejs_dirs[@]}"; do
-    if ! NODE_NO_WARNINGS=1 npm  --prefix ./utils/build/docker/nodejs/"$dir" install --silent && npm --prefix ./utils/build/docker/nodejs/"$dir" run --silent lint; then
+
+    docker run \
+      --rm -it \
+      -w /app \
+      -v "$PWD"/utils/build/docker/nodejs/"$dir":/app \
+      -e NODE_NO_WARNINGS=1 \
+      node:18-alpine \
+      sh -c "npm install --silent && npm run --silent ${COMMAND}_lint"
+
+    if [ $? -ne 0 ]; then
       echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
       exit 1
     fi
