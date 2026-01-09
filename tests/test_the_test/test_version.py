@@ -162,9 +162,6 @@ def test_library_version():
     assert (v == "u@1.0") is False
     assert (v >= "u@1.0") is False
 
-    v = ComponentVersion("python", "0.53.0.dev70+g494e6dc0")
-    assert v == "python@0.53.0.dev70+g494e6dc0"
-
     v = ComponentVersion("java", "0.94.1~dde6877139")
     assert v == "java@0.94.1+dde6877139"
     assert v >= "java@0.94.1"
@@ -176,6 +173,34 @@ def test_library_version():
     assert v < "java@0.94.1"
 
     assert ComponentVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
+
+
+def test_python_version():
+    v = ComponentVersion("python", "0.53.0.dev70+g494e6dc0")
+    assert v == "python@0.53.0-dev70+g494e6dc0"
+
+    v0 = ComponentVersion("python", "1.2.3.dev")  # in theory, not possible with pypi version scheme
+    v1 = ComponentVersion("python", "1.2.3.dev1")
+    v2 = ComponentVersion("python", "1.2.3-dev2")
+    v3 = ComponentVersion("python", "1.2.3.rc1")
+    v4 = ComponentVersion("python", "1.2.3")
+
+    assert v0 == "python@1.2.3-dev"
+    assert v1 == "python@1.2.3-dev1"
+    assert v2 == "python@1.2.3-dev2"
+    assert v3 == "python@1.2.3-rc1"
+    assert v4 == "python@1.2.3"
+
+    assert v0 < v1
+    assert v1 < v2
+    assert v2 < v3
+    assert v3 < v4
+
+    v5 = ComponentVersion("python", "1.2.3+dev")  # if ever they declare explicity a + in manifest, keep it
+    assert v5 == "python@1.2.3+dev"
+    # build metadata is ignored in comparizon
+    assert v5 >= "python@1.2.3"
+    assert v5 <= "python@1.2.3"
 
 
 def test_php_version():

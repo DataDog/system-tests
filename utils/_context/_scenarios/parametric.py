@@ -133,10 +133,11 @@ class ParametricScenario(DockerFixturesScenario):
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
-            self.warmups.append(self._set_components)
+        self.warmups.append(self._set_components)
 
     def _set_components(self):
         self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     @property
     def library(self):
