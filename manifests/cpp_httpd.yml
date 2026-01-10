@@ -95,6 +95,6 @@ manifest:
   tests/test_telemetry.py::Test_MessageBatch: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: ">2.0.0"
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_v1_payloads.py: missing_feature
