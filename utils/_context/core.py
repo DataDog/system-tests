@@ -23,6 +23,9 @@ class _Context:
     scenario: Scenario  # will be set by pytest_configure
 
     def _get_scenario_property(self, name: str, default: Any) -> Any:  # noqa:ANN401
+        if self.scenario.collect_only:
+            return default
+
         if hasattr(self.scenario, name):
             return getattr(self.scenario, name)
 

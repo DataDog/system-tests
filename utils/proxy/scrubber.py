@@ -32,7 +32,7 @@ def _instrument_write_methods_str(f: Any, secrets: set[str]) -> None:  # noqa: A
         for secret in secrets:
             data = data.replace(secret, "--redacted--")
 
-        original_write(data)
+        return original_write(data)
 
     f.write = write
 
@@ -45,7 +45,7 @@ def _instrument_write_methods_bytes(f: Any, secrets: set[str]) -> None:  # noqa:
             for secret in secrets:
                 data = data.replace(secret.encode(), b"--redacted--")
 
-        original_write(data)
+        return original_write(data)
 
     f.write = write
 
