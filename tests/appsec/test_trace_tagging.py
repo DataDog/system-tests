@@ -2,17 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (
-    interfaces,
-    scenarios,
-    weblog,
-    features,
-)
+from utils import interfaces, scenarios, scenario_groups, weblog, features, irrelevant, context
 from utils.dd_constants import Capabilities, SamplingPriority
 
 
 @features.appsec_trace_tagging_rules
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_TraceTaggingRules:
     """Test different variants of trace-tagging rules"""
@@ -20,6 +15,10 @@ class Test_TraceTaggingRules:
     def setup_rule_with_attributes_no_keep_no_event(self):
         self.r_tt1 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v1"})
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_rule_with_attributes_no_keep_no_event(self):
         """Test trace-tagging rule with attributes, no keep and no event"""
 
@@ -87,6 +86,10 @@ class Test_TraceTaggingRules:
     def setup_rule_with_attributes_no_keep_event(self):
         self.r_tt4 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v4"})
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_rule_with_attributes_no_keep_event(self):
         """Test trace-tagging rule with attributes and an event, but no sampling priority change"""
 

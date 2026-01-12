@@ -3,7 +3,8 @@ from utils.dd_constants import Capabilities
 from utils import features
 from utils import interfaces
 from utils import rfc
-from utils import scenarios
+from utils import scenarios, scenario_groups
+from utils import irrelevant
 from utils import weblog
 from utils import missing_feature
 from utils import context
@@ -101,7 +102,7 @@ class Test_Fingerprinting_Session:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Fingerprinting_Endpoint_Preprocessor:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -121,6 +122,10 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
         self.r = weblog.get("/waf?dummyparam=true")
 
     @missing_feature(library="nodejs", weblog_variant="nextjs", reason="Blocking on querystring is not supported")
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_fingerprinting_endpoint_blocking(self):
         assert self.r.status_code == 403
         r_span_meta = get_span_meta(self.r)
@@ -132,7 +137,7 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Fingerprinting_Header_And_Network_Preprocessor:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
@@ -176,6 +181,10 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
             "/", headers={"Content-Type": "application/json", "Accept-Encoding": "gzip", "Connection": "close"}
         )
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_fingerprinting_header_blocking(self):
         assert self.r.status_code == 403
         r_span_meta = get_span_meta(self.r)
@@ -187,7 +196,7 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Fingerprinting_Session_Preprocessor:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -202,6 +211,10 @@ class Test_Fingerprinting_Session_Preprocessor:
     @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "resteasy-netty3", reason="missing_feature (endpoint not implemented)")
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_session_non_blocking(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200

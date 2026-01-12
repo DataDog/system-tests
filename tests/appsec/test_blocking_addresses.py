@@ -12,6 +12,7 @@ from utils import (
     missing_feature,
     rfc,
     scenarios,
+    scenario_groups,
     weblog,
     flaky,
     features,
@@ -40,8 +41,7 @@ def _assert_custom_event_tag_absence():
 
 
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_client_ip:
     """Test if blocking is supported on http.client_ip address"""
@@ -68,9 +68,8 @@ class Test_Blocking_client_ip:
 
 
 @features.appsec_request_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.go_proxies_blocking
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -111,9 +110,8 @@ class Test_Blocking_client_ip_with_forwarded:
 
 
 @features.appsec_request_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.go_proxies_blocking
 class Test_Blocking_client_ip_with_K8_private_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -130,7 +128,7 @@ class Test_Blocking_client_ip_with_K8_private_ip:
             interfaces.library.assert_waf_attack(request, rule="blk-001-001")
 
 
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_user_id:
@@ -139,6 +137,10 @@ class Test_Blocking_user_id:
     def setup_block_user(self):
         self.rm_req_block = weblog.get("/users", params={"user": "blockedUser"})
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_block_user(self):
         """Can block the request from the user"""
 
@@ -148,8 +150,7 @@ class Test_Blocking_user_id:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -204,8 +205,7 @@ class Test_Blocking_request_method:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -271,8 +271,7 @@ class Test_Blocking_request_uri:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -338,8 +337,7 @@ class Test_Blocking_request_path_params:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -397,8 +395,7 @@ class Test_Blocking_request_query:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -456,8 +453,7 @@ class Test_Blocking_request_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -514,7 +510,7 @@ class Test_Blocking_request_cookies:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body:
@@ -529,6 +525,10 @@ class Test_Blocking_request_body:
         if not hasattr(self, "rm_req_block2") or self.rm_req_block2 is None:
             self.rm_req_block2 = weblog.post("/waf", data={"foo": "bsldhkuqwgervf"})
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
@@ -543,6 +543,10 @@ class Test_Blocking_request_body:
         )
         self.rm_req_nonblock2 = weblog.post("/waf", data={"good": "value"})
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_non_blocking(self):
         """Test if requests that should not be blocked are not blocked"""
         self.test_blocking()
@@ -559,6 +563,10 @@ class Test_Blocking_request_body:
         context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3", "nginx"),
         reason="Blocks on text/plain if parsed to a String",
     )
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_non_blocking_plain_text(self):
         self.test_blocking()
         # TODO: This test is pending a better definition of when text/plain is considered parsed body,
@@ -570,6 +578,10 @@ class Test_Blocking_request_body:
         self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -584,7 +596,7 @@ class Test_Blocking_request_body:
         interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body_multipart:
@@ -593,6 +605,10 @@ class Test_Blocking_request_body_multipart:
     def setup_blocking(self):
         self.rbmp_req = weblog.post("/waf", files={"foo": (None, "bsldhkuqwgervf")})
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_blocking(self):
         """Can block on server.request.body (multipart/form-data variant)"""
 
@@ -602,8 +618,7 @@ class Test_Blocking_request_body_multipart:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @missing_feature(
     context.scenario is scenarios.go_proxies_blocking,
@@ -669,8 +684,7 @@ class Test_Blocking_response_status:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenarios.go_proxies_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
@@ -712,7 +726,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_lambda_blocking
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
@@ -735,6 +749,10 @@ class Test_Suspicious_Request_Blocking:
     )
     @bug(weblog_variant="akka-http", reason="APPSEC-54985")
     @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
@@ -763,6 +781,10 @@ class Test_Suspicious_Request_Blocking:
     )
     @bug(weblog_variant="akka-http", reason="APPSEC-54985")
     @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -801,6 +823,10 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-siDzyETAdkvKahD3PxlvIqcE0fMIVywE"},
         )
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_blocking_before_without_path_params(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly

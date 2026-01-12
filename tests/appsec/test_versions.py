@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, features, scenarios
+from utils import context, interfaces, missing_feature, features, scenarios, scenario_groups
 
 
 @features.appsec_miscs_internals
-@scenarios.go_proxies
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_Events:
     """AppSec events uses events in span"""

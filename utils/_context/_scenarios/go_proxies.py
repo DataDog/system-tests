@@ -15,7 +15,7 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._logger import logger
 
-from .core import scenario_groups
+from .core import ScenarioGroup, scenario_groups
 from .endtoend import DockerScenario
 
 ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContainer
@@ -31,16 +31,23 @@ class GoProxiesScenario(DockerScenario):
         processor_env: dict[str, str | None] | None = None,
         processor_volumes: dict[str, dict[str, str]] | None = None,
         rc_api_enabled: bool = False,
+        scenario_groups_list: list[ScenarioGroup] | None = None,
     ) -> None:
         self._weblog_variant = os.environ.get("WEBLOG_VARIANT", "envoy")
         self._processor_env = processor_env
         self._processor_volumes = processor_volumes
+        selected_scenario_groups = (scenario_groups_list or []) + [
+            scenario_groups.end_to_end,
+            scenario_groups.go_proxies,
+            scenario_groups.appsec,
+            scenario_groups.all,
+        ]
 
         super().__init__(
             name,
             doc=doc,
             github_workflow="endtoend",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.go_proxies, scenario_groups.all],
+            scenario_groups=selected_scenario_groups,
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )

@@ -182,7 +182,7 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_blocking, scenario_groups.essentials],
     )
 
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
@@ -1067,6 +1067,7 @@ class _Scenarios:
         name="GO_PROXIES",
         doc="Go security processor proxies (Envoy or HAProxy)",
         rc_api_enabled=True,
+        scenario_groups_list=[scenario_groups.default],
     )
 
     go_proxies_blocking = GoProxiesScenario(
@@ -1074,6 +1075,7 @@ class _Scenarios:
         doc="Go security processor proxies with blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        scenario_groups_list=[scenario_groups.appsec_blocking],
     )
 
     ipv6 = IPV6Scenario("IPV6")

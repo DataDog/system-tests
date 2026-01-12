@@ -1,4 +1,4 @@
-from utils import bug, scenarios, weblog, interfaces, features, missing_feature, context
+from utils import bug, scenarios, scenario_groups, weblog, interfaces, features, missing_feature, context, irrelevant
 from utils._weblog import HttpResponse
 
 
@@ -12,7 +12,7 @@ def get_endpoint_tag(response: HttpResponse) -> str | None:
 
 @features.resource_renaming
 @scenarios.tracing_config_nondefault_3
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_Resource_Renaming_HTTP_Endpoint_Tag:
     """Test the correct extraction of the http.endpoint tag"""
 
@@ -58,7 +58,7 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
 
 @features.resource_renaming
 @scenarios.tracing_config_nondefault_3
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_Resource_Renaming_Stats_Aggregation_Keys:
     """Test that stats aggregation includes method and endpoint in aggregation keys"""
 
@@ -72,6 +72,10 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
             self.requests.append(weblog.get("/resource_renaming/api/posts/456"))
 
     @bug(library="python", reason="APMSP-2359")  # trace exporter uses a wrong fieldname
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_stats_aggregation_with_method_and_endpoint(self):
         """Test that stats are aggregated by method and endpoint"""
         stats_points = []

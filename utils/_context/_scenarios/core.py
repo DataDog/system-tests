@@ -35,6 +35,7 @@ class _ScenarioGroups:
     appsec_rasp = ScenarioGroup()
     appsec_rasp_scenario = ScenarioGroup()
     appsec_lambda = ScenarioGroup()
+    appsec_blocking = ScenarioGroup()
     debugger = ScenarioGroup()
     docker_fixtures = ScenarioGroup()
     end_to_end = ScenarioGroup()

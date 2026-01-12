@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
+from utils import interfaces, bug, scenarios, scenario_groups, weblog, rfc, missing_feature, flaky, features, irrelevant
 from utils._context.core import context
 from .test_blocking_security_response_id import (
     is_valid_uuid4,
@@ -95,7 +95,7 @@ JSON_CONTENT_TYPES = {
 }
 
 
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_Blocking:
@@ -264,13 +264,17 @@ class Test_Blocking:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
         self.r_srh = weblog.get("/tag_value/anything/200?x-secret-header=123&content-language=krypton")
 
+    @irrelevant(
+        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
+        reason="Not supported by Go security processor proxies",
+    )
     def test_strip_response_headers(self):
         """Test if headers are stripped from the blocking response"""
         assert self.r_srh.status_code == 403
@@ -282,7 +286,7 @@ class Test_Blocking_strip_response_headers:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_CustomBlockingResponse:

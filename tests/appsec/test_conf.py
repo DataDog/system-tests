@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, scenario_groups, features
 from utils.tools import nested_lookup
 
 
@@ -99,7 +99,7 @@ class Test_ConfigurationVariables:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_ConfigurationVariables_New_Obfuscation:
     """Check for new obfuscation features in libddwaf 1.25.0 and later

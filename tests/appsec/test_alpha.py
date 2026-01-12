@@ -2,13 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, scenario_groups, features
 
 
 @features.threats_alpha_preview
-@scenarios.go_proxies
+@scenario_groups.default
 @scenarios.appsec_lambda_default
-@scenarios.default
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 

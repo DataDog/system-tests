@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, features, scenarios
+from utils import context, interfaces, features, scenario_groups
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -164,8 +164,7 @@ optional_uds_feature = (
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.go_proxies
-@scenarios.default
+@scenario_groups.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
@@ -338,8 +337,7 @@ class Test_MetaDatadogTags:
 
 
 @features.trace_data_integrity
-@scenarios.go_proxies
-@scenarios.default
+@scenario_groups.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 

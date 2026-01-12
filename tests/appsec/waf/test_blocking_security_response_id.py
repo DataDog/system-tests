@@ -6,7 +6,7 @@ import json
 import re
 from urllib.parse import urlparse, parse_qs
 
-from utils import scenarios, weblog, rfc, features, interfaces
+from utils import scenario_groups, weblog, rfc, features, interfaces
 
 
 def is_valid_uuid4(uuid_string: str):
@@ -74,7 +74,7 @@ def extract_security_response_id_from_redirect_url(location_url: str):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
 @features.blocking_response_id
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_SecurityResponseId_JSON_Response:
     """Test that security_response_id is present in JSON blocking responses"""
 
@@ -129,7 +129,7 @@ class Test_SecurityResponseId_JSON_Response:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
 @features.blocking_response_id
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_SecurityResponseId_HTML_Response:
     """Test that security_response_id is present in HTML blocking responses"""
 
@@ -153,7 +153,7 @@ class Test_SecurityResponseId_HTML_Response:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
 @features.blocking_response_id
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_SecurityResponseId_Custom_Redirect:
     """Test that security_response_id can optionally be present in custom redirect URLs
 
@@ -186,7 +186,7 @@ class Test_SecurityResponseId_Custom_Redirect:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
 @features.blocking_response_id
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_SecurityResponseId_In_Span_Triggers:
     """Test that security_response_id is present in AppSec span triggers during blocking events
 
