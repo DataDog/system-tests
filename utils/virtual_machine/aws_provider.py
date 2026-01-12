@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from io import TextIOWrapper
 import os
 import pathlib
@@ -384,7 +385,7 @@ class AWSCommander(Commander):
         connection: command.remote.ConnectionArgs,
         last_task: command.remote.Command,
         logger_name: str | None = None,
-        output_callback: callable | None = None,
+        output_callback: Callable | None = None,
         *,
         populate_env: bool = True,
     ):

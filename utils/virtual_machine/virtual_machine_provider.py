@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import os
 from typing import TYPE_CHECKING
 
@@ -152,7 +153,7 @@ class VmProvider:
         last_task: pulumi_command.remote.Command,
         installation: Installation,
         logger_name: str | None = None,
-        output_callback: callable | None = None,
+        output_callback: Callable | None = None,
     ):
         """Manages a installation.
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation
@@ -308,7 +309,7 @@ class Commander:
         connection: pulumi_command.remote.ConnectionArgs,
         last_task: pulumi_command.remote.Command,
         logger_name: str | None = None,
-        output_callback: callable | None = None,
+        output_callback: Callable | None = None,
         *,
         populate_env: bool = True,
     ):
