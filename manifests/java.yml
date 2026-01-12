@@ -1,6 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.54.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.57.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.54.0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": v0.2.0  # real version not known
@@ -809,7 +821,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": missing_feature
@@ -824,7 +836,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": missing_feature
@@ -1926,19 +1938,19 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.58.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
@@ -2355,6 +2367,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
+  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: v1.59.0-SNAPSHOT+419da213f7
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py: missing_feature

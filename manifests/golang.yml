@@ -1,6 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -167,13 +170,13 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v2.4.0
+  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.5.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.4.0
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
@@ -605,7 +608,7 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
-  tests/ffe/test_exposures.py: v2.5.0-dev
+  tests/ffe/test_exposures.py: v2.6.0-dev
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant

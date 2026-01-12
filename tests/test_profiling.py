@@ -49,7 +49,7 @@ class Test_Profile:
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name not in ("java", "dotnet", "golang"),
+        condition=context.library.name not in ("java", "python", "dotnet", "golang"),
         reason="Not yet implemented",
     )
     @missing_feature(
