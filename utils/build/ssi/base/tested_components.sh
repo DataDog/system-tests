@@ -11,6 +11,8 @@ elif [ "$DD_LANG" == "php" ]; then
     runtime_version=$(php -v | grep -oP 'PHP \K[0-9]+\.[0-9]+\.[0-9]+')
 elif [ "$DD_LANG" == "python" ]; then
     runtime_version=$(python --version | grep -oP 'Python \K[0-9]+\.[0-9]+\.[0-9]+')
+elif [ "$DD_LANG" == "ruby" ]; then
+    runtime_version=$(ruby -e 'puts RUBY_VERSION')
 elif [ "$DD_LANG" == "js" ]; then
     export NVM_DIR="/root/.nvm"
     . "$NVM_DIR/nvm.sh"

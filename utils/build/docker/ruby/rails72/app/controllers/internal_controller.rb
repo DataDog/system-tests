@@ -25,6 +25,14 @@ class InternalController < ApplicationController
       sleep 0.2
     end
 
+    # NOTE: We don't expose directly flushing in the OpenFeature component as it
+    #       has no use now. But this might change, but for now we are going to
+    #       flush manually knowing some internals.
+    if open_feature = Datadog.send(:components)&.open_feature
+      worker = open_feature.instance_variable_get(:@worker)
+      worker.send(:send_events, *worker.dequeue)
+    end
+
     render plain: 'OK'
   end
 end

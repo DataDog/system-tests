@@ -6,17 +6,15 @@ from typing import Any, get_args, get_origin
 
 import yaml
 
-from utils._decorators import CustomSpec as SemverRange
-from utils._decorators import _TestDeclaration
-
+from .const import TestDeclaration
 from .declaration import Declaration
-from .types import Condition, ManifestData, SkipDeclaration
+from .types import Condition, ManifestData, SkipDeclaration, SemverRange
 
 
 def process_inline(raw_declaration: str, component: str) -> Condition:
     declaration = Declaration(raw_declaration, component, is_inline=True)
     if declaration.is_skip:
-        assert isinstance(declaration.value, _TestDeclaration)
+        assert isinstance(declaration.value, TestDeclaration)
         condition: Condition = {
             "component": component,
             "declaration": SkipDeclaration(declaration.value, declaration.reason),
@@ -83,6 +81,10 @@ def cast_to_condition(entry: dict, component: str) -> Condition:
     return condition
 
 
+def parse_weblogs(weblogs: str) -> list[str]:
+    return [w.strip() for w in weblogs.split(",")]
+
+
 class FieldProcessor:
     """Contains all processing functions that should be applied to raw fields from
     the manifest files.
@@ -143,12 +145,19 @@ class FieldProcessor:
     def ensure_list(n: str, e: dict[str, Any], _component: str) -> None:
         if not isinstance(e[n], list):
             e[n] = [e[n]]
+        if n == "weblog":
+            res = []
+            for w in e[n]:
+                if not isinstance(w, str):
+                    continue
+                res.extend(parse_weblogs(w))
+            e[n] = res
 
     @staticmethod
     @processor
     def declaration(n: str, e: dict[str, Any], component: str) -> None:
         declaration = Declaration(e[n], component)
-        assert isinstance(declaration.value, _TestDeclaration)
+        assert isinstance(declaration.value, TestDeclaration)
         e[n] = SkipDeclaration(declaration.value, declaration.reason)
 
     @staticmethod
@@ -157,14 +166,16 @@ class FieldProcessor:
         new_entries: list[Condition] = []
         all_weblogs: list[str] = []
         for weblog in e[n]:
+            if not isinstance(weblog, str):
+                continue
             if weblog != "*":
-                all_weblogs.append(weblog)
+                all_weblogs.extend(parse_weblogs(weblog))
         for weblog, raw_declaration in e[n].items():
             condition = process_inline(raw_declaration, component)
             if weblog == "*":
                 condition["excluded_weblog"] = all_weblogs
             else:
-                condition["weblog"] = weblog if isinstance(weblog, list) else [weblog]
+                condition["weblog"] = parse_weblogs(weblog)
             new_entries.append(condition)
         return FieldProcessor.Return(new_entries, rule_entry_is_condition=False)
 
