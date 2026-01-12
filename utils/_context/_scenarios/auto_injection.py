@@ -27,7 +27,7 @@ class _VirtualMachineScenario(Scenario):
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
-        self.vm_provider_id = "vagrant"
+        self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
         self.required_vms = []
         # Variables that will populate for the agent installation
@@ -36,7 +36,7 @@ class _VirtualMachineScenario(Scenario):
         self.app_env = app_env
         self.only_default_vms = ""
         # Current selected vm for the scenario (set empty by default)
-        self.virtual_machine = _VirtualMachine(
+        self.virtual_machine: _VirtualMachine = _VirtualMachine(
             name="",
             aws_config=None,
             vagrant_config=None,
