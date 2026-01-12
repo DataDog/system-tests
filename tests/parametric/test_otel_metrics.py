@@ -214,8 +214,6 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -281,8 +279,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -352,8 +348,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -574,8 +568,6 @@ class Test_Otel_Metrics_Api_Meter:
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1161,8 +1153,6 @@ class Test_Otel_Metrics_Api_Instrument:
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1353,8 +1343,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1507,8 +1495,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @features.otel_metrics_api
 @scenarios.parametric
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1583,8 +1569,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @features.otel_metrics_api
 @scenarios.parametric
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1660,8 +1644,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @features.otel_metrics_api
 @scenarios.parametric
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1762,8 +1744,6 @@ class Test_Otel_Metrics_Host_Name:
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-# @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
