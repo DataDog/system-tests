@@ -1,3 +1,4 @@
+from io import TextIOWrapper
 import os
 import pathlib
 import uuid
@@ -100,7 +101,7 @@ class AWSPulumiProvider(VmProvider):
         with open("utils/virtual_machine/aws_infra_exceptions.json", "r") as f:
             return json.load(f)
 
-    def _handle_provision_error(self, exception):
+    def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
         """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
 
         exception_message = str(exception)
@@ -193,7 +194,7 @@ class AWSPulumiProvider(VmProvider):
                 f"Did not destroy VM as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
             )
 
-    def _get_cached_amis(self, vm):
+    def _get_cached_amis(self, vm: _VirtualMachine):
         """Get all the cached AMIs for the VM"""
         names_filter_to_check = []
         cached_amis = []
@@ -222,7 +223,7 @@ class AWSPulumiProvider(VmProvider):
                 cached_amis.append(ami_recent)
         return cached_amis
 
-    def _configure_cached_amis(self, vm):
+    def _configure_cached_amis(self, vm: _VirtualMachine):
         """Configure the cached AMIs for the VM"""
         before_time = time.time()
         cached_amis = self._get_cached_amis(vm)
@@ -257,7 +258,7 @@ class AWSPulumiProvider(VmProvider):
 
         logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 
-    def _get_ec2_tags(self, vm):
+    def _get_ec2_tags(self, vm: _VirtualMachine):
         """Build the ec2 tags for the VM"""
         tags = {"Name": vm.name, "CI": "system-tests"}
 
@@ -337,7 +338,14 @@ class AWSCommander(Commander):
         )
         return task_dep
 
-    def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
+    def execute_local_command(
+        self,
+        local_command_id: str,
+        local_command: str,
+        env: dict[str, str],
+        last_task: command.remote.Command,
+        logger_name: str,
+    ):
         last_task = command.local.Command(
             local_command_id,
             create=local_command,
@@ -349,7 +357,15 @@ class AWSCommander(Commander):
         )
         return last_task
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
+    def copy_file(
+        self,
+        id: str,
+        local_path: str,
+        remote_path: str,
+        connection: command.remote.ConnectionArgs,
+        last_task: command.remote.Command,
+        vm: _VirtualMachine | None = None,
+    ):
         last_task = command.remote.CopyFile(
             id,
             connection=connection,
@@ -365,10 +381,10 @@ class AWSCommander(Commander):
         installation_id: str,
         remote_command: str,
         env: dict[str, str],
-        connection,
-        last_task,
+        connection: command.remote.ConnectionArgs,
+        last_task: command.remote.Command,
         logger_name: str | None = None,
-        output_callback=None,
+        output_callback: callable | None = None,
         *,
         populate_env: bool = True,
     ):
@@ -412,10 +428,10 @@ class AWSCommander(Commander):
         destination_folder: str | None,
         command_id: str,
         connection: command.remote.ConnectionArgs,
-        depends_on,
+        depends_on: command.remote.Command,
         *,
-        relative_path=False,
-        vm=None,
+        relative_path: bool = False,
+        vm: _VirtualMachine = None,
     ):
         # If we don't use remote_path, the remote_path will be a default remote user home
         if not destination_folder:
@@ -515,7 +531,7 @@ class PulumiSSH:
 
         virtual_machine.ssh_config.username = virtual_machine.aws_config.user
 
-    def _write_pem_file(self, pem_file, content):
+    def _write_pem_file(self, pem_file: TextIOWrapper, content: str):
         pem_file.write(content)
         pem_file.close()
 
@@ -524,11 +540,11 @@ class DatadogEventSender:
     """Send events to Datadog ddev organization"""
 
     def __init__(self):
-        self.ddev_api_key = os.getenv("DDEV_API_KEY")
-        self.ci_project_name = os.getenv("CI_PROJECT_NAME", "local")
-        self.ci_job_url = os.getenv("CI_JOB_URL", "local")
+        self.ddev_api_key: str = os.getenv("DDEV_API_KEY")
+        self.ci_project_name: str = os.getenv("CI_PROJECT_NAME", "local")
+        self.ci_job_url: str = os.getenv("CI_JOB_URL", "local")
 
-    def sendEventToDatadog(self, title, message, tags):
+    def sendEventToDatadog(self, title: str, message: str, tags: list[str]):
         if not self.ddev_api_key:
             logger.error("Datadog API key not found to send event to ddev organization. Skipping event.")
             return

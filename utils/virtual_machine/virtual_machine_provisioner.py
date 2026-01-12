@@ -250,7 +250,7 @@ class _DeployedWeblog:
         self.app_type = app_type
         self.app_context_url = app_context_url
         # The weblog is deployed as a multicontainer app
-        self.multicontainer_apps = []
+        self.multicontainer_apps: list[_DeployedWeblog] = []
 
 
 class Provision:
@@ -261,7 +261,7 @@ class Provision:
         self.env = {}
         self.installations: list[Installation] = []
         self.lang_variant_installation = None
-        self.weblog_installation = None
+        self.weblog_installation: Installation | None = None
         self.tested_components_installation = None
         self.vm_logs_installation = None
         self.deployed_weblog = None
@@ -333,7 +333,7 @@ class Installation:
         self.local_script = None
         self.remote_command = None
         self.version = None
-        self.nginx_config = None
+        self.nginx_config: str | None = None
         self.copy_files: list[CopyFile] = []
 
     def __repr__(self):
