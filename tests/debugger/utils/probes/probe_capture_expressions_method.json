@@ -1,0 +1,50 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Expression",
+            "sourceFile": null
+        },
+        "captureSnapshot": false,
+        "capture": {
+            "maxReferenceDepth": 3
+        },
+        "captureExpressions": [
+            {
+                "name": "inputValue",
+                "expr": {
+                    "dsl": "inputValue",
+                    "json": {"ref": "inputValue"}
+                },
+                "capture": {
+                    "maxReferenceDepth": 1
+                }
+            },
+            {
+                "name": "localValue",
+                "expr": {
+                    "dsl": "localValue",
+                    "json": {"ref": "localValue"}
+                },
+                "capture": {
+                    "maxReferenceDepth": 1
+                }
+            },
+            {
+                "name": "testStruct",
+                "expr": {
+                    "dsl": "testStruct",
+                    "json": {"ref": "testStruct"}
+                },
+                "capture": {
+                    "maxReferenceDepth": 2
+                }
+            }
+        ]
+    }
+]
+
