@@ -495,14 +495,12 @@ class ParametricTestClientApi:
     def dd_flush(self) -> bool:
         r = self._session.post(self._url("/trace/span/flush"), json={})
 
-            if not HTTPStatus(r.status_code).is_success:
-                return False
+        if not HTTPStatus(r.status_code).is_success:
+            return False
 
-            r = self._session.post(self._url("/trace/stats/flush"), json={})
+        r = self._session.post(self._url("/trace/stats/flush"), json={})
 
-            return HTTPStatus(r.status_code).is_success
-        except:
-            return True
+        return HTTPStatus(r.status_code).is_success
 
     def write_log(
         self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
