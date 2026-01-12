@@ -880,6 +880,7 @@ $router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler
 $middleware = new class implements Middleware {
     public function handleRequest(Request $request, RequestHandler $next): Response {
         $response = $next->handleRequest($request);
+        dd_trace_internal_fn("finalize_telemetry");
         return $response;
     }
 };
