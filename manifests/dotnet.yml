@@ -257,6 +257,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: v2.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive: bug (APPSEC-60557)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: v2.32.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: v2.32.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: v2.32.0
