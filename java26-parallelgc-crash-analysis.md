@@ -1,8 +1,8 @@
 # Java 26 + ParallelGC + Heap Histogram Profiling Crash Analysis
 
-**Date:** January 10, 2026  
-**Scenario:** Docker SSI (Single Step Instrumentation)  
-**Affected Java Version:** Java 26 EA Build 29 (26-ea+29-2803)  
+**Date:** January 10, 2026
+**Scenario:** Docker SSI (Single Step Instrumentation)
+**Affected Java Version:** Java 26 EA Build 29 (26-ea+29-2803)
 **Status:** 🔴 Critical - JVM Crash (SIGSEGV)
 
 ---
@@ -27,7 +27,7 @@ This issue **does not occur** in Java 25 or when using alternative garbage colle
 #  SIGSEGV (0xb) at pc=0x00007ffffece4669, pid=1, tid=54
 #
 # JRE version: OpenJDK Runtime Environment (26.0+29) (build 26-ea+29-2803)
-# Java VM: OpenJDK 64-Bit Server VM (26-ea+29-2803, mixed mode, sharing, tiered, 
+# Java VM: OpenJDK 64-Bit Server VM (26-ea+29-2803, mixed mode, sharing, tiered,
 #          compressed oops, compressed class ptrs, parallel gc, linux-amd64)
 # Problematic frame:
 # V  [libjvm.so+0xea9669]  PSOldGen::object_iterate_block(ObjectClosure*, unsigned long)+0x179
@@ -84,14 +84,14 @@ From `OpenJdkController.java`:
 ```java
 if (configProvider.getBoolean(
     PROFILING_HEAP_HISTOGRAM_ENABLED, PROFILING_HEAP_HISTOGRAM_ENABLED_DEFAULT)) {
-  
+
   if (!isObjectCountParallelized()) {
     log.warn("enabling Datadog heap histogram on JVM without an efficient implementation...");
   }
-  
+
   String mode = configProvider.getString(
       PROFILING_HEAP_HISTOGRAM_MODE, PROFILING_HEAP_HISTOGRAM_MODE_DEFAULT);
-  
+
   if ("periodic".equalsIgnoreCase(mode)) {
     enableEvent(recordingSettings, "jdk.ObjectCount", "user enabled histogram heap collection");
   } else {
@@ -133,7 +133,7 @@ JDK-8307348 introduced **parallelized heap iteration** for JFR ObjectCount event
 ```
 #  SIGSEGV (0xb) at pc=0x00007ffffece4669, pid=1, tid=54
 # JRE version: OpenJDK Runtime Environment (26.0+29) (build 26-ea+29-2803)
-# Java VM: OpenJDK 64-Bit Server VM (26-ea+29-2803, mixed mode, sharing, tiered, 
+# Java VM: OpenJDK 64-Bit Server VM (26-ea+29-2803, mixed mode, sharing, tiered,
 #          compressed oops, compressed class ptrs, parallel gc, linux-amd64)
 # Problematic frame:
 # V  [libjvm.so+0xea9669]  PSOldGen::object_iterate_block(ObjectClosure*, unsigned long)+0x179
@@ -272,7 +272,7 @@ ENV DD_PROFILING_ENABLED=false
 ```java
 if (configProvider.getBoolean(
     PROFILING_HEAP_HISTOGRAM_ENABLED, PROFILING_HEAP_HISTOGRAM_ENABLED_DEFAULT)) {
-  
+
   // NEW: Check for known Java 26 + ParallelGC crash bug
   if (isJava26WithParallelGCBug()) {
     log.error(
@@ -284,14 +284,14 @@ if (configProvider.getBoolean(
         + "See: https://github.com/DataDog/dd-trace-java/issues/XXXXX");
     return; // CRITICAL: Skip enabling the feature entirely to prevent crash
   }
-  
+
   // Existing warning for non-parallelized versions
   if (!isObjectCountParallelized()) {
     log.warn(
         "enabling Datadog heap histogram on JVM without an efficient implementation of the jdk.ObjectCount event. "
             + "This may increase p99 latency. Consider upgrading to JDK 17.0.9+ or 21+ to reduce latency impact.");
   }
-  
+
   // Only reach here if Java 26 + ParallelGC check passed
   String mode =
       configProvider.getString(
@@ -312,23 +312,23 @@ public static boolean isJava26WithParallelGCBug() {
   // Java 26 EA builds (at least through build 29) have a crash bug in ParallelGC
   // when JFR ObjectCount events are enabled
   // See: https://bugs.openjdk.org/browse/JDK-XXXXX (to be filed)
-  
+
   if (!isJavaVersionAtLeast(26)) {
     return false; // Not Java 26
   }
-  
+
   // Check if using ParallelGC (PS = Parallel Scavenge)
   boolean isParallelGC = ManagementFactory.getGarbageCollectorMXBeans().stream()
       .map(GarbageCollectorMXBean::getName)
       .anyMatch(name -> name.contains("PS ") || name.contains("Parallel"));
-  
+
   if (!isParallelGC) {
     return false; // Not using ParallelGC, no crash risk
   }
-  
+
   // TODO: Once OpenJDK fixes the bug, update this check to exclude fixed builds
   // For example: if (isJavaVersionAtLeast(26, 0, 50)) return false;
-  
+
   log.debug("Detected Java 26 with ParallelGC - known crash bug with heap histogram profiling");
   return true;
 }
@@ -362,8 +362,8 @@ This appears to be a **JVM bug** that should be reported to OpenJDK.
 Title: SIGSEGV in PSOldGen::object_iterate_block during JFR ObjectCountAfterGC event
 
 Summary:
-Java 26 EA build 29 crashes with SIGSEGV when JFR event jdk.ObjectCountAfterGC 
-is enabled with ParallelGC. The crash occurs in PSOldGen::object_iterate_block 
+Java 26 EA build 29 crashes with SIGSEGV when JFR event jdk.ObjectCountAfterGC
+is enabled with ParallelGC. The crash occurs in PSOldGen::object_iterate_block
 at offset +0x179.
 
 Environment:
@@ -555,6 +555,6 @@ Heap histogram collection adds:
 
 **Questions?** Reach out in Slack: **#apm-shared-testing**
 
-**Created by:** System-Tests Automated Analysis  
-**Date:** January 10, 2026  
+**Created by:** System-Tests Automated Analysis
+**Date:** January 10, 2026
 **Version:** 1.0
