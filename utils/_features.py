@@ -2718,6 +2718,7 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=542, owner=_Owner.ml_observability)
 
+    @staticmethod
     def ai_guard(test_object):
         """AI Guard SDK
 
