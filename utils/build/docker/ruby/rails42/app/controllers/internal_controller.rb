@@ -19,6 +19,13 @@ class InternalController < ApplicationController
       metric_events = worker.instance_variable_get(:@metrics_manager).flush!
       worker.send(:flush_events, metric_events) if metric_events.any?
 
+      # HACK: In the current implementation there is no way to force the flushing.
+      #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+      #       and just wait till all penging messages are flushed.
+      #
+      # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+      #       value carefully.
+      telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
       sleep 0.2
     end
 
