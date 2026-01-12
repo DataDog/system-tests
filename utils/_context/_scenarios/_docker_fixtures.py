@@ -120,8 +120,9 @@ class DockerFixturesScenario(Scenario):
             with open("./binaries/python-load-from-local", encoding="utf-8") as f:
                 path = f.read().strip(" \r\n")
                 source = os.path.join(str(Path.cwd()), path)
-                volumes[str(Path(source).resolve())] = "/volumes/dd-trace-py"
-                env["PYTHONPATH"] = f"{Path(source).resolve()!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+                resolved_path = Path(source).resolve()
+                volumes[str(resolved_path)] = "/volumes/dd-trace-py"
+                env["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
         except FileNotFoundError:
             logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
 
