@@ -146,9 +146,13 @@ Use one of the four options:
 - Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
 
 For fast local development (for `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios):
+- **Prerequisites (for most use cases, a one-time setup)**: Make sure the native extensions are built for the Python version being used by the scenario you are running. For example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the `python:3.11-slim` image.
+  - If they are not available (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` does not exist), you will need to build them.
+  - Ensure Docker is running. In `dd-trace-py`, run `scripts/ddtest` to start up a shell which is based off of the `testrunner` image.
+  - Run `pyenv local 3.11.14 && pip install -e .` to install the dd-trace-py package in development mode, which will build the native extensions.
+  - Verify the native extensions are built by checking for the existence of `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so`.
+  - For any of these steps, swap out the Python version used/checked and the architecture (e.g. `aarch64-linux-gnu` or `x86_64-linux-gnu`) as needed.
 - Add a `python-load-from-local` file in `binaries`, with its contents being the relative path to the dd-trace-py repo on your machine
-- Run `scripts/build-native-extensions.sh` in `dd-trace-py` to build the native extensions for the Python version you are using, if they are not already built for the scenario you are running (for example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the `python:3.11-slim` image). Skip this step if the native extensions are already built for the python version used by the scenario you are running (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` exists).
-  - If you are actively testing features in `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios that require native extensions changes, you will need to rebuild these files each time they are changed.
 - Run system-tests as normal. The scenarios will add a volume mount for the dd-trace-py repo from the relative path in the `python-load-from-local` file, and also add it to the PYTHONPATH environment variable for the client container.
 
 
