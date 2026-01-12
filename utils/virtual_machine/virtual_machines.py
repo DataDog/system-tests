@@ -2,6 +2,8 @@ import os
 import json
 import hashlib
 
+from utils.virtual_machine.virtual_machine_provisioner import Provision
+
 
 class AWSInfraConfig:
     def __init__(self) -> None:
@@ -99,11 +101,11 @@ class _VirtualMachine:
         self.os_distro = os_distro
         self.os_branch = os_branch
         self.os_cpu = os_cpu
-        self._vm_provision = None
+        self._vm_provision: Provision | None = None
         self.tested_components = {}
         self.deffault_open_port = 5985
-        self.agent_env = None
-        self.app_env = None
+        self.agent_env: dict[str, str] | None = None
+        self.app_env: dict[str, str] | None = None
         self.default_vm = default_vm
         self._deployed_weblog = None
         self.provision_install_error = None
@@ -139,16 +141,16 @@ class _VirtualMachine:
             f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
         )
 
-    def add_provision(self, provision):
+    def add_provision(self, provision: Provision) -> None:
         self._vm_provision = provision
 
-    def get_provision(self):
+    def get_provision(self) -> Provision:
         return self._vm_provision
 
-    def add_agent_env(self, agent_env):
+    def add_agent_env(self, agent_env: dict[str, str]):
         self.agent_env = agent_env
 
-    def add_app_env(self, app_env):
+    def add_app_env(self, app_env: dict[str, str]):
         self.app_env = app_env
 
     def set_tested_components(self, components_json):
@@ -184,7 +186,7 @@ class _VirtualMachine:
             full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
         return full_cache_name
 
-    def get_command_environment(self):
+    def get_command_environment(self) -> dict[str, str]:
         """Get the environment that will be injected as environment variables for all launched remote commands"""
         command_env = {}
         for key, value in self.get_provision().env.items():
@@ -232,7 +234,7 @@ class _VirtualMachine:
         return command_env
 
 
-def load_virtual_machines(provider_id):
+def load_virtual_machines(provider_id: str):
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         data = json.load(file)
 
