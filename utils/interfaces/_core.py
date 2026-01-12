@@ -6,8 +6,6 @@
 
 from collections.abc import Callable, Iterable
 import json
-from os import listdir
-from os.path import join
 from pathlib import Path
 import re
 import shutil
@@ -113,14 +111,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
                 pytest.exit(reason=f"Unexpected error while deserialize {filename}:\n {traceback}", returncode=1)
 
     def load_data_from_logs(self):
-        for filename in sorted(listdir(self.log_folder)):
-            file_path = join(self.log_folder, filename)
-            if Path(file_path).is_file():
-                with open(file_path, encoding="utf-8") as f:
+        for file in sorted(Path(self.log_folder).iterdir()):
+            if file.is_file():
+                with file.open(encoding="utf-8") as f:
                     data = json.load(f)
 
                 self._append_data(data)
-                logger.info(f"{self.name} interface gets {file_path}")
+                logger.info(f"{self.name} interface gets {file}")
 
     def _append_data(self, data: dict):
         self._data_list.append(data)

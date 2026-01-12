@@ -44,20 +44,26 @@ def read_memfd(test_library: APMLibrary, memfd_path: str):
     return rc, msgpack.unpackb(output)
 
 
-def get_context_tracer_version():
-    # Temporary fix for Ruby until we start to bump the version after a release
-    # This cancels a hack in system-tests framework that increments the patch version
-    # and add -dev to the version string.
+def get_context_tracer_version() -> Version:
+    major = context.library.version.major
+    minor = context.library.version.minor
+    patch = context.library.version.patch
+    prerelease = context.library.version.prerelease
+
     if context.library.name == "ruby":
-        major = context.library.version.major
-        minor = context.library.version.minor
-        if "dev" in context.library.version.prerelease:
-            patch = context.library.version.patch - 1
-        else:
-            patch = context.library.version.patch
+        # Temporary fix for Ruby until we start to bump the version after a release
+        # This cancels a hack in system-tests framework that increments the patch version
+        # and add -dev to the version string.
         return Version(f"{major}.{minor}.{patch}")
     elif context.library.name == "java":
         return Version(str(context.library.version).replace("+", "-"))
+    elif context.library.name == "python":
+        # python version scheme uses a dot to separate prerelease tag
+        version = f"{major}.{minor}.{patch}"
+        if prerelease:
+            version += f".{'.'.join(prerelease)}"
+
+        return Version(version)
     else:
         return context.library.version
 
@@ -125,6 +131,7 @@ class Test_ProcessDiscovery:
             }
         ],
     )
+    @bug(context.library >= "cpp@2.0.0", reason="APMAPI-1772")  # issue in dd-trace-cpp, the dev branch is still 2.0.0
     def test_metadata_content_without_process_tags(self, test_library: APMLibrary, library_env: dict[str, str]):
         """Verify the content of the memfd file matches the expected metadata format and structure"""
         with test_library:

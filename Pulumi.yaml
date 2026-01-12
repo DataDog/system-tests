@@ -1,4 +1,4 @@
-name: system-tests-vms
+name: main
 runtime:
   name: python
   options:

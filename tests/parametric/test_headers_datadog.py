@@ -1,6 +1,6 @@
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import span_has_no_parent
+from utils.docker_fixtures.spec.trace import find_only_span
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
@@ -90,9 +90,7 @@ class Test_Headers_Datadog:
         assert headers["x-datadog-origin"] == "synthetics"
         assert "_dd.p.dm=-4" in headers["x-datadog-tags"]
 
-    def test_distributed_headers_extractandinject_datadog_invalid_D005(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_distributed_headers_extractandinject_datadog_invalid_D005(self, test_library: APMLibrary):
         """Ensure that invalid Datadog distributed tracing headers are not extracted
         and the new span context is injected properly.
         """

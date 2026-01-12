@@ -1,11 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import (
-    scenarios,
-    features,
-    interfaces,
-)
-from utils import weblog, logger
+from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context, logger
 
 
 @features.ssi_service_naming
@@ -30,12 +25,14 @@ class TestDockerServiceNaming:
 
         self.r = TestDockerServiceNaming._r
 
+    @missing_feature(condition=context.library in ("ruby",), reason="No implemented")
+    @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_service_name(self):
         logger.info("Testing Docker SSI service name")
         # There are traces related with the request and the service name is payment-service
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
         assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
         assert "service" in traces_for_request, "No service name found in traces"
-        assert (
-            traces_for_request["service"] == "payment-service"
-        ), f"Service name is not payment-service but {traces_for_request['service']}"
+        assert traces_for_request["service"] == "payment-service", (
+            f"Service name is not payment-service but {traces_for_request['service']}"
+        )

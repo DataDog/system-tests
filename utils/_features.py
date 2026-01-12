@@ -22,9 +22,8 @@ class _Owner(StrEnum):
     profiler = "@DataDog/profiling"  # it does not exists
     remote_config = "@DataDog/remote-config"
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    serverless = "@DataDog/serverless"
     sdk_capabilities = "@DataDog/apm-sdk-capabilities"
-    feature_flag_exposure = "@DataDog/feature-flagging-and-experimentation-sdk"
+    ffe = "@DataDog/feature-flagging-and-experimentation-sdk"  # Feature Flagging & Experimentation
 
 
 def _mark_test_object(test_object, feature_id: int, owner: _Owner):
@@ -2077,7 +2076,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
-        return _mark_test_object(test_object, feature_id=328, owner=_Owner.serverless)
+        return _mark_test_object(test_object, feature_id=328, owner=_Owner.apm_serverless)
 
     @staticmethod
     def aws_api_gateway_inferred_span_creation(test_object):
@@ -2173,7 +2172,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        from utils import context
+        from utils import context  # noqa: PLC0415
 
         return _mark_test_object(
             test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
@@ -2529,7 +2528,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=489
         """
-        from utils import context
+        from utils import context  # noqa: PLC0415
 
         return _mark_test_object(
             test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
@@ -2568,12 +2567,20 @@ class _Features:
         return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
 
     @staticmethod
-    def feature_flag_exposure(test_object):
-        """Feature Flag Exposure
+    def feature_flags_dynamic_evaluation(test_object):
+        """Feature Flags Dynamic Evaluation
 
-        https://feature-parity.us1.prod.dog/#/?feature=492
+        https://feature-parity.us1.prod.dog/#/?feature=538
         """
-        return _mark_test_object(test_object, feature_id=492, owner=_Owner.feature_flag_exposure)
+        return _mark_test_object(test_object, feature_id=538, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_exposures(test_object):
+        """Feature Flags & Experimentation (FFE)
+
+        https://feature-parity.us1.prod.dog/#/?feature=535
+        """
+        return _mark_test_object(test_object, feature_id=535, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
@@ -2592,14 +2599,6 @@ class _Features:
         return _mark_test_object(test_object, feature_id=495, owner=_Owner.agent_apm)
 
     @staticmethod
-    def llm_observability(test_object):
-        """Data integrity
-
-        https://feature-parity.us1.prod.dog/#/?feature=497
-        """
-        return _mark_test_object(test_object, feature_id=497, owner=_Owner.ml_observability)
-
-    @staticmethod
     def blocking_response_id(test_object):
         """Data integrity
 
@@ -2614,6 +2613,158 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=496
         """
         return _mark_test_object(test_object, feature_id=496, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def postgres_receiver_metrics(test_object):
+        """OpenTelemetry semantic conventions for Postgres receiver metrics
+
+        https://feature-parity.us1.prod.dog/#/?feature=498
+        """
+        return _mark_test_object(test_object, feature_id=498, owner=_Owner.idm)
+
+    @staticmethod
+    def llm_observability_openai_llm_interactions(test_object):
+        """LLM Observability supports OpenAI LLM interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=515
+        """
+        return _mark_test_object(test_object, feature_id=515, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_openai_embeddings(test_object):
+        """LLM Observability supports OpenAI embeddings interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=521
+        """
+        return _mark_test_object(test_object, feature_id=521, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_prompts(test_object):
+        """LLM Observability supports OpenAI LLM interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=517
+        """
+        return _mark_test_object(test_object, feature_id=517, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def rum_injection(test_object):
+        """RUM Injection
+
+        https://feature-parity.us1.prod.dog/#/?feature=525
+        """
+        return _mark_test_object(test_object, feature_id=525, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def apm_openai_completions(test_object):
+        """APM supports OpenAI completions interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=516
+        """
+        return _mark_test_object(test_object, feature_id=516, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_chat_completions(test_object):
+        """APM supports OpenAI chat completions interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=518
+        """
+        return _mark_test_object(test_object, feature_id=518, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_responses(test_object):
+        """APM supports OpenAI responses interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=519
+        """
+        return _mark_test_object(test_object, feature_id=519, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_openai_embeddings(test_object):
+        """APM supports OpenAI embeddings interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=520
+        """
+        return _mark_test_object(test_object, feature_id=520, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_anthropic_messages(test_object):
+        """APM supports Anthropic create interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=523
+        """
+        return _mark_test_object(test_object, feature_id=523, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_anthropic_messages(test_object):
+        """LLM Observability supports Anthropic LLM interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=524
+        """
+        return _mark_test_object(test_object, feature_id=524, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def appsec_api_gateway_inferred_span_discovery(test_object):
+        """Support API Gateway Inferred span discovery and correlation in the App & API Protection  API Catalog
+
+        https://feature-parity.us1.prod.dog/#/?feature=526
+        """
+        return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
+
+    @staticmethod
+    def ai_guard(test_object):
+        """AI Guard SDK
+
+        https://feature-parity.us1.prod.dog/#/?feature=528
+        """
+        return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
+
+    @staticmethod
+    def apm_google_genai_generate_content(test_object):
+        """APM supports Google GenAI generate content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=531
+        """
+        return _mark_test_object(test_object, feature_id=531, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_google_genai_embed_content(test_object):
+        """APM supports Google GenAI embed content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=532
+        """
+        return _mark_test_object(test_object, feature_id=532, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content(test_object):
+        """LLM Observability supports Google GenAI generate content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=533
+        """
+        return _mark_test_object(test_object, feature_id=533, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content_reasoning(test_object):
+        """LLM Observability supports Google GenAI generate content reasoning interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=534
+        """
+        return _mark_test_object(test_object, feature_id=534, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content_with_tools(test_object):
+        """LLM Observability supports Google GenAI generate content with tools interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=536
+        """
+        return _mark_test_object(test_object, feature_id=536, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_embed_content(test_object):
+        """LLM Observability supports Google GenAI embed content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=537
+        """
+        return _mark_test_object(test_object, feature_id=537, owner=_Owner.ml_observability)
 
 
 features = _Features()

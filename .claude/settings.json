@@ -1,0 +1,6 @@
+{
+    "env": {
+      "OTEL_RESOURCE_ATTRIBUTES": "repo.owner=DataDog,repo.name=system-tests"
+    },
+    "defaultMode": "acceptEdits"
+  }

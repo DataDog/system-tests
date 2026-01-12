@@ -5,28 +5,28 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence, Generator
 import json
 import os
-from pathlib import Path
 import time
 import types
-from typing import Any
 import xml.etree.ElementTree as ET
+from collections.abc import Generator, Sequence
+from typing import Any
 
 import pytest
 from _pytest.junitxml import xml_key
-from pytest_jsonreport.plugin import JSONReport
 from pluggy._result import _Result as Result
+from pytest_jsonreport.plugin import JSONReport
 
-from manifests.parser.core import load as load_manifests
 from utils import context
-from utils.properties_serialization import SetupProperties
-from utils._context._scenarios import scenarios, Scenario
-from utils._context.component_version import ComponentVersion
-from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
+from utils._context._scenarios import Scenario, scenarios
+from utils._context.component_version import ComponentVersion, Version
+from utils._decorators import add_pytest_marker
+from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
+from utils.manifest import Manifest
+from utils.properties_serialization import SetupProperties
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
@@ -46,6 +46,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+    parser.addoption("--declaration-report", action="store_true", help="Produce a report on nodeids and their scenario")
     parser.addoption(
         "--skip-empty-scenario",
         action="store_true",
@@ -133,7 +134,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         type=str,
         action="store",
         default=None,
-        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
+        help="Framework to test (e.g. 'openai-py@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
     )
 
     # report data to feature parity dashboard
@@ -142,6 +143,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
     parser.addoption(
         "--report-environment", type=str, action="store", default=None, help="The environment the test is run under"
+    )
+
+    # for generating integration frameworks cassettes
+    parser.addoption(
+        "--generate-cassettes",
+        action="store_true",
+        help="Generate cassettes for integration frameworks without caring about test assertions",
     )
 
 
@@ -259,73 +267,25 @@ def _collect_item_metadata(item: pytest.Item):
     return metadata
 
 
-def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
-    # As now, declaration only works for tracers at module level
-
-    library = context.library.name
-
-    manifests = load_manifests()
-
-    path = module_path.relative_to(module_path.cwd())
-
-    full_declaration: str | None = None
-    nodeid: str
-
-    # look in manifests for any declaration of this file, or on one of its parents
-    while str(path) != ".":
-        nodeid = f"{path!s}/" if path.is_dir() else str(path)
-
-        if nodeid in manifests and library in manifests[nodeid]:
-            full_declaration = manifests[nodeid][library]
-            break
-
-        path = path.parent
-
-    if full_declaration is None:
-        return None
-
-    logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
-
-    declaration, details = parse_skip_declaration(full_declaration)
-
-    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
-
-    add_pytest_marker(mod, declaration, details)
-
-    return mod
-
-
-@pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
-    if collector.istestclass(obj, name):
-        if obj is None:
-            message = f"""{collector.nodeid} is not properly collected.
-            You may have forgotten to return a value in a decorator like @features"""
-            raise ValueError(message)
-
-        manifest = load_manifests()
-
-        nodeid = f"{collector.nodeid}::{name}"
-
-        if nodeid in manifest:
-            declaration = manifest[nodeid]
-            logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
-
-            try:
-                released(**declaration)(obj)
-            except Exception as e:
-                raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
-
-
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Unselect items that are not included in the current scenario"""
+    """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
+    manifest_components: dict[str, Version] = {
+        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
+    }
+    manifest = Manifest(manifest_components, context.weblog_variant)
+    for item in items:
+        assert isinstance(item, pytest.Function)
+        declarations = manifest.get_declarations(item.nodeid)
+        for declaration in declarations:
+            add_pytest_marker(item, declaration.value, declaration.details)
 
     selected = []
     deselected = []
 
     all_declared_scenarios = {}
+    all_declarations = {}
 
     def iter_markers(self: pytest.Item, name: str | None = None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
@@ -342,6 +302,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
         all_declared_scenarios[item.nodeid] = declared_scenarios
+        all_declarations[item.nodeid] = [str(marker) for marker in item.own_markers if marker.name in ("xfail", "skip")]
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
@@ -378,6 +339,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
+    if config.option.declaration_report:
+        with open(f"{context.scenario.host_log_folder}/declarations.json", "w", encoding="utf-8") as f:
+            json.dump(all_declarations, f, indent=2)
+            pytest.exit("Declaration collection mode, not running the tests")
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
@@ -406,6 +371,9 @@ def _item_is_skipped(item: pytest.Item):
 
 def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
+        return
+
+    if session.config.option.declaration_report:
         return
 
     if session.config.option.sleep:  # on this mode, we simply sleep, not running any test or setup
@@ -517,14 +485,10 @@ def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> No
 
 
 def pytest_json_modifyreport(json_report: dict) -> None:
-    try:
-        # add usefull data for reporting
-        json_report["context"] = context.serialize()
+    # add usefull data for reporting
+    json_report["context"] = context.serialize()
 
-        logger.debug("Modifying JSON report finished")
-
-    except:
-        logger.error("Fail to modify json report", exc_info=True)
+    logger.debug("Modifying JSON report finished")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
@@ -534,9 +498,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
 
+    if session.config.option.collectonly:
+        return
+
     context.scenario.pytest_sessionfinish(session, exitstatus)
 
-    if session.config.option.collectonly or session.config.option.replay:
+    if session.config.option.replay:
         return
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,

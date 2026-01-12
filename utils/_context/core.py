@@ -23,6 +23,9 @@ class _Context:
     scenario: Scenario  # will be set by pytest_configure
 
     def _get_scenario_property(self, name: str, default: Any) -> Any:  # noqa:ANN401
+        if self.scenario.collect_only:
+            return default
+
         if hasattr(self.scenario, name):
             return getattr(self.scenario, name)
 
@@ -50,9 +53,7 @@ class _Context:
 
     @property
     def library(self) -> ComponentVersion:
-        result = self._get_scenario_property("library", None)
-        assert result is not None
-        return result
+        return self._get_scenario_property("library", ComponentVersion("notRelevant"))
 
     @property
     def tracer_sampling_rate(self):
@@ -79,7 +80,7 @@ class _Context:
         return self._get_scenario_property("k8s_cluster_agent_version", "")
 
     @property
-    def components(self) -> dict[str, str]:
+    def components(self) -> dict[str, Version | str]:
         assert self.scenario is not None
         return self.scenario.components
 

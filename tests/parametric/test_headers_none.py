@@ -1,7 +1,7 @@
 import pytest
 
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import find_only_span
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
@@ -84,7 +84,7 @@ class Test_Headers_None:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     @enable_none()
-    def test_headers_none_inject(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_headers_none_inject(self, test_library: APMLibrary) -> None:
         """Ensure that the 'none' propagator is used and
         no Datadog distributed tracing headers are injected.
         """

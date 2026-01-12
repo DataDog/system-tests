@@ -25,6 +25,7 @@ from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
@@ -178,6 +179,7 @@ class _Scenarios:
             "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -496,15 +498,15 @@ class _Scenarios:
         ],
     )
 
-    feature_flag_exposure = EndToEndScenario(
-        "FEATURE_FLAG_EXPOSURE",
+    feature_flagging_and_experimentation = EndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
         },
         doc="",
-        scenario_groups=[scenario_groups.feature_flag_exposure],
+        scenario_groups=[scenario_groups.ffe],
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -628,6 +630,7 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
@@ -638,6 +641,8 @@ class _Scenarios:
     tracing_config_nondefault_4 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_4",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
@@ -683,6 +688,8 @@ class _Scenarios:
     debugger_pii_redaction = DebuggerScenario(
         "DEBUGGER_PII_REDACTION",
         weblog_env={
+            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
@@ -863,14 +870,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    demo_aws = InstallerAutoInjectionScenario(
-        "DEMO_AWS",
-        "Demo aws scenario",
-        vm_provision="demo",
-        scenario_groups=[],
-        github_workflow="aws_ssi",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
@@ -1024,18 +1023,15 @@ class _Scenarios:
         },
     )
 
-    appsec_rasp_non_blocking = EndToEndScenario(
+    appsec_rasp_non_blocking = AppsecRaspScenario(
         "APPSEC_RASP_NON_BLOCKING",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+        weblog_env={"DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
         weblog_volumes={
             "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
                 "bind": "/appsec_rasp_non_blocking_ruleset.json",
                 "mode": "ro",
             }
         },
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
     )
 
     appsec_ato_sdk = EndToEndScenario(
@@ -1143,12 +1139,31 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
+    appsec_lambda_inferred_spans = LambdaScenario(
+        "APPSEC_LAMBDA_INFERRED_SPANS",
+        doc="Lambda scenario with managed services tracing enabled",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        trace_managed_services=True,
+    )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
+
+    ai_guard = EndToEndScenario(
+        "AI_GUARD",
+        include_vcr_cassettes=True,
+        weblog_env={
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+        },
+        doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.appsec],
     )
 
 

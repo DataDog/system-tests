@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
@@ -13,12 +14,14 @@ import (
 
 var HTTPClient = httptrace.WrapClient(http.DefaultClient)
 
+const internalServerBaseURL = "http://internal_server:8089"
+
 func ExternalRequest(w http.ResponseWriter, upwardReq *http.Request) {
 	status := upwardReq.URL.Query().Get("status")
 	if status == "" {
 		status = "200"
 	}
-	url := "http://internal_server:8089/mirror/" + status + upwardReq.URL.Query().Get("url_extra")
+	url := internalServerBaseURL + "/mirror/" + status + upwardReq.URL.Query().Get("url_extra")
 	req, err := http.NewRequest(upwardReq.Method, url, upwardReq.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -91,4 +94,41 @@ func ExternalRequest(w http.ResponseWriter, upwardReq *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		logrus.Error("error creating response: ", err)
 	}
+}
+
+func ExternalRedirectRequest(w http.ResponseWriter, upwardReq *http.Request) {
+	totalRedirects, err := strconv.Atoi(upwardReq.URL.Query().Get("totalRedirects"))
+	if err != nil {
+		logrus.Error("error converting totalRedirects to int:", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+	url := fmt.Sprintf(internalServerBaseURL+"/redirect?totalRedirects=%d", totalRedirects)
+	req, err := http.NewRequestWithContext(upwardReq.Context(), http.MethodGet, url, nil)
+	if err != nil {
+		logrus.Error("error creating request:", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+	for key, values := range upwardReq.URL.Query() {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	resp, err := HTTPClient.Do(req.WithContext(upwardReq.Context()))
+	if err != nil {
+		logrus.Error("error during downstream request:", err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	defer resp.Body.Close()
+	w.WriteHeader(http.StatusOK)
 }

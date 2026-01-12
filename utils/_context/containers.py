@@ -1,6 +1,7 @@
 import os
 import re
 import stat
+import sys
 import json
 from typing import cast
 from http import HTTPStatus
@@ -15,10 +16,19 @@ from docker.models.networks import Network
 import pytest
 import requests
 
-from utils._context.component_version import ComponentVersion
+from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
+from utils._context.ports import ContainerPorts
 from utils.proxy.ports import ProxyPorts
+from utils.proxy.mocked_response import (
+    RemoveMetaStructsSupport,
+    MockedResponse,
+    SetSpanEventFlags,
+    AddRemoteConfigEndpoint,
+    StaticJsonMockedResponse,
+)
 from utils._logger import logger
+from utils._weblog import weblog
 from utils import interfaces
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
@@ -425,11 +435,11 @@ class TestedContainer:
                 # collect logs before removing
                 self.collect_logs()
                 self._container.remove(force=True)
-            except:
+            except APIError as e:
                 # Sometimes, the container does not exists.
                 # We can safely ignore this, because if it's another issue
                 # it will be killed at startup
-                logger.info(f"Fail to remove container {self.name}")
+                logger.info(f"Fail to remove container {self.name} ({e})")
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
@@ -539,8 +549,6 @@ class ImageInfo:
 
 
 class ProxyContainer(TestedContainer):
-    command_host_port = 11111  # Which port exposed to host to sent proxy commands
-
     def __init__(
         self,
         *,
@@ -566,29 +574,44 @@ class ProxyContainer(TestedContainer):
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
-                "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
-                "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
-                "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
-            working_dir="/app",
+            working_dir="/app/utils",
             volumes={
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
-            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
-            command="python utils/proxy/core.py",
+            ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
+            command="python -m proxy.core",
             healthcheck={
                 "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
                 "retries": 30,
             },
         )
 
+        self.internal_mocked_responses: list[MockedResponse] = [SetSpanEventFlags(span_events=span_events)]
+
+        if meta_structs_disabled:
+            self.internal_mocked_responses.append(RemoveMetaStructsSupport())
+
+        if rc_api_enabled:
+            # add the remote config endpoint on available agent endpoints
+            self.internal_mocked_responses.append(AddRemoteConfigEndpoint())
+            # mimic the default response from the agent
+            self.internal_mocked_responses.append(StaticJsonMockedResponse(path="/v0.7/config", mocked_json={}))
+
         self.mocked_backend = mocked_backend
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        mocked_responses_path = f"{self.log_folder_path}/internal_mocked_responses.json"
+
+        with Path(mocked_responses_path).open(encoding="utf-8", mode="w") as f:
+            json.dump([resp.to_json() for resp in self.internal_mocked_responses], f, indent=2)
+
         self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
+        self.volumes[mocked_responses_path] = {"bind": "/app/logs/internal_mocked_responses.json", "mode": "ro"}
 
 
 class LambdaProxyContainer(TestedContainer):
@@ -598,8 +621,6 @@ class LambdaProxyContainer(TestedContainer):
         lambda_weblog_host: str,
         lambda_weblog_port: str,
     ) -> None:
-        from utils import weblog
-
         self.host_port = weblog.port
         self.container_port = "7777"
 
@@ -623,12 +644,13 @@ class LambdaProxyContainer(TestedContainer):
     def post_start(self):
         super().post_start()
 
-        logger.stdout(f"Proxied event type: {self.environment.get("LAMBDA_EVENT_TYPE")}")
+        logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
+    agent_version: Version
 
     def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
         environment = environment or {}
@@ -666,8 +688,6 @@ class AgentContainer(TestedContainer):
                 "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
             },
         )
-
-        self.agent_version: str | None = ""
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -775,8 +795,6 @@ class WeblogContainer(TestedContainer):
         use_proxy: bool = True,
         volumes: dict | None = None,
     ) -> None:
-        from utils import weblog
-
         self.host_port = weblog.port
         self.container_port = 7777
 
@@ -920,6 +938,11 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
+        # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
+        # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
+        if self.weblog_variant == "uwsgi-poc":
+            weblog.set_request_default_retry(5)
+
         self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
@@ -937,7 +960,7 @@ class WeblogContainer(TestedContainer):
             self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
-            header_tags += f',{",".join(self.additional_trace_header_tags)}'
+            header_tags += f",{','.join(self.additional_trace_header_tags)}"
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
 
@@ -982,9 +1005,33 @@ class WeblogContainer(TestedContainer):
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
-    def post_start(self):
-        from utils import weblog
+    def warmup_request(self, timeout: int = 10):
+        weblog.get("/", timeout=timeout)
 
+    def flush(self) -> None:
+        # for weblogs who supports it, call the flush endpoint
+        try:
+            r = weblog.get("/flush", timeout=10)
+            assert r.status_code == HTTPStatus.OK
+        except Exception as e:
+            self.healthy = False
+            logger.stdout(f"Warning: Failed to flush weblog, please check {self.log_folder_path}/stdout.log ({e})")
+
+    def set_weblog_domain_for_ipv6(self, network: Network):
+        if sys.platform == "linux":
+            # on Linux, with ipv6 mode, we can't use localhost anymore for a reason I ignore
+            # To fix, we use the container ipv4 address as weblog doamin, as it's accessible from host
+            weblog.domain = self.network_ip(network)
+            logger.info(f"Linux => Using Container IPv6 address [{weblog.domain}] as weblog domain")
+
+        elif sys.platform == "darwin":
+            # on Mac, this ipv4 address can't be used, because container IP are not accessible from host
+            # as they are on an network intermal to the docker VM. But we can still use localhost.
+            logger.info("Mac => Using localhost as weblog domain")
+        else:
+            pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
+
+    def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
 
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -1030,13 +1077,14 @@ class LambdaWeblogContainer(WeblogContainer):
         *,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
+        trace_managed_services: bool = False,
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
             "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
-            "DD_TRACE_MANAGED_SERVICES": "false",
+            "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 
         volumes = volumes or {}
@@ -1273,9 +1321,9 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
         super().__init__(
             name="collector",
-            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            image_name="otel/opentelemetry-collector-contrib:0.137.0",
             binary_file_name="otel_collector-image",
-            command="--config=/etc/otelcol-config.yml",
+            command="--config=/etc/config/otelcol-config.yml",
             environment=environment,
             volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
@@ -1286,7 +1334,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         self.volumes[f"{self.log_folder_path}/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
+        self.volumes[self.config_file] = {"bind": "/etc/config/otelcol-config.yml", "mode": "ro"}
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
@@ -1341,6 +1389,39 @@ class APMTestAgentContainer(TestedContainer):
             "bind": "/var/run/datadog/",
             "mode": "rw",
         }
+
+
+class VCRCassettesContainer(TestedContainer):
+    """VCR cassettes container for recording and replaying HTTP interactions.
+
+    Will mount the folder ./utils/build/docker/vcr_proxy/cassettes to /cassettes inside the container.
+
+    The endpoint will be made available to weblogs at 'http://vcr_cassettes:{proxy_port}/vcr'
+    """
+
+    def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
+        super().__init__(
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
+            name="vcr_cassettes",
+            environment={
+                "PORT": str(vcr_port),
+                "VCR_CASSETTES_DIRECTORY": "/cassettes",
+                # cassettes are pre-recorded and the real service will never be used in testing
+                "VCR_PROVIDER_MAP": "aiguard=https://app.datadoghq.com/api/v2/ai-guard",
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error http://localhost:{vcr_port}/info",
+                "retries": 60,
+            },
+            volumes={
+                "./utils/build/docker/vcr/cassettes": {
+                    "bind": "/cassettes",
+                    "mode": "ro",
+                },
+            },
+            ports={vcr_port: ("127.0.0.1", vcr_port)},
+            allow_old_container=False,
+        )
 
 
 class MountInjectionVolume(TestedContainer):
@@ -1401,7 +1482,7 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
-            environment=cast(dict[str, str | None], environment),
+            environment=cast("dict[str, str | None]", environment),
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
@@ -1443,8 +1524,6 @@ class InternalServerContainer(TestedContainer):
 
 class EnvoyContainer(TestedContainer):
     def __init__(self) -> None:
-        from utils import weblog
-
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
@@ -1515,8 +1594,6 @@ class ExternalProcessingContainer(TestedContainer):
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
-        from utils import weblog
-
         super().__init__(
             image_name="haproxy:3.2",
             name="haproxy",

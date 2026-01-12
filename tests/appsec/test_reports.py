@@ -5,7 +5,6 @@ from utils import weblog, context, interfaces, bug, scenarios, rfc, features
 from utils._weblog import HttpResponse
 
 
-@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_StatusCode:
     """Appsec reports good status code"""
@@ -35,7 +34,6 @@ class Test_StatusCode:
         )
 
 
-@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
@@ -66,7 +64,6 @@ class Test_Info:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.envoy_external_processing
 @features.haproxy_stream_processing_offload
 @features.security_events_metadata

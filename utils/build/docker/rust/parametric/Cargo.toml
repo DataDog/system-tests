@@ -35,5 +35,4 @@ opentelemetry-stdout    = { version = "0.31.0", features = ["trace", "logs"] }
 opentelemetry-semantic-conventions = { version = "0.31.0" }
 
 
-#datadog-opentelemetry  = { path = "/home/igor/go/src/github.com/DataDog/dd-trace-rs/datadog-opentelemetry" }
-#dd-trace               = { path = "/home/igor/go/src/github.com/DataDog/dd-trace-rs/dd-trace" }
+# datadog-opentelemetry  = { git = "https://github.com/Datadog/dd-trace-rs", rev = "main" }

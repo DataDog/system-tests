@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
@@ -11,7 +10,6 @@ from utils.dd_constants import SamplingPriority
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
 
 
-@bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.envoy_external_processing
 @features.haproxy_stream_processing_offload
 @features.security_events_metadata
@@ -82,22 +80,21 @@ class Test_AppSecEventSpanTags:
         for span in spans:
             if span.get("type") == "serverless" and "_dd.appsec.unsupported_event_type" in span["metrics"]:
                 # For serverless, the `healthcheck` event is not supported
-                assert (
-                    span["metrics"]["_dd.appsec.unsupported_event_type"] == 1
-                ), "_dd.appsec.unsupported_event_type should be 1 or 1.0"
+                assert span["metrics"]["_dd.appsec.unsupported_event_type"] == 1, (
+                    "_dd.appsec.unsupported_event_type should be 1 or 1.0"
+                )
                 continue
             assert "_dd.appsec.enabled" in span["metrics"], "Cannot find _dd.appsec.enabled in span metrics"
             assert span["metrics"]["_dd.appsec.enabled"] == 1, "_dd.appsec.enabled should be 1 or 1.0"
             assert "_dd.runtime_family" in span["meta"], "Cannot find _dd.runtime_family in span meta"
-            assert (
-                span["meta"]["_dd.runtime_family"] in RUNTIME_FAMILIES
-            ), f"_dd.runtime_family should be in {RUNTIME_FAMILIES}"
+            assert span["meta"]["_dd.runtime_family"] in RUNTIME_FAMILIES, (
+                f"_dd.runtime_family should be in {RUNTIME_FAMILIES}"
+            )
 
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @bug(library="python_lambda", reason="APPSEC-58202")
-    @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="APMRP-360")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @bug(
         context.library < "nodejs@5.57.0",
@@ -136,12 +133,12 @@ class Test_AppSecEventSpanTags:
         for span in spans:
             if span.get("type") in valid_appsec_span_types:
                 continue
-            assert (
-                "_dd.appsec.enabled" not in span.get("metrics", {})
-            ), f"_dd.appsec.enabled should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
-            assert (
-                "_dd.runtime_family" not in span.get("meta", {})
-            ), f"_dd.runtime_family should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
+            assert "_dd.appsec.enabled" not in span.get("metrics", {}), (
+                f"_dd.appsec.enabled should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
+            )
+            assert "_dd.runtime_family" not in span.get("meta", {}), (
+                f"_dd.runtime_family should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
+            )
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
@@ -181,9 +178,9 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+            assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
@@ -234,9 +231,9 @@ class Test_AppSecObfuscator:
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+            assert not nested_lookup(self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
@@ -261,9 +258,9 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True
-            ), "The security events contain the secret value that should be obfuscated"
+            assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True), (
+                "The security events contain the secret value that should be obfuscated"
+            )
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
@@ -290,12 +287,12 @@ class Test_AppSecObfuscator:
         # that is expected to be obfuscated.
 
         def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            assert not nested_lookup(
-                self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True
-            ), "Sensitive cookie is not obfuscated"
-            assert nested_lookup(
-                self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM, appsec_data, exact_match=True
-            ), "Non-sensitive cookie is not reported"
+            assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True), (
+                "Sensitive cookie is not obfuscated"
+            )
+            assert nested_lookup(self.SECRET_VALUE_WITH_NON_SENSITIVE_KEY_CUSTOM, appsec_data, exact_match=True), (
+                "Non-sensitive cookie is not reported"
+            )
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
         interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_cookies_custom, allow_no_data=True)

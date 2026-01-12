@@ -5,8 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import re
-from utils import weblog, interfaces, scenarios, features, context
-from utils._decorators import missing_feature
+from utils import weblog, interfaces, scenarios, features, context, missing_feature
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -50,7 +49,7 @@ class Test_Profile:
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name != "java",
+        condition=context.library.name not in ("java", "python"),
         reason="Not yet implemented",
     )
     def test_process_tags(self):

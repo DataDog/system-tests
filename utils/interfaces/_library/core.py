@@ -48,6 +48,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         self.wait_for(wait_function, timeout)
 
+    def wait_for_client_side_stats_payload(self, timeout: int = 30):
+        """Used in setup functions, wait for a stats payload to be sent to the agent to make sure client-side stats
+        has been enabled.
+        """
+
+        def wait_function(data: dict):
+            return data["path"] == "/v0.6/stats"
+
+        self.wait_for(wait_function, timeout)
+
     ############################################################
     def get_traces(
         self, request: HttpResponse | GrpcResponse | None = None
@@ -344,7 +354,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         for data, trace in self.get_traces():
             spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
 
-            if len(spans):
+            if spans:
                 log_filename = data["log_filename"]
                 span = spans[0]
                 assert "trace_id" in span, f"'trace_id' is missing in {log_filename}"
@@ -627,19 +637,19 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
                     obtained_param = obtained_parameters[name]
 
-                    assert (
-                        obtained_param["address"] == address
-                    ), f"incorrect address for '{name}', expected '{address}, found '{obtained_param['address']}'"
+                    assert obtained_param["address"] == address, (
+                        f"incorrect address for '{name}', expected '{address}, found '{obtained_param['address']}'"
+                    )
 
                     if value is not None:
-                        assert (
-                            obtained_param["value"] == value
-                        ), f"incorrect value for '{name}', expected '{value}', found '{obtained_param['value']}'"
+                        assert obtained_param["value"] == value, (
+                            f"incorrect value for '{name}', expected '{value}', found '{obtained_param['value']}'"
+                        )
 
                     if key_path is not None:
-                        assert (
-                            obtained_param["key_path"] == key_path
-                        ), f"incorrect key_path for '{name}', expected '{key_path}'"
+                        assert obtained_param["key_path"] == key_path, (
+                            f"incorrect key_path for '{name}', expected '{key_path}'"
+                        )
 
             return True
 

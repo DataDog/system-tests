@@ -6,6 +6,7 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
+const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
@@ -171,6 +172,22 @@ app.post('/trace/span/set_metric', (req, res) => {
   const value = args.value;
   const span = spans[spanId];
   span.setTag(key, value);
+  res.json({});
+});
+
+app.post('/trace/span/manual_keep', (req, res) => {
+  const args = req.body;
+  const spanId = args.span_id;
+  const span = spans[spanId];
+  span.setTag(MANUAL_KEEP, true);
+  res.json({});
+});
+
+app.post('/trace/span/manual_drop', (req, res) => {
+  const args = req.body;
+  const spanId = args.span_id;
+  const span = spans[spanId];
+  span.setTag(MANUAL_DROP, true);
   res.json({});
 });
 
@@ -356,6 +373,51 @@ app.get('/trace/config', (req, res) => {
     }
   });
 });
+
+app.post("/log/write", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  const logger = logs.getLogger(req?.body?.logger_name)
+  const otelSpan = otelSpans[req?.body?.span_id]
+  const ddSpan = spans[req?.body?.span_id]
+  let context = undefined
+  if (otelSpan) {
+    context = trace.setSpan(ROOT_CONTEXT, otelSpan)
+  } else if (ddSpan) {
+    const ddSpanContext = ddSpan.context()
+    const sp = {spanId: ddSpanContext.toSpanId(true), traceId: ddSpanContext.toTraceId(true), flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0}
+    context = trace.setSpanContext(ROOT_CONTEXT, sp)
+  }
+
+  logger.emit({
+    severityText: req.body.level,
+    body: req.body.message,
+    context: context
+  })
+  res.status(200).json({})
+})
+
+app.post("/log/otel/flush", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  try {
+    // Get the current logs provider
+    const logsProvider = logs.getLoggerProvider()
+    const providerType = logsProvider.constructor.name
+
+    // Force flush all logs with timeout
+    const timeoutMs = (req.body.seconds || 5) * 1000
+    logsProvider.forceFlush(timeoutMs)
+      .then(() => {
+        res.status(200).json({ success: true, message: providerType })
+      })
+      .catch((error) => {
+        res.status(200).json({ success: false, message: `Error: ${error.message}` })
+      })
+  } catch (error) {
+    res.status(200).json({ success: false, message: `Error: ${error.message}` })
+  }
+})
 
 app.post("/trace/otel/add_event", (req, res) => {
   const { span_id, name, timestamp, attributes } = req.body;
@@ -657,8 +719,8 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
 
 app.post('/metrics/otel/force_flush', (req, res) => {
   const meterProvider = metrics.getMeterProvider();
-  if (meterProvider.forceFlush) {
-    meterProvider.forceFlush()
+  if (meterProvider.reader) {
+    meterProvider.reader.forceFlush()
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Force flush not supported' });

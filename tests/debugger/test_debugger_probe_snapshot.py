@@ -308,16 +308,16 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         fields = obj["fields"]
         assert isinstance(fields, dict), f"Expected 'fields' to be a dict, got: {type(fields)}"
         expected_nested_key = "@nested" if context.library.name == "ruby" else "nested"
-        assert (
-            expected_nested_key in fields
-        ), f"Expected '{expected_nested_key}' to be present in the 'fields' object, got: {list(fields.keys())}"
+        assert expected_nested_key in fields, (
+            f"Expected '{expected_nested_key}' to be present in the 'fields' object, got: {list(fields.keys())}"
+        )
         nested = fields[expected_nested_key]
         assert isinstance(nested, dict), f"Expected '{expected_nested_key}' to be a dict, got: {type(nested)}"
 
         if "notCapturedReason" in nested:
-            assert (
-                nested["notCapturedReason"] == "depth"
-            ), f"Expected notCapturedReason to be 'depth', got: {nested['notCapturedReason']}"
+            assert nested["notCapturedReason"] == "depth", (
+                f"Expected notCapturedReason to be 'depth', got: {nested['notCapturedReason']}"
+            )
             return current_depth
 
         return self._measure_captured_depth(nested, current_depth + 1)
@@ -328,30 +328,30 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         """Test that the tracer uses default maxReferenceDepth=3 when capture property is omitted"""
         deep_object = self._get_snapshot_locals_variable("deepObject")
         actual_depth = self._measure_captured_depth(deep_object)
-        assert (
-            actual_depth == self.DEFAULT_MAX_REFERENCE_DEPTH
-        ), f"deepObject should have been captured with {self.DEFAULT_MAX_REFERENCE_DEPTH} levels, got: {actual_depth}"
+        assert actual_depth == self.DEFAULT_MAX_REFERENCE_DEPTH, (
+            f"deepObject should have been captured with {self.DEFAULT_MAX_REFERENCE_DEPTH} levels, got: {actual_depth}"
+        )
 
     @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     def test_default_max_field_count(self):
         """Test that the tracer uses default maxFieldCount=20 when capture property is omitted"""
         many_fields = self._get_snapshot_locals_variable("manyFields")
-        assert (
-            many_fields.get("notCapturedReason") == "fieldCount"
-        ), f"manyFields should have notCapturedReason='fieldCount', got: {many_fields.get('notCapturedReason')}"
+        assert many_fields.get("notCapturedReason") == "fieldCount", (
+            f"manyFields should have notCapturedReason='fieldCount', got: {many_fields.get('notCapturedReason')}"
+        )
 
         captured_count = len(many_fields["fields"])
-        assert (
-            captured_count == self.DEFAULT_MAX_FIELD_COUNT
-        ), f"manyFields should have exactly {self.DEFAULT_MAX_FIELD_COUNT} fields captured, got: {captured_count}"
+        assert captured_count == self.DEFAULT_MAX_FIELD_COUNT, (
+            f"manyFields should have exactly {self.DEFAULT_MAX_FIELD_COUNT} fields captured, got: {captured_count}"
+        )
 
     @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     def test_default_max_collection_size(self):
         """Test that the tracer uses default maxCollectionSize=100 when capture property is omitted"""
         large_collection = self._get_snapshot_locals_variable("largeCollection")
-        assert (
-            large_collection.get("notCapturedReason") == "collectionSize"
-        ), f"largeCollection should have notCapturedReason='collectionSize', got: {large_collection.get('notCapturedReason')}"
+        assert large_collection.get("notCapturedReason") == "collectionSize", (
+            f"largeCollection should have notCapturedReason='collectionSize', got: {large_collection.get('notCapturedReason')}"
+        )
 
         actual_size = large_collection.get("size")
         if isinstance(actual_size, str) and context.library.name == "java":
@@ -359,14 +359,14 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             logger.warning("size property is a string! Expected an int")
             actual_size = int(actual_size)
         expected_collection_size = self.DEFAULT_MAX_COLLECTION_SIZE + 100
-        assert (
-            actual_size == expected_collection_size
-        ), f"largeCollection should report size={expected_collection_size}, got: {actual_size}"
+        assert actual_size == expected_collection_size, (
+            f"largeCollection should report size={expected_collection_size}, got: {actual_size}"
+        )
 
         captured_count = len(large_collection["elements"])
-        assert (
-            captured_count == self.DEFAULT_MAX_COLLECTION_SIZE
-        ), f"largeCollection should have exactly {self.DEFAULT_MAX_COLLECTION_SIZE} elements, got: {captured_count}"
+        assert captured_count == self.DEFAULT_MAX_COLLECTION_SIZE, (
+            f"largeCollection should have exactly {self.DEFAULT_MAX_COLLECTION_SIZE} elements, got: {captured_count}"
+        )
 
     @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     @bug(context.library.name == "dotnet", reason="DEBUG-4669")  # .NET uses a different default maxLength: 1000
@@ -374,9 +374,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         """Test that the tracer uses default maxLength=255 when capture property is omitted"""
         long_string = self._get_snapshot_locals_variable("longString")
         string_value = long_string["value"]
-        assert (
-            len(string_value) <= self.DEFAULT_MAX_LENGTH
-        ), f"longString should have length {self.DEFAULT_MAX_LENGTH}, got: {len(string_value)}"
+        assert len(string_value) <= self.DEFAULT_MAX_LENGTH, (
+            f"longString should have length {self.DEFAULT_MAX_LENGTH}, got: {len(string_value)}"
+        )
 
     def setup_log_line_snapshot_debug_track(self):
         self.use_debugger_endpoint = True
@@ -406,9 +406,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         self._assert()
         self._validate_snapshots()
-        assert (
-            self._debugger_v2_input_snapshots_received()
-        ), "Snapshots were not received at the debugger/v2/input endpoint"
+        assert self._debugger_v2_input_snapshots_received(), (
+            "Snapshots were not received at the debugger/v2/input endpoint"
+        )
 
     ### span decoration probe ###
     def setup_span_decoration_line_snapshot(self):
@@ -434,8 +434,20 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+        condition=context.library.name not in ("java", "dotnet", "python"),
         reason="Not yet implemented",
+    )
+    @missing_feature(
+        condition=context.weblog_variant == "spring-boot-3-native",
+        reason="Not yet implemented",
+    )
+    @missing_feature(
+        condition=context.library < "dotnet@3.32.0",
+        reason="Not implemented in older versions",
+    )
+    @missing_feature(
+        condition=context.library < "python@4.1.0",
+        reason="Not implemented in older versions",
     )
     def test_process_tags_snapshot(self):
         self._assert()

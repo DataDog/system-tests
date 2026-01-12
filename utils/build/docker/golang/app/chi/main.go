@@ -363,6 +363,7 @@ func main() {
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
 
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
@@ -374,6 +375,7 @@ func main() {
 
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
 	mux.HandleFunc("/returnheaders", common.Returnheaders)
+	mux.HandleFunc("/ffe", common.FFeEval())
 
 	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
 		statusCodeStr := r.URL.Query().Get("status_code")

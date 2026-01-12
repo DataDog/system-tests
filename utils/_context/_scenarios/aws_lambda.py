@@ -27,6 +27,7 @@ class LambdaScenario(DockerScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict[str, dict[str, str]] | None = None,
+        trace_managed_services: bool = False,
     ):
         scenario_groups = [
             all_scenario_groups.tracer_release,
@@ -37,8 +38,7 @@ class LambdaScenario(DockerScenario):
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 
         self.lambda_weblog = LambdaWeblogContainer(
-            environment=weblog_env or {},
-            volumes=weblog_volumes or {},
+            environment=weblog_env or {}, volumes=weblog_volumes or {}, trace_managed_services=trace_managed_services
         )
 
         self.lambda_proxy_container = LambdaProxyContainer(
@@ -82,6 +82,12 @@ class LambdaScenario(DockerScenario):
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
 
+        if not self.replay:
+            self.warmups.insert(1, self._start_interfaces_watchdog)
+            self.warmups.append(self._get_weblog_system_info)
+            self.warmups.append(self._wait_for_app_readiness)
+        self.warmups.append(self._set_components)
+
     def _get_weblog_system_info(self):
         try:
             code, (stdout, stderr) = self.lambda_weblog.exec_run("uname -a", demux=True)
@@ -103,7 +109,8 @@ class LambdaScenario(DockerScenario):
         return super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _set_components(self):
-        self.components["libary"] = self.library.version
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")
@@ -112,17 +119,6 @@ class LambdaScenario(DockerScenario):
             raise ValueError("Library not ready")
 
         logger.debug("Library ready")
-
-    def get_warmups(self):
-        warmups = super().get_warmups()
-
-        if not self.replay:
-            warmups.insert(1, self._start_interfaces_watchdog)
-            warmups.append(self._get_weblog_system_info)
-            warmups.append(self._wait_for_app_readiness)
-            warmups.append(self._set_components)
-
-        return warmups
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface.name} interface ({timeout}s)")
