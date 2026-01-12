@@ -1,29 +1,7 @@
-from copy import copy
 import json
 
 
-def get_tested_apps_vms(vm):
-    """Workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker compose.
-    This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3 machines with the same configuration but with different runtimes.
-    NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
-    """
-    vms_by_runtime = []
-    vms_by_runtime_ids = []
-    deployed_weblog = vm.get_provision().get_deployed_weblog()
-    if deployed_weblog.app_type == "multicontainer":
-        for weblog in deployed_weblog.multicontainer_apps:
-            vm_by_runtime = copy(vm)
-            vm_by_runtime.set_deployed_weblog(weblog)
-            vms_by_runtime.append(vm_by_runtime)
-            vms_by_runtime_ids.append(vm_by_runtime.get_vm_unique_id())
-    else:
-        vms_by_runtime.append(vm)
-        vms_by_runtime_ids.append(vm.get_vm_unique_id())
-
-    return vms_by_runtime, vms_by_runtime_ids
-
-
-def nginx_parser(nginx_config_file):
+def nginx_parser(nginx_config_file: str):
     """Parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
     TODO: Improve this uggly code
     """

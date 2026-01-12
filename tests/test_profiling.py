@@ -49,7 +49,7 @@ class Test_Profile:
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name != "java",
+        condition=context.library.name not in ("java", "python"),
         reason="Not yet implemented",
     )
     def test_process_tags(self):
