@@ -1,0 +1,3 @@
+---
+manifest:
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v2.6.0"
