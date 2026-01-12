@@ -6,7 +6,6 @@ import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import download_vm_logs
-from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from .core import Scenario
 
@@ -27,7 +26,7 @@ class _VirtualMachineScenario(Scenario):
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
-        self.vm_provider_id = "vagrant"
+        self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
         self.required_vms = []
         # Variables that will populate for the agent installation
@@ -36,7 +35,7 @@ class _VirtualMachineScenario(Scenario):
         self.app_env = app_env
         self.only_default_vms = ""
         # Current selected vm for the scenario (set empty by default)
-        self.virtual_machine = _VirtualMachine(
+        self.virtual_machine: _VirtualMachine = _VirtualMachine(
             name="",
             aws_config=None,
             vagrant_config=None,
@@ -188,7 +187,7 @@ class _VirtualMachineScenario(Scenario):
             test["description"] = test["path"][last_index:]
 
         # We are going to split the FPD report in multiple reports, one per VM-runtime
-        vms, vm_ids = get_tested_apps_vms(self.virtual_machine)
+        vms, vm_ids = self.virtual_machine.get_tested_apps_vms()
         for i in range(len(vms)):
             vm = vms[i]
             vm_id = vm_ids[i]
