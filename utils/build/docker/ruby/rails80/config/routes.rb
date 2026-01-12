@@ -69,11 +69,15 @@ Rails.application.routes.draw do
     get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
   end
 
-  get '/rasp/sqli' => 'rasp_sqli#show'
-  post '/rasp/sqli' => 'rasp_sqli#show'
+  scope '/rasp' do
+    get 'sqli' => 'rasp#sqli'
+    get 'ssrf' => 'rasp#ssrf'
 
-  get '/rasp/ssrf' => 'rasp_ssrf#show'
-  post '/rasp/ssrf' => 'rasp_ssrf#show'
+    post 'sqli' => 'rasp#sqli'
+    post 'ssrf' => 'rasp#ssrf'
+  end
+
+  match '/external_request' => 'rasp#external_request', via: %i[get post put trace]
 
   get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
   get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
