@@ -31,12 +31,16 @@ class RaspController < ApplicationController
     headers["Content-Type"] = request.content_type if body.present?
 
     url = "http://internal_server:8089/mirror/#{status}#{url_extra}"
-    response = Faraday.new.run_request(request.request_method.downcase.to_sym, url, body, headers)
+    downstream_response = Faraday.new.run_request(request.request_method.downcase.to_sym, url, body, headers)
 
-    if (200..299).cover?(response.status)
-      render json: {status: response.status, payload: JSON.parse(response.body), headers: response.headers}
+    if (200..299).cover?(downstream_response.status)
+      render json: {
+        status: downstream_response.status,
+        headers: downstream_response.headers,
+        payload: JSON.parse(downstream_response.body)
+      }
     else
-      render json: {status: response.status, error: "Request failed"}
+      render json: {status: downstream_response.status, error: "Request failed"}
     end
   rescue => e
     render json: {status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})"}
