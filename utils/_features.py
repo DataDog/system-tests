@@ -2711,6 +2711,62 @@ class _Features:
         return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
 
     @staticmethod
+    def ai_guard(test_object):
+        """AI Guard SDK
+
+        https://feature-parity.us1.prod.dog/#/?feature=528
+        """
+        return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
+
+    @staticmethod
+    def apm_google_genai_generate_content(test_object):
+        """APM supports Google GenAI generate content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=531
+        """
+        return _mark_test_object(test_object, feature_id=531, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_google_genai_embed_content(test_object):
+        """APM supports Google GenAI embed content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=532
+        """
+        return _mark_test_object(test_object, feature_id=532, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content(test_object):
+        """LLM Observability supports Google GenAI generate content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=533
+        """
+        return _mark_test_object(test_object, feature_id=533, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content_reasoning(test_object):
+        """LLM Observability supports Google GenAI generate content reasoning interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=534
+        """
+        return _mark_test_object(test_object, feature_id=534, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content_with_tools(test_object):
+        """LLM Observability supports Google GenAI generate content with tools interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=536
+        """
+        return _mark_test_object(test_object, feature_id=536, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_embed_content(test_object):
+        """LLM Observability supports Google GenAI embed content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=537
+        """
+        return _mark_test_object(test_object, feature_id=537, owner=_Owner.ml_observability)
+
+    @staticmethod
     def appsec_automated_payment_events(test_object):
         """Business Logic Events for payment processors
 

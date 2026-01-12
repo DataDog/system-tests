@@ -27,7 +27,7 @@ class _VirtualMachineScenario(Scenario):
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
-        self.vm_provider_id = "vagrant"
+        self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
         self.required_vms = []
         # Variables that will populate for the agent installation
@@ -36,7 +36,7 @@ class _VirtualMachineScenario(Scenario):
         self.app_env = app_env
         self.only_default_vms = ""
         # Current selected vm for the scenario (set empty by default)
-        self.virtual_machine = _VirtualMachine(
+        self.virtual_machine: _VirtualMachine = _VirtualMachine(
             name="",
             aws_config=None,
             vagrant_config=None,
@@ -131,13 +131,20 @@ class _VirtualMachineScenario(Scenario):
         for key in self.virtual_machine.tested_components:
             if key in ("host", "runtime_version"):
                 continue
-            self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
+            try:
+                self.components[key] = ComponentVersion(
+                    key.removeprefix("datadog-apm-library-"),
+                    self.virtual_machine.tested_components[key].lstrip(" ").replace(",", ""),
+                ).version
+            except ValueError:
+                self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = ComponentVersion(self._library.name, self.components[key])
+                self._library = ComponentVersion(self._library.name, str(self.components[key]))
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
+                self.components[key.removeprefix("datadog-apm-library-")] = self.components[key]
                 del self.components[key]
             if key.startswith("glibc"):
                 # We will all the glibc versions in the feature parity report, due to each machine can have a

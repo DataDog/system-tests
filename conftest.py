@@ -20,7 +20,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
-from utils._context.component_version import ComponentVersion
+from utils._context.component_version import ComponentVersion, Version
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
@@ -270,15 +270,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-
-    manifest = Manifest(
-        context.library.name,
-        context.library.version,
-        context.weblog_variant,
-        context.agent_version,
-        context.dd_apm_inject_version,
-        context.k8s_cluster_agent_version,
-    )
+    manifest_components: dict[str, Version] = {
+        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
+    }
+    manifest = Manifest(manifest_components, context.weblog_variant)
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
@@ -493,9 +488,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
 
+    if session.config.option.collectonly:
+        return
+
     context.scenario.pytest_sessionfinish(session, exitstatus)
 
-    if session.config.option.collectonly or session.config.option.replay:
+    if session.config.option.replay:
         return
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,

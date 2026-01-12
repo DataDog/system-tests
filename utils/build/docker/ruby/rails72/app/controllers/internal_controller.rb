@@ -26,7 +26,7 @@ class InternalController < ApplicationController
     end
 
     # NOTE: We don't expose directly flushing in the OpenFeature component as it
-    #       is have no use now. But this might change, but for now we are going to
+    #       has no use now. But this might change, but for now we are going to
     #       flush manually knowing some internals.
     if open_feature = Datadog.send(:components)&.open_feature
       worker = open_feature.instance_variable_get(:@worker)

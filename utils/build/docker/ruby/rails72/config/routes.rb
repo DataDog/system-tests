@@ -84,4 +84,6 @@ Rails.application.routes.draw do
   get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
 
   post '/ffe' => 'open_feature#evaluate'
+  post '/ffe/start' => 'open_feature#start'
+  post '/ffe/evaluate' => 'open_feature#evaluate'
 end
