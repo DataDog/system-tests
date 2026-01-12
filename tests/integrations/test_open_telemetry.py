@@ -3,6 +3,7 @@ from .utils import BaseDbIntegrationsTestClass
 
 import json
 
+
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """Verify basic DB operations over different databases.
     Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645
