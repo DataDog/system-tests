@@ -11,8 +11,8 @@ router = APIRouter()
 
 
 class AnnotationRequest(BaseModel):
-    input_data: Optional[Union[dict, str, List[Union[dict, str]]]] = None
-    output_data: Optional[Union[dict, str, List[Union[dict, str]]]] = None
+    input_data: Optional[Union[List[Union[dict, str]], dict, str]] = None
+    output_data: Optional[Union[List[Union[dict, str]], dict, str]] = None
     metadata: Optional[dict] = None
     metrics: Optional[dict] = None
     tags: Optional[dict] = None
@@ -101,7 +101,7 @@ async def create_trace(trace_structure_request: TraceStructureRequest) -> dict:
 
 def apply_annotations(span, annotations: AnnotationRequest, annotate_after=False):
     for annotation in annotations:
-        options = {k: v for k, v in annotation.model_dump().items() if k not in ("explicit_span",)}
+        options = {k: v for k, v in annotation.dict().items() if k not in ("explicit_span",)}
         if annotation.explicit_span or annotate_after:
             options["span"] = span
         LLMObs.annotate(**options)
