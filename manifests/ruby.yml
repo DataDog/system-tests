@@ -3,7 +3,7 @@
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
-        "*": v2.25.0.dev
+        "*": v2.25.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -13,7 +13,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
     - weblog_declaration:
-        "*": v2.25.0.dev
+        "*": v2.25.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -23,7 +23,7 @@ manifest:
         uds-sinatra: irrelevant
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
-        "*": v2.25.0.dev
+        "*": v2.25.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
