@@ -498,9 +498,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
 
+    if session.config.option.collectonly:
+        return
+
     context.scenario.pytest_sessionfinish(session, exitstatus)
 
-    if session.config.option.collectonly or session.config.option.replay:
+    if session.config.option.replay:
         return
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
