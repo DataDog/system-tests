@@ -301,6 +301,47 @@ module SSRFHandler
   end
 end
 
+module ExternalRequest
+  module_function
+
+  def run(request)
+    queries = request.GET.dup
+    status_code = queries.delete('status') || '200'
+    url_extra = queries.delete('url_extra') || ''
+
+    headers = queries.each.with_object({}) do |(key, value), hash|
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    request.body.rewind
+    body = request.body.read
+    if body && !body.empty?
+      headers['Content-Type'] = request.content_type
+    else
+      body = nil
+    end
+
+    url = "http://internal_server:8089/mirror/#{status_code}#{url_extra}"
+    method = request.request_method.downcase.to_sym
+    downstream_response = Faraday.new.run_request(method, url, body, headers)
+
+    if (200..299).cover?(downstream_response.status)
+      response = {
+        status: downstream_response.status,
+        headers: downstream_response.headers,
+        payload: JSON.parse(downstream_response.body)
+      }
+    else
+      response = { status: downstream_response.status, error: 'Request failed' }
+    end
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -483,6 +524,8 @@ app = proc do |env|
     AddEvent.run(request)
   elsif request.path == '/rasp/ssrf'
     SSRFHandler.run(request)
+  elsif request.path == '/external_request'
+    ExternalRequest.run(request)
   elsif request.path.include?('/api_security/sampling/')
     ApiSecurityWithSampling.run(request)
   elsif request.path.include?('/api_security_sampling/')
