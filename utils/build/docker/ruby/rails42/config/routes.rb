@@ -4,7 +4,7 @@ Rails.application.routes.draw do
       [200, {'Content-Type' => 'text/plain'}, ['OK']]
     end
   end
-  match ResourceRenamingRackApp.new, to: '/resource_renaming', via: :get
+  mount ResourceRenamingRackApp.new => '/resource_renaming'
 
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
