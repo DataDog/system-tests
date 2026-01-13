@@ -281,6 +281,52 @@ end
 get '/rasp/ssrf', &ssrf_handler
 post '/rasp/ssrf', &ssrf_handler
 
+def external_request_handler
+  queries = request.GET.dup
+  status_code = queries.delete('status') || '200'
+  url_extra = queries.delete('url_extra') || ''
+
+  headers = {}
+  queries.each do |key, value|
+    headers[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+  end
+
+  request.body.rewind
+  body = request.body.read
+
+  if body && !body.empty?
+    headers['Content-Type'] = request.content_type
+  else
+    body = nil
+  end
+
+  url = "http://internal_server:8089/mirror/#{status_code}#{url_extra}"
+  method = request.request_method.downcase.to_sym
+  downstream_response = Faraday.new.run_request(method, url, body, headers)
+
+  content_type :json
+  status 200
+
+  if (200..299).cover?(downstream_response.status)
+    {
+      status: downstream_response.status,
+      headers: downstream_response.headers,
+      payload: JSON.parse(downstream_response.body)
+    }.to_json
+  else
+    {status: downstream_response.status, error: 'Request failed'}.to_json
+  end
+rescue => e
+  content_type :json
+  status 200
+  {status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})"}.to_json
+end
+
+%w[GET POST PUT].each do |http_method|
+  send(http_method.downcase, '/external_request') { external_request_handler }
+end
+Sinatra::Application.send(:route, 'TRACE', '/external_request') { external_request_handler }
+
 get '/flush' do
   # NOTE: If anything needs to be flushed here before the test suite ends,
   #       this is the place to do it.
