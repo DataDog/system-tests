@@ -6,7 +6,7 @@ from collections import defaultdict
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, Literal
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
@@ -75,6 +75,21 @@ class _RequestLogger:
         logger.error(message)
         return http.Response.make(400, message)
 
+    def _store_mocked_reponses(self, flow: HTTPFlow, target: Literal["tracer", "backend"]) -> None:
+        result: list[MockedTracerResponse] | list[MockedBackendResponse]
+        try:
+            source: list[dict] = json.loads(flow.request.content)
+            if target == "tracer":
+                result = self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)
+            elif target == "backend":
+                result = self.mocked_backend_responses = MockedBackendResponse.from_dicts(source)
+        except Exception as e:
+            logger.exception(f"Failed to build mocked {target} response from {flow.request.content}")
+            flow.response = self.get_error_response(f"Invalid mocked {target} response definition: {e}".encode())
+        else:
+            logger.info(f"Store mocked {target} responses: {result}")
+            flow.response = http.Response.make(200, b"Ok")
+
     def request(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
         port = flow.client_conn.sockname[1]
@@ -83,25 +98,11 @@ class _RequestLogger:
 
         if port == ProxyPorts.proxy_commands:
             if flow.request.path == MOCKED_TRACER_RESPONSES_PATH and flow.request.method == "PUT":
-                source: list[dict] = json.loads(flow.request.content)
-                try:
-                    self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)  # type: ignore[misc]
-                except Exception as e:
-                    logger.exception(f"Failed to build mocked tracer response from {source}")
-                    flow.response = self.get_error_response(f"Invalid mocked tracer response definition: {e}".encode())
-                else:
-                    logger.info(f"Store mocked tracer responses: {self.mocked_tracer_responses}")
-                    flow.response = http.Response.make(200, b"Ok")
+                self._store_mocked_reponses(flow, target="tracer")
+
             elif flow.request.path == MOCKED_BACKEND_RESPONSES_PATH and flow.request.method == "PUT":
-                source = json.loads(flow.request.content)
-                try:
-                    self.mocked_backend_responses = MockedBackendResponse.from_dicts(source)  # type: ignore[misc]
-                except Exception as e:
-                    logger.exception(f"Failed to build mocked backend response from {source}")
-                    flow.response = self.get_error_response(f"Invalid mocked backend response definition: {e}".encode())
-                else:
-                    logger.info(f"Store mocked backend responses: {self.mocked_backend_responses}")
-                    flow.response = http.Response.make(200, b"Ok")
+                self._store_mocked_reponses(flow, target="backend")
+
             else:
                 flow.response = http.Response.make(404, b"Not found")
 
