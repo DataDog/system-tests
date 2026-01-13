@@ -1,6 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v3.34.0
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -254,6 +257,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: v2.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: v2.29.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive: bug (APPSEC-60557)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: v2.32.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: v2.32.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: v2.32.0
@@ -385,6 +389,7 @@ manifest:
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: v2.50.0
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: v2.50.0
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value: missing_feature (DEBUG-3374)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: v3.29.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v3.29.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0

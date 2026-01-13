@@ -151,23 +151,25 @@ if ! ./utils/scripts/shellcheck.sh; then
   exit 1
 fi
 
-echo "Running language-specific linters..."
-# This will not run if npm is not installed as written and there is no "install" step today
-# TODO: Install node as part of this script
-if which npm > /dev/null; then
-  echo "Running Node.js linters"
+echo "Running Node.js linters"
+# currently only fastify requires linting
+# this can be added later
+nodejs_dirs=("express" "fastify")
 
-  # currently only fastify requires linting
-  # this can be added later
-  nodejs_dirs=("express" "fastify")
+for dir in "${nodejs_dirs[@]}"; do
 
-  for dir in "${nodejs_dirs[@]}"; do
-    if ! NODE_NO_WARNINGS=1 npm  --prefix ./utils/build/docker/nodejs/"$dir" install --silent && npm --prefix ./utils/build/docker/nodejs/"$dir" run --silent lint; then
-      echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
-      exit 1
-    fi
-  done
-fi
+  docker run \
+    --rm \
+    -w /app \
+    -v "$PWD"/utils/build/docker/nodejs/"$dir":/app \
+    -e NODE_NO_WARNINGS=1 \
+    node:18-alpine \
+    sh -c "npm install --silent && npm run --silent ${COMMAND}_lint"
 
+  if [ $? -ne 0 ]; then
+    echo "$dir linter failed. Please fix the errors above. 💥 💔 💥"
+    exit 1
+  fi
+done
 
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

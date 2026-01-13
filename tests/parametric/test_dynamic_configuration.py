@@ -295,7 +295,6 @@ class TestDynamicConfigTracingEnabled:
                 expected_capabilities.add(Capabilities.APM_TRACING_MULTICONFIG)
                 expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION)
                 expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN)
-                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING)
 
             seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
             expected_but_not_seen_capabilities = expected_capabilities.difference(seen_capabilities)
