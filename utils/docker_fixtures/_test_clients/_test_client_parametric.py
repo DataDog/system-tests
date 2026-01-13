@@ -44,14 +44,20 @@ class ParametricTestClientFactory(TestClientFactory):
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
 
-        env = {
-            "DD_TRACE_DEBUG": "true",
-            "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
-            "DD_AGENT_HOST": test_agent.container_name,
-            "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
-            "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
-            "DD_TRACE_OTEL_ENABLED": "true",
-        }
+        # Start with container_env (includes PYTHONPATH for local dd-trace-py)
+        env = dict(self.container_env)
+
+        # Add parametric-specific environment variables
+        env.update(
+            {
+                "DD_TRACE_DEBUG": "true",
+                "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
+                "DD_AGENT_HOST": test_agent.container_name,
+                "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
+                "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
+                "DD_TRACE_OTEL_ENABLED": "true",
+            }
+        )
 
         for k, v in library_env.items():
             # Don't set env vars with a value of None
