@@ -1,8 +1,6 @@
 'use strict'
 
-const tracer = require('dd-trace').init({
-  debug: true
-})
+const tracer = require('dd-trace').init()
 
 const { promisify } = require('util')
 const axios = require('axios')
