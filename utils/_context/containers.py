@@ -653,18 +653,21 @@ class ProxyContainer(TestedContainer):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         # Write tracer mocked responses JSON
-        tracer_mocks_path = f"{self.log_folder_path}/internal_mocked_tracer_responses.json"
+        tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
         with Path(tracer_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_tracer_responses], f, indent=2)
 
         # Write backend mocked responses JSON
-        backend_mocks_path = f"{self.log_folder_path}/internal_mocked_backend_responses.json"
+        backend_mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
         with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
         self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
-        self.volumes[tracer_mocks_path] = {"bind": "/app/logs/internal_mocked_tracer_responses.json", "mode": "ro"}
-        self.volumes[backend_mocks_path] = {"bind": "/app/logs/internal_mocked_backend_responses.json", "mode": "ro"}
+        self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
+        self.volumes[backend_mocks_path] = {
+            "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
+            "mode": "ro",
+        }
 
 
 class LambdaProxyContainer(TestedContainer):
