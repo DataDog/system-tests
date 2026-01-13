@@ -19,7 +19,6 @@ from .ports import ProxyPorts
 from .mocked_response import (
     MOCKED_TRACER_RESPONSES_PATH,
     MOCKED_BACKEND_RESPONSES_PATH,
-    MockedResponse,
     MockedTracerResponse,
     MockedBackendResponse,
 )
@@ -61,26 +60,14 @@ class _RequestLogger:
         self.mocked_tracer_responses: list[MockedTracerResponse] = []
         """Tracer mocked responses controlled by setup methods"""
 
-        with open("/app/logs/internal_mocked_tracer_responses.json", encoding="utf-8", mode="r") as f:
-            tracer_data = json.load(f)
-
-        self.internal_mocked_tracer_responses: list[MockedTracerResponse] = [
-            MockedTracerResponse.build_from_json(source)
-            for source in tracer_data  # type: ignore[misc]
-        ]
+        self.internal_mocked_tracer_responses = MockedTracerResponse.many_from_file()
         """Tracer mocked responses valid for the entire session, controlled by scenarios"""
 
         # Backend mocked responses (create responses from scratch)
         self.mocked_backend_responses: list[MockedBackendResponse] = []
         """Backend mocked responses controlled by setup methods"""
 
-        with open("/app/logs/internal_mocked_backend_responses.json", encoding="utf-8", mode="r") as f:
-            backend_data = json.load(f)
-
-        self.internal_mocked_backend_responses: list[MockedBackendResponse] = [
-            MockedBackendResponse.build_from_json(source)
-            for source in backend_data  # type: ignore[misc]
-        ]
+        self.internal_mocked_backend_responses = MockedBackendResponse.many_from_file()
         """Backend mocked responses valid for the entire session, controlled by scenarios"""
 
     @staticmethod
@@ -98,7 +85,7 @@ class _RequestLogger:
             if flow.request.path == MOCKED_TRACER_RESPONSES_PATH and flow.request.method == "PUT":
                 source: list[dict] = json.loads(flow.request.content)
                 try:
-                    self.mocked_tracer_responses = [MockedResponse.build_from_json(item) for item in source]  # type: ignore[misc]
+                    self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)  # type: ignore[misc]
                 except Exception as e:
                     logger.exception(f"Failed to build mocked tracer response from {source}")
                     flow.response = self.get_error_response(f"Invalid mocked tracer response definition: {e}".encode())
@@ -108,7 +95,7 @@ class _RequestLogger:
             elif flow.request.path == MOCKED_BACKEND_RESPONSES_PATH and flow.request.method == "PUT":
                 source = json.loads(flow.request.content)
                 try:
-                    self.mocked_backend_responses = [MockedResponse.build_from_json(item) for item in source]  # type: ignore[misc]
+                    self.mocked_backend_responses = MockedBackendResponse.from_dicts(source)  # type: ignore[misc]
                 except Exception as e:
                     logger.exception(f"Failed to build mocked backend response from {source}")
                     flow.response = self.get_error_response(f"Invalid mocked backend response definition: {e}".encode())

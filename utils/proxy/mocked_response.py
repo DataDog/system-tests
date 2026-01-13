@@ -7,6 +7,8 @@ from http import HTTPStatus
 import json
 import os
 import re
+from typing import Self
+
 import requests
 
 from mitmproxy.http import HTTPFlow, Response as HTTPResponse
@@ -15,14 +17,6 @@ from .ports import ProxyPorts
 
 MOCKED_TRACER_RESPONSES_PATH = "/mocked_tracer_responses"
 MOCKED_BACKEND_RESPONSES_PATH = "/mocked_backend_responses"
-
-
-def _all_subclasses(cls: type[MockedResponse]) -> list[type[MockedResponse]]:
-    result = []
-    for subclass in cls.__subclasses__():
-        result.append(subclass)
-        result.extend(_all_subclasses(subclass))
-    return result
 
 
 def _get_proxy_domain() -> str:
@@ -39,6 +33,14 @@ class MockedResponse(ABC):
     """Abstract base class for all mocked responses (tracer and backend).
 
     This is the common interface for mocking HTTP responses in the proxy.
+    """
+
+    internal_filename: str
+    """
+        File where internal mocked responses are stored. Internal responses are those that are applied on the entire
+        test session. The test runner serialize  and save them in a file, then mount this file in the proxy container.
+        The proxy deserialize them using many_form_file() method.
+        Only TracerMockedResponse and MockedBackendResponse subclasses are expected to have this attribute.
     """
 
     def __init__(self, path: str):
@@ -60,13 +62,27 @@ class MockedResponse(ABC):
         }
 
     @classmethod
-    def from_json(cls, source: dict) -> MockedResponse:
+    def from_json(cls, source: dict) -> Self:
         """Deserialize from JSON."""
         return cls(**source)
 
     @classmethod
-    def build_from_json(cls, source: dict) -> MockedResponse:
-        """Factory: create correct subclass from JSON."""
+    def many_from_file(cls) -> list[Self]:
+        """Load mocked responses from a file."""
+        with open(f"/app/logs/{cls.internal_filename}", encoding="utf-8", mode="r") as f:
+            data: list[dict] = json.load(f)
+
+        return cls.from_dicts(data)
+
+    @classmethod
+    def from_dicts(cls, source: list[dict]) -> list[Self]:
+        """Factory: create correct subclasses from list of dict."""
+
+        return [cls.from_dict(item) for item in source]
+
+    @classmethod
+    def from_dict(cls, source: dict) -> Self:
+        """Factory: create correct subclass from dict."""
         mocked_response_type = source.pop("type")
 
         # Check if it matches the class itself (for non-abstract classes)
@@ -74,11 +90,19 @@ class MockedResponse(ABC):
             return cls.from_json(source)
 
         # Search subclasses
-        for klass in _all_subclasses(cls):
+        for klass in cls._all_subclasses():
             if klass.__name__ == mocked_response_type:
                 return klass.from_json(source)
 
-        raise ValueError(f"Unknown MockedResponse type: {mocked_response_type}")
+        raise ValueError(f"Unknown {cls.__name__} type: {mocked_response_type}")
+
+    @classmethod
+    def _all_subclasses(cls) -> list[type[Self]]:
+        result = []
+        for subclass in cls.__subclasses__():
+            result.append(subclass)
+            result.extend(subclass._all_subclasses())  # noqa: SLF001
+        return result
 
     def _send_to_endpoint(self, endpoint_path: str) -> None:
         """Common HTTP PUT logic to send mock to proxy."""
@@ -108,17 +132,12 @@ class MockedTracerResponse(MockedResponse):
     when execute() is called.
     """
 
+    internal_filename: str = "internal_mocked_tracer_responses.json"
+
     def __init__(self, path: str, mocked_headers: dict | None = None):
         super().__init__(path)
         self.mocked_headers = mocked_headers
         """Overwrite existing headers with these ones. Set to None to keep existing headers"""
-
-    @classmethod
-    def build_from_json(cls, source: dict) -> MockedTracerResponse:
-        """Factory: create correct MockedTracerResponse subclass from JSON."""
-        result = super().build_from_json(source)
-        assert isinstance(result, MockedTracerResponse)
-        return result
 
     def execute(self, flow: HTTPFlow) -> None:
         """Modify the existing response from agent."""
@@ -288,6 +307,8 @@ class MockedBackendResponse(MockedResponse):
     The content is pre-built by the caller (protobuf, JSON, plain text bytes).
     """
 
+    internal_filename: str = "internal_mocked_backend_responses.json"
+
     def __init__(
         self,
         path: str,
@@ -302,13 +323,6 @@ class MockedBackendResponse(MockedResponse):
         """Content-Type header value"""
         self.status_code = status_code
         """HTTP status code"""
-
-    @classmethod
-    def build_from_json(cls, source: dict) -> MockedBackendResponse:
-        """Factory: create correct MockedBackendResponse subclass from JSON."""
-        result = super().build_from_json(source)
-        assert isinstance(result, MockedBackendResponse)
-        return result
 
     def execute(self, flow: HTTPFlow) -> None:
         """Create a new response (flow.response does not exist yet)."""
