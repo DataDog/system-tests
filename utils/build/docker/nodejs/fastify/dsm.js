@@ -144,8 +144,7 @@ function initRoutes (fastify, tracer) {
       const worker = new Worker(`
           const { parentPort, workerData } = require('worker_threads');
           const tracer = require('dd-trace').init({
-            debug: true,
-            flushInterval: 5000
+            debug: true
           });
 
           const { type, target, headers } = workerData;
@@ -208,8 +207,7 @@ function initRoutes (fastify, tracer) {
       const worker = new Worker(`
         const { parentPort, workerData } = require('worker_threads')
         const tracer = require('dd-trace').init({
-          debug: true,
-          flushInterval: 5000
+          debug: true
         });
 
         const { type, source, headers } = workerData

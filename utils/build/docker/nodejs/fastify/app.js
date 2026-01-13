@@ -1,8 +1,7 @@
 'use strict'
 
 const tracer = require('dd-trace').init({
-  debug: true,
-  flushInterval: 5000
+  debug: true
 })
 
 const { promisify } = require('util')
