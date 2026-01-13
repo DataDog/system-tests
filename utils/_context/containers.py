@@ -1584,7 +1584,8 @@ class ExternalProcessingContainer(TestedContainer):
             lib = data["library"]
 
         if "language" in lib:
-            self.library = ComponentVersion(lib["language"], lib["version"])
+            lang = lib["language"] if lib["language"] != "golang" else "golang_proxies"
+            self.library = ComponentVersion(lang, lib["version"])
         else:
             self.library = ComponentVersion(lib["name"], lib["version"])
 
@@ -1662,7 +1663,8 @@ class StreamProcessingOffloadContainer(TestedContainer):
             lib = data["library"]
 
         if "language" in lib:
-            self.library = ComponentVersion(lib["language"], lib["version"])
+            lang = lib["language"] if lib["language"] != "golang" else "golang_proxies"
+            self.library = ComponentVersion(lang, lib["version"])
         else:
             self.library = ComponentVersion(lib["name"], lib["version"])
 

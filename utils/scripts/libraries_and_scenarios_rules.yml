@@ -384,6 +384,10 @@ patterns:
     utils/build/build_golang_base_images.sh:
         libraries: golang
 
+    manifests/golang_proxies.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: golang_proxies
+
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
