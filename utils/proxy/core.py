@@ -155,7 +155,11 @@ class _RequestLogger:
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
         elif port == ProxyPorts.agent and self.mocked_backend:
-            # Check backend mocks first (runtime first, then internal)
+            # Since we are faking the backend (generating responses from
+            # scratch), the logic is that the first mock satisfying the
+            # condition wins. Consequently, we check runtime mocks (controlled
+            # by the setup method) first, followed by internal mocks (applied on
+            # all scenarios).
             for mock in self.mocked_backend_responses + self.internal_mocked_backend_responses:
                 if mock.path == flow.request.path:
                     logger.info(f"    => applying backend mock {mock}")
