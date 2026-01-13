@@ -9,7 +9,7 @@ Rails.application.routes.draw do
       [200, {'Content-Type' => 'text/plain'}, ['OK']]
     end
   end
-  match ResourceRenamingRackApp.new, to: '/resource_renaming', via: :get
+  get '/resource_renaming/*path', to: ResourceRenamingRackApp.new
 
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
