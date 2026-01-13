@@ -199,7 +199,12 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # Modified by easy win activation script
+    - declaration: missing_feature (weblog does not respond)
+      component_version: <4.2.1
+      weblog: [django-poc, fastapi, uds-flask, python3.12, uwsgi-poc, django-py3.13, flask-poc]
+    - declaration: missing_feature (weblog does not respond)
+      excluded_weblog: [django-poc, fastapi, uds-flask, python3.12, uwsgi-poc, django-py3.13, flask-poc]
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
@@ -924,7 +929,10 @@ manifest:
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: v4.1.0
-  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: missing_feature
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        openai-py@2.0.0: '>=4.2.1'
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -953,14 +961,122 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+        uds-flask: v4.2.1  # Modified by easy win activation script
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_name:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_user:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_sql_success:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1083,6 +1199,8 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
@@ -1181,18 +1299,27 @@ manifest:
         django-poc: v2.15.0
         flask-poc: v2.15.0
         python3.12: v2.15.0
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
+        django-py3.13: v4.2.1  # Modified by easy win activation script
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload:
     - weblog_declaration:
         "*": missing_feature
         django-poc: v2.15.0
         flask-poc: v2.15.0
         python3.12: v2.15.0
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
+        django-py3.13: v4.2.1  # Modified by easy win activation script
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject:
     - weblog_declaration:
         "*": missing_feature
         django-poc: v2.14.0
         flask-poc: v2.14.0
         python3.12: v2.14.0
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
+        django-py3.13: v4.2.1  # Modified by easy win activation script
   tests/test_baggage.py::Test_Baggage_Headers_Basic:
     - weblog_declaration:
         "*": irrelevant
@@ -1263,6 +1390,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v1.5.0-rc2  # actual version unknown
+        fastapi: v4.2.1  # Modified by easy win activation script
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        python3.12: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
+        django-py3.13: v4.2.1  # Modified by easy win activation script
+        django-poc: v4.2.1  # Modified by easy win activation script
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -1296,7 +1429,7 @@ manifest:
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
-        django-py3.13: missing_feature (python 3.13 not supported yet)
+        django-py3.13: v4.2.1  # Modified by easy win activation script
         python3.12: v2.1.0
   tests/test_profiling.py::Test_Profile::test_process_tags: v4.2.0+dev
   tests/test_protobuf.py: missing_feature
@@ -1326,6 +1459,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
         flask-poc: v3.0.0
+        uds-flask: v4.2.1  # Modified by easy win activation script
+        uwsgi-poc: v4.2.1  # Modified by easy win activation script
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
@@ -1338,10 +1473,127 @@ manifest:
         "*": v2.4.0
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
-  tests/test_telemetry.py::Test_MessageBatch: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        django-poc: '>=4.2.1'
+        fastapi: '>=4.2.1'
+        uds-flask: '>=4.2.1'
+        python3.12: '>=4.2.1'
+        uwsgi-poc: '>=4.2.1'
+        django-py3.13: '>=4.2.1'
+        flask-poc: '>=4.2.1'
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_MessageBatch:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        django-poc: '>=4.2.1'
+        fastapi: '>=4.2.1'
+        uds-flask: '>=4.2.1'
+        python3.12: '>=4.2.1'
+        uwsgi-poc: '>=4.2.1'
+        django-py3.13: '>=4.2.1'
+        flask-poc: '>=4.2.1'
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        django-poc: '>=4.2.1'
+        fastapi: '>=4.2.1'
+        uds-flask: '>=4.2.1'
+        python3.12: '>=4.2.1'
+        uwsgi-poc: '>=4.2.1'
+        django-py3.13: '>=4.2.1'
+        flask-poc: '>=4.2.1'
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_created:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created:  # Created by easy win activation script
+    - weblog_declaration:
+        fastapi: missing_feature
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        uds-flask: missing_feature
+        flask-poc: missing_feature
+        uwsgi-poc: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: v3.4.0
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
