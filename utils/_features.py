@@ -2711,6 +2711,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
 
     @staticmethod
+    def llm_observability_sdk_enablement(test_object):
+        """LLM Observability SDK enablement
+
+        https://feature-parity.us1.prod.dog/#/?feature=542
+        """
+        return _mark_test_object(test_object, feature_id=542, owner=_Owner.ml_observability)
+
+    @staticmethod
     def ai_guard(test_object):
         """AI Guard SDK
 

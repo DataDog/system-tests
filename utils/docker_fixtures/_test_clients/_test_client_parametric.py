@@ -1,9 +1,10 @@
 from collections.abc import Generator, Iterable
 import contextlib
+from dataclasses import asdict
 from http import HTTPStatus
 import time
 from types import TracebackType
-from typing import TypedDict
+from typing import TypedDict, cast
 import urllib.parse
 
 from _pytest.outcomes import Failed
@@ -15,6 +16,7 @@ import pytest
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.spec.llm_observability import SpanRequest
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
@@ -889,6 +891,26 @@ class ParametricTestClientApi:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
 
+    def llmobs_trace(self, trace_structure_request: SpanRequest, *, raise_on_error: bool = True) -> dict | str | None:
+        """Send a trace structure request to the LLM Observability endpoint.
+
+        Returns:
+        - `dict`: successful response (this dict represents a possible exported simple llm observability span context)
+        - `str`: the response string text for an error response where there is no json response. this can happen when
+            the llm observability sdk purposefully raises or throws an error, but we want to assert that it does and set
+            that it does and set `raise_on_error=False`
+        - `None`: if the response is not ok and we want the error to fail
+            the test (unexpected error, `raise_on_error=True`)
+
+        """
+        resp = self._session.post(
+            self._url("/llm_observability/trace"), json={"trace_structure_request": asdict(trace_structure_request)}
+        )
+        if raise_on_error:
+            resp.raise_for_status()
+
+        return cast("dict", resp.json()) if resp.ok else resp.text
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -1096,6 +1118,9 @@ class APMLibrary:
             targeting_key=targeting_key,
             attributes=attributes,
         )
+
+    def llmobs_trace(self, trace_structure_request: SpanRequest, *, raise_on_error: bool = True) -> dict | str | None:
+        return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
 
     @property
     def container(self) -> Container:
