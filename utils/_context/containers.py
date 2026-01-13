@@ -572,6 +572,9 @@ class ProxyContainer(TestedContainer):
 
         """
 
+        if rc_api_enabled and not mocked_backend:
+            raise ValueError("rc_backend_enabled requires mocked_backend")
+
         # Adjust healthcheck for IPv6 scenarios
         host_target = "::1" if enable_ipv6 else "localhost"
         socket_family = "socket.AF_INET6" if enable_ipv6 else "socket.AF_INET"
