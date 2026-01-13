@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import os
 import subprocess
 import shutil
@@ -200,7 +201,7 @@ class KrunVmCommander(Commander):
         connection: pulumi_command.remote.ConnectionArgs,
         last_task: pulumi_command.remote.Command,
         logger_name: str | None = None,
-        output_callback: callable | None = None,
+        output_callback: Callable | None = None,
         *,
         populate_env: bool = True,
     ):
