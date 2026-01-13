@@ -1170,7 +1170,7 @@ class Test_V2_Login_Events_RC:
     ]
 
     def _send_rc_and_execute_request(self, rc_payload: dict):
-        config_states = rc.send_state(raw_payload=rc_payload)
+        config_states = rc.send_state(raw_payload=rc_payload, target="tracer")
         request = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         return {"config_states": config_states, "request": request}
 

@@ -106,6 +106,7 @@ class Scenario:
         self.replay = False
         self.doc = doc
         self.rc_api_enabled = False
+        self.rc_backend_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
         self.scenario_groups = scenario_groups or []
 

@@ -8,10 +8,11 @@ import json
 import re
 import time
 import uuid
-from typing import Any
+from typing import Any, Literal
 from collections.abc import Mapping
 
 from utils._context.core import context
+
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils._logger import logger
@@ -22,6 +23,8 @@ from utils.proxy.mocked_response import (
 )
 from utils.proxy.tuf import build_signed_targets
 from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
+
+RemoteConfigTarget = Literal["tracer", "backend"]
 
 
 class RemoteConfigStateResults:
@@ -43,7 +46,11 @@ class RemoteConfigStateResults:
 
 
 def send_state(
-    raw_payload: dict, *, wait_for_acknowledged_status: bool = True, state_version: int = -1
+    raw_payload: dict,
+    *,
+    target: RemoteConfigTarget,
+    wait_for_acknowledged_status: bool = True,
+    state_version: int = -1,
 ) -> RemoteConfigStateResults:
     """Sends a remote config payload to the library and waits for the config to be applied.
     Then returns a dictionary with the state of each requested file as returned by the library.
@@ -59,6 +66,8 @@ def send_state(
     Args:
         raw_payload:
             The raw payload to send to the library.
+        target:
+            Where to send the config: "tracer" or "backend".
         wait_for_acknowledged_status:
             If True, waits for the config to be acknowledged by the library.
             Else, only wait for the next request sent to /v0.7/config
@@ -68,15 +77,21 @@ def send_state(
 
     """
 
-    assert context.scenario.rc_api_enabled, f"Remote config API is not enabled on {context.scenario}"
+    api_enabled = context.scenario.rc_api_enabled
+    backend_enabled = context.scenario.rc_backend_enabled
 
-    # Route to RC backend if enabled, otherwise use legacy proxy mock
-    if getattr(context.scenario, "rc_backend_enabled", False):
+    assert api_enabled, f"Remote config API is not enabled on {context.scenario}"
+
+    if target == "backend":
+        assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
         # Build protobuf on test runner side, send bytes to proxy
         rc_protobuf = build_rc_configurations_protobuf(raw_payload)
         MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
-    else:
+    elif target == "tracer":
+        assert not backend_enabled, f"Remote config backend is enabled on {context.scenario}"
         StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
+    else:
+        raise ValueError(f"Invalid target: {target}")
 
     client_configs = raw_payload.get("client_configs", [])
 
@@ -93,8 +108,6 @@ def send_state(
         }
 
     state = {}
-
-    StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
 
     def remote_config_applied(data: dict) -> bool:
         nonlocal state
@@ -227,8 +240,9 @@ def build_debugger_command(probes: list | None, version: int):
 
 
 def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
+    """Send a debugger command. Requires rc_backend_enabled=True on the scenario."""
     raw_payload = build_debugger_command(probes, version)
-    return send_state(raw_payload)
+    return send_state(raw_payload, target="backend")
 
 
 def build_symdb_command(version: int):
@@ -237,8 +251,9 @@ def build_symdb_command(version: int):
 
 
 def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
+    """Send a symbol database command. Requires rc_backend_enabled=True on the scenario."""
     raw_payload = build_symdb_command(version)
-    return send_state(raw_payload)
+    return send_state(raw_payload, target="backend")
 
 
 def build_apm_tracing_command(
@@ -313,7 +328,8 @@ def send_apm_tracing_command(
         env=env,
     )
 
-    return send_state(raw_payload)
+    # APM tracing commands are used by debugger scenarios which require rc_backend_enabled=True
+    return send_state(raw_payload, target="backend")
 
 
 def _json_to_base64(json_object: dict) -> str:
@@ -368,20 +384,28 @@ class ClientConfig:
 
 
 class _RemoteConfigState:
-    """https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
-    https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
+    """Base class for remote config state management.
+
+    See module-level singletons `tracer_rc_state` and `backend_rc_state` for usage.
+
+    References:
+    - https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph
+    - https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto#L180
+
     """
 
     backend_state = '{"foo": "bar"}'
     expires = "3000-01-01T00:00:00Z"
     spec_version = "1.0"
-    _uniq = True
+    _instances: dict[RemoteConfigTarget, "_RemoteConfigState"] = {}
 
-    def __init__(self, expires: str | None = None) -> None:
-        if _RemoteConfigState._uniq:
-            _RemoteConfigState._uniq = False
-        else:
-            raise RuntimeError("Only one instance of _RemoteConfigState can be created")
+    def __init__(self, target: RemoteConfigTarget, expires: str | None = None) -> None:
+        if target in _RemoteConfigState._instances:
+            raise RuntimeError(
+                f"Only one instance of _RemoteConfigState can be created per target, got duplicate for {target!r}"
+            )
+        _RemoteConfigState._instances[target] = self
+        self.target: RemoteConfigTarget = target
         self.targets: dict[str, ClientConfig] = {}
         self.version: int = 0
         self.expires: str = expires or _RemoteConfigState.expires
@@ -439,8 +463,31 @@ class _RemoteConfigState:
         self.version += 1
         command = self.to_payload()
         return send_state(
-            command, wait_for_acknowledged_status=wait_for_acknowledged_status, state_version=self.version
+            command,
+            target=self.target,
+            wait_for_acknowledged_status=wait_for_acknowledged_status,
+            state_version=self.version,
         )
 
 
-rc_state = _RemoteConfigState()
+tracer_rc_state = _RemoteConfigState(target="tracer")
+"""Remote config state for tracer-based scenarios (rc_backend_enabled=False).
+
+Use this singleton for scenarios that send RC configs via the legacy proxy mock
+at /v0.7/config. This is the default for most appsec and feature flag scenarios.
+
+The scenario must NOT have rc_backend_enabled=True.
+"""
+
+# Backwards compatibility alias
+rc_state = tracer_rc_state
+
+backend_rc_state = _RemoteConfigState(target="backend")
+"""Remote config state for backend-based scenarios (rc_backend_enabled=True).
+
+Use this singleton for scenarios that send RC configs via the mocked backend
+at /api/v0.1/configurations (protobuf). This is used for debugger scenarios
+and other scenarios that require the agent's RC backend path.
+
+The scenario MUST have rc_backend_enabled=True.
+"""
