@@ -3,7 +3,7 @@
 import { Request, Response } from "express";
 import http from 'http';
 
-const tracer = require('dd-trace').init({ debug: true });
+const tracer = require('dd-trace').init();
 
 const { promisify } = require('util')
 const app = require('express')()
