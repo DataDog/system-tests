@@ -7,7 +7,7 @@ from ddtrace import tracer
 from fastapi import APIRouter
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from typing import Literal
+from typing import Literal, Union
 
 router = APIRouter()
 
@@ -64,13 +64,13 @@ class LlmObsAnnotationContextRequest:
 
 
 # Update forward references for circular dependencies
-SpanRequest.__pydantic_model__.update_forward_refs()
+ApmSpanRequest.__pydantic_model__.update_forward_refs()
 LlmObsSpanRequest.__pydantic_model__.update_forward_refs()
 LlmObsAnnotationContextRequest.__pydantic_model__.update_forward_refs()
 
 
 class Request(BaseModel):
-    trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest
+    trace_structure_request: Union[LlmObsAnnotationContextRequest, LlmObsSpanRequest, ApmSpanRequest]
 
 
 def create_trace(trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict:
@@ -164,7 +164,6 @@ def apply_annotations(span, annotations: list[LlmObsAnnotationRequest], annotate
 
 @router.post("/llm_observability/trace")
 def llmobs_trace(trace_structure_request: Request):
-    print('initial request', trace_structure_request)
     try:
         maybe_exported_span_ctx = create_trace(trace_structure_request.trace_structure_request)
         return maybe_exported_span_ctx or {}

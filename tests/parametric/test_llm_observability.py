@@ -236,3 +236,60 @@ class Test_Prompts:
         assert prompt["chat_template"] == [{"role": "user", "content": "This is a test query"}]
         assert prompt["version"] == "1"
         assert prompt["variables"] == {"query": "test query"}
+
+    def test_prompt_annotation_default_id(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, llmobs_ml_app: str | None
+    ):
+        default_prompt_id = f"{llmobs_ml_app}_unnamed-prompt"
+
+        llmobs_span_request = LlmObsSpanRequest(
+            kind="llm",
+            annotations=[
+                LlmObsAnnotationRequest(
+                    input_data="This is a test query",
+                    prompt={
+                        "chat_template": [{"role": "user", "content": "This is a test query"}],
+                        "variables": {"query": "test query"},
+                    },
+                )
+            ],
+        )
+
+        test_library.llmobs_trace(llmobs_span_request)
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        span_event = span_events[0]
+        prompt = span_event["meta"]["input"]["prompt"]
+        assert prompt["id"] == default_prompt_id
+
+    def test_prompt_annotation_updates_existing_prompt(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        llmobs_span_request = LlmObsSpanRequest(
+            kind="llm",
+            annotations=[
+                LlmObsAnnotationRequest(
+                    input_data="This is a test query",
+                    prompt={
+                        "chat_template": [{"role": "user", "content": "This is a test query"}],
+                        "version": "1",
+                        "variables": {"query": "test query"},
+                    },
+                ),
+                LlmObsAnnotationRequest(
+                    prompt={"tags": {"foo": "bar"}},  # simulating tags being set at a later time
+                ),
+            ],
+        )
+
+        test_library.llmobs_trace(llmobs_span_request)
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        span_event = span_events[0]
+        prompt = span_event["meta"]["input"]["prompt"]
+        assert prompt["chat_template"] == [{"role": "user", "content": "This is a test query"}]
+        assert prompt["version"] == "1"
+        assert prompt["variables"] == {"query": "test query"}
+        assert prompt["tags"] == {"foo": "bar"}
