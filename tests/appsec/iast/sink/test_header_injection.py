@@ -63,12 +63,10 @@ class TestHeaderInjection(BaseSinkTest):
     data = {"test": "dummyvalue"}
     location_map = {"nodejs": get_nodejs_iast_file_paths()}
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
@@ -84,7 +82,6 @@ class TestHeaderInjection_StackTrace:
     def setup_stack_trace(self):
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
 
-    @flaky(context.library >= "java@1.56.0", reason="APPSEC-59975")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

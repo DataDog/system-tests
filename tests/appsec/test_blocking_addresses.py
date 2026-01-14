@@ -13,7 +13,6 @@ from utils import (
     rfc,
     scenarios,
     weblog,
-    flaky,
     features,
     HttpResponse,
 )
@@ -190,7 +189,6 @@ class Test_Blocking_request_method:
         self.set_req1 = weblog.request("GET", path="/tag_value/clean_value_3876/200")
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
-    @flaky(context.library < "java@1.16.0", reason="APMRP-360")
     @missing_feature(
         context.scenario is scenarios.external_processing_blocking
         or context.scenario is scenarios.stream_processing_offload_blocking,

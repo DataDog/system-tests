@@ -20,7 +20,6 @@ class TestRequestBody(BaseSourceTest):
     def test_source_reported(self):
         super().test_source_reported()
 
-    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
@@ -30,7 +29,6 @@ class TestRequestBody(BaseSourceTest):
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.17.0", reason="Metrics not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",

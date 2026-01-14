@@ -95,7 +95,6 @@ class Test_AppSecEventSpanTags:
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @bug(library="python_lambda", reason="APPSEC-58202")
-    @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @bug(
         context.library < "nodejs@5.57.0",
         weblog_variant="fastify",
@@ -123,7 +122,6 @@ class Test_AppSecEventSpanTags:
             missing_response_headers = set(required_response_headers) - set(span.get("meta", {}).keys())
             assert not missing_response_headers, f"Missing response headers: {missing_response_headers}"
 
-    @bug(context.library < "java@0.93.0", reason="APMRP-360")
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc", "serverless"]
@@ -219,7 +217,6 @@ class Test_AppSecObfuscator:
             params={"payload": sensitive_raw_payload},
         )
 
-    @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
         reason="Query string not supported yet",
