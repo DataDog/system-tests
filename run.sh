@@ -494,6 +494,22 @@ function main() {
                             echo "${scenario} was removed, skipping."
                             continue
         fi
+        if [[ "${scenario}" == EXTERNAL_PROCESSING ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == EXTERNAL_PROCESSING_BLOCKING ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == STREAM_PROCESSING_OFFLOAD ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == STREAM_PROCESSING_OFFLOAD_BLOCKING ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
         ####
 
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
