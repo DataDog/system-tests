@@ -12,7 +12,7 @@ EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 DEFAULT_METER_NAME = "parametric-api"
 DEFAULT_METER_VERSION = "1.0.0"
 # schema_url is not supported by .NET's System.Diagnostics.Metrics API
-DEFAULT_SCHEMA_URL = "" if context.library == "dotnet" else "https://opentelemetry.io/schemas/1.21.0"
+DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
 DEFAULT_INSTRUMENT_UNIT = "triggers"
 DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
@@ -93,25 +93,32 @@ def generate_default_counter_data_point(test_library: APMLibrary, instrument_nam
     test_library.otel_metrics_force_flush()
 
 
-def assert_scope_metric(
-    scope_metric: dict[str, dict],
-    meter_name: str,
-    meter_version: str,
-    schema_url: str,
-    expected_scope_attributes: dict[str, str],
-):
+def assert_scope_metric_name(scope_metric: dict[str, dict], meter_name: str):
     assert scope_metric["scope"]["name"] == meter_name
+
+
+def assert_scope_metric_version(
+    scope_metric: dict[str, dict],
+    meter_version: str,
+):
     assert scope_metric["scope"]["version"] == meter_version
 
-    if context.library != "ruby":
-        # Ruby Exporter is still in beta, it does not support scope attributes
-        assert (
-            expected_scope_attributes.items()
-            == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
-        )
 
-    if context.library not in ("dotnet", "ruby"):  # .NET and Ruby do not support schema_url
-        assert scope_metric["schema_url"] == schema_url
+def assert_scope_metric_schema_url(
+    scope_metric: dict[str, dict],
+    schema_url: str,
+):
+    assert scope_metric["schema_url"] == schema_url
+
+
+def assert_scope_metric_attributes(
+    scope_metric: dict[str, dict],
+    expected_scope_attributes: dict[str, str],
+):
+    assert (
+        expected_scope_attributes.items()
+        == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
+    )
 
 
 def assert_metric_info(metric: dict, name: str, unit: str, description: str):
@@ -295,20 +302,16 @@ class Test_Otel_Metrics_Api_MeterProvider:
     Note: It is unspecified whether the Meter name is case-insensitive or case-sensitive when determining uniqueness.
     """
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_get_meter_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        name = "counter-test_get_meter_same_parameters"
-        first_meter_name = DEFAULT_METER_NAME
-        identical_meter_name = DEFAULT_METER_NAME
-        different_meter_name = DEFAULT_METER_NAME + "-different"
-
+    def generate_metrics(
+        self, metric_name: str, meter_names: list[str], test_library: APMLibrary, test_agent: TestAgentAPI
+    ):
         with test_library as t:
-            for meter_name in [first_meter_name, identical_meter_name, different_meter_name]:
+            for meter_name in meter_names:
                 t.otel_get_meter(meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-                t.otel_create_counter(meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+                t.otel_create_counter(meter_name, metric_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
                 t.otel_counter_add(
                     meter_name,
-                    name,
+                    metric_name,
                     DEFAULT_INSTRUMENT_UNIT,
                     DEFAULT_INSTRUMENT_DESCRIPTION,
                     42,
@@ -321,7 +324,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 
         # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
         assert len(metrics) == 1
-
         # Assert that there is only one item in ResourceMetrics (one per tracer)
         resource_metrics = metrics[0]["resource_metrics"]
         assert len(resource_metrics) == 1
@@ -329,21 +331,51 @@ class Test_Otel_Metrics_Api_MeterProvider:
         # Assert that we get one ScopeMetrics per distinct Meter
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 2
+        return sorted(scope_metrics, key=lambda x: x["scope"]["name"])
 
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        for scope_metric in scope_metrics:
-            assert (
-                scope_metric["scope"]["name"] == first_meter_name
-                or scope_metric["scope"]["name"] == different_meter_name
-            )
-            assert_scope_metric(
-                scope_metric,
-                scope_metric["scope"]["name"],
-                DEFAULT_METER_VERSION,
-                DEFAULT_SCHEMA_URL,
-                DEFAULT_SCOPE_ATTRIBUTES,
-            )
+        for scope_metric, meter_name in zip(metrics, meter_names, strict=True):
+            assert_scope_metric_name(scope_metric, meter_name)
+            assert len(scope_metric["metrics"]) == 1
 
+    @missing_feature(context.library == "rust", reason="Not supported by Rust's OpenTelemetry API", force_skip=True)
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct_version(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct_version"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        for scope_metric, meter_name in zip(metrics, meter_names, strict=True):
+            assert_scope_metric_name(scope_metric, meter_name)
+            assert_scope_metric_version(scope_metric, DEFAULT_METER_VERSION + "-different")
+            assert len(scope_metric["metrics"]) == 1
+
+    @missing_feature(context.library == "ruby", reason="Not supported by Ruby's OpenTelemetry API", force_skip=True)
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct_scope_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct_scope_attributes"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        for scope_metric, meter_name in zip(metrics, meter_names, strict=True):
+            assert_scope_metric_name(scope_metric, meter_name)
+            assert_scope_metric_attributes(scope_metric, DEFAULT_SCOPE_ATTRIBUTES)
+            assert len(scope_metric["metrics"]) == 1
+
+    @missing_feature(
+        context.library == "dotnet", reason="Not supported by .NET's System.Diagnostics.Metrics API", force_skip=True
+    )
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct_schema_url(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct_schema_url"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        for scope_metric, meter_name in zip(metrics, meter_names, strict=True):
+            assert_scope_metric_name(scope_metric, meter_name)
+            assert_scope_metric_schema_url(scope_metric, DEFAULT_SCHEMA_URL)
             assert len(scope_metric["metrics"]) == 1
 
 
@@ -476,14 +508,8 @@ class Test_Otel_Metrics_Api_Meter:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
         # and, as a result, will be aggregated together
@@ -627,15 +653,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
-
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
         metric = scope_metrics[0]["metrics"][0]
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
@@ -678,14 +697,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = scope_metrics[0]["metrics"][0]
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -736,14 +749,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -789,14 +796,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -845,14 +846,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -890,14 +885,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -945,14 +934,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1003,14 +986,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1060,14 +1037,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1101,14 +1072,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1140,14 +1105,8 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        # Assert that the ScopeMetrics has the correct Metrics name
+        assert_scope_metric_name(scope_metrics[0], DEFAULT_METER_NAME)
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
