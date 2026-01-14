@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, irrelevant, logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
 
 USER = "test"
 NEW_USER = "testnew"
@@ -750,7 +750,6 @@ class BaseSCAStandaloneTelemetry:
         self.r0 = weblog.get("/load_dependency")
         self.r1 = weblog.get("/load_dependency")
 
-    @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
