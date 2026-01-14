@@ -2373,6 +2373,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v1.54.0-SNAPSHOT+c2aec92b86
+  tests/parametric/test_llm_observability.py: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
   tests/parametric/test_otel_logs.py: missing_feature
