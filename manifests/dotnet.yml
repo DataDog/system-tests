@@ -463,6 +463,7 @@ manifest:
   tests/parametric/test_otel_logs.py: missing_feature
   tests/parametric/test_otel_metrics.py: v3.29.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature (Not supported by .NET's System.Diagnostics.Metrics API)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
