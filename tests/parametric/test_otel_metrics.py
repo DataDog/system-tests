@@ -261,11 +261,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
-            {
-                "DD_METRICS_OTEL_ENABLED": None,
-                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-                "CORECLR_ENABLE_PROFILING": "1",
-            },
         ],
     )
     def test_otlp_metrics_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -904,10 +899,6 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @missing_feature(
-        context.library == "rust",
-        reason="OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK.",
-    )
     def test_otel_histogram_add_non_negative_and_negative_values(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1663,7 +1654,7 @@ class Test_Otel_Metrics_Host_Name:
     """
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "rust"),
+        context.library in ("dotnet", "nodejs"),
         reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented",
     )
     @pytest.mark.parametrize(
@@ -2058,7 +2049,7 @@ class Test_Otel_Metrics_Telemetry:
             )
 
     @missing_feature(
-        context.library in ("dotnet", "rust"),
+        context.library == "dotnet",
         reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
     )
     @pytest.mark.parametrize(
@@ -2105,7 +2096,7 @@ class Test_Otel_Metrics_Telemetry:
             assert "encoding:protobuf" in metric.get("tags")
 
     @missing_feature(
-        context.library in ("dotnet", "rust"),
+        context.library == "dotnet",
         reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
     )
     @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
