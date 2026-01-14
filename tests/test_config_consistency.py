@@ -410,11 +410,8 @@ def _get_span_by_tags(spans: list, tags: dict):
     return {}
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.unified_service_tagging
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""

@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, logger
+from utils import weblog, interfaces, context, rfc, irrelevant, missing_feature, features, scenarios, logger
 from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
 from utils.cgroup_info import get_container_id
 
@@ -25,7 +25,6 @@ class Test_TraceHeaders:
 
     @missing_feature(library="cpp_nginx")
     @missing_feature(library="cpp_httpd")
-    @bug(context.library <= "golang@1.37.0", reason="APMRP-360")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -185,7 +184,6 @@ class Test_LibraryHeaders:
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
     @missing_feature(library="dotnet", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")

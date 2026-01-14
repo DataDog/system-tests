@@ -48,6 +48,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         self.wait_for(wait_function, timeout)
 
+    def wait_for_client_side_stats_payload(self, timeout: int = 30):
+        """Used in setup functions, wait for a stats payload to be sent to the agent to make sure client-side stats
+        has been enabled.
+        """
+
+        def wait_function(data: dict):
+            return data["path"] == "/v0.6/stats"
+
+        self.wait_for(wait_function, timeout)
+
     ############################################################
     def get_traces(
         self, request: HttpResponse | GrpcResponse | None = None

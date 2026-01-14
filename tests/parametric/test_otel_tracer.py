@@ -53,7 +53,6 @@ class Test_Otel_Tracer:
         assert child_span2["resource"] == "child2"
 
     @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library <= "java@1.23.0", reason="OTel resource naming implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     def test_otel_force_flush(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Verify that force flush flushed the spans"""

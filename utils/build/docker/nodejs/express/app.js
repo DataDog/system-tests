@@ -1,9 +1,6 @@
 'use strict'
 
-const opts = {
-  debug: true,
-  flushInterval: 5000
-}
+const opts = {}
 
 // This mimics a scenario where a user has one config setting set in multiple sources
 // so that config chaining data is sent
@@ -666,6 +663,21 @@ app.get('/add_event', (req, res) => {
 })
 
 require('./rasp')(app)
+
+app.post('/ai_guard/evaluate', async (req, res) => {
+  const block = req.headers['x-ai-guard-block'] === 'true'
+  const messages = req.body
+  try {
+    const evaluation = await tracer.aiguard.evaluate(messages, { block })
+    res.status(200).json(evaluation)
+  } catch (e) {
+    if (e.name === 'AIGuardAbortError') {
+      res.status(403).json(e)
+    } else {
+      res.status(500).json(e)
+    }
+  }
+})
 
 let openFeatureClient = null
 

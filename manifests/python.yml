@@ -4,7 +4,20 @@ refs:
   - &django "django-poc, django-py3.13, python3.12"
   - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v3.18.1
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.1.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v3.18.1
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.6.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.6.0
@@ -282,25 +295,16 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all:
-    - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
+  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v3.18.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v3.18.0
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect:
-    - weblog_declaration:
-        "*": v3.18.0 (with urllib support)
-        fastapi: v4.1.0 (with requests/urllib3 support)
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v4.1.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
-    - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -903,6 +907,16 @@ manifest:
   tests/ffe/test_exposures.py: v4.2.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: v3.11.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: v3.13.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: v3.13.0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: v3.13.0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning::test_generate_content_reasoning_output
+  : bug (MLOB-5071)
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: v3.13.0
+  ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
+  : bug (MLOB-5071)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: v3.13.0
@@ -1097,6 +1111,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v2.8.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v2.8.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature (failure 2.8.0)
+  tests/parametric/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
@@ -1284,6 +1299,7 @@ manifest:
         "*": v0.1  # actual version unknown
         django-py3.13: missing_feature (python 3.13 not supported yet)
         python3.12: v2.1.0
+  tests/test_profiling.py::Test_Profile::test_process_tags: v4.2.0+dev
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0

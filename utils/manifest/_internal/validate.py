@@ -129,16 +129,18 @@ def pretty(name: str, errors: dict[str, list]) -> str:
     return ret
 
 
-def validate_manifest_files(path: Path = Path("manifests/")) -> None:
+def validate_manifest_files(path: Path = Path("manifests/"), *, assume_sorted: bool = False) -> None:
     with open("utils/manifest/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
     validations: list[tuple[str, Callable]] = [
         ("Syntax validation errors", lambda d: validate(d, schema) or []),
-        ("Key order errors", assert_key_order),
         ("Node ID errors", assert_nodeids_exist),
         # ("Version order errors", assert_increasing_versions),
     ]
+
+    if not assume_sorted:
+        validations.append(("Key order errors", assert_key_order))
 
     all_errors: dict[str, dict[Path, list[BaseException]]] = {}
 

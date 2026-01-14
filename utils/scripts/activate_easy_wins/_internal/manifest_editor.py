@@ -7,7 +7,6 @@ from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
 from utils.manifest import Condition
-from utils.manifest._internal.const import simple_regex as simple_version_regex
 from .const import LIBRARIES
 from typing import TYPE_CHECKING
 import re
@@ -130,7 +129,7 @@ class ManifestEditor:
 
     def set_context(self, context: Context) -> ManifestEditor:
         self.context = context
-        self.manifest.update_rules(context.library, context.library_version, context.variant)
+        self.manifest.update_rules({context.library: context.library_version}, context.variant)
         return self
 
     def get_matches(self, nodeid: str) -> set[View]:
@@ -194,6 +193,8 @@ class ManifestEditor:
         self.poked_views[view].add(self.context)
 
     def add_rules(self, rules: list[str], parent: View) -> None:
+        if "excluded_component_version" in parent.condition:
+            return
         for rule in rules:
             if rule not in self.added_rules:
                 self.added_rules[rule] = set()
@@ -370,12 +371,10 @@ class ManifestEditor:
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
             all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]]
 
-            if "excluded_component_version" in view.condition and (
-                not isinstance(raw_data, str) or not re.fullmatch(simple_version_regex, raw_data)
-            ):
+            if "excluded_component_version" in view.condition:
                 # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
                 weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
-                comment_text = f"This entry should be updated to allow the test to run for weblogs: {weblog_list}"
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue

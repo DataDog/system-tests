@@ -62,7 +62,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span_meta = interfaces.agent.get_span_meta(span, span_format)
             assert span_meta["db.type"] == self.db_service, f"Test is failing for {db_operation}"
 
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         """DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name."""
         db_container = context.get_container_by_dd_integration_name(self.db_service)
@@ -79,7 +78,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span_meta["span.kind"] == "client"
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_runtime_id(self):
         """Unique identifier for the current process."""
 
@@ -88,7 +86,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span_meta["runtime-id"].strip(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_db_system(self):
         """An identifier for the database management system (DBMS) product being used. Formerly db.type
         Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
@@ -100,7 +97,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_db_connection_string(self):
         """The connection string used to connect to the database."""
 
@@ -127,7 +123,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span_meta["db.instance"] == db_container.db_instance
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_statement_query(self):
         """Usually the query"""
@@ -153,7 +148,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                 assert db_operation.lower() in span_meta["db.operation"].lower(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_sql_table(self):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
@@ -164,7 +158,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @missing_feature(library="python", reason="not implemented yet")
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_db_row_count(self):
         """The number of rows/results from the query or operation. For caches and other datastores.
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.
@@ -195,7 +188,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     assert span_meta[key] != db_container.db_password, f"Test is failing for {db_operation}"
 
     @missing_feature(condition=context.library != "java", reason="Apply only java")
-    @missing_feature(library="java", reason="Not implemented yet")
     def test_db_jdbc_drive_classname(self):
         """The fully-qualified class name of the Java Database Connectivity (JDBC) driver used to connect."""
 
@@ -271,7 +263,6 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "mysql"
 
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     @bug(context.library < "python@2.12.2", reason="APMRP-360")
     def test_db_name(self):
         super().test_db_name()
@@ -289,7 +280,6 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     db_service = "mssql"
 
     @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_db_mssql_instance_name(self):
         """The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance.
@@ -302,12 +292,10 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             )
 
     @bug(library="python", reason="APMAPI-741")
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         super().test_db_name()
 
     @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     @bug(library="python", reason="APMAPI-741")
     def test_db_system(self):
         super().test_db_system()
