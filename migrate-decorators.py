@@ -500,7 +500,6 @@ def _get_valid_component_names() -> set[str]:
         "ruby",
         "dotnet",
         "golang",
-        "go",
         "cpp",
         "cpp_nginx",
         "cpp_httpd",
@@ -1301,6 +1300,10 @@ def build_manifest_entries(
 
             # Create entries for each component
             for component_name in components_to_create:
+                # Skip if component filter is active and doesn't match
+                if component and component_name != component:
+                    continue
+                
                 entry_copy = {
                     "declaration": _quote_yaml_value_if_needed(declaration),
                     "component": component_name,
