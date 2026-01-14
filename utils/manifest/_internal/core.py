@@ -46,7 +46,7 @@ class Manifest:
         return load(path)
 
     @staticmethod
-    def validate(path: Path = default_manifests_path) -> None:
+    def validate(path: Path = default_manifests_path, *, assume_sorted: bool = False) -> None:
         """Runs a series of checks on the manifest files including:
         - nodeids exist
         - manifests are sorted
@@ -54,9 +54,10 @@ class Manifest:
 
         Args:
             path (str, optional): Path to the manifest directory. Defaults to 'manifests/'
+            assume_sorted (bool) : Weather to assume that the manifests are already sorted.
 
         """
-        validate(path)
+        validate(path, assume_sorted=assume_sorted)
 
     def get_declarations(
         self, nodeid: str, declaration_sources: list[tuple[str, list[tuple[int, int]]]] | None = None
