@@ -1,7 +1,11 @@
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
-from utils.docker_fixtures.spec.llm_observability import LlmObsSpanRequest, LlmObsAnnotationRequest
+from utils.docker_fixtures.spec.llm_observability import (
+    LlmObsSpanRequest,
+    LlmObsAnnotationRequest,
+    LlmObsAnnotationContextRequest,
+)
 import pytest
 
 
@@ -203,4 +207,32 @@ class Test_Prompts:
         assert prompt["_dd_context_variable_keys"] == ["author", "excerpts"]
 
     def test_prompt_annotation_in_annotation_context(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        pass
+        llmobs_request = LlmObsAnnotationContextRequest(
+            prompt={
+                "chat_template": [{"role": "user", "content": "This is a test query"}],
+                "version": "1",
+                "variables": {"query": "test query"},
+            },
+            children=[
+                LlmObsSpanRequest(
+                    kind="llm",
+                    annotations=[
+                        LlmObsAnnotationRequest(
+                            input_data="This is a test query",
+                        )
+                    ],
+                )
+            ],
+        )
+
+        test_library.llmobs_trace(llmobs_request)
+
+        span_events = test_agent.wait_for_llmobs_requests(num=1)
+        assert len(span_events) == 1
+
+        span_event = span_events[0]
+        prompt = span_event["meta"]["input"]["prompt"]
+
+        assert prompt["chat_template"] == [{"role": "user", "content": "This is a test query"}]
+        assert prompt["version"] == "1"
+        assert prompt["variables"] == {"query": "test query"}

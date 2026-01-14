@@ -8,11 +8,13 @@ from typing import Literal
 class SpanRequest:
     sdk: Literal["tracer", "llmobs"]
     name: str | None = None
-    children: list[ApmSpanRequest | LlmObsSpanRequest] | list[list[ApmSpanRequest | LlmObsSpanRequest]] | None = None
+    children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
 
     annotations: list[LlmObsAnnotationRequest] | None = None
     annotate_after: bool | None = None
     export_span: Literal["explicit", "implicit"] | None = None
+
+    type: Literal["span"] = "span"
 
 
 @dataclass
@@ -41,3 +43,13 @@ class LlmObsAnnotationRequest:
     prompt: dict | None = None
 
     explicit_span: bool | None = False
+
+
+@dataclass
+class LlmObsAnnotationContextRequest:
+    prompt: dict | None = None
+    name: str | None = None
+    tags: dict | None = None
+
+    children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
+    type: Literal["annotation_context"] = "annotation_context"
