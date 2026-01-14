@@ -220,7 +220,7 @@ patterns:
 # This section contains rules to apply to script files.
 ################################################################################
 
-    utils/scripts/activate-easy-wins/*:
+    utils/scripts/activate_easy_wins/*:
       scenario_groups: null
       libraries: null
     utils/scripts/add-system-tests-label-on-known-tickets.py:
