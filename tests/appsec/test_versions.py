@@ -5,11 +5,8 @@
 from utils import interfaces, features, scenarios
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.appsec_miscs_internals
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_Events:

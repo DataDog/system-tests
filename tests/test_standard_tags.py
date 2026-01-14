@@ -6,11 +6,8 @@ from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, we
 from utils._weblog import HttpResponse
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -37,10 +34,8 @@ class Test_StandardTagsMethod:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@features.security_events_metadata
+@scenarios.go_proxies
 @scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
@@ -166,11 +161,8 @@ class Test_StandardTagsUrl:
         )
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -233,11 +225,8 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
