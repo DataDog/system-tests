@@ -50,6 +50,9 @@ namespace weblog
 
             Sql.Setup();
 
+            // Initialize OpenFeature for FFE tests
+            FfeEndpoint.InitializeOpenFeature();
+
             app.UseSession();
             app.UseRouting();
             app.UseAuthorization();
