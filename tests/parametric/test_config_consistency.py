@@ -10,7 +10,6 @@ from utils import (
     context,
     missing_feature,
     irrelevant,
-    flaky,
     bug,
     rfc,
     incomplete_test_app,

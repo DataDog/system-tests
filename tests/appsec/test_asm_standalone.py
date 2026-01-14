@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, irrelevant, logger
 
 USER = "test"
 NEW_USER = "testnew"

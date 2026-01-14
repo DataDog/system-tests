@@ -1327,42 +1327,42 @@ manifest:
         "*": v0.87.0
         akka-http: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseAppSecStandaloneUpstreamPropagation::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
-  tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
-  tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
-  tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::BaseIastStandaloneUpstreamPropagation::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:
     - weblog_declaration:
@@ -1372,28 +1372,28 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: bug (APPSEC-56870)
         vertx4: bug (APPSEC-56871)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
@@ -1402,28 +1402,28 @@ manifest:
     - weblog_declaration:
         "*": v1.47.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2::test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1
+  : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
         jersey-grizzly2: bug (APPSEC-55001)
         play: bug (APPSEC-55001)
@@ -1431,17 +1431,17 @@ manifest:
     - weblog_declaration:
         "*": v1.47.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
-  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
-  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
-  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1:
-    - weblog_declaration:
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  : - weblog_declaration:
         play: bug (APPSEC-55552)
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2:
     - weblog_declaration:
@@ -1839,12 +1839,14 @@ manifest:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled::test_user_login_failure_event_deep_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled::test_user_login_failure_event_deep_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
         "*": v1.48.0
@@ -1869,16 +1871,22 @@ manifest:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::setup_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::setup_user_login_success_event_deep_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_deep_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_multi_type_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::setup_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-java only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::setup_user_login_success_event_deep_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_deep_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata
+  : irrelevant (dd-trace-java only accepts string metadata values)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability:
     - weblog_declaration:
         "*": v1.54.0-SNAPSHOT
@@ -1887,8 +1895,8 @@ manifest:
     - weblog_declaration:
         "*": v1.54.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated:
-    - weblog_declaration:
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  : - weblog_declaration:
         vertx3: bug (APPSEC-57811)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection:
     - weblog_declaration:
@@ -1900,8 +1908,10 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: irrelevant (covered by v2 test_extended_data_collection.py)
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: irrelevant (covered by v2 test_extended_data_collection.py)
-  tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection::test_if_no_rasp_event_no_collect_request_body: flaky (APPSEC-58895)
-  tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection::test_if_rasp_event_collect_request_body: flaky (APPSEC-58895)
+  ? tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection::test_if_no_rasp_event_no_collect_request_body
+  : flaky (APPSEC-58895)
+  ? tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection::test_if_rasp_event_collect_request_body
+  : flaky (APPSEC-58895)
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection::test_request_body_truncated:
     - declaration: flaky (APPSEC-58895)
     - weblog_declaration:
@@ -2196,8 +2206,7 @@ manifest:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
-        "encoded to represent disallowed octets)
+  tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (cookies are not urldecoded; see RFC 6265, which only suggests they be base64 " "encoded to represent disallowed octets)
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_special_chars2_custom_rules:
     - declaration: bug (APMRP-360)
       component_version: <0.96.0
@@ -2663,8 +2672,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v0.2.0  # real version not known
-  tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_consume_trace_equality: missing_feature (Expected to fail, Java does not extract message attribute context for Kinesis)
-  tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality: missing_feature (Expected to fail, Java defaults to using Xray headers to propagate context)
+  ? tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_consume_trace_equality
+  : missing_feature (Expected to fail, Java does not extract message attribute context for Kinesis)
+  ? tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES::test_produce_trace_equality
+  : missing_feature (Expected to fail, Java defaults to using Xray headers to propagate context)
   tests/integrations/crossed_integrations/test_kinesis.py::_BaseKinesis::test_consume_trace_equality: missing_feature (Expected to fail, Java does not extract message attribute context for Kinesis)
   tests/integrations/crossed_integrations/test_kinesis.py::_BaseKinesis::test_produce_trace_equality: missing_feature (Expected to fail, Java defaults to using Xray headers to propagate context)
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation:
@@ -2844,14 +2855,14 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v1.54.0-SNAPSHOT+c2aec92b86
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext:
-    - declaration: missing_feature (Implemented from 1.24.0)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
+  : - declaration: missing_feature (Implemented from 1.24.0)
       component_version: <1.24.0
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy:
     - declaration: irrelevant (Implements the new 'datadog,tracecontext' default)
       component_version: '>=1.24.0'
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate:
-    - declaration: missing_feature (Implemented in 1.24.0)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
+  : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_context_leak:
     - declaration: missing_feature (Not implemented)
@@ -2868,8 +2879,8 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <1.35.0
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members:
-    - declaration: missing_feature (Implemented in 1.24.0)
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
+  : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
   tests/parametric/test_llm_observability.py: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
@@ -2912,8 +2923,8 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_ok:
     - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event:
-    - declaration: missing_feature (Implemented in 1.25.1)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event
+  : - declaration: missing_feature (Implemented in 1.25.1)
       component_version: <1.25.1
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end:
     - declaration: missing_feature (Implemented in 1.24.0)
@@ -2959,7 +2970,8 @@ manifest:
     - declaration: bug (APMAPI-737)
     - declaration: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
-  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009: bug (APMAPI-737)
+  ? tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009
+  : bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_1_sst005: bug (APMAPI-737)
@@ -3029,8 +3041,8 @@ manifest:
     - weblog_declaration:
         "*": v1.4.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging::test_tracer_update_sequence:
-    - declaration: bug (APMRP-360)
+  ? tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging::test_tracer_update_sequence
+  : - declaration: bug (APMRP-360)
       component_version: <1.13.0
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
@@ -3358,10 +3370,7 @@ manifest:
         "*": v0.108.1
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant ("
-        A Java application can be redeployed to the same server for many times (for the same JVM process).
-        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
-        ")
+  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant (" A Java application can be redeployed to the same server for many times (for the same JVM process). That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications. ")
   tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:
     - declaration: flaky (APMRP-360)
       component_version: <=1.38.1

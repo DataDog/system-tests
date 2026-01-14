@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, features, scenarios
+from utils import interfaces, features, scenarios
 
 
 @features.envoy_external_processing

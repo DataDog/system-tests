@@ -13,7 +13,6 @@ from utils import (
     rfc,
     scenarios,
     weblog,
-    flaky,
     features,
     HttpResponse,
 )

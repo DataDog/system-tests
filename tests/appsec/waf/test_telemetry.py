@@ -1,4 +1,4 @@
-from utils import bug, context, interfaces, features, rfc, scenarios, weblog, logger
+from utils import context, interfaces, features, rfc, scenarios, weblog, logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
