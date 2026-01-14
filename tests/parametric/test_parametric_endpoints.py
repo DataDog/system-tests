@@ -642,7 +642,6 @@ class Test_Parametric_OtelSpan_Events:
         assert events[0]["attributes"]["key"] == "value"
 
     @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
-    @bug(library="nodejs", reason="APMAPI-778")  # doees not set attributes on the exception event
     def test_record_exception(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/record_exception adds an exception event to a span.
 

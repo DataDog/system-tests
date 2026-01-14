@@ -69,8 +69,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "golang@1.65.0", reason="Implemented in 1.65.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.0.0")
     @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.1.0")
-    @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
-    @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "dotnet@2.53.0", reason="Implemented in 2.53.0")
     def test_otel_set_attribute_remapping_httpresponsestatuscode(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
@@ -91,8 +89,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "python@2.9.0", reason="Implemented in 2.9.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.0.0")
-    @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
-    @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
     @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.2.0")
     @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
@@ -448,7 +444,6 @@ class Test_Otel_Span_Methods:
         assert result_span["resource"] == "operation"
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library < "php@0.97.0", reason="Implemented in 0.97.0")
@@ -488,7 +483,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented, does not break out arrays into dot notation")
     def test_otel_span_link_attribute_handling(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -750,7 +744,6 @@ class Test_Otel_Span_Methods:
         reason="Newer agents/testagents enabled native span event serialization by default",
     )
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.AddEvent API and its serialization into the meta tag 'events'"""
@@ -808,7 +801,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_does_not_set_error(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.RecordException API (requires Span.AddEvent API support)
@@ -827,7 +819,6 @@ class Test_Otel_Span_Methods:
         reason="Newer agents/testagents enabled native span event serialization by default",
     )
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.RecordException API (requires Span.AddEvent API support)
@@ -918,7 +909,6 @@ class Test_Otel_Span_Methods:
     )
     @missing_feature(context.library == "dotnet")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_sets_all_error_tracking_tags(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
