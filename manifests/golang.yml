@@ -361,23 +361,26 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: v2.1.0-dev
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent: v1.47.0
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
-  tests/appsec/test_event_tracking_v2.py::BaseUserLoginFailureEventV2Tags::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-go only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-go only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::BaseUserLoginSuccessEventV2Tags::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-go only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v2.1.0-dev
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-go only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.1.0-dev
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-go only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.1.0-dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v2.1.0-dev
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-go only accepts string metadata values)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-go only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.1.0-dev
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-go only accepts string metadata values)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata: irrelevant (dd-trace-go only accepts string metadata values)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
