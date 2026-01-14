@@ -55,7 +55,6 @@ class Test_ConfigurationVariables:
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
-    @missing_feature(context.library < "java@0.113.0")
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):

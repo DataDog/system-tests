@@ -158,7 +158,6 @@ class Test_DsmRabbitmq:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @bug(library="java", reason="APMAPI-840")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
     @irrelevant(library="nodejs", reason="fixing node hashing")
@@ -220,7 +219,6 @@ class Test_DsmRabbitmq_TopicExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
-    @bug(library="java", reason="APMAPI-840")
     @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
@@ -259,7 +257,6 @@ class Test_DsmRabbitmq_FanoutExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
-    @bug(library="java", reason="APMAPI-840")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -395,7 +392,6 @@ class Test_DsmKinesis:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
     @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"

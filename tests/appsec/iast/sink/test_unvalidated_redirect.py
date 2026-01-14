@@ -38,15 +38,12 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     data = {"location": "http://dummy.location.com"}
     location_map = _expected_location()
 
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_insecure(self):
         super().test_insecure()
 
     # there is probably an issue with how system test handles redirection
     # it's suspicious that three deifferent languages have the same issue
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     @missing_feature(library="dotnet", reason="weblog does not respond")
-    @missing_feature(library="java", reason="weblog does not respond")
     @missing_feature(library="nodejs", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
@@ -82,7 +79,6 @@ class TestUnvalidatedRedirect_StackTrace:
             "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
         )
 
-    @irrelevant(library="java", weblog_variant="vertx3", reason="vertx3 redirects using location header")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

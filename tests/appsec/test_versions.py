@@ -15,7 +15,6 @@ from utils import context, interfaces, missing_feature, features, scenarios
 class Test_Events:
     """AppSec events uses events in span"""
 
-    @missing_feature(context.library < "java@0.93.0")
     def test_appsec_in_traces(self):
         """AppSec sends event in traces"""
 

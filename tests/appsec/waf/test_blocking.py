@@ -116,7 +116,6 @@ class Test_Blocking:
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @flaky(context.library >= "java@1.19.0", reason="APPSEC-10798")
     def test_blocking_appsec_blocked_tag(self):
         """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
@@ -216,7 +215,6 @@ class Test_Blocking:
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json"})
 
-    @missing_feature(context.library < "java@1.14.0")
     @missing_feature(context.library < "nodejs@4.1.0")
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")
@@ -241,7 +239,6 @@ class Test_Blocking:
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html"})
 
-    @missing_feature(context.library < "java@1.14.0")
     @missing_feature(context.library < "nodejs@4.1.0")
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")

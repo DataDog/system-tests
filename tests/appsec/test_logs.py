@@ -18,21 +18,17 @@ class Test_Standardization:
 
     @missing_feature(library="php")
     @missing_feature(library="dotnet", reason="APPSEC-983, being discussed")
-    @bug(library="java", reason="APPSEC-55157")
     def test_i01(self):
         """Log I1: AppSec initial configuration"""
         stdout.assert_presence(r"AppSec initial configuration from .*, libddwaf version: \d+\.\d+\.\d+", level="INFO")
 
     @missing_feature(library="php", reason="rules are not analyzed, only converted to PWArgs")
-    @bug(library="java", reason="APPSEC-55157")
     def test_i02(self):
         """Log I2: AppSec rule source"""
         stdout.assert_presence(r"AppSec loaded \d+ rules from file .*$", level="INFO")
 
     @missing_feature(library="dotnet", reason="APPSEC-983")
-    @missing_feature(context.library <= "java@0.88.0", reason="small typo")
     @missing_feature(library="php")
-    @bug(library="java", reason="APPSEC-55157")
     def test_i05(self):
         """Log I5: WAF detected an attack"""
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160$", level="INFO")
