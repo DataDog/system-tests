@@ -181,10 +181,6 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
             "/", headers={"Content-Type": "application/json", "Accept-Encoding": "gzip", "Connection": "close"}
         )
 
-    @irrelevant(
-        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
-        reason="Not supported by Go security processor proxies",
-    )
     def test_fingerprinting_header_blocking(self):
         assert self.r.status_code == 403
         r_span_meta = get_span_meta(self.r)
@@ -211,10 +207,6 @@ class Test_Fingerprinting_Session_Preprocessor:
     @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "resteasy-netty3", reason="missing_feature (endpoint not implemented)")
-    @irrelevant(
-        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
-        reason="Not supported by Go security processor proxies",
-    )
     def test_session_non_blocking(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200

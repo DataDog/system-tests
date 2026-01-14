@@ -15,10 +15,6 @@ class Test_TraceTaggingRules:
     def setup_rule_with_attributes_no_keep_no_event(self):
         self.r_tt1 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v1"})
 
-    @irrelevant(
-        context.library == "golang" and context.weblog_variant in ("envoy", "haproxy-spoa"),
-        reason="Not supported by Go security processor proxies",
-    )
     def test_rule_with_attributes_no_keep_no_event(self):
         """Test trace-tagging rule with attributes, no keep and no event"""
 
