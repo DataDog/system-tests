@@ -16,6 +16,7 @@ class AnnotationRequest(BaseModel):
     metadata: Optional[dict] = None
     metrics: Optional[dict] = None
     tags: Optional[dict] = None
+    prompt: Optional[dict] = None
 
     explicit_span: Optional[bool] = False
 

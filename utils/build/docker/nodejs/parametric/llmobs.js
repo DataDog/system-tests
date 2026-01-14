@@ -91,6 +91,7 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
     const metadata = annotation.metadata;
     const metrics = annotation.metrics;
     const tags = annotation.tags;
+    const prompt = normalizePromptArgument(annotation.prompt);
 
     const args = [];
 
@@ -98,10 +99,27 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
       args.push(span);
     }
 
-    args.push({ inputData, outputData, metadata, metrics, tags });
+    args.push({ inputData, outputData, metadata, metrics, tags, prompt });
 
     llmobs.annotate(...args);
   }
+}
+
+function normalizePromptArgument (prompt) {
+  if (!prompt || typeof prompt === 'string') return prompt;
+
+  const normalizedPrompt = {};
+  if (prompt.version) normalizedPrompt.version = prompt.version;
+  if (prompt.id) normalizedPrompt.id = prompt.id;
+  if (prompt.variables) normalizedPrompt.variables = prompt.variables;
+  if (prompt.tags) normalizedPrompt.tags = prompt.tags;
+  if (prompt.rag_query_variables) normalizedPrompt.queryVariables = prompt.rag_query_variables;
+  if (prompt.rag_context_variables) normalizedPrompt.contextVariables = prompt.rag_context_variables;
+
+  // set template
+  normalizedPrompt.template = prompt.template || prompt.chat_template;
+
+  return normalizedPrompt;
 }
 
 module.exports = addRoutes;

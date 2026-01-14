@@ -38,5 +38,6 @@ class LlmObsAnnotationRequest:
     metadata: dict | None = None
     metrics: dict | None = None
     tags: dict | None = None
+    prompt: dict | None = None
 
     explicit_span: bool | None = False
