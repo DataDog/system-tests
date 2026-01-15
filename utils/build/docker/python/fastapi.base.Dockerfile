@@ -7,8 +7,9 @@ RUN apt-get update && apt-get install -y curl
 RUN python --version && curl --version
 
 # install python deps
-COPY utils/build/docker/python/fastapi/requirements-fastapi.txt /tmp/fastapi-requirements.txt
-RUN pip install --upgrade pip && pip install -r /tmp/fastapi-requirements.txt
+RUN pip install --upgrade pip
+RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 \
+    psycopg2-binary packaging==25.0 itsdangerous xmltodict==0.14.2 openfeature-sdk==0.8.3
 
 RUN mkdir app
 WORKDIR /app
