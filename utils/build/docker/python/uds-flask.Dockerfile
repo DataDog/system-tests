@@ -1,8 +1,10 @@
-FROM datadog/system-tests:flask-poc.base-v13
+FROM datadog/system-tests:flask-poc.base-v12
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
+# TODO(munir): Move loguru install to the base image, currently lack permissions to push a new base image.
+RUN pip install loguru==0.7.3
 RUN /binaries/install_ddtrace.sh
 
 COPY utils/build/docker/python/flask /app
@@ -27,3 +29,4 @@ CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .
 # docker run -ti -p 7777:7777 test
+
