@@ -27,7 +27,7 @@ FRAMEWORKS = {
         "fastapi": "fastapi",
     },
     "golang": {
-        "chi":"github.com/go-chi/chi/v5",
+        "chi": "github.com/go-chi/chi/v5",
         "echo": "github.com/labstack/echo/v4",
         "gin": "github.com/gin-gonic/gin",
         "net-http": "net/http",
