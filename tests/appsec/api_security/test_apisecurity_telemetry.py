@@ -18,7 +18,6 @@ def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
     for r in res:
         if r.get("request_type") == "generate-metrics" and r["payload"].get("namespace", "") == "appsec":
             metrics.extend(r["payload"]["series"])
-            print(f">>> {r}")
     return [m for m in metrics if m["metric"].startswith("api_security")]
 
 
