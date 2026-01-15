@@ -276,3 +276,26 @@ func float64ToInt(f float64) (int, bool) {
 	}
 	return 0, false
 }
+
+// Log-related types for OTEL logs support
+
+type LogWriteArgs struct {
+	Message    string `json:"message"`
+	Level      string `json:"level"`
+	LoggerName string `json:"logger_name"`
+	LoggerType int    `json:"logger_type"`
+	SpanId     uint64 `json:"span_id"`
+}
+
+type LogWriteReturn struct {
+	Success bool `json:"success"`
+}
+
+type OtelLogsFlushArgs struct {
+	Seconds int `json:"seconds"`
+}
+
+type OtelLogsFlushReturn struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+}
