@@ -102,6 +102,13 @@ class OpenTelemetryScenario(DockerScenario):
             self.warmups.insert(0, self._start_interface_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
 
+        self.warmups.append(self._set_components)
+
+    def _set_components(self):
+        self.components["agent"] = self.agent_version
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
+
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
             def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
