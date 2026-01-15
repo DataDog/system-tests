@@ -37,7 +37,7 @@ default_libs_with_dev = [
     "ruby",
     "rust",
 ]
-default_otel_libs = ["java_otel", "nodejs_otel", "python_otel"]
+default_otel_libs = ["java_otel", "python_otel"]
 
 
 @pytest.fixture(autouse=True)
