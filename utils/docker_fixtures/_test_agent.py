@@ -619,7 +619,7 @@ class TestAgentAPI:
         if configurations:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configurations))
-            if "seq_id" in configurations[sample_key][0]:
+            if "seq_id" in configurations[sample_key][0] and configurations[sample_key][0]["seq_id"] is not None:
                 # Sort seq_id for each config from highest to lowest
                 for payload in configurations.values():
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)
