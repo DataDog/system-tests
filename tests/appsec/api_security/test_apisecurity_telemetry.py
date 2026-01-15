@@ -2,13 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky
-from utils._weblog import HttpResponse
-from types import EllipsisType
+from utils import context, interfaces, rfc, scenarios, weblog, features
 
-from tests.appsec.api_security.test_schemas import get_schema, contains, equal_value
+from tests.appsec.api_security.test_schemas import get_schema
 
-def _extract_telemetry_metrics(datas):
+
+def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
     res = []
     for data in datas:
         if data["request"]["content"].get("request_type") == "message-batch":
@@ -17,9 +16,10 @@ def _extract_telemetry_metrics(datas):
             res.append(data)
     metrics = []
     for r in res:
-        if r.get("request_type") == "generate-metrics" and r["payload"].get("namespace","") == "appsec":
+        if r.get("request_type") == "generate-metrics" and r["payload"].get("namespace", "") == "appsec":
             metrics.extend(r["payload"]["series"])
     return [m for m in metrics if m["metric"].startswith("api_security")]
+
 
 FRAMEWORKS = {
     "python": {
@@ -29,9 +29,10 @@ FRAMEWORKS = {
         "django-poc": "django",
         "django-py3.13": "django",
         "python3.12": "django",
-        "fastapi": "fastapi",       
+        "fastapi": "fastapi",
     }
 }
+
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security
@@ -42,13 +43,15 @@ class Test_API_Security_Telemetry_Metric:
     Verify that api_security.missing_routes telemetry metric is not generated for requests with 404 or blocked requests
     """
 
-    def setup_shema_metric(self):   
+    def setup_shema_metric(self):
         # normal request that must generate schema telemetry
         self.request_1 = weblog.get("/tag_value/api_match_AS001/200")
         # blocked request, that may generate schema telemetry
         self.request_2 = weblog.get("/waf", headers={"User-Agent": "dd-test-scanner-log-block"})
         # request with 404 response, that must not generate schema telemetry
-        self.request_3 = weblog.get("/wafwaf")  # non blocking request to ensure both blocked and non-blocked are present
+        self.request_3 = weblog.get(
+            "/wafwaf"
+        )  # non blocking request to ensure both blocked and non-blocked are present
         # blocked request on missing endpoint, that must not generate schema telemetry
         self.request_4 = weblog.get("/waf404", headers={"User-Agent": "dd-test-scanner-log-block"})
 
@@ -65,10 +68,15 @@ class Test_API_Security_Telemetry_Metric:
             assert parameter_name in schema[0]
             assert isinstance(schema[0][parameter_name], list)
         datas = _extract_telemetry_metrics(list(interfaces.library.get_telemetry_data(flatten_message_batches=False)))
-        assert len(datas) in [1, 2], f"There should be 1 or 2 telemetry metric data, found {[d["metric"] for d in datas]}"
+        assert len(datas) in [1, 2], (
+            f"There should be 1 or 2 telemetry metric data, found {[d['metric'] for d in datas]}"
+        )
         metric_data = datas[0]
         assert metric_data["metric"] == "api_security.request.schema"
         assert metric_data["type"] == "count"
-        assert metric_data["tags"] == [f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, 'unknown')}"], f"framework tag unknown for {context.library.name} {context.weblog_variant}"
-        assert all( metric_data["metric"] == "api_security.request.schema" for metric_data in datas), "Only api_security.request.schema metrics should be present, no missing routes should be generated"
-
+        assert metric_data["tags"] == [
+            f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, 'unknown')}"
+        ], f"framework tag unknown for {context.library.name} {context.weblog_variant}"
+        assert all(metric_data["metric"] == "api_security.request.schema" for metric_data in datas), (
+            "Only api_security.request.schema metrics should be present, no missing routes should be generated"
+        )
