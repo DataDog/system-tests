@@ -1002,6 +1002,17 @@ class WeblogContainer(TestedContainer):
             except Exception:
                 logger.info("No local dd-trace-js found")
 
+        if library == "python":
+            try:
+                with open("./binaries/python-load-from-local", encoding="utf-8") as f:
+                    path = f.read().strip(" \r\n")
+                    source = os.path.join(str(Path.cwd()), path)
+                    resolved_path = Path(source).resolve()
+                    self.volumes[str(resolved_path)] = {"bind": "/volumes/dd-trace-py", "mode": "ro"}
+                    self.environment["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+            except FileNotFoundError:
+                logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
+
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
