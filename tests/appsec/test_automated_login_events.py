@@ -91,7 +91,6 @@ class Test_Login_Events:
     def setup_login_pii_success_local(self):
         self.r_pii_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
-    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -105,7 +104,6 @@ class Test_Login_Events:
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
@@ -143,7 +141,6 @@ class Test_Login_Events:
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -165,7 +162,6 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -184,7 +180,6 @@ class Test_Login_Events:
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -206,7 +201,6 @@ class Test_Login_Events:
         )
 
     @missing_feature(context.library == "php", reason="Basic auth not implemented")
-    @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -545,7 +539,6 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
-    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_success_headers(self):
@@ -569,7 +562,6 @@ class Test_Login_Events_Extended:
         )
 
     @missing_feature(context.library < "dotnet@3.7.0")
-    @missing_feature(context.library < "nodejs@5.18.0")
     @missing_feature(library="php")
     @missing_feature(library="ruby")
     def test_login_failure_headers(self):

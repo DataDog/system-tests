@@ -26,7 +26,6 @@ class TestSqlInjection(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @bug(context.library < "nodejs@5.3.0", weblog_variant="express4-typescript", reason="APMRP-360")
     def test_insecure(self):
         super().test_insecure()
 

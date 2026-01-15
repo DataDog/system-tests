@@ -77,7 +77,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, span in self.get_spans():
             assert span["meta"]["runtime-id"].strip(), f"Test is failing for {db_operation}"
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_system(self):
         """An identifier for the database management system (DBMS) product being used. Formerly db.type
         Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
@@ -87,7 +86,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span["meta"]["db.system"] == self.db_service, f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_connection_string(self):
         """The connection string used to connect to the database."""
 
@@ -102,7 +100,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_instance(self, excluded_operations: tuple[str, ...] = ()):
         """The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.get_container_by_dd_integration_name(self.db_service)
@@ -111,14 +108,12 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span["meta"]["db.instance"] == db_container.db_instance
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_statement_query(self):
         """Usually the query"""
 
         for db_operation, span in self.get_spans(excluded_operations=("procedure", "select_error")):
             assert db_operation in span["meta"]["db.statement"].lower()
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
     @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self, excluded_operations: tuple[str, ...] = ()):
         """The name of the operation being executed"""
@@ -134,7 +129,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                 )
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_sql_table(self):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
 
@@ -142,7 +136,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
     @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_row_count(self):
         """The number of rows/results from the query or operation. For caches and other datastores.
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.
@@ -229,7 +222,6 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "postgresql"
 
-    @bug(library="nodejs", reason="APMAPI-913")
     @irrelevant(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self):
         super().test_db_type()
@@ -259,7 +251,6 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     db_service = "mssql"
 
     @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_db_mssql_instance_name(self):
         """The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance.
         This value should be set only if it's specified on the mssql connection string.
@@ -274,7 +265,6 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     def test_db_name(self):
         super().test_db_name()
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
     @bug(library="python", reason="APMAPI-741")
     def test_db_system(self):
         super().test_db_system()
