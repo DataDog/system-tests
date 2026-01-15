@@ -251,7 +251,6 @@ class Test_Span_Sampling:
             }
         ],
     )
-    @flaky(library="java", reason="APMAPI-978")
     @bug(library="cpp", reason="APMAPI-1052")
     def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
@@ -479,7 +478,6 @@ class Test_Span_Sampling:
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
     )
     @flaky(library="cpp", reason="APMAPI-933")
-    @flaky(library="java", reason="APMAPI-978")
     @pytest.mark.parametrize(
         "library_env",
         [

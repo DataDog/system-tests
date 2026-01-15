@@ -143,9 +143,7 @@ function initRoutes (fastify, tracer) {
       // Create a new worker thread to handle the setProduceCheckpoint function
       const worker = new Worker(`
           const { parentPort, workerData } = require('worker_threads');
-          const tracer = require('dd-trace').init({
-            debug: true
-          });
+          const tracer = require('dd-trace').init();
 
           const { type, target, headers } = workerData;
           tracer.dataStreamsCheckpointer.setProduceCheckpoint(type, target, headers);
@@ -206,9 +204,7 @@ function initRoutes (fastify, tracer) {
       // Create a new worker thread to handle the setConsumeCheckpoint function
       const worker = new Worker(`
         const { parentPort, workerData } = require('worker_threads')
-        const tracer = require('dd-trace').init({
-          debug: true
-        });
+        const tracer = require('dd-trace').init();
 
         const { type, source, headers } = workerData
         tracer.dataStreamsCheckpointer.setConsumeCheckpoint(type, source, headers)

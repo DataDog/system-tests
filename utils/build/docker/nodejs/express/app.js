@@ -1,8 +1,6 @@
 'use strict'
 
-const opts = {
-  debug: true
-}
+const opts = {}
 
 // This mimics a scenario where a user has one config setting set in multiple sources
 // so that config chaining data is sent
