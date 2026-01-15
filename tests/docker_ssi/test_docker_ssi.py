@@ -155,6 +155,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
     @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
     @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
     @missing_feature(context.library < "ruby@v2.19.0", reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
@@ -179,6 +180,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
     @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
     @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
     @missing_feature(context.library < "ruby@v2.19.0", reason="Not implemented yet")
     def test_injection_metadata(self):

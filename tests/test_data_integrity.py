@@ -142,6 +142,7 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate_all(validator, allow_no_data=True)
 
+    @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
@@ -183,6 +184,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
     @missing_feature(library="dotnet", reason="not implemented yet")
+    @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(context.library < "golang@1.73.0-dev", reason="Implemented in v1.72.0")

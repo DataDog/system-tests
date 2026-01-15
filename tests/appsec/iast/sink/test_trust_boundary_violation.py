@@ -16,10 +16,12 @@ class Test_TrustBoundaryViolation(BaseSinkTest):
     secure_endpoint = "/iast/trust-boundary-violation/test_secure"
     params = {"username": "shaquille_oatmeal", "password": "123456"}
 
+    @missing_feature(library="nodejs", reason="Metrics implemented")
     @missing_feature(library="dotnet", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
+    @missing_feature(library="nodejs", reason="Metrics implemented")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 

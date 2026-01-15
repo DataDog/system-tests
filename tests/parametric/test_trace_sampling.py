@@ -164,6 +164,7 @@ class Test_Trace_Sampling_Globs:
         ],
     )
     @bug(library="cpp", reason="APMAPI-908")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_field_case_insensitivity(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that sampling rule field values are case insensitive"""
         with (
@@ -501,6 +502,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env",
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_globs_different_casing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test tag matching with string of matching case"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
@@ -544,6 +546,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize("tag_value", [-100, -0.5, 0, 5, 1000])
     @missing_feature(library="cpp", reason="No metric interface")
     @flaky(library="golang", reason="APMAPI-932")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_metric_existence(self, test_agent: TestAgentAPI, test_library: APMLibrary, tag_value: float):
         """Tests that any patterns are equivalent to an existence check for metrics"""
 
@@ -556,6 +559,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
     @missing_feature(library="cpp", reason="No metric interface")
+    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_metric_matching(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:

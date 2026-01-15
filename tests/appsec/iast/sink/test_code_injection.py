@@ -24,6 +24,7 @@ class TestCodeInjection(BaseSinkTest):
         "nodejs": get_nodejs_iast_file_paths(),
     }
 
+    @missing_feature(context.library < "nodejs@5.34.0")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

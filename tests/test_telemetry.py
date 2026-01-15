@@ -460,6 +460,7 @@ class Test_Telemetry:
     @irrelevant(library="dotnet")
     @irrelevant(library="python")
     @irrelevant(library="php")
+    @irrelevant(library="nodejs")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
@@ -932,6 +933,7 @@ class Test_MessageBatch:
         weblog.get("/enable_integration")
         weblog.get("/enable_product")
 
+    @bug(library="nodejs", reason="APMAPI-929")
     def test_message_batch_enabled(self):
         """Test that events are sent in message batches"""
         event_list = set()
@@ -997,6 +999,7 @@ class Test_Metric_Generation_Enabled:
                 break
         assert found, "No metrics found in telemetry data"
 
+    @missing_feature(library="nodejs")
     def test_metric_general_logs_created(self):
         self.assert_count_metric("general", "logs_created", expect_at_least=1)
 
@@ -1006,30 +1009,39 @@ class Test_Metric_Generation_Enabled:
     def test_metric_tracers_spans_finished(self):
         self.assert_count_metric("tracers", "spans_finished", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_spans_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "spans_enqueued_for_serialization", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_created(self):
         self.assert_count_metric("tracers", "trace_segments_created", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_enqueued_for_serialization(self):
         self.assert_count_metric("tracers", "trace_chunks_enqueued_for_serialization", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_chunks_sent(self):
         self.assert_count_metric("tracers", "trace_chunks_sent", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_segments_closed(self):
         self.assert_count_metric("tracers", "trace_segments_closed", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_requests(self):
         self.assert_count_metric("tracers", "trace_api.requests", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_tracers_trace_api_responses(self):
         self.assert_count_metric("tracers", "trace_api.responses", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_requests(self):
         self.assert_count_metric("telemetry", "telemetry_api.requests", expect_at_least=1)
 
+    @missing_feature(library="nodejs")
     def test_metric_telemetry_api_responses(self):
         self.assert_count_metric("telemetry", "telemetry_api.responses", expect_at_least=1)
 

@@ -26,6 +26,7 @@ class TestCommandInjection(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
+    @missing_feature(library="nodejs", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()
 

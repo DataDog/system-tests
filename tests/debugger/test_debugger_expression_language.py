@@ -130,6 +130,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
+    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_contextual_variables(self):
         self._assert(expected_response=200)
 
@@ -151,6 +152,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/exception")
 
+    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_access_exception(self):
         self._assert(expected_response=500)
 
@@ -313,6 +315,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         )
 
     @bug(library="dotnet", reason="DEBUG-2530")
+    @bug(library="nodejs", weblog_variant="express4-typescript", reason="DEBUG-3715")
     def test_expression_language_instance_of(self):
         self._assert(expected_response=200)
 

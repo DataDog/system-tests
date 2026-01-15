@@ -16,6 +16,7 @@ from .conftest import APMLibrary
 @features.span_links
 class Test_Span_Links:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
+    @missing_feature(library="nodejs", reason="only supports span links encoding through _dd.span_links tag")
     def test_span_started_with_link_v04(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span and serialized in the expected v0.4 format.
         This tests the functionality of "create a direct link between two spans
@@ -211,6 +212,7 @@ class Test_Span_Links:
         assert link["attributes"].get("nested.1") == "2"
 
     @missing_feature(library="python", reason="links do not influence the sampling decision of spans")
+    @missing_feature(library="nodejs", reason="links do not influence the sampling decision of spans")
     @missing_feature(library="ruby", reason="links do not influence the sampling decision of spans")
     def test_span_link_propagated_sampling_decisions(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Sampling decisions made by an upstream span should be propagated via span links to

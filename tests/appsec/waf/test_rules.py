@@ -222,6 +222,7 @@ class Test_NoSqli:
         self.r_4 = weblog.get("/waf/", params={"$nin": "value"})
 
     @missing_feature(context.library in ["php"], reason="Need to use last WAF version")
+    @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
     def test_nosqli_keys(self):
         """AppSec catches NoSQLI attacks in keys"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.nosql_injection)

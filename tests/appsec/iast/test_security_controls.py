@@ -129,6 +129,7 @@ class TestSecurityControls:
         self.setup_iast_is_enabled()
         self.r = weblog.post("iast/sc/s/overloaded/insecure", data={"param": "param"})
 
+    @irrelevant(library="nodejs", reason="no overloaded methods with different signatures in js")
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
     ):

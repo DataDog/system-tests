@@ -44,6 +44,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     # there is probably an issue with how system test handles redirection
     # it's suspicious that three deifferent languages have the same issue
     @missing_feature(library="dotnet", reason="weblog does not respond")
+    @missing_feature(library="nodejs", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 

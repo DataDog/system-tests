@@ -346,6 +346,7 @@ class TestDynamicConfigTracingEnabled:
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
     @irrelevant(library="cpp", reason="APMAPI-1592")
+    @irrelevant(library="nodejs", reason="APMAPI-1592")
     def test_tracing_client_tracing_disable_one_way(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -618,6 +619,7 @@ class TestDynamicConfigV1_ServiceTargets:
             ]
         ],
     )
+    @bug(library="nodejs", reason="APMAPI-865")
     @irrelevant(library="cpp", reason="APMAPI-1003")
     @irrelevant(library="golang", reason="APMAPI-1003")
     def test_not_match_service_target(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
@@ -918,6 +920,7 @@ class TestDynamicConfigSamplingRules:
     @bug(context.library == "ruby", reason="APMAPI-868")
     @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
     @missing_feature(library="python")
+    @missing_feature(context.library < "nodejs@5.19.0")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
     def test_trace_sampling_rules_with_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
