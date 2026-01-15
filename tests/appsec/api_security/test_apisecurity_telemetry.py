@@ -8,15 +8,10 @@ from tests.appsec.api_security.test_schemas import get_schema
 
 
 def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
-    res = []
-    for data in datas:
-        if data["request"]["content"].get("request_type") == "message-batch":
-            res.extend(data["request"]["content"].get("payload", []))
-        else:
-            res.append(data)
+    res = [data["request"]["content"] for data in datas]
     metrics = []
     for r in res:
-        if r.get("request_type") == "generate-metrics" and r["payload"].get("namespace", "") == "appsec":
+        if r.get("request_type") == "generate-metrics":
             metrics.extend(r["payload"]["series"])
     return [m for m in metrics if m["metric"].startswith("api_security")]
 
@@ -30,7 +25,15 @@ FRAMEWORKS = {
         "django-py3.13": "django",
         "python3.12": "django",
         "fastapi": "fastapi",
-    }
+    },
+    "golang": {
+        "chi":"github.com/go-chi/chi/v5",
+        "echo": "github.com/labstack/echo/v4",
+        "gin": "github.com/gin-gonic/gin",
+        "net-http": "net/http",
+        "net-http-orchestrion": "net/http",
+        "uds-echo": "github.com/labstack/echo/v4",
+    },
 }
 
 
@@ -67,7 +70,7 @@ class Test_API_Security_Telemetry_Metric:
         for parameter_name in ("accept-encoding", "host", "user-agent"):
             assert parameter_name in schema[0]
             assert isinstance(schema[0][parameter_name], list)
-        datas = _extract_telemetry_metrics(list(interfaces.library.get_telemetry_data(flatten_message_batches=False)))
+        datas = _extract_telemetry_metrics(list(interfaces.library.get_telemetry_data(flatten_message_batches=True)))
         assert len(datas) in [1, 2], (
             f"There should be 1 or 2 telemetry metric data, found {[d['metric'] for d in datas]}"
         )
@@ -75,7 +78,7 @@ class Test_API_Security_Telemetry_Metric:
         assert metric_data["metric"] == "api_security.request.schema"
         assert metric_data["type"] == "count"
         assert metric_data["tags"] == [
-            f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, 'unknown')}"
+            f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, context.weblog_variant)}"
         ], f"framework tag unknown for {context.library.name} {context.weblog_variant}"
         assert all(metric_data["metric"] == "api_security.request.schema" for metric_data in datas), (
             "Only api_security.request.schema metrics should be present, no missing routes should be generated"

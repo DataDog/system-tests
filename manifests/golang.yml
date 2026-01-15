@@ -23,7 +23,7 @@ manifest:
         net-http: irrelevant (net-http doesn't handle path params)
         net-http-orchestrion: irrelevant (net-http doesn't handle path params)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: missing_feature
-  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
+  tests/appsec/api_security/test_apisecurity_telemetry.py: v2.0.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v2.4.0
