@@ -16,9 +16,48 @@ from utils._logger import logger, get_log_formatter
 class ScenarioGroup:
     scenarios: list["Scenario"]
     name: str = ""
+    parents: list["ScenarioGroup"]
 
-    def __init__(self) -> None:
+    def __init__(self, *, parents: list["ScenarioGroup"] | None = None) -> None:
         self.scenarios = []
+        self.parents = []
+
+        if parents:
+            for parent in parents:
+                self._add_parent(parent)
+
+    def _add_parent(self, parent: "ScenarioGroup") -> None:
+        if parent is self:
+            raise ValueError("Scenario group cannot be parent of itself")
+
+        if parent in self.parents:
+            return
+
+        if self in parent.with_parents():
+            raise ValueError(f"Scenario group cycle detected: {parent.name} already inherits from {self.name}")
+
+        self.parents.append(parent)
+
+    def _collect_parents(self) -> set["ScenarioGroup"]:
+        parents: set[ScenarioGroup] = set()
+        stack = list(self.parents)
+        while stack:
+            parent = stack.pop()
+            if parent in parents:
+                continue
+            parents.add(parent)
+            stack.extend(parent.parents)
+
+        return parents
+
+    def with_parents(self) -> set["ScenarioGroup"]:
+        groups = {self}
+        groups.update(self._collect_parents())
+        return groups
+
+    def add_scenario(self, scenario: "Scenario") -> None:
+        if scenario not in self.scenarios:
+            self.scenarios.append(scenario)
 
     def __call__(self, test_object):  # noqa: ANN001 (tes_object can be a class or a class method)
         """Handles @scenario_groups.scenario_group_name"""
@@ -31,39 +70,44 @@ class ScenarioGroup:
 
 class _ScenarioGroups:
     all = ScenarioGroup()
-    appsec = ScenarioGroup()
-    appsec_rasp = ScenarioGroup()
-    appsec_rasp_scenario = ScenarioGroup()
-    appsec_lambda = ScenarioGroup()
+    end_to_end = ScenarioGroup(parents=[all])
+    default = ScenarioGroup(parents=[all])
+
     debugger = ScenarioGroup()
     docker_fixtures = ScenarioGroup()
-    end_to_end = ScenarioGroup()
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
     integration_frameworks = ScenarioGroup()
     ipv6 = ScenarioGroup()
-    lambda_end_to_end = ScenarioGroup()
-    lib_injection = ScenarioGroup()
-    lib_injection_profiling = ScenarioGroup()
+    lambda_end_to_end = ScenarioGroup(parents=[end_to_end])
+    lib_injection = ScenarioGroup(parents=[all])
+    lib_injection_profiling = ScenarioGroup(parents=[all])
     k8s_injector_dev = ScenarioGroup()
     open_telemetry = ScenarioGroup()
     profiling = ScenarioGroup()
     sampling = ScenarioGroup()
     onboarding = ScenarioGroup()
-    simple_onboarding = ScenarioGroup()
+    simple_onboarding = ScenarioGroup(parents=[all])
     simple_onboarding_profiling = ScenarioGroup()
-    simple_onboarding_appsec = ScenarioGroup()
-    docker_ssi = ScenarioGroup()
+    docker_ssi = ScenarioGroup(parents=[all])
     essentials = ScenarioGroup()
-    go_proxies = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     ffe = ScenarioGroup()
-    default = ScenarioGroup()
+
+    appsec = ScenarioGroup(parents=[all])
+
+    appsec_blocking = ScenarioGroup(parents=[appsec])
+
+    simple_onboarding_appsec = ScenarioGroup(parents=[appsec])
+    appsec_rasp = ScenarioGroup(parents=[appsec])
+    appsec_rasp_scenario = ScenarioGroup(parents=[appsec])
+    appsec_lambda = ScenarioGroup(parents=[appsec, lambda_end_to_end, tracer_release])
+    go_proxies = ScenarioGroup(parents=[appsec])
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -107,9 +151,14 @@ class Scenario:
         self.doc = doc
         self.rc_api_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
-        self.scenario_groups = scenario_groups or []
 
-        self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
+        raw_groups = scenario_groups or []
+        expanded_groups: set[ScenarioGroup] = set()
+        for group in raw_groups:
+            assert isinstance(group, ScenarioGroup), f"Invalid scenario group {group} for {self.name}"
+            expanded_groups.update(group.with_parents())
+
+        self.scenario_groups = list(expanded_groups)  # removes duplicates, includes parents
 
         # key value pair of what is actually tested
         self.components: dict[str, Version | str] = {}
@@ -122,8 +171,7 @@ class Scenario:
         )
 
         for group in self.scenario_groups:
-            assert isinstance(group, ScenarioGroup), f"Invalid scenario group {group} for {self.name}"
-            group.scenarios.append(self)
+            group.add_scenario(self)
 
         self.warmups: list[Callable] = []
         self.collect_only: bool = False

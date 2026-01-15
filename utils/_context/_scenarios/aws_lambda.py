@@ -4,7 +4,6 @@ from utils._context._scenarios.core import ScenarioGroup
 from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer
 from utils._logger import logger
 from .endtoend import DockerScenario, ProxyBasedInterfaceValidator
-from .core import scenario_groups as all_scenario_groups
 
 
 class LambdaScenario(DockerScenario):
@@ -29,12 +28,6 @@ class LambdaScenario(DockerScenario):
         weblog_volumes: dict[str, dict[str, str]] | None = None,
         trace_managed_services: bool = False,
     ):
-        scenario_groups = [
-            all_scenario_groups.tracer_release,
-            all_scenario_groups.end_to_end,
-            all_scenario_groups.lambda_end_to_end,
-        ] + (scenario_groups or [])
-
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 
         self.lambda_weblog = LambdaWeblogContainer(
