@@ -177,3 +177,6 @@ class OpenTelemetryScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
+
+    def get_libraries(self) -> set[str] | None:
+        return {"python_otel", "java_otel", "nodejs_otel"}

@@ -37,6 +37,7 @@ default_libs_with_dev = [
     "ruby",
     "rust",
 ]
+default_otel_libs = ["java_otel", "nodejs_otel", "python_otel"]
 
 
 @pytest.fixture(autouse=True)
@@ -109,13 +110,13 @@ def assert_github_processor(
     def get_json_value(output_line: str) -> list:
         return json.loads(get_value(output_line))
 
-    library_matrix = [{"library": lib, "version": "prod"} for lib in sorted(libs_with_prod)] + [
+    expected_library_matrix = [{"library": lib, "version": "prod"} for lib in sorted(libs_with_prod)] + [
         {"library": lib, "version": "dev"} for lib in sorted(libs_with_dev)
     ]
 
     output = process(inputs)
 
-    assert get_json_value(output[0]) == library_matrix
+    assert get_json_value(output[0]) == expected_library_matrix
     assert get_json_value(output[1]) == libs_with_dev
     assert get_json_value(output[2]) == desired_execution_time
     assert get_value(output[3]) == rebuild_lambda_proxy
@@ -195,7 +196,7 @@ class Test_ComputeLibrariesAndScenarios:
             ["python"],
             600,
             "false",
-            "APM_TRACING_E2E_OTEL,APPSEC_API_SECURITY,DEFAULT",
+            "APPSEC_API_SECURITY,DEFAULT",
             "",
         )
 
@@ -211,7 +212,7 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT,OTEL_LOG_E2E",
+            "DEFAULT,SAMPLING",
             "",
         )
 
@@ -394,6 +395,18 @@ class Test_ComputeLibrariesAndScenarios:
             "open_telemetry",
         )
 
+    def test_otel_test_file(self):
+        inputs = build_inputs(modified_files=["tests/integrations/test_open_telemetry.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod + default_otel_libs,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,OTEL_INTEGRATIONS",
+            "",
+        )
+
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 
@@ -422,10 +435,3 @@ class Test_ComputeLibrariesAndScenarios:
                 new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
                 old_manifests=Path("./wrong/path"),
             )
-
-    # def test_otel_test(self):
-    #     inputs = build_inputs(modified_files=["tests/integrations/test_open_telemetry.py"])
-    #     assert_processor(inputs
-    #     assert "java_otel" in strings_out[0]
-    #     assert "nodejs_otel" in strings_out[0]
-    #     assert "python_otel" in strings_out[0]
