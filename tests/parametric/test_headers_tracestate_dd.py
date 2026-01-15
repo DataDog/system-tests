@@ -622,7 +622,6 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate_4_string.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @bug(library="cpp", reason="APMAPI-914")
     @bug(library="dotnet", reason="APMAPI-914")
     @bug(library="nodejs", reason="APMAPI-914")

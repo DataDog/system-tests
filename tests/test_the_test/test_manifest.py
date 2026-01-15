@@ -1,4 +1,7 @@
 from pathlib import Path
+import tempfile
+import textwrap
+import pytest
 from utils import scenarios
 from utils._context.component_version import Version
 from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
@@ -167,3 +170,51 @@ class TestManifest:
         assert manifest.get_declarations(
             "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners::func"
         ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, details="declared version for agent is v2.6.0")]
+
+    def test_validate_assume_sorted(self):
+        """Test that assume_sorted parameter skips key order validation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            manifest_path = Path(tmpdir)
+            # Create dummy test files to satisfy nodeid validation
+            test_a_path = Path("tests/test_the_test/test_a.py")
+            test_b_path = Path("tests/test_the_test/test_b.py")
+            test_a_content = textwrap.dedent(
+                """\
+                class Test_A:
+                    def test_method(self): pass
+                """
+            )
+            test_b_content = textwrap.dedent(
+                """\
+                class Test_B:
+                    def test_method(self): pass
+                """
+            )
+            test_a_path.write_text(test_a_content)
+            test_b_path.write_text(test_b_content)
+
+            try:
+                # Create a manifest file with unsorted keys
+                unsorted_manifest = manifest_path / "test.yml"
+                manifest_content = textwrap.dedent(
+                    """\
+                    ---
+                    manifest:
+                      tests/test_the_test/test_b.py::Test_B: missing_feature
+                      tests/test_the_test/test_a.py::Test_A: missing_feature
+                    """
+                )
+                unsorted_manifest.write_text(manifest_content)
+
+                # Validation should fail with assume_sorted=False (default)
+                with pytest.raises(AssertionError, match="Key order errors"):
+                    Manifest.validate(path=manifest_path, assume_sorted=False)
+
+                # Validation should pass with assume_sorted=True (skips key order check)
+                Manifest.validate(path=manifest_path, assume_sorted=True)
+            finally:
+                # Clean up dummy test files
+                if test_a_path.exists():
+                    test_a_path.unlink()
+                if test_b_path.exists():
+                    test_b_path.unlink()

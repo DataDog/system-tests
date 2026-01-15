@@ -4,7 +4,7 @@ import base64
 import json
 import pytest
 
-from utils import bug, features, scenarios, logger
+from utils import features, scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
@@ -34,7 +34,6 @@ class Test_Crashtracking:
                 with pytest.raises(AssertionError):
                     self.assert_crash_report(test_library, event)
 
-    @bug(library="java", reason="APMLP-302")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_telemetry_timeout(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_agent.set_trace_delay(60)

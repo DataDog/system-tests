@@ -1,9 +1,9 @@
 from utils import weblog, interfaces, scenarios, features
 
 
-@features.envoy_external_processing
-@scenarios.external_processing
-class Test_ExternalProcessing_Tracing:
+@scenarios.go_proxies
+@features.go_proxies
+class Test_GoProxies_Tracing:
     def setup_correct_span_structure(self):
         self.r = weblog.get("/")
 
