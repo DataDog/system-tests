@@ -87,12 +87,13 @@ def otlp_endpoint_library_env(
     # For OTEL_EXPORTER_OTLP_ENDPOINT, don't add a path - the SDK appends /v1/logs
     # For OTEL_EXPORTER_OTLP_LOGS_ENDPOINT, add /v1/logs as it's the signal-specific endpoint
     # For grpc, use "/" as the path
-    if protocol == "grpc":
-        path = "/"
-    elif endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT":
-        path = ""
-    else:
-        path = "/v1/logs"
+    # if protocol == "grpc":
+    #     path = "/"
+    # elif endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT":
+    #     path = ""
+    # else:
+    #     path = "/v1/logs"
+    path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/logs"
 
     library_env[endpoint_env] = f"http://{test_agent.container_name}:{port}{path}"
     yield library_env
