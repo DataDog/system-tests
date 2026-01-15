@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import json
 from pathlib import Path
 
 from functools import wraps
@@ -8,8 +9,34 @@ from utils.scripts.compute_libraries_and_scenarios import Inputs, process
 from utils import scenarios
 
 
-all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "otel_collector", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]'
-all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
+default_libs_with_prod = [
+    "cpp",
+    "cpp_httpd",
+    "cpp_nginx",
+    "dotnet",
+    "golang",
+    "java",
+    "nodejs",
+    "otel_collector",
+    "php",
+    "python",
+    "python_lambda",
+    "ruby",
+]
+default_libs_with_dev = [
+    "cpp",
+    "cpp_httpd",
+    "cpp_nginx",
+    "dotnet",
+    "golang",
+    "java",
+    "nodejs",
+    "php",
+    "python",
+    "python_lambda",
+    "ruby",
+    "rust",
+]
 
 
 @pytest.fixture(autouse=True)
@@ -67,78 +94,94 @@ def build_inputs(
     return inputs
 
 
+def assert_github_processor(
+    inputs: Inputs,
+    libs_with_prod: list[str],
+    libs_with_dev: list[str],
+    desired_execution_time: int,
+    rebuild_lambda_proxy: str,
+    scenarios: str,
+    scenarios_groups: str,
+):
+    def get_value(output_line: str) -> str:
+        return output_line.split("=", 1)[1]
+
+    def get_json_value(output_line: str) -> list:
+        return json.loads(get_value(output_line))
+
+    library_matrix = [{"library": lib, "version": "prod"} for lib in sorted(libs_with_prod)] + [
+        {"library": lib, "version": "dev"} for lib in sorted(libs_with_dev)
+    ]
+
+    output = process(inputs)
+
+    assert get_json_value(output[0]) == library_matrix
+    assert get_json_value(output[1]) == libs_with_dev
+    assert get_json_value(output[2]) == desired_execution_time
+    assert get_value(output[3]) == rebuild_lambda_proxy
+    assert get_json_value(output[4]) == scenarios
+    assert get_json_value(output[5]) == scenarios_groups
+
+
 @scenarios.test_the_test
 class Test_ComputeLibrariesAndScenarios:
     def test_complete_file_path(self):
         inputs = build_inputs([".github/workflows/run-docker-ssi.yml"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="docker_ssi"',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "docker_ssi",
+        )
 
     def test_multiple_file_changes(self):
         inputs = build_inputs([".github/workflows/run-docker-ssi.yml", "README.md"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="docker_ssi"',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "docker_ssi",
+        )
 
     def test_unknown_file_path(self):
         inputs = build_inputs(["this_does_not_exist"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="all"',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "all",
+        )
 
     def test_docker_file(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
-            'libraries_with_dev=["python"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="end_to_end,open_telemetry"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["python"],
+            ["python"],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
 
     @set_env("GITHUB_REF", "refs/heads/main")
     def test_ref_main(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="all"',
-        ]
+        assert_github_processor(inputs, default_libs_with_prod, default_libs_with_dev, 3600, "false", "DEFAULT", "all")
 
     def test_manifest(self):
         inputs = build_inputs(
@@ -146,16 +189,15 @@ class Test_ComputeLibrariesAndScenarios:
             new_manifests=Path("./tests/test_the_test/manifests/manifests_python_edit/"),
             old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
-            'libraries_with_dev=["python"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="APM_TRACING_E2E_OTEL,APPSEC_API_SECURITY,DEFAULT"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            ["python"],
+            ["python"],
+            600,
+            "false",
+            "APM_TRACING_E2E_OTEL,APPSEC_API_SECURITY,DEFAULT",
+            "",
+        )
 
     def test_manifest_agent(self):
         inputs = build_inputs(
@@ -163,146 +205,136 @@ class Test_ComputeLibrariesAndScenarios:
             new_manifests=Path("./tests/test_the_test/manifests/manifests_agent_edit/"),
             old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT,OTEL_LOG_E2E"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,OTEL_LOG_E2E",
+            "",
+        )
 
     def test_multiple_pattern_matches(self):
         inputs = build_inputs(["requirements.txt"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="all"',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "all",
+        )
 
     def test_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
+            "",
+        )
 
     def test_test_file_utils(self):
         inputs = build_inputs(["tests/auto_inject/utils.py"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,DEMO_AWS,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION",
+            "",
+        )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_library_tag(self):
         inputs = build_inputs(["utils/build/docker/java/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="end_to_end,open_telemetry"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["java"],
+            ["java"],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_wrong_library_tag(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "java", "version": "dev"}, {"library": "python", "version": "dev"}]',
-            'libraries_with_dev=["java", "python"]',
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="end_to_end,open_telemetry"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["java", "python"],
+            ["java", "python"],
+            3600,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
     def test_wrong_library_tag_with_branch(self):
         inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="end_to_end,open_telemetry"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["java"],
+            ["java"],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_wrong_library_tag_with_test_file(self):
         inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
+            "",
+        )
 
     def test_lambda_proxy(self):
         inputs = build_inputs(["utils/build/docker/lambda_proxy/pyproject.toml"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
-            'libraries_with_dev=["python_lambda"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=true",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="lambda_end_to_end"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["python_lambda"],
+            ["python_lambda"],
+            600,
+            "true",
+            "DEFAULT",
+            "lambda_end_to_end",
+        )
 
     def test_doc(self):
         inputs = build_inputs(["binaries/dd-trace-go/_tools/README.md"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            "library_matrix=[]",
-            "libraries_with_dev=[]",
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
 
     @set_env("GITLAB_CI", "true")
     @set_env("CI_PIPELINE_SOURCE", "pull_request")
@@ -325,59 +357,55 @@ class Test_ComputeLibrariesAndScenarios:
             new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
             old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
         )
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            ["java"],
+            ["java"],
+            600,
+            "false",
+            "DEFAULT",
+            "",
+        )
 
     @set_env("GITHUB_PR_TITLE", "[perl] Some title")
     def test_unknown_library_tag(self):
         inputs = build_inputs(["utils/build/docker/java/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
-            'libraries_with_dev=["java"]',
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="end_to_end,open_telemetry"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["java"],
+            ["java"],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
 
     def test_otel_library(self):
         inputs = build_inputs(["utils/build/docker/python_otel/test.Dockerfile"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            'library_matrix=[{"library": "python_otel", "version": "prod"}]',
-            "libraries_with_dev=[]",
-            "desired_execution_time=600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
-            'scenarios_groups="open_telemetry"',
-        ]
+        assert_github_processor(
+            inputs,
+            ["python_otel"],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "open_telemetry",
+        )
 
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 
-        strings_out = process(inputs)
-
-        assert strings_out == [
-            all_lib_matrix,
-            all_lib_with_dev,
-            "desired_execution_time=3600",
-            "rebuild_lambda_proxy=false",
-            'scenarios="DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4"',
-            'scenarios_groups=""',
-        ]
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
+            "",
+        )
 
     def test_missing_modified_files(self):
         with pytest.raises(FileNotFoundError):
@@ -394,3 +422,10 @@ class Test_ComputeLibrariesAndScenarios:
                 new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
                 old_manifests=Path("./wrong/path"),
             )
+
+    # def test_otel_test(self):
+    #     inputs = build_inputs(modified_files=["tests/integrations/test_open_telemetry.py"])
+    #     assert_processor(inputs
+    #     assert "java_otel" in strings_out[0]
+    #     assert "nodejs_otel" in strings_out[0]
+    #     assert "python_otel" in strings_out[0]
