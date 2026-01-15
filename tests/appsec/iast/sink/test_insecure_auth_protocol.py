@@ -19,12 +19,10 @@ class Test_InsecureAuthProtocol(BaseSinkTest):
         "Authorization": 'Digest username="WATERFORD", realm="Users", nonce="c5rcvu346qavqf3hnmsrnqj5up", uri="/api/partner/validate", response="57c8d9f11ec7a2f1ab13c5e166b2c505"'
     }
 
-    @missing_feature(library="java", reason="Not implemented yet")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(library="java", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
@@ -44,7 +42,6 @@ class Test_InsecureAuthProtocol_StackTrace:
             },
         )
 
-    @missing_feature(library="java", reason="Not implemented yet")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

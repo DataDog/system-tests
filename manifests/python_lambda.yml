@@ -5,33 +5,33 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
     - weblog_declaration:
         "*": v8.113.0
@@ -41,27 +41,27 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
