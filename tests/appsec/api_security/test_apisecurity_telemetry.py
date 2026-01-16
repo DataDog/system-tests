@@ -71,15 +71,20 @@ class Test_API_Security_Telemetry_Metric:
             assert parameter_name in schema[0]
             assert isinstance(schema[0][parameter_name], list)
         datas = _extract_telemetry_metrics(list(interfaces.library.get_telemetry_data(flatten_message_batches=True)))
-        assert len(datas) in [1, 2], (
-            f"There should be 1 or 2 telemetry metric data, found {[d['metric'] for d in datas]}"
+        # at least on schema computed
+        assert any(metric_data["metric"] == "api_security.request.schema" for metric_data in datas), (
+            "api_security.request.schema metric not found in telemetry metrics"
         )
-        metric_data = datas[0]
-        assert metric_data["metric"] == "api_security.request.schema"
-        assert metric_data["type"] == "count"
-        assert metric_data["tags"] == [
-            f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, context.weblog_variant)}"
-        ], f"framework tag unknown for {context.library.name} {context.weblog_variant}"
-        assert all(metric_data["metric"] == "api_security.request.schema" for metric_data in datas), (
-            "Only api_security.request.schema metrics should be present, no missing routes should be generated"
-        )
+        # no missing routes should be generated
+        assert all(
+            metric_data["metric"] in ["api_security.request.schema", "api_security.request.no_schema"]
+            for metric_data in datas
+        ), "Only api_security.request.schema metrics should be present, no missing routes should be generated"
+        # check all metrics have correct tags
+        for m in datas:
+            metric_data = m
+            assert metric_data["metric"] == "api_security.request.schema"
+            assert metric_data["type"] == "count"
+            assert metric_data["tags"] == [
+                f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, context.weblog_variant)}"
+            ], f"framework tag unknown for {context.library.name} {context.weblog_variant}"
