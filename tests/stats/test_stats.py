@@ -332,6 +332,58 @@ class Test_Transport_Headers:
 
 
 @features.client_side_stats_supported
+@scenarios.trace_stats_computation_client_drop_p0s_false
+class Test_Client_Drop_P0s:
+    """Test that tracers respect agent's client_drop_p0s capability"""
+
+    def setup_client_drop_p0s_false(self):
+        for _ in range(2):
+            weblog.get("/")
+
+    @missing_feature(
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "ruby")
+        or context.library <= "java@1.53.0",
+        reason="Tracers have not implemented this feature yet.",
+    )
+    @bug(context.library == "golang", reason="APMS-18291")
+    def test_client_drop_p0s_false(self):
+        """Test that when agent reports client_drop_p0s=false, tracer does not report computing stats."""
+
+        # Verify the agent is configured to report client_drop_p0s as false
+        info_requests = list(interfaces.library.get_data("/info"))
+        assert len(info_requests) > 0, "Should have at least one /info request"
+        info_data = info_requests[0]["response"]["content"]
+        assert info_data.get("client_drop_p0s") is False, (
+            "Agent should report client_drop_p0s as false for this test"
+        )
+
+        # Check that no stats payloads were sent
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) == 0, "No stats should be sent when client_drop_p0s is false"
+
+        # Check trace headers to ensure Datadog-Client-Computed-Stats is not set to true
+        trace_requests = list(interfaces.library.get_data("/v0.4/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v0.5/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v0.7/traces"))
+
+        assert len(trace_requests) > 0, "Should have at least one trace request"
+
+        for trace_request in trace_requests:
+            headers = {header[0].lower(): header[1] for header in trace_request["request"]["headers"]}
+            logger.debug(f"Trace request headers: {headers}")
+
+            # The header should either not be present, or be set to false
+            if "datadog-client-computed-stats" in headers:
+                header_value = headers["datadog-client-computed-stats"].lower()
+                assert header_value in ("false", "no", "0"), (
+                    f"When client_drop_p0s is false, Datadog-Client-Computed-Stats should be false/absent, "
+                    f"found: {header_value}"
+                )
+
+
+@features.client_side_stats_supported
 @scenarios.trace_stats_computation
 class Test_Time_Bucketing:
     """Test time bucketing validation for Client-Side Stats"""
