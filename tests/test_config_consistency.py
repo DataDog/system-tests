@@ -82,12 +82,11 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
-        span_format = spans[0][1]
-
-        assert interfaces.agent.get_span_type(spans[0][0], span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(spans[0][0], span_format)
+        span, span_format = spans[0]
+        assert interfaces.agent.get_span_type(span, span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
         assert span_meta["http.status_code"] == "200"
-        assert spans[0][0]["error"]
+        assert span["error"]
 
     def setup_status_code_202(self):
         self.r = weblog.get("/status?code=202")
@@ -98,12 +97,11 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
-        span_format = spans[0][1]
-
-        assert interfaces.agent.get_span_type(spans[0][0], span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(spans[0][0], span_format)
-        assert span_meta["http.status_code"] == "202"
-        assert spans[0][0]["error"]
+        span, span_format = spans[0]
+        assert interfaces.agent.get_span_type(span, span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
+        assert span_meta.get("http.status_code") == "202"
+        assert span.get("error")
 
 
 # Tests for verifying default query string obfuscation behavior can be found in the Test_StandardTagsUrl test class

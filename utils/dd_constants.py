@@ -123,8 +123,8 @@ class TraceAgentPayloadFormat(StrEnum):
     """
 
     legacy = "legacy"
-    """ Legacy format before agent version XX.XX.XX """
+    """ Legacy format before agent version 7.73.0"""
 
     efficient_trace_payload_format = "efficient_trace_payload_format"
-    """ Efficient format introduced in agent version XX.XX.XX. Uses idxTracerPayloads field instead of tracerPayloads
-    TODO : RFC link"""
+    """ Efficient format introduced in agent version 7.73.0. Uses idxTracerPayloads field instead of tracerPayloads
+    RFC: https://docs.google.com/document/d/1hNS6anKYutOYW-nmR759UlKXUdT6H0mRwVt7_L70ESc/edit?usp=sharing"""

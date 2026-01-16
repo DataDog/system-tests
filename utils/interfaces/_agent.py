@@ -188,7 +188,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError(f"Unknown span format: {span_format}")
 
-    def get_chunks_v1(self, request: HttpResponse | None = None):  # TODO : remove this, and use get_traces instead
+    def get_chunks_v1(self, request: HttpResponse | None = None):
         """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
 
         When a valid request is given, then we filter the chunks to the ones sampled
