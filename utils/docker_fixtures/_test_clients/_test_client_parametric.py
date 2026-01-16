@@ -919,6 +919,29 @@ class ParametricTestClientApi:
 
         return cast("dict", resp.json()) if resp.ok else resp.text
 
+    def llmobs_dataset_create(
+        self,
+        dataset_name: str,
+        project_name: str | None = None,
+        description: str | None = None,
+        records: list[dict] | None = None,
+        *,
+        raise_on_error: bool = True,
+    ) -> dict | str | None:
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/create"),
+            json={
+                "dataset_name": dataset_name,
+                "project_name": project_name,
+                "description": description,
+                "records": records,
+            },
+        )
+        if raise_on_error:
+            resp.raise_for_status()
+
+        return cast("dict", resp.json()) if resp.ok else resp.text
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):

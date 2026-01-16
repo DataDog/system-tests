@@ -1,3 +1,4 @@
+import os
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -25,16 +26,50 @@ def dd_service() -> str:
 
 
 @pytest.fixture
-def library_env(llmobs_ml_app: str | None, dd_service: str, *, llmobs_enabled: bool) -> dict[str, object]:
-    env = {
-        "DD_LLMOBS_ENABLED": llmobs_enabled,
+def dd_llmobs_agentless_enabled() -> bool | None:
+    return False
+
+
+@pytest.fixture
+def dd_llmobs_override_origin() -> str | None:
+    return None
+
+
+@pytest.fixture
+def library_env(
+    llmobs_ml_app: str | None,
+    dd_llmobs_override_origin: str | None,
+    dd_service: str,
+    *,
+    llmobs_enabled: bool | None,
+    dd_llmobs_agentless_enabled: bool | None,
+) -> dict[str, object]:
+    env: dict[str, object] = {
         "DD_SERVICE": dd_service,
+        # TODO: below need to be more robust, follow other similar practices for api/app keys
+        "DD_API_KEY": os.environ.get("DD_API_KEY"),
+        "DD_APP_KEY": os.environ.get("DD_APPLICATION_KEY"),
     }
+
+    if llmobs_enabled is not None:
+        env["DD_LLMOBS_ENABLED"] = llmobs_enabled
 
     if llmobs_ml_app is not None:
         env["DD_LLMOBS_ML_APP"] = llmobs_ml_app
 
+    if dd_llmobs_agentless_enabled is not None:
+        env["DD_LLMOBS_AGENTLESS_ENABLED"] = dd_llmobs_agentless_enabled
+
+    if dd_llmobs_override_origin is not None:
+        env["DD_LLMOBS_OVERRIDE_ORIGIN"] = dd_llmobs_override_origin
+        env["_DD_LLMOBS_OVERRIDE_ORIGIN"] = dd_llmobs_override_origin
+
     return env
+
+
+@pytest.fixture
+def agent_env() -> dict[str, object]:
+    return {"VCR_IGNORE_HEADERS": "content-security-policy"}
 
 
 def _find_event_tag(event: dict, tag: str) -> str | None:
@@ -293,3 +328,17 @@ class Test_Prompts:
         assert prompt["version"] == "1"
         assert prompt["variables"] == {"query": "test query"}
         assert prompt["tags"] == {"foo": "bar"}
+
+
+@scenarios.parametric
+class Test_Datasets:
+    @pytest.fixture
+    def dd_llmobs_override_origin(self, test_agent: TestAgentAPI) -> str:
+        return f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog"
+
+    def test_dataset_create(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        with test_agent.vcr_context():
+            ds = test_library.llmobs_dataset_create(  # noqa: F841
+                dataset_name="test-dataset",
+                records=[],
+            )

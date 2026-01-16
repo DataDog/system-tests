@@ -69,8 +69,15 @@ LlmObsSpanRequest.__pydantic_model__.update_forward_refs()
 LlmObsAnnotationContextRequest.__pydantic_model__.update_forward_refs()
 
 
-class Request(BaseModel):
+class TraceRequest(BaseModel):
     trace_structure_request: Union[LlmObsAnnotationContextRequest, LlmObsSpanRequest, ApmSpanRequest]
+
+
+class DatasetRequest(BaseModel):
+    dataset_name: str
+    project_name: str | None = None
+    description: str | None = None
+    records: list[dict] | None = None
 
 
 def create_trace(trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict:
@@ -163,9 +170,29 @@ def apply_annotations(span, annotations: list[LlmObsAnnotationRequest], annotate
 
 
 @router.post("/llm_observability/trace")
-def llmobs_trace(trace_structure_request: Request):
+def llmobs_trace(trace_structure_request: TraceRequest):
     try:
         maybe_exported_span_ctx = create_trace(trace_structure_request.trace_structure_request)
         return maybe_exported_span_ctx or {}
     finally:
         telemetry_writer.periodic(force_flush=True)
+
+
+@router.post("/llm_observability/dataset/create")
+def llmobs_dataset(dataset_request: DatasetRequest):
+    ds = LLMObs.create_dataset(
+        dataset_name=dataset_request.dataset_name,
+        project_name=dataset_request.project_name,
+        description=dataset_request.description,
+        records=dataset_request.records,
+    )
+
+    return {
+        "name": ds.name,
+        "description": ds.description,
+        "id": ds._id,
+        "version": ds._version,
+        "latest_version": ds._latest_version,
+        "records": ds._records,  # These are already dicts (TypedDict)
+        "project": ds.project,  # This is also a TypedDict
+    }
