@@ -72,4 +72,5 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
   tests/parametric/test_tracer.py: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_v1_payloads.py: missing_feature
