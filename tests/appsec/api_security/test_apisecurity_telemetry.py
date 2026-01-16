@@ -37,7 +37,9 @@ FRAMEWORKS = {
 }
 
 
-@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@rfc(
+    "https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA/edit?tab=t.0#heading=h.6shrh2msb59g"
+)
 @scenarios.appsec_api_security
 @features.api_security_schemas
 class Test_API_Security_Telemetry_Metric:
@@ -83,7 +85,7 @@ class Test_API_Security_Telemetry_Metric:
         # check all metrics have correct tags
         for m in datas:
             metric_data = m
-            assert metric_data["metric"] == "api_security.request.schema"
+            assert metric_data["namespace"] == "appsec"
             assert metric_data["type"] == "count"
             assert metric_data["tags"] == [
                 f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, context.weblog_variant)}"
