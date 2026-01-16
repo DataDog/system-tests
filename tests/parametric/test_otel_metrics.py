@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 import pytest
 
-from utils import context, features, missing_feature, scenarios
+from utils import features, scenarios
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -12,7 +12,7 @@ EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 DEFAULT_METER_NAME = "parametric-api"
 DEFAULT_METER_VERSION = "1.0.0"
 # schema_url is not supported by .NET's System.Diagnostics.Metrics API
-DEFAULT_SCHEMA_URL = "" if context.library == "dotnet" else "https://opentelemetry.io/schemas/1.21.0"
+DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
 DEFAULT_INSTRUMENT_UNIT = "triggers"
 DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
@@ -91,24 +91,6 @@ def generate_default_counter_data_point(test_library: APMLibrary, instrument_nam
         DEFAULT_MEASUREMENT_ATTRIBUTES,
     )
     test_library.otel_metrics_force_flush()
-
-
-def assert_scope_metric(
-    scope_metric: dict[str, dict],
-    meter_name: str,
-    meter_version: str,
-    schema_url: str,
-    expected_scope_attributes: dict[str, str],
-):
-    assert scope_metric["scope"]["name"] == meter_name
-    assert scope_metric["scope"]["version"] == meter_version
-    assert (
-        expected_scope_attributes.items()
-        == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
-    )
-
-    if context.library != "dotnet":  # .NET does not support schema_url
-        assert scope_metric["schema_url"] == schema_url
 
 
 def assert_metric_info(metric: dict, name: str, unit: str, description: str):
@@ -210,12 +192,6 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
     - DD_METRICS_OTEL_ENABLED
@@ -232,9 +208,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
             },
         ],
     )
-    def test_otlp_metrics_enabled(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otlp_metrics_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that OTLP metrics are emitted."""
 
         name = "enabled-counter"
@@ -266,9 +240,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
             },
         ],
     )
-    def test_otlp_metrics_disabled(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otlp_metrics_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that OTLP metrics are not emitted."""
         name = "disabled-counter"
 
@@ -281,12 +253,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_MeterProvider:
     """Tests the OpenTelemetry MeterProvider API functionality.
 
@@ -298,22 +264,16 @@ class Test_Otel_Metrics_Api_MeterProvider:
     Note: It is unspecified whether the Meter name is case-insensitive or case-sensitive when determining uniqueness.
     """
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_get_meter_by_distinct(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+    def generate_metrics(
+        self, metric_name: str, meter_names: list[str], test_library: APMLibrary, test_agent: TestAgentAPI
     ):
-        name = "counter-test_get_meter_same_parameters"
-        first_meter_name = DEFAULT_METER_NAME
-        identical_meter_name = DEFAULT_METER_NAME
-        different_meter_name = DEFAULT_METER_NAME + "-different"
-
         with test_library as t:
-            for meter_name in [first_meter_name, identical_meter_name, different_meter_name]:
+            for meter_name in meter_names:
                 t.otel_get_meter(meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-                t.otel_create_counter(meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+                t.otel_create_counter(meter_name, metric_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
                 t.otel_counter_add(
                     meter_name,
-                    name,
+                    metric_name,
                     DEFAULT_INSTRUMENT_UNIT,
                     DEFAULT_INSTRUMENT_DESCRIPTION,
                     42,
@@ -326,7 +286,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 
         # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
         assert len(metrics) == 1
-
         # Assert that there is only one item in ResourceMetrics (one per tracer)
         resource_metrics = metrics[0]["resource_metrics"]
         assert len(resource_metrics) == 1
@@ -334,32 +293,59 @@ class Test_Otel_Metrics_Api_MeterProvider:
         # Assert that we get one ScopeMetrics per distinct Meter
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 2
+        return sorted(scope_metrics, key=lambda x: x["scope"]["name"])
 
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        distinct_meter_names = sorted(set(meter_names))
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        for scope_metric in scope_metrics:
+        for scope_metric, meter_name in zip(metrics, distinct_meter_names, strict=True):
+            assert scope_metric["scope"]["name"] == meter_name
+            assert len(scope_metric["metrics"]) == 1
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct_version(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct_version"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        distinct_meter_names = sorted(set(meter_names))
+        for scope_metric, meter_name in zip(metrics, distinct_meter_names, strict=True):
+            assert scope_metric["scope"]["name"] == meter_name
+            assert scope_metric["scope"]["version"] == DEFAULT_METER_VERSION
+            assert len(scope_metric["metrics"]) == 1
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct_scope_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct_scope_attributes"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        distinct_meter_names = sorted(set(meter_names))
+        for scope_metric, meter_name in zip(metrics, distinct_meter_names, strict=True):
+            assert scope_metric["scope"]["name"] == meter_name
             assert (
-                scope_metric["scope"]["name"] == first_meter_name
-                or scope_metric["scope"]["name"] == different_meter_name
-            )
-            assert_scope_metric(
-                scope_metric,
-                scope_metric["scope"]["name"],
-                DEFAULT_METER_VERSION,
-                DEFAULT_SCHEMA_URL,
-                DEFAULT_SCOPE_ATTRIBUTES,
+                DEFAULT_SCOPE_ATTRIBUTES.items()
+                == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
             )
 
+            assert len(scope_metric["metrics"]) == 1
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct_schema_url(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        metric_name = "counter-test_get_meter_distinct_schema_url"
+        meter_names = [DEFAULT_METER_NAME, DEFAULT_METER_NAME, DEFAULT_METER_NAME + "-different"]
+        metrics = self.generate_metrics(metric_name, meter_names, test_library, test_agent)
+        distinct_meter_names = sorted(set(meter_names))
+        for scope_metric, meter_name in zip(metrics, distinct_meter_names, strict=True):
+            assert scope_metric["scope"]["name"] == meter_name
+            assert scope_metric["scope"]["schema_url"] == DEFAULT_SCHEMA_URL
             assert len(scope_metric["metrics"]) == 1
 
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Meter:
     """Tests the OpenTelemetry Meter API functionality.
 
@@ -371,9 +357,7 @@ class Test_Otel_Metrics_Api_Meter:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_instruments_by_distinct(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_otel_create_instruments_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         counter_name = "test_otel_create_counter"
         updowncounter_name = "test_otel_create_updowncounter"
         gauge_name = "test_otel_create_gauge"
@@ -484,14 +468,7 @@ class Test_Otel_Metrics_Api_Meter:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
         # and, as a result, will be aggregated together
@@ -578,12 +555,6 @@ class Test_Otel_Metrics_Api_Meter:
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Api_Instrument:
     """Tests the OpenTelemetry Instrument API functionality.
 
@@ -636,15 +607,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
-
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
         metric = scope_metrics[0]["metrics"][0]
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
@@ -687,14 +650,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = scope_metrics[0]["metrics"][0]
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -745,14 +701,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -798,14 +747,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -854,14 +796,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -899,14 +834,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -954,14 +882,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1012,14 +933,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1069,14 +983,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1110,14 +1017,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1149,14 +1049,7 @@ class Test_Otel_Metrics_Api_Instrument:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0],
-            DEFAULT_METER_NAME,
-            DEFAULT_METER_VERSION,
-            DEFAULT_SCHEMA_URL,
-            DEFAULT_SCOPE_ATTRIBUTES,
-        )
+        assert scope_metrics[0]["scope"]["name"] == DEFAULT_METER_NAME
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -1165,12 +1058,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_Temporality_Preference:
     """Tests the OpenTelemetry metrics aggregation temporality preference configuration.
 
@@ -1357,12 +1244,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """Tests the OpenTelemetry OTLP exporter metrics endpoint configuration.
 
@@ -1387,8 +1268,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1405,7 +1285,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1423,8 +1302,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        test_agent_otlp_grpc_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1458,8 +1336,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         self,
         library_env: dict[str, str],
         endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1476,7 +1353,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1493,9 +1369,8 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     def test_otlp_metrics_custom_endpoint_grpc(
         self,
         library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         endpoint_env: str,
-        test_agent_otlp_grpc_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -1515,12 +1390,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 
 @features.otel_metrics_api
 @scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
 
@@ -1538,9 +1407,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
             },
         ],
     )
-    def test_custom_http_headers_included_in_otlp_export(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """OTLP metrics are emitted when enabled."""
 
         name = "test_custom_http_headers_included_in_otlp_export-counter"
@@ -1554,12 +1421,10 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert metrics_requests[0]["headers"].get("api-key") == "key", (
-            f"Expected api-key, got {metrics_requests[0]['headers']}"
-        )
-        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
-        )
+        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
+        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
+        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
+        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1572,7 +1437,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         ],
     )
     def test_custom_metrics_http_headers_included_in_otlp_export(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """OTLP metrics are emitted when enabled."""
 
@@ -1587,22 +1452,14 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert metrics_requests[0]["headers"].get("api-key") == "key", (
-            f"Expected api-key, got {metrics_requests[0]['headers']}"
-        )
-        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
-        )
+        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
+        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
+        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
+        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
 
 @features.otel_metrics_api
 @scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
     """Tests the OpenTelemetry OTLP exporter metrics protocol configuration.
 
@@ -1674,12 +1531,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 
 @features.otel_metrics_api
 @scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
 
@@ -1688,10 +1539,6 @@ class Test_Otel_Metrics_Host_Name:
     - Resource attributes set through environment variable OTEL_RESOURCE_ATTRIBUTES are preserved
     """
 
-    @missing_feature(
-        context.library in ("dotnet", "nodejs"),
-        reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1702,9 +1549,7 @@ class Test_Otel_Metrics_Host_Name:
             },
         ],
     )
-    def test_hostname_from_dd_hostname(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_hostname_from_dd_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is set from DD_HOSTNAME."""
         name = "test_hostname_from_dd_hostname"
 
@@ -1732,7 +1577,7 @@ class Test_Otel_Metrics_Host_Name:
         ids=["host.name"],
     )
     def test_hostname_from_otel_resources(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str], host_attribute: str
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, host_attribute: str
     ):
         """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
         name = "test_hostname_from_otel_resources"
@@ -1762,7 +1607,7 @@ class Test_Otel_Metrics_Host_Name:
         ],
         ids=["disabled", "default"],
     )
-    def test_hostname_omitted(self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]):
+    def test_hostname_omitted(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is omitted when not configured."""
         name = "test_hostname_omitted"
 
@@ -1778,12 +1623,6 @@ class Test_Otel_Metrics_Host_Name:
 
 @scenarios.parametric
 @features.otel_metrics_api
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Resource_Attributes:
     """Tests the OpenTelemetry metrics resource attributes configuration.
 
@@ -1929,12 +1768,6 @@ class Test_Otel_Metrics_Resource_Attributes:
 
 @features.otel_metrics_api
 @scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Telemetry:
     """Tests the OpenTelemetry metrics telemetry configuration reporting.
 
@@ -1953,9 +1786,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_default_configurations(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str]
-    ):
+    def test_telemetry_default_configurations(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test default configurations values for environment variables associated with the OTel Metrics features."""
         name = "test_telemetry_exporter_configurations"
 
@@ -2004,9 +1835,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_configurations(
         self,
         library_env: dict[str, str],
-        endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -2059,9 +1888,7 @@ class Test_Otel_Metrics_Telemetry:
     def test_telemetry_exporter_metrics_configurations(
         self,
         library_env: dict[str, str],
-        endpoint_env: str,
-        test_agent_otlp_http_port: int,
-        otlp_metrics_endpoint_library_env: dict[str, str],
+        otlp_metrics_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
@@ -2093,23 +1920,19 @@ class Test_Otel_Metrics_Telemetry:
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 **DEFAULT_ENVVARS,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # Required by ruby metrics exporter, defaults to 10 seconds
+                "DD_TELEMETRY_METRICS_AGGREGATION_INTERVAL": "0.1",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             },
         ],
     )
-    def test_telemetry_metrics_http_protobuf(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_metrics_http_protobuf(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 
@@ -2140,11 +1963,6 @@ class Test_Otel_Metrics_Telemetry:
             assert "protocol:http" in metric.get("tags")
             assert "encoding:protobuf" in metric.get("tags")
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
-    )
-    @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2155,9 +1973,7 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    def test_telemetry_metrics_grpc(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_metrics_grpc(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 

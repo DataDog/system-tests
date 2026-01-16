@@ -251,7 +251,6 @@ class Test_Span_Sampling:
             }
         ],
     )
-    @flaky(library="java", reason="APMAPI-978")
     @bug(library="cpp", reason="APMAPI-1052")
     def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
@@ -479,7 +478,6 @@ class Test_Span_Sampling:
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
     )
     @flaky(library="cpp", reason="APMAPI-933")
-    @flaky(library="java", reason="APMAPI-978")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -697,7 +695,7 @@ class Test_Span_Sampling:
     )
     @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016(
-        self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """Single spans selected by SSS must be kept and other spans expected to be dropped on the tracer side when
         dropping policy is active when tracer metrics enabled.
@@ -771,7 +769,7 @@ class Test_Span_Sampling:
     )
     @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017(
-        self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """Single spans selected by SSS must be kept and other spans expected to be dropped on the tracer side when
         dropping policy is active when tracer metrics enabled.
@@ -839,7 +837,7 @@ class Test_Span_Sampling:
     )
     @pytest.mark.parametrize("agent_env", [{"TEST_AGENT_VERSION": "7.65.0"}])
     def test_entire_trace_dropped_when_dropping_policy_is_active018(
-        self, library_env: dict[str, str], agent_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
         """The entire dropped span expected to be dropped on the tracer side when
         dropping policy is active, which is the case when tracer metrics enabled.

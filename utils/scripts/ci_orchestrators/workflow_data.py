@@ -280,6 +280,9 @@ def _get_endtoend_weblogs(
         # anthropic
         "anthropic-js": ["0.71.0"],
         "anthropic-py": ["0.75.0"],
+        # google_genai
+        "google_genai-py": ["1.55.0"],
+        "google_genai-js": ["1.34.0"],
     }
 
     folder = f"utils/build/docker/{library}"
@@ -311,7 +314,8 @@ def _get_endtoend_weblogs(
 
     # weblog not related to a docker file
     if library == "golang":
-        result.append(Weblog(name="no-weblog-golang", require_build=False, artifact_name=binaries_artifact))
+        result.append(Weblog(name="go-proxies-envoy", require_build=False, artifact_name=binaries_artifact))
+        result.append(Weblog(name="go-proxies-haproxy", require_build=False, artifact_name=binaries_artifact))
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
@@ -551,15 +555,14 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
-    # external processing and streamm processing
-    is_stream_processing_scenario = scenario in ("STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING")
-    is_external_processing_scenario = scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING")
+    # Go proxies (Envoy / HAProxy)
+    is_go_proxies_scenario = scenario in ("GO_PROXIES", "GO_PROXIES_BLOCKING")
 
-    if weblog == "no-weblog-golang":
-        if not is_stream_processing_scenario and not is_external_processing_scenario:
+    if weblog in ("go-proxies-envoy", "go-proxies-haproxy"):
+        if not is_go_proxies_scenario:
             return False
-    if is_stream_processing_scenario or is_external_processing_scenario:
-        if weblog != "no-weblog-golang":
+    if is_go_proxies_scenario:
+        if weblog not in ("go-proxies-envoy", "go-proxies-haproxy"):
             return False
 
     # otel collector

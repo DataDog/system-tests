@@ -19,7 +19,7 @@
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
 # * C++:           Direct from github source
-# * Python:        Clone locally the github repo
+# * Python:        S3 https://dd-trace-py-builds.s3.amazonaws.com/<GIT_REF>/index.html
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
@@ -196,9 +196,9 @@ cd binaries/
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
 
-    curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
+    curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-java-agent.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
@@ -219,9 +219,8 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
-    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
+    echo "Using $LIBRARY_TARGET_BRANCH in S3 for DataDog/dd-trace-py"
+    echo $LIBRARY_TARGET_BRANCH > python-load-from-s3
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev

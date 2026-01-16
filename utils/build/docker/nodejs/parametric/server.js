@@ -6,6 +6,7 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
+const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
@@ -171,6 +172,22 @@ app.post('/trace/span/set_metric', (req, res) => {
   const value = args.value;
   const span = spans[spanId];
   span.setTag(key, value);
+  res.json({});
+});
+
+app.post('/trace/span/manual_keep', (req, res) => {
+  const args = req.body;
+  const spanId = args.span_id;
+  const span = spans[spanId];
+  span.setTag(MANUAL_KEEP, true);
+  res.json({});
+});
+
+app.post('/trace/span/manual_drop', (req, res) => {
+  const args = req.body;
+  const spanId = args.span_id;
+  const span = spans[spanId];
+  span.setTag(MANUAL_DROP, true);
   res.json({});
 });
 
@@ -709,6 +726,10 @@ app.post('/metrics/otel/force_flush', (req, res) => {
     res.json({ success: false, message: 'Force flush not supported' });
   }
 });
+
+// add LLM Observability routes
+const addLlmObsRoutes = require('./llmobs');
+addLlmObsRoutes(app);
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {

@@ -101,7 +101,6 @@ class Test_Headers_Precedence:
     @irrelevant(context.library >= "php@0.84.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "python@1.7.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
-    @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library == "rust", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(
@@ -110,9 +109,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
-    def test_headers_precedence_propagationstyle_datadog(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_datadog(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -233,9 +230,7 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -380,9 +375,7 @@ class Test_Headers_Precedence:
         assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_tracecontext()
-    def test_headers_precedence_propagationstyle_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -505,7 +498,6 @@ class Test_Headers_Precedence:
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
 
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
     @missing_feature(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
@@ -513,15 +505,11 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
     @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
     @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
-    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
+    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_library: APMLibrary) -> None:
+        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_library)
 
     @enable_datadog_tracecontext()
-    def test_headers_precedence_propagationstyle_datadog_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -668,7 +656,6 @@ class Test_Headers_Precedence:
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library < "dotnet@2.42.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library < "python@2.3.3", reason="Implemented in 2.3.3")
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
     @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
     @missing_feature(context.library < "ruby@1.17.0", reason="Implemented in 1.17.0")
