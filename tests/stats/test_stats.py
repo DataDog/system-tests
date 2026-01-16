@@ -353,9 +353,7 @@ class Test_Client_Drop_P0s:
         info_requests = list(interfaces.library.get_data("/info"))
         assert len(info_requests) > 0, "Should have at least one /info request"
         info_data = info_requests[0]["response"]["content"]
-        assert info_data.get("client_drop_p0s") is False, (
-            "Agent should report client_drop_p0s as false for this test"
-        )
+        assert info_data.get("client_drop_p0s") is False, "Agent should report client_drop_p0s as false for this test"
 
         # Check that no stats payloads were sent
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
