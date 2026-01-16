@@ -3,7 +3,6 @@
 import json
 
 from utils import (
-    bug,
     weblog,
     interfaces,
     scenarios,
@@ -920,14 +919,6 @@ class Test_FFE_Exposure_DoLog_False:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_exposures
-@bug(
-    library="java",
-    reason="OpenFeature Java SDK rejects empty targeting keys - fix pending: https://github.com/open-feature/java-sdk/pull/1807",
-)
-@bug(
-    library="nodejs",
-    reason="OpenFeature JS SDK rejects empty targeting keys with falsy check",
-)
 class Test_FFE_EXP_5_Missing_Targeting_Key:
     """EXP.5: Treat missing targeting key as empty string.
 
