@@ -959,6 +959,7 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
 
         # Search for exposure event with empty subject.id
         matching_event = None
+        all_events_for_flag = []  # Collect all events for debugging
         for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
             exposure_data = data["request"]["content"]
             if exposure_data is None:
@@ -967,8 +968,10 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
             exposures = exposure_data.get("exposures", [])
             for event in exposures:
                 if event.get("flag", {}).get("key") == self.flag_key:
-                    # Found our flag - check the subject.id
+                    # Collect for debugging
                     subject_id = event.get("subject", {}).get("id")
+                    all_events_for_flag.append({"subject.id": subject_id, "event": event})
+                    # Check for empty string
                     if subject_id == "":
                         matching_event = event
                         break
@@ -979,7 +982,8 @@ class Test_FFE_EXP_5_Missing_Targeting_Key:
         # Verify we found an exposure event with empty subject.id
         assert matching_event is not None, (
             f"EXP.5 FAILED: Expected exposure event for flag '{self.flag_key}' with subject.id = '', "
-            f"but no matching event was found. The tracer must NOT skip exposures when targeting key is empty."
+            f"but no matching event was found. Events received for this flag: {all_events_for_flag}. "
+            f"The tracer must NOT skip exposures when targeting key is empty."
         )
 
         # Validate the event structure
