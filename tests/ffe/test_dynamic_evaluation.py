@@ -60,13 +60,13 @@ class Test_FFE_RC_Unavailable:
                 return True
             return False
 
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.flag_key = "test-flag"  # From UFC_FIXTURE_DATA, returns "on"
         self.not_delivered_flag_key = "test-flag-not-delivered"
         self.default_value = "default_fallback"
 
-        self.config_state = rc.rc_state.set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
+        self.config_state = rc.tracer_rc_state.set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
 
         # Baseline: evaluate flag with RC working
         self.baseline_eval = weblog.post(

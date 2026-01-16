@@ -479,9 +479,6 @@ at /v0.7/config. This is the default for most appsec and feature flag scenarios.
 The scenario must NOT have rc_backend_enabled=True.
 """
 
-# Backwards compatibility alias
-rc_state = tracer_rc_state
-
 backend_rc_state = _RemoteConfigState(target="backend")
 """Remote config state for backend-based scenarios (rc_backend_enabled=True).
 
