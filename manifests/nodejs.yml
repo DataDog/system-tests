@@ -1410,7 +1410,7 @@ manifest:
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiEmbeddingInteractions: *ref_5_80_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: *ref_5_80_0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: *ref_5_81_0
-  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses:  *ref_5_81_0
+  tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: *ref_5_81_0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
