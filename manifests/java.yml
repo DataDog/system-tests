@@ -2665,6 +2665,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
+  tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
