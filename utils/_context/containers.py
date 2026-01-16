@@ -535,10 +535,11 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-        for var in attrs["Config"]["Env"]:
-            key, value = var.split("=", 1)
-            if value:
-                self.env[key] = value
+        if attrs["Config"].get("Env"):
+            for var in attrs["Config"]["Env"]:
+                key, value = var.split("=", 1)
+                if value:
+                    self.env[key] = value
 
         if "Labels" in attrs["Config"]:
             self.labels = attrs["Config"]["Labels"]

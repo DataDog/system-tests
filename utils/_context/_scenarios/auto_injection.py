@@ -6,7 +6,6 @@ import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import download_vm_logs
-from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from .core import Scenario
 
@@ -188,7 +187,7 @@ class _VirtualMachineScenario(Scenario):
             test["description"] = test["path"][last_index:]
 
         # We are going to split the FPD report in multiple reports, one per VM-runtime
-        vms, vm_ids = get_tested_apps_vms(self.virtual_machine)
+        vms, vm_ids = self.virtual_machine.get_tested_apps_vms()
         for i in range(len(vms)):
             vm = vms[i]
             vm_id = vm_ids[i]

@@ -56,8 +56,7 @@ class _ScenarioGroups:
     simple_onboarding_appsec = ScenarioGroup()
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
-    external_processing = ScenarioGroup()
-    stream_processing_offload = ScenarioGroup()
+    go_proxies = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
@@ -217,6 +216,11 @@ class Scenario:
 
     def customize_feature_parity_dashboard(self, result: dict):
         pass
+
+    def get_libraries(self) -> set[str] | None:
+        """Some scenarios are valid only with a subset of libraries."""
+
+        return None
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__} '{self.name}'"
