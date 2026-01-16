@@ -240,7 +240,7 @@ check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   image: registry.ddbuild.io/system-tests/base-image-builder
   tags:
-    - arch:arm64
+    - arch:amd64
   id_tokens:
     DDOCTOSTS_ID_TOKEN:
       aud: dd-octo-sts
