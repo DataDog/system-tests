@@ -629,6 +629,14 @@ class Test_TelemetryEnhancedConfigReporting:
                 {"origin": "env_var", "value": "false"},
             ],
         },
+        "cpp": {
+            "name": "DD_SERVICE",
+            "precedence": [
+                {"origin": "default", "value": "parametric-http-server"},
+                {"origin": "env_var", "value": "my-service-env-var"},
+                {"origin": "code", "value": "service-set-from-code"},
+            ],
+        },
     }
 
     def test_telemetry_events_seq_id(self):
