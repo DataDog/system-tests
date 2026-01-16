@@ -1,4 +1,4 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/integrations/test_open_telemetry.py::Test_MsSql: missing_feature
+  tests/integrations/test_open_telemetry.py::Test_MsSql: missing_feature (may be OTEL-2898)
