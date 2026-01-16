@@ -88,7 +88,7 @@ def parse_artifact_data(
     weblogs: dict[str, set[str]] = {}
 
     for directory in data_dir.iterdir():
-        if "_dev_" in directory.name or "_parametric_" in directory.name:
+        if "_dev_" in directory.name in directory.name:
             continue
 
         for scenario_dir in directory.iterdir():
@@ -132,7 +132,8 @@ def parse_artifact_data(
 
                 if outcome == "xpassed":
                     test_data[context].xpass_nodes.append(test["nodeid"])
-                nodeid = test["nodeid"].replace("::", "/") + "/"
+                nodeid = test["nodeid"].replace("::", "/").split("[")[0] + "/"
+                print(nodeid)
                 parts = re.finditer("/", nodeid)
                 for part in parts:
                     nodeid_slice = nodeid[: part.end()].rstrip("/")
