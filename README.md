@@ -151,6 +151,9 @@ Running system-tests involves a few key steps:
 
    # Run a specific test class or method
    ./run.sh tests/parametric/test_waf.py::Test_WAFAddresses::test_post_json_value
+
+   # Run with timeout applied to each test
+   ./run.sh -v --timeout=<SECONDS> <SCENARIO NAME>
    ```
 
 For more advanced options:

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, bug, rfc, weblog
+from utils import context, missing_feature, features, rfc, weblog
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -26,7 +26,6 @@ class TestSqlInjection(BaseSinkTest):
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py"},
     }
 
-    @bug(context.library < "nodejs@5.3.0", weblog_variant="express4-typescript", reason="APMRP-360")
     def test_insecure(self):
         super().test_insecure()
 
