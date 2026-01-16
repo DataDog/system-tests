@@ -922,7 +922,7 @@ class Test_FFE_Exposure_DoLog_False:
 @features.feature_flags_exposures
 @bug(
     library="java",
-    reason="OpenFeature Java SDK rejects empty targeting keys - fix pending: https://github.com/open-feature/java-sdk/pull/1291",
+    reason="OpenFeature Java SDK rejects empty targeting keys - fix pending: https://github.com/open-feature/java-sdk/pull/1807",
 )
 @bug(
     library="nodejs",
