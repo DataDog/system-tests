@@ -23,6 +23,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     is_build_buddies=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-buddies-images"))');
     is_build_python_base_images=$(echo "$PR_DATA" | jq -c '.[] | select(.name | contains("build-python-base-images"))');
 
+    ./utils/build/build_python_base_images.sh
     if [ -z "$is_build_buddies" ] && [ -z "$is_build_python_base_images" ]
     then
         echo "The PR $PR_NUMBER doesn't contain any docker build label "
