@@ -17,6 +17,7 @@ manifest:
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v1.8.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v1.8.0
   tests/appsec/api_security/test_apisec_sampling.py: "irrelevant (sampling works differently in proxies: RFC 1035)"
+  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v1.10.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v1.10.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v1.10.0

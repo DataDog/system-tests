@@ -102,6 +102,13 @@ class OpenTelemetryScenario(DockerScenario):
             self.warmups.insert(0, self._start_interface_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
 
+        self.warmups.append(self._set_components)
+
+    def _set_components(self):
+        self.components["agent"] = self.agent_version
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
+
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
             def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
@@ -194,3 +201,8 @@ class OpenTelemetryScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
+
+    def get_libraries(self) -> set[str] | None:
+        # return {"python_otel", "java_otel", "nodejs_otel"}
+        # nodejs_otel is broken since a while
+        return {"python_otel", "java_otel"}

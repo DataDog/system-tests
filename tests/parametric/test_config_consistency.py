@@ -555,7 +555,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_extended_configs(
         self,
         test_library: APMLibrary,
