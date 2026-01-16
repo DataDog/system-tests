@@ -95,7 +95,19 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         assert len(span["meta"]["error.msg"].strip()) != 0
 
     @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
+    def test_error_type_and_stack(self):
+        span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
+
+        # A string representing the type of the error
+        assert span["meta"]["error.type"].strip()
+
+        # A human readable version of the stack trace
+        assert span["meta"]["error.stack"].strip()
+
+    @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
     def test_error_exception_event(self):
+        """New version of test_error_type_and_stack() starting agent@7.75.0"""
+
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
         events = json.loads(span["meta"]["events"])
         exception_events = [event for event in events if event["name"] == "exception"]
