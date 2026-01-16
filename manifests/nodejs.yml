@@ -119,6 +119,8 @@ manifest:
         "*": *ref_5_74_0
         fastify: *ref_5_64_0
         nextjs: missing_feature
+    - component_version: ">=5.82.0"
+      declaration: bug (APPSEC-60648)
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0
@@ -194,27 +196,42 @@ manifest:
         "*": *ref_5_13_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords::test_hardcoded_passwords_exec:
+    - component_version: "5.82.0"
+      declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation::test_extended_location_data:
+    - component_version: "5.82.0"
+      declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_StackTrace: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets:
     - weblog_declaration:
         "*": *ref_4_18_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets::test_hardcoded_secrets_exec:
+    - component_version: "5.82.0"
+      declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended:
     - weblog_declaration:
         "*": *ref_5_11_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended::test_hardcoded_secrets_extended_exec:
+    - component_version: "5.82.0"
+      declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation::test_extended_location_data:
+    - component_version: "5.82.0"
+      declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: missing_feature
   tests/appsec/iast/sink/test_header_injection.py: irrelevant (Header Injection detection was removed)
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader:
