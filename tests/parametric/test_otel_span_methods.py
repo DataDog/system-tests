@@ -25,7 +25,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 @features.open_tracing_api
 class Test_Otel_Span_Methods:
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -51,7 +50,6 @@ class Test_Otel_Span_Methods:
         assert root_span["meta"]["start_attr_key"] == "start_attr_val"
         assert root_span["duration"] == duration * 1_000  # OTEL expects microseconds but we convert it to ns internally
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -73,7 +71,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.1.0")
     @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
-    @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
     @missing_feature(context.library < "dotnet@2.53.0", reason="Implemented in 2.53.0")
     def test_otel_set_attribute_remapping_httpresponsestatuscode(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
@@ -96,7 +93,6 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.0.0")
     @missing_feature(context.library < "nodejs@5.16.0", reason="Implemented in 5.16.0")
     @missing_feature(context.library < "nodejs@4.40.0", reason="Implemented in 5.40.0")
-    @missing_feature(context.library < "java@1.35.0", reason="Implemented in 1.35.0")
     @missing_feature(context.library < "php@1.1.0", reason="Implemented in 1.2.0")
     @irrelevant(context.library == "golang", reason="Does not support automatic status code remapping to meta")
     @irrelevant(context.library == "dotnet", reason="Does not support automatic status code remapping to meta")
@@ -268,7 +264,7 @@ class Test_Otel_Span_Methods:
         context.library == "dotnet",
         reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
     )
-    def test_otel_span_is_recording(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_span_is_recording(self, test_library: APMLibrary):
         """Test functionality of ending a span.
         - before ending - span.is_recording() is true
         - after ending - span.is_recording() is false
@@ -279,7 +275,6 @@ class Test_Otel_Span_Methods:
                 assert parent.is_recording()
             assert not parent.is_recording()
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
@@ -309,7 +304,6 @@ class Test_Otel_Span_Methods:
         assert s.get("start") == start_time * 1_000  # OTEL expects microseconds but we convert it to ns internally
         assert s.get("duration") == duration * 1_000
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
@@ -347,7 +341,6 @@ class Test_Otel_Span_Methods:
         assert child_span["resource"] == "child"
         assert child_span["parent_id"] == parent_span["span_id"]
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "dotnet",
@@ -374,7 +367,6 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "error_span"
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(
         context.library == "python",
@@ -436,7 +428,6 @@ class Test_Otel_Span_Methods:
         op2_tidhex = first_span["meta"].get("_dd.p.tid", "") + "{:016x}".format(first_span["trace_id"])
         assert int(op2_tidhex, 16) == int(context["trace_id"], 16)
 
-    @missing_feature(context.library <= "java@1.23.0", reason="Implemented in 1.24.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -457,7 +448,6 @@ class Test_Otel_Span_Methods:
         assert result_span["resource"] == "operation"
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "ruby", reason="Not implemented")
@@ -497,7 +487,6 @@ class Test_Otel_Span_Methods:
             assert link.get("trace_id_high") == int(root_tid, 16)
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.3.0", reason="Implemented in 3.48.0, 4.27.0, and 5.3.0")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
@@ -539,7 +528,6 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("bools.1").casefold() == "false"
 
     @missing_feature(context.library < "dotnet@2.53.0", reason="Will be released in 2.53.0")
-    @missing_feature(context.library < "java@1.26.0", reason="Implemented in 1.26.0")
     @missing_feature(context.library < "golang@1.61.0", reason="Implemented in 1.61.0")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
@@ -592,7 +580,6 @@ class Test_Otel_Span_Methods:
         assert link.get("trace_id_high") == int(root_tid, 16)
         assert link.get("tracestate") is None or "dd=" in link.get("tracestate")
 
-    @missing_feature(context.library < "java@1.24.1", reason="Implemented in 1.24.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -642,7 +629,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library < "java@1.25.1", reason="Implemented in 1.25.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -674,7 +660,6 @@ class Test_Otel_Span_Methods:
         assert "span.type" not in result_span["meta"]
         assert "analytics.event" not in result_span["meta"]
 
-    @missing_feature(context.library < "java@1.25.1", reason="Implemented in 1.25.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -765,7 +750,6 @@ class Test_Otel_Span_Methods:
         reason="Newer agents/testagents enabled native span event serialization by default",
     )
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_add_event_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -823,7 +807,6 @@ class Test_Otel_Span_Methods:
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
@@ -844,7 +827,6 @@ class Test_Otel_Span_Methods:
         reason="Newer agents/testagents enabled native span event serialization by default",
     )
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     def test_otel_record_exception_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -888,7 +870,6 @@ class Test_Otel_Span_Methods:
             assert "error.type" in root_span["meta"]
 
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library == "nodejs", reason="Otel Node.js API does not support attributes")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")
     @missing_feature(
@@ -936,7 +917,6 @@ class Test_Otel_Span_Methods:
         context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics"
     )
     @missing_feature(context.library == "dotnet")
-    @missing_feature(context.library < "java@1.40.0", reason="Not implemented")
     @missing_feature(context.library < "ruby@2.3.0", reason="Not implemented")
     @missing_feature(context.library < "nodejs@5.17.0", reason="Implemented in v5.17.0 & v4.41.0")
     @missing_feature(context.library < "python@2.9.0", reason="Not implemented")

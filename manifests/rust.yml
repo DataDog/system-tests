@@ -20,6 +20,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: 0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: 0.0.1
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature
+  tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_logs.py: missing_feature
@@ -50,6 +51,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: missing_feature
   tests/parametric/test_process_discovery.py: missing_feature
+  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: missing_feature
   tests/parametric/test_sampling_span_tags.py: missing_feature
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: missing_feature

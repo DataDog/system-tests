@@ -1,9 +1,10 @@
 from collections.abc import Generator, Iterable
 import contextlib
+from dataclasses import asdict
 from http import HTTPStatus
 import time
 from types import TracebackType
-from typing import TypedDict
+from typing import TypedDict, cast
 import urllib.parse
 
 from _pytest.outcomes import Failed
@@ -15,6 +16,7 @@ import pytest
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.spec.llm_observability import SpanRequest
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
@@ -42,14 +44,20 @@ class ParametricTestClientFactory(TestClientFactory):
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
 
-        env = {
-            "DD_TRACE_DEBUG": "true",
-            "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
-            "DD_AGENT_HOST": test_agent.container_name,
-            "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
-            "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
-            "DD_TRACE_OTEL_ENABLED": "true",
-        }
+        # Start with container_env (includes PYTHONPATH for local dd-trace-py)
+        env = dict(self.container_env)
+
+        # Add parametric-specific environment variables
+        env.update(
+            {
+                "DD_TRACE_DEBUG": "true",
+                "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
+                "DD_AGENT_HOST": test_agent.container_name,
+                "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
+                "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
+                "DD_TRACE_OTEL_ENABLED": "true",
+            }
+        )
 
         for k, v in library_env.items():
             # Don't set env vars with a value of None
@@ -157,6 +165,12 @@ class _TestSpan:
 
     def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._client.span_add_event(self.span_id, name, time_unix_nano, attributes)
+
+    def manual_keep(self):
+        self._client.span_manual_keep(self.span_id)
+
+    def manual_drop(self):
+        self._client.span_manual_drop(self.span_id)
 
     def finish(self):
         self._client.finish_span(self.span_id)
@@ -409,6 +423,18 @@ class ParametricTestClientApi:
 
     def span_set_metric(self, span_id: int, key: str, value: float | list[int] | None) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
+
+    def span_manual_keep(self, span_id: int) -> None:
+        self._session.post(
+            self._url("/trace/span/manual_keep"),
+            json={"span_id": span_id},
+        )
+
+    def span_manual_drop(self, span_id: int) -> None:
+        self._session.post(
+            self._url("/trace/span/manual_drop"),
+            json={"span_id": span_id},
+        )
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
@@ -871,6 +897,26 @@ class ParametricTestClientApi:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
 
+    def llmobs_trace(self, trace_structure_request: SpanRequest, *, raise_on_error: bool = True) -> dict | str | None:
+        """Send a trace structure request to the LLM Observability endpoint.
+
+        Returns:
+        - `dict`: successful response (this dict represents a possible exported simple llm observability span context)
+        - `str`: the response string text for an error response where there is no json response. this can happen when
+            the llm observability sdk purposefully raises or throws an error, but we want to assert that it does and set
+            that it does and set `raise_on_error=False`
+        - `None`: if the response is not ok and we want the error to fail
+            the test (unexpected error, `raise_on_error=True`)
+
+        """
+        resp = self._session.post(
+            self._url("/llm_observability/trace"), json={"trace_structure_request": asdict(trace_structure_request)}
+        )
+        if raise_on_error:
+            resp.raise_for_status()
+
+        return cast("dict", resp.json()) if resp.ok else resp.text
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -1078,6 +1124,9 @@ class APMLibrary:
             targeting_key=targeting_key,
             attributes=attributes,
         )
+
+    def llmobs_trace(self, trace_structure_request: SpanRequest, *, raise_on_error: bool = True) -> dict | str | None:
+        return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
 
     @property
     def container(self) -> Container:

@@ -4,7 +4,7 @@ import hashlib
 import json
 
 
-def _generate_unique_prefix(scenario_specs_matrix, prefix_length=3):
+def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3) -> dict:
     """Generate a unique prefix for each scenario name/stage
     collect all the possible scenarios to generate unique prefixes for each scenario
     we will add the prefix to the job name to avoid jobs with the same name and different stages
@@ -35,7 +35,7 @@ def _generate_unique_prefix(scenario_specs_matrix, prefix_length=3):
     return unique_prefixes
 
 
-def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_versions):
+def _get_k8s_injector_image_refs(language: str, ci_environment: str, cluster_agent_versions: str | None):
     """Get the k8s injector  and lib init image references"""
     k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
     k8s_injector_img = None
@@ -90,16 +90,16 @@ def should_run_fast_mode() -> bool:
     return not (ci_project_name == "system-tests" and ci_commit_branch == "main")
 
 
-def is_default_machine(raw_data_virtual_machines, vm) -> bool:
+def is_default_machine(raw_data_virtual_machines: list[dict], vm: str) -> bool:
     return any(vm_data["name"] == vm and vm_data["default_vm"] for vm_data in raw_data_virtual_machines)
 
 
-def print_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
+def print_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_environment: str) -> None:
     # Print all supported pipelines
     print_ssi_gitlab_pipeline(language, matrix_data, ci_environment)
 
 
-def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
+def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_environment: str) -> None:
     result_pipeline = {}  # type: dict
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
@@ -157,7 +157,9 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     print("Pipeline file generated: ", output_file)
 
 
-def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
+def print_k8s_gitlab_pipeline(
+    language: str, k8s_matrix: dict[str, dict], ci_environment: str, result_pipeline: dict
+) -> None:
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
     is_system_tests_nightly = ci_project_name == "system-tests" and ci_pipeline_source == "schedule"
@@ -205,7 +207,9 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img if k8s_injector_img else "None"
 
 
-def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment, result_pipeline) -> None:
+def print_docker_ssi_gitlab_pipeline(
+    language: str, docker_ssi_matrix: dict, ci_environment: str, result_pipeline: dict
+) -> None:
     # Special filters from env variables
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
@@ -279,7 +283,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     result_pipeline[vm_job]["script"].insert(0, "cd /system-tests")
 
 
-def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
+def print_aws_gitlab_pipeline(language: str, aws_matrix: dict, ci_environment: str, result_pipeline: dict) -> None:
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         raw_data_virtual_machines = json.load(file)["virtual_machines"]
 

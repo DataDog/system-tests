@@ -6,7 +6,7 @@ from utils.interfaces._library.miscs import validate_process_tags
 @scenarios.tracing_config_nondefault
 @features.process_tags
 @missing_feature(
-    condition=context.library.name not in ("java", "golang"),
+    condition=context.library.name not in ("java", "golang", "dotnet", "python"),
     reason="Not yet implemented",
 )
 class Test_Process_Tags:
@@ -51,6 +51,13 @@ class Test_Process_Tags:
         found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())
         for data in telemetry_data:
+            # for python, libdatadog also send telemetry on its own not containing process_tags
+            payload = data["request"]["content"].get("payload")
+            if payload is not None and "series" in payload:
+                if any("src_library:libdatadog" in series.get("tags", []) for series in payload["series"]):
+                    continue
+
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
             found = True
+
         assert found, "Process tags are missing"

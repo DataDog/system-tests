@@ -20,11 +20,11 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .external_processing import ExternalProcessingScenario
-from .stream_processing_offload import StreamProcessingOffloadScenario
+from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
@@ -869,14 +869,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    demo_aws = InstallerAutoInjectionScenario(
-        "DEMO_AWS",
-        "Demo aws scenario",
-        vm_provision="demo",
-        scenario_groups=[],
-        github_workflow="aws_ssi",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
@@ -1071,32 +1063,17 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    external_processing = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING",
-        doc="Envoy + external processing",
+    go_proxies = GoProxiesScenario(
+        name="GO_PROXIES",
+        doc="Go security processor proxies (Envoy or HAProxy)",
         rc_api_enabled=True,
     )
 
-    external_processing_blocking = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING_BLOCKING",
-        doc="Envoy + external processing + blocking rule file",
-        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    )
-
-    stream_processing_offload = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD",
-        doc="HAProxy + stream processing offload agent",
-        rc_api_enabled=True,
-    )
-
-    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
-        doc="HAProxy + stream processing offload agent + blocking rule file",
-        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        stream_processing_offload_volumes={
-            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
-        },
+    go_proxies_blocking = GoProxiesScenario(
+        name="GO_PROXIES_BLOCKING",
+        doc="Go security processor proxies with blocking rule file",
+        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
     )
 
     ipv6 = IPV6Scenario("IPV6")
@@ -1158,6 +1135,19 @@ class _Scenarios:
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
+
+    ai_guard = EndToEndScenario(
+        "AI_GUARD",
+        include_vcr_cassettes=True,
+        weblog_env={
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+        },
+        doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.appsec],
     )
 
 

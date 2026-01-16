@@ -460,18 +460,16 @@ jobs:
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
-    - name: Run EXTERNAL_PROCESSING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING"')
-      run: ./run.sh EXTERNAL_PROCESSING
-    - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING_BLOCKING"')
-      run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
-    - name: Run STREAM_PROCESSING_OFFLOAD scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD"')
-      run: ./run.sh STREAM_PROCESSING_OFFLOAD
-    - name: Run STREAM_PROCESSING_OFFLOAD_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD_BLOCKING"')
-      run: ./run.sh STREAM_PROCESSING_OFFLOAD_BLOCKING
+    - name: Run GO_PROXIES scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES"')
+      run: ./run.sh GO_PROXIES
+      env:
+        WEBLOG_VARIANT: ${{ inputs.weblog == 'go-proxies-haproxy' && 'haproxy-spoa' || 'envoy' }}
+    - name: Run GO_PROXIES_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_BLOCKING"')
+      run: ./run.sh GO_PROXIES_BLOCKING
+      env:
+        WEBLOG_VARIANT: ${{ inputs.weblog == 'go-proxies-haproxy' && 'haproxy-spoa' || 'envoy' }}
     - name: Run OTEL_COLLECTOR scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
@@ -480,6 +478,9 @@ jobs:
       run: ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run AI_GUARD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AI_GUARD"')
+      run: ./run.sh AI_GUARD
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

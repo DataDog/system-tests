@@ -271,10 +271,11 @@ class TestDynamicConfigTracingEnabled:
         force_skip=True,
     )
     @missing_feature(context.library <= "golang@2.6.1", reason="Added new capabilities", force_skip=True)
-    def test_default_capability_completeness(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_default_capability_completeness(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
+
+        assert test_library.is_alive(), "library container is not alive"
+
         if context.library is not None and context.library.name is not None:
             seen_capabilities = test_agent.wait_for_rc_capabilities()
             expected_capabilities = set(DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.name])
@@ -294,7 +295,6 @@ class TestDynamicConfigTracingEnabled:
                 expected_capabilities.add(Capabilities.APM_TRACING_MULTICONFIG)
                 expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION)
                 expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN)
-                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING)
 
             seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
             expected_but_not_seen_capabilities = expected_capabilities.difference(seen_capabilities)
@@ -305,10 +305,9 @@ class TestDynamicConfigTracingEnabled:
                 )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_enabled(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_capability_tracing_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the tracing enabled capability."""
+        assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_ENABLED})
 
     @parametrize(
@@ -346,10 +345,8 @@ class TestDynamicConfigTracingEnabled:
     )
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
-    @irrelevant(library="java", reason="APMAPI-1592")
     @irrelevant(library="cpp", reason="APMAPI-1592")
     @irrelevant(library="nodejs", reason="APMAPI-1592")
-    @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
     def test_tracing_client_tracing_disable_one_way(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -389,9 +386,7 @@ class TestDynamicConfigV1:
     """
 
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
-    def test_telemetry_app_started(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_telemetry_app_started(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that the app-started telemetry event is being submitted.
 
         Telemetry events are used as a signal for the configuration being applied
@@ -404,12 +399,13 @@ class TestDynamicConfigV1:
         assert len(events) > 0
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_apply_state(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_apply_state(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Create a default RC record and ensure the apply_state is correctly set.
 
         This signal, along with the telemetry event, is used to determine when the
         configuration has been applied by the tracer.
         """
+        assert test_library.is_alive(), "library container is not alive"
         set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
@@ -539,13 +535,12 @@ class TestDynamicConfigV1:
             {**DEFAULT_ENVVARS},
         ],
     )
-    def test_log_injection_enabled(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_log_injection_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that the log injection setting can be set.
 
         There is no way (at the time of writing) to check the logs produced by the library.
         """
+        assert test_library.is_alive(), "library container is not alive"
         cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
         assert cfg_state["apply_state"] == 2
 
@@ -574,11 +569,9 @@ class TestDynamicConfigV1_EmptyServiceTargets:
             ]
         ],
     )
-    @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
-    def test_not_match_service_target_empty_env(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_not_match_service_target_empty_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test that the library reports a non-erroneous apply_state when DD_SERVICE or DD_ENV are empty."""
+        assert test_library.is_alive(), "library container is not alive"
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
         # C++ make RC requests every second -> update is a bit slower to propagate.
@@ -627,12 +620,9 @@ class TestDynamicConfigV1_ServiceTargets:
         ],
     )
     @bug(library="nodejs", reason="APMAPI-865")
-    @irrelevant(library="java", reason="APMAPI-1003")
     @irrelevant(library="cpp", reason="APMAPI-1003")
     @irrelevant(library="golang", reason="APMAPI-1003")
-    def test_not_match_service_target(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_not_match_service_target(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """This is an old behavior, see APMAPI-1003
 
         ----
@@ -645,6 +635,7 @@ class TestDynamicConfigV1_ServiceTargets:
         We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ from the service
         target in the RC record.
         """
+        assert test_library.is_alive(), "library container is not alive"
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
         # C++ make RC requests every second -> update is a bit slower to propagate.
@@ -683,9 +674,7 @@ class TestDynamicConfigV1_ServiceTargets:
             ]
         ],
     )
-    def test_match_service_target_case_insensitively(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_match_service_target_case_insensitively(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test that the library reports a non-erroneous apply_state when the service targeting is correct but differ in case.
 
         This can occur if the library requests Remote Configuration with an initial service + env pair and then
@@ -694,6 +683,7 @@ class TestDynamicConfigV1_ServiceTargets:
         We simulate this condition by setting DD_SERVICE and DD_ENV to values that differ only in case from the service
         target in the RC record.
         """
+        assert test_library.is_alive(), "library container is not alive"
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
@@ -754,10 +744,9 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], expected_local_tags)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_sample_rate(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_capability_tracing_sample_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rate capability."""
+        assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
 
     @irrelevant(
@@ -765,25 +754,22 @@ class TestDynamicConfigV2:
         reason="Tracer doesn't support automatic logs injection",
     )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_logs_injection(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_capability_tracing_logs_injection(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the logs injection capability."""
+        assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
 
     @irrelevant(library="cpp", reason="The CPP tracer doesn't support http header tags")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_http_header_tags(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_capability_tracing_http_header_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the http header tags capability."""
+        assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_HTTP_HEADER_TAGS})
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_custom_tags(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_capability_tracing_custom_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the custom tags capability."""
+        assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_CUSTOM_TAGS})
 
 
@@ -792,10 +778,9 @@ class TestDynamicConfigV2:
 @features.adaptive_sampling
 class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_sample_rules(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
+        assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES})
 
     @parametrize(
@@ -808,9 +793,7 @@ class TestDynamicConfigSamplingRules:
         ],
     )
     @bug(library="ruby", reason="APMAPI-867")
-    def test_trace_sampling_rules_override_env(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_trace_sampling_rules_override_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
         When RC is unset, the environment variable should be used.
@@ -878,9 +861,7 @@ class TestDynamicConfigSamplingRules:
     @bug(library="ruby", reason="APMAPI-867")
     @flaky(library="python", reason="APMAPI-1051")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1595")
-    def test_trace_sampling_rules_override_rate(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_trace_sampling_rules_override_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the RC sampling rate."""
         rc_sampling_rule_rate_customer = 0.8
         rc_sampling_rate = 0.9
@@ -1082,9 +1063,7 @@ class TestDynamicConfigSamplingRules:
     @bug(library="python", reason="APMAPI-857")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_remote_sampling_rules_retention(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Only the last set of sampling rules should be applied"""
         rc_state = set_and_wait_rc(
             test_agent,

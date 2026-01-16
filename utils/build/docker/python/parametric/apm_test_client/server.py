@@ -42,6 +42,8 @@ from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
 
@@ -60,6 +62,8 @@ except ImportError:
     from ddtrace.sampling_rule import SamplingRule
 
 from opentelemetry._logs import get_logger_provider
+
+from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
@@ -326,6 +330,28 @@ def trace_span_set_metric(args: SpanSetMetricArgs) -> SpanSetMetricReturn:
     span = spans[args.span_id]
     span.set_metric(args.key, args.value)
     return SpanSetMetricReturn()
+
+
+class SpanIDArgs(BaseModel):
+    span_id: int
+
+
+class EmptyReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/manual_keep")
+def trace_span_manual_keep(args: SpanIDArgs) -> EmptyReturn:
+    span = spans[args.span_id]
+    span.set_tag(MANUAL_KEEP_KEY)
+    return EmptyReturn()
+
+
+@app.post("/trace/span/manual_drop")
+def trace_span_manual_drop(args: SpanIDArgs) -> EmptyReturn:
+    span = spans[args.span_id]
+    span.set_tag(MANUAL_DROP_KEY)
+    return EmptyReturn()
 
 
 class SpanInjectArgs(BaseModel):
@@ -1311,6 +1337,9 @@ async def rc_start() -> JSONResponse:
         return JSONResponse({}, status_code=200)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+app.include_router(llmobs_router)
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

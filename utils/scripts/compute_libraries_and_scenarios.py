@@ -38,7 +38,7 @@ LIBRARIES = {
     "python",
     "ruby",
     "python_lambda",
-    # "rust",
+    "rust",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
@@ -167,6 +167,7 @@ class LibraryProcessor:
                 "version": "prod",
             }
             for library in sorted(self.selected)
+            if library not in ("rust",)
         ] + [
             {
                 "library": library,

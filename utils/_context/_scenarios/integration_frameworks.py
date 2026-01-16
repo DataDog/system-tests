@@ -22,6 +22,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     _required_cassette_generation_api_keys: dict[str, list[str]] = {
         "openai": ["OPENAI_API_KEY"],
         "anthropic": ["ANTHROPIC_API_KEY"],
+        "google_genai": ["GEMINI_API_KEY"],
     }
 
     def __init__(self, name: str, doc: str) -> None:
@@ -71,9 +72,12 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         # Setup container volumes with app code
         container_volumes = {f"./utils/build/docker/{library}/{framework_dir}_app": "/app/integration_frameworks"}
 
-        # Add nodejs-load-from-local volume support if needed
         if library == "nodejs":
             container_volumes.update(self.get_node_volumes())
+        elif library == "python":
+            python_env, python_volumes = self.get_python_env_and_volumes()
+            self.environment.update(python_env)
+            container_volumes.update(python_volumes)
 
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
@@ -104,6 +108,11 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         logger.debug(f"Library: {library}, Framework: {framework}=={framework_version}, Version: {self._library}")
 
         self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
+        self.warmups.append(self._set_components)
+
+    def _set_components(self):
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     @contextlib.contextmanager
     def get_client(
