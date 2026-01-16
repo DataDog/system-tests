@@ -915,3 +915,77 @@ class Test_FFE_Exposure_DoLog_False:
         assert exposure_count == 0, (
             f"Expected 0 exposure events for flag with doLog=false, but found {exposure_count} events"
         )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_EXP_5_Missing_Targeting_Key:
+    """EXP.5: Treat missing targeting key as empty string.
+
+    If targeting key is missing but evaluation produced result with doLog=true,
+    the exposure events must be reported with subject.id = "".
+
+    This verifies the tracer does NOT skip exposure events when targeting key is empty.
+    """
+
+    def setup_ffe_exp_5_missing_targeting_key(self):
+        """Set up FFE exposure test with missing/empty targeting key."""
+        rc.rc_state.reset().apply()
+
+        config_id = "ffe-exp-5-missing-targeting-key"
+        self.flag_key = "exp-5-missing-targeting-key-flag"
+
+        # Use a simple fixture with doLog=true
+        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+
+        # Evaluate the flag with an empty targeting key
+        self.response = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": "",  # Empty targeting key
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exp_5_missing_targeting_key(self):
+        """EXP.5: Test that empty targeting key generates exposure with subject.id = ''."""
+        assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+
+        result = json.loads(self.response.text)
+        assert result["value"] == "value-a", f"Expected 'value-a', got '{result['value']}'"
+
+        # Search for exposure event with empty subject.id
+        matching_event = None
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            if exposure_data is None:
+                continue
+
+            exposures = exposure_data.get("exposures", [])
+            for event in exposures:
+                if event.get("flag", {}).get("key") == self.flag_key:
+                    # Found our flag - check the subject.id
+                    subject_id = event.get("subject", {}).get("id")
+                    if subject_id == "":
+                        matching_event = event
+                        break
+
+            if matching_event:
+                break
+
+        # Verify we found an exposure event with empty subject.id
+        assert matching_event is not None, (
+            f"EXP.5 FAILED: Expected exposure event for flag '{self.flag_key}' with subject.id = '', "
+            f"but no matching event was found. The tracer must NOT skip exposures when targeting key is empty."
+        )
+
+        # Validate the event structure
+        assert "flag" in matching_event, "Exposure event missing 'flag' field"
+        assert matching_event["flag"]["key"] == self.flag_key
+        assert "subject" in matching_event, "Exposure event missing 'subject' field"
+        assert matching_event["subject"]["id"] == "", (
+            f"EXP.5 FAILED: Expected subject.id = '', got '{matching_event['subject']['id']}'"
+        )
