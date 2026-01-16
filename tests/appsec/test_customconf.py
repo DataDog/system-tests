@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from tests.appsec.utils import find_series
-from utils import weblog, context, interfaces, scenarios, features, bug
+from utils import weblog, context, interfaces, scenarios, features
 
 
 # get the default log output

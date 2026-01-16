@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug, logger
+from utils import scenarios, features, context, logger
 from retry import retry
 
 

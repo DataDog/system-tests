@@ -3,7 +3,6 @@
 # Copyright 2022 Datadog, Inc.
 from collections.abc import Callable
 
-from utils import bug
 from utils import context
 from utils import features
 from utils import interfaces

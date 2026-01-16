@@ -15,7 +15,6 @@ from utils import (
     irrelevant,
     bug,
     features,
-    missing_feature,
     flaky,
     logger,
     context,

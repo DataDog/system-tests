@@ -9,7 +9,7 @@ from random import randint, seed
 from typing import Any
 from urllib.parse import urlparse
 
-from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger, flaky
+from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger
 from utils.dd_constants import SamplingPriority
 
 """Those are the constants used by the sampling algorithm in all the tracers
