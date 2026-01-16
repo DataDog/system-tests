@@ -144,7 +144,7 @@ class Test_Prompts:
         span_event = span_events[0]
         prompt = span_event["meta"]["input"]["prompt"]
 
-        assert prompt["chat_template"] == [{"role": "user", "content": "This is a {{query}}"}]
+        assert prompt["template"] == "This is a {{query}}"
         assert prompt["version"] == "1"
         assert prompt["variables"] == {"query": "test query"}
 

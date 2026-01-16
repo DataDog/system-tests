@@ -1113,7 +1113,6 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature (failure 2.8.0)
   tests/parametric/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability.py::Test_Prompts: v3.15.0
-  tests/parametric/test_llm_observability.py::Test_Prompts::test_prompt_annotation_with_string_template: bug (MLOB-1234)  # string templates are not sent as chat templates
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
