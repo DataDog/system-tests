@@ -499,6 +499,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
         possible_values: tuple = (
+            ("dotnet_otel", "poc-otel"),
             ("java_otel", "spring-boot-otel"),
             ("nodejs_otel", "express4-otel"),
             ("python_otel", "flask-poc-otel"),

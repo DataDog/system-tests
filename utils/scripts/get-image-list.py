@@ -45,6 +45,7 @@ if __name__ == "__main__":
             "cpp_httpd",
             "cpp_nginx",
             "dotnet",
+            "dotnet_otel",
             "python",
             "ruby",
             "golang",

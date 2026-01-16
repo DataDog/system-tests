@@ -49,7 +49,7 @@ def _get_dd_trace_id(otel_trace_id: str, *, use_128_bits_trace_id: bool) -> int:
 
 
 @scenarios.otel_tracing_e2e
-@irrelevant(context.library != "java_otel")
+@irrelevant(context.library not in ("java_otel", "dotnet_otel"))
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelTracingE2E:
     def setup_main(self):
@@ -108,7 +108,7 @@ class Test_OTelTracingE2E:
 
 
 @scenarios.otel_metric_e2e
-@irrelevant(context.library != "java_otel")
+@irrelevant(context.library not in ("java_otel", "dotnet_otel"))
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelMetricE2E:
     def setup_main(self):
@@ -175,7 +175,7 @@ class Test_OTelMetricE2E:
 
 
 @scenarios.otel_log_e2e
-@irrelevant(context.library != "java_otel")
+@irrelevant(context.library not in ("java_otel", "dotnet_otel"))
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelLogE2E:
     def setup_main(self):

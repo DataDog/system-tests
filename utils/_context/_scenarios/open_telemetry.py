@@ -127,7 +127,7 @@ class OpenTelemetryScenario(DockerScenario):
         observer.start()
 
     def _wait_for_app_readiness(self):
-        supported_libraries = ("java_otel", "nodejs_otel", "python_otel")
+        supported_libraries = ("java_otel", "nodejs_otel", "python_otel", "dotnet_otel")
         if self.library.name not in supported_libraries:
             pytest.exit(f"{self.name} scenario support only thoses libraries: {supported_libraries}", 1)
 
@@ -135,7 +135,7 @@ class OpenTelemetryScenario(DockerScenario):
             logger.debug("Wait for app readiness")
 
             if not interfaces.open_telemetry.ready.wait(40):
-                raise ValueError("Open telemetry interface not ready")
+              raise ValueError("Open telemetry interface not ready")
             logger.debug("Open telemetry ready")
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002

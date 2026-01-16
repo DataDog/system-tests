@@ -234,6 +234,7 @@ if __name__ == "__main__":
             "cpp_nginx",
             "cpp",
             "dotnet",
+            "dotnet_otel",
             "golang",
             "java_otel",
             "java",

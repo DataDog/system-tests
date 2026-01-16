@@ -98,6 +98,7 @@ def _expected_to_fail(
             "python",
             "php",
             "ruby",
+            "dotnet_otel",
             "java_otel",
             "python_otel",
             "nodejs_otel",
