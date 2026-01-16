@@ -2453,8 +2453,6 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
-    - component_version: '1.58.1'
-      declaration: bug (DEBUG-4982)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
