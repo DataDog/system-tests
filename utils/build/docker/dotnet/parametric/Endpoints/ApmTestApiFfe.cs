@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using OpenFeature;
 using OpenFeature.Model;
 
@@ -182,10 +183,19 @@ public abstract class ApmTestApiFfe
 
     private class FfeEvaluateRequest
     {
+        [JsonPropertyName("flag")]
         public string Flag { get; set; } = "";
+
+        [JsonPropertyName("variationType")]
         public string? VariationType { get; set; }
+
+        [JsonPropertyName("defaultValue")]
         public object? DefaultValue { get; set; }
+
+        [JsonPropertyName("targetingKey")]
         public string TargetingKey { get; set; } = "";
+
+        [JsonPropertyName("attributes")]
         public Dictionary<string, object>? Attributes { get; set; }
     }
 }
