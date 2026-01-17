@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
+    context,
     features,
     scenarios,
 )
@@ -108,6 +109,13 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
+        # Skip OF.7 (empty targeting key) test for libraries with known bugs
+        # Java: FFL-1729 - OpenFeature Java SDK rejects empty targeting keys
+        # Node.js: FFL-1730 - OpenFeature JS SDK rejects empty targeting keys
+        if test_case_file == "test-case-of-7-empty-targeting-key.json":
+            if context.library.name in ("java", "nodejs"):
+                pytest.skip(f"OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
+
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
 
