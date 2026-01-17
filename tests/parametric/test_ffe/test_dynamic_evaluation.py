@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
+    bug,
     context,
     features,
     scenarios,
@@ -156,3 +157,35 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"flag='{flag}', targetingKey='{targeting_key}', "
                 f"expected={expected_result}, actual={actual_value}"
             )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @bug(context.library == "java", reason="FFL-1729")
+    @bug(context.library == "nodejs", reason="FFL-1730")
+    def test_ffe_of7_empty_targeting_key(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """OF.7: Empty string is a valid targeting key.
+
+        This test validates that flag evaluation succeeds when the targeting key
+        is an empty string. The flag should still match allocations and return
+        the expected value, not fail with TARGETING_KEY_MISSING.
+
+        Temporary dedicated test until FFL-1729 (Java) and FFL-1730 (Node.js) are resolved.
+        """
+        # Set up UFC Remote Config and wait for it to be applied
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+
+        # Initialize FFE provider
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        # Evaluate flag with empty targeting key
+        result = test_library.ffe_evaluate(
+            flag="empty-targeting-key-flag",
+            variation_type="STRING",
+            default_value="default",
+            targeting_key="",
+            attributes={},
+        )
+
+        assert result.get("value") == "on-value", (
+            f"OF.7 failed: empty targeting key should return 'on-value', got '{result.get('value')}'"
+        )
