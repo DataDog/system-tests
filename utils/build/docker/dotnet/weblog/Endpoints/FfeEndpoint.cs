@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using OpenFeature;
 using OpenFeature.Model;
@@ -17,42 +16,20 @@ namespace weblog
         {
             try
             {
-                // Use reflection to load the Datadog OpenFeature provider
-                // This allows compilation even when the provider isn't available
-                var datadogTraceAssembly = AppDomain.CurrentDomain.GetAssemblies()
-                    .FirstOrDefault(a => a.GetName().Name == "Datadog.Trace");
-
-                if (datadogTraceAssembly == null)
-                {
-                    Console.WriteLine("[FFE] Datadog.Trace assembly not found");
-                    return;
-                }
-
-                var providerType = datadogTraceAssembly.GetType("Datadog.OpenFeature.DatadogProvider");
-                if (providerType == null)
-                {
-                    Console.WriteLine("[FFE] Datadog.OpenFeature.DatadogProvider type not found - FFE not supported in this tracer version");
-                    return;
-                }
-
-                var provider = Activator.CreateInstance(providerType);
-                if (provider == null)
-                {
-                    Console.WriteLine("[FFE] Failed to create DatadogProvider instance");
-                    return;
-                }
-
-                // Set the provider using reflection
-                var setProviderMethod = typeof(Api).GetMethod("SetProvider");
-                if (setProviderMethod == null)
-                {
-                    Console.WriteLine("[FFE] SetProvider method not found");
-                    return;
-                }
-
-                setProviderMethod.Invoke(Api.Instance, new[] { provider });
+                // Use our local DatadogProvider which wraps FeatureFlagsSdk via reflection
+                // The FeatureFlagsSdk will be instrumented by the CLR profiler at runtime
+                var provider = new DatadogProvider();
+                Api.Instance.SetProviderAsync(provider).Wait();
                 _openFeatureClient = Api.Instance.GetClient();
-                Console.WriteLine("[FFE] OpenFeature provider initialized successfully");
+
+                if (DatadogProvider.FeatureFlagsAvailable)
+                {
+                    Console.WriteLine("[FFE] OpenFeature provider initialized successfully with FFE support");
+                }
+                else
+                {
+                    Console.WriteLine("[FFE] OpenFeature provider initialized but FFE support not available in tracer");
+                }
             }
             catch (Exception ex)
             {
