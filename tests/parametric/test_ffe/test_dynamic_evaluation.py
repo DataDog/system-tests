@@ -115,7 +115,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         # Node.js: FFL-1730 - OpenFeature JS SDK rejects empty targeting keys
         if test_case_file == "test-case-of-7-empty-targeting-key.json":
             if context.library.name in ("java", "nodejs"):
-                pytest.skip(f"OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
+                pytest.skip("OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
 
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
