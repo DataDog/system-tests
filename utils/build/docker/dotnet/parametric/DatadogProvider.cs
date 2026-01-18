@@ -223,9 +223,25 @@ public class DatadogProvider : FeatureProvider
             var errorProp = evalType.GetProperty("Error")?.GetValue(evaluation) as string;
             var metadataProp = evalType.GetProperty("FlagMetadata")?.GetValue(evaluation) as IDictionary<string, string>;
 
+            // Convert the value to the expected type
+            T convertedValue;
+            if (valueProp == null)
+            {
+                convertedValue = defaultValue;
+            }
+            else if (typeof(T) == typeof(Value))
+            {
+                // For OpenFeature Value type, convert from Datadog's result
+                convertedValue = (T)(object)ConvertToOpenFeatureValue(valueProp);
+            }
+            else
+            {
+                convertedValue = (T)valueProp;
+            }
+
             return new ResolutionDetails<T>(
                 flagKeyProp ?? flagKey,
-                valueProp != null ? (T)valueProp : defaultValue,
+                convertedValue,
                 ToErrorType(errorProp),
                 reasonProp?.ToString() ?? Reason.Default,
                 variantProp,
@@ -243,6 +259,25 @@ public class DatadogProvider : FeatureProvider
                 null,
                 ex.Message);
         }
+    }
+
+    private static Value ConvertToOpenFeatureValue(object? obj)
+    {
+        if (obj == null) return new Value();
+
+        return obj switch
+        {
+            bool b => new Value(b),
+            int i => new Value(i),
+            long l => new Value((int)l),
+            double d => new Value(d),
+            float f => new Value(f),
+            string s => new Value(s),
+            IDictionary<string, object> dict => new Value(new Structure(
+                dict.ToDictionary(kvp => kvp.Key, kvp => ConvertToOpenFeatureValue(kvp.Value)))),
+            IEnumerable<object> list => new Value(list.Select(ConvertToOpenFeatureValue).ToList()),
+            _ => new Value(obj.ToString() ?? "")
+        };
     }
 
     private static ErrorType ToErrorType(string? errorMessage)

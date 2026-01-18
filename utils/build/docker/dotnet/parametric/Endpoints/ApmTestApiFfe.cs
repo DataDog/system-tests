@@ -96,10 +96,10 @@ public abstract class ApmTestApiFfe
                         json.Flag,
                         ConvertToDouble(json.DefaultValue),
                         context),
-                    "JSON" => await _openFeatureClient.GetObjectValueAsync(
+                    "JSON" => ValueToObject(await _openFeatureClient.GetObjectValueAsync(
                         json.Flag,
                         ConvertToValue(json.DefaultValue),
-                        context),
+                        context)),
                     _ => json.DefaultValue ?? "FATAL_UNEXPECTED_VARIATION_TYPE"
                 };
             }
@@ -179,6 +179,25 @@ public abstract class ApmTestApiFfe
         if (obj is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Number)
             return je.GetDouble();
         return double.TryParse(obj.ToString(), out var result) ? result : 0.0;
+    }
+
+    private static object? ValueToObject(Value? value)
+    {
+        if (value == null) return null;
+        if (value.IsNull) return null;
+        if (value.IsBoolean) return value.AsBoolean;
+        if (value.IsString) return value.AsString;
+        if (value.IsNumber) return value.AsDouble;
+        if (value.IsList) return value.AsList?.Select(ValueToObject).ToList();
+        if (value.IsStructure)
+        {
+            var structure = value.AsStructure;
+            if (structure == null) return new Dictionary<string, object?>();
+            return structure.ToDictionary(
+                kvp => kvp.Key,
+                kvp => ValueToObject(kvp.Value));
+        }
+        return value.AsObject;
     }
 
     private class FfeEvaluateRequest
