@@ -324,7 +324,7 @@ def print_k8s_gitlab_pipeline(
             else:
                 # Use empty array for scenarios without cluster agents (e.g., K8S_LIB_INJECTION_NO_AC)
                 # GitLab CI requires array values for parallel matrix variables
-                matrix_entry["K8S_CLUSTER_IMG"] = None
+                matrix_entry["K8S_CLUSTER_IMG"] = "None"
             if lib_init_versions:
                 matrix_entry["K8S_LIB_INIT_IMG"] = lib_init_versions
             if injector_versions:
@@ -332,7 +332,7 @@ def print_k8s_gitlab_pipeline(
             else:
                 # Use empty array for scenarios without injectors (e.g., K8S_LIB_INJECTION_NO_AC)
                 # GitLab CI requires array values for parallel matrix variables
-                matrix_entry["K8S_INJECTOR_IMG"] = None
+                matrix_entry["K8S_INJECTOR_IMG"] = "None"
             if helm_chart_versions:
                 matrix_entry["K8S_HELM_CHART"] = helm_chart_versions
             if helm_chart_operator_versions:
