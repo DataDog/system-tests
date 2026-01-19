@@ -314,8 +314,8 @@ def _get_endtoend_weblogs(
 
     # weblog not related to a docker file
     if library == "golang":
-        result.append(Weblog(name="go-proxies-envoy", require_build=False, artifact_name=binaries_artifact))
-        result.append(Weblog(name="go-proxies-haproxy", require_build=False, artifact_name=binaries_artifact))
+        result.append(Weblog(name="envoy", require_build=False, artifact_name=binaries_artifact))
+        result.append(Weblog(name="haproxy-spoa", require_build=False, artifact_name=binaries_artifact))
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
@@ -556,14 +556,9 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
             return False
 
     # Go proxies (Envoy / HAProxy)
-    is_go_proxies_scenario = scenario in ("GO_PROXIES", "GO_PROXIES_BLOCKING")
-
-    if weblog in ("go-proxies-envoy", "go-proxies-haproxy"):
-        if not is_go_proxies_scenario:
-            return False
-    if is_go_proxies_scenario:
-        if weblog not in ("go-proxies-envoy", "go-proxies-haproxy"):
-            return False
+    is_go_proxies_scenario = scenario.startswith(("ENVOY_", "HAPROXY_"))
+    if is_go_proxies_scenario != (weblog in ("envoy", "haproxy-spoa")):
+        return False
 
     # otel collector
     if weblog == "otel_collector" or scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):

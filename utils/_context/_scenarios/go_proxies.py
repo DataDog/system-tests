@@ -14,12 +14,19 @@ from utils._context.containers import (
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._logger import logger
+from enum import Enum
 
-from .core import scenario_groups
+from .core import scenario_groups as all_scenario_groups, ScenarioGroup
 from .endtoend import DockerScenario
 
 ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContainer
 ProxyRuntimeContainer = EnvoyContainer | HAProxyContainer
+
+
+class ProxyComponent(Enum):
+    unknown = "unknown"
+    envoy = "envoy"
+    haproxy = "haproxy"
 
 
 class GoProxiesScenario(DockerScenario):
@@ -30,17 +37,27 @@ class GoProxiesScenario(DockerScenario):
         *,
         processor_env: dict[str, str | None] | None = None,
         processor_volumes: dict[str, dict[str, str]] | None = None,
+        proxy_component: ProxyComponent = ProxyComponent.unknown,
+        scenario_groups: list[ScenarioGroup] | None = None,
         rc_api_enabled: bool = False,
     ) -> None:
-        self._weblog_variant = os.environ.get("WEBLOG_VARIANT", "envoy")
         self._processor_env = processor_env
         self._processor_volumes = processor_volumes
+        self._scenario_groups = (scenario_groups or []) + [
+            all_scenario_groups.end_to_end,
+            all_scenario_groups.all,
+        ]
+
+        if proxy_component == ProxyComponent.unknown:
+            pytest.skip("No proxy component specified")
+
+        self._weblog_variant = proxy_component.value
 
         super().__init__(
             name,
             doc=doc,
             github_workflow="endtoend",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.go_proxies, scenario_groups.all],
+            scenario_groups=self._scenario_groups,
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
@@ -51,6 +68,9 @@ class GoProxiesScenario(DockerScenario):
     def _build_processor_container(self) -> ProcessorContainer:
         env = dict(self._processor_env or {})
         volumes = dict(self._processor_volumes or {})
+
+        if not self._weblog_variant:
+            pytest.exit("No weblog variant specified", 1)
 
         if self._weblog_variant == "envoy":
             return ExternalProcessingContainer(env=env, volumes=volumes)

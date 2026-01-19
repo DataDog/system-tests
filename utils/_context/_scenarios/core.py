@@ -57,6 +57,7 @@ class _ScenarioGroups:
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
     go_proxies = ScenarioGroup()
+    go_proxies_blocking = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()

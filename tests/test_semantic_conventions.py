@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, features, scenarios
+from utils import context, interfaces, features, scenarios, scenario_groups
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -14,7 +14,8 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
-    "golang_proxies": "go",
+    "envoy": "go",
+    "haproxy": "go",
 }
 
 """
@@ -144,8 +145,8 @@ def get_component_name(span_name: str):
         expected_component = "aspnet_core"
     elif language == "cpp":
         expected_component = "nginx"
-    elif language == "golang" and context.weblog_variant == "haproxy":
-        expected_component = "haproxy-spoa"
+    elif language == "golang" and context.weblog_variant in ("envoy", "haproxy"):
+        expected_component = context.weblog_variant
     else:
         # using weblog variant to get name of component that should be on set within each span's metadata
         expected_component = VARIANT_COMPONENT_MAP.get(context.weblog_variant, context.weblog_variant)
@@ -165,7 +166,7 @@ optional_uds_feature = (
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.go_proxies
+@scenario_groups.go_proxies
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -339,7 +340,7 @@ class Test_MetaDatadogTags:
 
 
 @features.trace_data_integrity
-@scenarios.go_proxies
+@scenario_groups.go_proxies
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

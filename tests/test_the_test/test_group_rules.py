@@ -39,8 +39,10 @@ def test_tracer_release():
         scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
         scenarios.docker_ssi_servicenaming,
-        scenarios.go_proxies_blocking,  # need to declare a white list of library in get-workflow-parameters
-        scenarios.go_proxies,  # need to declare a white list of library in get-workflow-parameters
+        scenarios.envoy_default,  # need to declare a white list of library in get-workflow-parameters
+        scenarios.envoy_appsec_blocking,  # need to declare a white list of library in get-workflow-parameters
+        scenarios.haproxy_default,  # need to declare a white list of library in get-workflow-parameters
+        scenarios.haproxy_appsec_blocking,  # need to declare a white list of library in get-workflow-parameters
         scenarios.host_auto_injection_install_script_appsec,
         scenarios.host_auto_injection_install_script_profiling,
         scenarios.host_auto_injection_install_script,

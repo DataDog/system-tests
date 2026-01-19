@@ -43,9 +43,9 @@ LIBRARIES = {
 
 LAMBDA_LIBRARIES = {"python_lambda"}
 OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
-PROXIES_LIBRARIES = {"golang_proxies"}
+GO_PROXIES_LIBRARIES = {"envoy", "haproxy"}
 
-ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES | PROXIES_LIBRARIES
+ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES | GO_PROXIES_LIBRARIES
 
 
 def check_scenarios(scenarios: set[str]) -> bool:

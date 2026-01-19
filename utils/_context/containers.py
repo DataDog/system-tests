@@ -1629,12 +1629,8 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        if "language" in lib:
-            lang = lib["language"] if lib["language"] != "golang" else "golang_proxies"
-            self.library = ComponentVersion(lang, lib["version"])
-        else:
-            self.library = ComponentVersion(lib["name"], lib["version"])
-
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("envoy", lib["version"])
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
 
@@ -1708,11 +1704,8 @@ class StreamProcessingOffloadContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        if "language" in lib:
-            lang = lib["language"] if lib["language"] != "golang" else "golang_proxies"
-            self.library = ComponentVersion(lang, lib["version"])
-        else:
-            self.library = ComponentVersion(lib["name"], lib["version"])
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("envoy", lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
