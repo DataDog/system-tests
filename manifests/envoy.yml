@@ -40,11 +40,19 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.51.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v1.51.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: v1.51.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: v1.51.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking: missing_feature (The endpoint /param is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_non_blocking: missing_feature (The endpoint /param is not implemented in the weblog (from the test_blocking test))
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking_before: missing_feature (The endpoint /param is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: v1.51.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: v1.51.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: irrelevant (not supported on proxies)
@@ -126,6 +134,7 @@ manifest:
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.38.0
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v1.36.2
   tests/appsec/test_traces.py::Test_CollectRespondHeaders: v1.36.2
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.63.0
   tests/appsec/test_traces.py::Test_RetainTraces: v1.36.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v1.48.0
