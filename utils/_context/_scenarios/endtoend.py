@@ -65,6 +65,7 @@ class DockerScenario(Scenario):
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
+        client_drop_p0s: bool | None = None,
         include_postgres_db: bool = False,
         include_cassandra_db: bool = False,
         include_mongo_db: bool = False,
@@ -83,6 +84,7 @@ class DockerScenario(Scenario):
         self.rc_api_enabled = rc_api_enabled
         self.meta_structs_disabled = False
         self.span_events = span_events
+        self.client_drop_p0s = client_drop_p0s
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
@@ -95,6 +97,7 @@ class DockerScenario(Scenario):
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
+                client_drop_p0s=client_drop_p0s,
                 enable_ipv6=enable_ipv6,
                 mocked_backend=mocked_backend,
             )
@@ -285,6 +288,7 @@ class EndToEndScenario(DockerScenario):
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
+        client_drop_p0s: bool | None = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_postgres_db: bool = False,
@@ -317,6 +321,7 @@ class EndToEndScenario(DockerScenario):
             rc_api_enabled=rc_api_enabled,
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
+            client_drop_p0s=client_drop_p0s,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
