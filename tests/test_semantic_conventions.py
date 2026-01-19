@@ -37,6 +37,7 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
     "graphql-go": "graphql-go/graphql",
@@ -145,8 +146,6 @@ def get_component_name(span_name: str):
         expected_component = "aspnet_core"
     elif language == "cpp":
         expected_component = "nginx"
-    elif language == "golang" and context.weblog_variant in ("envoy", "haproxy"):
-        expected_component = context.weblog_variant
     else:
         # using weblog variant to get name of component that should be on set within each span's metadata
         expected_component = VARIANT_COMPONENT_MAP.get(context.weblog_variant, context.weblog_variant)
