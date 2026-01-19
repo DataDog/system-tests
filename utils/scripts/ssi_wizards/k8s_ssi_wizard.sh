@@ -130,14 +130,16 @@ select_weblog_img(){
         fi
     fi
 
-    select K8S_INJECTOR_IMG in "${WEBLOG_IMAGE[@]}" "Use custom image"; do
-        if [[ -n "$WEBLOG_IMAGE" ]]; then
+    select option in "${WEBLOG_IMAGE}" "Use custom image"; do
+        if [[ -n "$option" ]]; then
+            if [[ "$option" == "Use custom image" ]]; then
+                read -p "Enter custom weblog image: " WEBLOG_IMAGE
+            else
+                WEBLOG_IMAGE="$option"
+            fi
             break
         fi
     done
-    if [[ "$WEBLOG_IMAGE" == "Use custom image" ]]; then
-        read -p "Enter custom weblog image: " WEBLOG_IMAGE
-    fi
 }
 
 select_cluster_agent() {
@@ -149,12 +151,20 @@ select_cluster_agent() {
     echo "   - Weblog: $WEBLOG"
     echo ""
 
-    # Extract available virtual machines (third-level keys under TEST_LIBRARY > SCENARIO > WEBLOG)
+    # Extract cluster_agents from the new components structure
+    # The new format is: {scenario: {weblog: [{cluster_agents: [{key: value}]}]}}
     CLUSTER_AGENTS=($(echo "$WORKFLOW_JSON" | python -c "
 import sys, json
 data = json.load(sys.stdin)
-cluster_agents = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-print(' '.join(cluster_agents))
+components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
+# Find the cluster_agents component
+for comp in components:
+    if 'cluster_agents' in comp:
+        agents = comp['cluster_agents']
+        # Extract all image values from the list of dicts
+        images = [list(agent.values())[0] for agent in agents]
+        print(' '.join(images))
+        break
 "))
 
     if [[ ${#CLUSTER_AGENTS[@]} -eq 0 ]]; then

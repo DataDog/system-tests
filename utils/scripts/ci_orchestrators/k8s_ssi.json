@@ -169,10 +169,6 @@
                 "prod",
                 "nightly_latest"
             ],
-            "injectors": [
-                "prod",
-                "dev"
-            ],
             "lib_inits": [
                 "prod",
                 "dev"
