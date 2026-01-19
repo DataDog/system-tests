@@ -133,7 +133,6 @@ def parse_artifact_data(
                 if outcome == "xpassed":
                     test_data[context].xpass_nodes.append(test["nodeid"])
                 nodeid = test["nodeid"].replace("::", "/").split("[")[0] + "/"
-                print(nodeid)
                 parts = re.finditer("/", nodeid)
                 for part in parts:
                     nodeid_slice = nodeid[: part.end()].rstrip("/")
