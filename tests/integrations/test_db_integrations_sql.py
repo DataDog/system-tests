@@ -214,7 +214,7 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "postgresql"
 
-    def test_db_type(self):
+    def test_db_type(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_db_type()
 
 
@@ -228,7 +228,7 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
     def test_db_name(self):
         super().test_db_name()
 
-    def test_db_user(self):
+    def test_db_user(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_db_user()
 
 
@@ -255,7 +255,7 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     def test_db_system(self):
         super().test_db_system()
 
-    def test_db_user(self):
+    def test_db_user(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_db_user()
 
     def test_obfuscate_query(self):
@@ -278,5 +278,5 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             )
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
-    def test_sql_success(self):
+    def test_sql_success(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_sql_success()
