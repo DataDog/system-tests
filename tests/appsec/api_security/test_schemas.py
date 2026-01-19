@@ -2,19 +2,34 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky
+from utils import context, interfaces, rfc, scenarios, weblog, features, flaky, logger
 from utils._weblog import HttpResponse
+from utils.tools import get_rid_from_span
 from types import EllipsisType
 
 
-def get_schema(request: HttpResponse, address: str):
-    """Get api security schema from spans"""
-    span = interfaces.library.get_root_span(request)
-    meta = span.get("meta", {})
+def get_schema(request: HttpResponse, address: str, timeout: int = 5):
+    """Get api security schema from spans."""
     key = "_dd.appsec.s." + address
-    if key not in meta:
+    rid = request.get_rid()
+    schema = None
+
+    def wait_for_schema(data: dict):
+        nonlocal schema
+        if data["path"] != "/v0.4/traces":
+            return False
+        for trace in data.get("request", {}).get("content", []):
+            for span in trace:
+                if get_rid_from_span(span) == rid and span.get("parent_id") in (0, None):
+                    schema = span.get("meta", {}).get(key)
+                    if schema:
+                        return True
+        return False
+
+    interfaces.library.wait_for(wait_for_schema, timeout)
+    if schema is None:
         logger.info(f"Schema not found in span meta for {key}")
-    return meta.get(key)
+    return schema
 
 
 # can be used to match any value in a schema
