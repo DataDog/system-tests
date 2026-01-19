@@ -838,7 +838,8 @@ manifest:
         "*": v1.14.0
         fastapi: v2.4.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: v3.3.0.dev
-  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess::test_crash_no_zombie: flaky (APMLP-313)
+  ? tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess::test_crash_no_zombie
+  : flaky (APMLP-313)
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual::test_install:
     - declaration: irrelevant (Avoid blocking 2.21 release pipeline)
       component_version: <3.0.0
@@ -872,7 +873,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig: missing_feature
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
+  : missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
@@ -1224,17 +1226,17 @@ manifest:
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v2.8.0
   tests/parametric/test_headers_none.py::Test_Headers_None: v2.8.0
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: v2.8.0
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext:
-    - declaration: missing_feature (Default value was switched to datadog,tracecontext)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
+  : - declaration: missing_feature (Default value was switched to datadog,tracecontext)
       component_version: <2.6.0
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog:
-    - declaration: irrelevant (Default value was switched to datadog,tracecontext)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
+  : - declaration: irrelevant (Default value was switched to datadog,tracecontext)
       component_version: '>=2.6.0'
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy:
     - declaration: irrelevant (Newer versions include tracecontext as a default propagator)
       component_version: '>=1.7.0'
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate:
-    - declaration: missing_feature (Implemented in 2.3.3)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
+  : - declaration: missing_feature (Implemented in 2.3.3)
       component_version: <2.3.3
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v2.8.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
@@ -1253,9 +1255,12 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v2.8.0
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members: bug (APMAPI-914)
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm: "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm: "missing_feature (\"Issue: Does not drop dm\")"
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
+  : bug (APMAPI-914)
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
+  : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
+  : "missing_feature (\"Issue: Does not drop dm\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature (failure 2.8.0)
   tests/parametric/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability.py::Test_Prompts: v3.15.0
@@ -1302,13 +1307,16 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_service_name: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_ok: missing_feature (Default state of otel spans is OK, updating the status from OK to ERROR is supported)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event: missing_feature (Not implemented)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end: missing_feature (New operation name mapping not yet implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event: missing_feature (Not implemented)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_finished_end_options: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_operation_name: missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_reserved_attributes_overrides: missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event: missing_feature (Not implemented)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: v2.18.0
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
@@ -1324,7 +1332,8 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_0_sst008: bug (APMAPI-737)
-  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009: bug (APMAPI-737)
+  ? tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009
+  : bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_1_sst005: bug (APMAPI-737)
@@ -1335,10 +1344,12 @@ manifest:
   tests/parametric/test_span_links.py::Test_Span_Links: v2.3.0
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (links do not influence the sampling decision of spans)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling: v2.8.0
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017: missing_feature (RPC issue causing test to hang)
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
+  : missing_feature (RPC issue causing test to hang)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_entire_trace_dropped_when_dropping_policy_is_active018: missing_feature (RPC issue causing test to hang)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016: missing_feature (RPC issue causing test to hang)
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
+  : missing_feature (RPC issue causing test to hang)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: bug (APMAPI-1545)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: bug (APMAPI-1545)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
@@ -1359,7 +1370,8 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (OTEL Sampling config is mapped to a different datadog config)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (OTEL Sampling config is mapped to a different datadog config)
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v3.7.0.dev
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case: bug (APMAPI-1630)
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
+  : bug (APMAPI-1630)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v2.5.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.9.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_not_propagated:

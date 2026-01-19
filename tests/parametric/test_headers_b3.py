@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.docker_fixtures.spec.trace import span_has_no_parent
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
-from utils import missing_feature, context, scenarios, features, irrelevant, logger
+from utils import missing_feature, context, scenarios, features, logger
 
 parametrize = pytest.mark.parametrize
 

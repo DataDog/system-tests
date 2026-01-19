@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug, logger
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, bug, logger
 from utils._weblog import HttpResponse
 
 

@@ -1,4 +1,4 @@
-from utils import bug, scenarios, weblog, interfaces, features, missing_feature, context
+from utils import scenarios, weblog, interfaces, features, missing_feature, context
 from utils._weblog import HttpResponse
 
 

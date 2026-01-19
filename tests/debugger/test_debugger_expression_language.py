@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import re
 import json
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features, bug, context
 
 
 @features.debugger_expression_language
