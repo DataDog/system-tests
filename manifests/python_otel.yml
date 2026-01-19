@@ -1,5 +1,4 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/integrations/test_open_telemetry.py::Test_MsSql: missing_feature
