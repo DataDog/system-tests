@@ -46,6 +46,7 @@ manifest:
         rack: irrelevant (rack does not have path parameters support)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.18.0
+  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v2.23.0.dev
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.21.0  # auto activation: might not be the earliest working version
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v2.21.0  # auto activation: might not be the earliest working version
@@ -980,6 +981,7 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v2.13.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v2.13.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v2.13.0
