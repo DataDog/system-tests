@@ -84,9 +84,22 @@ public class DatadogProvider : FeatureProvider
                 return;
             }
 
-            // Get EvaluationContext constructor
-            EvaluationContextCtor = EvaluationContextType.GetConstructor(
-                new[] { typeof(string), typeof(IDictionary<string, object>) });
+            // Get EvaluationContext constructor - class is internal so need NonPublic flag
+            // Primary constructor: EvaluationContext(string key, IDictionary<string, object?>? attributes = null)
+            var constructors = EvaluationContextType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Console.WriteLine($"[DatadogProvider] Found {constructors.Length} EvaluationContext constructors");
+            foreach (var ctor in constructors)
+            {
+                var ctorParams = ctor.GetParameters();
+                Console.WriteLine($"[DatadogProvider]   Constructor: ({string.Join(", ", ctorParams.Select(p => $"{p.ParameterType.Name} {p.Name}"))})");
+            }
+
+            // Get the constructor - primary constructors have all params including optional ones
+            EvaluationContextCtor = constructors.FirstOrDefault(c => c.GetParameters().Length >= 1);
+            if (EvaluationContextCtor != null)
+            {
+                Console.WriteLine($"[DatadogProvider] Selected constructor with {EvaluationContextCtor.GetParameters().Length} parameters");
+            }
 
             // Get ValueType enum values
             BooleanValueType = Enum.Parse(ValueTypeEnum, "Boolean");
@@ -188,14 +201,41 @@ public class DatadogProvider : FeatureProvider
 
         try
         {
+            var parameters = EvaluationContextCtor.GetParameters();
+
+            // Build attributes dictionary
             var attributes = context.AsDictionary()
                 .Select(p => new KeyValuePair<string, object?>(p.Key, ToObject(p.Value)))
                 .ToDictionary(p => p.Key, p => p.Value);
 
-            return EvaluationContextCtor.Invoke(new object?[] { context.TargetingKey, attributes });
+            // Build arguments array based on constructor parameters
+            var args = new List<object?>();
+            foreach (var param in parameters)
+            {
+                if (param.ParameterType == typeof(string))
+                {
+                    args.Add(context.TargetingKey);
+                }
+                else if (param.ParameterType.IsGenericType &&
+                         param.ParameterType.GetGenericTypeDefinition() == typeof(IDictionary<,>))
+                {
+                    args.Add(attributes);
+                }
+                else if (param.HasDefaultValue)
+                {
+                    args.Add(param.DefaultValue);
+                }
+                else
+                {
+                    args.Add(null);
+                }
+            }
+
+            return EvaluationContextCtor.Invoke(args.ToArray());
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"[DatadogProvider] ToDatadogContext failed: {ex.Message}");
             return null;
         }
     }
