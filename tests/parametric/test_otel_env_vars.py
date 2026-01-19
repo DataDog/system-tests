@@ -97,7 +97,6 @@ class Test_Otel_Env_Vars:
 
     @missing_feature(context.library == "python", reason="DD_LOG_LEVEL is not supported in Python")
     @missing_feature(context.library == "dotnet", reason="DD_LOG_LEVEL is not supported in .NET")
-    @missing_feature(context.library == "ruby", reason="DD_LOG_LEVEL is not supported in ruby")
     @missing_feature(context.library == "golang", reason="DD_LOG_LEVEL is not supported in go")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
     def test_otel_log_level_env(self, test_library: APMLibrary):

@@ -137,7 +137,6 @@ class Test_ProcessDiscovery:
         with test_library:
             assert_metadata_content(test_library, library_env)
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     @bug(context.library == "cpp", reason="APMAPI-1744")
     @pytest.mark.parametrize(
         "library_env",
