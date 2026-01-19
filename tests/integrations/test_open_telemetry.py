@@ -1,6 +1,8 @@
 from utils import context, bug, features, irrelevant, missing_feature, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
+import json
+
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """Verify basic DB operations over different databases.
@@ -101,6 +103,19 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
         # A human readable version of the stack trace
         assert span["meta"]["error.stack"].strip()
+
+    @missing_feature(library="nodejs_otel", reason="Open telemetry with nodejs is not generating this information.")
+    def test_error_exception_event(self):
+        """New version of test_error_type_and_stack() starting agent@7.75.0"""
+
+        span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
+        events = json.loads(span["meta"]["events"])
+        exception_events = [event for event in events if event["name"] == "exception"]
+        assert len(exception_events) > 0
+        for event in exception_events:
+            assert event["attributes"]["exception.type"].strip()
+            assert event["attributes"]["exception.message"].strip()
+            assert event["attributes"]["exception.stacktrace"].strip()
 
     @bug(library="python_otel", reason="OTEL-940")
     @bug(library="nodejs_otel", reason="OTEL-940")
