@@ -80,6 +80,7 @@ refs:
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
   - &ref_5_81_0 '>=5.81.0'
+  - &ref_5_83_0 '>=5.83.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
@@ -1360,8 +1361,11 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:
     - weblog_declaration:
         express4-typescript: bug (DEBUG-3715)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: *ref_5_83_0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:

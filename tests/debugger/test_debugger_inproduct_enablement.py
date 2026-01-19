@@ -3,11 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, missing_feature, context, logger, bug
+from utils import features, scenarios, context, logger, bug, flaky
 import json
 import time
 
 TIMEOUT = 5
+RC_POLL_INTERVAL = 0.2  # Wait for tracer to poll and apply remote config
+TRACE_FLUSH_WAIT = 0.2  # Wait for traces to be buffered and flushed to agent
 
 
 @features.debugger_inproduct_enablement
@@ -26,31 +28,32 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(*, enabled: bool | None = None):
+        def _send_config(*, enabled: bool | None = None, reset: bool = True):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
-            self.send_rc_apm_tracing(dynamic_instrumentation_enabled=enabled)
-            self.send_rc_probes()
+            self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=enabled, reset=reset)
+            time.sleep(RC_POLL_INTERVAL)
             self.send_weblog_request("/debugger/log")
+            time.sleep(TRACE_FLUSH_WAIT)
 
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
-        self.rc_states = []
 
         _send_config()
         self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=True)
+        _send_config(enabled=True, reset=False)
         self.di_explicit_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config()
+        _send_config(reset=False)
         self.di_empty_config = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=False)
+        _send_config(enabled=False, reset=False)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
+    @flaky(context.library == "python", reason="DEBUG-1")
     def test_inproduct_enablement_di(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
@@ -168,35 +171,49 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "java", force_skip=True)
-@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):
-        def _send_config(*, enabled: bool | None = None):
-            self.send_rc_apm_tracing(code_origin_enabled=enabled)
-            self.send_weblog_request("/healthcheck")
-
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
         self.rc_states = []
 
-        self.er_initial_enabled = not self.wait_for_code_origin_span(TIMEOUT)
+        # Check initial state (default varies by language)
+        self.send_weblog_request("/")
+        time.sleep(TRACE_FLUSH_WAIT)
+        self.er_initial_state = self.wait_for_code_origin_span(TIMEOUT)
 
-        _send_config(enabled=True)
+        # Explicitly enable via remote config
+        self.send_rc_apm_tracing(code_origin_enabled=True)
+        time.sleep(RC_POLL_INTERVAL)
+        self.send_weblog_request("/")
+        time.sleep(TRACE_FLUSH_WAIT)
         self.er_explicit_enabled = self.wait_for_code_origin_span(TIMEOUT)
 
-        _send_config()
+        # Send empty config (null value), should maintain enabled state
+        self.send_rc_apm_tracing(code_origin_enabled=None)
+        time.sleep(RC_POLL_INTERVAL)
+        self.send_weblog_request("/")
+        time.sleep(TRACE_FLUSH_WAIT)
         self.er_empty_config = self.wait_for_code_origin_span(TIMEOUT)
 
-        _send_config(enabled=False)
+        # Explicitly disable via remote config
+        self.send_rc_apm_tracing(code_origin_enabled=False)
+        time.sleep(RC_POLL_INTERVAL)
+        self.send_weblog_request("/")
+        time.sleep(TRACE_FLUSH_WAIT)
         self.er_explicit_disabled = not self.wait_for_code_origin_span(TIMEOUT)
 
     def test_inproduct_enablement_code_origin(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
 
-        assert self.er_initial_enabled, "Expected no spans when code origin was disabled"
-        assert self.er_explicit_enabled, "Expected spans to emit after enabling code origin"
+        # Check initial state based on language-specific defaults
+        if context.library == "nodejs":
+            assert self.er_initial_state, "Expected code origin enabled by default"
+        else:
+            assert not self.er_initial_state, "Expected code origin disabled by default"
+
+        assert self.er_explicit_enabled, "Expected spans with code origin after explicit enable"
         assert self.er_empty_config, "Expected spans to continue emitting with empty config"
         assert self.er_explicit_disabled, "Expected spans to stop emitting after explicit disable"

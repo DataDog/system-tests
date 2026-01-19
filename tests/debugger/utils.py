@@ -273,6 +273,49 @@ class BaseDebuggerTest:
             )
         )
 
+    def send_rc_apm_tracing_and_probes(
+        self,
+        *,
+        dynamic_instrumentation_enabled: bool | None = None,
+        exception_replay_enabled: bool | None = None,
+        live_debugging_enabled: bool | None = None,
+        code_origin_enabled: bool | None = None,
+        dynamic_sampling_enabled: bool | None = None,
+        service_name: str | None = "weblog",
+        env: str | None = "system-tests",
+        reset: bool = True,
+    ) -> None:
+        """Send a combined RC command with both APM_TRACING and LIVE_DEBUGGING (probes) configs.
+
+        This is required because Remote Config's `client_configs` field represents the COMPLETE
+        list of configs that should be active (not incremental updates). When sending separate
+        payloads for APM_TRACING and LIVE_DEBUGGING, the tracer sees that configs from the first
+        product are missing from the second payload's `client_configs` list, and unapplies them.
+
+        This happens in RemoteConfig.parseConfig() which checks if previously applied configs
+        are still in the new client_configs list, before product-specific batch handlers run.
+        """
+        BaseDebuggerTest._rc_version += 1
+
+        if reset:
+            self.rc_states = []
+            self.prev_payloads = []
+
+        self.rc_states.append(
+            remote_config.send_combined_apm_tracing_and_debugger_command(
+                prev_payloads=self.prev_payloads,
+                probes=self.probe_definitions,
+                dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+                exception_replay_enabled=exception_replay_enabled,
+                live_debugging_enabled=live_debugging_enabled,
+                code_origin_enabled=code_origin_enabled,
+                dynamic_sampling_enabled=dynamic_sampling_enabled,
+                version=BaseDebuggerTest._rc_version,
+                service_name=service_name,
+                env=env,
+            )
+        )
+
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
         if reset:
@@ -430,30 +473,40 @@ class BaseDebuggerTest:
 
     def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
         self._span_found = False
+        threshold = self._get_max_trace_file_number()
 
-        interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
+            timeout=timeout,
+        )
         return self._span_found
 
-    _last_read_span = 0
+    def _get_max_trace_file_number(self) -> int:
+        """Get the maximum trace file number currently in the agent interface."""
+        max_number = 0
+        for data in interfaces.agent.get_data(_TRACES_PATH):
+            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+            if log_filename_found:
+                file_number = int(log_filename_found.group(1))
+                max_number = max(max_number, file_number)
+        return max_number
 
-    def _wait_for_code_origin_span(self, data: dict):
+    def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
         if data["path"] == _TRACES_PATH:
             log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
             if not log_filename_found:
                 return False
 
             log_number = int(log_filename_found.group(1))
-            if log_number >= BaseDebuggerTest._last_read_span:
-                BaseDebuggerTest._last_read_span = log_number
-
+            if log_number > threshold:
                 content = data["request"]["content"]
                 if content:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
-                                resource, resource_type = span.get("resource"), span.get("type")
+                                resource, resource_type = span.get("resource", ""), span.get("type")
 
-                                if resource == "GET /healthcheck" and resource_type == "web":
+                                if resource.startswith("GET") and resource_type == "web":
                                     code_origin_type = span["meta"].get("_dd.code_origin.type", "")
 
                                     if code_origin_type == "entry":
