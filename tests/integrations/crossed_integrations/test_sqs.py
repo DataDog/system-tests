@@ -264,7 +264,6 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
         super().test_produce_trace_equality()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
     @missing_feature(library="dotnet", reason="Expected to fail, .NET will not extract from XRay headers")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

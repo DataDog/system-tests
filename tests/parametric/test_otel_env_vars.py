@@ -95,7 +95,6 @@ class Test_Otel_Env_Vars:
         if context.library != "php":
             assert resp["dd_runtime_metrics_enabled"] == "false"
 
-    @missing_feature(context.library == "python", reason="DD_LOG_LEVEL is not supported in Python")
     @missing_feature(context.library == "dotnet", reason="DD_LOG_LEVEL is not supported in .NET")
     @missing_feature(context.library == "golang", reason="DD_LOG_LEVEL is not supported in go")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
