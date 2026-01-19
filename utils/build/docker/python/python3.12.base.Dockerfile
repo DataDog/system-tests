@@ -12,5 +12,5 @@ COPY utils/build/docker/python/django/requirements-python3.12.txt /tmp/django-re
 RUN pip install --upgrade pip && pip install -r /tmp/django-requirements.txt
 
 
-# docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v11 .
-# docker push datadog/system-tests:python3.12.base-v11
+# docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v13 .
+# docker push datadog/system-tests:python3.12.base-v13

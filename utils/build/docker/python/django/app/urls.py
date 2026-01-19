@@ -7,12 +7,10 @@ import shlex
 import subprocess
 import xmltodict
 import sys
-import http.client
-import urllib.request
 
 import boto3
 import django
-import requests
+import httpx
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -22,7 +20,6 @@ from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 from moto import mock_aws
-import urllib3
 from iast import (
     weak_cipher,
     weak_cipher_secure_algorithm,
@@ -61,8 +58,6 @@ except ImportError:
     except ImportError:
         from ddtrace import tracer, Pin
 
-
-ddtrace.patch_all(urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -158,20 +153,16 @@ def return_headers(request, *args, **kwargs):
 @csrf_exempt
 def request_downstream(request, *args, **kwargs):
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
-    # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
-    return HttpResponse(response.data)
+    response = httpx.get("http://localhost:7777/returnheaders")
+    return HttpResponse(response.content)
 
 
 @csrf_exempt
 def vulnerable_request_downstream(request, *args, **kwargs):
     weak_hash()
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
-    # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
-    return HttpResponse(response.data)
+    response = httpx.get("http://localhost:7777/returnheaders")
+    return HttpResponse(response.content)
 
 
 @csrf_exempt
@@ -242,9 +233,9 @@ def rasp_ssrf(request, *args, **kwargs):
     if domain is None:
         return HttpResponse("missing domain parameter", status=400)
     try:
-        with urllib.request.urlopen(f"http://{domain}", timeout=1) as url_in:
-            return HttpResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
-    except http.client.HTTPException as e:
+        response = httpx.get(f"http://{domain}", timeout=1)
+        return HttpResponse(f"url http://{domain} open with {len(response.content)} bytes")
+    except Exception as e:
         return HttpResponse(f"url http://{domain} could not be open: {e!r}")
 
 
@@ -518,11 +509,9 @@ def view_sqli_secure(request):
 
 @csrf_exempt
 def view_iast_ssrf_insecure(request):
-    import requests
-
     url = request.POST.get("url", "")
     try:
-        requests.get(url)
+        httpx.get(url)
     except Exception:
         pass
     return HttpResponse("OK")
@@ -530,10 +519,8 @@ def view_iast_ssrf_insecure(request):
 
 @csrf_exempt
 def view_iast_ssrf_secure(request):
-    import requests
-
     try:
-        requests.get("https://www.datadog.com")
+        httpx.get("https://www.datadog.com")
     except Exception:
         pass
 
@@ -844,7 +831,7 @@ def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
     url = request.GET.get("url")
-    response = requests.get(url)
+    response = httpx.get(url)
 
     result = {
         "url": url,
@@ -1102,48 +1089,36 @@ def s3_multipart_upload(request):
 @csrf_exempt
 @require_http_methods(["GET", "TRACE", "POST", "PUT"])
 def external_request(request):
-    import urllib.request
-    import urllib.error
-
     queries = {k: str(v) for k, v in request.GET.items()}
     status = queries.pop("status", "200")
     url_extra = queries.pop("url_extra", "")
     body = request.body or None
     if body:
         queries["Content-Type"] = request.headers.get("content-type") or "application/json"
-    urllib_request = urllib.request.Request(
-        f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries, data=body
-    )
+    full_url = f"http://internal_server:8089/mirror/{status}{url_extra}"
     try:
-        with urllib.request.urlopen(urllib_request, timeout=10) as fp:
-            payload = fp.read().decode()
+        with httpx.Client() as client:
+            response = client.request(request.method, full_url, content=body, headers=queries, timeout=10)
+            payload = response.text
             return JsonResponse(
-                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+                {"status": int(response.status_code), "headers": dict(response.headers), "payload": json.loads(payload)}
             )
-    except urllib.error.HTTPError as e:
+    except Exception as e:
         return JsonResponse({"status": int(e.status), "error": repr(e)})
 
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def external_request_redirect(request):
-    import urllib.request
-    import urllib.error
-
     queries = {k: str(v) for k, v in request.GET.items()}
     full_url = f"http://internal_server:8089/redirect?totalRedirects={queries['totalRedirects']}"
-    request = urllib.request.Request(
-        full_url,
-        method="GET",
-        headers=queries,
-    )
     try:
-        with urllib.request.urlopen(request, timeout=10) as fp:
-            payload = fp.read().decode()
+        with httpx.Client() as client:
+            response = client.request("GET", full_url, headers=queries, timeout=10, follow_redirects=True)
             return JsonResponse(
-                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+                {"status": int(response.status_code), "headers": dict(response.headers), "payload": response.json()}
             )
-    except urllib.error.HTTPError as e:
+    except Exception as e:
         return JsonResponse({"status": int(e.status), "error": repr(e)})
 
 

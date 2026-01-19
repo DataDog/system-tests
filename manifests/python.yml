@@ -297,31 +297,42 @@ manifest:
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v3.18.0
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v3.18.0
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
+    - weblog_declaration:
+        "*": v3.18.0
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
+    - weblog_declaration:
+        "*": v3.18.0
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v4.1.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_status:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
@@ -376,17 +387,44 @@ manifest:
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: v3.5.0.dev
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: v2.10.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v2.15.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v2.10.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: v2.10.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: v2.10.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.11.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: v2.10.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v2.10.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v2.16.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v2.10.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v2.10.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.10.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
+    - weblog_declaration:
+        "*": v3.5.0.dev
+        *django: 4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
+    - weblog_declaration:
+        "*": v2.10.0
+        *django: 4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
