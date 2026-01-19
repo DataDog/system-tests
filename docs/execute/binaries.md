@@ -145,7 +145,7 @@ Use one of the four options:
 - Add a `python-load-from-s3` file in `binaries`, with a dd-trace-py commit ID or branch inside, the corresponding wheel will be loaded from S3
 - Clone the dd-trace-py repo inside `binaries`: `cd binaries && git clone https://github.com/DataDog/dd-trace-py.git`
 
-For fast local development (for `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios):
+For fast local development (for `PARAMETRIC`, `INTEGRATION_FRAMEWORKS`, otel and end-to-end scenarios):
 - **Prerequisites (for most use cases, a one-time setup)**: Make sure the native extensions are built for the Python version being used by the scenario you are running. For example, the `PARAMETRIC` and `INTEGRATION_FRAMEWORKS` scenarios require Python 3.11.14 from the `python:3.11-slim` image.
   - If they are not available (for example, if `ddtrace/internal/_encoding.cpython-311-aarch64-linux-gnu.so` does not exist), you will need to build them.
   - Ensure Docker is running. In `dd-trace-py`, run `scripts/ddtest` to start up a shell which is based off of the `testrunner` image.

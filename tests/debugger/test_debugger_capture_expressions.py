@@ -144,7 +144,6 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
@@ -194,7 +193,6 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
