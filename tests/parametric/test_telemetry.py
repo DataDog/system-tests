@@ -474,7 +474,6 @@ class Test_Environment:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
@@ -565,7 +564,6 @@ class Test_Environment:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
@@ -831,7 +829,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         reason="extended configs are not supported",
     )
     @bug(context.library == "python", reason="APMAPI-1630")
-    @bug(context.library == "ruby", reason="APMAPI-1631")
     @bug(context.library == "nodejs", reason="APMAPI-1709")
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
@@ -914,7 +911,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         reason="extended configs are not supported",
     )
     @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
-    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self,
         local_cfg: dict[str, str],

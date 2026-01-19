@@ -9,9 +9,9 @@ const telemetry = require('dd-trace/packages/dd-trace/src/telemetry');
  * @param {import('express').Application} app - The Express application.
  */
 function addRoutes (app) {
-  app.post('/llm_observability/trace', async (req, res) => {
+  app.post('/llm_observability/trace', (req, res) => {
     try {
-      const maybeExportedSpanCtx = await createTrace(req.body.trace_structure_request);
+      const maybeExportedSpanCtx = createTrace(req.body.trace_structure_request);
       res.json(maybeExportedSpanCtx ?? {});
     } finally {
       telemetry.appClosing();
@@ -25,7 +25,30 @@ function addRoutes (app) {
   });
 }
 
-async function createTrace (traceStructure) {
+function createTrace (traceStructure) {
+  const type = traceStructure.type;
+  if (type === 'annotation_context') {
+    const { prompt, name, tags, children } = traceStructure;
+    const options = {};
+    if (prompt) options.prompt = normalizePromptArgument(prompt);
+    if (name) options.name = name;
+    if (tags) options.tags = tags;
+    return llmobs.annotationContext(options, () => {
+      let exportedSpanCtx;
+      if (!Array.isArray(children)) return;
+
+      for (const child of children) {
+        const maybeExportedSpanCtx = createTrace(child);
+        if (maybeExportedSpanCtx && !exportedSpanCtx) {
+          exportedSpanCtx = maybeExportedSpanCtx;
+        }
+      }
+
+      return exportedSpanCtx;
+    });
+  }
+
+
   const isLlmObs = traceStructure.sdk === 'llmobs';
   const makeTrace = traceStructure.sdk === 'llmobs' ? llmobs.trace.bind(llmobs) : tracer.trace.bind(tracer);
 
@@ -47,7 +70,7 @@ async function createTrace (traceStructure) {
   const annotateAfter = traceStructure.annotate_after;
   let span;
 
-  await makeTrace(...args, async (_span) => {
+  makeTrace(...args, (_span) => {
     span = _span;
 
     // apply annotations
@@ -67,12 +90,7 @@ async function createTrace (traceStructure) {
     if (!children) return;
 
     for (const child of children) {
-      if (!Array.isArray(child)) {
-        await createTrace(child);
-      } else {
-        // process all of the array in parallel/async
-        await Promise.all(child.map(createTrace));
-      }
+      createTrace(child);
     }
   })
 
@@ -91,6 +109,7 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
     const metadata = annotation.metadata;
     const metrics = annotation.metrics;
     const tags = annotation.tags;
+    const prompt = normalizePromptArgument(annotation.prompt);
 
     const args = [];
 
@@ -98,10 +117,27 @@ function applyAnnotations (span, annotations, annotateAfter = false) {
       args.push(span);
     }
 
-    args.push({ inputData, outputData, metadata, metrics, tags });
+    args.push({ inputData, outputData, metadata, metrics, tags, prompt });
 
     llmobs.annotate(...args);
   }
+}
+
+function normalizePromptArgument (prompt) {
+  if (!prompt || typeof prompt === 'string') return prompt;
+
+  const normalizedPrompt = {};
+  if (prompt.version) normalizedPrompt.version = prompt.version;
+  if (prompt.id) normalizedPrompt.id = prompt.id;
+  if (prompt.variables) normalizedPrompt.variables = prompt.variables;
+  if (prompt.tags) normalizedPrompt.tags = prompt.tags;
+  if (prompt.rag_query_variables) normalizedPrompt.queryVariables = prompt.rag_query_variables;
+  if (prompt.rag_context_variables) normalizedPrompt.contextVariables = prompt.rag_context_variables;
+
+  // set template
+  normalizedPrompt.template = prompt.template || prompt.chat_template;
+
+  return normalizedPrompt;
 }
 
 module.exports = addRoutes;

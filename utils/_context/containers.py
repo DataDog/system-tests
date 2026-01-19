@@ -24,6 +24,7 @@ from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
     MockedResponse,
     SetSpanEventFlags,
+    SetClientDropP0s,
     AddRemoteConfigEndpoint,
     StaticJsonMockedResponse,
 )
@@ -535,10 +536,11 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-        for var in attrs["Config"]["Env"]:
-            key, value = var.split("=", 1)
-            if value:
-                self.env[key] = value
+        if attrs["Config"].get("Env"):
+            for var in attrs["Config"]["Env"]:
+                key, value = var.split("=", 1)
+                if value:
+                    self.env[key] = value
 
         if "Labels" in attrs["Config"]:
             self.labels = attrs["Config"]["Labels"]
@@ -555,6 +557,7 @@ class ProxyContainer(TestedContainer):
         rc_api_enabled: bool,
         meta_structs_disabled: bool,
         span_events: bool,
+        client_drop_p0s: bool | None = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
     ) -> None:
@@ -593,6 +596,9 @@ class ProxyContainer(TestedContainer):
 
         if meta_structs_disabled:
             self.internal_mocked_responses.append(RemoveMetaStructsSupport())
+
+        if client_drop_p0s is not None:
+            self.internal_mocked_responses.append(SetClientDropP0s(client_drop_p0s=client_drop_p0s))
 
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints
@@ -1001,6 +1007,17 @@ class WeblogContainer(TestedContainer):
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
+
+        if library == "python":
+            try:
+                with open("./binaries/python-load-from-local", encoding="utf-8") as f:
+                    path = f.read().strip(" \r\n")
+                    source = os.path.join(str(Path.cwd()), path)
+                    resolved_path = Path(source).resolve()
+                    self.volumes[str(resolved_path)] = {"bind": "/volumes/dd-trace-py", "mode": "ro"}
+                    self.environment["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+            except FileNotFoundError:
+                logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
 
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()

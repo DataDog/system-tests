@@ -1,6 +1,6 @@
 ---
 manifest:
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: v3.2
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/appsec/api_security/test_endpoint_discovery.py:
     - excluded_weblog: [django-py3.13, django-poc, python3.12]
       component_version: "<3.13.0-dev"

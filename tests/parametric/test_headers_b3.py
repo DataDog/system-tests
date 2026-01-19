@@ -43,7 +43,6 @@ def enable_migrated_b3_single_key() -> pytest.MarkDecorator:
 @scenarios.parametric
 class Test_Headers_B3:
     @enable_b3()
-    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     def test_headers_b3_extract_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -62,7 +61,6 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
-    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
     def test_headers_b3_extract_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -76,7 +74,6 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
-    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
     def test_headers_b3_inject_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -99,7 +96,6 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
-    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
     def test_headers_b3_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -125,7 +121,6 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3()
-    @missing_feature(context.library > "ruby@1.99.0", reason="Missing for 2.x")
     @missing_feature(context.library == "cpp", reason="format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported")
     @irrelevant(context.library > "python@2.20.0", reason="Deprecated in 3.x")
     def test_headers_b3_propagate_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -217,6 +212,5 @@ class Test_Headers_B3:
     @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "nodejs", reason="Need to remove b3=b3multi alias")
     @missing_feature(context.library == "php", reason="Need to remove b3=b3multi alias")
-    @missing_feature(context.library < "ruby@1.8.0", reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0")
     def test_headers_b3_migrated_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)

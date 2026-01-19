@@ -203,3 +203,29 @@ class SetSpanEventFlags(_InternalMockedResponse):
             "type": self.__class__.__name__,
             "span_events": self.span_events,
         }
+
+
+class SetClientDropP0s(_InternalMockedResponse):
+    """Modify the agent's client_drop_p0s capability flag.
+
+    This controls whether the agent advertises support for client-side P0 dropping.
+    When set to false, tracers should not compute client-side stats and should not
+    set the Datadog-Client-Computed-Stats header to true.
+    """
+
+    def __init__(self, *, client_drop_p0s: bool):
+        super().__init__(path="/info")
+        self.client_drop_p0s = client_drop_p0s
+        """ Whether agent supports client-side P0 dropping """
+
+    def execute(self, flow: HTTPFlow) -> None:
+        if flow.response.status_code == HTTPStatus.OK:
+            c = json.loads(flow.response.content)
+            c["client_drop_p0s"] = self.client_drop_p0s
+            flow.response.content = json.dumps(c).encode()
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "client_drop_p0s": self.client_drop_p0s,
+        }

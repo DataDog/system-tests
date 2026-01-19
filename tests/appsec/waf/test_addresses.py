@@ -98,7 +98,6 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
-    @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
     @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
     @irrelevant(library="cpp_nginx", reason="Header rejected by nginx ('client sent invalid header line'")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
@@ -251,11 +250,6 @@ class Test_BodyJson:
     def setup_json_array(self):
         self.r_array = weblog.post("/waf", json=['<vmlframe src="xss">'])
 
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="rack")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="uds-sinatra")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
