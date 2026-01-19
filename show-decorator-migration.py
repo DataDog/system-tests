@@ -176,7 +176,11 @@ def get_decorators_from_branch(
 
     # Get list of Python files in tests/ directory from the branch
     result = subprocess.run(
-        ["git", "ls-tree", "-r", "--name-only", branch, str(root_dir)], check=False, capture_output=True, text=True, cwd=Path.cwd()
+        ["git", "ls-tree", "-r", "--name-only", branch, str(root_dir)],
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=Path.cwd(),
     )
 
     if result.returncode != 0:
