@@ -155,7 +155,6 @@ class Test_DsmRabbitmq:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @flaky(library="python", reason="APMAPI-724")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 

@@ -97,7 +97,6 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     def setup_telemetry_co(self):
         self._setup()
 
-    @missing_feature(context.library == "python", reason="DEBUG-3550", force_skip=True)
     @missing_feature(context.library == "dotnet", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
     def test_telemetry_co(self):

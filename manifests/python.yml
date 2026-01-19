@@ -838,6 +838,16 @@ manifest:
         "*": v1.14.0
         fastapi: v2.4.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: v3.3.0.dev
+  ? tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess::test_crash_no_zombie
+  : flaky (APMLP-313)
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual::test_install:
+    - declaration: irrelevant (Avoid blocking 2.21 release pipeline)
+      component_version: <3.0.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
+    - declaration: irrelevant (PROF-11296)
+      component_version: <3.0.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -850,6 +860,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: missing_feature (DEBUG-3240)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -862,14 +873,20 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
+  : missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
+    - declaration: bug (DEBUG-3127)
+    - declaration: bug (DEBUG-3127)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.7.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_excluded_identifiers: bug (DEBUG-3746)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
@@ -878,6 +895,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track:
+    - declaration: missing_feature (Python 3.15.0 introduced the track change)
+      component_version: <3.15.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination:
+    - declaration: missing_feature (Python 3.15.0 introduced the track change)
+      component_version: <3.15.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
@@ -903,11 +926,30 @@ manifest:
         "*": missing_feature
         *flask: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co: missing_feature (DEBUG-3550)
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
+    - declaration: missing_feature (Not implemented yet)
+      component_version: <3.11.0
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
+    - declaration: missing_feature (Not implemented yet)
+      component_version: <3.11.0
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry:
+    - declaration: bug (INPLAT-448)
+    - declaration: bug (INPLAT-448)
+      component_version: '>=3.0.0-dev'
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: missing_feature (No implemented)
+      component_version: <3.15.0
+  tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
+    - declaration: bug (INPLAT-603)
+      component_version: '>=3.0.0-dev'
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_exposures.py: v4.2.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_tool_result: bug (MLOB-1234)
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: v3.11.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: v3.11.0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: v3.13.0
@@ -946,6 +988,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v0.1  # actual version unknown
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, Python does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": irrelevant
@@ -954,14 +997,56 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name: missing_feature (Not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_name: bug (APMAPI-741)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system: bug (APMAPI-741)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_user: bug (APMAPI-741)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_name:
+    - declaration: bug (APMRP-360)
+      component_version: <2.12.2
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_user:
+    - declaration: bug (APMRP-360)
+      component_version: <2.12.2
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_connection_string: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_instance: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_operation: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_row_count: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_sql_table: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_statement_query: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_runtime_id: missing_feature (not implemented yet)
   tests/integrations/test_dbm.py::Test_Dbm:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -980,16 +1065,19 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb::test_dbm_comment: flaky (APMAPI-724)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg::test_dbm_comment: flaky (APMAPI-724)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql::test_dbm_comment: flaky (APMAPI-724)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1006,6 +1094,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb::test_dbm_comment: flaky (APMAPI-724)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1016,6 +1105,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql::test_dbm_comment: flaky (APMAPI-724)
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -1037,6 +1127,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v2.6.0
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq: flaky (APMAPI-724)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
     - weblog_declaration:
         "*": irrelevant
@@ -1089,6 +1180,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v2.0.0
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6: missing_feature (does not support ipv6 hostname)
   tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: v2.12.2
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: v2.12.2
@@ -1096,26 +1188,85 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.11.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.9.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: bug (APMAPI-857)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: flaky (APMAPI-1051)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: missing_feature (failure 2.8.0)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: irrelevant (DD_TRACE_SAMPLE_RATE was removed in 3.x)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.0.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags:
+    - declaration: flaky (APMAPI-1400)
+      component_version: '>3.7.0'
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_headers_b3.py::Test_Headers_B3: v2.8.0
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:
+    - declaration: irrelevant (Deprecated in 3.x)
+      component_version: '>2.20.0'
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid:
+    - declaration: irrelevant (Deprecated in 3.x)
+      component_version: '>2.20.0'
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_inject_valid:
+    - declaration: irrelevant (Deprecated in 3.x)
+      component_version: '>2.20.0'
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_propagate_invalid:
+    - declaration: irrelevant (Deprecated in 3.x)
+      component_version: '>2.20.0'
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_propagate_valid:
+    - declaration: irrelevant (Deprecated in 3.x)
+      component_version: '>2.20.0'
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_single_key_propagate_valid:
+    - declaration: irrelevant (Deprecated in 3.x)
+      component_version: '>2.20.0'
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi: v2.8.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: v2.16.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v3.7.0
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v2.8.0
   tests/parametric/test_headers_none.py::Test_Headers_None: v2.8.0
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: v2.8.0
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
+  : - declaration: missing_feature (Default value was switched to datadog,tracecontext)
+      component_version: <2.6.0
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
+  : - declaration: irrelevant (Default value was switched to datadog,tracecontext)
+      component_version: '>=2.6.0'
+  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy:
+    - declaration: irrelevant (Newer versions include tracecontext as a default propagator)
+      component_version: '>=1.7.0'
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
+  : - declaration: missing_feature (Implemented in 2.3.3)
+      component_version: <2.3.3
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v2.8.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (python does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.7.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract_and_inject:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.7.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract_datadog_w3c:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.10.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.7.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v2.8.0
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
+  : bug (APMAPI-914)
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
+  : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
+  : "missing_feature (\"Issue: Does not drop dm\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature (failure 2.8.0)
   tests/parametric/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: v3.13.0.dev
@@ -1129,6 +1280,44 @@ manifest:
   tests/parametric/test_otel_metrics.py: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
+    - declaration: missing_feature (Implemented in 2.9.0)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpstatuscode:
+    - declaration: missing_feature (Implemented in 2.9.0)
+      component_version: <2.9.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_with_array_encoding: "missing_feature (\"New operation name mapping & array encoding not yet implemented\")"
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_separately: missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_service_name: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_ok: missing_feature (Default state of otel spans is OK, updating the status from OK to ERROR is supported)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end: missing_feature (New operation name mapping not yet implemented)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_finished_end_options: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_operation_name: missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_reserved_attributes_overrides: missing_feature (Not implemented)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: v2.18.0
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
@@ -1139,15 +1328,61 @@ manifest:
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.8.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: v3.14.0.dev
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: v2.8.0
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_0_sst008: bug (APMAPI-737)
+  ? tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009
+  : bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_1_sst005: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_sst003: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_tiny_sst004: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002: bug (APMAPI-737)
   tests/parametric/test_span_events.py::Test_Span_Events: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: v2.3.0
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (links do not influence the sampling decision of spans)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling: v2.8.0
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
+  : missing_feature (RPC issue causing test to hang)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_entire_trace_dropped_when_dropping_policy_is_active018: missing_feature (RPC issue causing test to hang)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
+  : missing_feature (RPC issue causing test to hang)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: bug (APMAPI-1545)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: bug (APMAPI-1545)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
+  tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings:
+    - declaration: missing_feature (Reports configurations with unexpected names)
+      component_version: <=2.16.0
+  tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings_2:
+    - declaration: missing_feature (Reports configurations with unexpected names)
+      component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_Defaults: v2.9.0
+  tests/parametric/test_telemetry.py::Test_Defaults::test_library_settings:
+    - declaration: missing_feature (Reports configurations with unexpected names)
+      component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_Environment: v2.8.0
+  tests/parametric/test_telemetry.py::Test_Environment::test_library_settings:
+    - declaration: missing_feature (Reports configurations with unexpected names)
+      component_version: <=2.16.0
+  tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (OTEL Sampling config is mapped to a different datadog config)
+  tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (OTEL Sampling config is mapped to a different datadog config)
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v3.7.0.dev
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
+  : bug (APMAPI-1630)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v2.5.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.9.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_not_propagated:
+    - declaration: missing_feature (Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used)
+      component_version: <=2.16.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated:
+    - declaration: missing_feature (Converts boolean values to strings)
+      component_version: <=2.16.0
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics:
+    - declaration: missing_feature (Converts boolean values to strings)
+      component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v3.11.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.8.0
@@ -1155,6 +1390,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: v2.8.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags: v2.8.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v2.9.0
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_mismatch_non_integer: bug (APMAPI-1689)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.8.0
   tests/parametric/test_tracer.py::Test_Tracer: v2.8.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.12.0
@@ -1167,6 +1403,7 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures::test_tracer_update_sequence: bug (APMRP-360)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject:
@@ -1257,6 +1494,7 @@ manifest:
         flask-poc: v3.0.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server: bug (APMAPI-772)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
@@ -1306,6 +1544,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: bug (APMSP-2359)
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v3.6.0+dev
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.8.0
@@ -1326,6 +1565,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
         flask-poc: v3.0.0
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format:
+    - declaration: irrelevant (DD_TRACE_NATIVE_SPAN_EVENTS overrides v0.5)
+      component_version: '>3.3.0'
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
@@ -1340,6 +1582,12 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl:
     - weblog_declaration:
         "*": v2.4.0
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
+    - declaration: irrelevant (python released the new version at 1.19.0)
+      component_version: '>=1.18.0-rc1'
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
+    - declaration: irrelevant (python released the new version at 1.19.0)
+      component_version: '>=1.18.0-rc1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
   tests/test_telemetry.py::Test_Log_Generation: missing_feature
@@ -1347,11 +1595,18 @@ manifest:
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: v3.4.0
+  tests/test_telemetry.py::Test_ProductsDisabled::test_app_started_product_disabled: missing_feature (feature not implemented)
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
+  tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
+    - declaration: flaky (APMRP-360)
+      component_version: <=1.20.2
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v3.13.0rc1
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v3.15.0+dev36.gb57f15308
   tests/test_telemetry.py::Test_TelemetryV2: v1.17.3
+  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
   tests/test_v1_payloads.py: missing_feature

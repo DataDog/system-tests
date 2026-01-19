@@ -209,7 +209,6 @@ class Test_Span_Links:
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
 
-    @missing_feature(library="python", reason="links do not influence the sampling decision of spans")
     def test_span_link_propagated_sampling_decisions(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Sampling decisions made by an upstream span should be propagated via span links to
         downstream spans.
