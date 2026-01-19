@@ -1573,7 +1573,7 @@ class EnvoyContainer(TestedContainer):
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            volumes={"./utils/build/docker/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
                 "test": "/bin/bash -c \"\
