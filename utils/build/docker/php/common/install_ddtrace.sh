@@ -12,6 +12,7 @@ SETUP=/binaries/datadog-setup.php
 DDTRACE_SO=/binaries/ddtrace.so
 DDAPPSEC_SO=/binaries/ddappsec.so
 APPSEC_HELPER_SO=/binaries/libddappsec-helper.so
+LIBDDWAF_SO=/binaries/libddwaf.so
 
 # Determine INI file location
 INI_FILE=/etc/php/php.ini
@@ -34,6 +35,7 @@ if [ "$PKG" == "" ]; then
   #Download latest release
   curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
   SETUP=datadog-setup.php
+
   unset PKG
 fi
 
@@ -87,6 +89,18 @@ if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
     echo "Warning: Could not find installed libddappsec-helper.so to replace"
   fi
 fi
+
+if [ -f $LIBDDWAF_SO ]; then
+  echo "Copying libddwaf.so from /binaries"
+  INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
+  if [ -n "$INSTALLED_HELPER" ]; then
+    echo "Found installed helper at $INSTALLED_HELPER, installing custom libddwaf.so alongside"
+    cp -v $LIBDDWAF_SO "$(dirname "$INSTALLED_HELPER")"
+  else
+    echo "Warning: Could not find installed libddappsec-helper.so"
+  fi
+fi
+
 
 if test -f $INI_FILE; then
   #There is a bug on 0.98.1 which disable explicitly appsec when it shouldnt. Delete this line when hotfix
