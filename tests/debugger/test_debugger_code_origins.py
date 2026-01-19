@@ -25,7 +25,6 @@ class Test_Debugger_Code_Origins(debugger.BaseDebuggerTest):
         force_skip=True,
     )
     @missing_feature(context.library == "nodejs", reason="Not yet implemented for express", force_skip=True)
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     def test_code_origin_entry_present(self):
         self.collect()
 

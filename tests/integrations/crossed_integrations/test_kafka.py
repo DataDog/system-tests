@@ -172,10 +172,8 @@ class Test_Kafka(_BaseKafka):
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
 
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

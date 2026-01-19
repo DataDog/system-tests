@@ -326,7 +326,6 @@ class Test_StandardTagsClientIp:
     @missing_feature(
         context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )
-    @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     def test_client_ip_with_appsec_event_and_vendor_headers(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)
