@@ -53,15 +53,13 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v2.21.0  # auto activation: might not be the earliest working version
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v2.21.0  # auto activation: might not be the earliest working version
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
-    - weblog_declaration:
-        "*": v2.22.0.dev
-        rack: irrelevant (rack does not have a router)
-        rails42: irrelevant
-        sinatra14: missing_feature
-        sinatra22: missing_feature
-        sinatra32: missing_feature
-        sinatra41: missing_feature
-        uds-sinatra: missing_feature
+    - declaration: bug (APPSEC-60637)
+      component_version: <=2.26.0
+      weblog: [rails52, rails80, uds-rails, rails61, uds-sinatra, rails72, sinatra41, sinatra14, rack, sinatra32, sinatra22, rails42]
+    - declaration: missing_feature
+      weblog: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
+    - declaration: irrelevant
+      weblog: [rack, rails42]
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.19.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.15.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: missing_feature
