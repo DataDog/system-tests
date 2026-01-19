@@ -3,7 +3,7 @@ import pytest
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.docker_fixtures.spec.trace import span_has_no_parent
 from utils.docker_fixtures.spec.trace import find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
+from utils import weblog, context, interfaces, missing_feature, rfc, scenarios, features
 from utils.tools import nested_lookup
 
 

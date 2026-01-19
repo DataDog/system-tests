@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from utils import scenarios, features, rfc, irrelevant
+from utils import scenarios, features, rfc
 from utils.docker_fixtures.spec.trace import find_span, find_trace
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
