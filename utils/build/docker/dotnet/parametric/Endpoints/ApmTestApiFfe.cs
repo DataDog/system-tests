@@ -140,14 +140,37 @@ public abstract class ApmTestApiFfe
     {
         return element.ValueKind switch
         {
+            System.Text.Json.JsonValueKind.Null => new Value(),
             System.Text.Json.JsonValueKind.True => new Value(true),
             System.Text.Json.JsonValueKind.False => new Value(false),
             System.Text.Json.JsonValueKind.Number => element.TryGetInt32(out var i)
                 ? new Value(i)
                 : new Value(element.GetDouble()),
             System.Text.Json.JsonValueKind.String => new Value(element.GetString() ?? ""),
+            System.Text.Json.JsonValueKind.Object => ConvertJsonObjectToValue(element),
+            System.Text.Json.JsonValueKind.Array => ConvertJsonArrayToValue(element),
             _ => new Value(element.ToString())
         };
+    }
+
+    private static Value ConvertJsonObjectToValue(System.Text.Json.JsonElement element)
+    {
+        var dict = new Dictionary<string, Value>();
+        foreach (var prop in element.EnumerateObject())
+        {
+            dict[prop.Name] = ConvertJsonElementToValue(prop.Value);
+        }
+        return new Value(new Structure(dict));
+    }
+
+    private static Value ConvertJsonArrayToValue(System.Text.Json.JsonElement element)
+    {
+        var list = new List<Value>();
+        foreach (var item in element.EnumerateArray())
+        {
+            list.Add(ConvertJsonElementToValue(item));
+        }
+        return new Value(list);
     }
 
     private static bool ConvertToBool(object? obj)
