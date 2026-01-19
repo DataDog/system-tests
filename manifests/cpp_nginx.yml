@@ -24,6 +24,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v1.10.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v1.10.0
   tests/appsec/api_security/test_endpoint_discovery.py: irrelevant (not applicable to proxies)
+  tests/appsec/api_security/test_endpoint_fallback.py: irrelevant (not applicable to proxies)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: v1.8.0

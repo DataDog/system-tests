@@ -60,6 +60,7 @@ manifest:
       weblog: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
     - declaration: irrelevant
       weblog: [rack, rails42]
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.19.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.15.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: missing_feature
