@@ -185,7 +185,6 @@ class Test_Telemetry:
 
                 last_known_data = data
 
-    @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
     @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -365,7 +364,6 @@ class Test_Telemetry:
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     @irrelevant(library="golang")
-    @irrelevant(library="python")
     @irrelevant(
         library="java",
         reason="""
@@ -453,7 +451,6 @@ class Test_Telemetry:
 
     @irrelevant(library="golang")
     @irrelevant(library="dotnet")
-    @irrelevant(library="python")
     @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
@@ -722,7 +719,6 @@ class Test_TelemetryV2:
 
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
-    @missing_feature(library="python", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
@@ -811,7 +807,6 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "python", reason="feature not implemented")
     @missing_feature(context.library == "java", reason="feature not implemented")
     def test_app_started_product_disabled(self):
         data_found = False

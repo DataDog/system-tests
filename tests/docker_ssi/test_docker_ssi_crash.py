@@ -1,7 +1,6 @@
 from urllib.parse import urlparse
 
 from utils import (
-    bug,
     irrelevant,
     missing_feature,
     scenarios,
@@ -41,7 +40,6 @@ class TestDockerSSICrash:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
-    @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-603")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")

@@ -207,7 +207,6 @@ class Test_Config_TraceAgentURL:
     )
     @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
     @missing_feature(library="cpp")
     def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
         with test_library as t:
