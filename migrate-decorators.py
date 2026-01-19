@@ -33,8 +33,7 @@ def _decorator_name_matches(node: ast.AST, target_name: str) -> bool:
 
 
 def _get_decorator_base_name(node: ast.AST) -> str | None:
-    """Extract the base name of a decorator (the last attribute / id), if any.
-    """
+    """Extract the base name of a decorator (the last attribute / id), if any."""
     if isinstance(node, ast.Name):
         return node.id
     if isinstance(node, ast.Attribute):
@@ -83,8 +82,7 @@ def _collect_decorator_info(
     class_name: str | None = None,
     decorator_index: int | None = None,
 ) -> DecoratorInfo:
-    """Build a dictionary with information about one decorator usage on a function or class.
-    """
+    """Build a dictionary with information about one decorator usage on a function or class."""
     # Determine what is decorated
     if isinstance(node, ast.ClassDef):
         decorated_type = "class"
@@ -531,8 +529,7 @@ def _is_valid_component(component: str) -> bool:
 
 
 def _parse_library_keyword(keywords: dict[str, str]) -> str | None:
-    """Extract library name from keywords dict if 'library' key exists.
-    """
+    """Extract library name from keywords dict if 'library' key exists."""
     if "library" in keywords:
         # Remove quotes if present
         lib = keywords["library"].strip("\"'")
@@ -541,8 +538,7 @@ def _parse_library_keyword(keywords: dict[str, str]) -> str | None:
 
 
 def _extract_reason(keywords: dict[str, str]) -> str | None:
-    """Extract reason from keywords dict if 'reason' key exists.
-    """
+    """Extract reason from keywords dict if 'reason' key exists."""
     if "reason" in keywords:
         # Remove quotes if present
         reason = keywords["reason"].strip("\"'")
@@ -551,8 +547,7 @@ def _extract_reason(keywords: dict[str, str]) -> str | None:
 
 
 def _parse_weblog_variant_keyword(keywords: dict[str, str]) -> str | None:
-    """Extract weblog variant name from keywords dict if 'weblog_variant' key exists.
-    """
+    """Extract weblog variant name from keywords dict if 'weblog_variant' key exists."""
     if "weblog_variant" in keywords:
         # Remove quotes if present
         variant = keywords["weblog_variant"].strip("\"'")
@@ -904,20 +899,18 @@ def build_manifest_entries(
             # Case 2: Condition with equality (e.g., context.library == "java")
             if condition_info and condition_info.get("is_equality"):
                 operator = condition_info.get("operator")
-                component_list = condition_info.get("component_list", [])
+                # For equality conditions, component is in "component" field, not "component_list"
+                component_name = condition_info.get("component")
 
                 if operator == "==":
-                    # Affects only the specified component(s)
-                    for comp in component_list:
-                        if "@" in comp:
-                            base_comp = comp.split("@")[0]
+                    # Affects only the specified component
+                    if component_name:
+                        if "@" in component_name:
+                            base_comp = component_name.split("@")[0]
                         else:
-                            base_comp = comp
+                            base_comp = component_name
                         if _is_valid_component(base_comp):
                             affected_components.add(base_comp)
-                    # If multiple components, affects multiple - skip
-                    if len(affected_components) > 1:
-                        continue
                 elif operator == "!=":
                     # Affects all components EXCEPT the specified one(s)
                     # This means it affects multiple components - skip
