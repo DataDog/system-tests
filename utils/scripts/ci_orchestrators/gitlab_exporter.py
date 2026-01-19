@@ -321,6 +321,10 @@ def print_k8s_gitlab_pipeline(
 
             if cluster_agent_versions:
                 matrix_entry["K8S_CLUSTER_IMG"] = cluster_agent_versions
+            else:
+                matrix_entry["K8S_CLUSTER_IMG"] = (
+                    ""  # Avoid pytest: error: argument --k8s-cluster-img: expected one argument
+                )
             if lib_init_versions:
                 matrix_entry["K8S_LIB_INIT_IMG"] = lib_init_versions
             if injector_versions:
