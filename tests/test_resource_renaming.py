@@ -1,4 +1,4 @@
-from utils import scenarios, weblog, interfaces, features, missing_feature, context
+from utils import scenarios, weblog, interfaces, features, missing_feature, context, scenario_groups
 from utils._weblog import HttpResponse
 
 
@@ -12,7 +12,7 @@ def get_endpoint_tag(response: HttpResponse) -> str | None:
 
 @features.resource_renaming
 @scenarios.tracing_config_nondefault_3
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_Resource_Renaming_HTTP_Endpoint_Tag:
     """Test the correct extraction of the http.endpoint tag"""
 
@@ -58,7 +58,7 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
 
 @features.resource_renaming
 @scenarios.tracing_config_nondefault_3
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 class Test_Resource_Renaming_Stats_Aggregation_Keys:
     """Test that stats aggregation includes method and endpoint in aggregation keys"""
 

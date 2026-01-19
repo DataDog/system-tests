@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from utils import interfaces, bug, scenarios, weblog, rfc, features
+from utils import interfaces, bug, scenarios, weblog, rfc, features, scenario_groups
 from utils._context.core import context
 from .test_blocking_security_response_id import (
     is_valid_uuid4,
@@ -95,7 +95,7 @@ JSON_CONTENT_TYPES = {
 }
 
 
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_Blocking:
@@ -239,7 +239,7 @@ class Test_Blocking:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
@@ -257,7 +257,7 @@ class Test_Blocking_strip_response_headers:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_CustomBlockingResponse:

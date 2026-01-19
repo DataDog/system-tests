@@ -3,10 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, features, interfaces, irrelevant, scenarios
+from utils import context, features, interfaces, irrelevant, scenarios, scenario_groups
 
 
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp

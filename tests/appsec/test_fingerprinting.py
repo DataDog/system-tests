@@ -8,6 +8,7 @@ from utils import weblog
 from utils import missing_feature
 from utils import context
 from utils._weblog import HttpResponse
+from utils import scenario_groups
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
@@ -101,7 +102,7 @@ class Test_Fingerprinting_Session:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Fingerprinting_Endpoint_Preprocessor:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -131,7 +132,7 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Fingerprinting_Header_And_Network_Preprocessor:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
@@ -186,7 +187,7 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@scenario_groups.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Fingerprinting_Session_Preprocessor:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"

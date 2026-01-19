@@ -4,6 +4,8 @@ from pathlib import Path
 import shutil
 from typing import TYPE_CHECKING
 
+from utils._context._scenarios import go_proxies
+
 
 if TYPE_CHECKING:
     from utils._context.component_version import Version
@@ -31,10 +33,6 @@ class ScenarioGroup:
 
 class _ScenarioGroups:
     all = ScenarioGroup()
-    appsec = ScenarioGroup()
-    appsec_rasp = ScenarioGroup()
-    appsec_rasp_scenario = ScenarioGroup()
-    appsec_lambda = ScenarioGroup()
     debugger = ScenarioGroup()
     docker_fixtures = ScenarioGroup()
     end_to_end = ScenarioGroup()
@@ -53,17 +51,27 @@ class _ScenarioGroups:
     onboarding = ScenarioGroup()
     simple_onboarding = ScenarioGroup()
     simple_onboarding_profiling = ScenarioGroup()
-    simple_onboarding_appsec = ScenarioGroup()
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
-    go_proxies = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
-    appsec_low_waf_timeout = ScenarioGroup()
     ffe = ScenarioGroup()
     default = ScenarioGroup()
+
+    # Appsec
+    appsec = ScenarioGroup()
+    appsec_rasp = ScenarioGroup()
+    appsec_rasp_scenario = ScenarioGroup()
+    appsec_lambda = ScenarioGroup()
+    go_proxies = ScenarioGroup()
+    go_proxies_default = ScenarioGroup()
+    go_proxies_appsec_blocking = ScenarioGroup()
+    appsec_low_waf_timeout = ScenarioGroup()
+    simple_onboarding_appsec = ScenarioGroup()
+    ## Groups of scenarios
+    appsec_blocking = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
