@@ -30,30 +30,6 @@
                 "prod",
                 "dev"
             ]
-        },
-        {
-            "scenarios": [
-                "K8S_LIB_INJECTION_UDS"
-            ],
-            "weblogs": [
-                {
-                    "nodejs": [
-                        "sample-app"
-                    ]
-                }
-            ],
-            "helm_charts": [
-                "prod",
-                "nightly_latest"
-            ],
-            "injectors": [
-                "prod",
-                "dev"
-            ],
-            "lib_inits": [
-                "prod",
-                "dev"
-            ]
         }
     ],
     "cluster_agent_spec": {
