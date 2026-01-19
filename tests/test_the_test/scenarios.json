@@ -3159,12 +3159,6 @@
   "tests/auto_inject/test_blocklist_auto_inject.py::TestAutoInjectBlockListInstallManualHost::test_builtin_instrument_args": [
     "INSTALLER_AUTO_INJECTION"
   ],
-  "tests/auto_inject/test_demo.py::TestDemoAws::test_demo_provision_weblog": [
-    "DEMO_AWS"
-  ],
-  "tests/auto_inject/test_demo.py::TestDemoAws::test_run_simple_command": [
-    "DEMO_AWS"
-  ],
   "tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present": [
     "DEBUGGER_PROBES_SNAPSHOT"
   ],

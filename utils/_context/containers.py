@@ -24,6 +24,7 @@ from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
     MockedResponse,
     SetSpanEventFlags,
+    SetClientDropP0s,
     AddRemoteConfigEndpoint,
     StaticJsonMockedResponse,
 )
@@ -535,10 +536,11 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-        for var in attrs["Config"]["Env"]:
-            key, value = var.split("=", 1)
-            if value:
-                self.env[key] = value
+        if attrs["Config"].get("Env"):
+            for var in attrs["Config"]["Env"]:
+                key, value = var.split("=", 1)
+                if value:
+                    self.env[key] = value
 
         if "Labels" in attrs["Config"]:
             self.labels = attrs["Config"]["Labels"]
@@ -555,6 +557,7 @@ class ProxyContainer(TestedContainer):
         rc_api_enabled: bool,
         meta_structs_disabled: bool,
         span_events: bool,
+        client_drop_p0s: bool | None = None,
         enable_ipv6: bool,
         mocked_backend: bool = True,
     ) -> None:
@@ -593,6 +596,9 @@ class ProxyContainer(TestedContainer):
 
         if meta_structs_disabled:
             self.internal_mocked_responses.append(RemoveMetaStructsSupport())
+
+        if client_drop_p0s is not None:
+            self.internal_mocked_responses.append(SetClientDropP0s(client_drop_p0s=client_drop_p0s))
 
         if rc_api_enabled:
             # add the remote config endpoint on available agent endpoints

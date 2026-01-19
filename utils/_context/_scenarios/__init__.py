@@ -88,6 +88,24 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_client_drop_p0s_false = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE",
+        # Same as trace_stats_computation but with client_drop_p0s set to false
+        # to test tracer behavior when agent doesn't support client-side P0 dropping
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        client_drop_p0s=False,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
+            "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
