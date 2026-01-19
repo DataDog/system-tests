@@ -17,10 +17,10 @@ CONFIG_ENABLED = {"asm": {"enabled": True}}
 
 def _send_config(config: dict | None):
     if config is not None:
-        rc.tracer_rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
+        rc.backend_rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
-        rc.tracer_rc_state.reset()
-    return rc.tracer_rc_state.apply().state
+        rc.backend_rc_state.reset()
+    return rc.backend_rc_state.apply().state
 
 
 @scenarios.appsec_runtime_activation
@@ -34,7 +34,7 @@ class Test_RuntimeActivation:
         self.reset_state = _send_config(CONFIG_EMPTY)
         self.response_with_deactivated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
         self.config_state = _send_config(CONFIG_ENABLED)
-        self.last_version = rc.tracer_rc_state.version
+        self.last_version = rc.backend_rc_state.version
         self.response_with_activated_waf = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_asm_features(self):

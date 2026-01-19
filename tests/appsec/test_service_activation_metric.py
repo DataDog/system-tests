@@ -13,10 +13,10 @@ CONFIG_ENABLED = {"asm": {"enabled": True}}
 
 def _send_config(config: dict):
     if config is not None:
-        rc.tracer_rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
+        rc.backend_rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
-        rc.tracer_rc_state.reset()
-    return rc.tracer_rc_state.apply().state
+        rc.backend_rc_state.reset()
+    return rc.backend_rc_state.apply().state
 
 
 def validate_metric_tag(origin: str, metric: dict):
