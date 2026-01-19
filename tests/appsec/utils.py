@@ -54,7 +54,7 @@ class BaseFullDenyListTest:
                 ]
             }
 
-            rc_state = remote_config.tracer_rc_state
+            rc_state = remote_config.backend_rc_state
             rc_state.set_config("datadog/2/ASM_DATA/ASM_DATA-base/config", config)
 
             BaseFullDenyListTest.states = rc_state.apply()
