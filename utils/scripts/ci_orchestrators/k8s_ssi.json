@@ -2,115 +2,104 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "K8S_LIB_INJECTION_SPARK_DJM"
+                "K8S_LIB_INJECTION"
             ],
             "weblogs": [
                 {
-                    "java": [
-                        "dd-djm-spark-test-app"
-                    ]
-                }
-            ],
-            "cluster_agents": [
-                "prod",
-                "dev",
-                "rc",
-                "beta",
-                "latest"
-            ]
-        },
-        {
-            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
-            "weblogs": [
-                {
-                    "java": [
-                        "dd-lib-java-init-test-app"
-                    ],
-                    "dotnet": [
-                        "dd-lib-dotnet-init-test-app"
-                    ],
                     "nodejs": [
                         "sample-app"
-                    ],
-                    "python": [
-                        "dd-lib-python-init-test-django",
-                        "dd-lib-python-init-test-django-gunicorn",
-                        "dd-lib-python-init-test-django-gunicorn-alpine",
-                        "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn"
-                    ],
-                    "ruby": [
-                        "dd-lib-ruby-init-test-rails",
-                        "dd-lib-ruby-init-test-rails-explicit",
-                        "dd-lib-ruby-init-test-rails-gemsrb"
-                    ]
-                }
-            ],
-            "cluster_agents": [
-                "old_injection",
-                "prod",
-                "dev",
-                "rc",
-                "beta",
-                "latest"
-            ]
-        },
-        {
-            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
-            "weblogs": [
-                {
-                    "php": [
-                        "dd-lib-php-init-test-app"
                     ]
                 }
             ],
             "cluster_agents": [
                 "prod",
-                "dev",
-                "rc",
-                "beta",
-                "latest"
+                "nightly_dev",
+                "nightly_rc",
+                "nightly_beta",
+                "nightly_latest"
+            ],
+            "helm_charts": [
+                "prod",
+                "nightly_latest"
+            ],
+            "injectors": [
+                "prod",
+                "dev"
+            ],
+            "lib_inits": [
+                "prod",
+                "dev"
             ]
         },
         {
-            "scenarios":  ["K8S_LIB_INJECTION_NO_AC", "K8S_LIB_INJECTION_NO_AC_UDS"],
+            "scenarios": [
+                "K8S_LIB_INJECTION_UDS"
+            ],
             "weblogs": [
                 {
-                    "java": [
-                        "dd-lib-java-init-test-app"
-                    ],
-                    "dotnet": [
-                        "dd-lib-dotnet-init-test-app"
-                    ],
                     "nodejs": [
                         "sample-app"
-                    ],
-                    "python": [
-                        "dd-lib-python-init-test-django",
-                        "dd-lib-python-init-test-django-gunicorn",
-                        "dd-lib-python-init-test-django-gunicorn-alpine",
-                        "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn"
-                    ],
-                    "ruby": [
-                        "dd-lib-ruby-init-test-rails",
-                        "dd-lib-ruby-init-test-rails-explicit",
-                        "dd-lib-ruby-init-test-rails-gemsrb"
-                    ],
-                    "php": [
-                        "dd-lib-php-init-test-app"
                     ]
                 }
+            ],
+            "helm_charts": [
+                "prod",
+                "nightly_latest"
+            ],
+            "injectors": [
+                "prod",
+                "dev"
+            ],
+            "lib_inits": [
+                "prod",
+                "dev"
             ]
         }
-
     ],
     "cluster_agent_spec": {
         "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
         "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:7.56.2",
-        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master",
-        "rc": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:rc",
-        "beta": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:beta",
-        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:latest"
+        "nightly_dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master",
+        "nightly_rc": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:rc",
+        "nightly_beta": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:beta",
+        "nightly_latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:latest"
+    },
+    "injector_spec": {
+        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
+        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot"
+    },
+    "lib_init_spec": {
+        "nodejs": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
+        },
+        "java": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+        },
+        "dotnet": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest_snapshot"
+        },
+        "python": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest_snapshot"
+        },
+        "ruby": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest_snapshot"
+        },
+        "php": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest_snapshot"
+        }
+    },
+    "helm_chart_spec": {
+        "prod": "3.156.1",
+        "nightly_latest": "3.160.4"
+    },
+    "helm_chart_operator_spec": {
+        "prod": "2.16.0",
+        "nightly_latest": "2.17.0"
     }
 }

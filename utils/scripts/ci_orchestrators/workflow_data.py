@@ -17,30 +17,111 @@ def _get_weblog_spec(weblogs_spec: list[dict], weblog_name: str) -> dict:
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
 
-def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
-    """Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language."""
-    k8s_ssi = _load_json(k8s_ssi_file)
-    cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
+def _resolve_component_versions(component_keys: list[str], spec_mapping: dict, component_type: str) -> list[dict]:
+    """Resolves component keys to their corresponding values from the spec mapping.
 
-    results = defaultdict(lambda: defaultdict(list))  # type: dict
-    scenario_matrix = k8s_ssi["scenario_matrix"]
-    for entry in scenario_matrix:
-        applicable_scenarios = entry["scenarios"]
-        weblogs = entry["weblogs"]
-        supported_cluster_agents = entry.get("cluster_agents", [])
+    Args:
+        component_keys: List of keys to resolve (e.g., ["prod", "nightly_dev"])
+        spec_mapping: Mapping of keys to values (e.g., {"prod": "image:7.73.1"})
+        component_type: Type of component for error messages (e.g., "Cluster agent")
+
+    Returns:
+        List of dicts with key-value pairs (e.g., [{"prod": "image:7.73.1"}])
+
+    Raises:
+        ValueError: If a component key is not found in the spec mapping
+
+    """
+    resolved = []
+    for key in component_keys:
+        if key not in spec_mapping:
+            raise ValueError(f"{component_type} '{key}' not found in the k8s_ssi.json")
+        resolved.append({key: spec_mapping[key]})
+    return resolved
+
+
+def _build_component_list(supported_keys: list[str], spec_mapping: dict, component_name: str) -> dict:
+    """Builds a component list dictionary with resolved versions.
+
+    Args:
+        supported_keys: Keys for supported versions (e.g., ["prod", "dev"])
+        spec_mapping: Mapping of keys to values
+        component_name: Name of the component (e.g., "cluster_agents")
+
+    Returns:
+        Dictionary with component name and resolved versions
+
+    """
+    if not supported_keys:
+        return {component_name: []}
+
+    resolved_versions = _resolve_component_versions(supported_keys, spec_mapping, component_name)
+    return {component_name: resolved_versions}
+
+
+def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
+    """Computes the K8s test matrix mapping scenarios to weblogs and their component versions.
+
+    Args:
+        k8s_ssi_file: Path to the k8s_ssi.json configuration file
+        scenarios: List of scenario names to include in the matrix
+        language: Programming language to filter weblogs (e.g., "nodejs", "java")
+
+    Returns:
+        Nested dictionary structure: {scenario: {weblog: [components]}}
+        where components include cluster_agents, helm_charts, injectors, lib_inits, and helm_chart_operators
+
+    """
+    k8s_config = _load_json(k8s_ssi_file)
+
+    # Extract component specifications
+    component_specs = {
+        "cluster_agents": k8s_config["cluster_agent_spec"],
+        "helm_charts": k8s_config["helm_chart_spec"],
+        "injectors": k8s_config["injector_spec"],
+        "lib_inits": k8s_config["lib_init_spec"][language],
+        "helm_chart_operators": k8s_config["helm_chart_operator_spec"],
+    }
+
+    results: dict[str, dict[str, list]] = defaultdict(lambda: defaultdict(list))
+
+    # Process each entry in the scenario matrix
+    for matrix_entry in k8s_config["scenario_matrix"]:
+        applicable_scenarios = matrix_entry["scenarios"]
+        weblogs = matrix_entry["weblogs"]
+
+        # Extract supported component keys for this matrix entry
+        supported_components = {
+            "cluster_agents": matrix_entry.get("cluster_agents", []),
+            "helm_charts": matrix_entry.get("helm_charts", []),
+            "injectors": matrix_entry.get("injectors", []),
+            "lib_inits": matrix_entry.get("lib_inits", []),
+            "helm_chart_operators": matrix_entry.get("helm_chart_operators", []),
+        }
+
+        # Match scenarios and weblogs
         for scenario in scenarios:
-            if scenario in applicable_scenarios:
-                for weblog_entry in weblogs:
-                    if language in weblog_entry:
-                        for weblog in weblog_entry[language]:
-                            if supported_cluster_agents:
-                                for cluster_agent in supported_cluster_agents:
-                                    if cluster_agent in cluster_agent_specs:
-                                        results[scenario][weblog].append(cluster_agent_specs[cluster_agent])
-                                    else:
-                                        raise ValueError(f"Cluster agent {cluster_agent} not found in the k8s_ssi.json")
-                            else:
-                                results[scenario][weblog] = []
+            if scenario not in applicable_scenarios:
+                continue
+
+            for weblog_entry in weblogs:
+                if language not in weblog_entry:
+                    continue
+
+                for weblog in weblog_entry[language]:
+                    # Build component lists for this scenario-weblog combination
+                    for component_name in [
+                        "cluster_agents",
+                        "helm_charts",
+                        "injectors",
+                        "lib_inits",
+                        "helm_chart_operators",
+                    ]:
+                        component_list = _build_component_list(
+                            supported_components[component_name], component_specs[component_name], component_name
+                        )
+                        results[scenario][weblog].append(component_list)
+
     return results
 
 

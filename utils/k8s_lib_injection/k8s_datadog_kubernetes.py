@@ -20,10 +20,10 @@ from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 PRIVATE_REGISTRY_SECRET_NAME = "private-registry-secret"  # noqa: S105
 
 # Datadog Helm chart version pinned to a known stable version
-DATADOG_HELM_CHART_VERSION = "3.156.1"
+K8S_HELM_CHART = os.getenv("K8S_HELM_CHART", "3.156.1")
 
 # Datadog Operator Helm chart version pinned to a known stable version
-DATADOG_OPERATOR_HELM_CHART_VERSION = "2.16.0"
+K8S_HELM_CHART_OPERATOR = os.getenv("K8S_HELM_CHART_OPERATOR", "2.16.0")
 
 
 class K8sDatadog:
@@ -212,7 +212,7 @@ class K8sDatadog:
             value_file=operator_file,
             set_dict=self.dd_cluster_feature,
             namespace=namespace,
-            chart_version=DATADOG_HELM_CHART_VERSION,  # Pin to known good version instead of using latest
+            chart_version=K8S_HELM_CHART,  # Pin to known good version instead of using latest
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
@@ -239,7 +239,7 @@ class K8sDatadog:
             set_dict={},
             timeout=None,
             namespace=namespace,
-            chart_version=DATADOG_OPERATOR_HELM_CHART_VERSION,  # Pin to known good version instead of using latest
+            chart_version=K8S_HELM_CHART_OPERATOR,  # Pin to known good version instead of using latest
         )
         logger.info("[Deploy datadog operator] the operator is ready")
         logger.info("[Deploy datadog operator] Create the operator secrets")
