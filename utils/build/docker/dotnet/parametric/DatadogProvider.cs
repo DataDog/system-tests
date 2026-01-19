@@ -48,8 +48,26 @@ public class DatadogProvider : FeatureProvider
             if (datadogTraceAssembly == null)
             {
                 Console.WriteLine("[DatadogProvider] Datadog.Trace assembly not found");
+                Console.WriteLine("[DatadogProvider] Loaded assemblies:");
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies().Take(20))
+                {
+                    Console.WriteLine($"[DatadogProvider]   - {asm.GetName().Name} v{asm.GetName().Version}");
+                }
                 IsAvailable = false;
                 return;
+            }
+
+            Console.WriteLine($"[DatadogProvider] Found Datadog.Trace v{datadogTraceAssembly.GetName().Version}");
+            Console.WriteLine($"[DatadogProvider] Assembly location: {datadogTraceAssembly.Location}");
+
+            // List all types in Datadog.Trace.FeatureFlags namespace
+            var ffeTypes = datadogTraceAssembly.GetTypes()
+                .Where(t => t.Namespace?.StartsWith("Datadog.Trace.FeatureFlags") == true)
+                .ToList();
+            Console.WriteLine($"[DatadogProvider] Found {ffeTypes.Count} types in FeatureFlags namespace:");
+            foreach (var t in ffeTypes.Take(10))
+            {
+                Console.WriteLine($"[DatadogProvider]   - {t.FullName}");
             }
 
             FeatureFlagsSdkType = datadogTraceAssembly.GetType("Datadog.Trace.FeatureFlags.FeatureFlagsSdk");

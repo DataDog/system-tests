@@ -23,14 +23,19 @@ public abstract class ApmTestApiFfe
         {
             _logger?.LogInformation("[FFE] Starting OpenFeature provider");
 
+            // Check if FeatureFlagsSdk is available
+            var ffAvailable = Datadog.OpenFeature.DatadogProvider.FeatureFlagsAvailable;
+            _logger?.LogInformation($"[FFE] FeatureFlagsAvailable: {ffAvailable}");
+
             // Set the Datadog OpenFeature provider
-            await Api.Instance.SetProviderAsync(new Datadog.OpenFeature.DatadogProvider());
+            var provider = new Datadog.OpenFeature.DatadogProvider();
+            await Api.Instance.SetProviderAsync(provider);
 
             // Get a client instance
             _openFeatureClient = Api.Instance.GetClient();
 
             _logger?.LogInformation("[FFE] OpenFeature provider started successfully");
-            return Results.Json(new { });
+            return Results.Json(new { featureFlagsAvailable = ffAvailable });
         }
         catch (Exception ex)
         {
