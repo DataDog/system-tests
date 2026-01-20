@@ -51,12 +51,10 @@ class TestWeakHash(BaseSinkTest):
     location_map = _expected_location()
     evidence_map = _expected_evidence()
 
-    @missing_feature(context.library < "java@1.9.0", reason="Metrics not implemented")
     @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.11.0", reason="Metrics not implemented")
     @missing_feature(context.library < "dotnet@2.38.0", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()

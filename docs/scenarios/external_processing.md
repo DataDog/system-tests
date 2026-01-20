@@ -2,8 +2,8 @@
 flowchart LR
 %% Nodes
     A("Test runner")
-    B("Envoy")
-    C("External Processing")
+    B("Proxy (Envoy or HAProxy)")
+    C("Go security processor")
     D("HTTP app")
     E("Proxy")
     F("Agent")

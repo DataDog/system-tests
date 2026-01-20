@@ -9,17 +9,14 @@ from utils import scenarios
 from utils import weblog
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.appsec_request_blocking
 @scenarios.appsec_blocking_full_denylist
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
     def setup_request_blocking(self):
-        rc_state = remote_config.rc_state
+        rc_state = remote_config.tracer_rc_state
         rc_state.set_config(
             "datadog/2/ASM/ASM-base/config",
             {"rules_override": [{"on_match": ["block"], "rules_target": [{"tags": {"confidence": "1"}}]}]},

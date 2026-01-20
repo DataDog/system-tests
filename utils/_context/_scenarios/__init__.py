@@ -20,8 +20,7 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .external_processing import ExternalProcessingScenario
-from .stream_processing_offload import StreamProcessingOffloadScenario
+from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
@@ -85,6 +84,24 @@ class _Scenarios:
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
             "may drop some of them"
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_client_drop_p0s_false = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE",
+        # Same as trace_stats_computation but with client_drop_p0s set to false
+        # to test tracer behavior when agent doesn't support client-side P0 dropping
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        client_drop_p0s=False,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
+            "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
         ),
         scenario_groups=[scenario_groups.appsec],
     )
@@ -344,6 +361,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "false",
         },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
@@ -652,6 +670,7 @@ class _Scenarios:
         },
         doc="",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -727,6 +746,7 @@ class _Scenarios:
     debugger_inproduct_enablement = EndToEndScenario(
         "DEBUGGER_INPRODUCT_ENABLEMENT",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
         weblog_env={
             "DD_APM_TRACING_ENABLED": "true",
         },
@@ -738,6 +758,7 @@ class _Scenarios:
     debugger_telemetry = EndToEndScenario(
         "DEBUGGER_TELEMETRY",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
         weblog_env={
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
@@ -1064,32 +1085,17 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    external_processing = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING",
-        doc="Envoy + external processing",
+    go_proxies = GoProxiesScenario(
+        name="GO_PROXIES",
+        doc="Go security processor proxies (Envoy or HAProxy)",
         rc_api_enabled=True,
     )
 
-    external_processing_blocking = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING_BLOCKING",
-        doc="Envoy + external processing + blocking rule file",
-        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    )
-
-    stream_processing_offload = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD",
-        doc="HAProxy + stream processing offload agent",
-        rc_api_enabled=True,
-    )
-
-    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
-        doc="HAProxy + stream processing offload agent + blocking rule file",
-        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        stream_processing_offload_volumes={
-            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
-        },
+    go_proxies_blocking = GoProxiesScenario(
+        name="GO_PROXIES_BLOCKING",
+        doc="Go security processor proxies with blocking rule file",
+        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
     )
 
     ipv6 = IPV6Scenario("IPV6")

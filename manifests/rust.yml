@@ -3,6 +3,7 @@
 refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: 0.0.1
@@ -20,10 +21,16 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: 0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: 0.0.1
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature
+  tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_logs.py: missing_feature
-  tests/parametric/test_otel_metrics.py: missing_feature
+  tests/parametric/test_otel_metrics.py: v0.3.0
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_histogram_add_non_negative_and_negative_values
+  : missing_feature (OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: 0.0.1
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: 0.0.1
@@ -71,5 +78,6 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
   tests/parametric/test_tracer.py: missing_feature
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_v1_payloads.py: missing_feature

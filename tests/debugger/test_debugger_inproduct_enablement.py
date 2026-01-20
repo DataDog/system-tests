@@ -156,7 +156,6 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
-    @missing_feature(context.library == "python", force_skip=True)
     @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
     @bug(context.library == "java", reason="DEBUG-4736", force_skip=True)
     def test_inproduct_enablement_exception_replay_apm_multiconfig(self):

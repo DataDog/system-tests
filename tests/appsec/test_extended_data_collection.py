@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, scenarios, features, weblog, context, bug, remote_config as rc
+from utils import interfaces, scenarios, features, weblog, context, remote_config as rc
 from utils.dd_constants import Capabilities
 
 
@@ -70,7 +70,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -116,7 +116,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection with headers redaction enabled"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -163,7 +163,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection to test header limit"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -209,7 +209,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -269,7 +269,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -308,7 +308,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection but without triggering the rule"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -348,7 +348,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection to test header limit"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -389,7 +389,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection to test header limit"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -433,7 +433,7 @@ class Test_ExtendedRequestBodyCollection:
         """Setup test with remote config for extended request body data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -468,7 +468,7 @@ class Test_ExtendedRequestBodyCollection:
         """Setup test with remote config for extended request body data collection but without triggering the rule"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -497,7 +497,7 @@ class Test_ExtendedRequestBodyCollection:
         """Setup test with remote config for extended request body data collection with truncated body"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -508,7 +508,6 @@ class Test_ExtendedRequestBodyCollection:
             "/tag_value/extended_body_collection/200", data={"param": "collect", "body_key": "A" * 5000}
         )
 
-    @bug(library="java", weblog_variant="vertx3", reason="APPSEC-57811")
     def test_extended_request_body_collection_truncated(self):
         """Test that extended request body data collection properly truncates large bodies when configured via remote config"""
         # Verify remote config was applied successfully

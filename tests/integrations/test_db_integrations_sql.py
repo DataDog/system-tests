@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, missing_feature, irrelevant, scenarios, features, logger
+from utils import context, bug, missing_feature, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
 
@@ -48,7 +48,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
                 raise ValueError(f"Error found in {db_operation} operation, please check captured log call")
 
-    @irrelevant(library="python", reason="Python is using the correct span: db.system")
     def test_db_type(self, excluded_operations: tuple[str, ...] = ()):
         """DEPRECATED!! Now it is db.system. An identifier for the database management system (DBMS) product being used.
         Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
@@ -57,7 +56,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.type"] == self.db_service, f"Test is failing for {db_operation}"
 
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         """DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name."""
         db_container = context.get_container_by_dd_integration_name(self.db_service)
@@ -71,16 +69,12 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for _, span in self.get_spans(excluded_operations):
             assert span["meta"]["span.kind"] == "client"
 
-    @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_runtime_id(self):
         """Unique identifier for the current process."""
 
         for db_operation, span in self.get_spans():
             assert span["meta"]["runtime-id"].strip(), f"Test is failing for {db_operation}"
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_db_system(self):
         """An identifier for the database management system (DBMS) product being used. Formerly db.type
         Must be one of the available values: https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2357395856/Span+attributes#db.system
@@ -89,9 +83,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, span in self.get_spans():
             assert span["meta"]["db.system"] == self.db_service, f"Test is failing for {db_operation}"
 
-    @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_db_connection_string(self):
         """The connection string used to connect to the database."""
 
@@ -105,8 +96,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for _, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.user"].casefold() == db_container.db_user.casefold()
 
-    @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_instance(self, excluded_operations: tuple[str, ...] = ()):
         """The name of the database being connected to. Database instance name. Formerly db.name"""
         db_container = context.get_container_by_dd_integration_name(self.db_service)
@@ -114,17 +103,12 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for _, span in self.get_spans(excluded_operations=excluded_operations):
             assert span["meta"]["db.instance"] == db_container.db_instance
 
-    @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_statement_query(self):
         """Usually the query"""
 
         for db_operation, span in self.get_spans(excluded_operations=("procedure", "select_error")):
             assert db_operation in span["meta"]["db.statement"].lower()
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="python", reason="not implemented yet")
     def test_db_operation(self, excluded_operations: tuple[str, ...] = ()):
         """The name of the operation being executed"""
 
@@ -138,18 +122,12 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     f"Test is failing for {db_operation}"
                 )
 
-    @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
     def test_db_sql_table(self):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
 
         for db_operation, span in self.get_spans(excluded_operations=("procedure",)):
             assert span["meta"]["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
-    @missing_feature(library="python", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
     def test_db_row_count(self):
         """The number of rows/results from the query or operation. For caches and other datastores.
         This tag should only set for operations that retrieve stored data, such as GET operations and queries, excluding SET and other commands not returning data.
@@ -178,7 +156,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                     assert span["meta"][key] != db_container.db_password, f"Test is failing for {db_operation}"
 
     @missing_feature(condition=context.library != "java", reason="Apply only java")
-    @missing_feature(library="java", reason="Not implemented yet")
     def test_db_jdbc_drive_classname(self):
         """The fully-qualified class name of the Java Database Connectivity (JDBC) driver used to connect."""
 
@@ -237,9 +214,7 @@ class Test_Postgres(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "postgresql"
 
-    @bug(library="nodejs", reason="APMAPI-913")
-    @irrelevant(library="python", reason="Python is using the correct span: db.system")
-    def test_db_type(self):
+    def test_db_type(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_db_type()
 
 
@@ -250,13 +225,10 @@ class Test_MySql(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "mysql"
 
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
-    @bug(context.library < "python@2.12.2", reason="APMRP-360")
     def test_db_name(self):
         super().test_db_name()
 
-    @bug(context.library < "python@2.12.2", reason="APMRP-360")
-    def test_db_user(self):
+    def test_db_user(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_db_user()
 
 
@@ -267,9 +239,6 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
 
     db_service = "mssql"
 
-    @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="java", reason="Not implemented yet")
-    @missing_feature(library="nodejs", reason="Not implemented yet")
     def test_db_mssql_instance_name(self):
         """The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance.
         This value should be set only if it's specified on the mssql connection string.
@@ -280,19 +249,13 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
                 f"db.mssql.instance_name must not be empty for operation {db_operation}"
             )
 
-    @bug(library="python", reason="APMAPI-741")
-    @irrelevant(library="java", reason="Java is using the correct span: db.instance")
     def test_db_name(self):
         super().test_db_name()
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
-    @missing_feature(library="java", reason="not implemented yet")
-    @bug(library="python", reason="APMAPI-741")
     def test_db_system(self):
         super().test_db_system()
 
-    @bug(library="python", reason="APMAPI-741")
-    def test_db_user(self):
+    def test_db_user(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_db_user()
 
     def test_obfuscate_query(self):
@@ -315,5 +278,5 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
             )
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
-    def test_sql_success(self):
+    def test_sql_success(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_sql_success()

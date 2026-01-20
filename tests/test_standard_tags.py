@@ -6,11 +6,8 @@ from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, we
 from utils._weblog import HttpResponse
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -37,10 +34,8 @@ class Test_StandardTagsMethod:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@features.security_events_metadata
+@scenarios.go_proxies
 @scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
@@ -88,8 +83,6 @@ class Test_StandardTagsUrl:
         ]
 
     # when tracer is updated, add (for example)
-    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
-    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
     @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string_legacy(self):
@@ -127,7 +120,6 @@ class Test_StandardTagsUrl:
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
-    @irrelevant(context.library < "java@1.22.0", reason="java release the new version at 1.22.0")
     @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
@@ -141,8 +133,6 @@ class Test_StandardTagsUrl:
         )
 
     # when tracer is updated, add (for example)
-    @irrelevant(context.library >= "java@1.21.0", reason="java released the new version at 1.21.0")
-    @irrelevant(context.library >= "python@1.18.0rc1", reason="python released the new version at 1.19.0")
     @irrelevant(context.library >= "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
     @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring_legacy(self):
@@ -161,7 +151,6 @@ class Test_StandardTagsUrl:
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
     @irrelevant(context.library < "dotnet@2.41", reason="dotnet released the new version at 2.41.0")
-    @irrelevant(context.library < "java@1.22.0", reason="java release the new version at 1.22.0")
     @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
@@ -170,11 +159,8 @@ class Test_StandardTagsUrl:
         )
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -237,11 +223,8 @@ class Test_StandardTagsRoute:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
@@ -341,7 +324,6 @@ class Test_StandardTagsClientIp:
     @missing_feature(
         context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )
-    @missing_feature(library="ruby", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6")
     def test_client_ip_with_appsec_event_and_vendor_headers(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)

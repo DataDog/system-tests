@@ -199,7 +199,6 @@ class Test_Defaults:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
@@ -288,7 +287,6 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
@@ -358,7 +356,6 @@ class Test_Consistent_Configs:
         ],
     )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     def test_library_settings_2(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
@@ -416,7 +413,6 @@ class Test_Environment:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
     @bug(context.library >= "cpp@2.0.1", reason="APMAPI-1784")
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
@@ -474,10 +470,8 @@ class Test_Environment:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -565,10 +559,8 @@ class Test_Environment:
 
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
@@ -728,7 +720,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
 
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library <= "java@v1.53.0-SNAPSHOT", reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [
@@ -831,8 +822,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @bug(context.library == "python", reason="APMAPI-1630")
-    @bug(context.library == "ruby", reason="APMAPI-1631")
     @bug(context.library == "nodejs", reason="APMAPI-1709")
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
@@ -915,7 +904,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         reason="extended configs are not supported",
     )
     @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
-    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self,
         local_cfg: dict[str, str],
@@ -1212,7 +1200,6 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false"}, False),
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     def test_telemetry_sca_enabled_propagated(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
@@ -1232,7 +1219,6 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, False),
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     @irrelevant(context.library not in ("python", "golang"))
     def test_telemetry_sca_enabled_propagated_specifics(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool

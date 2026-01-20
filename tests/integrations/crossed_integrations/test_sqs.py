@@ -115,7 +115,6 @@ class _BaseSQS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java",
         reason="Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work",
@@ -178,7 +177,6 @@ class _BaseSQS:
         )
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="dotnet", reason="Expected to fail, .NET does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
@@ -262,14 +260,10 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
         super().test_consume()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="dotnet", reason="Expected to fail, .NET will not extract from XRay headers")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

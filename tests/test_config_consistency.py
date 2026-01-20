@@ -123,7 +123,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_server(self):
         self.r = weblog.get("/?application_key=value")
 
-    @bug(context.library == "python", reason="APMAPI-772")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
@@ -402,11 +401,8 @@ def _get_span_by_tags(spans: list, tags: dict):
     return {}
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.unified_service_tagging
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
