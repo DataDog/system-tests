@@ -115,6 +115,7 @@ manifest:
         "*": missing_feature
         spring-boot: v1.52.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0
