@@ -20,7 +20,8 @@ manifest:
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: 0.0.1
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: 0.0.1
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Randomness bit propagation is not supported yet)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation: missing_feature (Randomness bit propagation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Randomness bit propagation is not supported yet)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: 0.0.1
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature
   tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)

@@ -35,7 +35,8 @@ manifest:
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: ">1.0.0"
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: ">1.0.0"
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Randomness bit propagation is not supported yet)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation: missing_feature (Randomness bit propagation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Randomness bit propagation is not supported yet)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: ">1.0.0"
   tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)

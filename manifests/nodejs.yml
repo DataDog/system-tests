@@ -1686,7 +1686,8 @@ manifest:
   : - declaration: missing_feature (Implemented in 4.20.0 (and 3.41.0))
       component_version: <4.20.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Randomness bit propagation is not supported yet)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation: missing_feature (Randomness bit propagation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Randomness bit propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:
     - declaration: missing_feature (Not implemented)
       component_version: <5.6.0
