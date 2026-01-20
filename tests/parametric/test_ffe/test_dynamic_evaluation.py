@@ -159,8 +159,6 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(context.library == "java", reason="FFL-1729")
-    @bug(context.library == "nodejs", reason="FFL-1730")
     def test_ffe_of7_empty_targeting_key(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """OF.7: Empty string is a valid targeting key.
 
