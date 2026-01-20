@@ -13,10 +13,7 @@
             ],
             "cluster_agents": [
                 "prod",
-                "nightly_dev",
-                "nightly_rc",
-                "nightly_beta",
-                "nightly_latest"
+                "nightly_dev"
             ],
             "helm_charts": [
                 "prod",
@@ -63,10 +60,7 @@
             ],
             "cluster_agents": [
                 "prod",
-                "nightly_dev",
-                "nightly_rc",
-                "nightly_beta",
-                "nightly_latest"
+                "nightly_dev"
             ],
             "helm_charts": [
                 "prod",
@@ -117,10 +111,7 @@
             ],
             "cluster_agents": [
                 "prod",
-                "nightly_dev",
-                "nightly_rc",
-                "nightly_beta",
-                "nightly_latest"
+                "nightly_dev"
             ],
             "helm_charts": [
                 "prod",
@@ -178,7 +169,7 @@
     ],
     "cluster_agent_spec": {
         "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
-        "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:7.56.2",
+        "nightly_old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:7.56.2",
         "nightly_dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master",
         "nightly_rc": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:rc",
         "nightly_beta": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent:beta",
