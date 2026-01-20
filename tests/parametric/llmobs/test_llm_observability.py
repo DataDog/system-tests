@@ -1,27 +1,19 @@
+import pytest
+
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+from ..conftest import APMLibrary
 from utils.docker_fixtures.spec.llm_observability import (
     LlmObsSpanRequest,
     LlmObsAnnotationRequest,
     LlmObsAnnotationContextRequest,
 )
-import pytest
-
-
-@pytest.fixture
-def llmobs_enabled() -> bool:
-    return True
 
 
 @pytest.fixture
 def llmobs_ml_app() -> str | None:
+    """Override default ml_app for these tests."""
     return "test-app"
-
-
-@pytest.fixture
-def dd_service() -> str:
-    return "test-service"
 
 
 @pytest.fixture

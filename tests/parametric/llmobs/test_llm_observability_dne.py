@@ -11,26 +11,11 @@ import pytest
 
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
-from .conftest import APMLibrary
+from ..conftest import APMLibrary
 from utils.docker_fixtures.spec.llm_observability import (
     DatasetCreateRequest,
     DatasetDeleteRequest,
 )
-
-
-@pytest.fixture
-def llmobs_enabled() -> bool:
-    return True
-
-
-@pytest.fixture
-def llmobs_ml_app() -> str:
-    return "test-ml-app"
-
-
-@pytest.fixture
-def llmobs_project_name() -> str:
-    return "test-project"
 
 
 @pytest.fixture
