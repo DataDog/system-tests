@@ -201,7 +201,9 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure: missing_feature (weblog does not respond)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
+    - weblog_declaration:
+        "*": v3.19.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
