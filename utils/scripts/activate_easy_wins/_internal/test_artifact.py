@@ -4,7 +4,6 @@ from pathlib import Path
 import re
 import requests
 import zipfile
-from tqdm import tqdm
 from pygtrie import StringTrie
 import shutil
 
@@ -48,14 +47,22 @@ def pull_artifact(url: str, token: str, data_dir: Path) -> None:
         r.raise_for_status()
         total_size = int(r.headers.get("content-length", 0))
 
-        with (
-            open("data.zip", "wb") as f,
-            tqdm(total=total_size, unit="B", unit_scale=True, desc="Downloading artifact") as pbar,
-        ):
+        print("Downloading artifact...")
+        downloaded = 0
+        last_percent_reported = -10
+
+        with open("data.zip", "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
-                    pbar.update(len(chunk))
+                    downloaded += len(chunk)
+                    if total_size > 0:
+                        percent = (downloaded * 100) // total_size
+                        if percent >= last_percent_reported + 10:
+                            last_percent_reported = (percent // 10) * 10
+                            print(f"  {last_percent_reported}% downloaded ({downloaded // 1024 // 1024} MB)")
+
+        print("Download complete.")
 
     # Extract the downloaded zip file
     shutil.rmtree(data_dir)
