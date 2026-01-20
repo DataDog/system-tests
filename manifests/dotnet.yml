@@ -574,6 +574,7 @@ manifest:
     - weblog_declaration:
         "*": v1.0  # real version not known
         uds: missing_feature (to be confirmed)
+    - test_process_tags: v3.35.0
   tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)

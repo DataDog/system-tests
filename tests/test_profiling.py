@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import re
-from utils import weblog, interfaces, scenarios, features, context, missing_feature
+from utils import weblog, interfaces, scenarios, features
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -48,14 +48,6 @@ class Test_Profile:
         self._common_setup()
 
     @features.process_tags
-    @missing_feature(
-        condition=context.library.name not in ("java", "python", "dotnet", "golang"),
-        reason="Not yet implemented",
-    )
-    @missing_feature(
-        condition=context.library < "dotnet@3.35.0",
-        reason="Not implemented in older versions",
-    )
     def test_process_tags(self):
         """All profiling libraries payload have process tags field"""
         profiling_data_list = list(interfaces.agent.get_profiling_data())
