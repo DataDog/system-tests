@@ -58,41 +58,37 @@ ask_load_k8s_requirements(){
             fi
         fi
     fi
+
+    # 📌 Step: Install Helm if not present
+    if ! command_exists helm; then
+        read -p "⚠️  Helm is not installed. Do you want to install it? (y/n): " INSTALL_HELM
+        if [[ "$INSTALL_HELM" == "y" ]]; then
+            echo "Installing Helm..."
+            curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+            if command_exists helm; then
+                echo -e "${GREEN}✅ Helm installed successfully.${NC}"
+            else
+                echo -e "${RED}❌ Helm installation failed.${NC}"
+            fi
+        fi
+    else
+        echo -e "${GREEN}✅ Helm is already installed ($(helm version --short))${NC}"
+    fi
 }
 
 configure_private_registry() {
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry${NC}"
-    echo "You need to use a private registry to execute these tests."
-    echo "Please select one of the following options:"
-    echo "1) Use existing ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)"
-    echo "2) Configure your own registry"
+    echo "Configuring ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)..."
+    
+    export PRIVATE_DOCKER_REGISTRY="235494822917.dkr.ecr.us-east-1.amazonaws.com"
+    export PRIVATE_DOCKER_REGISTRY_USER="AWS"
 
-    read -p "Enter your choice (1 or 2): " registry_choice
+    # Login to ECR and get token
+    aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password --region us-east-1)
 
-    if [[ "$registry_choice" == "1" ]]; then
-        echo "Configuring ECR registry..."
-        export PRIVATE_DOCKER_REGISTRY="235494822917.dkr.ecr.us-east-1.amazonaws.com"
-        export PRIVATE_DOCKER_REGISTRY_USER="AWS"
-
-        # Login to ECR and get token
-        aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
-        export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password --region us-east-1)
-
-        echo -e "${GREEN}✅ ECR registry configured successfully.${NC}"
-    elif [[ "$registry_choice" == "2" ]]; then
-        read -p "Enter your registry URL: " PRIVATE_DOCKER_REGISTRY
-        read -p "Enter your registry username: " PRIVATE_DOCKER_REGISTRY_USER
-        read -sp "Enter your registry token/password: " PRIVATE_DOCKER_REGISTRY_TOKEN
-        echo
-        export PRIVATE_DOCKER_REGISTRY
-        export PRIVATE_DOCKER_REGISTRY_USER
-        export PRIVATE_DOCKER_REGISTRY_TOKEN
-        echo -e "${GREEN}✅ Custom registry configured successfully.${NC}"
-    else
-        echo -e "${RED}❌ Invalid choice. Please select 1 or 2.${NC}"
-        configure_private_registry
-    fi
+    echo -e "${GREEN}✅ ECR registry configured successfully.${NC}"
 }
 
 select_weblog_img(){
@@ -202,173 +198,167 @@ for comp in components:
     fi
 }
 
-migrate_images_to_private_registry() {
-    if [[ "$PRIVATE_DOCKER_REGISTRY" == "235494822917.dkr.ecr.us-east-1.amazonaws.com" ]]; then
-        return
-    fi
-
+select_helm_chart_version(){
     spacer
-    echo -e "${YELLOW}📌 Step: Migrate Public Images to Private Registry${NC}"
-    read -p "Do you want to migrate public images to your private registry?[cluster-agent, injector, lib-init] (y/n): " MIGRATE_IMAGES
+    echo -e "${YELLOW}📌 Step: Configure Helm Chart Version${NC}"
+    echo "🔄 Fetching available helm chart versions for:"
+    echo "   - Scenario: $SCENARIO"
+    echo "   - Weblog: $WEBLOG"
+    echo ""
 
-    if [[ "$MIGRATE_IMAGES" != "y" ]]; then
+    # Extract helm_charts from the components structure
+    HELM_CHART_VERSIONS=($(echo "$WORKFLOW_JSON" | python -c "
+import sys, json
+data = json.load(sys.stdin)
+components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
+# Find the helm_charts component
+for comp in components:
+    if 'helm_charts' in comp:
+        helm_charts = comp['helm_charts']
+        # Extract all version values from the list of dicts
+        versions = [list(chart.values())[0] for chart in helm_charts]
+        print(' '.join(versions))
+        break
+"))
+
+    # Only prompt if there are multiple versions or if we want to allow custom
+    if [[ ${#HELM_CHART_VERSIONS[@]} -eq 0 ]]; then
+        echo -e "${CYAN}ℹ️  No helm chart versions defined, using default.${NC}"
+        return
+    elif [[ ${#HELM_CHART_VERSIONS[@]} -eq 1 ]]; then
+        export K8S_HELM_CHART="${HELM_CHART_VERSIONS[0]}"
+        echo "✅ Using helm chart version: $K8S_HELM_CHART"
         return
     fi
 
-    echo -e "${YELLOW}⚠️  Warning: Using 'latest' tag might impact CI as it uses latest by default.${NC}"
+    echo "📝 Available helm chart versions:"
+    for i in "${!HELM_CHART_VERSIONS[@]}"; do
+        echo "$(($i + 1))) ${HELM_CHART_VERSIONS[$i]}"
+    done
+    echo "$((${#HELM_CHART_VERSIONS[@]} + 1))) Use custom version"
 
-    # Function to pull and push an image
-    pull_and_push_image() {
-        local source_image=$1
-        local target_name=$2
-        local default_tag=$3
-
-        echo "Processing $target_name..."
-        read -p "Enter tag for $target_name (default: $default_tag): " custom_tag
-        local tag=${custom_tag:-$default_tag}
-
-        echo "Pulling $source_image..."
-        docker pull "$source_image"
-        if [[ $? -ne 0 ]]; then
-            echo -e "${RED}❌ Failed to pull $source_image${NC}"
-            return 1
-        fi
-
-        local target_image="${PRIVATE_DOCKER_REGISTRY}/ssi/${target_name}:${tag}"
-        echo "Tagging and pushing to $target_image..."
-        docker tag "$source_image" "$target_image"
-        docker push "$target_image"
-
-        if [[ $? -eq 0 ]]; then
-            echo -e "${GREEN}✅ Successfully migrated $target_name${NC}"
-            # Update the corresponding variable
-            case "$target_name" in
-                "dd-lib-js-init"|"dd-lib-java-init"|"dd-lib-dotnet-init"|"dd-lib-python-init"|"dd-lib-ruby-init"|"dd-lib-php-init")
-                    K8S_LIB_INIT_IMG="$target_image"
-                    ;;
-                "apm-inject")
-                    K8S_INJECTOR_IMG="$target_image"
-                    ;;
-                "cluster-agent")
-                    CLUSTER_AGENT="$target_image"
-                    ;;
-            esac
+    while true; do
+        read -p "Enter the number of the helm chart version you want to use: " chart_choice
+        if [[ "$chart_choice" =~ ^[0-9]+$ ]] && (( chart_choice >= 1 && chart_choice <= ${#HELM_CHART_VERSIONS[@]} + 1 )); then
+            if (( chart_choice == ${#HELM_CHART_VERSIONS[@]} + 1 )); then
+                read -p "Enter custom helm chart version: " K8S_HELM_CHART
+            else
+                K8S_HELM_CHART="${HELM_CHART_VERSIONS[$((chart_choice - 1))]}"
+            fi
+            export K8S_HELM_CHART
+            break
         else
-            echo -e "${RED}❌ Failed to push $target_image${NC}"
-            return 1
+            echo "❌ Invalid choice. Please select a number between 1 and $((${#HELM_CHART_VERSIONS[@]} + 1))."
         fi
-    }
-
-    # Map language to correct lib-init image name
-    local lib_init_name
-    case "$TEST_LIBRARY" in
-        "nodejs")
-            lib_init_name="dd-lib-js-init"
-            ;;
-        "java")
-            lib_init_name="dd-lib-java-init"
-            ;;
-        "dotnet")
-            lib_init_name="dd-lib-dotnet-init"
-            ;;
-        "python")
-            lib_init_name="dd-lib-python-init"
-            ;;
-        "ruby")
-            lib_init_name="dd-lib-ruby-init"
-            ;;
-        "php")
-            lib_init_name="dd-lib-php-init"
-            ;;
-        *)
-            echo -e "${RED}❌ Unsupported language: $TEST_LIBRARY${NC}"
-            return 1
-            ;;
-    esac
-
-    # Migrate lib-init image
-    local lib_init_source="gcr.io/datadoghq/${lib_init_name}:latest"
-    pull_and_push_image "$lib_init_source" "$lib_init_name" "latest"
-
-    # Migrate apm-injector and cluster-agent
-    pull_and_push_image "gcr.io/datadoghq/apm-inject:latest" "apm-inject" "latest"
-    pull_and_push_image "gcr.io/datadoghq/cluster-agent:latest" "cluster-agent" "latest"
-
-    echo -e "${GREEN}✅ Image migration completed${NC}"
+    done
+    echo "✅ Selected helm chart version: $K8S_HELM_CHART"
 }
 
 select_lib_init_and_injector(){
     spacer
     echo -e "${YELLOW}📌 Step: Configure Lib Init Image${NC}"
-    LIB_INIT_IMAGES_java=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot")
-    LIB_INIT_IMAGES_dotnet=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest_snapshot")
-    LIB_INIT_IMAGES_nodejs=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot")
-    LIB_INIT_IMAGES_python=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest_snapshot")
-    LIB_INIT_IMAGES_ruby=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest_snapshot")
-    LIB_INIT_IMAGES_php=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest_snapshot")
+    echo "🔄 Fetching available lib-init images for:"
+    echo "   - Test Library: $TEST_LIBRARY"
+    echo "   - Scenario: $SCENARIO"
+    echo "   - Weblog: $WEBLOG"
+    echo ""
 
-    LIB_INIT_IMAGES_VAR="LIB_INIT_IMAGES_${TEST_LIBRARY}[@]"
-    DEFAULT_LIB_INIT_IMAGES=(${!LIB_INIT_IMAGES_VAR})
+    # Extract lib_inits from the components structure
+    LIB_INIT_IMAGES=($(echo "$WORKFLOW_JSON" | python -c "
+import sys, json
+data = json.load(sys.stdin)
+components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
+# Find the lib_inits component
+for comp in components:
+    if 'lib_inits' in comp:
+        lib_inits = comp['lib_inits']
+        # Extract all image values from the list of dicts
+        images = [list(lib_init.values())[0] for lib_init in lib_inits]
+        print(' '.join(images))
+        break
+"))
 
-    # Add migrated lib-init image if it exists
-    if [[ -n "$K8S_LIB_INIT_IMG" && "$K8S_LIB_INIT_IMG" != "null" ]]; then
-        DEFAULT_LIB_INIT_IMAGES+=("$K8S_LIB_INIT_IMG")
-    fi
+    if [[ ${#LIB_INIT_IMAGES[@]} -eq 0 ]]; then
+        echo "❗No lib-init images found for:"
+        echo "   - Test Library: $TEST_LIBRARY"
+        echo "   - Scenario: $SCENARIO"
+        echo "   - Weblog: $WEBLOG"
+        read -p "Enter custom lib-init image: " K8S_LIB_INIT_IMG
+    else
+        echo "📝 Available lib-init images:"
+        for i in "${!LIB_INIT_IMAGES[@]}"; do
+            echo "$(($i + 1))) ${LIB_INIT_IMAGES[$i]}"
+        done
+        echo "$((${#LIB_INIT_IMAGES[@]} + 1))) Use custom image"
 
-    echo "📝 Available lib-init images:"
-    for i in "${!DEFAULT_LIB_INIT_IMAGES[@]}"; do
-        echo "$(($i + 1))) ${DEFAULT_LIB_INIT_IMAGES[$i]}"
-    done
-    echo "$((${#DEFAULT_LIB_INIT_IMAGES[@]} + 1))) Use custom image"
-
-    while true; do
-        read -p "Enter the number of the lib-init image you want to use: " lib_init_choice
-        if [[ "$lib_init_choice" =~ ^[0-9]+$ ]] && (( lib_init_choice >= 1 && lib_init_choice <= ${#DEFAULT_LIB_INIT_IMAGES[@]} + 1 )); then
-            if (( lib_init_choice == ${#DEFAULT_LIB_INIT_IMAGES[@]} + 1 )); then
-                read -p "Enter custom lib-init image: " K8S_LIB_INIT_IMG
+        while true; do
+            read -p "Enter the number of the lib-init image you want to use: " lib_init_choice
+            if [[ "$lib_init_choice" =~ ^[0-9]+$ ]] && (( lib_init_choice >= 1 && lib_init_choice <= ${#LIB_INIT_IMAGES[@]} + 1 )); then
+                if (( lib_init_choice == ${#LIB_INIT_IMAGES[@]} + 1 )); then
+                    read -p "Enter custom lib-init image: " K8S_LIB_INIT_IMG
+                else
+                    K8S_LIB_INIT_IMG="${LIB_INIT_IMAGES[$((lib_init_choice - 1))]}"
+                fi
+                break
             else
-                K8S_LIB_INIT_IMG="${DEFAULT_LIB_INIT_IMAGES[$((lib_init_choice - 1))]}"
+                echo "❌ Invalid choice. Please select a number between 1 and $((${#LIB_INIT_IMAGES[@]} + 1))."
             fi
-            break
-        else
-            echo "❌ Invalid choice. Please select a number between 1 and $((${#DEFAULT_LIB_INIT_IMAGES[@]} + 1))."
-        fi
-    done
+        done
+    fi
     echo "✅ Selected lib-init image: $K8S_LIB_INIT_IMG"
 
-    if [[ -z "$CLUSTER_AGENT" || "$CLUSTER_AGENT" == "null" ]]; then
+    # Check if scenario uses cluster agents (NO_AC scenarios don't)
+    if [[ -z "$CLUSTER_AGENT" || "$CLUSTER_AGENT" == "''" ]]; then
         echo -e "${CYAN}ℹ️  No cluster agent found, skipping injector configuration.${NC}"
         K8S_INJECTOR_IMG="''"
         CLUSTER_AGENT="''"
     else
         spacer
         echo -e "${YELLOW}📌 Step: Configure Injector Image${NC}"
-        INJECTOR_IMAGES=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot")
+        echo "🔄 Fetching available injector images for:"
+        echo "   - Scenario: $SCENARIO"
+        echo "   - Weblog: $WEBLOG"
+        echo ""
 
-        # Add migrated injector image if it exists
-        if [[ -n "$K8S_INJECTOR_IMG" && "$K8S_INJECTOR_IMG" != "null" ]]; then
-            INJECTOR_IMAGES+=("$K8S_INJECTOR_IMG")
-        fi
+        # Extract injectors from the components structure
+        INJECTOR_IMAGES=($(echo "$WORKFLOW_JSON" | python -c "
+import sys, json
+data = json.load(sys.stdin)
+components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
+# Find the injectors component
+for comp in components:
+    if 'injectors' in comp:
+        injectors = comp['injectors']
+        # Extract all image values from the list of dicts
+        images = [list(injector.values())[0] for injector in injectors]
+        print(' '.join(images))
+        break
+"))
 
-        echo "📝 Available injector images:"
-        for i in "${!INJECTOR_IMAGES[@]}"; do
-            echo "$(($i + 1))) ${INJECTOR_IMAGES[$i]}"
-        done
-        echo "$((${#INJECTOR_IMAGES[@]} + 1))) Use custom image"
+        if [[ ${#INJECTOR_IMAGES[@]} -eq 0 ]]; then
+            echo "❗No injector images found for scenario: $SCENARIO"
+            read -p "Enter custom injector image: " K8S_INJECTOR_IMG
+        else
+            echo "📝 Available injector images:"
+            for i in "${!INJECTOR_IMAGES[@]}"; do
+                echo "$(($i + 1))) ${INJECTOR_IMAGES[$i]}"
+            done
+            echo "$((${#INJECTOR_IMAGES[@]} + 1))) Use custom image"
 
-        while true; do
-            read -p "Enter the number of the injector image you want to use: " injector_choice
-            if [[ "$injector_choice" =~ ^[0-9]+$ ]] && (( injector_choice >= 1 && injector_choice <= ${#INJECTOR_IMAGES[@]} + 1 )); then
-                if (( injector_choice == ${#INJECTOR_IMAGES[@]} + 1 )); then
-                    read -p "Enter custom injector image: " K8S_INJECTOR_IMG
+            while true; do
+                read -p "Enter the number of the injector image you want to use: " injector_choice
+                if [[ "$injector_choice" =~ ^[0-9]+$ ]] && (( injector_choice >= 1 && injector_choice <= ${#INJECTOR_IMAGES[@]} + 1 )); then
+                    if (( injector_choice == ${#INJECTOR_IMAGES[@]} + 1 )); then
+                        read -p "Enter custom injector image: " K8S_INJECTOR_IMG
+                    else
+                        K8S_INJECTOR_IMG="${INJECTOR_IMAGES[$((injector_choice - 1))]}"
+                    fi
+                    break
                 else
-                    K8S_INJECTOR_IMG="${INJECTOR_IMAGES[$((injector_choice - 1))]}"
+                    echo "❌ Invalid choice. Please select a number between 1 and $((${#INJECTOR_IMAGES[@]} + 1))."
                 fi
-                break
-            else
-                echo "❌ Invalid choice. Please select a number between 1 and $((${#INJECTOR_IMAGES[@]} + 1))."
-            fi
-        done
+            done
+        fi
         echo "✅ Selected injector image: $K8S_INJECTOR_IMG"
     fi
 }
@@ -387,6 +377,7 @@ run_the_tests(){
     echo "   🔹 Library init:     $K8S_LIB_INIT_IMG"
     echo "   🔹 Injector:         $K8S_INJECTOR_IMG"
     echo "   🔹 Cluster agent:    $CLUSTER_AGENT"
+    echo "   🔹 Helm chart:       ${K8S_HELM_CHART:-default}"
     echo "   🔹 Test Library:     $TEST_LIBRARY"
     echo ""
 
@@ -411,7 +402,7 @@ load_workflow_data "lib-injection,lib-injection-profiling" "libinjection_scenari
 select_scenario
 select_weblog
 select_weblog_img
-migrate_images_to_private_registry
 select_cluster_agent
+select_helm_chart_version
 select_lib_init_and_injector
 run_the_tests
