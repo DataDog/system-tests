@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/datasets/test-dataset-metadata-id/batch_update",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\": {\"type\": \"datasets\", \"id\": \"test-dataset-metadata-id\", \"attributes\": {\"insert_records\": [{\"input\": {\"prompt\": \"What is the capital of France?\"}, \"expected_output\": {\"answer\": \"Paris\"}, \"metadata\": {\"difficulty\": \"easy\", \"category\": \"geography\"}}], \"update_records\": [], \"delete_records\": []}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\":[{\"id\":\"record-uuid-1\",\"type\":\"datasets\",\"attributes\":{\"dataset_id\":\"test-dataset-metadata-id\",\"expected_output\":{\"answer\":\"Paris\"},\"input\":{\"prompt\":\"What is the capital of France?\"},\"metadata\":{\"difficulty\":\"easy\",\"category\":\"geography\"},\"version\":1}}]}"
+  }
+}

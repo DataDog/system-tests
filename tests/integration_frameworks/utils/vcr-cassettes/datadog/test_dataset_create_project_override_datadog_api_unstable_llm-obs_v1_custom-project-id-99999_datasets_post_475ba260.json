@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/custom-project-id-99999/datasets",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\": {\"type\": \"datasets\", \"attributes\": {\"name\": \"test-dataset-custom-project\", \"description\": \"A test dataset in a custom project\"}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\":{\"id\":\"test-dataset-custom-id\",\"type\":\"datasets\",\"attributes\":{\"name\":\"test-dataset-custom-project\",\"description\":\"A test dataset in a custom project\",\"project_id\":\"custom-project-id-99999\",\"current_version\":1}}}"
+  }
+}

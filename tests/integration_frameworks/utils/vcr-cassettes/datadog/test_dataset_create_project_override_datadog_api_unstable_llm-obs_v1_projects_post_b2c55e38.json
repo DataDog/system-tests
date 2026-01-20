@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/projects",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\": {\"type\": \"projects\", \"attributes\": {\"name\": \"custom-project\", \"description\": \"\"}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\":{\"id\":\"custom-project-id-99999\",\"type\":\"projects\",\"attributes\":{\"name\":\"custom-project\",\"description\":\"\"}}}"
+  }
+}

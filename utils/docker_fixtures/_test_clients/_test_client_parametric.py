@@ -16,7 +16,13 @@ import pytest
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
-from utils.docker_fixtures.spec.llm_observability import SpanRequest, LlmObsAnnotationContextRequest
+from utils.docker_fixtures.spec.llm_observability import (
+    SpanRequest,
+    LlmObsAnnotationContextRequest,
+    DatasetCreateRequest,
+    DatasetDeleteRequest,
+    DatasetResponse,
+)
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
@@ -919,6 +925,56 @@ class ParametricTestClientApi:
 
         return cast("dict", resp.json()) if resp.ok else resp.text
 
+    def llmobs_dataset_create(
+        self, dataset_create_request: DatasetCreateRequest, *, raise_on_error: bool = True
+    ) -> DatasetResponse | str | None:
+        """Create a new dataset.
+
+        Returns:
+        - `DatasetResponse`: successful response with dataset information
+        - `str`: error response text
+        - `None`: if the response is not ok and raise_on_error=True
+        """
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/create"),
+            json={"dataset_create_request": asdict(dataset_create_request)},
+        )
+        if raise_on_error:
+            resp.raise_for_status()
+
+        if resp.ok:
+            data = resp.json()
+            return DatasetResponse(
+                dataset_id=data["dataset_id"],
+                name=data["name"],
+                description=data.get("description"),
+                project_name=data.get("project_name"),
+                project_id=data.get("project_id"),
+                version=data.get("version"),
+                latest_version=data.get("latest_version"),
+                records=data.get("records", []),
+            )
+        return resp.text
+
+    def llmobs_dataset_delete(
+        self, dataset_delete_request: DatasetDeleteRequest, *, raise_on_error: bool = True
+    ) -> dict | str | None:
+        """Delete a dataset.
+
+        Returns:
+        - `dict`: successful response with {"success": True}
+        - `str`: error response text
+        - `None`: if the response is not ok and raise_on_error=True
+        """
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/delete"),
+            json={"dataset_delete_request": asdict(dataset_delete_request)},
+        )
+        if raise_on_error:
+            resp.raise_for_status()
+
+        return cast("dict", resp.json()) if resp.ok else resp.text
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -1131,6 +1187,16 @@ class APMLibrary:
         self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest, *, raise_on_error: bool = True
     ) -> dict | str | None:
         return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
+
+    def llmobs_dataset_create(
+        self, dataset_create_request: DatasetCreateRequest, *, raise_on_error: bool = True
+    ) -> DatasetResponse | str | None:
+        return self._client.llmobs_dataset_create(dataset_create_request, raise_on_error=raise_on_error)
+
+    def llmobs_dataset_delete(
+        self, dataset_delete_request: DatasetDeleteRequest, *, raise_on_error: bool = True
+    ) -> dict | str | None:
+        return self._client.llmobs_dataset_delete(dataset_delete_request, raise_on_error=raise_on_error)
 
     @property
     def container(self) -> Container:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Literal
+from dataclasses import dataclass, field
+from typing import Any, Literal
 
 
 @dataclass
@@ -53,3 +53,48 @@ class LlmObsAnnotationContextRequest:
 
     children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
     type: Literal["annotation_context"] = "annotation_context"
+
+
+# =============================================================================
+# Datasets and Experiments (DNE) Spec Types
+# =============================================================================
+
+
+@dataclass
+class DatasetRecordRequest:
+    """A single record in a dataset."""
+
+    input_data: dict[str, Any]
+    expected_output: Any | None = None
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass
+class DatasetCreateRequest:
+    """Request to create a new dataset."""
+
+    dataset_name: str
+    description: str | None = None
+    records: list[DatasetRecordRequest] | None = None
+    project_name: str | None = None
+
+
+@dataclass
+class DatasetDeleteRequest:
+    """Request to delete a dataset."""
+
+    dataset_id: str
+
+
+@dataclass
+class DatasetResponse:
+    """Response from dataset operations."""
+
+    dataset_id: str
+    name: str
+    description: str | None = None
+    project_name: str | None = None
+    project_id: str | None = None
+    version: int | None = None
+    latest_version: int | None = None
+    records: list[dict[str, Any]] = field(default_factory=list)

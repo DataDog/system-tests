@@ -1,15 +1,35 @@
 from __future__ import annotations
 
+import os
+
 from ddtrace.internal.telemetry import telemetry_writer
 from ddtrace.llmobs import LLMObs
+from ddtrace.llmobs._experiment import DatasetRecord
 from ddtrace import tracer
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from typing import Literal, Union
+from typing import Any, Literal, Union
 
 router = APIRouter()
+
+
+def configure_dne_intake():
+    """Configure DNE client intake URL if DD_LLMOBS_DNE_INTAKE_URL is set.
+
+    This allows routing DNE API calls through the test agent's VCR proxy
+    for recorded request playback in tests.
+    """
+    dne_intake_url = os.environ.get("DD_LLMOBS_DNE_INTAKE_URL")
+    if dne_intake_url and LLMObs._instance and LLMObs._instance._dne_client:
+        LLMObs._instance._dne_client._intake = dne_intake_url
+
+
+@router.on_event("startup")
+async def startup_configure_dne():
+    """Configure DNE intake on startup."""
+    configure_dne_intake()
 
 
 @dataclass
@@ -169,3 +189,93 @@ def llmobs_trace(trace_structure_request: Request):
         return maybe_exported_span_ctx or {}
     finally:
         telemetry_writer.periodic(force_flush=True)
+
+
+# =============================================================================
+# Datasets and Experiments (DNE) Endpoints
+# =============================================================================
+
+
+@dataclass
+class DatasetRecordRequest:
+    """A single record in a dataset."""
+
+    input_data: dict
+    expected_output: Any | None = None
+    metadata: dict | None = None
+
+
+@dataclass
+class DatasetCreateRequest:
+    """Request to create a new dataset."""
+
+    dataset_name: str
+    description: str | None = None
+    records: list[DatasetRecordRequest] | None = None
+    project_name: str | None = None
+
+
+class DatasetCreateRequestModel(BaseModel):
+    dataset_create_request: DatasetCreateRequest
+
+
+@dataclass
+class DatasetDeleteRequest:
+    """Request to delete a dataset."""
+
+    dataset_id: str
+
+
+class DatasetDeleteRequestModel(BaseModel):
+    dataset_delete_request: DatasetDeleteRequest
+
+
+@router.post("/llm_observability/dataset/create")
+def llmobs_dataset_create(request: DatasetCreateRequestModel):
+    """Create a new dataset."""
+    req = request.dataset_create_request
+
+    # Convert records to DatasetRecord format if provided
+    records = None
+    if req.records:
+        records = [
+            DatasetRecord(
+                input_data=r.input_data,
+                expected_output=r.expected_output,
+                metadata=r.metadata or {},
+            )
+            for r in req.records
+        ]
+
+    # Build kwargs for create_dataset
+    kwargs = {
+        "dataset_name": req.dataset_name,
+    }
+    if req.description is not None:
+        kwargs["description"] = req.description
+    if records is not None:
+        kwargs["records"] = records
+    if req.project_name is not None:
+        kwargs["project_name"] = req.project_name
+
+    dataset = LLMObs.create_dataset(**kwargs)
+
+    # Build response
+    return {
+        "dataset_id": dataset._id,
+        "name": dataset.name,
+        "description": dataset.description,
+        "project_name": dataset.project.get("name") if dataset.project else None,
+        "project_id": dataset.project.get("_id") if dataset.project else None,
+        "version": dataset._version,
+        "latest_version": dataset._latest_version,
+        "records": list(dataset._records),
+    }
+
+
+@router.post("/llm_observability/dataset/delete")
+def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
+    """Delete a dataset."""
+    req = request.dataset_delete_request
+    LLMObs._delete_dataset(dataset_id=req.dataset_id)
+    return {"success": True}
