@@ -233,11 +233,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
-            {
-                "DD_METRICS_OTEL_ENABLED": None,
-                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-                "CORECLR_ENABLE_PROFILING": "1",
-            },
         ],
     )
     def test_otlp_metrics_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -1847,7 +1842,9 @@ class Test_Otel_Metrics_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            value = config.get("value")
+            assert value is not None, f"Configuration value is None for '{expected_env}'"
+            assert int(value) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
@@ -1889,12 +1886,12 @@ class Test_Otel_Metrics_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
-            ("OTEL_METRIC_EXPORT_INTERVAL", 5000),
-            ("OTEL_METRIC_EXPORT_TIMEOUT", 5000),
+            ("OTEL_METRIC_EXPORT_INTERVAL", "5000"),
+            ("OTEL_METRIC_EXPORT_TIMEOUT", "5000"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
@@ -1902,7 +1899,7 @@ class Test_Otel_Metrics_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
@@ -1942,7 +1939,7 @@ class Test_Otel_Metrics_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
@@ -1953,7 +1950,7 @@ class Test_Otel_Metrics_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 

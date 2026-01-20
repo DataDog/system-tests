@@ -84,6 +84,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0
         vertx4: v1.51.0
+  tests/appsec/api_security/test_apisecurity_telemetry.py: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:
     - weblog_declaration:
         "*": v1.55.0
@@ -114,6 +115,7 @@ manifest:
         "*": missing_feature
         spring-boot: v1.52.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0
@@ -2664,6 +2666,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
+  tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -3047,6 +3050,17 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
+  tests/stats/test_stats.py: v1.54.0
+  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
+    - weblog_declaration:
+        "*": v1.54.0
+        play: missing_feature (play controllers also generate stats and the test will fail)
+        ratpack: missing_feature (ratpack controllers also generate stats and the test will fail)
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation:
+    - weblog_declaration:
+        "*": v1.54.0
+        spring-boot-3-native: missing_feature (rasp endpoint not implemented)
+  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic:
     - weblog_declaration:
         "*": v1.53.0

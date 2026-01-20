@@ -30,7 +30,6 @@ class Test_HttpProtocol:
     def setup_http_protocol(self):
         self.r_1 = weblog.get("/waf/", params={"key": ".cookie;domain="})
 
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_protocol(self):
         """AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.http_protocol_violation.crs_943_100)
@@ -76,7 +75,6 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     @irrelevant(
         context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
     )
@@ -222,7 +220,6 @@ class Test_NoSqli:
         self.r_4 = weblog.get("/waf/", params={"$nin": "value"})
 
     @missing_feature(context.library in ["php"], reason="Need to use last WAF version")
-    @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
     def test_nosqli_keys(self):
         """AppSec catches NoSQLI attacks in keys"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.nosql_injection)

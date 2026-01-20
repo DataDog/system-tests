@@ -17,7 +17,6 @@ class Test_Standardization:
         weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @missing_feature(library="php")
-    @missing_feature(library="dotnet", reason="APPSEC-983, being discussed")
     def test_i01(self):
         """Log I1: AppSec initial configuration"""
         stdout.assert_presence(r"AppSec initial configuration from .*, libddwaf version: \d+\.\d+\.\d+", level="INFO")
@@ -27,7 +26,6 @@ class Test_Standardization:
         """Log I2: AppSec rule source"""
         stdout.assert_presence(r"AppSec loaded \d+ rules from file .*$", level="INFO")
 
-    @missing_feature(library="dotnet", reason="APPSEC-983")
     @missing_feature(library="php")
     def test_i05(self):
         """Log I5: WAF detected an attack"""
