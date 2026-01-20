@@ -696,7 +696,6 @@ class Test_Headers_Tracecontext:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -735,7 +734,6 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -752,7 +750,6 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert f"p:{int(span.span_id):016x}" in tracestate
 
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
@@ -803,7 +800,6 @@ class Test_Headers_Tracecontext:
         # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
         assert f"p:{int(s2.span_id):016x}" in tracestate2
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")

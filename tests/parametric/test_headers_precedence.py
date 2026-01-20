@@ -215,7 +215,6 @@ class Test_Headers_Precedence:
 
     @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library > "dotnet@2.47.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "rust", reason="Issue: tracecontext,Datadog was never the default configuration")
@@ -494,7 +493,6 @@ class Test_Headers_Precedence:
         assert "x-datadog-sampling-priority" not in headers6
 
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
     @missing_feature(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
     @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_library: APMLibrary) -> None:
@@ -646,7 +644,6 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "dotnet@2.42.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
