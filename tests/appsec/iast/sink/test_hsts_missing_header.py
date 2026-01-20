@@ -17,7 +17,6 @@ class Test_HstsMissingHeader(BaseSinkTest):
     data = {}
     headers = {"X-Forwarded-Proto": "https"}
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

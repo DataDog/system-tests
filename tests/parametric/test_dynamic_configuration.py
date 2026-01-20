@@ -264,7 +264,6 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(context.library == "java", reason="APMAPI-1225")
-    @missing_feature(context.library < "dotnet@3.29.0", reason="Added new capabilities", force_skip=True)
     @missing_feature(
         context.library < "nodejs@5.72.0",
         reason="Added new FFE flag capabilities",
@@ -344,7 +343,6 @@ class TestDynamicConfigTracingEnabled:
         [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}],
     )
     @irrelevant(library="golang")
-    @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
     @irrelevant(library="cpp", reason="APMAPI-1592")
     def test_tracing_client_tracing_disable_one_way(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
@@ -411,7 +409,6 @@ class TestDynamicConfigV1:
         assert cfg_state["product"] == "APM_TRACING"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rate should override the default sampling rate.
 
@@ -436,7 +433,6 @@ class TestDynamicConfigV1:
         "library_env",
         [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]],
     )
-    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     def test_trace_sampling_rate_override_env(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
@@ -910,7 +906,6 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
     def test_trace_sampling_rules_with_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.

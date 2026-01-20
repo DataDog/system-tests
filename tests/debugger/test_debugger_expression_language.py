@@ -312,7 +312,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
         )
 
-    @bug(library="dotnet", reason="DEBUG-2530")
     def test_expression_language_instance_of(self):
         self._assert(expected_response=200)
 
@@ -386,7 +385,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
         )
 
-    @bug(context.library == "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
         self._assert(expected_response=200)
 
@@ -518,7 +516,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
 
-    @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
         self._assert(expected_response=200)
 
@@ -767,7 +764,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
-    @bug(library="dotnet", reason="DEBUG-2602")
     def test_expression_language_hash_operations(self):
         self._assert(expected_response=200)
 
@@ -900,7 +896,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/null")
 
-    @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
         self._assert(expected_response=200)
 
@@ -919,7 +914,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/null?intValue=5&strValue=haha&boolValue=true")
 
-    @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
         self._assert(expected_response=200)
 

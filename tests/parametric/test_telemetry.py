@@ -199,7 +199,6 @@ class Test_Defaults:
             }
         ],
     )
-    @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
@@ -468,7 +467,6 @@ class Test_Environment:
                 assert cfg_item.get("value") == environment_value, f"Unexpected value for '{matched_name}'"
             assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{matched_name}'"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
@@ -557,7 +555,6 @@ class Test_Environment:
                     f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otel_hiding}"
                 )
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
@@ -719,7 +716,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert telemetry_item["value"]
 
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [

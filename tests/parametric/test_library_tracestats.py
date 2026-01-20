@@ -50,7 +50,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_metrics_msgpack_serialization_TS001(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When spans are finished
         Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
@@ -104,7 +103,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_distinct_aggregationkeys_TS003(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
@@ -190,7 +188,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_measured_spans_TS004(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When spans are marked as measured
         Each has stats computed for it
@@ -233,7 +230,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_top_level_TS005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
@@ -285,7 +281,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_successes_errors_recorded_separately_TS006(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
@@ -341,7 +336,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "java", reason="FIXME: Undefined behavior according the java tracer core team")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_sample_rate_0_TS007(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
@@ -413,7 +407,6 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
-    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_metrics_computed_after_span_finsh_TS009(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after

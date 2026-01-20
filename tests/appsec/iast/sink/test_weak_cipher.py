@@ -25,11 +25,9 @@ class TestWeakCipher(BaseSinkTest):
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 
-    @flaky(context.library == "dotnet@3.3.1", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

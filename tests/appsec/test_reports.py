@@ -87,7 +87,6 @@ class Test_RequestHeaders:
             },
         )
 
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 

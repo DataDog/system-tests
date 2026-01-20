@@ -18,7 +18,6 @@ class Test_Debugger_Code_Origins(debugger.BaseDebuggerTest):
         self.initialize_weblog_remote_config()
         self.send_weblog_request("/healthcheck")
 
-    @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
     @missing_feature(
         context.library == "java" and context.weblog_variant != "spring-boot",
         reason="Implemented for spring-mvc",

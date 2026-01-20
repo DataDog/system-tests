@@ -25,7 +25,6 @@ class TestLDAPInjection(BaseSinkTest):
         "nodejs": get_nodejs_iast_file_paths(),
     }
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

@@ -78,7 +78,6 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     def setup_telemetry_er(self):
         self._setup()
 
-    @flaky(context.library == "dotnet", reason="DEBUG-3322")
     @missing_feature(context.library == "nodejs", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
     def test_telemetry_er(self):
@@ -97,7 +96,6 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     def setup_telemetry_co(self):
         self._setup()
 
-    @missing_feature(context.library == "dotnet", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
     def test_telemetry_co(self):
         self._assert(required_telemetry=["code_origin_for_spans_enabled"])

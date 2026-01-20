@@ -16,6 +16,5 @@ class TestPath(BaseSourceTest):
     source_value = "/iast/source/path/test"
     requests_kwargs = [{"method": "GET"}]
 
-    @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()

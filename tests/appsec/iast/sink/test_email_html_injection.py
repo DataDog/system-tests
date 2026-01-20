@@ -17,7 +17,6 @@ class TestEmailHtmlInjection(BaseSinkTest):
     data = {"username": "Josh", "email": "fakeemail@localhost"}
     location_map = {"java": "com.datadoghq.system_tests.iast.utils.EmailExamples"}
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
