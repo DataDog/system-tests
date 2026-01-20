@@ -115,7 +115,7 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 950  # 100 * 10 * 0.9 + 50
             assert span["meta"]["appsec.events.payments.creation.client_reference_id"] == "GabeN"
             assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
-            assert span["meta"]["appsec.events.payments.creation.customer_email"] == "gaben@valvesoftware.com"
+            assert "appsec.events.payments.creation.customer_email" not in span["meta"]
             assert span["meta"]["appsec.events.payments.creation.discounts.coupon"] == "COUPEZ"
             assert span["meta"]["appsec.events.payments.creation.discounts.promotion_code"] == "promo_FAKE"
             assert span["metrics"]["appsec.events.payments.creation.livemode"] == 1
@@ -190,7 +190,7 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
             assert span["metrics"]["appsec.events.payments.creation.livemode"] == 1
             assert span["meta"]["appsec.events.payments.creation.payment_method"] == "pm_FAKE"
-            assert span["meta"]["appsec.events.payments.creation.receipt_email"] == "gaben@valvesoftware.com"
+            assert "appsec.events.payments.creation.receipt_email" not in span["meta"]
 
             return True
 
@@ -262,10 +262,7 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.code"] == "card_declined"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.decline_code"] == "stolen_card"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.id"] == "pm_FAKE"
-            assert (
-                span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email"]
-                == "gaben@valvesoftware.com"
-            )
+            assert "appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email" not in span["meta"]
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.type"] == "card"
             assert span["metrics"]["appsec.events.payments.failure.livemode"] == 1
 
@@ -299,7 +296,7 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["meta"]["appsec.events.payments.cancellation.cancellation_reason"] == "requested_by_customer"
             assert span["meta"]["appsec.events.payments.cancellation.currency"] == "eur"
             assert span["metrics"]["appsec.events.payments.cancellation.livemode"] == 1
-            assert span["meta"]["appsec.events.payments.cancellation.receipt_email"] == "gaben@valvesoftware.com"
+            assert "appsec.events.payments.cancellation.receipt_email" not in span["meta"]
 
             return True
 
