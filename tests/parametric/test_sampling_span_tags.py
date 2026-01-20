@@ -83,7 +83,6 @@ def _assert_sampling_tags(
 @scenarios.parametric
 @features.trace_sampling
 class Test_Sampling_Span_Tags:
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang sets priority 2
     @bug(library="php", reason="APMAPI-737")  # php sets priority 2
     @bug(library="cpp", reason="APMAPI-737")  # c++ does not support magic tags
@@ -101,7 +100,6 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -3 on first span
     @bug(library="php", reason="APMAPI-737")  # php sets dm tag -3 on first span
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -3 on first span
@@ -119,7 +117,6 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="cpp", reason="APMAPI-737")  # unknown
     def test_tags_defaults_sst002(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -136,7 +133,6 @@ class Test_Sampling_Span_Tags:
             "be either set to the default rate or unset",
         )
 
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang sets limit_psr
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
@@ -154,7 +150,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate, which is 1",
         )
 
-    @bug(library="dotnet", reason="APMAPI-737")  # .NET sets rate tag 9.9999 on parent span
     @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag on first span
     @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
     @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1 on first span
@@ -173,7 +168,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate",
         )
 
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang sets limit_psr
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize(
@@ -196,7 +190,6 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="php", reason="APMAPI-737")  # php does not set dm tag on first span
     @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
     @bug(library="golang", reason="APMAPI-737")  # golang sets priority tag 2
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}])}]
@@ -217,7 +210,6 @@ class Test_Sampling_Span_Tags:
         )
 
     @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
     @bug(library="php", reason="APMAPI-737")  # php does not set limit_psr
     @bug(library="cpp", reason="APMAPI-737")  # this test times out with the c++ tracer
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
@@ -238,7 +230,6 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="APMAPI-737")  # golang sets priority tag 2
     @bug(library="php", reason="APMAPI-737")  # php does not set dm tag
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
     @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag
     @pytest.mark.parametrize(
         "library_env",
@@ -270,7 +261,6 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -1
     @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": 3}])
     def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -289,7 +279,6 @@ class Test_Sampling_Span_Tags:
 
     @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -1
     @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
     @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize("library_env", [{"DD_APPSEC_ENABLED": 1}])
     def test_tags_appsec_enabled_sst011(self, test_agent: TestAgentAPI, test_library: APMLibrary):

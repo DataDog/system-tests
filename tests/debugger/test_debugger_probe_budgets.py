@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, context, bug
+from utils import scenarios, features, missing_feature, context
 
 
 @features.debugger_probe_budgets
@@ -72,7 +72,6 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-    @bug(context.library == "dotnet", reason="DEBUG-4746")
     def test_log_line_budgets(self):
         self._assert()
         self._validate_snapshots()

@@ -25,7 +25,6 @@ class TestRequestBody(BaseSourceTest):
         reason="Metrics not implemented",
     )
     @bug(context.library >= "java@1.13.0" and context.library < "java@1.17.0", reason="APMRP-360")
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
@@ -33,6 +32,5 @@ class TestRequestBody(BaseSourceTest):
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
     )
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_executed_source(self):
         super().test_telemetry_metric_executed_source()

@@ -239,7 +239,6 @@ class Test_Automated_Session_Blocking:
             cookies=self.r_create_session.cookies,
         )
 
-    @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
         assert self.r_create_session.status_code == 200
 
