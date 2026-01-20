@@ -51,7 +51,6 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config(enabled=False)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
     def test_inproduct_enablement_di(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
@@ -156,8 +155,6 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
-    @missing_feature(context.library == "python", force_skip=True)
-    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
     @bug(context.library == "java", reason="DEBUG-4736", force_skip=True)
     def test_inproduct_enablement_exception_replay_apm_multiconfig(self):
         self.assert_rc_state_not_error()
@@ -195,7 +192,6 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         _send_config(enabled=False)
         self.er_explicit_disabled = not self.wait_for_code_origin_span(TIMEOUT)
 
-    @bug(context.library == "dotnet", reason="DEBUG-4637", force_skip=True)
     def test_inproduct_enablement_code_origin(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()

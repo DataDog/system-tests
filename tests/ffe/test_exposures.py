@@ -45,12 +45,12 @@ class Test_FFE_Exposure_Events:
     def setup_ffe_exposure_event_generation(self):
         """Set up FFE exposure event generation."""
         # Reset remote config to empty state
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         # Set up Remote Config
         config_id = "ffe-test-config"
         rc_config = UFC_FIXTURE_DATA
-        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
 
         # Evaluate a feature flag
         self.flag = "test-flag"
@@ -131,7 +131,7 @@ class Test_FFE_Exposure_Events:
     def setup_ffe_multiple_remote_config_files(self):
         """Set up FFE with multiple remote config files across different target paths."""
         # Reset remote config to empty state
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         # Set up multiple Remote Config files with different config IDs
         config_id_1 = "ffe-test-config-1"
@@ -184,7 +184,7 @@ class Test_FFE_Exposure_Events:
         }
 
         # Apply both configurations
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id_1}/config", rc_config_1).set_config(
             f"{RC_PATH}/{config_id_2}/config", rc_config_2
         ).apply()
 
@@ -265,7 +265,7 @@ class Test_FFE_Exposure_Events_Empty:
     def setup_ffe_empty_remote_config(self):
         """Set up FFE with empty remote config state."""
         # Reset remote config to empty state
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         # Evaluate a feature flag without any remote config
         self.flag = "test-flag-no-config"
@@ -309,7 +309,7 @@ class Test_FFE_Exposure_Events_Errors:
     def setup_ffe_malformed_remote_config_rejection(self):
         """Set up FFE with a valid config, then update with malformed config to test rejection."""
         # Reset remote config to empty state
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         # First, set up a valid Remote Config
         config_id = "ffe-test-config-malformed"
@@ -335,7 +335,7 @@ class Test_FFE_Exposure_Events_Errors:
             },
         }
 
-        rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", valid_rc_config).apply()
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", valid_rc_config).apply()
 
         # Evaluate the flag with valid config
         self.flag = "test-flag-resilient"
@@ -371,7 +371,7 @@ class Test_FFE_Exposure_Events_Errors:
             },
         }
 
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", malformed_rc_config).apply()
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", malformed_rc_config).apply()
 
         # Evaluate the flag again after malformed config update
         self.r2 = weblog.post(
@@ -497,11 +497,11 @@ class Test_FFE_Exposure_Caching_Same_Subject:
 
     def setup_ffe_exposure_caching_same_subject(self):
         """Set up FFE exposure caching test with multiple evaluations for the same subject."""
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-caching-test"
         self.flag_key = "same-subject-test-flag"  # Unique flag key for this test
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.targeting_key = "same-subject-user"
 
@@ -550,11 +550,11 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
 
     def setup_ffe_exposure_caching_different_subjects(self):
         """Set up FFE exposure caching test with multiple different subjects."""
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-caching-test-subjects"
         self.flag_key = "diff-subjects-test-flag"  # Unique flag key for this test
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
         self.subjects = [f"unique-subject-{i}" for i in range(5)]
 
@@ -609,14 +609,14 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
 
     def setup_ffe_exposure_caching_allocation_cycle(self):
         """Set up FFE exposure test that cycles through allocations."""
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-allocation-change-test"
         self.flag_key = "alloc-change-test-flag"  # Unique flag key for this test
         self.targeting_key = "allocation-change-user"
 
         # Step 1: Config with default-allocation returning variant-a
-        rc.rc_state.set_config(
+        rc.tracer_rc_state.set_config(
             f"{RC_PATH}/{config_id}/config",
             make_ufc_fixture(self.flag_key, "variant-a", "default-allocation"),
         ).apply()
@@ -633,7 +633,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         )
 
         # Step 2: Config with different-allocation (still returns variant-a)
-        rc.rc_state.set_config(
+        rc.tracer_rc_state.set_config(
             f"{RC_PATH}/{config_id}/config",
             make_ufc_fixture(self.flag_key, "variant-a", "different-allocation"),
         ).apply()
@@ -650,7 +650,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         )
 
         # Step 3: Config back to default-allocation (still returns variant-a)
-        rc.rc_state.set_config(
+        rc.tracer_rc_state.set_config(
             f"{RC_PATH}/{config_id}/config",
             make_ufc_fixture(self.flag_key, "variant-a", "default-allocation"),
         ).apply()
@@ -709,14 +709,16 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
 
     def setup_ffe_exposure_caching_variant_cycle(self):
         """Set up FFE exposure test that cycles through variants."""
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-variant-cycle-test"
         self.flag_key = "variant-cycle-test-flag"  # Unique flag key for this test
         self.targeting_key = "variant-cycle-user"
 
         # Step 1: Config with variant-a
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")).apply()
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")
+        ).apply()
 
         self.response_1 = weblog.post(
             "/ffe",
@@ -730,7 +732,9 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         )
 
         # Step 2: Config with variant-b
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-b")).apply()
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-b")
+        ).apply()
 
         self.response_2 = weblog.post(
             "/ffe",
@@ -744,7 +748,9 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         )
 
         # Step 3: Config back to variant-a
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")).apply()
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, "variant-a")
+        ).apply()
 
         self.response_3 = weblog.post(
             "/ffe",
@@ -797,11 +803,11 @@ class Test_FFE_Exposure_Missing_Flag:
 
     def setup_ffe_exposure_missing_flag(self):
         """Set up FFE exposure test for a missing flag."""
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         # Set up a config with a different flag (not the one we'll request)
         config_id = "ffe-missing-flag-test"
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture("some-other-flag")).apply()
 
         self.flag_key = "non-existent-flag"  # This flag doesn't exist in the config
         self.targeting_key = "missing-flag-user"
@@ -877,14 +883,14 @@ class Test_FFE_Exposure_DoLog_False:
 
     def setup_ffe_exposure_dolog_false(self):
         """Set up FFE exposure test with doLog=false."""
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         config_id = "ffe-dolog-false-test"
         self.flag_key = "no-log-flag"
         self.targeting_key = "dolog-false-user"
 
         # Set up config with doLog=false
-        rc.rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE).apply()
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", UFC_EXPOSURE_DOLOG_FALSE_FIXTURE).apply()
 
         # Evaluate the flag multiple times
         self.responses = []
@@ -914,4 +920,82 @@ class Test_FFE_Exposure_DoLog_False:
 
         assert exposure_count == 0, (
             f"Expected 0 exposure events for flag with doLog=false, but found {exposure_count} events"
+        )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_EXP_5_Missing_Targeting_Key:
+    """EXP.5: Treat missing targeting key as empty string.
+
+    If targeting key is missing but evaluation produced result with doLog=true,
+    the exposure events must be reported with subject.id = "".
+
+    This verifies the tracer does NOT skip exposure events when targeting key is empty.
+    """
+
+    def setup_ffe_exp_5_missing_targeting_key(self):
+        """Set up FFE exposure test with missing/empty targeting key."""
+        rc.tracer_rc_state.reset().apply()
+
+        config_id = "ffe-exp-5-missing-targeting-key"
+        self.flag_key = "exp-5-missing-targeting-key-flag"
+
+        # Use a simple fixture with doLog=true
+        rc.tracer_rc_state.set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+
+        # Evaluate the flag with an empty targeting key
+        self.response = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": "",  # Empty targeting key
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exp_5_missing_targeting_key(self):
+        """EXP.5: Test that empty targeting key generates exposure with subject.id = ''."""
+        assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+
+        result = json.loads(self.response.text)
+        assert result["value"] == "value-a", f"Expected 'value-a', got '{result['value']}'"
+
+        # Search for exposure event with empty subject.id
+        matching_event = None
+        all_events_for_flag = []  # Collect all events for debugging
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            exposure_data = data["request"]["content"]
+            if exposure_data is None:
+                continue
+
+            exposures = exposure_data.get("exposures", [])
+            for event in exposures:
+                if event.get("flag", {}).get("key") == self.flag_key:
+                    # Collect for debugging
+                    subject_id = event.get("subject", {}).get("id")
+                    all_events_for_flag.append({"subject.id": subject_id, "event": event})
+                    # Check for empty string
+                    if subject_id == "":
+                        matching_event = event
+                        break
+
+            if matching_event:
+                break
+
+        # Verify we found an exposure event with empty subject.id
+        assert matching_event is not None, (
+            f"EXP.5 FAILED: Expected exposure event for flag '{self.flag_key}' with subject.id = '', "
+            f"but no matching event was found. Events received for this flag: {all_events_for_flag}. "
+            f"The tracer must NOT skip exposures when targeting key is empty."
+        )
+
+        # Validate the event structure
+        assert "flag" in matching_event, "Exposure event missing 'flag' field"
+        assert matching_event["flag"]["key"] == self.flag_key
+        assert "subject" in matching_event, "Exposure event missing 'subject' field"
+        assert matching_event["subject"]["id"] == "", (
+            f"EXP.5 FAILED: Expected subject.id = '', got '{matching_event['subject']['id']}'"
         )

@@ -304,7 +304,6 @@ ignore = [
     "T201",     # print: allow print statements in scripts folder
 ]
 "utils/virtual_machine/virtual_machines.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "ARG002",   # unused-method-argument: TODO
@@ -314,7 +313,6 @@ ignore = [
     "TRY002",   # raise-vanilla-class: TODO
 ]
 "utils/virtual_machine/aws_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
     "F541",    # f-string-missing-placeholders: TODO
@@ -353,7 +351,6 @@ ignore = [
     "SLF001",  # private-member-access: TODO
 ]
 "utils/virtual_machine/utils.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
     "PLC0415", # import-outside-top-level TODO
@@ -362,7 +359,6 @@ ignore = [
     "SIM300",  # yoda-conditions: TODO
 ]
 "utils/virtual_machine/vagrant_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
@@ -378,7 +374,6 @@ ignore = [
     "UP031",   # printf-string-formatting: TODO
 ]
 "utils/virtual_machine/virtual_machine_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO

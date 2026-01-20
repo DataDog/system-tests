@@ -28,12 +28,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/trace/otel")
-public class OpenTelemetryController {
+public class OpenTelemetryTraceController {
   private final Tracer tracer;
   private final Map<Long, Span> spans;
   private Baggage baggage;
 
-  public OpenTelemetryController() {
+  public OpenTelemetryTraceController() {
     this.tracer = GlobalOpenTelemetry.getTracer("java-client");
     this.spans = new HashMap<>();
     this.baggage = Baggage.empty();

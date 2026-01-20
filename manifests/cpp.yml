@@ -11,6 +11,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
@@ -34,6 +35,7 @@ manifest:
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: ">1.0.0"
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: ">1.0.0"
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: ">1.0.0"
+  tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: missing_feature
   tests/parametric/test_otel_logs.py: missing_feature
@@ -76,4 +78,5 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature
   tests/parametric/test_tracer_flare.py: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature

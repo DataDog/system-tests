@@ -9,7 +9,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
+from utils import scenarios, features, bug, context, irrelevant, missing_feature, logger
 
 
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
@@ -480,8 +480,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
@@ -489,8 +487,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_3(self):
         self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
         self._validate_recursion_snapshots(self.snapshots, 4)
@@ -498,9 +494,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_5(self):
         self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_5(self):
         self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
         self._validate_recursion_snapshots(self.snapshots, 6)
@@ -508,9 +501,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_20(self):
         self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
@@ -520,7 +510,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 
     @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
-    @bug(context.library == "dotnet", reason="DEBUG-3447")
     def test_exception_replay_recursion_inlined(self):
         self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
         self._validate_recursion_snapshots(self.snapshots, 4)
@@ -529,8 +518,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_inner(self):
         self._setup("/exceptionreplay/inner", "outer exception")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
 
@@ -561,8 +548,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             retries += 1
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
 
@@ -570,8 +555,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_multiframe(self):
         self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
 
@@ -579,8 +562,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_async(self):
         self._setup("/exceptionreplay/async", "async exception")
 
-    @flaky(context.library == "dotnet", reason="DEBUG-3281")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])
 
@@ -609,7 +590,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup_no_capture_exception("stackoverflow")
 
     @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
-    @bug(context.library == "dotnet", reason="DEBUG-3999")
     def test_exception_replay_stackoverflow(self):
         self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
 

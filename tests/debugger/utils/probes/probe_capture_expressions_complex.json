@@ -1,0 +1,75 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Expression",
+            "sourceFile": null
+        },
+        "captureSnapshot": false,
+        "capture": {
+            "maxReferenceDepth": 3
+        },
+        "captureExpressions": [
+            {
+                "name": "collection_first_element",
+                "expr": {
+                    "dsl": "testStruct.Collection[0]",
+                    "json": {
+                        "index": [
+                            {
+                                "getmember": [
+                                    {"ref": "testStruct"},
+                                    "Collection"
+                                ]
+                            },
+                            0
+                        ]
+                    }
+                },
+                "capture": {
+                    "maxReferenceDepth": 2
+                }
+            },
+            {
+                "name": "dictionary_value",
+                "expr": {
+                    "dsl": "testStruct.Dictionary['two']",
+                    "json": {
+                        "index": [
+                            {
+                                "getmember": [
+                                    {"ref": "testStruct"},
+                                    "Dictionary"
+                                ]
+                            },
+                            "two"
+                        ]
+                    }
+                },
+                "capture": {
+                    "maxReferenceDepth": 2
+                }
+            },
+            {
+                "name": "nested_field",
+                "expr": {
+                    "dsl": "testStruct.StringValue",
+                    "json": {
+                        "getmember": [
+                            {"ref": "testStruct"},
+                            "StringValue"
+                        ]
+                    }
+                },
+                "capture": {
+                    "maxReferenceDepth": 2
+                }
+            }
+        ]
+    }
+]
+
