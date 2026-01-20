@@ -42,16 +42,10 @@
                         "sample-app"
                     ],
                     "python": [
-                        "dd-lib-python-init-test-django",
-                        "dd-lib-python-init-test-django-gunicorn",
-                        "dd-lib-python-init-test-django-gunicorn-alpine",
-                        "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn"
+                        "dd-lib-python-init-test-django"
                     ],
                     "ruby": [
-                        "dd-lib-ruby-init-test-rails",
-                        "dd-lib-ruby-init-test-rails-explicit",
-                        "dd-lib-ruby-init-test-rails-gemsrb"
+                        "dd-lib-ruby-init-test-rails"
                     ],
                     "php": [
                         "dd-lib-php-init-test-app"
@@ -61,10 +55,6 @@
             "cluster_agents": [
                 "prod",
                 "nightly_dev"
-            ],
-            "helm_charts": [
-                "prod",
-                "nightly_latest"
             ],
             "helm_chart_operators": [
                 "prod",
@@ -93,16 +83,10 @@
                         "sample-app"
                     ],
                     "python": [
-                        "dd-lib-python-init-test-django",
-                        "dd-lib-python-init-test-django-gunicorn",
-                        "dd-lib-python-init-test-django-gunicorn-alpine",
-                        "dd-lib-python-init-test-django-unsupported-package-force",
-                        "dd-lib-python-init-test-django-uvicorn"
+                        "dd-lib-python-init-test-django"
                     ],
                     "ruby": [
-                        "dd-lib-ruby-init-test-rails",
-                        "dd-lib-ruby-init-test-rails-explicit",
-                        "dd-lib-ruby-init-test-rails-gemsrb"
+                        "dd-lib-ruby-init-test-rails"
                     ],
                     "php": [
                         "dd-lib-php-init-test-app"

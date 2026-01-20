@@ -206,52 +206,96 @@ select_helm_chart_version(){
     echo "   - Weblog: $WEBLOG"
     echo ""
 
-    # Extract helm_charts from the components structure
-    HELM_CHART_VERSIONS=($(echo "$WORKFLOW_JSON" | python -c "
+    # Try to extract helm_chart_operators first (for OPERATOR scenarios)
+    HELM_CHART_OPERATOR_VERSIONS=($(echo "$WORKFLOW_JSON" | python -c "
 import sys, json
 data = json.load(sys.stdin)
 components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-# Find the helm_charts component
 for comp in components:
-    if 'helm_charts' in comp:
-        helm_charts = comp['helm_charts']
-        # Extract all version values from the list of dicts
+    if 'helm_chart_operators' in comp:
+        helm_charts = comp['helm_chart_operators']
         versions = [list(chart.values())[0] for chart in helm_charts]
         print(' '.join(versions))
         break
 "))
 
-    # Only prompt if there are multiple versions or if we want to allow custom
-    if [[ ${#HELM_CHART_VERSIONS[@]} -eq 0 ]]; then
-        echo -e "${CYAN}ℹ️  No helm chart versions defined, using default.${NC}"
-        return
-    elif [[ ${#HELM_CHART_VERSIONS[@]} -eq 1 ]]; then
-        export K8S_HELM_CHART="${HELM_CHART_VERSIONS[0]}"
-        echo "✅ Using helm chart version: $K8S_HELM_CHART"
+    # Try to extract regular helm_charts (for non-OPERATOR scenarios)
+    HELM_CHART_VERSIONS=($(echo "$WORKFLOW_JSON" | python -c "
+import sys, json
+data = json.load(sys.stdin)
+components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
+for comp in components:
+    if 'helm_charts' in comp:
+        helm_charts = comp['helm_charts']
+        versions = [list(chart.values())[0] for chart in helm_charts]
+        print(' '.join(versions))
+        break
+"))
+
+    # Handle helm_chart_operators if found
+    if [[ ${#HELM_CHART_OPERATOR_VERSIONS[@]} -gt 0 ]]; then
+        if [[ ${#HELM_CHART_OPERATOR_VERSIONS[@]} -eq 1 ]]; then
+            export K8S_HELM_CHART_OPERATOR="${HELM_CHART_OPERATOR_VERSIONS[0]}"
+            echo "✅ Using Helm Chart Operator version: $K8S_HELM_CHART_OPERATOR"
+        else
+            echo "📝 Available Helm Chart Operator versions:"
+            for i in "${!HELM_CHART_OPERATOR_VERSIONS[@]}"; do
+                echo "$(($i + 1))) ${HELM_CHART_OPERATOR_VERSIONS[$i]}"
+            done
+            echo "$((${#HELM_CHART_OPERATOR_VERSIONS[@]} + 1))) Use custom version"
+
+            while true; do
+                read -p "Enter the number of the Helm Chart Operator version you want to use: " chart_choice
+                if [[ "$chart_choice" =~ ^[0-9]+$ ]] && (( chart_choice >= 1 && chart_choice <= ${#HELM_CHART_OPERATOR_VERSIONS[@]} + 1 )); then
+                    if (( chart_choice == ${#HELM_CHART_OPERATOR_VERSIONS[@]} + 1 )); then
+                        read -p "Enter custom Helm Chart Operator version: " K8S_HELM_CHART_OPERATOR
+                    else
+                        K8S_HELM_CHART_OPERATOR="${HELM_CHART_OPERATOR_VERSIONS[$((chart_choice - 1))]}"
+                    fi
+                    export K8S_HELM_CHART_OPERATOR
+                    break
+                else
+                    echo "❌ Invalid choice. Please select a number between 1 and $((${#HELM_CHART_OPERATOR_VERSIONS[@]} + 1))."
+                fi
+            done
+            echo "✅ Selected Helm Chart Operator version: $K8S_HELM_CHART_OPERATOR"
+        fi
         return
     fi
 
-    echo "📝 Available helm chart versions:"
-    for i in "${!HELM_CHART_VERSIONS[@]}"; do
-        echo "$(($i + 1))) ${HELM_CHART_VERSIONS[$i]}"
-    done
-    echo "$((${#HELM_CHART_VERSIONS[@]} + 1))) Use custom version"
-
-    while true; do
-        read -p "Enter the number of the helm chart version you want to use: " chart_choice
-        if [[ "$chart_choice" =~ ^[0-9]+$ ]] && (( chart_choice >= 1 && chart_choice <= ${#HELM_CHART_VERSIONS[@]} + 1 )); then
-            if (( chart_choice == ${#HELM_CHART_VERSIONS[@]} + 1 )); then
-                read -p "Enter custom helm chart version: " K8S_HELM_CHART
-            else
-                K8S_HELM_CHART="${HELM_CHART_VERSIONS[$((chart_choice - 1))]}"
-            fi
-            export K8S_HELM_CHART
-            break
+    # Handle regular helm_charts if found
+    if [[ ${#HELM_CHART_VERSIONS[@]} -gt 0 ]]; then
+        if [[ ${#HELM_CHART_VERSIONS[@]} -eq 1 ]]; then
+            export K8S_HELM_CHART="${HELM_CHART_VERSIONS[0]}"
+            echo "✅ Using Helm Chart version: $K8S_HELM_CHART"
         else
-            echo "❌ Invalid choice. Please select a number between 1 and $((${#HELM_CHART_VERSIONS[@]} + 1))."
+            echo "📝 Available Helm Chart versions:"
+            for i in "${!HELM_CHART_VERSIONS[@]}"; do
+                echo "$(($i + 1))) ${HELM_CHART_VERSIONS[$i]}"
+            done
+            echo "$((${#HELM_CHART_VERSIONS[@]} + 1))) Use custom version"
+
+            while true; do
+                read -p "Enter the number of the Helm Chart version you want to use: " chart_choice
+                if [[ "$chart_choice" =~ ^[0-9]+$ ]] && (( chart_choice >= 1 && chart_choice <= ${#HELM_CHART_VERSIONS[@]} + 1 )); then
+                    if (( chart_choice == ${#HELM_CHART_VERSIONS[@]} + 1 )); then
+                        read -p "Enter custom Helm Chart version: " K8S_HELM_CHART
+                    else
+                        K8S_HELM_CHART="${HELM_CHART_VERSIONS[$((chart_choice - 1))]}"
+                    fi
+                    export K8S_HELM_CHART
+                    break
+                else
+                    echo "❌ Invalid choice. Please select a number between 1 and $((${#HELM_CHART_VERSIONS[@]} + 1))."
+                fi
+            done
+            echo "✅ Selected Helm Chart version: $K8S_HELM_CHART"
         fi
-    done
-    echo "✅ Selected helm chart version: $K8S_HELM_CHART"
+        return
+    fi
+
+    # No helm charts found
+    echo -e "${CYAN}ℹ️  No helm chart versions defined, using default.${NC}"
 }
 
 select_lib_init_and_injector(){
@@ -377,7 +421,11 @@ run_the_tests(){
     echo "   🔹 Library init:     $K8S_LIB_INIT_IMG"
     echo "   🔹 Injector:         $K8S_INJECTOR_IMG"
     echo "   🔹 Cluster agent:    $CLUSTER_AGENT"
-    echo "   🔹 Helm chart:       ${K8S_HELM_CHART:-default}"
+    if [[ -n "$K8S_HELM_CHART_OPERATOR" ]]; then
+        echo "   🔹 Helm chart operator: $K8S_HELM_CHART_OPERATOR"
+    else
+        echo "   🔹 Helm chart:       ${K8S_HELM_CHART:-default}"
+    fi
     echo "   🔹 Test Library:     $TEST_LIBRARY"
     echo ""
 
