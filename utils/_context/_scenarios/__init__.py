@@ -20,7 +20,7 @@ from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .go_proxies import GoProxiesScenario, ProxyComponent
+from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
@@ -1089,7 +1089,7 @@ class _Scenarios:
         name="ENVOY_DEFAULT",
         doc="Go security processor proxies (Envoy)",
         rc_api_enabled=True,
-        proxy_component=ProxyComponent.envoy,
+        proxy_component="envoy",
         scenario_groups=[scenario_groups.go_proxies],
     )
 
@@ -1098,7 +1098,7 @@ class _Scenarios:
         doc="Go security processor proxies (Envoy) with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        proxy_component=ProxyComponent.envoy,
+        proxy_component="envoy",
         scenario_groups=[scenario_groups.go_proxies_blocking],
     )
 
@@ -1106,7 +1106,7 @@ class _Scenarios:
         name="HAPROXY_DEFAULT",
         doc="Go security processor proxies (HAProxy)",
         rc_api_enabled=True,
-        proxy_component=ProxyComponent.haproxy,
+        proxy_component="haproxy",
         scenario_groups=[scenario_groups.go_proxies],
     )
 
@@ -1115,7 +1115,7 @@ class _Scenarios:
         doc="Go security processor proxies (HAProxy) with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        proxy_component=ProxyComponent.haproxy,
+        proxy_component="haproxy",
         scenario_groups=[scenario_groups.go_proxies_blocking],
     )
 

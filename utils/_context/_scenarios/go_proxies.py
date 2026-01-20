@@ -14,7 +14,6 @@ from utils._context.containers import (
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._logger import logger
-from enum import Enum
 
 from .core import scenario_groups as all_scenario_groups, ScenarioGroup
 from .endtoend import DockerScenario
@@ -22,15 +21,9 @@ from .endtoend import DockerScenario
 ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContainer
 ProxyRuntimeContainer = EnvoyContainer | HAProxyContainer
 
-
-class ProxyComponent(Enum):
-    unknown = "unknown"
-    envoy = "envoy"
-    haproxy = "haproxy"
-
-GO_PROXIES_WEBLOGS: dict[ProxyComponent, list[str]] = {
-    ProxyComponent.envoy: ["envoyproxy"],
-    ProxyComponent.haproxy: ["haproxy-spoa"],
+GO_PROXIES_WEBLOGS: dict[str, list[str]] = {
+    "envoy": ["envoyproxy"],
+    "haproxy": ["haproxy-spoa"],
 }
 
 
@@ -42,7 +35,7 @@ class GoProxiesScenario(DockerScenario):
         *,
         processor_env: dict[str, str | None] | None = None,
         processor_volumes: dict[str, dict[str, str]] | None = None,
-        proxy_component: ProxyComponent = ProxyComponent.unknown,
+        proxy_component: str | None = None,
         weblog_variant: str | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
         rc_api_enabled: bool = False,
@@ -55,19 +48,22 @@ class GoProxiesScenario(DockerScenario):
             all_scenario_groups.all,
         ]
 
-        if proxy_component == ProxyComponent.unknown:
+        if proxy_component is None:
             pytest.skip("No proxy component specified")
 
+        assert proxy_component is not None  # linter fix
         self._proxy_component = proxy_component
         if weblog_variant:
-            self._weblog_variant = weblog_variant
             self._weblog_variant_is_default = False
         else:
-            self._weblog_variant = GO_PROXIES_WEBLOGS[self._proxy_component][0]
+            weblog_variant = GO_PROXIES_WEBLOGS.get(self._proxy_component, [None])[0]
             self._weblog_variant_is_default = True
 
-        if not self._weblog_variant:
+        if not weblog_variant:
             pytest.skip("No weblog variant specified", 1)
+
+        assert weblog_variant is not None  # linter fix
+        self._weblog_variant = weblog_variant
 
         super().__init__(
             name,
@@ -85,13 +81,13 @@ class GoProxiesScenario(DockerScenario):
         env = dict(self._processor_env or {})
         volumes = dict(self._processor_volumes or {})
 
-        if self._proxy_component == ProxyComponent.envoy:
+        if self._proxy_component == "envoy":
             return ExternalProcessingContainer(env=env, volumes=volumes)
 
         return StreamProcessingOffloadContainer(env=env, volumes=volumes)
 
     def _build_proxy_runtime_container(self) -> ProxyRuntimeContainer:
-        if self._proxy_component == ProxyComponent.envoy:
+        if self._proxy_component == "envoy":
             return EnvoyContainer()
 
         return HAProxyContainer()
@@ -101,7 +97,7 @@ class GoProxiesScenario(DockerScenario):
             component_from_logs = self._discover_proxy_component_from_logs()
 
             if component_from_logs and component_from_logs != self._proxy_component:
-                logger.stdout(f"Replay detected proxy component from logs: {component_from_logs.value}")
+                logger.stdout(f"Replay detected proxy component from logs: {component_from_logs}")
                 self._set_proxy_component(component_from_logs)
 
         super().configure(config)
@@ -113,7 +109,7 @@ class GoProxiesScenario(DockerScenario):
             self.warmups.insert(1, self._start_interfaces_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(lambda: logger.stdout(f"Weblog variant: {self._weblog_variant}"))
-            self.warmups.append(lambda: logger.stdout(f"Proxy component: {self._proxy_component.value}"))
+            self.warmups.append(lambda: logger.stdout(f"Proxy component: {self._proxy_component}"))
             self.warmups.append(self._set_components)
 
     def _start_interfaces_watchdog(self) -> None:
@@ -189,7 +185,7 @@ class GoProxiesScenario(DockerScenario):
             self._http_app_container,
         ]
 
-    def _set_proxy_component(self, proxy_component: ProxyComponent) -> None:
+    def _set_proxy_component(self, proxy_component: str) -> None:
         if self._proxy_component == proxy_component:
             return
 
@@ -198,12 +194,12 @@ class GoProxiesScenario(DockerScenario):
             self._weblog_variant = GO_PROXIES_WEBLOGS[self._proxy_component][0]
         self._init_containers()
 
-    def _discover_proxy_component_from_logs(self) -> ProxyComponent | None:
+    def _discover_proxy_component_from_logs(self) -> str | None:
         docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
         docker_logs_dir = docker_logs_dir / self.host_log_folder / "docker"
 
-        for component in (ProxyComponent.haproxy, ProxyComponent.envoy):
-            if (docker_logs_dir / component.value).is_dir():
+        for component in ("haproxy", "envoy"):
+            if (docker_logs_dir / component).is_dir():
                 return component
 
         return None
@@ -213,7 +209,7 @@ class GoProxiesScenario(DockerScenario):
         return self._weblog_variant
 
     @property
-    def proxy_component(self) -> ProxyComponent:
+    def proxy_component(self) -> str:
         return self._proxy_component
 
     @property

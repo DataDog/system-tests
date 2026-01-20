@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from utils._context._scenarios import go_proxies
 
+
 def _load_json(file_path: str) -> dict:
     with open(file_path, "r") as file:
         return json.load(file)
@@ -313,9 +314,8 @@ def _get_endtoend_weblogs(
                     )
 
     # weblog not related to a docker file
-    if library in [c.value for c in go_proxies.GO_PROXIES_WEBLOGS.keys()]:
-        for weblog in go_proxies.GO_PROXIES_WEBLOGS[go_proxies.ProxyComponent(library)]:
-            result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
+    for weblog in go_proxies.GO_PROXIES_WEBLOGS.get(library, []):
+        result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
@@ -556,13 +556,13 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
             return False
 
     # Go proxies
-    for component in go_proxies.GO_PROXIES_WEBLOGS:
-        if library == component.value:
-            if not scenario.startswith(f"{component.value.upper()}_"):
+    for p in go_proxies.GO_PROXIES_WEBLOGS:
+        if library == p:
+            if not scenario.startswith(f"{p.upper()}_"):
                 return False
             break
-    for component, weblogs in go_proxies.GO_PROXIES_WEBLOGS.items():
-        if scenario.startswith(f"{component.value.upper()}_") and weblog not in weblogs:
+    for p, weblogs in go_proxies.GO_PROXIES_WEBLOGS.items():
+        if scenario.startswith(f"{p.upper()}_") and weblog not in weblogs:
             return False
 
     # otel collector
