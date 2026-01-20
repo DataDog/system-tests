@@ -137,14 +137,19 @@ def parse_artifact_data(
                 for part in parts:
                     nodeid_slice = nodeid[: part.end()].rstrip("/")
                     previous = test_data[context].trie.get(nodeid_slice)
+
                     if outcome == "xpassed":
-                        if previous in (ActivationStatus.XFAIL, ActivationStatus.NONE):
+                        if part.end() == len(nodeid) and previous:
+                            pass
+                        elif previous in (ActivationStatus.XFAIL, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XPASS
 
                     if outcome == "xfailed":
-                        if previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
+                        if part.end() == len(nodeid):
+                            test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
+                        elif previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
