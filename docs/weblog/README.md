@@ -132,6 +132,39 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /endpoint_fallback
+
+This endpoint tests RFC-1076: API Security sampling fallback behavior when
+`http.route` is absent. The endpoint behavior is controlled by the `case` query
+parameter.
+
+- Query parameter `case`: Required. Specifies which test case to execute. Valid
+  values:
+
+1. **with_route**: Tests that `http.route` is used for sampling when present
+   - Sets: `http.route = "/users/{id}/profile"`
+   - Response: 200 OK
+
+2. **with_endpoint**: Tests fallback to `http.endpoint` when `http.route` is
+absent
+   - Sets: `http.endpoint = "/api/products/{param:int}"`
+   - Does NOT set: `http.route`
+   - Response: 200 OK
+
+3. **404**: Tests that `http.endpoint` is NOT used for sampling when status is
+404
+   - Sets: `http.endpoint = "/api/notfound/{param:int}"`
+   - Does NOT set: `http.route`
+   - Response: 404 Not Found
+
+4. **computed**: Tests on-demand endpoint computation from URL
+   - Sets: `http.url =
+     "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456"`
+   - Does NOT set: `http.route` or `http.endpoint`
+   - **Important**: The endpoint is computed internally for sampling but must
+     NOT be added as a span tag
+   - Response: 200 OK
+
 ### GET /external_request
 ### POST /external_request
 ### TRACE /external_request

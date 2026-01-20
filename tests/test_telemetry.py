@@ -185,8 +185,6 @@ class Test_Telemetry:
 
                 last_known_data = data
 
-    @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
-    @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
     @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
@@ -205,7 +203,6 @@ class Test_Telemetry:
 
         assert all(count == 1 for count in count_by_runtime_id.values())
 
-    @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
@@ -340,7 +337,6 @@ class Test_Telemetry:
     @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
-    @flaky(library="ruby", reason="APMAPI-226")
     @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
@@ -368,8 +364,6 @@ class Test_Telemetry:
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     @irrelevant(library="golang")
-    @irrelevant(library="python")
-    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @irrelevant(
         library="java",
         reason="""
@@ -455,10 +449,8 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
-    @irrelevant(library="ruby")
     @irrelevant(library="golang")
     @irrelevant(library="dotnet")
-    @irrelevant(library="python")
     @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
@@ -474,7 +466,6 @@ class Test_Telemetry:
         self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
     @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
-    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
 
@@ -728,7 +719,6 @@ class Test_TelemetryV2:
 
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
-    @missing_feature(library="python", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
@@ -797,7 +787,6 @@ class Test_TelemetryV2:
 
     @missing_feature(library="cpp_nginx")
     @missing_feature(library="cpp_httpd")
-    @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
@@ -818,7 +807,6 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "python", reason="feature not implemented")
     @missing_feature(context.library == "java", reason="feature not implemented")
     def test_app_started_product_disabled(self):
         data_found = False
@@ -860,7 +848,6 @@ class Test_ProductsDisabled:
             raise ValueError("app-started event not found in telemetry data")
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "ruby", reason="feature not implemented")
     @missing_feature(context.library == "nodejs", reason="feature not implemented")
     @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
     @irrelevant(library="golang")

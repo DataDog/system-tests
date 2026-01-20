@@ -7,7 +7,6 @@ import tests.debugger.utils as debugger
 from utils import (
     scenarios,
     features,
-    bug,
     missing_feature,
     context,
 )
@@ -224,8 +223,6 @@ class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
         self._setup()
 
     @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted", force_skip=True)
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
     @missing_feature(
         context.library == "ruby", reason="Local variable capture not implemented for method probes", force_skip=True
     )
@@ -247,8 +244,6 @@ class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionT
     def setup_pii_redaction_excluded_identifiers(self):
         self._setup(line_probe=True)
 
-    @bug(context.library == "ruby", reason="DEBUG-3747")
-    @bug(context.library == "python", reason="DEBUG-3746")
     def test_pii_redaction_excluded_identifiers(self):
         excluded_identifiers = ["_2fa", "cookie", "sessionid"]
         self._assert(excluded_identifiers, line_probe=True)

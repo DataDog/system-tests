@@ -211,7 +211,7 @@ class Test_HeaderTags_DynamicConfig:
                 ]
             }
         )
-        rc.rc_state.reset().set_config(path, config).apply()
+        rc.tracer_rc_state.reset().set_config(path, config).apply()
         self.req1 = weblog.get(
             "/status?code=202",
             headers={
@@ -223,7 +223,7 @@ class Test_HeaderTags_DynamicConfig:
         )
 
         path, config = self.get_rc_params({})
-        rc.rc_state.reset().set_config(path, config).apply()
+        rc.tracer_rc_state.reset().set_config(path, config).apply()
         self.req2 = weblog.get(
             "/status?code=202",
             headers={
@@ -288,7 +288,7 @@ class Test_HeaderTags_DynamicConfig:
             service_name="*",
             env="*",
         )
-        rc.rc_state.set_config(path, config).apply()
+        rc.tracer_rc_state.set_config(path, config).apply()
         self.req1 = weblog.get(
             "/status?code=202",
             headers={
@@ -305,7 +305,7 @@ class Test_HeaderTags_DynamicConfig:
             service_name="weblog",
             env="system-tests",
         )
-        rc.rc_state.set_config(path, config).apply()
+        rc.tracer_rc_state.set_config(path, config).apply()
         self.req2 = weblog.get(
             "/status?code=202",
             headers={
@@ -318,7 +318,7 @@ class Test_HeaderTags_DynamicConfig:
 
         # Delete the config with the weblog service and env. This should use the tracing_header_tags from the first
         # config.
-        rc.rc_state.del_config(path)
+        rc.tracer_rc_state.del_config(path)
 
         # Set a config with the weblog service and env.
         self.req3 = weblog.get(

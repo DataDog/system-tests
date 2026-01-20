@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import re
 import json
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features, bug, context
 
 
 @features.debugger_expression_language
@@ -768,8 +768,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @missing_feature(library="python", reason="DEBUG-3240", force_skip=True)
-    @missing_feature(context.library <= "ruby@2.22.0", reason="Hash length not implemented")
     def test_expression_language_hash_operations(self):
         self._assert(expected_response=200)
 

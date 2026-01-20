@@ -38,7 +38,6 @@ class Test_Basic:
     # reason for those three skip was :
     # DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace
     @bug(context.library <= "golang@1.41.0", reason="APMRP-360")
-    @bug(context.library <= "ruby@2.3.0", reason="APMRP-360")
     def test_identify_tags(self):
         interfaces.library.validate_one_span(
             self.r, validator=validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])

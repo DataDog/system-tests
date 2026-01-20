@@ -437,7 +437,6 @@ class TestDynamicConfigV1:
         [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]],
     )
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
-    @irrelevant(context.library == "python", reason="DD_TRACE_SAMPLE_RATE was removed in 3.x")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     def test_trace_sampling_rate_override_env(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
@@ -696,7 +695,6 @@ class TestDynamicConfigV2:
         "library_env",
         [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}],
     )
-    @flaky(context.library > "python@3.7.0", reason="APMAPI-1400")
     def test_tracing_client_tracing_tags(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -790,7 +788,6 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(library="ruby", reason="APMAPI-867")
     def test_trace_sampling_rules_override_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
@@ -856,8 +853,6 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(library="ruby", reason="APMAPI-867")
-    @flaky(library="python", reason="APMAPI-1051")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1595")
     def test_trace_sampling_rules_override_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the RC sampling rate."""
@@ -915,9 +910,7 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(context.library == "ruby", reason="APMAPI-868")
     @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
-    @missing_feature(library="python")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
     def test_trace_sampling_rules_with_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
@@ -1056,8 +1049,6 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
-    @bug(library="ruby", reason="APMAPI-867")
-    @bug(library="python", reason="APMAPI-857")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

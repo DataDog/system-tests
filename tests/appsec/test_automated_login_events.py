@@ -539,7 +539,6 @@ class Test_Login_Events_Extended:
 
     @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(library="php")
-    @missing_feature(library="ruby")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
@@ -562,7 +561,6 @@ class Test_Login_Events_Extended:
 
     @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(library="php")
-    @missing_feature(library="ruby")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
@@ -1172,7 +1170,7 @@ class Test_V2_Login_Events_RC:
     ]
 
     def _send_rc_and_execute_request(self, rc_payload: dict):
-        config_states = rc.send_state(raw_payload=rc_payload)
+        config_states = rc.send_state(raw_payload=rc_payload, target="tracer")
         request = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         return {"config_states": config_states, "request": request}
 
@@ -1824,7 +1822,7 @@ ANONYMIZATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_
 @scenarios.appsec_auto_events_rc
 class Test_V3_Login_Events_RC:
     def _send_rc_and_execute_request(self, config: list | tuple):
-        config_state = rc.rc_state.set_config(*config).apply()
+        config_state = rc.tracer_rc_state.set_config(*config).apply()
         request = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         return {"config_state": config_state, "request": request}
 
@@ -1933,12 +1931,12 @@ BLOCK_USER_LOGIN = (
 @scenarios.appsec_api_security_rc
 class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_id(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
-        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_USER_ID).apply()
 
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
@@ -1954,12 +1952,12 @@ class Test_V3_Login_Events_Blocking:
             assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_auto_login(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
-        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_LOGIN).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_USER_LOGIN).apply()
 
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
@@ -1973,7 +1971,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_sdk(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.r_login = [
             weblog.post(
@@ -1983,8 +1981,8 @@ class Test_V3_Login_Events_Blocking:
             for trigger in SDK_TRIGGERS
         ]
 
-        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*BLOCK_USER_RULE).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_USER_ID).apply()
 
         self.r_login_blocked = [
             weblog.post(

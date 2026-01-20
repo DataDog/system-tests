@@ -21,6 +21,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: v3.24.0
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.46.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v2.46.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: v2.46.0
@@ -507,6 +508,7 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v3.6.0

@@ -121,6 +121,7 @@ manifest:
         nextjs: missing_feature
     - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0
@@ -1829,6 +1830,7 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: *ref_5_56_0

@@ -82,14 +82,6 @@ In the following code (*utils/_context/_scenarios/__init__.py*) you can see the 
         scenario_groups=[scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
-    #Create a new scenario with a custom provision
-    demo_aws = InstallerAutoInjectionScenario(
-        "DEMO_AWS",
-        "Demo aws scenario",
-        vm_provision="demo",
-        scenario_groups=[scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
 
 ```
 
@@ -739,12 +731,12 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 
 
 @features.installer_auto_instrumentation
-@scenarios.demo_aws
-class TestDemoAws:
-    """Demo test for AWS scenario"""
+@scenarios.installer_auto_injection
+class TestAutoInjection:
+    """Example test for AWS SSI scenario"""
 
-    def test_demo_provision_weblog(self):
-        """Simple demo test to check if the weblog is running"""
+    def test_provision_weblog(self):
+        """Simple test to check if the weblog is running"""
         virtual_machine = context.scenario.virtual_machine
         # http request configuration
         vm_ip = virtual_machine.get_ip()
