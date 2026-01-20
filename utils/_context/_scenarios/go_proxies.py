@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from utils._context.containers import (
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._logger import logger
+from utils._context.component_version import ComponentVersion, Version
 
 from .core import scenario_groups as all_scenario_groups, ScenarioGroup
 from .endtoend import DockerScenario
@@ -99,6 +101,7 @@ class GoProxiesScenario(DockerScenario):
             if component_from_logs and component_from_logs != self._proxy_component:
                 logger.stdout(f"Replay detected proxy component from logs: {component_from_logs}")
                 self._set_proxy_component(component_from_logs)
+            self._load_components_from_report()
 
         super().configure(config)
 
@@ -193,6 +196,29 @@ class GoProxiesScenario(DockerScenario):
         if self._weblog_variant_is_default:
             self._weblog_variant = GO_PROXIES_WEBLOGS[self._proxy_component][0]
         self._init_containers()
+
+    def _load_components_from_report(self) -> None:
+        report_path = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
+        report_path = report_path / self.host_log_folder / "report.json"
+        try:
+            with open(report_path, encoding="utf-8") as f:
+                report = json.load(f)
+        except FileNotFoundError:
+            logger.debug("Replay missing report.json: %s", report_path)
+            return
+
+        context = report.get("context", {})
+        agent_version = context.get("agent")
+        if agent_version:
+            self.components["agent"] = ComponentVersion("agent", agent_version).version
+
+        library_name = context.get("library_name")
+        library_version = context.get("library")
+        if library_name and library_version:
+            lib_version: Version = ComponentVersion(library_name, library_version).version
+            self.components["library"] = lib_version
+            self.components[library_name] = lib_version
+            self.components[self._proxy_component] = lib_version
 
     def _discover_proxy_component_from_logs(self) -> str | None:
         docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
