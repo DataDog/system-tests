@@ -444,7 +444,7 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
         return jsonResponse([
             'trace_id' => $spanContext->getTraceId(),
             'span_id' => $spanContext->getSpanId(),
-            'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
+            'trace_flags' => sprintf('%02x', $spanContext->getTraceFlags()->toInt()),
             'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
             'remote' => $spanContext->isRemote()
         ]);
