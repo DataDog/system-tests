@@ -54,20 +54,20 @@ class Test_Dataset_Create:
         """
         with test_agent.vcr_context():
             # Create a dataset
-            create_request = DatasetCreateRequest(
-                dataset_name="test-dataset-basic",
-                description="A basic test dataset",
-            )
+            create_request: DatasetCreateRequest = {
+                "dataset_name": "test-dataset-basic",
+                "description": "A basic test dataset",
+            }
             dataset = test_library.llmobs_dataset_create(create_request)
 
             # Verify dataset was created
             assert dataset is not None
-            assert dataset.dataset_id is not None
-            assert dataset.name == "test-dataset-basic"
-            assert dataset.description == "A basic test dataset"
-            assert dataset.project_name == "test-project"
+            assert dataset["dataset_id"] is not None
+            assert dataset["name"] == "test-dataset-basic"
+            assert dataset["description"] == "A basic test dataset"
+            assert dataset["project_name"] == "test-project"
 
             # Clean up - delete the dataset
-            delete_request = DatasetDeleteRequest(dataset_id=dataset.dataset_id)
+            delete_request: DatasetDeleteRequest = {"dataset_id": dataset["dataset_id"]}
             result = test_library.llmobs_dataset_delete(delete_request)
             assert result.get("success") is True

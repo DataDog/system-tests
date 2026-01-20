@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal
+from typing import Any, Literal, NotRequired, TypedDict
 
 
 @dataclass
@@ -60,41 +60,37 @@ class LlmObsAnnotationContextRequest:
 # =============================================================================
 
 
-@dataclass
-class DatasetRecordRequest:
+class DatasetRecordRequest(TypedDict, total=False):
     """A single record in a dataset."""
 
     input_data: dict[str, Any]
-    expected_output: Any | None = None
-    metadata: dict[str, Any] | None = None
+    expected_output: Any
+    metadata: dict[str, Any]
 
 
-@dataclass
-class DatasetCreateRequest:
+class DatasetCreateRequest(TypedDict, total=False):
     """Request to create a new dataset."""
 
     dataset_name: str
-    description: str | None = None
-    records: list[DatasetRecordRequest] | None = None
-    project_name: str | None = None
+    description: str
+    records: list[DatasetRecordRequest]
+    project_name: str
 
 
-@dataclass
-class DatasetDeleteRequest:
+class DatasetDeleteRequest(TypedDict):
     """Request to delete a dataset."""
 
     dataset_id: str
 
 
-@dataclass
-class DatasetResponse:
+class DatasetResponse(TypedDict, total=False):
     """Response from dataset operations."""
 
     dataset_id: str
     name: str
-    description: str | None = None
-    project_name: str | None = None
-    project_id: str | None = None
-    version: int | None = None
-    latest_version: int | None = None
-    records: list[dict[str, Any]] = field(default_factory=list)
+    description: str
+    project_name: str
+    project_id: str
+    version: int
+    latest_version: int
+    records: list[dict[str, Any]]

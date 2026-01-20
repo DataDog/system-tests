@@ -937,23 +937,14 @@ class ParametricTestClientApi:
         """
         resp = self._session.post(
             self._url("/llm_observability/dataset/create"),
-            json={"dataset_create_request": asdict(dataset_create_request)},
+            json={"dataset_create_request": dataset_create_request},
         )
         if raise_on_error:
             resp.raise_for_status()
 
         if resp.ok:
             data = resp.json()
-            return DatasetResponse(
-                dataset_id=data["dataset_id"],
-                name=data["name"],
-                description=data.get("description"),
-                project_name=data.get("project_name"),
-                project_id=data.get("project_id"),
-                version=data.get("version"),
-                latest_version=data.get("latest_version"),
-                records=data.get("records", []),
-            )
+            return cast(DatasetResponse, data)
         return resp.text
 
     def llmobs_dataset_delete(
@@ -968,7 +959,7 @@ class ParametricTestClientApi:
         """
         resp = self._session.post(
             self._url("/llm_observability/dataset/delete"),
-            json={"dataset_delete_request": asdict(dataset_delete_request)},
+            json={"dataset_delete_request": dataset_delete_request},
         )
         if raise_on_error:
             resp.raise_for_status()
