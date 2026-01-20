@@ -22,7 +22,7 @@ ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContai
 ProxyRuntimeContainer = EnvoyContainer | HAProxyContainer
 
 GO_PROXIES_WEBLOGS: dict[str, list[str]] = {
-    "envoy": ["envoyproxy"],
+    "envoy": ["envoy"],
     "haproxy": ["haproxy-spoa"],
 }
 
