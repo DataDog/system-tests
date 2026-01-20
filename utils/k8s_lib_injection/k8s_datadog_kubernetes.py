@@ -203,7 +203,7 @@ class K8sDatadog:
             self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
             if PrivateRegistryConfig.is_configured():
                 self.dd_cluster_feature["clusterAgent.image.pullSecrets[0].name"] = "private-registry-secret"
-
+        self.dd_cluster_feature["datadog.operator.enabled"] = "false"  # Disable the operator
         helm_install_chart(
             host_log_folder,
             self.k8s_cluster_info,
