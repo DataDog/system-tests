@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
-    bug,
     context,
     features,
     scenarios,
