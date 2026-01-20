@@ -5,7 +5,7 @@
 from collections.abc import Callable
 import re
 
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:

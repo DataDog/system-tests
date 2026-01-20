@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, context, bug
+from utils import scenarios, features, missing_feature, context
 
 
 @features.debugger_probe_budgets

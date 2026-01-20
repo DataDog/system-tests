@@ -8,7 +8,7 @@ import pytest
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, context, scenarios, features, logger, bug
+from utils import missing_feature, context, scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 

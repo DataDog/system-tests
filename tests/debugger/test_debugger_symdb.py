@@ -4,7 +4,7 @@
 
 import re
 import tests.debugger.utils as debugger
-from utils import features, scenarios, bug, context, missing_feature
+from utils import features, scenarios, context, missing_feature
 
 
 @features.debugger_symdb

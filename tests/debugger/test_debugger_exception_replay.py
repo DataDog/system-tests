@@ -9,7 +9,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
+from utils import scenarios, features, bug, context, irrelevant, missing_feature, logger
 
 
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:

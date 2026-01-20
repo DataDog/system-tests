@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, missing_feature
+from utils import features
 from tests.appsec.iast.utils import BaseSourceTest
 
 

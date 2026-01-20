@@ -360,18 +360,22 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v3.15.0
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-dotnet only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecDisabled::test_user_login_failure_event_deep_metadata
+  : irrelevant (dd-trace-dotnet only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v3.15.0
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled::test_user_login_failure_event_deep_metadata: irrelevant (dd-trace-dotnet only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled::test_user_login_failure_event_deep_metadata
+  : irrelevant (dd-trace-dotnet only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Libddwaf: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v3.15.0
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v3.15.0
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-dotnet only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecDisabled::test_user_login_success_event_deep_metadata
+  : irrelevant (dd-trace-dotnet only accepts string metadata values)
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v3.15.0
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_deep_metadata: irrelevant (dd-trace-dotnet only accepts string metadata values)
+  ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_deep_metadata
+  : irrelevant (dd-trace-dotnet only accepts string metadata values)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
@@ -521,16 +525,21 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value: missing_feature (DEBUG-3374)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: bug (DEBUG-2602)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of: bug (DEBUG-2530)
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_logical_operators: bug (DEBUG-3115)
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_logical_operators
+  : bug (DEBUG-3115)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_false: bug (DEBUG-2618)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: bug (DEBUG-2618)
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations: bug (DEBUG-2560)
+  ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
+  : bug (DEBUG-2560)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: v3.29.0
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin::test_inproduct_enablement_code_origin: bug (DEBUG-4637)
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin::test_inproduct_enablement_code_origin
+  : bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v3.29.0
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di: bug (DEBUG-4637)
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
+  : bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig: bug (DEBUG-4637)
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
+  : bug (DEBUG-4637)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: v2.50.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
     - declaration: missing_feature (keywords are not fully redacted)
@@ -629,17 +638,17 @@ manifest:
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_single_key_propagate_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: missing_feature
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext:
-    - declaration: missing_feature (Default value was updated in 2.48.0)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
+  : - declaration: missing_feature (Default value was updated in 2.48.0)
       component_version: <2.48.0
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog:
-    - declaration: irrelevant (Default value was switched to datadog,tracecontext)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
+  : - declaration: irrelevant (Default value was switched to datadog,tracecontext)
       component_version: '>2.47.0'
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy:
     - declaration: irrelevant (Newer versions include tracecontext as a default propagator)
       component_version: '>=2.22.0'
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate:
-    - declaration: missing_feature (Implemented in 2.42.0)
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate
+  : - declaration: missing_feature (Implemented in 2.42.0)
       component_version: <2.42.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:
     - declaration: missing_feature (Not implemented)
@@ -651,7 +660,8 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <2.51.0
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members: bug (APMAPI-914)
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
+  : bug (APMAPI-914)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
@@ -742,7 +752,8 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_0_sst008: bug (APMAPI-737)
-  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009: bug (APMAPI-737)
+  ? tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009
+  : bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_1_sst005: bug (APMAPI-737)
@@ -751,10 +762,12 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002: bug (APMAPI-737)
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py: missing_feature
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017: missing_feature (The .NET tracer sends the full trace to the agent anyways.)
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
+  : missing_feature (The .NET tracer sends the full trace to the agent anyways.)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_entire_trace_dropped_when_dropping_policy_is_active018: missing_feature (The .NET tracer sends the full trace to the agent anyways.)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016: missing_feature (The .NET tracer sends the full trace to the agent anyways.)
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
+  : missing_feature (The .NET tracer sends the full trace to the agent anyways.)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: v2.49.0
   tests/parametric/test_telemetry.py::Test_Defaults::test_library_settings:

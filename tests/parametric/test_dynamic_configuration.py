@@ -13,7 +13,6 @@ from utils import (
     missing_feature,
     rfc,
     scenarios,
-    flaky,
 )
 from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState

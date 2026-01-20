@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, missing_feature, features, rfc, scenarios
+from utils import weblog, context, features, rfc, scenarios
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     assert_iast_vulnerability,
