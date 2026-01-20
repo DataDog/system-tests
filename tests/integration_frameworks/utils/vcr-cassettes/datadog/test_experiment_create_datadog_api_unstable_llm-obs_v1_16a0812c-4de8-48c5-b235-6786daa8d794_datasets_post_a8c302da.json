@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/16a0812c-4de8-48c5-b235-6786daa8d794/datasets",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "141",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-223278"
+    },
+    "body": "{\"data\": {\"type\": \"datasets\", \"attributes\": {\"name\": \"capitals-of-the-world-system-tests\", \"description\": \"Questions about world capitals\"}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "413",
+      "date": "Tue, 20 Jan 2026 19:24:21 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"e1815a6f-5ed5-46ce-83fa-b026eb64bb41\",\"type\":\"datasets\",\"attributes\":{\"author\":{\"id\":\"61a6d24e-dc66-11ec-afaf-da7ad0900002\"},\"created_at\":\"2026-01-20T19:14:15.062246Z\",\"current_version\":1,\"dataset_type\":\"user\",\"description\":\"Questions about world capitals\",\"name\":\"capitals-of-the-world-system-tests\",\"project_id\":\"16a0812c-4de8-48c5-b235-6786daa8d794\",\"updated_at\":\"2026-01-20T19:14:15.197898Z\"}}}"
+  }
+}

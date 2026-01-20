@@ -3,11 +3,12 @@ from __future__ import annotations
 from ddtrace.internal.telemetry import telemetry_writer
 from ddtrace.llmobs import LLMObs
 from ddtrace import tracer
+from ddtrace.llmobs import Dataset
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from typing import Literal, Union
+from typing import Any, Dict, Literal, Optional, Union
 
 router = APIRouter()
 
@@ -78,6 +79,20 @@ class DatasetRequest(BaseModel):
     project_name: str | None = None
     description: str | None = None
     records: list[dict] | None = None
+
+
+class ExperimentRequest(BaseModel):
+    experiment_name: str
+    task: str
+    evaluators: list[str]
+    dataset: dict | str
+    description: str | None = None
+    project_name: str | None = None
+    tags: dict | None = None
+    config: dict | None = None
+    # summary_evaluators: list[str] | None = None
+    runs: int | None = None
+    jobs: int | None = None
 
 
 def create_trace(trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict:
@@ -178,6 +193,11 @@ def llmobs_trace(trace_structure_request: TraceRequest):
         telemetry_writer.periodic(force_flush=True)
 
 
+
+datasets = {}
+experiments = {}
+
+
 @router.post("/llm_observability/dataset/create")
 def llmobs_dataset(dataset_request: DatasetRequest):
     ds = LLMObs.create_dataset(
@@ -186,6 +206,9 @@ def llmobs_dataset(dataset_request: DatasetRequest):
         description=dataset_request.description,
         records=dataset_request.records,
     )
+
+    dataset_id = ds._id
+    datasets[dataset_id] = ds
 
     return {
         "name": ds.name,
@@ -196,3 +219,59 @@ def llmobs_dataset(dataset_request: DatasetRequest):
         "records": ds._records,  # These are already dicts (TypedDict)
         "project": ds.project,  # This is also a TypedDict
     }
+
+
+
+
+
+def task(input_data: Dict[str, Any], config: Optional[Dict[str, Any]] = None) -> str:
+    question = input_data["question"]
+    # Your LLM or processing logic here
+    return "Beijing" if "China" in question else "Unknown"
+
+
+def exact_match(input_data: Dict[str, Any], output_data: str, expected_output: str) -> bool:
+    return output_data == expected_output
+
+
+def overlap(input_data: Dict[str, Any], output_data: str, expected_output: str) -> float:
+    expected_output_set = set(expected_output)
+    output_set = set(output_data)
+
+    intersection = len(output_set.intersection(expected_output_set))
+    union = len(output_set.union(expected_output_set))
+
+    return intersection / union
+
+
+def fake_llm_as_a_judge(input_data: Dict[str, Any], output_data: str, expected_output: str) -> str:
+    fake_llm_call = "excellent"
+    return fake_llm_call
+
+
+# function maps
+task_map = {
+    "task": task,
+}
+evaluator_map = {
+    "exact_match": exact_match,
+    "overlap": overlap,
+    "fake_llm_as_a_judge": fake_llm_as_a_judge,
+}
+
+
+@router.post("/llm_observability/experiment/create")
+def llmobs_experiment_create(experiment_request: ExperimentRequest):  # TODO: experiment_create_and_run?
+    experiment = LLMObs.experiment(
+        name=experiment_request.experiment_name,
+        task=task_map.get(experiment_request.task),
+        evaluators=[evaluator_map.get(evaluator) for evaluator in experiment_request.evaluators],
+        dataset=datasets[experiment_request.dataset.get("id")],
+        description=experiment_request.description,
+        config=experiment_request.config,
+        tags=experiment_request.tags,
+        project_name=experiment_request.project_name,
+        runs=experiment_request.runs,
+    )
+
+    return experiment.run(jobs=experiment_request.jobs)

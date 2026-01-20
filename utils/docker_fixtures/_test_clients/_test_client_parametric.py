@@ -927,7 +927,7 @@ class ParametricTestClientApi:
         records: list[dict] | None = None,
         *,
         raise_on_error: bool = True,
-    ) -> dict | str | None:
+    ) -> dict | str | None:  # TODO: return a stronger type for usage in experiments creation
         resp = self._session.post(
             self._url("/llm_observability/dataset/create"),
             json={
@@ -940,6 +940,41 @@ class ParametricTestClientApi:
         if raise_on_error:
             resp.raise_for_status()
 
+        return cast("dict", resp.json()) if resp.ok else resp.text
+
+    def llmobs_experiment_create(
+        self,
+        experiment_name: str,
+        task: str,
+        evaluators: list[str],
+        dataset: dict,  # TODO: use a stronger type for usage in experiments creation
+        description: str | None = None,
+        project_name: str | None = None,
+        tags: dict | None = None,
+        config: dict | None = None,
+        # TODO: summary_evaluators,
+        runs: int | None = None,
+        jobs: int | None = None,
+        *,
+        raise_on_error: bool = True,
+    ) -> dict | str | None:
+        resp = self._session.post(
+            self._url("/llm_observability/experiment/create"),
+            json={
+                "experiment_name": experiment_name,
+                "task": task,
+                "evaluators": evaluators,
+                "dataset": dataset,
+                "description": description,
+                "project_name": project_name,
+                "tags": tags,
+                "config": config,
+                "runs": runs,
+                "jobs": jobs,
+            },
+        )
+        if raise_on_error:
+            resp.raise_for_status()
         return cast("dict", resp.json()) if resp.ok else resp.text
 
 

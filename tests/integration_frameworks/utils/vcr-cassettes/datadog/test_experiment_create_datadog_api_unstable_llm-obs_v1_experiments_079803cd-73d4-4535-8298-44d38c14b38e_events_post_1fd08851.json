@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/experiments/079803cd-73d4-4535-8298-44d38c14b38e/events",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "4281",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-223278"
+    },
+    "body": "{\"data\": {\"type\": \"experiments\", \"attributes\": {\"scope\": \"experiments\", \"metrics\": [{\"metric_source\": \"custom\", \"span_id\": \"14204741807103752404\", \"trace_id\": \"696fd66500000000dba3ac262121f0ba\", \"timestamp_ms\": 1768937061934, \"metric_type\": \"boolean\", \"label\": \"exact_match\", \"boolean_value\": true, \"error\": null, \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"], \"experiment_id\": \"079803cd-73d4-4535-8298-44d38c14b38e\"}, {\"metric_source\": \"custom\", \"span_id\": \"14204741807103752404\", \"trace_id\": \"696fd66500000000dba3ac262121f0ba\", \"timestamp_ms\": 1768937061934, \"metric_type\": \"score\", \"label\": \"overlap\", \"score_value\": 1.0, \"error\": null, \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"], \"experiment_id\": \"079803cd-73d4-4535-8298-44d38c14b38e\"}, {\"metric_source\": \"custom\", \"span_id\": \"14204741807103752404\", \"trace_id\": \"696fd66500000000dba3ac262121f0ba\", \"timestamp_ms\": 1768937061934, \"metric_type\": \"categorical\", \"label\": \"fake_llm_as_a_judge\", \"categorical_value\": \"excellent\", \"error\": null, \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"], \"experiment_id\": \"079803cd-73d4-4535-8298-44d38c14b38e\"}, {\"metric_source\": \"custom\", \"span_id\": \"10014352067618701867\", \"trace_id\": \"696fd6650000000045ee4cd76205ff74\", \"timestamp_ms\": 1768937061935, \"metric_type\": \"boolean\", \"label\": \"exact_match\", \"boolean_value\": false, \"error\": null, \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"], \"experiment_id\": \"079803cd-73d4-4535-8298-44d38c14b38e\"}, {\"metric_source\": \"custom\", \"span_id\": \"10014352067618701867\", \"trace_id\": \"696fd6650000000045ee4cd76205ff74\", \"timestamp_ms\": 1768937061935, \"metric_type\": \"score\", \"label\": \"overlap\", \"score_value\": 0.09090909090909091, \"error\": null, \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"], \"experiment_id\": \"079803cd-73d4-4535-8298-44d38c14b38e\"}, {\"metric_source\": \"custom\", \"span_id\": \"10014352067618701867\", \"trace_id\": \"696fd6650000000045ee4cd76205ff74\", \"timestamp_ms\": 1768937061935, \"metric_type\": \"categorical\", \"label\": \"fake_llm_as_a_judge\", \"categorical_value\": \"excellent\", \"error\": null, \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"], \"experiment_id\": \"079803cd-73d4-4535-8298-44d38c14b38e\"}], \"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"experiment_id:079803cd-73d4-4535-8298-44d38c14b38e\", \"run_id:7886d59a-45c0-4c6d-810b-08674d2345ef\", \"run_iteration:1\"]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 202,
+      "message": "Accepted"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "0",
+      "date": "Tue, 20 Jan 2026 19:24:22 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": ""
+  }
+}

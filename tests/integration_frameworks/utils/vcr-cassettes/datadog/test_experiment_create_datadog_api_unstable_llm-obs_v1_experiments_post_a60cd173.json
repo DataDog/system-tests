@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/experiments",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "601",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-223278"
+    },
+    "body": "{\"data\": {\"type\": \"experiments\", \"attributes\": {\"name\": \"capital-cities-test-system-tests\", \"description\": \"Testing capital cities knowledge\", \"dataset_id\": \"e1815a6f-5ed5-46ce-83fa-b026eb64bb41\", \"project_id\": \"6daaf827-e3b1-4c35-b726-5f6de4f00078\", \"dataset_version\": 2, \"config\": {\"model\": \"gpt-4\", \"version\": \"1.0\"}, \"metadata\": {\"tags\": [\"ddtrace.version:4.3.0.dev0\", \"project_name:default-project\", \"dataset_name:capitals-of-the-world-system-tests\", \"experiment_name:capital-cities-test-system-tests\", \"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\"]}, \"ensure_unique\": true, \"run_count\": 1}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "804",
+      "date": "Tue, 20 Jan 2026 19:24:21 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"079803cd-73d4-4535-8298-44d38c14b38e\",\"type\":\"experiments\",\"attributes\":{\"author\":{\"id\":\"61a6d24e-dc66-11ec-afaf-da7ad0900002\"},\"config\":{\"model\":\"gpt-4\",\"version\":\"1.0\"},\"created_at\":\"2026-01-20T19:24:21.968826561Z\",\"dataset_id\":\"e1815a6f-5ed5-46ce-83fa-b026eb64bb41\",\"dataset_version\":2,\"description\":\"Testing capital cities knowledge\",\"experiment\":\"capital-cities-test-system-tests\",\"metadata\":{\"tags\":[\"ddtrace.version:4.3.0.dev0\",\"project_name:default-project\",\"dataset_name:capitals-of-the-world-system-tests\",\"experiment_name:capital-cities-test-system-tests\",\"project_id:6daaf827-e3b1-4c35-b726-5f6de4f00078\"]},\"name\":\"capital-cities-test-system-tests-1768937061968\",\"project_id\":\"6daaf827-e3b1-4c35-b726-5f6de4f00078\",\"run_count\":1,\"updated_at\":\"2026-01-20T19:24:21.968826643Z\"}}}"
+  }
+}

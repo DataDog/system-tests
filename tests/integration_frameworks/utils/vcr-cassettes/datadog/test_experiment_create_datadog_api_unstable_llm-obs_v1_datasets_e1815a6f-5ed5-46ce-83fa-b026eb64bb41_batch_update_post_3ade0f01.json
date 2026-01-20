@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datadoghq.com/api/unstable/llm-obs/v1/datasets/e1815a6f-5ed5-46ce-83fa-b026eb64bb41/batch_update",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "427",
+      "Content-Type": "application/json",
+      "Datadog-Entity-ID": "in-223278"
+    },
+    "body": "{\"data\": {\"type\": \"datasets\", \"id\": \"e1815a6f-5ed5-46ce-83fa-b026eb64bb41\", \"attributes\": {\"insert_records\": [{\"input\": {\"question\": \"What is the capital of China?\"}, \"expected_output\": \"Beijing\", \"metadata\": {\"difficulty\": \"easy\"}}, {\"input\": {\"question\": \"Which city serves as the capital of South Africa?\"}, \"expected_output\": \"Pretoria\", \"metadata\": {\"difficulty\": \"medium\"}}], \"update_records\": [], \"delete_records\": []}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "11",
+      "date": "Tue, 20 Jan 2026 19:24:21 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":[]}"
+  }
+}

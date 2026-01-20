@@ -342,3 +342,45 @@ class Test_Datasets:
                 dataset_name="test-dataset",
                 records=[],
             )
+
+
+@scenarios.parametric
+class Test_Experiments:
+    @pytest.fixture
+    def dd_llmobs_override_origin(self, test_agent: TestAgentAPI) -> str:
+        return f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog"
+
+    def test_experiment_create(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        with test_agent.vcr_context():
+            ds = test_library.llmobs_dataset_create(
+                dataset_name="capitals-of-the-world-system-tests",
+                project_name="capitals-project",
+                description="Questions about world capitals",
+                records=[
+                    {
+                        "input_data": {"question": "What is the capital of China?"},  # required, JSON or string
+                        "expected_output": "Beijing",  # optional, JSON or string
+                        "metadata": {"difficulty": "easy"},  # optional, JSON
+                    },
+                    {
+                        "input_data": {"question": "Which city serves as the capital of South Africa?"},
+                        "expected_output": "Pretoria",
+                        "metadata": {"difficulty": "medium"},
+                    },
+                ],
+            )
+
+            assert ds is not None, "Dataset creation failed"
+            assert isinstance(ds, dict), "Dataset is not a dictionary"
+
+            experiments_result = test_library.llmobs_experiment_create(  # noqa: F841
+                experiment_name="capital-cities-test-system-tests",
+                task="task",  # maps to a "task" function
+                dataset=ds,
+                evaluators=["exact_match", "overlap", "fake_llm_as_a_judge"],
+                description="Testing capital cities knowledge",
+                config={"model": "gpt-4", "version": "1.0"},
+                jobs=4,
+            )
+
+            assert "rows" in experiments_result
