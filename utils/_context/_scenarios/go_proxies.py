@@ -28,10 +28,9 @@ class ProxyComponent(Enum):
     envoy = "envoy"
     haproxy = "haproxy"
 
-
-DEFAULT_WEBLOG_VARIANT_BY_COMPONENT: dict[ProxyComponent, str] = {
-    ProxyComponent.envoy: "envoy",
-    ProxyComponent.haproxy: "haproxy-spoa",
+GO_PROXIES_WEBLOGS: dict[ProxyComponent, list[str]] = {
+    ProxyComponent.envoy: ["envoyproxy"],
+    ProxyComponent.haproxy: ["haproxy-spoa"],
 }
 
 
@@ -51,6 +50,7 @@ class GoProxiesScenario(DockerScenario):
         self._processor_env = processor_env
         self._processor_volumes = processor_volumes
         self._scenario_groups = (scenario_groups or []) + [
+            all_scenario_groups.appsec,
             all_scenario_groups.end_to_end,
             all_scenario_groups.all,
         ]
@@ -63,7 +63,7 @@ class GoProxiesScenario(DockerScenario):
             self._weblog_variant = weblog_variant
             self._weblog_variant_is_default = False
         else:
-            self._weblog_variant = DEFAULT_WEBLOG_VARIANT_BY_COMPONENT.get(proxy_component, proxy_component.value)
+            self._weblog_variant = GO_PROXIES_WEBLOGS[self._proxy_component][0]
             self._weblog_variant_is_default = True
 
         if not self._weblog_variant:
@@ -195,7 +195,7 @@ class GoProxiesScenario(DockerScenario):
 
         self._proxy_component = proxy_component
         if self._weblog_variant_is_default:
-            self._weblog_variant = DEFAULT_WEBLOG_VARIANT_BY_COMPONENT.get(proxy_component, proxy_component.value)
+            self._weblog_variant = GO_PROXIES_WEBLOGS[self._proxy_component][0]
         self._init_containers()
 
     def _discover_proxy_component_from_logs(self) -> ProxyComponent | None:

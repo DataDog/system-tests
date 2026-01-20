@@ -246,6 +246,8 @@ if __name__ == "__main__":
             "python",
             "ruby",
             "rust",
+            "envoy",
+            "haproxy",
         ],
     )
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
-
+from utils._context._scenarios import go_proxies
 
 def _load_json(file_path: str) -> dict:
     with open(file_path, "r") as file:
@@ -313,9 +313,9 @@ def _get_endtoend_weblogs(
                     )
 
     # weblog not related to a docker file
-    if library == "golang":
-        result.append(Weblog(name="envoy", require_build=False, artifact_name=binaries_artifact))
-        result.append(Weblog(name="haproxy-spoa", require_build=False, artifact_name=binaries_artifact))
+    if library in [c.value for c in go_proxies.GO_PROXIES_WEBLOGS.keys()]:
+        for weblog in go_proxies.GO_PROXIES_WEBLOGS[go_proxies.ProxyComponent(library)]:
+            result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
@@ -555,10 +555,15 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
-    # Go proxies (Envoy / HAProxy)
-    is_go_proxies_scenario = scenario.startswith(("ENVOY_", "HAPROXY_"))
-    if is_go_proxies_scenario != (weblog in ("envoy", "haproxy-spoa")):
-        return False
+    # Go proxies
+    for component in go_proxies.GO_PROXIES_WEBLOGS:
+        if library == component.value:
+            if not scenario.startswith(f"{component.value.upper()}_"):
+                return False
+            break
+    for component, weblogs in go_proxies.GO_PROXIES_WEBLOGS.items():
+        if scenario.startswith(f"{component.value.upper()}_") and weblog not in weblogs:
+            return False
 
     # otel collector
     if weblog == "otel_collector" or scenario in ("OTEL_COLLECTOR", "OTEL_COLLECTOR_E2E"):
