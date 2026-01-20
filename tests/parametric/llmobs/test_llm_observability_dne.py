@@ -23,15 +23,15 @@ def library_env(
     llmobs_ml_app: str, llmobs_project_name: str, test_agent: TestAgentAPI, *, llmobs_enabled: bool
 ) -> dict[str, object]:
     """Environment variables for LLM Observability DNE tests."""
-    # Point DNE client to test agent's VCR proxy for cassette playback
-    dne_intake_url = f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog"
+    # Point LLMObs API calls to test agent's VCR proxy for cassette playback
+    override_origin = f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog"
 
     env = {
         "DD_LLMOBS_ENABLED": llmobs_enabled,
         "DD_LLMOBS_ML_APP": llmobs_ml_app,
         "DD_LLMOBS_PROJECT_NAME": llmobs_project_name,
-        # Route DNE API calls through the test agent's VCR proxy
-        "DD_LLMOBS_DNE_INTAKE_URL": dne_intake_url,
+        # Route LLMObs API calls through the test agent's VCR proxy
+        "DD_LLMOBS_OVERRIDE_ORIGIN": override_origin,
         # Fake API key for VCR mode (actual auth is bypassed)
         "DD_API_KEY": "fake-api-key-for-vcr-testing",
     }

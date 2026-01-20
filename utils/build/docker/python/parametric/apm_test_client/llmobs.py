@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 from ddtrace.internal.telemetry import telemetry_writer
 from ddtrace.llmobs import LLMObs
 from ddtrace.llmobs._experiment import DatasetRecord
@@ -13,23 +11,6 @@ from pydantic.dataclasses import dataclass
 from typing import Any, Literal, Union
 
 router = APIRouter()
-
-
-def configure_dne_intake():
-    """Configure DNE client intake URL if DD_LLMOBS_DNE_INTAKE_URL is set.
-
-    This allows routing DNE API calls through the test agent's VCR proxy
-    for recorded request playback in tests.
-    """
-    dne_intake_url = os.environ.get("DD_LLMOBS_DNE_INTAKE_URL")
-    if dne_intake_url and LLMObs._instance and LLMObs._instance._dne_client:
-        LLMObs._instance._dne_client._intake = dne_intake_url
-
-
-@router.on_event("startup")
-async def startup_configure_dne():
-    """Configure DNE intake on startup."""
-    configure_dne_intake()
 
 
 @dataclass
