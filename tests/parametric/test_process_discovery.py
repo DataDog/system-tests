@@ -6,7 +6,6 @@ import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
 from utils import features, scenarios, context, bug
-from utils._context.component_version import Version
 from .conftest import APMLibrary
 
 
@@ -44,30 +43,6 @@ def read_memfd(test_library: APMLibrary, memfd_path: str):
     return rc, msgpack.unpackb(output)
 
 
-def get_context_tracer_version() -> Version:
-    major = context.library.version.major
-    minor = context.library.version.minor
-    patch = context.library.version.patch
-    prerelease = context.library.version.prerelease
-
-    if context.library.name == "ruby":
-        # Temporary fix for Ruby until we start to bump the version after a release
-        # This cancels a hack in system-tests framework that increments the patch version
-        # and add -dev to the version string.
-        return Version(f"{major}.{minor}.{patch}")
-    elif context.library.name == "java":
-        return Version(str(context.library.version).replace("+", "-"))
-    elif context.library.name == "python":
-        # python version scheme uses a dot to separate prerelease tag
-        version = f"{major}.{minor}.{patch}"
-        if prerelease:
-            version += f".{'.'.join(prerelease)}"
-
-        return Version(version)
-    else:
-        return context.library.version
-
-
 def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
     assert tracer_metadata["runtime_id"]
     # assert tracer_metadata["hostname"]
@@ -78,8 +53,7 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
     assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
     assert tracer_metadata["service_env"] == library_env["DD_ENV"]
 
-    version = Version(tracer_metadata["tracer_version"])
-    assert version == get_context_tracer_version()
+    assert tracer_metadata["tracer_version"] == context.library.raw_version
 
 
 def assert_v2(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
