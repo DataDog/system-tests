@@ -76,6 +76,9 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             extract_injector_version,
         )
 
+        self.k8s_helm_chart_version = os.getenv("K8S_HELM_CHART", "3.156.1")
+        self.k8s_helm_chart_operator_version = os.getenv("K8S_HELM_CHART_OPERATOR", "2.16.0")
+
         # Get component versions: lib init, cluster agent, injector
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
@@ -86,7 +89,8 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.components["datadog-apm-inject"] = ComponentVersion(
             "cluster_agent", self._datadog_apm_inject_version
         ).version
-
+        self.configuration["k8s_helm_chart"] = self.k8s_helm_chart_version
+        self.configuration["k8s_helm_chart_operator"] = self.k8s_helm_chart_operator_version
         # Configure the K8s cluster provider
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
@@ -103,10 +107,11 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
-            dd_cluster_version=self.k8s_cluster_img.version,
             dd_cluster_img=self.k8s_cluster_img.registry_url,
             api_key=self._api_key if self.with_datadog_operator else None,
             app_key=self._app_key if self.with_datadog_operator else None,
+            helm_chart_version=self.k8s_helm_chart_version,
+            helm_chart_operator_version=self.k8s_helm_chart_operator_version,
         )
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
@@ -290,8 +295,9 @@ class K8sSparkScenario(K8sScenario):
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
-            dd_cluster_version=self.k8s_cluster_img.version,
             dd_cluster_img=self.k8s_cluster_img.registry_url,
+            helm_chart_version=self.k8s_helm_chart_version,
+            helm_chart_operator_version=self.k8s_helm_chart_operator_version,
         )
 
         self.test_weblog = K8sWeblog(

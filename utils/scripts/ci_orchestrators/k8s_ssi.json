@@ -191,10 +191,10 @@
     },
     "helm_chart_spec": {
         "prod": "3.156.1",
-        "nightly_latest": "3.160.4"
+        "nightly_latest": "3.161.1"
     },
     "helm_chart_operator_spec": {
         "prod": "2.16.0",
-        "nightly_latest": "2.17.0"
+        "nightly_latest": "2.18.0-dev.1"
     }
 }

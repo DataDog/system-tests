@@ -67,27 +67,20 @@ def _get_k8s_injector_image_refs(language: str, ci_environment: str, cluster_age
     return k8s_lib_init_img, k8s_injector_img
 
 
-def should_run_fast_mode() -> bool:
-    """Default rules to run only a part of the full pipeline.
-
-    For example we only run the default vms if it's a commit in a PR, but we run all the vms
-    if it's a scheduled pipeline or a tag generation.
-    Other example, K8s tests are only run the cluster agent dev version for scheduled pipelines
-    or a tag generation.
-    """
-
+def should_run_only_defaults_vm() -> bool:
+    """Default rules to run only default VMs or all VMs"""
     # Get gitlab variables from the environment
     ci_commit_tag = os.getenv("CI_COMMIT_TAG")
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
 
-    # If it is a scheduled pipeline or tag generation, we should run the full pipeline
+    # If it is a scheduled pipeline or tag generation, we should run all the VMs always
     # it doesn't matter the project pipeline
     if ci_pipeline_source == "schedule" or ci_commit_tag:
         return False
 
-    # if we run on system-tests repository and it's the main branch, we should run the full pipeline
+    # if we run on system-tests repository and it's the main branch, we should run all the VMs
     return not (ci_project_name == "system-tests" and ci_commit_branch == "main")
 
 
@@ -421,7 +414,7 @@ def print_aws_gitlab_pipeline(language: str, aws_matrix: dict, ci_environment: s
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         raw_data_virtual_machines = json.load(file)["virtual_machines"]
 
-    only_defaults = should_run_fast_mode()
+    only_defaults = should_run_only_defaults_vm()
 
     # Special filters from env variables
     dd_install_script_version = os.getenv("DD_INSTALL_SCRIPT_VERSION")

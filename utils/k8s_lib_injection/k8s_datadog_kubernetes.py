@@ -19,12 +19,6 @@ from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 # This is the name of a Kubernetes secret resource, not a password
 PRIVATE_REGISTRY_SECRET_NAME = "private-registry-secret"  # noqa: S105
 
-# Datadog Helm chart version pinned to a known stable version
-K8S_HELM_CHART = os.getenv("K8S_HELM_CHART", "3.156.1")
-
-# Datadog Operator Helm chart version pinned to a known stable version
-K8S_HELM_CHART_OPERATOR = os.getenv("K8S_HELM_CHART_OPERATOR", "2.16.0")
-
 
 class K8sDatadog:
     def __init__(self, output_folder):
@@ -35,18 +29,20 @@ class K8sDatadog:
         k8s_cluster_info,
         dd_cluster_feature={},
         dd_cluster_uds=None,
-        dd_cluster_version=None,
         dd_cluster_img=None,
         api_key=None,
         app_key=None,
+        helm_chart_version=None,
+        helm_chart_operator_version=None,
     ):
         self.k8s_cluster_info = k8s_cluster_info
         self.dd_cluster_feature = dd_cluster_feature
         self.dd_cluster_uds = dd_cluster_uds
-        self.dd_cluster_version = dd_cluster_version
         self.dd_cluster_img = dd_cluster_img
         self.api_key = api_key
         self.app_key = app_key
+        self.helm_chart_version = helm_chart_version
+        self.helm_chart_operator_version = helm_chart_operator_version
         logger.info(f"K8sDatadog configured with cluster: {self.k8s_cluster_info.cluster_name}")
 
     def _ensure_namespace_exists(self, namespace: str) -> None:
@@ -194,15 +190,11 @@ class K8sDatadog:
         logger.info(f"[Deploy datadog cluster]helm install datadog with config file [{operator_file}]")
 
         # Add the cluster agent tag version
-        if self.dd_cluster_img is None:
-            # DEPRECATED
-            self.dd_cluster_feature["clusterAgent.image.tag"] = self.dd_cluster_version
-        else:
-            image_ref, tag = split_docker_image(self.dd_cluster_img)
-            self.dd_cluster_feature["clusterAgent.image.tag"] = tag
-            self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
-            if PrivateRegistryConfig.is_configured():
-                self.dd_cluster_feature["clusterAgent.image.pullSecrets[0].name"] = "private-registry-secret"
+        image_ref, tag = split_docker_image(self.dd_cluster_img)
+        self.dd_cluster_feature["clusterAgent.image.tag"] = tag
+        self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
+        if PrivateRegistryConfig.is_configured():
+            self.dd_cluster_feature["clusterAgent.image.pullSecrets[0].name"] = "private-registry-secret"
         self.dd_cluster_feature["datadog.operator.enabled"] = "false"  # Disable the operator
         helm_install_chart(
             host_log_folder,
@@ -212,7 +204,7 @@ class K8sDatadog:
             value_file=operator_file,
             set_dict=self.dd_cluster_feature,
             namespace=namespace,
-            chart_version=K8S_HELM_CHART,  # Pin to known good version instead of using latest
+            chart_version=self.helm_chart_version,  # Use configured helm chart version
         )
 
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
@@ -239,7 +231,7 @@ class K8sDatadog:
             set_dict={},
             timeout=None,
             namespace=namespace,
-            chart_version=K8S_HELM_CHART_OPERATOR,  # Pin to known good version instead of using latest
+            chart_version=self.helm_chart_operator_version,  # Use configured helm chart operator version
         )
         logger.info("[Deploy datadog operator] the operator is ready")
         logger.info("[Deploy datadog operator] Create the operator secrets")
@@ -247,11 +239,7 @@ class K8sDatadog:
             f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace={namespace}"
         )
         # Configure cluster agent image on the operator file
-        if self.dd_cluster_img is None:
-            # DEPRECATED
-            oeprator_config_file = "utils/k8s_lib_injection/resources/operator/datadog-operator.yaml"
-        else:
-            oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
+        oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
 
         logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
         execute_command(f"kubectl apply -f {oeprator_config_file} --namespace={namespace}")
