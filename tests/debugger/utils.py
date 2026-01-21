@@ -110,21 +110,12 @@ class BaseDebuggerTest:
     prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
 
-    setup_failures: list = []
+    setup_failures: list
 
     use_debugger_endpoint: bool = False
 
-    def setup_method(self) -> None:
-        """Reset setup_failures to avoid pollution from previous tests.
-        setup_failures is a class variable shared across all test instances.
-        Pytest runs setup_<test_name>() methods even for tests that are skipped
-        via @missing_feature or other decorators. This means setup failures from
-        skipped tests can pollute the setup_failures list and cause unrelated
-        tests to fail.
-        """
-        self.setup_failures = []
-
     def initialize_weblog_remote_config(self) -> None:
+        self.setup_failures = []
         if self.get_tracer()["language"] in ["ruby"]:
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
