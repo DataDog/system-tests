@@ -327,7 +327,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
                 for k in keys_to_remove:
                     span_meta.pop(k, None)
-                interfaces.agent.set_span_meta(span, span_format, dict(sorted(span_meta.items())))
+                interfaces.agent.set_span_attrs(span, span_format, dict(sorted(span_meta.items())))
                 scrubbed_spans.append((span, span_format))
 
             sorted_spans = sorted(

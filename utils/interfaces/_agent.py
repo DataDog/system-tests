@@ -165,13 +165,15 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         raise ValueError(f"Unknown span format: {span_format}")
 
     @staticmethod
-    def set_span_meta(span: dict, span_format: TraceAgentPayloadFormat, meta: dict[str, str]) -> None:
-        """Sets the meta dictionary of a span according to its format"""
+    def set_span_attrs(span: dict, span_format: TraceAgentPayloadFormat, meta: dict[str, str]) -> None:
+        """Overwrites the span attributes of a span according to its format.
+        For legacy spans this means only the meta dictionary,
+        for efficient spans this means the entire attributes dictionary.
+        """
         if span_format == TraceAgentPayloadFormat.legacy:
             span["meta"] = meta
 
         elif span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-            # in the new format, metrics and meta are joined in attributes
             span["attributes"] = meta
         else:
             raise ValueError(f"Unknown span format: {span_format}")
