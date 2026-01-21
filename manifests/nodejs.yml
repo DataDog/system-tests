@@ -1827,10 +1827,9 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_82_0
-        express5: *ref_5_82_0
-        fastify: *ref_5_82_0
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
+        express4: ">=5.83.0"
+        express5: ">=5.83.0"
+        fastify: ">=5.83.0"
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
