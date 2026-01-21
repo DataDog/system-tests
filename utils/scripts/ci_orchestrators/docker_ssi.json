@@ -37,6 +37,9 @@
             ],
             "weblogs": [
                 {
+                    "java": [
+                        "jetty-app"
+                    ],
                     "nodejs": [
                         "js-app"
                     ],

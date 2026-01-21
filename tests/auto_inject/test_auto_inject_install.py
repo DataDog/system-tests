@@ -9,7 +9,9 @@ import tests.auto_inject.utils as base
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install(self):
-        self._test_install(context.virtual_machine)
+        virtual_machine = context.virtual_machine
+        vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}/crashme"
+        self._check_install(virtual_machine, vm_context_url)
 
 
 @features.host_auto_installation_script
