@@ -412,7 +412,6 @@ class Test_Environment:
             }
         ],
     )
-
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
