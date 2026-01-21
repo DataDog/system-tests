@@ -412,7 +412,7 @@ class Test_Environment:
             }
         ],
     )
-    @bug(context.library >= "cpp@2.0.1", reason="APMAPI-1784")
+
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
