@@ -26,7 +26,6 @@ class TestParameterName(BaseSourceTest):
         reason="Tainted as request body",
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
-    @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_post_reported(self):
         """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
@@ -51,11 +50,9 @@ class TestParameterName(BaseSourceTest):
         reason="APPSEC-55387",
     )
     @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
-    @missing_feature(library="dotnet", reason="Tainted as request body")
     def test_source_reported(self):
         super().test_source_reported()
 
-    @missing_feature(library="dotnet", reason="Not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",

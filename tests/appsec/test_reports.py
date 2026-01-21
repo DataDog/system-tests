@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, context, interfaces, bug, scenarios, rfc, features
+from utils import weblog, interfaces, scenarios, rfc, features
 from utils._weblog import HttpResponse
 
 
@@ -87,7 +87,6 @@ class Test_RequestHeaders:
             },
         )
 
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 

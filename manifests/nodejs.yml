@@ -121,6 +121,7 @@ manifest:
         nextjs: missing_feature
     - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0

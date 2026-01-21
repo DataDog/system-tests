@@ -361,6 +361,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "false",
         },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
@@ -669,6 +670,7 @@ class _Scenarios:
         },
         doc="",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -744,6 +746,7 @@ class _Scenarios:
     debugger_inproduct_enablement = EndToEndScenario(
         "DEBUGGER_INPRODUCT_ENABLEMENT",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
         weblog_env={
             "DD_APM_TRACING_ENABLED": "true",
         },
@@ -755,6 +758,7 @@ class _Scenarios:
     debugger_telemetry = EndToEndScenario(
         "DEBUGGER_TELEMETRY",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
         weblog_env={
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",

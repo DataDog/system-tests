@@ -49,7 +49,6 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
-    @missing_feature(library="ruby", reason="v0.5 is not supported in Ruby")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
     def test_span_started_with_link_v05(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span and serialized in the expected v0.5 format.
@@ -210,8 +209,6 @@ class Test_Span_Links:
         assert link["attributes"].get("nested.0") == "1"
         assert link["attributes"].get("nested.1") == "2"
 
-    @missing_feature(library="python", reason="links do not influence the sampling decision of spans")
-    @missing_feature(library="ruby", reason="links do not influence the sampling decision of spans")
     def test_span_link_propagated_sampling_decisions(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Sampling decisions made by an upstream span should be propagated via span links to
         downstream spans.

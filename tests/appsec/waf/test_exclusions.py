@@ -1,4 +1,4 @@
-from utils import context, interfaces, scenarios, weblog, bug, features, missing_feature
+from utils import context, interfaces, scenarios, weblog, features, missing_feature
 
 
 @scenarios.appsec_custom_rules
@@ -10,7 +10,6 @@ class Test_Exclusions:
         self.r_iexnt1 = weblog.get("/waf/", params={"excluded_key": "true"})
         self.r_iexnt2 = weblog.get("/waf/", params={"excluded_key": "true", "activate_exclusion": "false"})
 
-    @bug(context.library <= "ruby@1.12.1", reason="APMRP-360")
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
         reason="Query string not supported yet",
@@ -48,7 +47,6 @@ class Test_Exclusions:
     def setup_rule_exclusion_positive_test(self):
         self.r_rept = weblog.get("/waf/", params={"foo": "bbbb", "activate_exclusion": "true"})
 
-    @bug(context.library <= "ruby@1.12.1", reason="APMRP-360")
     def test_rule_exclusion_positive_test(self):
         assert self.r_rept.status_code == 200, "Request failed"
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.r_rept)]
