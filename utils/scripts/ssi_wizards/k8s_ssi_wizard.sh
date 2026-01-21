@@ -80,7 +80,7 @@ configure_private_registry() {
     spacer
     echo -e "${YELLOW}📌 Step: Configure Private Registry${NC}"
     echo "Configuring ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)..."
-    
+
     export PRIVATE_DOCKER_REGISTRY="235494822917.dkr.ecr.us-east-1.amazonaws.com"
     export PRIVATE_DOCKER_REGISTRY_USER="AWS"
 

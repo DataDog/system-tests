@@ -112,7 +112,7 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
-    if False and matrix_data["aws_ssi_scenario_defs"]:
+    if matrix_data["aws_ssi_scenario_defs"]:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
@@ -125,7 +125,7 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
                 0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
             )
         print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
-    if False and matrix_data["dockerssi_scenario_defs"]:
+    if matrix_data["dockerssi_scenario_defs"]:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
         print_docker_ssi_gitlab_pipeline(
