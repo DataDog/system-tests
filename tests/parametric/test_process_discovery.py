@@ -53,7 +53,15 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
     assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
     assert tracer_metadata["service_env"] == library_env["DD_ENV"]
 
-    assert tracer_metadata["tracer_version"] == context.library.raw_version
+    raw_version = context.library.raw_version
+    if context.library.name == "ruby":
+        # weblog may adds tailing -dev
+        raw_version = raw_version.removesuffix("-dev")
+    elif context.library.name == "golang":
+        # for which reason ?
+        raw_version = raw_version.removeprefix("v")
+
+    assert tracer_metadata["tracer_version"] == raw_version
 
 
 def assert_v2(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
