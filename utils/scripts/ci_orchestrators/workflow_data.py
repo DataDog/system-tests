@@ -79,7 +79,7 @@ def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> di
         "cluster_agents": k8s_config["cluster_agent_spec"],
         "helm_charts": k8s_config["helm_chart_spec"],
         "injectors": k8s_config["injector_spec"],
-        "lib_inits": k8s_config["lib_init_spec"][language],
+        "lib_inits": k8s_config["lib_init_spec"].get(language, {}),
         "helm_chart_operators": k8s_config["helm_chart_operator_spec"],
     }
 
