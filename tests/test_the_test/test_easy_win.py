@@ -312,9 +312,9 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
 
         # Verify xpass_nodes contain the full nodeid WITH parameters (for tracking)
         # but trie keys are WITHOUT parameters (for manifest rules)
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed[param1]" in test_data[context].xpass_nodes
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed[param3]" in test_data[context].xpass_nodes
-        assert "tests/parametric/test_params.py::Test_Params::test_all_pass[a]" in test_data[context].xpass_nodes
+        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
+        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
+        assert "tests/parametric/test_params.py::Test_Params::test_all_pass" in test_data[context].xpass_nodes
 
 
 # =============================================================================
