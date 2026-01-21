@@ -13,7 +13,7 @@ from utils import context, features, interfaces, irrelevant, scenarios, scenario
 @scenarios.appsec_standalone_rasp
 @scenarios.appsec_runtime_activation
 @scenarios.appsec_standalone
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 @features.language_specifics
 @irrelevant(context.library not in ("python", "python_lambda"), reason="specific tests for python tracer")

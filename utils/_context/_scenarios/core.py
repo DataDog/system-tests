@@ -4,8 +4,6 @@ from pathlib import Path
 import shutil
 from typing import TYPE_CHECKING
 
-from utils._context._scenarios import go_proxies
-
 
 if TYPE_CHECKING:
     from utils._context.component_version import Version
@@ -70,6 +68,7 @@ class _ScenarioGroups:
     go_proxies_appsec_blocking = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     simple_onboarding_appsec = ScenarioGroup()
+    go_proxies = ScenarioGroup()
     ## Groups of scenarios
     appsec_blocking = ScenarioGroup()
 

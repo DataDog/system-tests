@@ -6,7 +6,7 @@ import json
 import re
 from urllib.parse import urlparse, parse_qs
 
-from utils import scenarios, weblog, rfc, features, interfaces, scenario_groups
+from utils import weblog, rfc, features, interfaces, scenario_groups
 
 
 def is_valid_uuid4(uuid_string: str):

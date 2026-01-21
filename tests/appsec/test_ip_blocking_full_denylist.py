@@ -10,7 +10,7 @@ from .utils import BaseFullDenyListTest
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
 @features.appsec_client_ip_blocking
-@scenarios.go_proxies_default
+# TODO: @scenario_groups.go_proxies
 @scenarios.appsec_blocking_full_denylist
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""

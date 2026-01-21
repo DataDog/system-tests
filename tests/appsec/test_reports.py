@@ -64,8 +64,7 @@ class Test_Info:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
@@ -102,8 +101,7 @@ class Test_RequestHeaders:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
@@ -130,8 +128,7 @@ class Test_TagsFromRule:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
@@ -159,8 +156,7 @@ def _get_appsec_triggers(request: HttpResponse):
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_AttackTimestamp:
     """Attack timestamp"""

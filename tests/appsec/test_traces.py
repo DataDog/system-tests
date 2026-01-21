@@ -21,8 +21,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -64,8 +63,7 @@ class Test_RetainTraces:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -141,8 +139,7 @@ class Test_AppSecEventSpanTags:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
@@ -291,8 +288,7 @@ class Test_AppSecObfuscator:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
@@ -320,8 +316,7 @@ class Test_CollectRespondHeaders:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
@@ -353,8 +348,7 @@ class Test_CollectDefaultRequestHeader:
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
 @features.security_events_metadata
-@scenarios.go_proxies_default
-@scenarios.default
+@scenario_groups.default
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):

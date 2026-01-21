@@ -6,9 +6,8 @@ from utils import weblog, interfaces, scenarios, features
 
 
 @features.threats_alpha_preview
-@scenarios.go_proxies_default
 @scenarios.appsec_lambda_default
-@scenarios.default
+@scenario_groups.default
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 
