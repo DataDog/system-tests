@@ -392,7 +392,6 @@ class TestAnthropicLlmObsMessages(BaseAnthropicTest):
             },
         )
 
-    @bug(context.library == "python", reason="MLOB-1234")  # python llmobs sdk does not default name to an empty string
     @pytest.mark.parametrize("stream", [True, False])
     def test_create_tool_result(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool):
         with test_agent.vcr_context(stream=stream):

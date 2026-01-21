@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features, missing_feature, context, irrelevant
+from utils import weblog, interfaces, features, context, irrelevant
 from tests.appsec.utils import find_series
 
 HEADERS = {
@@ -70,8 +70,6 @@ class Test_UserLoginSuccessEvent:
     def setup_user_login_success_header_collection(self):
         self.r = weblog.get("/user_login_success_event", headers=HEADERS)
 
-    @missing_feature(library="dotnet")
-    @missing_feature(context.library < "ruby@2.13.0")
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
@@ -143,8 +141,6 @@ class Test_UserLoginFailureEvent:
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
 
-    @missing_feature(context.library < "dotnet@3.7.0")
-    @missing_feature(context.library < "ruby@2.13.0")
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 

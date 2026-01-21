@@ -70,7 +70,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -116,7 +116,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection with headers redaction enabled"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -163,7 +163,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection to test header limit"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -209,7 +209,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         """Setup test with remote config for extended data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -269,7 +269,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -308,7 +308,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection but without triggering the rule"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -348,7 +348,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection to test header limit"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -389,7 +389,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         """Setup test with remote config for extended response headers data collection to test header limit"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -433,7 +433,7 @@ class Test_ExtendedRequestBodyCollection:
         """Setup test with remote config for extended request body data collection"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -468,7 +468,7 @@ class Test_ExtendedRequestBodyCollection:
         """Setup test with remote config for extended request body data collection but without triggering the rule"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()
@@ -497,7 +497,7 @@ class Test_ExtendedRequestBodyCollection:
         """Setup test with remote config for extended request body data collection with truncated body"""
         # Configure remote config with extended data collection action and rule
         self.config_state = (
-            rc.rc_state.reset()
+            rc.tracer_rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
             .set_config(*EXTENDED_DATA_COLLECTION_RULE)
             .apply()

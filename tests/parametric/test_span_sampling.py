@@ -667,7 +667,6 @@ class Test_Span_Sampling:
         context.library == "php",
         reason="The PHP tracer always sends the full trace to the agent.",
     )
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby",
         reason="Issue: sending the complete trace when only the root span is expected",
@@ -741,7 +740,6 @@ class Test_Span_Sampling:
         context.library == "php",
         reason="The PHP tracer always sends the full trace to the agent.",
     )
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby",
         reason="Issue: sending the complete trace when only the root span is expected",
@@ -819,7 +817,6 @@ class Test_Span_Sampling:
         context.library == "php",
         reason="The PHP tracer always sends the full trace to the agent.",
     )
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby",
         reason="Issue: sending the complete trace when only the root span is expected",
@@ -870,8 +867,6 @@ class Test_Span_Sampling:
 
     @bug(context.library == "golang", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
-    @bug(context.library < "ruby@2.20.0", reason="APMAPI-1545")
-    @bug(context.library == "python", reason="APMAPI-1545")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",
@@ -947,7 +942,6 @@ class Test_Span_Sampling:
 
     @bug(context.library == "golang", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
-    @bug(context.library == "python", reason="APMAPI-1545")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",

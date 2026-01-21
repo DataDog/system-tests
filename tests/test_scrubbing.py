@@ -5,7 +5,7 @@
 from collections.abc import Callable
 import re
 
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
@@ -58,7 +58,6 @@ class Test_UrlQuery:
             },
         )
 
-    @bug(context.library < "dotnet@2.21.0", reason="APPSEC-5773")
     def test_multiple_matching_substring(self):
         interfaces.library.validate_all(validate_no_leak("leak-url-multiple"), allow_no_data=True)
 

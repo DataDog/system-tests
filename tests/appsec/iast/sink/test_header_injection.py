@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, missing_feature, rfc, weblog, HttpResponse, flaky
+from utils import context, features, rfc, weblog, HttpResponse, flaky
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -63,7 +63,6 @@ class TestHeaderInjection(BaseSinkTest):
     data = {"test": "dummyvalue"}
     location_map = {"nodejs": get_nodejs_iast_file_paths()}
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import missing_feature, features, rfc, weblog
+from utils import features, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
@@ -17,7 +17,6 @@ class Test_HstsMissingHeader(BaseSinkTest):
     data = {}
     headers = {"X-Forwarded-Proto": "https"}
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

@@ -192,12 +192,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library == "python@1.9.2", reason="APMRP-360")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
-    @bug(library="golang", reason="APPSEC-56064")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
