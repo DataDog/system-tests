@@ -12,7 +12,6 @@ from utils.docker_fixtures.spec.llm_observability import (
 
 @pytest.fixture
 def llmobs_ml_app() -> str | None:
-    """Override default ml_app for these tests."""
     return "test-app"
 
 

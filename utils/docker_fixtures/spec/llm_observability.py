@@ -55,11 +55,6 @@ class LlmObsAnnotationContextRequest:
     type: Literal["annotation_context"] = "annotation_context"
 
 
-# =============================================================================
-# Datasets and Experiments (DNE) Spec Types
-# =============================================================================
-
-
 class DatasetRecordRequest(TypedDict, total=False):
     """A single record in a dataset."""
 

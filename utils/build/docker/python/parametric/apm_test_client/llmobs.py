@@ -172,11 +172,6 @@ def llmobs_trace(trace_structure_request: Request):
         telemetry_writer.periodic(force_flush=True)
 
 
-# =============================================================================
-# Datasets and Experiments (DNE) Endpoints
-# =============================================================================
-
-
 @dataclass
 class DatasetRecordRequest:
     """A single record in a dataset."""
