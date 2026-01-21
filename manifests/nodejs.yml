@@ -1365,7 +1365,10 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_83_0
         nextjs: irrelevant
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: *ref_5_83_0
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:

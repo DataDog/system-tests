@@ -349,14 +349,19 @@ def build_combined_apm_tracing_and_debugger_command(
     dynamic_sampling_enabled: bool | None = None,
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
-):
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
     Remote Config's client_configs field represents the COMPLETE list of configs that should
     be active. Sending separate payloads causes previously applied configs to be unapplied
     if they're not in the new client_configs list, regardless of product filtering.
+
+    Returns:
+        A tuple of (rc_command, apm_config). The caller should update prev_payloads with
+        the returned apm_config if tracking state across multiple calls.
+
     """
-    path_payloads = {}
+    path_payloads: dict[str, Any] = {}
 
     # Build new APM_TRACING config by merging with previous config (if any)
     lib_config: dict[str, str | bool] = {
@@ -364,7 +369,9 @@ def build_combined_apm_tracing_and_debugger_command(
         "library_version": "latest",
     }
 
-    # If there's a previous config, inherit its lib_config fields as defaults
+    # If there's a previous config, inherit its lib_config fields as defaults.
+    # This enables tests to send sequential configs that only specify changed values
+    # (e.g., calling with enabled=None after enabled=True preserves the True value).
     if prev_payloads:
         prev_lib_config = prev_payloads[-1].get("lib_config", {})
         # Copy previous fields, but allow new values to override
@@ -397,10 +404,6 @@ def build_combined_apm_tracing_and_debugger_command(
     # Only send the latest APM_TRACING config, not all previous ones
     path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = apm_config
 
-    # Replace prev_payloads with just the new config (don't accumulate)
-    prev_payloads.clear()
-    prev_payloads.append(apm_config)
-
     # Add LIVE_DEBUGGING configs (probes)
     if probes:
         for probe in probes:
@@ -408,7 +411,7 @@ def build_combined_apm_tracing_and_debugger_command(
             path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
             path_payloads[path] = probe
 
-    return _build_base_command(path_payloads, version)
+    return _build_base_command(path_payloads, version), apm_config
 
 
 def send_combined_apm_tracing_and_debugger_command(
@@ -424,8 +427,12 @@ def send_combined_apm_tracing_and_debugger_command(
     env: str | None = "system-tests",
     version: int = 1,
 ) -> RemoteConfigStateResults:
-    """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs."""
-    raw_payload = build_combined_apm_tracing_and_debugger_command(
+    """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
+
+    Note: This function updates prev_payloads in place with the new config, replacing
+    all previous entries. This allows callers to track state across sequential calls.
+    """
+    raw_payload, apm_config = build_combined_apm_tracing_and_debugger_command(
         version,
         prev_payloads,
         probes,
@@ -437,6 +444,11 @@ def send_combined_apm_tracing_and_debugger_command(
         service_name=service_name,
         env=env,
     )
+
+    # Update prev_payloads with just the new config (don't accumulate)
+    prev_payloads.clear()
+    prev_payloads.append(apm_config)
+
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
     return send_state(raw_payload, target=target)

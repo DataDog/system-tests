@@ -3,13 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, context, logger, bug, flaky
+from utils import features, scenarios, context, logger, bug
 import json
 import time
 
 TIMEOUT = 5
-RC_POLL_INTERVAL = 0.2  # Wait for tracer to poll and apply remote config
-TRACE_FLUSH_WAIT = 0.2  # Wait for traces to be buffered and flushed to agent
 
 
 @features.debugger_inproduct_enablement
@@ -34,12 +32,11 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
             self.set_probes([probe])
 
             self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=enabled, reset=reset)
-            time.sleep(RC_POLL_INTERVAL)
             self.send_weblog_request("/debugger/log")
-            time.sleep(TRACE_FLUSH_WAIT)
 
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
+        self.rc_states = []
 
         _send_config()
         self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
@@ -53,7 +50,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config(enabled=False, reset=False)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-    @flaky(context.library == "python", reason="DEBUG-1")
+    @bug(context.library == "python", reason="DEBUG-5000")
     def test_inproduct_enablement_di(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
@@ -173,36 +170,31 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
+    def _check_code_origin(self):
+        """Send a request and check if code origin spans are present."""
+        self.send_weblog_request("/")
+        return self.wait_for_code_origin_span(TIMEOUT)
+
+    def _set_code_origin_and_check(self, *, enabled: bool | None):
+        """Set code origin via remote config and check if spans are present."""
+        self.send_rc_apm_tracing(code_origin_enabled=enabled)
+        return self._check_code_origin()
+
     def setup_inproduct_enablement_code_origin(self):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
-        self.rc_states = []
 
         # Check initial state (default varies by language)
-        self.send_weblog_request("/")
-        time.sleep(TRACE_FLUSH_WAIT)
-        self.er_initial_state = self.wait_for_code_origin_span(TIMEOUT)
+        self.co_initial_state = self._check_code_origin()
 
         # Explicitly enable via remote config
-        self.send_rc_apm_tracing(code_origin_enabled=True)
-        time.sleep(RC_POLL_INTERVAL)
-        self.send_weblog_request("/")
-        time.sleep(TRACE_FLUSH_WAIT)
-        self.er_explicit_enabled = self.wait_for_code_origin_span(TIMEOUT)
+        self.co_explicit_enabled = self._set_code_origin_and_check(enabled=True)
 
         # Send empty config (null value), should maintain enabled state
-        self.send_rc_apm_tracing(code_origin_enabled=None)
-        time.sleep(RC_POLL_INTERVAL)
-        self.send_weblog_request("/")
-        time.sleep(TRACE_FLUSH_WAIT)
-        self.er_empty_config = self.wait_for_code_origin_span(TIMEOUT)
+        self.co_empty_config = self._set_code_origin_and_check(enabled=None)
 
         # Explicitly disable via remote config
-        self.send_rc_apm_tracing(code_origin_enabled=False)
-        time.sleep(RC_POLL_INTERVAL)
-        self.send_weblog_request("/")
-        time.sleep(TRACE_FLUSH_WAIT)
-        self.er_explicit_disabled = not self.wait_for_code_origin_span(TIMEOUT)
+        self.co_explicit_disabled = not self._set_code_origin_and_check(enabled=False)
 
     def test_inproduct_enablement_code_origin(self):
         self.assert_rc_state_not_error()
@@ -210,10 +202,10 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
 
         # Check initial state based on language-specific defaults
         if context.library == "nodejs":
-            assert self.er_initial_state, "Expected code origin enabled by default"
+            assert self.co_initial_state, "Expected code origin enabled by default"
         else:
-            assert not self.er_initial_state, "Expected code origin disabled by default"
+            assert not self.co_initial_state, "Expected code origin disabled by default"
 
-        assert self.er_explicit_enabled, "Expected spans with code origin after explicit enable"
-        assert self.er_empty_config, "Expected spans to continue emitting with empty config"
-        assert self.er_explicit_disabled, "Expected spans to stop emitting after explicit disable"
+        assert self.co_explicit_enabled, "Expected spans with code origin after explicit enable"
+        assert self.co_empty_config, "Expected spans to continue emitting with empty config"
+        assert self.co_explicit_disabled, "Expected spans to stop emitting after explicit disable"
