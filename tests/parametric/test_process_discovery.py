@@ -60,6 +60,7 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
     elif context.library.name == "golang":
         # for which reason ?
         raw_version = raw_version.removeprefix("v")
+        tracer_metadata["tracer_version"] = tracer_metadata["tracer_version"].removeprefix("v")
 
     assert tracer_metadata["tracer_version"] == raw_version
 
