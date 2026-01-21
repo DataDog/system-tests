@@ -1,15 +1,6 @@
-"""
-Tests for LLM Observability Datasets and Experiments (DNE) feature.
-
-These tests validate that tracer libraries correctly implement the DNE API
-for creating, managing, and deleting datasets.
-
-These tests use VCR cassettes to mock backend API responses.
-"""
-
 import pytest
 
-from utils import scenarios, features
+from utils import scenarios
 from utils.docker_fixtures import TestAgentAPI
 from ..conftest import APMLibrary
 from utils.docker_fixtures.spec.llm_observability import (
@@ -22,15 +13,12 @@ from utils.docker_fixtures.spec.llm_observability import (
 def library_env(
     llmobs_ml_app: str, llmobs_project_name: str, test_agent: TestAgentAPI, *, llmobs_enabled: bool
 ) -> dict[str, object]:
-    """Environment variables for LLM Observability DNE tests."""
-    # Point LLMObs API calls to test agent's VCR proxy for cassette playback
     override_origin = f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog"
 
     env = {
         "DD_LLMOBS_ENABLED": llmobs_enabled,
         "DD_LLMOBS_ML_APP": llmobs_ml_app,
         "DD_LLMOBS_PROJECT_NAME": llmobs_project_name,
-        # Route LLMObs API calls through the test agent's VCR proxy
         "DD_LLMOBS_OVERRIDE_ORIGIN": override_origin,
         # Fake API key for VCR mode (actual auth is bypassed)
         "DD_API_KEY": "fake-api-key-for-vcr-testing",
@@ -42,12 +30,10 @@ def library_env(
 # @features.llm_observability_datasets_and_experiments
 @scenarios.parametric
 class Test_Dataset_Create:
-    """Tests for basic dataset creation."""
-
     def test_dataset_create_delete(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test that a dataset can be created and deleted.
 
-        This is the most basic DNE test - verifying that:
+        This is the most basic dataset test - verifying that:
         1. A dataset can be created with just a name and description
         2. The dataset is assigned an ID
         3. The dataset can be deleted by ID

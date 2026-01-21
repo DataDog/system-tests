@@ -56,16 +56,12 @@ class LlmObsAnnotationContextRequest:
 
 
 class DatasetRecordRequest(TypedDict, total=False):
-    """A single record in a dataset."""
-
     input_data: dict[str, Any]
     expected_output: Any
     metadata: dict[str, Any]
 
 
 class DatasetCreateRequest(TypedDict, total=False):
-    """Request to create a new dataset."""
-
     dataset_name: str
     description: str
     records: list[DatasetRecordRequest]
@@ -73,14 +69,10 @@ class DatasetCreateRequest(TypedDict, total=False):
 
 
 class DatasetDeleteRequest(TypedDict):
-    """Request to delete a dataset."""
-
     dataset_id: str
 
 
 class DatasetResponse(TypedDict, total=False):
-    """Response from dataset operations."""
-
     dataset_id: str
     name: str
     description: str

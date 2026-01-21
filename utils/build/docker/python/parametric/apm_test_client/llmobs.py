@@ -174,8 +174,6 @@ def llmobs_trace(trace_structure_request: Request):
 
 @dataclass
 class DatasetRecordRequest:
-    """A single record in a dataset."""
-
     input_data: dict
     expected_output: Any | None = None
     metadata: dict | None = None
@@ -183,8 +181,6 @@ class DatasetRecordRequest:
 
 @dataclass
 class DatasetCreateRequest:
-    """Request to create a new dataset."""
-
     dataset_name: str
     description: str | None = None
     records: list[DatasetRecordRequest] | None = None
@@ -208,10 +204,8 @@ class DatasetDeleteRequestModel(BaseModel):
 
 @router.post("/llm_observability/dataset/create")
 def llmobs_dataset_create(request: DatasetCreateRequestModel):
-    """Create a new dataset."""
     req = request.dataset_create_request
 
-    # Convert records to DatasetRecord format if provided
     records = None
     if req.records:
         records = [
@@ -223,20 +217,13 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
             for r in req.records
         ]
 
-    # Build kwargs for create_dataset
-    kwargs = {
-        "dataset_name": req.dataset_name,
-    }
-    if req.description is not None:
-        kwargs["description"] = req.description
-    if records is not None:
-        kwargs["records"] = records
-    if req.project_name is not None:
-        kwargs["project_name"] = req.project_name
+    dataset = LLMObs.create_dataset(
+        dataset_name=req.dataset_name,
+        description=req.description,
+        project_name=req.project_name,
+        records=records,
+    )
 
-    dataset = LLMObs.create_dataset(**kwargs)
-
-    # Build response
     return {
         "dataset_id": dataset._id,
         "name": dataset.name,
@@ -251,7 +238,6 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
 
 @router.post("/llm_observability/dataset/delete")
 def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
-    """Delete a dataset."""
     req = request.dataset_delete_request
     LLMObs._delete_dataset(dataset_id=req.dataset_id)
     return {"success": True}
