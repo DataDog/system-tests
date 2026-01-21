@@ -137,9 +137,10 @@ def parse_artifact_data(
                 if outcome == "xpassed" and excluded_owners_set and test_owners & excluded_owners_set:
                     outcome = "xfailed"
 
+                nodeid = test["nodeid"].split("[")[0]
                 if outcome == "xpassed":
-                    test_data[context].xpass_nodes.append(test["nodeid"])
-                nodeid = test["nodeid"].replace("::", "/").split("[")[0] + "/"
+                    test_data[context].xpass_nodes.append(nodeid)
+                nodeid = nodeid.replace("::", "/") + "/"
                 parts = re.finditer("/", nodeid)
                 for part in parts:
                     nodeid_slice = nodeid[: part.end()].rstrip("/")
