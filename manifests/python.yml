@@ -23,6 +23,9 @@ manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  tests/appsec/api_security/test_api_security_rc.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.6.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: v2.6.0
@@ -31,11 +34,17 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.6.0
   tests/appsec/api_security/test_apisecurity_telemetry.py: v4.3.0-dev0
+  tests/appsec/api_security/test_custom_data_classification.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v3.17.0
+  tests/appsec/api_security/test_endpoint_discovery.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": v3.13.0.dev
@@ -93,6 +102,9 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
+  tests/appsec/iast:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: v2.20.0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: v3.9.0.dev
@@ -303,6 +315,9 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
+  tests/appsec/rasp/test_api10.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
@@ -441,6 +456,9 @@ manifest:
         "*": v1.1.0-rc2
         fastapi: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
+  tests/appsec/test_asm_standalone.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - component_version: "<3.11.0"
@@ -465,23 +483,30 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: irrelevant (was v2.11.0 but will be replaced by V3)
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
-  tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
+  tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability:
+    - weblog_declaration:
+        "*": v2.11.0
+        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
     - weblog_declaration:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_signup_local:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
         *django: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
     - weblog_declaration:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_signup_local:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
         *django: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
     - weblog_declaration:
         "*": v2.20.0.dev
@@ -492,6 +517,7 @@ manifest:
     - weblog_declaration:
         "*": v3.11.0.dev
         *django: v3.3.0.dev
+        tornado: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
@@ -502,10 +528,12 @@ manifest:
         django-poc: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
         django-py3.13: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
         python3.12: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        tornado: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
     - weblog_declaration:
         "*": v3.1.0.dev
         *django: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        tornado: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
     - weblog_declaration:
@@ -670,15 +698,27 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: v4.2.0
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
+    - weblog_declaration:
+        "*": v2.11.0
+        tornado: missing_feature
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-  tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled: v3.11.0.dev
+  tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Enabled:
+    - weblog_declaration:
+        "*": v3.11.0.dev
+        tornado: missing_feature
   tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
-  tests/appsec/test_rate_limiter.py::Test_Main: v2.0.0
+  tests/appsec/test_rate_limiter.py::Test_Main:
+    - weblog_declaration:
+        "*": v2.0.0
+        tornado: missing_feature
+  tests/appsec/test_remote_config_rule_changes.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
     - weblog_declaration:
@@ -697,6 +737,7 @@ manifest:
     - weblog_declaration:
         "*": v1.10.0
         fastapi: v2.4.0
+        tornado: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.10.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.10.1
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v3.12.0.dev
@@ -705,6 +746,9 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.12.0.dev
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v2.11.0-rc
+  tests/appsec/test_trace_tagging.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v0.58.5
@@ -713,7 +757,10 @@ manifest:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.6.0
-  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v2.9.0
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
+    - weblog_declaration:
+        "*": v2.9.0
+        tornado: missing_feature
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - weblog_declaration:
         "*": v1.4.0-rc1
@@ -1481,7 +1528,10 @@ manifest:
         django-poc: v2.14.0
         flask-poc: v2.14.0
         python3.12: v2.14.0
-  tests/stats/test_stats.py: v2.8.0
+  tests/stats/test_stats.py:
+    - weblog_declaration:
+        "*": v2.8.0
+        tornado: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
@@ -1515,6 +1565,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         fastapi: v2.16.0
+  tests/test_config_consistency.py:
+    - weblog_declaration:
+        "*": v2.0.0
+        tornado: missing_feature
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: v2.17.3
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: v2.12.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: v2.12.0
@@ -1556,8 +1610,13 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
-  tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v2.0.0
   tests/test_data_integrity.py::Test_LibraryHeaders: v2.7.0
+  tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags:
+    - weblog_declaration:
+        tornado: missing_feature
+  tests/test_distributed.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/test_distributed.py::Test_DistributedHttp:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1576,6 +1635,9 @@ manifest:
   tests/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/test_identify.py::Test_Propagate: v1.9.0
   tests/test_identify.py::Test_Propagate_Legacy: v1.5.0-rc1
+  tests/test_library_conf.py:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.20.0
@@ -1603,11 +1665,17 @@ manifest:
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: bug (APMSP-2359)
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
-  tests/test_sampling_rates.py::Test_SampleRateFunction: v3.6.0+dev
+  tests/test_sampling_rates.py::Test_SampleRateFunction:
+    - weblog_declaration:
+        "*": v3.6.0+dev
+        tornado: missing_feature
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v2.8.0
   tests/test_sampling_rates.py::Test_SamplingDecisions: v3.6.0+dev
   tests/test_sampling_rates.py::Test_SamplingDeterminism: v2.8.0
-  tests/test_sampling_rates.py::Test_SamplingRates: v2.8.0
+  tests/test_sampling_rates.py::Test_SamplingRates:
+    - weblog_declaration:
+        "*": v2.8.0
+        tornado: missing_feature
   tests/test_scrubbing.py::Test_UrlField:
     - weblog_declaration:
         "*": v1.7.1
@@ -1636,6 +1704,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
         "*": v1.6.0
+        tornado: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v1.4.0-rc1
   tests/test_standard_tags.py::Test_StandardTagsUrl:
     - weblog_declaration:
