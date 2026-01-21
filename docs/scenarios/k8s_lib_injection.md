@@ -8,12 +8,15 @@
      - [Configure tested components versions](#configure-tested-components-versions)
      - [Execute a test scenario](#execute-a-test-scenario)
 2. [How to use a MiniKube implementation](#how-to-use-a-minikube-implementation)
-3. [How to develop a test case](#how-to-develop-a-test-case)
+3. [Component Version Matrix Configuration](#component-version-matrix-configuration)
+   * [Matrix Structure](#matrix-structure)
+   * [Modifying Component Versions](#modifying-component-versions)
+   * [CI Pipeline Filtering](#ci-pipeline-filtering)
+4. [How to develop a test case](#how-to-develop-a-test-case)
    * [Folders and Files structure](#folders-and-files-structure)
    * [Implement a new test case](#implement-a-new-test-case)
-4. [How to debug your kubernetes environment and tests results](#how-to-debug-your-kubernetes-environment-and-tests-results)
-5. [How to debug your kubernetes environment at runtime](#how-to-debug-your-kubernetes-environment-at-runtime)
-6. [Appendix: Public Registry Images (Reference)](#appendix-public-registry-images-reference)
+5. [How to debug your kubernetes environment and tests results](#how-to-debug-your-kubernetes-environment-and-tests-results)
+6. [How to debug your kubernetes environment at runtime](#how-to-debug-your-kubernetes-environment-at-runtime)
 
 ## Run the tests
 
@@ -34,7 +37,8 @@ The wizard will:
 5. Select the scenario and weblog to test
 6. Configure the weblog image (optionally build and push a custom one)
 7. Select the cluster agent, lib-init, and injector images
-8. Execute the tests
+8. Select the Datadog Helm chart version and Datadog Operator Helm chart version
+9. Execute the tests
 
 ### Run K8s library injection tests manually
 
@@ -123,6 +127,8 @@ export LIBRARY_INJECTION_TEST_APP_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws
 export LIB_INIT_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest
 export CLUSTER_AGENT_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest
 export INJECTOR_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest
+export K8S_HELM_CHART=3.156.1
+export K8S_HELM_CHART_OPERATOR=2.16.0
 ```
 
 ##### Weblog image
@@ -163,37 +169,59 @@ If you want to build and push your own custom version of the weblog:
 
 ##### Library init image
 
-The library init images are stored in the private ECR registry. Available tags:
+Library init images are available in the private ECR registry. To find available images, check the `lib_init_spec` section in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
 
-* **latest:** The latest release of the image.
-* **latest_snapshot:** The image created when we build the main branch of the tracer library.
+Common tags:
+* **prod:** Latest production release
+* **dev:** Latest snapshot from main branch
 
-| LANG    | LIB INIT IMAGE (ECR)                                                        |
-| ------- | --------------------------------------------------------------------------- |
-| Java    | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest    |
-| .NET    | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest  |
-| Node.js | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest      |
-| Python  | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest  |
-| Ruby    | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest    |
-| PHP     | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest     |
+Example images:
+```
+235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest
+235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot
+```
 
 ##### Datadog Cluster Agent
 
-The Datadog Cluster Agent images are stored in the private ECR registry:
+Cluster agent images are available in the private ECR registry. To find available images, check the `cluster_agent_spec` section in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
 
-| VERSION       | CLUSTER AGENT IMAGE (ECR)                                              |
-| ------------- | ---------------------------------------------------------------------- |
-| latest        | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest  |
-| 7.56.2        | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2  |
+Common tags:
+* **prod:** Production release
+* **nightly_dev:** Development build from main branch
+* **nightly_latest:** Latest nightly build
+
+Example image:
+```
+235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1
+```
 
 ##### Injector image
 
-The APM injector images are stored in the private ECR registry:
+APM injector images are available in the private ECR registry. To find available images, check the `injector_spec` section in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
 
-| TAG             | INJECTOR IMAGE (ECR)                                                    |
-| --------------- | ----------------------------------------------------------------------- |
-| latest          | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest      |
-| latest_snapshot | 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot |
+Common tags:
+* **prod:** Latest production release
+* **dev:** Latest snapshot from main branch
+
+Example images:
+```
+235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest
+235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot
+```
+
+##### Helm chart versions
+
+Datadog Helm chart and Operator Helm chart versions are configurable. To find available versions, check the `helm_chart_spec` and `helm_chart_operator_spec` sections in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
+
+Common versions:
+* **prod:** Production version
+* **nightly_latest:** Latest nightly version
+
+Example configuration:
+```
+K8S_HELM_CHART=3.156.1
+K8S_HELM_CHART_OPERATOR=2.16.0
+```
 
 #### Execute a test scenario
 
@@ -255,6 +283,73 @@ The K8s lib injection tests use the Kind cluster by default, but you can change 
     --k8s-injector-img 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest \
     --k8s-provider minikube
 ```
+
+## Component Version Matrix Configuration
+
+The component version matrix is defined in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json). This file controls which component versions are tested for each scenario.
+
+### Matrix Structure
+
+The JSON file has two main sections:
+
+1. **`scenario_matrix`**: Defines which components are tested for each scenario/weblog combination
+2. **Component specifications**: Maps version keys to actual image URLs or version numbers
+
+```json
+{
+  "scenario_matrix": [
+    {
+      "scenarios": ["K8S_LIB_INJECTION"],
+      "weblogs": [{"java": ["dd-lib-java-init-test-app"]}],
+      "cluster_agents": ["prod", "nightly_dev"],
+      "helm_charts": ["prod", "nightly_latest"],
+      "injectors": ["prod", "dev"],
+      "lib_inits": ["prod", "dev"]
+    }
+  ],
+  "cluster_agent_spec": {
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+    "nightly_dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master"
+  },
+  "lib_init_spec": {
+    "java": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+    }
+  }
+}
+```
+
+### Modifying Component Versions
+
+To add or update component versions:
+
+1. **Add a new version key** in the appropriate `_spec` section:
+   ```json
+   "cluster_agent_spec": {
+     "prod": "...:7.73.1",
+     "nightly_custom": "...:7.80.0"
+   }
+   ```
+
+2. **Reference the key** in the `scenario_matrix`:
+   ```json
+   "cluster_agents": ["prod", "nightly_custom"]
+   ```
+
+3. The CI will generate test combinations for all listed versions.
+
+### CI Pipeline Filtering
+
+The CI applies filters to reduce test matrix size based on context (see `apply_k8s_ci_filters` in [`gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py)):
+
+| Priority | Condition | Behavior |
+|----------|-----------|----------|
+| **1** | `K8S_LIB_INIT_IMG` env var set | Uses only **prod** versions + custom lib_init (dd-trace-xyz)|
+| **2** | `K8S_INJECTOR_IMG` env var set | Uses only **prod** versions + custom injector (auto_inject)|
+| **3** | System-tests **scheduled** pipeline | Runs **full matrix** (all versions) |
+| **4** | System-tests **PR/commit** | Filters out **nightly** versions |
+| **5** | Default (other repos) | No filtering |
 
 ## How to develop a test case
 
@@ -342,52 +437,3 @@ These are the main important log/data files:
 You can use the `--sleep` parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
 
 [Check the sleep parameter documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md#spawn-components-but-do-nothing)
-
-## Appendix: Public Registry Images (Reference)
-
-For reference, the following public registry images are also available. These can be used as alternatives or for migrating to a custom private registry.
-
-### Public Library Init Images
-
-| LANG    | LIB INIT IMAGE (Public)                                            |
-| ------- | ------------------------------------------------------------------ |
-| Java    | gcr.io/datadoghq/dd-lib-java-init:latest                           |
-| Java    | ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot     |
-| .NET    | gcr.io/datadoghq/dd-lib-dotnet-init:latest                         |
-| .NET    | ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot |
-| Node.js | gcr.io/datadoghq/dd-lib-js-init:latest                             |
-| Node.js | ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot         |
-| Python  | gcr.io/datadoghq/dd-lib-python-init:latest                         |
-| Python  | ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot     |
-| Ruby    | gcr.io/datadoghq/dd-lib-ruby-init:latest                           |
-| Ruby    | ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot       |
-
-### Public Cluster Agent and Injector Images
-
-| COMPONENT      | IMAGE (Public)                          |
-| -------------- | --------------------------------------- |
-| Cluster Agent  | gcr.io/datadoghq/cluster-agent:latest   |
-| APM Injector   | gcr.io/datadoghq/apm-inject:latest      |
-
-### Migrating Public Images to Private Registry
-
-If you need to use a custom private registry, you can migrate the public images:
-
-```sh
-# Example: Migrate lib-init image
-docker pull gcr.io/datadoghq/dd-lib-java-init:latest
-docker tag gcr.io/datadoghq/dd-lib-java-init:latest $PRIVATE_DOCKER_REGISTRY/ssi/dd-lib-java-init:latest
-docker push $PRIVATE_DOCKER_REGISTRY/ssi/dd-lib-java-init:latest
-
-# Example: Migrate cluster-agent
-docker pull gcr.io/datadoghq/cluster-agent:latest
-docker tag gcr.io/datadoghq/cluster-agent:latest $PRIVATE_DOCKER_REGISTRY/ssi/cluster-agent:latest
-docker push $PRIVATE_DOCKER_REGISTRY/ssi/cluster-agent:latest
-
-# Example: Migrate apm-inject
-docker pull gcr.io/datadoghq/apm-inject:latest
-docker tag gcr.io/datadoghq/apm-inject:latest $PRIVATE_DOCKER_REGISTRY/ssi/apm-inject:latest
-docker push $PRIVATE_DOCKER_REGISTRY/ssi/apm-inject:latest
-```
-
-The wizard script also offers an option to automatically migrate public images to your private registry.
