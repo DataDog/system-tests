@@ -238,16 +238,27 @@ count_amis:
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
-  tags: ["runner:docker"]
+  image: registry.ddbuild.io/system-tests/base-image-builder
+  tags:
+    - arch:amd64
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
   needs: []
   stage: system-tests-utils
-  allow_failure: true
   before_script:
+    # Get a token
+    - dd-octo-sts version
+    - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
+    - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
+    - export GITHUB_TOKEN=$(cat token.txt)
     - ./utils/scripts/get_pr_merged_labels.sh
+  after_script:
+    # Revoke the token after usage
+    - dd-octo-sts revoke -t $(cat token.txt)
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 

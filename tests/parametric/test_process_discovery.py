@@ -5,7 +5,7 @@ import json
 import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios, context, missing_feature, bug
+from utils import features, scenarios, context, bug
 from utils._context.component_version import Version
 from .conftest import APMLibrary
 
@@ -44,17 +44,26 @@ def read_memfd(test_library: APMLibrary, memfd_path: str):
     return rc, msgpack.unpackb(output)
 
 
-def get_context_tracer_version():
-    # Temporary fix for Ruby until we start to bump the version after a release
-    # This cancels a hack in system-tests framework that increments the patch version
-    # and add -dev to the version string.
+def get_context_tracer_version() -> Version:
+    major = context.library.version.major
+    minor = context.library.version.minor
+    patch = context.library.version.patch
+    prerelease = context.library.version.prerelease
+
     if context.library.name == "ruby":
-        major = context.library.version.major
-        minor = context.library.version.minor
-        patch = context.library.version.patch
+        # Temporary fix for Ruby until we start to bump the version after a release
+        # This cancels a hack in system-tests framework that increments the patch version
+        # and add -dev to the version string.
         return Version(f"{major}.{minor}.{patch}")
     elif context.library.name == "java":
         return Version(str(context.library.version).replace("+", "-"))
+    elif context.library.name == "python":
+        # python version scheme uses a dot to separate prerelease tag
+        version = f"{major}.{minor}.{patch}"
+        if prerelease:
+            version += f".{'.'.join(prerelease)}"
+
+        return Version(version)
     else:
         return context.library.version
 
@@ -128,7 +137,6 @@ class Test_ProcessDiscovery:
         with test_library:
             assert_metadata_content(test_library, library_env)
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
     @bug(context.library == "cpp", reason="APMAPI-1744")
     @pytest.mark.parametrize(
         "library_env",

@@ -16,12 +16,8 @@ class Manifest:
 
     def __init__(
         self,
-        library: str | None = None,
-        library_version: Version | None = None,
+        components: dict[str, Version] | None = None,
         weblog: str | None = None,
-        agent_version: Version | None = None,
-        dd_apm_inject_version: Version | None = None,
-        k8s_cluster_agent_version: Version | None = None,
         path: Path = default_manifests_path,
     ):
         """Parses all the manifest files on creation and filters the results based on
@@ -29,23 +25,15 @@ class Manifest:
         """
         self.data = load(path)
         self.rules = None
-        if library:
-            self.update_rules(
-                library, library_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
-            )
+        if components is not None:
+            self.update_rules(components, weblog)
 
     def update_rules(
         self,
-        library: str,
-        library_version: Version | None = None,
+        components: dict[str, Version],
         weblog: str | None = None,
-        agent_version: Version | None = None,
-        dd_apm_inject_version: Version | None = None,
-        k8s_cluster_agent_version: Version | None = None,
     ):
-        self.rules, self.condition_tracker = get_rules(
-            self.data, library, library_version, weblog, agent_version, dd_apm_inject_version, k8s_cluster_agent_version
-        )
+        self.rules, self.condition_tracker = get_rules(self.data, components, weblog)
 
     @staticmethod
     def parse(path: Path = default_manifests_path) -> ManifestData:
@@ -58,7 +46,7 @@ class Manifest:
         return load(path)
 
     @staticmethod
-    def validate(path: Path = default_manifests_path) -> None:
+    def validate(path: Path = default_manifests_path, *, assume_sorted: bool = False) -> None:
         """Runs a series of checks on the manifest files including:
         - nodeids exist
         - manifests are sorted
@@ -66,9 +54,10 @@ class Manifest:
 
         Args:
             path (str, optional): Path to the manifest directory. Defaults to 'manifests/'
+            assume_sorted (bool) : Weather to assume that the manifests are already sorted.
 
         """
-        validate(path)
+        validate(path, assume_sorted=assume_sorted)
 
     def get_declarations(
         self, nodeid: str, declaration_sources: list[tuple[str, list[tuple[int, int]]]] | None = None

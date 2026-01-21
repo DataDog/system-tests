@@ -1,5 +1,5 @@
 import time
-from utils import scenarios, features, flaky, irrelevant, bug, context, missing_feature, logger
+from utils import scenarios, features, irrelevant, bug, context, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 import tests.auto_inject.utils as base
 
@@ -34,8 +34,6 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_name in ["Ubuntu_20_amd64", "Ubuntu_20_arm64"] and context.weblog_variant == "test-app-python",
         reason="Python version too old",
     )
-    @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
-    @bug(context.library >= "java@1.5.0", reason="SCP-962")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -136,7 +134,6 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         ],
         reason="Zombies only appears in containers",
     )
-    @flaky(library="python", reason="APMLP-313")
     def test_crash_no_zombie(self):
         virtual_machine = context.virtual_machine
         vm_ip = virtual_machine.get_ip()
@@ -227,7 +224,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @irrelevant(context.library < "python@3.0.0", reason="Avoid blocking 2.21 release pipeline")
     @irrelevant(
         context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
         reason="python 3.8 is not supported on ddtrace >= 3.x",

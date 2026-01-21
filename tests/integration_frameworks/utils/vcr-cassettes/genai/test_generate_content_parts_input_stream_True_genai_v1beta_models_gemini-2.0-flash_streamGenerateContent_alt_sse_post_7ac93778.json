@@ -1,0 +1,42 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "User-Agent": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "x-goog-api-client": "google-genai-sdk/1.55.0 gl-python/3.11.14",
+      "Content-Length": "185",
+      "x-datadog-trace-id": "11887570970263544151",
+      "x-datadog-parent-id": "4375381833983135661",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=18225215462625887895,_dd.p.llmobs_trace_id=139915603650147930501481486343862324715,_dd.p.tid=6942c3dc00000000",
+      "traceparent": "00-6942c3dc00000000a4f922d07ccde157-3cb87a98a3430fad-01",
+      "tracestate": "dd=p:3cb87a98a3430fad;s:1;t.dm:-0;t.llmobs_parent_id:18225215462625887895;t.llmobs_trace_id:139915603650147930501481486343862324715;t.tid:6942c3dc00000000"
+    },
+    "body": "{\"contents\": [{\"parts\": [{\"text\": \"Why did the chicken cross the road?\"}, {\"text\": \"What is 2 + 2?\"}], \"role\": \"user\"}], \"generationConfig\": {\"temperature\": 0.1, \"maxOutputTokens\": 50}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "text/event-stream",
+      "Content-Disposition": "attachment",
+      "Vary": "Origin, X-Origin, Referer",
+      "Transfer-Encoding": "chunked",
+      "Date": "Wed, 17 Dec 2025 14:53:16 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=372",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+    },
+    "body": "data: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"Okay\"}],\"role\": \"model\"}}],\"usageMetadata\": {\"promptTokenCount\": 17,\"totalTokenCount\": 17,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 17}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"3MNCaezHIfaD1PIP0OV8\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \", here are the answers to your questions:\\n\\n*   **Why did the\"}],\"role\": \"model\"}}],\"usageMetadata\": {\"promptTokenCount\": 17,\"totalTokenCount\": 17,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 17}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"3MNCaezHIfaD1PIP0OV8\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \" chicken cross the road?** To get to the other side.\\n\\n*   \"}],\"role\": \"model\"}}],\"usageMetadata\": {\"promptTokenCount\": 17,\"totalTokenCount\": 17,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 17}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"3MNCaezHIfaD1PIP0OV8\"}\r\n\r\ndata: {\"candidates\": [{\"content\": {\"parts\": [{\"text\": \"**What is 2 + 2?** 4\"}],\"role\": \"model\"},\"finishReason\": \"STOP\"}],\"usageMetadata\": {\"promptTokenCount\": 16,\"candidatesTokenCount\": 45,\"totalTokenCount\": 61,\"promptTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 16}],\"candidatesTokensDetails\": [{\"modality\": \"TEXT\",\"tokenCount\": 45}]},\"modelVersion\": \"gemini-2.0-flash\",\"responseId\": \"3MNCaezHIfaD1PIP0OV8\"}\r\n\r\n"
+  }
+}

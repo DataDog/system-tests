@@ -159,32 +159,6 @@ class PHPRuntimeInstallableVersions:
 
 ```
 
-Finally, there is a place to define the weblogs and specify on which OSs/docker base images can be deployed and whether it supports the installation of different language versions.
-
-```python
-JS_APP = WeblogDescriptor(
-    "js-app",
-    "nodejs",
-    [
-        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
-            JSRuntimeInstallableVersions.get_all_versions()
-        ),
-        SupportedImages().UBUNTU_22_ARM64.with_allowed_runtime_versions(
-            JSRuntimeInstallableVersions.get_all_versions()
-        ),
-    ],
-)
-```
-
-Might be that your weblog only supports one base image and it requires a runtime version to be installed, for example:
-
-```python
-TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64])
-JAVA7_APP = WeblogDescriptor("java7-app", "java", [SupportedImages().UBUNTU_22_ARM64])
-WEBSPHERE_APP = WeblogDescriptor("websphere-app", "java", [SupportedImages().WEBSPHERE_AMD64])
-JBOSS_APP = WeblogDescriptor("jboss-app", "java", [SupportedImages().JBOSS_AMD64])
-```
-
 ## Create a new weblog
 
 We can differentiate between two types of applications:
@@ -229,7 +203,7 @@ ENV WEBLOG_URL=http://localhost:8080/payment-service/
 ENV DD_INSTRUMENT_SERVICE_WITH_APM=true
 ```
 
-As final step, we should register the new weblog in the docker ssi definitions file (`utils/docker_ssi/docker_ssi_definitions.py`):
+As final step, we should register the new weblog in the docker ssi definitions file (`utils/docker_ssi/docker_ssi_definitions.py`) by adding the appropriate Docker images to the `SupportedImages` class:
 
 ```python
 class SupportedImages:
@@ -239,15 +213,6 @@ class SupportedImages:
         self.TOMCAT_9_AMD64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_AMD64)
         self.TOMCAT_9_ARM64 = DockerImage("Tomcat_9", "tomcat:9", LINUX_ARM64)
 ...
-TOMCAT_APP = WeblogDescriptor("tomcat-app", "java", [SupportedImages().TOMCAT_9_ARM64, SupportedImages().TOMCAT_9_AMD64])
-...
-# HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [
-    ...,
-    TOMCAT_APP,
-    ...
-]
-
 ```
 
 ---
@@ -308,27 +273,6 @@ class PHPRuntimeInstallableVersions:
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
 ...
-
-PHP_APP = WeblogDescriptor(
-    "php-app",
-    "php",
-    [
-        SupportedImages().UBUNTU_22_AMD64.with_allowed_runtime_versions(
-            PHPRuntimeInstallableVersions.get_all_versions()
-        ),
-        SupportedImages().UBUNTU_24_ARM64.with_allowed_runtime_versions(
-            PHPRuntimeInstallableVersions.get_all_versions()
-        ),
-    ],
-)
-
-...
-# HERE ADD YOUR WEBLOG DEFINITION TO THE LIST
-ALL_WEBLOGS = [
-    ...,
-    PHP_APP,
-    ...
-]
 ```
 
 ---
