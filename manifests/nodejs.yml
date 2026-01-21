@@ -1602,27 +1602,27 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.83.0"
+        express5: ">=5.37.0 <5.83.0"
+        fastify: ">=5.37.0 <5.83.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.83.0"
+        express5: ">=5.37.0 <5.83.0"
+        fastify: ">=5.37.0 <5.83.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.83.0"
+        express5: ">=5.37.0 <5.83.0"
+        fastify: ">=5.37.0 <5.83.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_82_0
-        express5: *ref_5_82_0
-        fastify: *ref_5_82_0
+        express4: ">=5.83.0"
+        express5: ">=5.83.0"
+        fastify: ">=5.83.0"
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   ? tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported::test_invalid_weblog_not_instrumented
   : bug (APMRP-361)
