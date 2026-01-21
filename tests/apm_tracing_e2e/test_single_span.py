@@ -5,6 +5,7 @@ from utils.dd_constants import (
     SINGLE_SPAN_SAMPLING_MECHANISM_VALUE,
     SINGLE_SPAN_SAMPLING_RATE,
     SINGLE_SPAN_SAMPLING_MAX_PER_SEC,
+    TraceAgentPayloadFormat,
 )
 
 
@@ -33,11 +34,12 @@ class Test_SingleSpan:
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
-        span, _span_format = spans[0]
-        assert span["name"] == "parent.span.single_span_submitted"
+        span, span_format = spans[0]
+        assert interfaces.agent.get_span_name(span, span_format) == "parent.span.single_span_submitted"
         assert span.get("parentID") is None
-        assert span["metrics"]["_dd.top_level"] == 1.0
-        _assert_single_span_metrics(span)
+        metrics = interfaces.agent.get_span_metrics(span, span_format)
+        assert metrics["_dd.top_level"] == 1.0
+        _assert_single_span_metrics(span, span_format)
 
         # Assert the spans received from the backend!
         backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
@@ -56,10 +58,10 @@ class Test_SingleSpan:
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
-        span, _span_format = spans[0]
-        assert span["name"] == "child.span.single_span_submitted"
-        assert span["parentID"] is not None
-        _assert_single_span_metrics(span)
+        span, span_format = spans[0]
+        assert interfaces.agent.get_span_name(span, span_format) == "child.span.single_span_submitted"
+        assert span.get("parentID") is not None
+        _assert_single_span_metrics(span, span_format)
 
         # Assert the spans received from the backend!
         backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
@@ -79,8 +81,9 @@ def _assert_single_span_event(event: dict, name: str, *, is_root: bool):
         assert len(parent_id) > 0, f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
-def _assert_single_span_metrics(span: dict):
-    assert span["metrics"][SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
-    assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
-    assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
-    assert span["metrics"][SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
+def _assert_single_span_metrics(span: dict, span_format: TraceAgentPayloadFormat):
+    metrics = interfaces.agent.get_span_metrics(span, span_format)
+    assert metrics[SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
+    assert metrics[SINGLE_SPAN_SAMPLING_RATE] == 1.0
+    assert metrics[SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
+    assert metrics[SINGLE_SPAN_SAMPLING_MAX_PER_SEC] == 50.0
