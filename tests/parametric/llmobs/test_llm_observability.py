@@ -15,19 +15,6 @@ def llmobs_ml_app() -> str | None:
     return "test-app"
 
 
-@pytest.fixture
-def library_env(llmobs_ml_app: str | None, dd_service: str, *, llmobs_enabled: bool) -> dict[str, object]:
-    env = {
-        "DD_LLMOBS_ENABLED": llmobs_enabled,
-        "DD_SERVICE": dd_service,
-    }
-
-    if llmobs_ml_app is not None:
-        env["DD_LLMOBS_ML_APP"] = llmobs_ml_app
-
-    return env
-
-
 def _find_event_tag(event: dict, tag: str) -> str | None:
     """Find a tag in a span event or telemetry metric event."""
     tags = event["tags"]
