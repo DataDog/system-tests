@@ -2,7 +2,7 @@ import json
 import time
 from typing import Any, Literal
 
-from utils import weblog, scenarios, features, interfaces, logger
+from utils import weblog, scenarios, features, interfaces, logger, context
 
 
 DISTRIBUTED_TRACE_ID = 1
@@ -417,6 +417,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_v2(_BaseTestCase):
                 self.start_time_ns,
                 distributed=True,
             ),
+            full_trace=(context.library == "nodejs"),
         )
 
     def setup_api_gateway_rest_inferred_span_creation_with_error(self):
