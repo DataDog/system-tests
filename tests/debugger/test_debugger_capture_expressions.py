@@ -146,7 +146,6 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library <= "java@1.54.0", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTest):
     """Tests for method-level probe capture expressions"""
@@ -173,7 +172,6 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
     def setup_complex_capture_expressions(self):
         self._setup("probe_capture_expressions_complex", "/debugger/expression?inputValue=testValue", "log", lines=None)
 
-    @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
     def test_complex_capture_expressions(self):
         self._assert()
 
@@ -194,7 +192,6 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library < "java@1.59.0", reason="DEBUG-4929", force_skip=True)
 class Test_Debugger_Line_Capture_Expressions(BaseDebuggerCaptureExpressionsTest):
     """Tests for line-level probe capture expressions"""

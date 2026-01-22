@@ -537,7 +537,6 @@ class Test_Login_Events_Extended:
             headers=HEADERS,
         )
 
-    @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(library="php")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
@@ -559,7 +558,6 @@ class Test_Login_Events_Extended:
             headers=HEADERS,
         )
 
-    @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(library="php")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
@@ -1066,7 +1064,6 @@ class Test_V2_Login_Events_Anon:
             headers=HEADERS,
         )
 
-    @missing_feature(context.library < "dotnet@3.7.0")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
@@ -1087,7 +1084,6 @@ class Test_V2_Login_Events_Anon:
             headers=HEADERS,
         )
 
-    @missing_feature(context.library < "dotnet@3.7.0")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
@@ -1508,7 +1504,6 @@ class Test_V3_Login_Events:
             headers=HEADERS,
         )
 
-    @missing_feature(context.library < "dotnet@3.7.0")
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
@@ -1529,7 +1524,6 @@ class Test_V3_Login_Events:
             headers=HEADERS,
         )
 
-    @missing_feature(context.library < "dotnet@3.7.0")
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 

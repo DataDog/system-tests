@@ -618,7 +618,6 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     @bug(library="cpp", reason="APMAPI-914")
-    @bug(library="dotnet", reason="APMAPI-914")
     @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent.

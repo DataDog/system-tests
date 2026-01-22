@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import missing_feature, features, rfc, weblog
+from utils import features, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
@@ -16,7 +16,6 @@ class Test_TrustBoundaryViolation(BaseSinkTest):
     secure_endpoint = "/iast/trust-boundary-violation/test_secure"
     params = {"username": "shaquille_oatmeal", "password": "123456"}
 
-    @missing_feature(library="dotnet", reason="Metrics implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

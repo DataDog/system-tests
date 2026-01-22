@@ -19,7 +19,6 @@ class TestHeaderValue(BaseSourceTest):
     source_type = "http.request.header"
     source_value = "user"
 
-    @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 

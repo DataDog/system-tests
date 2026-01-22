@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import missing_feature, features, rfc, weblog
+from utils import features, rfc, weblog
 from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
 
 
@@ -19,7 +19,6 @@ class Test_InsecureAuthProtocol(BaseSinkTest):
         "Authorization": 'Digest username="WATERFORD", realm="Users", nonce="c5rcvu346qavqf3hnmsrnqj5up", uri="/api/partner/validate", response="57c8d9f11ec7a2f1ab13c5e166b2c505"'
     }
 
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

@@ -54,6 +54,8 @@ class Version(version_module.Version):
 class ComponentVersion:
     known_versions: dict[str, set[str]] = defaultdict(set)
     version: Version
+    raw_version: str
+    """Exact value as exposed by the component"""
 
     def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.name if library is None else library
@@ -64,6 +66,7 @@ class ComponentVersion:
             raise ValueError("Library's name can't contains '@'")
 
         self.name = name
+        self.raw_version = version.strip()
 
         if version:
             version = version.strip()

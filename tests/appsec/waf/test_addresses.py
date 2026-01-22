@@ -172,7 +172,6 @@ class Test_Cookies:
     def setup_cookies_with_spaces_custom_rules(self):
         self.r_cwscr_2 = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
 
-    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     @scenarios.appsec_custom_rules
     def test_cookies_with_spaces_custom_rules(self):
         """Cookie with pattern containing a space"""
@@ -183,7 +182,6 @@ class Test_Cookies:
         self.r_cwsc2cc = weblog.get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
 
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
-    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""

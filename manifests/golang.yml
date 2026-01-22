@@ -797,9 +797,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.48.0
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.7.0-dev
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.44.1
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v2.7.0-dev
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.73.0
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
@@ -879,7 +879,11 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py:
+    - weblog_declaration:
+        "*": missing_feature
+        net-http: v2.4.0
+        net-http-orchestrion: v2.4.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.72.1  # real version unknown

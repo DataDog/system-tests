@@ -203,7 +203,6 @@ class Test_Telemetry:
 
         assert all(count == 1 for count in count_by_runtime_id.values())
 
-    @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
         """Request type app-started is the first telemetry message or the first message in the first batch"""
@@ -450,7 +449,6 @@ class Test_Telemetry:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @irrelevant(library="golang")
-    @irrelevant(library="dotnet")
     @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
@@ -717,7 +715,6 @@ def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes:
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
