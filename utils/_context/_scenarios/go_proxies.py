@@ -1,7 +1,3 @@
-import json
-import os
-from pathlib import Path
-
 import pytest
 
 from utils._context.containers import (
@@ -15,7 +11,6 @@ from utils._context.containers import (
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._logger import logger
-from utils._context.component_version import ComponentVersion, Version
 
 from .core import scenario_groups as all_scenario_groups, ScenarioGroup
 from .endtoend import DockerScenario
@@ -28,6 +23,7 @@ GO_PROXIES_WEBLOGS: dict[str, str] = {
     "envoy": "envoy",
     "haproxy-spoa": "haproxy",
 }
+
 
 class GoProxiesScenario(DockerScenario):
     def __init__(
@@ -82,19 +78,18 @@ class GoProxiesScenario(DockerScenario):
                 f"Supported variants: {', '.join(sorted(GO_PROXIES_WEBLOGS))}",
                 1,
             )
-
+            return
         if requested_weblog_variant not in GO_PROXIES_WEBLOGS:
             pytest.exit(
                 f"Unsupported Go proxies weblog variant '{requested_weblog_variant}'. "
                 f"Supported variants: {', '.join(sorted(GO_PROXIES_WEBLOGS))}",
                 1,
             )
-
         self._weblog_variant = requested_weblog_variant
-        self._proxy_component = GO_PROXIES_WEBLOGS.get(self._weblog_variant)
+        self._proxy_component = GO_PROXIES_WEBLOGS[self._weblog_variant]
         self._init_containers()
 
-        #if self.replay:
+        # if self.replay:
         #    component_from_logs = self._discover_proxy_component_from_logs()
         #
         #    if component_from_logs and component_from_logs != self._proxy_component:
@@ -187,42 +182,42 @@ class GoProxiesScenario(DockerScenario):
             self._http_app_container,
         ]
 
-#    def _set_proxy_component(self, proxy_component: str) -> None:
-#        self._proxy_component = proxy_component
-#        self._init_containers()
+    #    def _set_proxy_component(self, proxy_component: str) -> None:
+    #        self._proxy_component = proxy_component
+    #        self._init_containers()
 
-#    def _load_components_from_report(self) -> None:
-#        report_path = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
-#        report_path = report_path / self.host_log_folder / "report.json"
-#        try:
-#            with open(report_path, encoding="utf-8") as f:
-#                report = json.load(f)
-#        except FileNotFoundError:
-#            logger.debug("Replay missing report.json: %s", report_path)
-#            return
-#
-#        context = report.get("context", {})
-#        agent_version = context.get("agent")
-#        if agent_version:
-#            self.components["agent"] = ComponentVersion("agent", agent_version).version
-#
-#        library_name = context.get("library_name")
-#        library_version = context.get("library")
-#        if library_name and library_version:
-#            lib_version: Version = ComponentVersion(library_name, library_version).version
-#            self.components["library"] = lib_version
-#            self.components[library_name] = lib_version
-#            self.components[self._proxy_component] = lib_version
+    #    def _load_components_from_report(self) -> None:
+    #        report_path = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
+    #        report_path = report_path / self.host_log_folder / "report.json"
+    #        try:
+    #            with open(report_path, encoding="utf-8") as f:
+    #                report = json.load(f)
+    #        except FileNotFoundError:
+    #            logger.debug("Replay missing report.json: %s", report_path)
+    #            return
+    #
+    #        context = report.get("context", {})
+    #        agent_version = context.get("agent")
+    #        if agent_version:
+    #            self.components["agent"] = ComponentVersion("agent", agent_version).version
+    #
+    #        library_name = context.get("library_name")
+    #        library_version = context.get("library")
+    #        if library_name and library_version:
+    #            lib_version: Version = ComponentVersion(library_name, library_version).version
+    #            self.components["library"] = lib_version
+    #            self.components[library_name] = lib_version
+    #            self.components[self._proxy_component] = lib_version
 
-#    def _discover_proxy_component_from_logs(self) -> str | None:
-#        docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
-#        docker_logs_dir = docker_logs_dir / self.host_log_folder / "docker"
-#
-#        for component in ("haproxy", "envoy"):
-#            if (docker_logs_dir / component).is_dir():
-#                return component
-#
-#        return None
+    #    def _discover_proxy_component_from_logs(self) -> str | None:
+    #        docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
+    #        docker_logs_dir = docker_logs_dir / self.host_log_folder / "docker"
+    #
+    #        for component in ("haproxy", "envoy"):
+    #            if (docker_logs_dir / component).is_dir():
+    #                return component
+    #
+    #        return None
 
     @property
     def weblog_variant(self) -> str:
