@@ -91,6 +91,7 @@ class TestedContainer:
         volumes: dict | None = None,
         working_dir: str | None = None,
         pid_mode: str | None = None,
+        cgroupns_mode: str | None = None,
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
@@ -121,6 +122,7 @@ class TestedContainer:
         self.ulimits: list | None = None
         self.privileged = False
         self.pid_mode = pid_mode
+        self.cgroupns_mode = cgroupns_mode
 
     def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
         # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
@@ -217,25 +219,33 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = get_docker_client().containers.run(
-            image=self.image.name,
-            name=self.container_name,
-            hostname=self.name,
-            environment=self.environment,
+        # Build run arguments
+        run_kwargs = {
+            "image": self.image.name,
+            "name": self.container_name,
+            "hostname": self.name,
+            "environment": self.environment,
             # auto_remove=True,
-            detach=True,
-            network=network.name,
-            volumes=self.volumes,
-            ports=self.ports,
-            working_dir=self.working_dir,
-            command=self.command,
-            user=self.user,
-            cap_add=self.cap_add,
-            security_opt=self.security_opt,
-            privileged=self.privileged,
-            ulimits=self.ulimits,
-            pid_mode=self.pid_mode,
-        )
+            "detach": True,
+            "network": network.name,
+            "volumes": self.volumes,
+            "ports": self.ports,
+            "working_dir": self.working_dir,
+            "command": self.command,
+            "user": self.user,
+            "cap_add": self.cap_add,
+            "security_opt": self.security_opt,
+            "privileged": self.privileged,
+            "ulimits": self.ulimits,
+            "pid_mode": self.pid_mode,
+        }
+
+        # Add cgroupns if explicitly set
+        # Note: This is passed via host_config internally by docker-py
+        if self.cgroupns_mode is not None:
+            run_kwargs["cgroupns"] = self.cgroupns_mode
+
+        self._container = get_docker_client().containers.run(**run_kwargs)
 
         self.healthy = self.wait_for_health()
         if self.healthy:
