@@ -110,11 +110,12 @@ class BaseDebuggerTest:
     prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
 
-    setup_failures: list = []
+    setup_failures: list
 
     use_debugger_endpoint: bool = False
 
     def initialize_weblog_remote_config(self) -> None:
+        self.setup_failures = []
         if self.get_tracer()["language"] in ["ruby"]:
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
