@@ -62,6 +62,7 @@ class IntegrationsScenario(EndToEndScenario):
                 MsSqlServerContainer,
                 MySqlContainer,
             ),
+            library_interface_timeout=5,
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
                 "Test the integrations of those databases with tracers"
