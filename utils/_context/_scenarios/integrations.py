@@ -49,6 +49,7 @@ class IntegrationsScenario(EndToEndScenario):
             include_localstack=True,
             include_elasticmq=True,
             include_otel_drop_in=True,
+            library_interface_timeout=5,
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
                 "Test the integrations of those databases with tracers"
