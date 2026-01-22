@@ -866,7 +866,6 @@ class Test_Span_Sampling:
         assert len(traces) == 0
 
     @bug(context.library == "golang", reason="APMAPI-1545")
-    @bug(context.library == "php", reason="APMAPI-1545")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",
@@ -941,7 +940,6 @@ class Test_Span_Sampling:
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1
 
     @bug(context.library == "golang", reason="APMAPI-1545")
-    @bug(context.library == "php", reason="APMAPI-1545")
     @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",

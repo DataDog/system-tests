@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, features, waf_rules
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, features, waf_rules
 
 
 @features.waf_rules
@@ -67,7 +67,6 @@ class Test_LFI:
         self.r_4 = weblog.get("/waf/%2e%2e%2f")
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
-    @irrelevant(library="php", weblog_variant="apache-mod-8.0")
     def test_lfi_percent_2f(self):
         """Appsec catches encoded LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_4, waf_rules.lfi)
@@ -204,7 +203,6 @@ class Test_SQLI:
         self.r_3 = weblog.get("/waf/", params={"value": "alter d char set f"})
         self.r_4 = weblog.get("/waf/", params={"value": "merge using("})
 
-    @flaky(context.library <= "php@0.68.2", reason="APMRP-360")
     def test_sqli2(self):
         """Other SQLI patterns"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.sql_injection.crs_942_240)
