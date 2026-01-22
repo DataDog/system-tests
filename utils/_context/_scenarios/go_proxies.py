@@ -39,6 +39,7 @@ class GoProxiesScenario(DockerScenario):
         self._processor_env = processor_env
         self._processor_volumes = processor_volumes
         self._scenario_groups = (scenario_groups or []) + [
+            all_scenario_groups.go_proxies,
             all_scenario_groups.appsec,
             all_scenario_groups.end_to_end,
             all_scenario_groups.all,
