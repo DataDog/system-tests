@@ -870,6 +870,15 @@ def build_manifest_entries(
         args = usage.get("args", [])
         keywords = usage.get("keywords", {})
 
+        # Skip decorators with force_skip=True - these are meant to completely skip test execution
+        # and should not be migrated to manifest (they behave like @irrelevant at runtime)
+        if keywords.get("force_skip") == "True":
+            _log_unhandled(
+                "Decorator has force_skip=True (skipping migration - test should remain completely skipped)",
+                usage,
+            )
+            continue
+
         # Check for library keyword (e.g., library="php")
         library_filter = _parse_library_keyword(keywords)
 
