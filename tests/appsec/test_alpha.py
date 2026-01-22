@@ -6,7 +6,7 @@ from utils import weblog, interfaces, scenarios, features, scenario_groups
 
 
 @features.threats_alpha_preview
-@scenario_groups.go_proxies
+@scenario_groups.go_proxies_default
 @scenarios.appsec_lambda_default
 @scenarios.default
 class Test_Basic:

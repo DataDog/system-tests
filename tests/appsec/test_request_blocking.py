@@ -11,7 +11,7 @@ from utils import weblog
 
 @features.appsec_request_blocking
 @scenarios.appsec_blocking_full_denylist
-@scenario_groups.go_proxies
+@scenario_groups.go_proxies_default
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
