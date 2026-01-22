@@ -462,10 +462,10 @@ jobs:
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
     - name: Run GO_PROXIES_DEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_DEFAULT"')
-      run: ./run.sh GO_PROXIES_DEFAULT
+      run: ./run.sh GO_PROXIES_DEFAULT --weblog ${{ inputs.weblog }}
     - name: Run GO_PROXIES_APPSEC_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING"')
-      run: ./run.sh GO_PROXIES_APPSEC_BLOCKING
+      run: ./run.sh GO_PROXIES_APPSEC_BLOCKING --weblog ${{ inputs.weblog }}
     - name: Run OTEL_COLLECTOR scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
@@ -480,7 +480,7 @@ jobs:
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
-      run: utils/scripts/replay_scenarios.sh
+      run: utils/scripts/replay_scenarios.sh --weblog ${{ inputs.weblog }}
       env:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
