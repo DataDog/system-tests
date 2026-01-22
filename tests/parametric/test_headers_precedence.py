@@ -98,7 +98,6 @@ class Test_Headers_Precedence:
         context.library >= "nodejs@3.14.0",
         reason="Newer versions include tracecontext as a default propagator (2.27.0 and 3.14.0)",
     )
-    @irrelevant(context.library >= "php@0.84.0", reason="Newer versions include tracecontext as a default propagator")
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library == "rust", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(
@@ -213,7 +212,6 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
     @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
@@ -494,7 +492,6 @@ class Test_Headers_Precedence:
 
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
     @missing_feature(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
-    @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
     def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_library: APMLibrary) -> None:
         self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_library)
 
@@ -644,7 +641,6 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -654,7 +650,6 @@ class Test_Headers_Precedence:
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
     @missing_feature(context.library == "cpp", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
-    @missing_feature(context.library == "php", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
     @bug(
         context.library < "golang@1.57.0", reason="APMRP-360"
     )  # Legacy behaviour: tracecontext propagator would always take precedence

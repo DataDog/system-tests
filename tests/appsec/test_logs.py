@@ -16,17 +16,14 @@ class Test_Standardization:
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @missing_feature(library="php")
     def test_i01(self):
         """Log I1: AppSec initial configuration"""
         stdout.assert_presence(r"AppSec initial configuration from .*, libddwaf version: \d+\.\d+\.\d+", level="INFO")
 
-    @missing_feature(library="php", reason="rules are not analyzed, only converted to PWArgs")
     def test_i02(self):
         """Log I2: AppSec rule source"""
         stdout.assert_presence(r"AppSec loaded \d+ rules from file .*$", level="INFO")
 
-    @missing_feature(library="php")
     def test_i05(self):
         """Log I5: WAF detected an attack"""
         stdout.assert_presence(r"Detecting an attack from rule crs-921-160$", level="INFO")

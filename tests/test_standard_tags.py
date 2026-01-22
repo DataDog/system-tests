@@ -27,7 +27,6 @@ class Test_StandardTagsMethod:
     def setup_method_trace(self):
         self.trace_request = weblog.trace("/waf", data=None)
 
-    @irrelevant(library="php", reason="Trace method does not reach php-land")
     @missing_feature(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
@@ -83,7 +82,6 @@ class Test_StandardTagsUrl:
         ]
 
     # when tracer is updated, add (for example)
-    @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string_legacy(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -118,7 +116,6 @@ class Test_StandardTagsUrl:
         context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -131,7 +128,6 @@ class Test_StandardTagsUrl:
         )
 
     # when tracer is updated, add (for example)
-    @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring_legacy(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -147,7 +143,6 @@ class Test_StandardTagsUrl:
         context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(

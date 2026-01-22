@@ -119,7 +119,6 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -163,7 +162,6 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
 
@@ -423,7 +421,6 @@ class BaseUserLoginFailureEventV2Tags:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 

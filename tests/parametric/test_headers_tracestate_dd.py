@@ -314,7 +314,6 @@ class Test_Headers_Tracestate_DD:
         reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
     )
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
-    @bug(context.library >= "php@1.11.0", reason="APMAPI-1539")
     @missing_feature(
         context.library == "rust",
         reason="can't guarantee the order of strings in the tracestate since they came from the map.",
@@ -551,7 +550,6 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
-    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_library: APMLibrary):
         """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
@@ -618,7 +616,6 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     @bug(library="cpp", reason="APMAPI-914")
-    @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output

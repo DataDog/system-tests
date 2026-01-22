@@ -467,7 +467,6 @@ class Test_Environment:
             assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{matched_name}'"
 
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
@@ -555,7 +554,6 @@ class Test_Environment:
                 )
 
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"

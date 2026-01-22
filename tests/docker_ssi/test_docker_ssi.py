@@ -149,7 +149,6 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
-    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # Get the latest (effective) configurations
@@ -170,7 +169,6 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
-    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()
