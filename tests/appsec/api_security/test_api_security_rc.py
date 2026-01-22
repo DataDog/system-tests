@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, rfc, scenarios, weblog, features, logger
+from utils import interfaces, rfc, scenario_groups, weblog, features, logger
 from utils._weblog import HttpResponse
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
@@ -22,7 +22,7 @@ def get_schema(request: HttpResponse, address: str):
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - processors"""
@@ -42,7 +42,7 @@ class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - scanners"""

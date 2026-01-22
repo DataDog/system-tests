@@ -71,6 +71,7 @@ class _ScenarioGroups:
     go_proxies = ScenarioGroup()
     ## Groups of scenarios
     appsec_blocking = ScenarioGroup()
+    appsec_api_security_rc = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()

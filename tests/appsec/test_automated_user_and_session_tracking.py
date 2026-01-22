@@ -9,7 +9,7 @@ from utils import features
 from utils import interfaces
 from utils import remote_config as rc
 from utils import rfc
-from utils import scenarios
+from utils import scenario_groups
 from utils import weblog
 
 # User entries in the internal DB:
@@ -135,7 +135,7 @@ BLOCK_USER_DATA = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
         rc.tracer_rc_state.reset().apply()
@@ -220,7 +220,7 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         rc.tracer_rc_state.reset().apply()

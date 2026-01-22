@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, rfc, scenarios, weblog, features, logger
+from utils import interfaces, rfc, scenario_groups, weblog, features, logger
 from utils.dd_constants import Capabilities
 from utils._weblog import HttpResponse
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
@@ -22,7 +22,7 @@ def get_schema(request: HttpResponse, address: str):
 
 
 @rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Capabilities(BaseAppsecApiSecurityRcTest):
     """Validate that ASM_PROCESSOR_OVERRIDES and ASM_CUSTOM_DATA_SCANNERS capabilities are exposed"""
@@ -41,7 +41,7 @@ class Test_API_Security_Custom_Data_Classification_Capabilities(BaseAppsecApiSec
 
 
 @rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Processor_Override(BaseAppsecApiSecurityRcTest):
     """Test API Security - Custom Data Classification with Processor Override"""
@@ -64,7 +64,7 @@ class Test_API_Security_Custom_Data_Classification_Processor_Override(BaseAppsec
 
 
 @rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Scanner(BaseAppsecApiSecurityRcTest):
     """Test API Security - Custom Data Classification with Custom Scanner"""
@@ -99,7 +99,7 @@ class Test_API_Security_Custom_Data_Classification_Scanner(BaseAppsecApiSecurity
 
 
 @rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Multiple_Scanners(BaseAppsecApiSecurityRcTest):
     """Test API Security - Multiple Custom Scanners"""
@@ -126,7 +126,7 @@ class Test_API_Security_Custom_Data_Classification_Multiple_Scanners(BaseAppsecA
 
 
 @rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Negative(BaseAppsecApiSecurityRcTest):
     """Test API Security - Custom Data Classification Negative Cases"""

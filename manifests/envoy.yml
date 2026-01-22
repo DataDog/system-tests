@@ -1,7 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/appsec/api_security/test_api_security_rc.py: v1.72.0
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.0.0
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.0.0
+  tests/appsec/api_security/test_custom_data_classification.py: v2.4.0
   tests/appsec/test_alpha.py: v1.72.0
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: irrelevant (Proxies doesn't support login events (go sdk))
+  tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_blocking_addresses.py: v1.72.0
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.2.0
@@ -21,12 +27,23 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: irrelevant (not supported on proxies)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: missing_feature (can't test with set tag)
   tests/appsec/test_client_ip.py: v1.72.0
+  tests/appsec/test_extended_data_collection.py: v1.72.0
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v1.72.0
+  tests/appsec/test_remote_config_rule_changes.py: v1.72.0
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v2.1.0
   tests/appsec/test_reports.py: v1.72.0
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.72.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.1.0
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0
   tests/appsec/test_traces.py: v1.72.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_versions.py::Test_Events: v1.72.0
+  tests/remote_config/test_remote_configuration.py: v1.72.0
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v1.72.0
   tests/test_scrubbing.py: v1.72.0
   tests/test_semantic_conventions.py: v1.72.0

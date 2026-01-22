@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, scenarios, features, weblog, context, remote_config as rc
+from utils import interfaces, scenario_groups, features, weblog, context, remote_config as rc
 from utils.dd_constants import Capabilities
 
 
@@ -53,7 +53,7 @@ def assert_body_property(body: dict, prop: str, expected_value: str) -> None:
 
 
 @features.appsec_extended_data_collection
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_ExtendedDataCollectionCapability:
     """Validate that ASM_EXTENDED_DATA_COLLECTION (44) capability is sent"""
 
@@ -62,7 +62,7 @@ class Test_ExtendedDataCollectionCapability:
 
 
 @features.appsec_extended_data_collection
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_ExtendedRequestHeadersDataCollection:
     """Test extended data collection using remote config rules and actions"""
 
@@ -261,7 +261,7 @@ class Test_ExtendedRequestHeadersDataCollection:
 
 
 @features.appsec_extended_data_collection
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_ExtendedResponseHeadersDataCollection:
     """Test extended response headers data collection using remote config rules and actions"""
 
@@ -425,7 +425,7 @@ class Test_ExtendedResponseHeadersDataCollection:
 
 
 @features.appsec_extended_data_collection
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_ExtendedRequestBodyCollection:
     """Test extended request body data collection using remote config rules and actions"""
 

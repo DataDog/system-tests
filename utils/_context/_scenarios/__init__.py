@@ -334,7 +334,12 @@ class _Scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
+        scenario_groups=[
+            scenario_groups.appsec_api_security_rc,
+            scenario_groups.appsec,
+            scenario_groups.remote_config,
+            scenario_groups.essentials,
+        ],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -1098,6 +1103,25 @@ class _Scenarios:
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         scenario_groups=[scenario_groups.appsec_blocking, scenario_groups.essentials],
+    )
+
+    go_proxies_appsec_api_security_rc = GoProxiesScenario(
+        name="GO_PROXIES_APPSEC_API_SECURITY_RC",
+        doc="Scenario to test API Security Remote config",
+        processor_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_APPSEC_WAF_TIMEOUT": "10000000",
+            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
+        },
+        rc_api_enabled=True,
+        scenario_groups=[
+            scenario_groups.appsec_api_security_rc,
+            scenario_groups.remote_config,
+            scenario_groups.essentials,
+        ],
     )
 
     ipv6 = IPV6Scenario("IPV6")

@@ -12,7 +12,7 @@ from utils import features
 from utils import interfaces
 from utils import remote_config as rc
 from utils import rfc
-from utils import scenarios
+from utils import scenarios, scenario_groups
 from utils import weblog
 
 CONFIG_ENABLED = (
@@ -319,7 +319,7 @@ RULES_COMPAT_FILE: tuple[str, dict] = (
 @rfc(
     "https://docs.google.com/document/d/1t6U7WXko_QChhoNIApn0-CRNe6SAKuiiAQIyCRPUXP4/edit?tab=t.0#heading=h.uw8qbgyhhb47"
 )
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 @features.appsec_rc_asm_dd_multiconfig
 @features.appsec_trace_tagging_rules
 class Test_AsmDdMultiConfiguration:

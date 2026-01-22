@@ -10,7 +10,7 @@ from utils import irrelevant
 from utils import missing_feature
 from utils import remote_config as rc
 from utils import rfc
-from utils import scenarios
+from utils import scenarios, scenario_groups
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
 
@@ -1886,7 +1886,7 @@ BLOCK_USER_LOGIN = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_api_security_rc
+@scenario_groups.appsec_api_security_rc
 class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_id(self):
         rc.tracer_rc_state.reset().apply()
