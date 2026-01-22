@@ -5,7 +5,7 @@ from collections.abc import Callable
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 

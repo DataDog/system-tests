@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
+from utils import bug, context, interfaces, missing_feature, rfc, weblog, features, scenarios
 from utils._weblog import HttpResponse
 
 

@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, features, waf_rules
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, features, waf_rules
 
 
 @features.waf_rules

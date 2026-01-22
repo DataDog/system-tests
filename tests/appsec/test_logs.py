@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, features
+from utils import weblog, context, interfaces, features
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
