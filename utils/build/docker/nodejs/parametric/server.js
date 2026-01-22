@@ -313,7 +313,7 @@ app.post('/trace/otel/span_context', (req, res) => {
     span_id: ctx.spanId,
     trace_id: ctx.traceId,
     // Node.js official OTel API uses a number, not a string
-    trace_flags: `0${ctx.traceFlags}`,
+    trace_flags: ctx.traceFlags.toString(16).padStart(2, '0'),
     trace_state: ctx.traceState.serialize(),
 
     // TODO: What is this and where is it supposed to come from? 🤔
