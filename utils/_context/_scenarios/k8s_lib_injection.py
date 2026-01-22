@@ -76,8 +76,8 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             extract_injector_version,
         )
 
-        self.k8s_helm_chart_version = os.getenv("K8S_HELM_CHART", "3.156.1")
-        self.k8s_helm_chart_operator_version = os.getenv("K8S_HELM_CHART_OPERATOR", "2.16.0")
+        self.k8s_helm_chart_version = os.getenv("K8S_HELM_CHART")
+        self.k8s_helm_chart_operator_version = os.getenv("K8S_HELM_CHART_OPERATOR")
 
         # Get component versions: lib init, cluster agent, injector
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
@@ -89,8 +89,10 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.components["datadog-apm-inject"] = ComponentVersion(
             "cluster_agent", self._datadog_apm_inject_version
         ).version
-        self.configuration["k8s_helm_chart"] = self.k8s_helm_chart_version
-        self.configuration["k8s_helm_chart_operator"] = self.k8s_helm_chart_operator_version
+        if self.k8s_helm_chart_version:
+            self.configuration["k8s_helm_chart"] = self.k8s_helm_chart_version
+        if self.k8s_helm_chart_operator_version:
+            self.configuration["k8s_helm_chart_operator"] = self.k8s_helm_chart_operator_version
         # Configure the K8s cluster provider
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
