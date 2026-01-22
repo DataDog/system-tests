@@ -314,8 +314,9 @@ def _get_endtoend_weblogs(
                     )
 
     # weblog not related to a docker file
-    for weblog in go_proxies.GO_PROXIES_WEBLOGS.get(library, []):
-        result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
+    for weblog, lib in go_proxies.GO_PROXIES_WEBLOGS.items():
+        if lib == library:
+            result.append(Weblog(name=weblog, require_build=False, artifact_name=binaries_artifact))
 
     if library == "otel_collector":
         result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
@@ -556,13 +557,11 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
             return False
 
     # Go proxies
-    for p in go_proxies.GO_PROXIES_WEBLOGS:
-        if library == p:
-            if not scenario.startswith(f"{p.upper()}_"):
-                return False
-            break
-    for p, weblogs in go_proxies.GO_PROXIES_WEBLOGS.items():
-        if scenario.startswith(f"{p.upper()}_") and weblog not in weblogs:
+    if scenario.startswith("GO_PROXIES"):
+        if go_proxies.GO_PROXIES_WEBLOGS.get(weblog) != library:
+            return False
+    if go_proxies.GO_PROXIES_WEBLOGS.get(weblog):
+        if not scenario.startswith("GO_PROXIES"):
             return False
 
     # otel collector

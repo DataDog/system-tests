@@ -1085,38 +1085,19 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    envoy_default = GoProxiesScenario(
-        name="ENVOY_DEFAULT",
-        doc="Go security processor proxies (Envoy)",
+    go_proxies_default = GoProxiesScenario(
+        name="GO_PROXIES_DEFAULT",
+        doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
-        proxy_component="envoy",
-        scenario_groups=[scenario_groups.go_proxies],
+        scenario_groups=[scenario_groups.go_proxies_default],
     )
 
-    envoy_appsec_blocking = GoProxiesScenario(
-        name="ENVOY_APPSEC_BLOCKING",
-        doc="Go security processor proxies (Envoy) with appsec blocking rule file",
+    go_proxies_appsec_blocking = GoProxiesScenario(
+        name="GO_PROXIES_APPSEC_BLOCKING",
+        doc="Default tests for proxies using the security processor with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        proxy_component="envoy",
-        scenario_groups=[scenario_groups.go_proxies_blocking],
-    )
-
-    haproxy_default = GoProxiesScenario(
-        name="HAPROXY_DEFAULT",
-        doc="Go security processor proxies (HAProxy)",
-        rc_api_enabled=True,
-        proxy_component="haproxy",
-        scenario_groups=[scenario_groups.go_proxies],
-    )
-
-    haproxy_appsec_blocking = GoProxiesScenario(
-        name="HAPROXY_APPSEC_BLOCKING",
-        doc="Go security processor proxies (HAProxy) with appsec blocking rule file",
-        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        proxy_component="haproxy",
-        scenario_groups=[scenario_groups.go_proxies_blocking],
+        scenario_groups=[scenario_groups.go_proxies_appsec_blocking],
     )
 
     ipv6 = IPV6Scenario("IPV6")
