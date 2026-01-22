@@ -429,8 +429,17 @@ run_the_tests(){
     echo "   🔹 Test Library:     $TEST_LIBRARY"
     echo ""
 
+    # Ask if user wants to keep the cluster alive for debugging
+    read -p "🔧 Do you want to keep the Kubernetes cluster alive after tests? (useful for debugging) (y/n): " KEEP_ALIVE
+
     echo -e "${CYAN}🚀 Ready to execute:${NC}"
     CMD=("./run.sh" "$SCENARIO" "--k8s-library" "$TEST_LIBRARY" "--k8s-weblog" "$WEBLOG" "--k8s-weblog-img" "$WEBLOG_IMAGE" "--k8s-cluster-img" "$CLUSTER_AGENT" "--k8s-lib-init-img" "$K8S_LIB_INIT_IMG" "--k8s-injector-img" "$K8S_INJECTOR_IMG" "--k8s-provider" "$K8S_PROVIDER")
+
+    # Add --sleep parameter if user wants to keep cluster alive
+    if [[ "$KEEP_ALIVE" == "y" ]]; then
+        CMD+=("--sleep")
+        echo -e "${YELLOW}⏳ Note: Cluster will remain alive after tests. You can inspect the environment.${NC}"
+    fi
 
     echo -e "${GREEN}${CMD[*]}${NC}\n"
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
