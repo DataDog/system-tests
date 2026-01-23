@@ -1705,7 +1705,7 @@ class StreamProcessingOffloadContainer(TestedContainer):
             lib = data["library"]
 
         assert lib["language"] == "golang"
-        self.library = ComponentVersion("envoy", lib["version"])
+        self.library = ComponentVersion("haproxy", lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")

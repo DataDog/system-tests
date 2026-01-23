@@ -480,7 +480,7 @@ jobs:
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
-      run: utils/scripts/replay_scenarios.sh --weblog ${{ inputs.weblog }}
+      run: utils/scripts/replay_scenarios.sh
       env:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}

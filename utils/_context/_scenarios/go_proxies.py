@@ -1,5 +1,11 @@
+import json
+import os
+from pathlib import Path
+
 import pytest
 
+from utils import interfaces
+from utils._context.component_version import Version
 from utils._context.containers import (
     AgentContainer,
     DummyServerContainer,
@@ -8,12 +14,12 @@ from utils._context.containers import (
     HAProxyContainer,
     StreamProcessingOffloadContainer,
 )
-from utils import interfaces
-from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._logger import logger
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 
-from .core import scenario_groups as all_scenario_groups, ScenarioGroup
+from .core import ScenarioGroup, scenario_groups as all_scenario_groups
 from .endtoend import DockerScenario
+
 
 ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContainer
 ProxyRuntimeContainer = EnvoyContainer | HAProxyContainer
@@ -57,46 +63,18 @@ class GoProxiesScenario(DockerScenario):
         self._base_required_containers = list(self._required_containers)
 
     def _build_processor_container(self) -> ProcessorContainer:
-        env = dict(self._processor_env or {})
-        volumes = dict(self._processor_volumes or {})
-
-        if self._proxy_component == "envoy":
-            return ExternalProcessingContainer(env=env, volumes=volumes)
-
-        return StreamProcessingOffloadContainer(env=env, volumes=volumes)
+        if self.proxy_component == "envoy":
+            return ExternalProcessingContainer(env=self._processor_env, volumes=self._processor_volumes)
+        return StreamProcessingOffloadContainer(env=self._processor_env, volumes=self._processor_volumes)
 
     def _build_proxy_runtime_container(self) -> ProxyRuntimeContainer:
-        if self._proxy_component == "envoy":
+        if self.proxy_component == "envoy":
             return EnvoyContainer()
-
         return HAProxyContainer()
 
     def configure(self, config: pytest.Config) -> None:
-        requested_weblog_variant: str | None = config.option.weblog
-        if not requested_weblog_variant:
-            pytest.exit(
-                "No weblog variant specified. Please set with --weblog."
-                f"Supported variants: {', '.join(sorted(GO_PROXIES_WEBLOGS))}",
-                1,
-            )
-            return
-        if requested_weblog_variant not in GO_PROXIES_WEBLOGS:
-            pytest.exit(
-                f"Unsupported Go proxies weblog variant '{requested_weblog_variant}'. "
-                f"Supported variants: {', '.join(sorted(GO_PROXIES_WEBLOGS))}",
-                1,
-            )
-        self._weblog_variant = requested_weblog_variant
-        self._proxy_component = GO_PROXIES_WEBLOGS[self._weblog_variant]
+        self._set_information(config)
         self._init_containers()
-
-        # if self.replay:
-        #    component_from_logs = self._discover_proxy_component_from_logs()
-        #
-        #    if component_from_logs and component_from_logs != self._proxy_component:
-        #        logger.stdout(f"Replay detected proxy component from logs: {component_from_logs}")
-        #        self._set_proxy_component(component_from_logs)
-        #    self._load_components_from_report()
 
         super().configure(config)
 
@@ -183,42 +161,51 @@ class GoProxiesScenario(DockerScenario):
             self._http_app_container,
         ]
 
-    #    def _set_proxy_component(self, proxy_component: str) -> None:
-    #        self._proxy_component = proxy_component
-    #        self._init_containers()
+    def _set_information(self, config: pytest.Config) -> None:
+        requested_weblog_variant = config.option.weblog
+        version: Version | None = None
 
-    #    def _load_components_from_report(self) -> None:
-    #        report_path = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
-    #        report_path = report_path / self.host_log_folder / "report.json"
-    #        try:
-    #            with open(report_path, encoding="utf-8") as f:
-    #                report = json.load(f)
-    #        except FileNotFoundError:
-    #            logger.debug("Replay missing report.json: %s", report_path)
-    #            return
-    #
-    #        context = report.get("context", {})
-    #        agent_version = context.get("agent")
-    #        if agent_version:
-    #            self.components["agent"] = ComponentVersion("agent", agent_version).version
-    #
-    #        library_name = context.get("library_name")
-    #        library_version = context.get("library")
-    #        if library_name and library_version:
-    #            lib_version: Version = ComponentVersion(library_name, library_version).version
-    #            self.components["library"] = lib_version
-    #            self.components[library_name] = lib_version
-    #            self.components[self._proxy_component] = lib_version
+        if self.replay:
+            requested_weblog_variant, version = self._discover_weblog_and_version_from_logs()
 
-    #    def _discover_proxy_component_from_logs(self) -> str | None:
-    #        docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd()))
-    #        docker_logs_dir = docker_logs_dir / self.host_log_folder / "docker"
-    #
-    #        for component in ("haproxy", "envoy"):
-    #            if (docker_logs_dir / component).is_dir():
-    #                return component
-    #
-    #        return None
+        if requested_weblog_variant not in GO_PROXIES_WEBLOGS:
+            pytest.exit(
+                f"Unsupported Go proxies weblog variant '{requested_weblog_variant}'. "
+                "Please set with --weblog. "
+                f"Supported variants: {', '.join(sorted(GO_PROXIES_WEBLOGS))}",
+                1,
+            )
+
+        self._weblog_variant = requested_weblog_variant
+        self._proxy_component = GO_PROXIES_WEBLOGS[self._weblog_variant]
+
+        if version:
+            self.components["library"] = version
+            self.components[self._proxy_component] = version
+
+    def _discover_weblog_and_version_from_logs(self) -> tuple[str | None, Version | None]:
+        weblog_variant = None
+        version = None
+
+        docker_logs_dir = Path(os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", Path.cwd())) / self.host_log_folder
+        fp = docker_logs_dir / "feature_parity.json"
+
+        try:
+            with fp.open(encoding="utf-8") as f:
+                feature_parity = json.load(f)
+        except Exception as e:
+            logger.warning("Replay mode error: %s", e)
+            return None, None
+
+        weblog_variant = feature_parity.get("variant")
+        deps = feature_parity.get("testedDependencies") or []
+
+        for dep in deps:
+            if isinstance(dep, dict) and dep.get("name") == "library":
+                version = dep.get("version")
+                break
+
+        return weblog_variant, Version(version) if version else None
 
     @property
     def weblog_variant(self) -> str:
