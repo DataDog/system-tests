@@ -1,3 +1,4 @@
+import shutil
 import textwrap
 from pathlib import Path
 
@@ -34,8 +35,6 @@ class Test_SlowDecorator:
         This test verifies that when a manifest declares a test as missing_feature,
         and the test has @slow() decorator, the combination triggers the skip_if_xfail logic.
         """
-        import shutil
-
         manifest_file = Path("manifests/java.yml")
         backup_file = Path("manifests/java.yml.backup")
 
@@ -77,8 +76,6 @@ class Test_SlowDecoratorOnClass:
 
     def test_slow_on_class_with_manifest_declaration_on_function_is_skipped(self):
         """Test that @slow() on class with manifest declaration on function results in skip."""
-        import shutil
-
         manifest_file = Path("manifests/java.yml")
         backup_file = Path("manifests/java.yml.backup")
 
