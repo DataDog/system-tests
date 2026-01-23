@@ -1658,8 +1658,9 @@ def _find_decorator_lines_by_source(source_lines: list[str], node_lineno: int, d
 
     # Normalize decorator source for matching
     decorator_clean = decorator_source.strip()
-    # Remove leading @ if present for matching
-    decorator_without_at = decorator_clean.lstrip("@").strip()
+    # Get just the decorator name (e.g., "missing_feature" from "missing_feature(...)")
+    # This handles both single-line and multi-line decorators
+    decorator_name = decorator_clean.lstrip("@").split("(")[0].strip()
 
     # Search backwards from node_lineno (decorators appear before the definition)
     # Look back up to 50 lines (should be more than enough)
@@ -1668,19 +1669,23 @@ def _find_decorator_lines_by_source(source_lines: list[str], node_lineno: int, d
             break
         line_content = source_lines[i].rstrip()
 
-        # Check if this line contains the decorator
-        # Match if line contains the decorator source (with or without @)
-        if decorator_clean in line_content or decorator_without_at in line_content:
-            # Additional check: line should start with @ (it's a decorator)
-            if line_content.lstrip().startswith("@"):
-                lines.append(i + 1)  # Convert to 1-based
-                # Check if decorator spans multiple lines (doesn't end with closing paren)
-                # If it does, we need to find the continuation
-                if "(" in line_content and not line_content.rstrip().endswith(")"):
-                    # Multi-line decorator - continue searching
-                    continue
-                # Found the decorator line(s)
-                break
+        # Check if this line starts a decorator with the matching name
+        if line_content.lstrip().startswith(f"@{decorator_name}"):
+            # Found the start of the decorator
+            start_line = i + 1  # Convert to 1-based
+            lines.append(start_line)
+
+            # Check if decorator spans multiple lines (has open paren but doesn't close)
+            if "(" in line_content:
+                paren_count = line_content.count("(") - line_content.count(")")
+                # Find all continuation lines
+                j = i + 1
+                while j < len(source_lines) and paren_count > 0:
+                    cont_line = source_lines[j].rstrip()
+                    paren_count += cont_line.count("(") - cont_line.count(")")
+                    lines.append(j + 1)  # Convert to 1-based
+                    j += 1
+            break
 
     return sorted(lines)
 
@@ -2154,10 +2159,20 @@ def _extract_existing_nodeids(content: str) -> set[str]:
     #   tests/path/to/file.py::ClassName::method_name:
     #   tests/path/to/file.py::ClassName:
     #   tests/path/to/file.py:
-    pattern = r"^  (tests/[^\s:]+(?:::[^\s:]+)*(?:::)?):"
+    # Also match YAML complex key format (multi-line entries):
+    #   ? tests/path/to/file.py::ClassName::method_name
+    pattern_simple = r"^  (tests/[^\s:]+(?:::[^\s:]+)*(?:::)?):"
+    pattern_complex_key = r"^  \? (tests/[^\s:]+(?:::[^\s:]+)*(?:::)?)\s*$"
     nodeids = set()
     for line in content.splitlines():
-        match = re.match(pattern, line)
+        # Try simple format first
+        match = re.match(pattern_simple, line)
+        if match:
+            nodeid = match.group(1)
+            nodeids.add(nodeid)
+            continue
+        # Try YAML complex key format (? prefix for multi-line entries)
+        match = re.match(pattern_complex_key, line)
         if match:
             nodeid = match.group(1)
             nodeids.add(nodeid)
@@ -2545,6 +2560,7 @@ def write_manifest_files_by_component(
     # Write one file per component
     written_files: dict[str, str] = {}
     written_nodeids: set[str] = set()  # Track which nodeids were actually written
+    already_existing_nodeids: set[str] = set()  # Track nodeids that already exist in manifests
 
     for component, component_data in component_manifests.items():
         if not component_data:
@@ -2565,9 +2581,13 @@ def write_manifest_files_by_component(
         for nodeid, entries in component_data.items():
             if nodeid not in existing_nodeids:
                 new_entries[nodeid] = entries
+            else:
+                # Track nodeids that already exist - we should still delete their decorators
+                already_existing_nodeids.add(nodeid)
 
         if not new_entries:
-            # No new entries to add
+            # No new entries to add, but mark component as processed
+            written_files[component] = str(filepath)
             continue
 
         # Format new entries BEFORE writing (so we can catch formatting errors)
@@ -2660,7 +2680,9 @@ def write_manifest_files_by_component(
             # Continue to next component - don't add failed nodeids to written_nodeids
             continue
 
-    return written_files, written_nodeids
+    # Combine written nodeids with already existing nodeids for decorator deletion
+    all_nodeids_to_delete = written_nodeids | already_existing_nodeids
+    return written_files, all_nodeids_to_delete
 
 
 if __name__ == "__main__":
