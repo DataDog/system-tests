@@ -1,4 +1,4 @@
-The RC API is the official way to interact with remote config. It allows to build and send RC payloads to the library durint setup phase, and send request before/after each state change.
+The RC API is the official way to interact with remote config. It allows to build and send RC payloads to the library during setup phase, and send request before/after each state change.
 
 ## Setting RC configuration files
 
@@ -8,8 +8,8 @@ The RC API is the official way to interact with remote config. It allows to buil
 from utils import remote_config
 
 
-# will return the global rc state
-rc_state = remote_config.rc_state
+# Use the tracer RC state singleton for scenarios with rc_api_enabled=True (default)
+rc_state = remote_config.tracer_rc_state
 
 config = {
     "rules_data": [
@@ -26,10 +26,27 @@ rc_state.set_config(f"datadog/2/ASM_DATA-base/ASM_DATA-base/config", config)
 rc_state.apply()
 ```
 
+### RC State Singletons
+
+There are two RC state singletons depending on the scenario configuration:
+
+#### `remote_config.tracer_rc_state`
+
+Use this for scenarios that send RC configs via the legacy proxy mock at `/v0.7/config`.
+This is the default for most appsec and feature flag scenarios.
+
+**Requirements:** The scenario must have `rc_api_enabled=True` (and NOT `rc_backend_enabled=True`).
+
+#### `remote_config.backend_rc_state`
+
+Use this for scenarios that send RC configs via the mocked backend at `/api/v0.1/configurations` (protobuf).
+This is used for debugger scenarios and other scenarios that require the agent's RC backend path.
+
+**Requirements:** The scenario must have `rc_backend_enabled=True`.
+
 ### API
 
-#### object `remote_config.rc_state`
-
+#### RC State Methods
 
 * `set_config(self, path, config) -> rc_state`
   * `path`: configuration path
@@ -70,7 +87,7 @@ Here is the test code performing that test. Please note variables `activate_ASM_
 ```python
 from utils import weblog, interfaces, scenarios, remote_config
 
-rc_state = remote_config.rc_state
+rc_state = remote_config.tracer_rc_state
 
 @scenarios.asm_deactivated  # in this scenario, ASM is deactivated
 class Test_RemoteConfigSequence:

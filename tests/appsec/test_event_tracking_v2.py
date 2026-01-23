@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios, irrelevant
+from utils import weblog, interfaces, features, scenarios
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 
@@ -119,8 +119,6 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -150,7 +148,6 @@ class BaseUserLoginSuccessEventV2Tags:
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
     def setup_user_login_success_event_deep_metadata(self):
         headers = {
             "X-Forwarded-For": "1.2.3.4",
@@ -165,9 +162,6 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
 
@@ -427,9 +421,6 @@ class BaseUserLoginFailureEventV2Tags:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
-    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
-    @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
-    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 

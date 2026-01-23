@@ -18,6 +18,7 @@ paramiko==3.4.1
 pexpect==4.9.0  #On Boarding requirements
 pluggy==1.0.0
 psutil==6.0.0
+pynacl==1.5.0  # for TUF signing in RC mocks
 pulumi-aws==6.38.0  #On Boarding requirements
 pulumi-command==0.11.1  #On Boarding requirements
 pulumi-tls==5.0.3  #On Boarding requirements
@@ -49,3 +50,4 @@ types-retry==0.9.9.20250322
 watchdog==3.0.0
 yamllint==1.35.1
 yarl==1.9.4
+pygtrie==2.5.0

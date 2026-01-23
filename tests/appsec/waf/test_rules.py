@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, features, waf_rules
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, features, waf_rules
 
 
 @features.waf_rules
@@ -30,7 +30,6 @@ class Test_HttpProtocol:
     def setup_http_protocol(self):
         self.r_1 = weblog.get("/waf/", params={"key": ".cookie;domain="})
 
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_protocol(self):
         """AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.http_protocol_violation.crs_943_100)
@@ -68,7 +67,6 @@ class Test_LFI:
         self.r_4 = weblog.get("/waf/%2e%2e%2f")
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
-    @irrelevant(library="php", weblog_variant="apache-mod-8.0")
     def test_lfi_percent_2f(self):
         """Appsec catches encoded LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_4, waf_rules.lfi)
@@ -76,7 +74,6 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     @irrelevant(
         context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
     )
@@ -206,7 +203,6 @@ class Test_SQLI:
         self.r_3 = weblog.get("/waf/", params={"value": "alter d char set f"})
         self.r_4 = weblog.get("/waf/", params={"value": "merge using("})
 
-    @flaky(context.library <= "php@0.68.2", reason="APMRP-360")
     def test_sqli2(self):
         """Other SQLI patterns"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.sql_injection.crs_942_240)

@@ -90,7 +90,6 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
-@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -98,7 +97,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_method_snapshot(self):
         self._setup("probe_snapshot_log_method", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -145,7 +143,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
-@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -153,7 +150,6 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_log_method_snapshot(self):
         self._setup("probe_snapshot_log_method", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -221,7 +217,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -382,8 +377,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "ruby", reason="DEBUG-4343")
-    @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(
         context.library < "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
     )
@@ -396,8 +389,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "ruby", reason="DEBUG-4343")
-    @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(context.agent_version < "7.72.0", reason="Endpoint was introduced in 7.72.0", force_skip=True)
     @missing_feature(
         context.library < "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
@@ -419,7 +410,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_snapshot(self):
@@ -476,7 +466,6 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -490,7 +479,6 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_snapshot(self):

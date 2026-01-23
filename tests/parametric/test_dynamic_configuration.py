@@ -13,7 +13,6 @@ from utils import (
     missing_feature,
     rfc,
     scenarios,
-    flaky,
 )
 from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
@@ -264,7 +263,6 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(context.library == "java", reason="APMAPI-1225")
-    @missing_feature(context.library < "dotnet@3.29.0", reason="Added new capabilities", force_skip=True)
     @missing_feature(
         context.library < "nodejs@5.72.0",
         reason="Added new FFE flag capabilities",
@@ -343,9 +341,6 @@ class TestDynamicConfigTracingEnabled:
         "library_env",
         [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}],
     )
-    @irrelevant(library="golang")
-    @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
-    @irrelevant(library="cpp", reason="APMAPI-1592")
     def test_tracing_client_tracing_disable_one_way(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -411,7 +406,6 @@ class TestDynamicConfigV1:
         assert cfg_state["product"] == "APM_TRACING"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     def test_trace_sampling_rate_override_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rate should override the default sampling rate.
 
@@ -436,9 +430,6 @@ class TestDynamicConfigV1:
         "library_env",
         [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]],
     )
-    @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
-    @irrelevant(context.library == "python", reason="DD_TRACE_SAMPLE_RATE was removed in 3.x")
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     def test_trace_sampling_rate_override_env(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -493,7 +484,6 @@ class TestDynamicConfigV1:
             }
         ],
     )
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-864")
     def test_trace_sampling_rate_with_sampling_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         rc_sampling_rule_rate = 0.70
@@ -618,8 +608,6 @@ class TestDynamicConfigV1_ServiceTargets:
             ]
         ],
     )
-    @irrelevant(library="cpp", reason="APMAPI-1003")
-    @irrelevant(library="golang", reason="APMAPI-1003")
     def test_not_match_service_target(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """This is an old behavior, see APMAPI-1003
 
@@ -645,8 +633,6 @@ class TestDynamicConfigV1_ServiceTargets:
         assert cfg_state["apply_state"] == RemoteConfigApplyState.ERROR.value
         assert cfg_state["apply_error"] != ""
 
-    @missing_feature(context.library == "golang", reason="Tracer does case-sensitive checks for service and env")
-    @missing_feature(context.library <= "cpp@1.0.0", reason="Tracer does case-sensitive checks for service and env")
     @parametrize(
         "library_env",
         [
@@ -696,7 +682,6 @@ class TestDynamicConfigV2:
         "library_env",
         [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}],
     )
-    @flaky(context.library > "python@3.7.0", reason="APMAPI-1400")
     def test_tracing_client_tracing_tags(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -757,7 +742,6 @@ class TestDynamicConfigV2:
         assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
 
-    @irrelevant(library="cpp", reason="The CPP tracer doesn't support http header tags")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the http header tags capability."""
@@ -790,7 +774,6 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(library="ruby", reason="APMAPI-867")
     def test_trace_sampling_rules_override_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the environment variable and decision maker is set appropriately.
 
@@ -856,9 +839,6 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(library="ruby", reason="APMAPI-867")
-    @flaky(library="python", reason="APMAPI-1051")
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1595")
     def test_trace_sampling_rules_override_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the RC sampling rate."""
         rc_sampling_rule_rate_customer = 0.8
@@ -915,10 +895,6 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(context.library == "ruby", reason="APMAPI-868")
-    @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
-    @missing_feature(library="python")
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
     def test_trace_sampling_rules_with_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
@@ -1056,9 +1032,6 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
-    @bug(library="ruby", reason="APMAPI-867")
-    @bug(library="python", reason="APMAPI-857")
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Only the last set of sampling rules should be applied"""

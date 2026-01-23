@@ -24,6 +24,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v1.10.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v1.10.0
   tests/appsec/api_security/test_endpoint_discovery.py: irrelevant (not applicable to proxies)
+  tests/appsec/api_security/test_endpoint_fallback.py: irrelevant (not applicable to proxies)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.8.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: v1.8.0
@@ -196,6 +197,7 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
+  tests/stats/test_stats.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not implemented)
@@ -235,6 +237,7 @@ manifest:
   tests/test_ipv6.py: missing_feature (APMAPI-869)
   tests/test_library_conf.py: irrelevant
   tests/test_miscs.py: irrelevant
+  tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)

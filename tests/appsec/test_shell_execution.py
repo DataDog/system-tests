@@ -66,7 +66,6 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="php", reason="APPSEC-55673")
     def test_truncate_1st_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"

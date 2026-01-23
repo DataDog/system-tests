@@ -101,8 +101,6 @@ class _BaseKinesis:
             stream=self.WEBLOG_TO_BUDDY_STREAM,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
     )
@@ -162,8 +160,6 @@ class _BaseKinesis:
             stream=self.BUDDY_TO_WEBLOG_STREAM,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java", reason="Expected to fail, Java does not extract message attribute context for Kinesis"
     )

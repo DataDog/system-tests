@@ -179,7 +179,6 @@ def rc_check_request(data: dict, expected: dict, *, caching: bool):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
-@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -192,12 +191,10 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library == "python@1.9.2", reason="APMRP-360")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present
     )
-    @bug(library="golang", reason="APPSEC-56064")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -329,7 +326,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
-@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 

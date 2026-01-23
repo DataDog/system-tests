@@ -14,7 +14,7 @@ from utils.docker_fixtures.spec.trace import (
     find_span,
     find_first_span_in_trace_payload,
 )
-from utils import missing_feature, context, scenarios, features, flaky, bug
+from utils import missing_feature, context, scenarios, features
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -251,7 +251,6 @@ class Test_Span_Sampling:
             }
         ],
     )
-    @bug(library="cpp", reason="APMAPI-1052")
     def test_single_rule_rate_limiter_span_sampling_sss008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test span sampling tags are added until rate limit hit, then need to wait for tokens to reset"""
         # generate three traces before requesting them to avoid timing issues
@@ -335,7 +334,6 @@ class Test_Span_Sampling:
         assert len(sampled) in range(30, 70)
         assert len(unsampled) in range(30, 70)
 
-    @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
@@ -392,7 +390,6 @@ class Test_Span_Sampling:
         # the below does not apply to all agent APIs
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
-    @missing_feature(context.library == "cpp", reason="manual.drop span tag is not applied")
     @missing_feature(
         context.library == "golang",
         reason="The Go tracer does not have a way to modulate trace sampling once started",
@@ -477,7 +474,6 @@ class Test_Span_Sampling:
         context.library == "php",
         reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
     )
-    @flaky(library="cpp", reason="APMAPI-933")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -657,17 +653,14 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
-    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(
         context.library == "dotnet",
         reason="The .NET tracer sends the full trace to the agent anyways.",
     )
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(
         context.library == "php",
         reason="The PHP tracer always sends the full trace to the agent.",
     )
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby",
         reason="Issue: sending the complete trace when only the root span is expected",
@@ -731,17 +724,14 @@ class Test_Span_Sampling:
         assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
-    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(
         context.library == "dotnet",
         reason="The .NET tracer sends the full trace to the agent anyways.",
     )
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(
         context.library == "php",
         reason="The PHP tracer always sends the full trace to the agent.",
     )
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby",
         reason="Issue: sending the complete trace when only the root span is expected",
@@ -809,17 +799,14 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
-    @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
     @missing_feature(
         context.library == "dotnet",
         reason="The .NET tracer sends the full trace to the agent anyways.",
     )
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(
         context.library == "php",
         reason="The PHP tracer always sends the full trace to the agent.",
     )
-    @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
         context.library == "ruby",
         reason="Issue: sending the complete trace when only the root span is expected",
@@ -868,11 +855,6 @@ class Test_Span_Sampling:
 
         assert len(traces) == 0
 
-    @bug(context.library == "golang", reason="APMAPI-1545")
-    @bug(context.library == "php", reason="APMAPI-1545")
-    @bug(context.library < "ruby@2.20.0", reason="APMAPI-1545")
-    @bug(context.library == "python", reason="APMAPI-1545")
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -945,10 +927,6 @@ class Test_Span_Sampling:
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1
 
-    @bug(context.library == "golang", reason="APMAPI-1545")
-    @bug(context.library == "php", reason="APMAPI-1545")
-    @bug(context.library == "python", reason="APMAPI-1545")
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",
         [

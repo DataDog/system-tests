@@ -239,7 +239,6 @@ class Test_Blocking_request_uri:
     def setup_blocking_uri_raw(self):
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
-    @bug(context.library < "dotnet@2.50.0", reason="APMRP-360")
     def test_blocking_uri_raw(self):
         interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
@@ -669,7 +668,6 @@ class Test_Blocking_response_status:
         (context.library == "java" and context.weblog_variant == "spring-boot-openliberty"),
         reason="Happens on a subsequent WAF run",
     )
-    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(
         context.scenario is scenarios.go_proxies_blocking,
         reason="The endpoint /finger_print is not implemented in the weblog",
@@ -850,7 +848,6 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
-    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack(self):
         assert self.r_attack.status_code == 403
         span = interfaces.library.get_root_span(request=self.r_attack)
@@ -888,7 +885,6 @@ class Test_BlockingGraphqlResolvers:
             ),
         )
 
-    @bug(context.library < "ruby@2.10.0-dev", reason="APPSEC-56464")
     def test_request_block_attack_directive(self):
         assert self.r_attack.status_code == 403
         span = interfaces.library.get_root_span(request=self.r_attack)
