@@ -119,8 +119,8 @@ manifest:
         "*": *ref_5_74_0
         fastify: *ref_5_64_0
         nextjs: missing_feature
-    - component_version: ">=5.82.0"
-      declaration: bug (APPSEC-60648)
+    - component_version: "5.82.0"
+      declaration: flaky (APPSEC-60648)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
