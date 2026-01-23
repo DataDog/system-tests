@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, bug, context, interfaces, rfc, features
+from utils import weblog, interfaces, rfc, features
 
 
 def assert_tag_in_span_meta(span: dict, tag: str, expected: str):

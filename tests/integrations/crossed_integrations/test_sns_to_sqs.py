@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
+from utils import interfaces, scenarios, weblog, features, context, logger
 
 
 class _BaseSNS:

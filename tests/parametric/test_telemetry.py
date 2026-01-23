@@ -10,7 +10,7 @@ import pytest
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
-from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger, bug
+from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 

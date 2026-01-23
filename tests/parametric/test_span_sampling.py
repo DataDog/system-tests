@@ -14,7 +14,7 @@ from utils.docker_fixtures.spec.trace import (
     find_span,
     find_first_span_in_trace_payload,
 )
-from utils import missing_feature, context, scenarios, features, flaky, bug
+from utils import missing_feature, context, scenarios, features
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary

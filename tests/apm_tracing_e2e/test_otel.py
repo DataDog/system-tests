@@ -1,4 +1,4 @@
-from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features, flaky
+from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features
 
 
 @features.otel_api

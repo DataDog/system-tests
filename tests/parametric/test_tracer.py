@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, context, rfc, scenarios, features
+from utils import missing_feature, rfc, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary

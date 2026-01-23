@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from utils import bug, scenarios, features
+from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import MANUAL_DROP_KEY
 from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
 from utils.docker_fixtures.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
