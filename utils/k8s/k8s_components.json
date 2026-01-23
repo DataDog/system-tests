@@ -1,0 +1,47 @@
+{
+
+    "cluster_agent": {
+        "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master",
+        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest"
+    },
+    "injector": {
+        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
+        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot"
+    },
+    "lib_init": {
+        "nodejs": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
+        },
+        "java": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+        },
+        "dotnet": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest_snapshot"
+        },
+        "python": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest_snapshot"
+        },
+        "ruby": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest_snapshot"
+        },
+        "php": {
+            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest",
+            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest_snapshot"
+        }
+    },
+    "helm_chart": {
+        "pinned": "3.156.1",
+        "prod": "3.161.1"
+    },
+    "helm_chart_operator": {
+        "pinned": "2.16.0",
+        "prod": "2.17.0",
+        "dev": "2.18.0-dev.1"
+    }
+}

@@ -17,7 +17,7 @@ from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
-from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
+from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .go_proxies import GoProxiesScenario
@@ -918,20 +918,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    lib_injection_validation = WeblogInjectionScenario(
-        "LIB_INJECTION_VALIDATION",
-        doc="Validates the init images without kubernetes enviroment",
-        github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
-    )
-
-    lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
-        "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
-        doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
-        github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
-    )
-
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
     k8s_lib_injection_operator = K8sScenario(
         "K8S_LIB_INJECTION_OPERATOR",
@@ -943,14 +929,18 @@ class _Scenarios:
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
+    k8s_lib_injection_no_ac = K8sScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
+        with_cluster_agent=False,
+        with_datadog_operator=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
+    k8s_lib_injection_no_ac_uds = K8sScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
         use_uds=True,
+        with_cluster_agent=False,
+        with_datadog_operator=False,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",

@@ -2,7 +2,9 @@ import os
 import yaml
 import hashlib
 import json
-from collections.abc import Callable
+from utils._context._scenarios import get_all_scenarios
+from utils._context._scenarios.core import Scenario
+from utils.k8s.k8s_components_parser import K8sComponentsParser
 
 
 def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3) -> dict:
@@ -34,37 +36,6 @@ def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3)
         used_prefixes.add(prefix)
 
     return unique_prefixes
-
-
-def _get_k8s_injector_image_refs(language: str, ci_environment: str, cluster_agent_versions: str | None):
-    """Get the k8s injector  and lib init image references"""
-    k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
-    k8s_injector_img = None
-    k8s_available_images = {
-        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
-        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot",
-    }
-
-    if cluster_agent_versions:
-        if os.getenv("K8S_INJECTOR_IMG"):
-            k8s_injector_img = os.getenv("K8S_INJECTOR_IMG")
-        elif ci_environment == "dev":
-            k8s_injector_img = k8s_available_images["dev"]
-        else:
-            k8s_injector_img = k8s_available_images["prod"]
-
-    if not k8s_lib_init_img:
-        language_img_name = "js" if language == "nodejs" else language
-        if ci_environment == "dev":
-            k8s_lib_init_img = (
-                f"235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-{language_img_name}-init:latest_snapshot"
-            )
-        else:
-            k8s_lib_init_img = (
-                f"235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-{language_img_name}-init:latest"
-            )
-
-    return k8s_lib_init_img, k8s_injector_img
 
 
 def should_run_only_defaults_vm() -> bool:
@@ -151,112 +122,124 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
     print("Pipeline file generated: ", output_file)
 
 
-def filter_k8s_components(components_list: list[dict], should_keep_key: Callable[[str, str], bool]) -> list[dict]:
-    """Filters K8s components based on their keys and component types.
+def get_k8s_scenario_components(
+    scenario: str, all_system_tests_scenarios: list[Scenario], language: str
+) -> dict[str, str | list[str]]:
+    """Determine K8s component versions for a given scenario and CI context.
+
+    This method selects the appropriate component versions based on:
+    - The scenario requirements (operator, cluster agent)
+    - The CI pipeline context (system-tests (scheduled or pr/commit) or tracer repo or injector repo)
+    - Custom image overrides from environment variables
+
+    Version Selection Logic:
+    ========================
+
+    For each component, versions are selected based on pipeline context:
+
+    1. **Custom Image (Highest Priority)**
+       - If K8S_LIB_INIT_IMG or K8S_INJECTOR_IMG env vars are set
+       - Uses the custom image directly (injector/tracer repo testing)
+       - The rest of the components are the pinned/default versions
+
+    2. **System-Tests Scheduled Pipeline**
+       - Tests ALL available versions (prod, dev, pinned)
+
+    3. **System-Tests PR/Commit**
+       - Tests ALL available versions (for injector and lib init)
+       - Tests only the pinned versions for the rest of the components
+
+
+    Component Versions Returned:
+    ============================
+    - K8S_HELM_CHART_OPERATOR: Datadog operator helm chart version (if with_datadog_operator)
+    - K8S_CLUSTER_IMG: Cluster agent image (if with_cluster_agent)
+    - K8S_INJECTOR_IMG: APM injector image (if with_cluster_agent)
+    - K8S_HELM_CHART: Datadog helm chart version (if cluster agent without operator)
+    - K8S_LIB_INIT_IMG: Library init container image (always included)
 
     Args:
-        components_list: List of component dictionaries from k8s matrix
-                        Example: [{"cluster_agents": [{"prod": "img:1"}, {"nightly_dev": "img:2"}]}, ...]
-        should_keep_key: Function that takes (key, component_type) and returns True if it should be kept
-                        - key: The version key (e.g., "prod", "nightly_dev", "dev")
-                        - component_type: The component type (e.g., "cluster_agents", "lib_inits")
+        scenario: Scenario name (must exist in utils/_context/_scenarios/__init__.py)
+        all_system_tests_scenarios: List of all available scenarios
+        language: Programming language (java, python, nodejs, etc.)
 
     Returns:
-        Filtered components list with the same structure
+        Dictionary with component version assignments for GitLab CI matrix
 
     """
-    filtered_components = []
+    # Load all valid scenarios from the scenarios module
+    all_valid_scenarios = {s.name for s in all_system_tests_scenarios}
 
-    for component_dict in components_list:
-        for component_type, version_list in component_dict.items():
-            # Filter version dicts based on their keys AND component type
-            filtered_versions = [
-                version_dict
-                for version_dict in version_list
-                if all(should_keep_key(key, component_type) for key in version_dict)
-            ]
-            filtered_components.append({component_type: filtered_versions})
+    if scenario not in all_valid_scenarios:
+        raise ValueError(
+            f"Scenario '{scenario}' not found in utils/_context/_scenarios/__init__.py. "
+            f"Please ensure the scenario is properly defined."
+        )
 
-    return filtered_components
-
-
-def _remove_component_and_add_custom(components_list: list[dict], component_type: str, custom_image: str) -> list[dict]:
-    """Remove a specific component type from the list and add a custom version.
-
-    This helper removes all nightly and dev versions from all components,
-    then removes the specified component entirely, and adds a custom dev version.
-
-    Args:
-        components_list: Original list of component dictionaries
-        component_type: Type of component to replace (e.g., "lib_inits", "injectors")
-        custom_image: Custom image URL to use
-
-    Returns:
-        Filtered components list with custom component added
-
-    """
-    # Filter out nightly and dev versions from all components
-    filtered = filter_k8s_components(components_list, lambda key, _: not (key.startswith("nightly") or key == "dev"))
-
-    # Remove the target component type entirely
-    filtered = [comp for comp in filtered if component_type not in comp]
-
-    # Add the custom component with dev tag
-    filtered.append({component_type: [{"dev": custom_image}]})
-
-    return filtered
-
-
-def apply_k8s_ci_filters(components_list: list[dict]) -> list[dict]:
-    """Apply CI-based filters to K8s components based on environment and custom images.
-
-    This method applies filtering rules in the following priority order:
-    1. Custom lib_init image (K8S_LIB_INIT_IMG) - Uses only prod versions + custom lib_init
-    2. Custom injector image (K8S_INJECTOR_IMG) - Uses only prod versions + custom injector
-    3. System-tests scheduled pipeline - Uses full component matrix (no filtering)
-    4. System-tests repository - Filters out nightly versions (keeps prod and dev)
-    5. Default - No filtering applied
-
-    Args:
-        components_list: List of component dictionaries from k8s matrix
-                        Example: [{"cluster_agents": [{"prod": "img:1"}]}, {"lib_inits": [...]}, ...]
-
-    Returns:
-        Filtered components list maintaining the same structure
-
-    """
-    # Extract environment variables
+    # Extract environment variables for CI context
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
-    k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
     k8s_injector_img = os.getenv("K8S_INJECTOR_IMG")
-    is_system_tests_scheduled_pipeline = ci_project_name == "system-tests" and ci_pipeline_source == "schedule"
-    is_system_tests_pr_or_commit = ci_project_name == "system-tests"
+    k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
 
-    # Priority 1: Custom lib_init image overrides all other filters
-    if k8s_lib_init_img:
-        return _remove_component_and_add_custom(components_list, "lib_inits", k8s_lib_init_img)
+    # Determine CI context
+    is_system_tests = ci_project_name == "system-tests"
+    is_system_tests_scheduled = is_system_tests and ci_pipeline_source == "schedule"
 
-    # Priority 2: Custom injector image overrides remaining filters
-    if k8s_injector_img:
-        return _remove_component_and_add_custom(components_list, "injectors", k8s_injector_img)
+    # Get scenario configuration
+    scenario_obj = next((s for s in all_system_tests_scenarios if s.name == scenario), None)
+    with_datadog_operator = getattr(scenario_obj, "with_datadog_operator", False)
+    with_cluster_agent = getattr(scenario_obj, "with_cluster_agent", False)
 
-    # Priority 3: System-tests scheduled pipeline runs full matrix
-    if is_system_tests_scheduled_pipeline:
-        return components_list
+    # Initialize component parser and result
+    parser = K8sComponentsParser()
+    components = {}
 
-    # Priority 4: System-tests repository filters nightly versions
-    if is_system_tests_pr_or_commit:
-        return filter_k8s_components(components_list, lambda key, _: not key.startswith("nightly"))
+    # Datadog Operator scenario: requires operator helm chart
+    if with_datadog_operator:
+        components["K8S_HELM_CHART_OPERATOR"] = (
+            parser.get_all_component_versions("helm_chart_operator")
+            if is_system_tests_scheduled
+            else parser.get_default_component_version("helm_chart_operator")
+        )
 
-    # Priority 5: Default - no filtering
-    return components_list
+    # Cluster Agent scenarios: require cluster agent and injector
+    if with_cluster_agent:
+        components["K8S_CLUSTER_IMG"] = (
+            parser.get_all_component_versions("cluster_agent")
+            if is_system_tests_scheduled
+            else parser.get_default_component_version("cluster_agent")
+        )
+
+        components["K8S_INJECTOR_IMG"] = k8s_injector_img or (
+            parser.get_all_component_versions("injector")
+            if is_system_tests
+            else parser.get_default_component_version("injector")
+        )
+
+    # Non-operator cluster scenarios: require standard helm chart
+    if with_cluster_agent and not with_datadog_operator:
+        components["K8S_HELM_CHART"] = (
+            parser.get_all_component_versions("helm_chart")
+            if is_system_tests_scheduled
+            else parser.get_default_component_version("helm_chart")
+        )
+
+    # Library init: required for all scenarios
+    components["K8S_LIB_INIT_IMG"] = k8s_lib_init_img or (
+        parser.get_all_component_versions("lib_init", language)
+        if is_system_tests
+        else parser.get_default_component_version("lib_init", language)
+    )
+
+    return components
 
 
 def print_k8s_gitlab_pipeline(
     language: str, k8s_matrix: dict[str, dict], ci_environment: str, result_pipeline: dict
 ) -> None:
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
+    all_system_tests_scenarios = get_all_scenarios()
     # Create the jobs by scenario.
     for scenario, weblogs in k8s_matrix.items():
         job = scenario
@@ -267,69 +250,17 @@ def print_k8s_gitlab_pipeline(
         result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
         result_pipeline[job]["variables"]["K8S_SCENARIO"] = scenario
         result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
+
         result_pipeline[job]["parallel"] = {"matrix": []}
-        for weblog_name, components_list in weblogs.items():
+        for weblog_name in weblogs:
             k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
-
-            # Apply all CI-based filters to components
-            filtered_components = apply_k8s_ci_filters(components_list)
-
-            # Extract all component types from the components list
-            cluster_agents_dict: dict = next((comp for comp in filtered_components if "cluster_agents" in comp), {})
-            cluster_agent_versions = [
-                version
-                for agent_dict in cluster_agents_dict.get("cluster_agents", [])
-                for version in agent_dict.values()
-            ]
-
-            lib_inits_dict: dict = next((comp for comp in filtered_components if "lib_inits" in comp), {})
-            lib_init_versions = [
-                version for init_dict in lib_inits_dict.get("lib_inits", []) for version in init_dict.values()
-            ]
-
-            injectors_dict: dict = next((comp for comp in filtered_components if "injectors" in comp), {})
-            injector_versions = [
-                version for injector_dict in injectors_dict.get("injectors", []) for version in injector_dict.values()
-            ]
-
-            helm_charts_dict: dict = next((comp for comp in filtered_components if "helm_charts" in comp), {})
-            helm_chart_versions = [
-                version for chart_dict in helm_charts_dict.get("helm_charts", []) for version in chart_dict.values()
-            ]
-
-            helm_chart_operators_dict: dict = next(
-                (comp for comp in filtered_components if "helm_chart_operators" in comp), {}
-            )
-            helm_chart_operator_versions = [
-                version
-                for operator_dict in helm_chart_operators_dict.get("helm_chart_operators", [])
-                for version in operator_dict.values()
-            ]
 
             # Build matrix entry - only include components that have values
             matrix_entry = {
                 "K8S_WEBLOG": weblog_name,
                 "K8S_WEBLOG_IMG": k8s_weblog_img,
             }
-
-            if cluster_agent_versions:
-                matrix_entry["K8S_CLUSTER_IMG"] = cluster_agent_versions
-            else:
-                # Use empty array for scenarios without cluster agents (e.g., K8S_LIB_INJECTION_NO_AC)
-                # GitLab CI requires array values for parallel matrix variables
-                matrix_entry["K8S_CLUSTER_IMG"] = "None"
-            if lib_init_versions:
-                matrix_entry["K8S_LIB_INIT_IMG"] = lib_init_versions
-            if injector_versions:
-                matrix_entry["K8S_INJECTOR_IMG"] = injector_versions
-            else:
-                # Use empty array for scenarios without injectors (e.g., K8S_LIB_INJECTION_NO_AC)
-                # GitLab CI requires array values for parallel matrix variables
-                matrix_entry["K8S_INJECTOR_IMG"] = "None"
-            if helm_chart_versions:
-                matrix_entry["K8S_HELM_CHART"] = helm_chart_versions
-            if helm_chart_operator_versions:
-                matrix_entry["K8S_HELM_CHART_OPERATOR"] = helm_chart_operator_versions
+            matrix_entry.update(get_k8s_scenario_components(scenario, all_system_tests_scenarios, language))
 
             result_pipeline[job]["parallel"]["matrix"].append(matrix_entry)
 

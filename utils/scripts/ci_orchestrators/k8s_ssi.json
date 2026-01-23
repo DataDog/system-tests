@@ -10,22 +10,6 @@
                         "dd-djm-spark-test-app"
                     ]
                 }
-            ],
-            "cluster_agents": [
-                "prod",
-                "nightly_dev"
-            ],
-            "helm_charts": [
-                "prod",
-                "nightly_latest"
-            ],
-            "injectors": [
-                "prod",
-                "dev"
-            ],
-            "lib_inits": [
-                "prod",
-                "dev"
             ]
         },
         {
@@ -51,22 +35,6 @@
                         "dd-lib-php-init-test-app"
                     ]
                 }
-            ],
-            "cluster_agents": [
-                "prod",
-                "nightly_dev"
-            ],
-            "helm_chart_operators": [
-                "prod",
-                "nightly_latest"
-            ],
-            "injectors": [
-                "prod",
-                "dev"
-            ],
-            "lib_inits": [
-                "prod",
-                "dev"
             ]
         },
         {
@@ -92,22 +60,6 @@
                         "dd-lib-php-init-test-app"
                     ]
                 }
-            ],
-            "cluster_agents": [
-                "prod",
-                "nightly_dev"
-            ],
-            "helm_charts": [
-                "prod",
-                "nightly_latest"
-            ],
-            "injectors": [
-                "prod",
-                "dev"
-            ],
-            "lib_inits": [
-                "prod",
-                "dev"
             ]
         },
         {
@@ -139,58 +91,9 @@
                         "dd-lib-php-init-test-app"
                     ]
                 }
-            ],
-            "helm_charts": [
-                "prod",
-                "nightly_latest"
-            ],
-            "lib_inits": [
-                "prod",
-                "dev"
             ]
         }
 
-    ],
-    "cluster_agent_spec": {
-        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
-        "nightly_dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master"
-    },
-    "injector_spec": {
-        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
-        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot"
-    },
-    "lib_init_spec": {
-        "nodejs": {
-            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
-            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
-        },
-        "java": {
-            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
-            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
-        },
-        "dotnet": {
-            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest",
-            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-dotnet-init:latest_snapshot"
-        },
-        "python": {
-            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest",
-            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-python-init:latest_snapshot"
-        },
-        "ruby": {
-            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest",
-            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-ruby-init:latest_snapshot"
-        },
-        "php": {
-            "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest",
-            "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-php-init:latest_snapshot"
-        }
-    },
-    "helm_chart_spec": {
-        "prod": "3.156.1",
-        "nightly_latest": "3.161.1"
-    },
-    "helm_chart_operator_spec": {
-        "prod": "2.16.0",
-        "nightly_latest": "2.18.0-dev.1"
-    }
+    ]
+
 }
