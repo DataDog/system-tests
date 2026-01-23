@@ -8,7 +8,6 @@ import pytest
 import yaml
 
 from utils import (
-    bug,
     context,
     features,
     irrelevant,
