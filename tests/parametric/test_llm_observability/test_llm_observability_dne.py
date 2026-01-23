@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from tests.parametric.test_llm_observability.utils import check_and_get_api_key
-from utils import scenarios
+from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from ..conftest import APMLibrary  # noqa: TID252
 
@@ -30,7 +30,7 @@ def dd_app_key(request: pytest.FixtureRequest) -> str | None:
     return check_and_get_api_key("DD_APP_KEY", generate_cassettes=request.config.option.generate_cassettes)
 
 
-# @features.llm_observability_datasets_and_experiments
+@features.llm_observability_datasets
 @scenarios.parametric
 class Test_Dataset:
     def test_dataset_create_delete(self, test_agent: TestAgentAPI, test_library: APMLibrary):
