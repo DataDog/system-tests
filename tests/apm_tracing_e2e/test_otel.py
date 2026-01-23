@@ -1,4 +1,4 @@
-from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features, flaky
+from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features
 
 
 @features.otel_api
@@ -21,7 +21,6 @@ class Test_Otel_Span:
     # - duration of one second
     # - span kind of SpanKind - Internal
     @bug(context.library == "java", reason="APMAPI-912")
-    @flaky(library="golang", reason="APMAPI-178")
     def test_datadog_otel_span(self):
         spans = interfaces.agent.get_spans_list(self.req)
         assert len(spans) >= 2, "Agent did not submit the spans we want!"
@@ -53,7 +52,6 @@ class Test_Otel_Span:
         )
 
     @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
-    @flaky(library="golang", reason="APMAPI-178")
     def test_distributed_otel_trace(self):
         spans = interfaces.agent.get_spans_list(self.req)
         assert len(spans) >= 3, "Agent did not submit the spans we want!"

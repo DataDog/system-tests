@@ -282,7 +282,6 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_vendor(self):
         self._setup_without_attack()
 
-    @bug(context.library < "golang@1.69.0", reason="APMRP-360")
     @bug(
         context.library < "java@1.11.0", reason="APMRP-360"
     )  # not supported, see https://github.com/DataDog/dd-trace-java/pull/4878

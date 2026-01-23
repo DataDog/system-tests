@@ -120,7 +120,6 @@ class Test_Telemetry:
             path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
-    @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
@@ -357,7 +356,6 @@ class Test_Telemetry:
 
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
-    @irrelevant(library="golang")
     @irrelevant(
         library="java",
         reason="""
@@ -443,7 +441,6 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
-    @irrelevant(library="golang")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
@@ -838,9 +835,7 @@ class Test_ProductsDisabled:
             raise ValueError("app-started event not found in telemetry data")
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "nodejs", reason="feature not implemented")
     @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
-    @irrelevant(library="golang")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
         data_found = False

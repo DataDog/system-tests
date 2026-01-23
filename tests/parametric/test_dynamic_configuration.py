@@ -341,8 +341,6 @@ class TestDynamicConfigTracingEnabled:
         "library_env",
         [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}],
     )
-    @irrelevant(library="golang")
-    @irrelevant(library="cpp", reason="APMAPI-1592")
     def test_tracing_client_tracing_disable_one_way(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -432,7 +430,6 @@ class TestDynamicConfigV1:
         "library_env",
         [{"DD_TRACE_SAMPLE_RATE": r, **DEFAULT_ENVVARS} for r in ["0.1", "1.0"]],
     )
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     def test_trace_sampling_rate_override_env(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -487,7 +484,6 @@ class TestDynamicConfigV1:
             }
         ],
     )
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-864")
     def test_trace_sampling_rate_with_sampling_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         rc_sampling_rule_rate = 0.70
@@ -612,8 +608,6 @@ class TestDynamicConfigV1_ServiceTargets:
             ]
         ],
     )
-    @irrelevant(library="cpp", reason="APMAPI-1003")
-    @irrelevant(library="golang", reason="APMAPI-1003")
     def test_not_match_service_target(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """This is an old behavior, see APMAPI-1003
 
@@ -639,8 +633,6 @@ class TestDynamicConfigV1_ServiceTargets:
         assert cfg_state["apply_state"] == RemoteConfigApplyState.ERROR.value
         assert cfg_state["apply_error"] != ""
 
-    @missing_feature(context.library == "golang", reason="Tracer does case-sensitive checks for service and env")
-    @missing_feature(context.library <= "cpp@1.0.0", reason="Tracer does case-sensitive checks for service and env")
     @parametrize(
         "library_env",
         [
@@ -750,7 +742,6 @@ class TestDynamicConfigV2:
         assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
 
-    @irrelevant(library="cpp", reason="The CPP tracer doesn't support http header tags")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the http header tags capability."""
@@ -848,7 +839,6 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1595")
     def test_trace_sampling_rules_override_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The RC sampling rules should override the RC sampling rate."""
         rc_sampling_rule_rate_customer = 0.8
@@ -905,7 +895,6 @@ class TestDynamicConfigSamplingRules:
             }
         ],
     )
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
     def test_trace_sampling_rules_with_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
@@ -1043,7 +1032,6 @@ class TestDynamicConfigSamplingRules:
         assert "_dd.p.dm" in span["meta"]
         assert span["meta"]["_dd.p.dm"] == "-12"
 
-    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Only the last set of sampling rules should be applied"""

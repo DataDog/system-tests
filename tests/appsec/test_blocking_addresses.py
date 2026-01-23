@@ -668,7 +668,6 @@ class Test_Blocking_response_status:
         (context.library == "java" and context.weblog_variant == "spring-boot-openliberty"),
         reason="Happens on a subsequent WAF run",
     )
-    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(
         context.scenario is scenarios.go_proxies_blocking,
         reason="The endpoint /finger_print is not implemented in the weblog",
