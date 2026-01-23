@@ -68,7 +68,6 @@ class _ScenarioGroups:
     go_proxies_appsec_blocking = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     simple_onboarding_appsec = ScenarioGroup()
-    go_proxies = ScenarioGroup()
     ## Groups of scenarios
     appsec_blocking = ScenarioGroup()
     appsec_api_security_rc = ScenarioGroup()
