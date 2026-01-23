@@ -162,7 +162,6 @@ class Test_Cookies:
         reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
         "encoded to represent disallowed octets",
     )
-    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @scenarios.appsec_custom_rules
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""
@@ -180,7 +179,6 @@ class Test_Cookies:
         """Other cookies patterns"""
         self.r_cwsc2cc = weblog.get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
 
-    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
@@ -439,7 +437,6 @@ class Test_GraphQL:
             ),
         )
 
-    @missing_feature(library="golang", reason="Not supported or implemented in existing libraries")
     def test_request_monitor_attack_directive(self):
         self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 

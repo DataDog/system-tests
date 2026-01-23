@@ -117,8 +117,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="APMAPI-770",
     )
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
-    @missing_feature(context.library < "golang@2.1.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -141,7 +139,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
 
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(
         context.library < "golang@2.1.0-dev",
         reason="Client query string collection disabled by default; obfuscation only occurs on server side",
@@ -150,7 +147,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -172,7 +168,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
 
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(
         context.library < "golang@2.1.0-dev",
         reason="Client query string collection disabled by default; obfuscation only occurs on server side",
@@ -181,7 +176,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
