@@ -239,10 +239,10 @@ class K8sDatadog:
             f"kubectl create secret generic datadog-secret --from-literal api-key={self.api_key} --from-literal app-key={self.app_key} --namespace={namespace}"
         )
         # Configure cluster agent image on the operator file
-        oeprator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
+        operator_config_file = add_cluster_agent_img_operator_yaml(self.dd_cluster_img, self.output_folder)
 
-        logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {oeprator_config_file}")
-        execute_command(f"kubectl apply -f {oeprator_config_file} --namespace={namespace}")
+        logger.info(f"[Deploy datadog operator] Create the operator custom resource from file {operator_config_file}")
+        execute_command(f"kubectl apply -f {operator_config_file} --namespace={namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
 
