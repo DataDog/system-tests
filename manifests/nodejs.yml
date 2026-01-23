@@ -119,8 +119,8 @@ manifest:
         "*": *ref_5_74_0
         fastify: *ref_5_64_0
         nextjs: missing_feature
-    - component_version: ">=5.82.0"
-      declaration: bug (APPSEC-60648)
+    - component_version: "5.82.0"
+      declaration: flaky (APPSEC-60648)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
@@ -1334,8 +1334,16 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_43_0
         fastify: *ref_5_57_0
-  tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature (only Fastify is supported)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implented)
+  tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: *ref_5_54_0
+        express4-typescript: *ref_5_54_0
+        express5: *ref_5_54_0
+        fastify: *ref_5_24_0
+        nextjs: missing_feature
+        uds-express4: *ref_5_54_0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": *ref_5_48_0
@@ -1933,6 +1941,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_profiling.py::Test_Profile: *ref_5_16_0
+  tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:

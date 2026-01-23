@@ -5,7 +5,7 @@ from collections.abc import Callable
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 
@@ -131,7 +131,6 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -185,7 +184,6 @@ class Test_Telemetry:
 
                 last_known_data = data
 
-    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
@@ -335,8 +333,6 @@ class Test_Telemetry:
 
     @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "php@0.90", reason="APMRP-360")
-    @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
@@ -359,7 +355,6 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
-    @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     @irrelevant(library="golang")
@@ -449,7 +444,6 @@ class Test_Telemetry:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @irrelevant(library="golang")
-    @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
@@ -715,7 +709,6 @@ def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes:
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
