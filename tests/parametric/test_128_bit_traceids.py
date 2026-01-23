@@ -182,7 +182,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
-    @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
@@ -209,7 +208,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
@@ -232,7 +230,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
@@ -253,7 +250,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "cpp", reason="propagation style not supported")
     @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),

@@ -424,7 +424,6 @@ class Test_Headers_Tracestate_DD:
                 )
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library == "cpp", reason="_dd.p.dm is never dropped")
     @missing_feature(
         context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?"
     )
@@ -488,8 +487,6 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(context.library == "cpp", reason="_dd.p.dm does not change when a sampling priority was extracted")
-    @missing_feature(context.library == "nodejs", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -615,7 +612,6 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate_4_string.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
-    @bug(library="cpp", reason="APMAPI-914")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output
