@@ -2,7 +2,7 @@ import pytest
 
 from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
-from ..conftest import APMLibrary
+from ..conftest import APMLibrary  # noqa: TID252
 from utils.docker_fixtures.spec.llm_observability import (
     LlmObsSpanRequest,
     LlmObsAnnotationRequest,

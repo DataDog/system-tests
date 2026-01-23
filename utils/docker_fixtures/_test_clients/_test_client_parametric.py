@@ -20,7 +20,6 @@ from utils.docker_fixtures.spec.llm_observability import (
     SpanRequest,
     LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
-    DatasetDeleteRequest,
     DatasetResponse,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
@@ -925,46 +924,23 @@ class ParametricTestClientApi:
 
         return cast("dict", resp.json()) if resp.ok else resp.text
 
-    def llmobs_dataset_create(
-        self, dataset_create_request: DatasetCreateRequest, *, raise_on_error: bool = True
-    ) -> DatasetResponse | str | None:
-        """Create a new dataset.
-
-        Returns:
-        - `DatasetResponse`: successful response with dataset information
-        - `str`: error response text
-        - `None`: if the response is not ok and raise_on_error=True
-        """
+    def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
         resp = self._session.post(
             self._url("/llm_observability/dataset/create"),
-            json={"dataset_create_request": dataset_create_request},
+            json=dataset_create_request,
         )
-        if raise_on_error:
-            resp.raise_for_status()
+        resp.raise_for_status()
 
-        if resp.ok:
-            data = resp.json()
-            return cast(DatasetResponse, data)
-        return resp.text
+        return cast("DatasetResponse", resp.json())
 
-    def llmobs_dataset_delete(
-        self, dataset_delete_request: DatasetDeleteRequest, *, raise_on_error: bool = True
-    ) -> dict | str | None:
-        """Delete a dataset.
-
-        Returns:
-        - `dict`: successful response with {"success": True}
-        - `str`: error response text
-        - `None`: if the response is not ok and raise_on_error=True
-        """
+    def llmobs_dataset_delete(self, dataset_id: str) -> dict:
         resp = self._session.post(
             self._url("/llm_observability/dataset/delete"),
-            json={"dataset_delete_request": dataset_delete_request},
+            json={"dataset_id": dataset_id},
         )
-        if raise_on_error:
-            resp.raise_for_status()
+        resp.raise_for_status()
 
-        return cast("dict", resp.json()) if resp.ok else resp.text
+        return resp.json()
 
 
 class APMLibrary:
@@ -1179,15 +1155,11 @@ class APMLibrary:
     ) -> dict | str | None:
         return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
 
-    def llmobs_dataset_create(
-        self, dataset_create_request: DatasetCreateRequest, *, raise_on_error: bool = True
-    ) -> DatasetResponse | str | None:
-        return self._client.llmobs_dataset_create(dataset_create_request, raise_on_error=raise_on_error)
+    def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
+        return self._client.llmobs_dataset_create(dataset_create_request)
 
-    def llmobs_dataset_delete(
-        self, dataset_delete_request: DatasetDeleteRequest, *, raise_on_error: bool = True
-    ) -> dict | str | None:
-        return self._client.llmobs_dataset_delete(dataset_delete_request, raise_on_error=raise_on_error)
+    def llmobs_dataset_delete(self, dataset_id: str) -> dict | str | None:
+        return self._client.llmobs_dataset_delete(dataset_id=dataset_id)
 
     @property
     def container(self) -> Container:

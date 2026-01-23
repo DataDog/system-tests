@@ -179,48 +179,34 @@ class DatasetRecordRequest:
     metadata: dict | None = None
 
 
-@dataclass
-class DatasetCreateRequest:
+class DatasetCreateRequestModel(BaseModel):
     dataset_name: str
     description: str | None = None
     records: list[DatasetRecordRequest] | None = None
     project_name: str | None = None
 
 
-class DatasetCreateRequestModel(BaseModel):
-    dataset_create_request: DatasetCreateRequest
-
-
-@dataclass
-class DatasetDeleteRequest:
-    """Request to delete a dataset."""
-
-    dataset_id: str
-
-
 class DatasetDeleteRequestModel(BaseModel):
-    dataset_delete_request: DatasetDeleteRequest
+    dataset_id: str
 
 
 @router.post("/llm_observability/dataset/create")
 def llmobs_dataset_create(request: DatasetCreateRequestModel):
-    req = request.dataset_create_request
-
     records = None
-    if req.records:
+    if request.records:
         records = [
             DatasetRecord(
                 input_data=r.input_data,
                 expected_output=r.expected_output,
                 metadata=r.metadata or {},
             )
-            for r in req.records
+            for r in request.records
         ]
 
     dataset = LLMObs.create_dataset(
-        dataset_name=req.dataset_name,
-        description=req.description,
-        project_name=req.project_name,
+        dataset_name=request.dataset_name,
+        description=request.description,
+        project_name=request.project_name,
         records=records,
     )
 
@@ -238,6 +224,5 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
 
 @router.post("/llm_observability/dataset/delete")
 def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
-    req = request.dataset_delete_request
-    LLMObs._delete_dataset(dataset_id=req.dataset_id)
+    LLMObs._delete_dataset(dataset_id=request.dataset_id)
     return {"success": True}

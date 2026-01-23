@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Literal, NotRequired, TypedDict
+from dataclasses import dataclass
+from typing import Any, Literal, TypedDict
 
 
 @dataclass
@@ -66,10 +66,6 @@ class DatasetCreateRequest(TypedDict, total=False):
     description: str
     records: list[DatasetRecordRequest]
     project_name: str
-
-
-class DatasetDeleteRequest(TypedDict):
-    dataset_id: str
 
 
 class DatasetResponse(TypedDict, total=False):
