@@ -112,7 +112,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (cpp has not implemented stats computation yet)
-  tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
+  tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: missing_feature
   tests/parametric/test_otel_logs.py: missing_feature
