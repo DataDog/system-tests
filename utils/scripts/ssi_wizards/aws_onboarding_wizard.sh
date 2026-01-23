@@ -145,16 +145,10 @@ verify_aws_environment() {
     if ! is_var_set "ONBOARDING_AWS_INFRA_SUBNET_ID" || ! is_var_set "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID"; then
         spacer
         echo "🔍 Checking AWS environment..."
-
-        # Run AWS environment check
-        if ! aws-vault exec sso-dev-apm-dcs-system-tests-account-admin -- aws s3 ls &>/dev/null; then
-            echo "❌ AWS environment check failed!"
-            echo "🔗 Please follow the AWS SSO setup guide:"
-            echo "   👉 https://datadoghq.atlassian.net/wiki/spaces/ENG/pages/2498068557/AWS+SSO+Getting+Started"
-            echo "⚠️ Exiting wizard to prevent further issues."
-            exit 1
-        fi
-
+        
+        # Check AWS account access
+        check_aws_account_access "dev-apm-dcs-system-tests"
+        
         echo "✅ AWS environment verified successfully!"
     fi
 }

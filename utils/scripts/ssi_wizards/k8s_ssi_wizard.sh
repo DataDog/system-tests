@@ -4,6 +4,8 @@
 
 source utils/scripts/ssi_wizards/common_wizard_functions.sh
 
+# Constants
+readonly AWS_ECR_ACCOUNT="apm-ecosystems-reliability"
 
 # Function to check if a command exists
 command_exists() {
@@ -85,22 +87,33 @@ configure_private_registry() {
     export PRIVATE_DOCKER_REGISTRY_USER="AWS"
 
     # Login to ECR and get token
-    aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
-    export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password --region us-east-1)
+    aws-vault exec "sso-${AWS_ECR_ACCOUNT}-account-admin" -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec "sso-${AWS_ECR_ACCOUNT}-account-admin" -- aws ecr get-login-password --region us-east-1)
 
     echo -e "${GREEN}✅ ECR registry configured successfully.${NC}"
 }
 
 select_weblog_img(){
     spacer
-    echo -e "${YELLOW}📌 Step: Select weblog img registry${NC}"
+    echo -e "${YELLOW}📌 Step: Select Weblog Image${NC}"
+    echo ""
+    echo -e "${CYAN}ℹ️  K8s lib injection tests use weblog images from the private registry (ECR).${NC}"
+    echo ""
+    echo "You have two options:"
+    echo "  1️⃣  Use an existing weblog image from the registry (default: ${WEBLOG}:latest)"
+    echo "  2️⃣  Build and push your local weblog to the registry with a custom tag"
+    echo ""
+    
     WEBLOG_IMAGE="$PRIVATE_DOCKER_REGISTRY/system-tests/$WEBLOG:latest"
 
     # Ask if user wants to build and push the weblog
-    read -p "Do you want to build and push the weblog? (y/n): " BUILD_WEBLOG
+    read -p "Do you want to build and push your local weblog? (y/n): " BUILD_WEBLOG
     if [[ "$BUILD_WEBLOG" == "y" ]]; then
-        echo -e "${YELLOW}⚠️  Warning: Using 'latest' tag might impact CI as it uses latest by default.${NC}"
-        read -p "Enter tag name for the weblog (e.g., v1.0.0): " TAG_NAME
+        echo ""
+        echo -e "${YELLOW}⚠️  Important: Using 'latest' tag might impact CI as it uses 'latest' by default.${NC}"
+        echo "💡 Recommendation: Use a unique tag (e.g., v1.0.0, test-feature, your-name-test)"
+        echo ""
+        read -p "Enter tag name for the weblog: " TAG_NAME
 
         if [[ -z "$TAG_NAME" ]]; then
             echo -e "${RED}❌ Tag name cannot be empty.${NC}"
@@ -108,7 +121,8 @@ select_weblog_img(){
             return
         fi
 
-        echo "Building and pushing weblog..."
+        echo ""
+        echo "🔨 Building and pushing weblog to ${PRIVATE_DOCKER_REGISTRY}/system-tests/${WEBLOG}:${TAG_NAME}..."
         ./lib-injection/build/build_lib_injection_weblog.sh -w "${WEBLOG}" -l "${TEST_LIBRARY}" \
             --push-tag "${PRIVATE_DOCKER_REGISTRY}/system-tests/${WEBLOG}:${TAG_NAME}" \
             --docker-platform linux/arm64,linux/amd64
@@ -118,7 +132,7 @@ select_weblog_img(){
             WEBLOG_IMAGE="${PRIVATE_DOCKER_REGISTRY}/system-tests/${WEBLOG}:${TAG_NAME}"
         else
             echo -e "${RED}❌ Failed to build and push weblog.${NC}"
-            read -p "Do you want to continue with existing image? (y/n): " CONTINUE
+            read -p "Do you want to continue with the existing image from registry? (y/n): " CONTINUE
             if [[ "$CONTINUE" != "y" ]]; then
                 echo -e "${RED}❌ Exiting...${NC}"
                 exit 1
@@ -126,54 +140,40 @@ select_weblog_img(){
         fi
     fi
 
+    echo ""
+    echo "📦 Select the weblog image to use for testing:"
     select option in "${WEBLOG_IMAGE}" "Use custom image"; do
         if [[ -n "$option" ]]; then
             if [[ "$option" == "Use custom image" ]]; then
-                read -p "Enter custom weblog image: " WEBLOG_IMAGE
+                read -p "Enter custom weblog image (e.g., ${PRIVATE_DOCKER_REGISTRY}/system-tests/${WEBLOG}:my-tag): " WEBLOG_IMAGE
             else
                 WEBLOG_IMAGE="$option"
             fi
             break
         fi
     done
+    
+    echo -e "${GREEN}✅ Selected weblog image: ${WEBLOG_IMAGE}${NC}"
 }
 
 select_cluster_agent() {
     spacer
     echo -e "${YELLOW}📌 Step: Select the cluster agent${NC}"
-    echo "🔄 Fetching available cluster agent images for:"
-    echo "   - Test Library: $TEST_LIBRARY"
-    echo "   - Scenario: $SCENARIO"
-    echo "   - Weblog: $WEBLOG"
+    echo "🔄 Fetching available cluster agent images..."
     echo ""
 
-    # Extract cluster_agents from the new components structure
-    # The new format is: {scenario: {weblog: [{cluster_agents: [{key: value}]}]}}
-    CLUSTER_AGENTS=($(echo "$WORKFLOW_JSON" | python -c "
-import sys, json
-data = json.load(sys.stdin)
-components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-# Find the cluster_agents component
-for comp in components:
-    if 'cluster_agents' in comp:
-        agents = comp['cluster_agents']
-        # Extract all image values from the list of dicts
-        images = [list(agent.values())[0] for agent in agents]
-        print(' '.join(images))
-        break
+    # Use K8sComponentsParser to get cluster agent versions
+    CLUSTER_AGENTS=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('cluster_agent')
+print(' '.join(versions))
 "))
 
     if [[ ${#CLUSTER_AGENTS[@]} -eq 0 ]]; then
-        echo "❗No cluster agents supported for:"
-        echo "   - Test Library: $TEST_LIBRARY"
-        echo "   - Scenario: $SCENARIO"
-        echo "   - Weblog: $WEBLOG"
+        echo "❗No cluster agents found in configuration."
+        read -p "Enter custom cluster agent image: " CLUSTER_AGENT
     else
-        # Add migrated cluster agent if it exists
-        if [[ -n "$CLUSTER_AGENT" && "$CLUSTER_AGENT" != "null" ]]; then
-            CLUSTER_AGENTS+=("$CLUSTER_AGENT")
-        fi
-
         echo "📝 Available cluster agents:"
         for i in "${!CLUSTER_AGENTS[@]}"; do
             echo "$(($i + 1))) ${CLUSTER_AGENTS[$i]}"
@@ -201,43 +201,20 @@ for comp in components:
 select_helm_chart_version(){
     spacer
     echo -e "${YELLOW}📌 Step: Configure Helm Chart Version${NC}"
-    echo "🔄 Fetching available helm chart versions for:"
-    echo "   - Scenario: $SCENARIO"
-    echo "   - Weblog: $WEBLOG"
+    echo "🔄 Fetching available helm chart versions..."
     echo ""
 
-    # Try to extract helm_chart_operators first (for OPERATOR scenarios)
-    HELM_CHART_OPERATOR_VERSIONS=($(echo "$WORKFLOW_JSON" | python -c "
-import sys, json
-data = json.load(sys.stdin)
-components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-for comp in components:
-    if 'helm_chart_operators' in comp:
-        helm_charts = comp['helm_chart_operators']
-        versions = [list(chart.values())[0] for chart in helm_charts]
-        print(' '.join(versions))
-        break
+    # Check if this is an OPERATOR scenario
+    if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+        # Use K8sComponentsParser to get helm chart operator versions
+        HELM_CHART_OPERATOR_VERSIONS=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('helm_chart_operator')
+print(' '.join(versions))
 "))
 
-    # Try to extract regular helm_charts (for non-OPERATOR scenarios)
-    HELM_CHART_VERSIONS=($(echo "$WORKFLOW_JSON" | python -c "
-import sys, json
-data = json.load(sys.stdin)
-components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-for comp in components:
-    if 'helm_charts' in comp:
-        helm_charts = comp['helm_charts']
-        versions = [list(chart.values())[0] for chart in helm_charts]
-        print(' '.join(versions))
-        break
-"))
-
-    # Handle helm_chart_operators if found
-    if [[ ${#HELM_CHART_OPERATOR_VERSIONS[@]} -gt 0 ]]; then
-        if [[ ${#HELM_CHART_OPERATOR_VERSIONS[@]} -eq 1 ]]; then
-            export K8S_HELM_CHART_OPERATOR="${HELM_CHART_OPERATOR_VERSIONS[0]}"
-            echo "✅ Using Helm Chart Operator version: $K8S_HELM_CHART_OPERATOR"
-        else
+        if [[ ${#HELM_CHART_OPERATOR_VERSIONS[@]} -gt 0 ]]; then
             echo "📝 Available Helm Chart Operator versions:"
             for i in "${!HELM_CHART_OPERATOR_VERSIONS[@]}"; do
                 echo "$(($i + 1))) ${HELM_CHART_OPERATOR_VERSIONS[$i]}"
@@ -259,16 +236,18 @@ for comp in components:
                 fi
             done
             echo "✅ Selected Helm Chart Operator version: $K8S_HELM_CHART_OPERATOR"
+            return
         fi
-        return
-    fi
+    else
+        # Use K8sComponentsParser to get regular helm chart versions
+        HELM_CHART_VERSIONS=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('helm_chart')
+print(' '.join(versions))
+"))
 
-    # Handle regular helm_charts if found
-    if [[ ${#HELM_CHART_VERSIONS[@]} -gt 0 ]]; then
-        if [[ ${#HELM_CHART_VERSIONS[@]} -eq 1 ]]; then
-            export K8S_HELM_CHART="${HELM_CHART_VERSIONS[0]}"
-            echo "✅ Using Helm Chart version: $K8S_HELM_CHART"
-        else
+        if [[ ${#HELM_CHART_VERSIONS[@]} -gt 0 ]]; then
             echo "📝 Available Helm Chart versions:"
             for i in "${!HELM_CHART_VERSIONS[@]}"; do
                 echo "$(($i + 1))) ${HELM_CHART_VERSIONS[$i]}"
@@ -290,8 +269,8 @@ for comp in components:
                 fi
             done
             echo "✅ Selected Helm Chart version: $K8S_HELM_CHART"
+            return
         fi
-        return
     fi
 
     # No helm charts found
@@ -301,32 +280,19 @@ for comp in components:
 select_lib_init_and_injector(){
     spacer
     echo -e "${YELLOW}📌 Step: Configure Lib Init Image${NC}"
-    echo "🔄 Fetching available lib-init images for:"
-    echo "   - Test Library: $TEST_LIBRARY"
-    echo "   - Scenario: $SCENARIO"
-    echo "   - Weblog: $WEBLOG"
+    echo "🔄 Fetching available lib-init images for $TEST_LIBRARY..."
     echo ""
 
-    # Extract lib_inits from the components structure
-    LIB_INIT_IMAGES=($(echo "$WORKFLOW_JSON" | python -c "
-import sys, json
-data = json.load(sys.stdin)
-components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-# Find the lib_inits component
-for comp in components:
-    if 'lib_inits' in comp:
-        lib_inits = comp['lib_inits']
-        # Extract all image values from the list of dicts
-        images = [list(lib_init.values())[0] for lib_init in lib_inits]
-        print(' '.join(images))
-        break
+    # Use K8sComponentsParser to get lib_init versions for the selected language
+    LIB_INIT_IMAGES=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('lib_init', '$TEST_LIBRARY')
+print(' '.join(versions))
 "))
 
     if [[ ${#LIB_INIT_IMAGES[@]} -eq 0 ]]; then
-        echo "❗No lib-init images found for:"
-        echo "   - Test Library: $TEST_LIBRARY"
-        echo "   - Scenario: $SCENARIO"
-        echo "   - Weblog: $WEBLOG"
+        echo "❗No lib-init images found for $TEST_LIBRARY."
         read -p "Enter custom lib-init image: " K8S_LIB_INIT_IMG
     else
         echo "📝 Available lib-init images:"
@@ -359,28 +325,19 @@ for comp in components:
     else
         spacer
         echo -e "${YELLOW}📌 Step: Configure Injector Image${NC}"
-        echo "🔄 Fetching available injector images for:"
-        echo "   - Scenario: $SCENARIO"
-        echo "   - Weblog: $WEBLOG"
+        echo "🔄 Fetching available injector images..."
         echo ""
 
-        # Extract injectors from the components structure
-        INJECTOR_IMAGES=($(echo "$WORKFLOW_JSON" | python -c "
-import sys, json
-data = json.load(sys.stdin)
-components = data.get('$SCENARIO', {}).get('$WEBLOG', [])
-# Find the injectors component
-for comp in components:
-    if 'injectors' in comp:
-        injectors = comp['injectors']
-        # Extract all image values from the list of dicts
-        images = [list(injector.values())[0] for injector in injectors]
-        print(' '.join(images))
-        break
+        # Use K8sComponentsParser to get injector versions
+        INJECTOR_IMAGES=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('injector')
+print(' '.join(versions))
 "))
 
         if [[ ${#INJECTOR_IMAGES[@]} -eq 0 ]]; then
-            echo "❗No injector images found for scenario: $SCENARIO"
+            echo "❗No injector images found."
             read -p "Enter custom injector image: " K8S_INJECTOR_IMG
         else
             echo "📝 Available injector images:"
@@ -403,6 +360,237 @@ for comp in components:
                 fi
             done
         fi
+        echo "✅ Selected injector image: $K8S_INJECTOR_IMG"
+    fi
+}
+
+set_default_component_versions() {
+    # Use K8sComponentsParser to set default values for all components
+    echo "📦 Loading default component versions..."
+    
+    # Set default cluster agent
+    CLUSTER_AGENT=$(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print(parser.get_default_component_version('cluster_agent'))
+")
+    
+    # Set default helm chart or helm chart operator based on scenario
+    if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+        K8S_HELM_CHART_OPERATOR=$(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print(parser.get_default_component_version('helm_chart_operator'))
+")
+        export K8S_HELM_CHART_OPERATOR
+    else
+        K8S_HELM_CHART=$(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print(parser.get_default_component_version('helm_chart'))
+")
+        export K8S_HELM_CHART
+    fi
+    
+    # Set default lib-init image for the selected language
+    K8S_LIB_INIT_IMG=$(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print(parser.get_default_component_version('lib_init', '$TEST_LIBRARY'))
+")
+    
+    # Set default injector image (if cluster agent is used)
+    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+        K8S_INJECTOR_IMG=$(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print(parser.get_default_component_version('injector'))
+")
+    else
+        K8S_INJECTOR_IMG="''"
+        CLUSTER_AGENT="''"
+    fi
+    
+    echo "✅ Default component versions loaded."
+}
+
+review_and_customize_components() {
+    spacer
+    echo -e "${YELLOW}📋 Component Configuration Summary${NC}"
+    echo ""
+    echo "The following default component versions will be used:"
+    echo ""
+    echo "  🌐 Weblog:"
+    echo "     - Image: ${WEBLOG_IMAGE}"
+    echo ""
+    echo "  📦 Lib-init ($TEST_LIBRARY):"
+    echo "     - Image: ${K8S_LIB_INIT_IMG}"
+    echo ""
+    
+    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+        echo "  🔧 Cluster Agent:"
+        echo "     - Image: ${CLUSTER_AGENT}"
+        echo ""
+        echo "  💉 Injector:"
+        echo "     - Image: ${K8S_INJECTOR_IMG}"
+        echo ""
+    fi
+    
+    if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+        echo "  ⚙️  Helm Chart Operator:"
+        echo "     - Version: ${K8S_HELM_CHART_OPERATOR}"
+        echo ""
+    elif [[ "$SCENARIO" != *"NO_AC"* ]]; then
+        echo "  📊 Helm Chart:"
+        echo "     - Version: ${K8S_HELM_CHART}"
+        echo ""
+    fi
+    
+    echo ""
+    read -p "Do you want to customize any component versions? (y/n): " CUSTOMIZE
+    
+    if [[ "$CUSTOMIZE" =~ ^[Yy]$ ]]; then
+        while true; do
+            echo ""
+            echo -e "${CYAN}ℹ️  Select the component you want to customize (or 0 to finish):${NC}"
+            echo "  1) Weblog image"
+            echo "  2) Lib-init image"
+            if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                echo "  3) Cluster agent image"
+                echo "  4) Injector image"
+                if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+                    echo "  5) Helm chart operator version"
+                else
+                    echo "  5) Helm chart version"
+                fi
+            fi
+            echo "  0) Finish customization"
+            echo ""
+            
+            read -p "Enter your choice: " CUSTOM_CHOICE
+            
+            case $CUSTOM_CHOICE in
+                1)
+                    select_weblog_img
+                    ;;
+                2)
+                    select_lib_init_image_only
+                    ;;
+                3)
+                    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                        select_cluster_agent
+                    else
+                        echo -e "${RED}❌ Invalid choice. Option 3 not available for NO_AC scenarios.${NC}"
+                    fi
+                    ;;
+                4)
+                    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                        select_injector_image_only
+                    else
+                        echo -e "${RED}❌ Invalid choice. Option 4 not available for NO_AC scenarios.${NC}"
+                    fi
+                    ;;
+                5)
+                    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                        select_helm_chart_version
+                    else
+                        echo -e "${RED}❌ Invalid choice. Option 5 not available for NO_AC scenarios.${NC}"
+                    fi
+                    ;;
+                0)
+                    break
+                    ;;
+                *)
+                    echo -e "${RED}❌ Invalid choice. Please select a valid option.${NC}"
+                    ;;
+            esac
+        done
+        
+        spacer
+        echo -e "${GREEN}✅ Component customization complete!${NC}"
+    else
+        echo -e "${GREEN}✅ Using default component versions.${NC}"
+    fi
+}
+
+# Helper function to select only lib-init image
+select_lib_init_image_only() {
+    spacer
+    echo -e "${YELLOW}📌 Step: Configure Lib Init Image${NC}"
+    echo "🔄 Fetching available lib-init images for $TEST_LIBRARY..."
+    echo ""
+
+    LIB_INIT_IMAGES=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('lib_init', '$TEST_LIBRARY')
+print(' '.join(versions))
+"))
+
+    if [[ ${#LIB_INIT_IMAGES[@]} -eq 0 ]]; then
+        echo "❗No lib-init images found for $TEST_LIBRARY."
+        read -p "Enter custom lib-init image: " K8S_LIB_INIT_IMG
+    else
+        echo "📝 Available lib-init images:"
+        for i in "${!LIB_INIT_IMAGES[@]}"; do
+            echo "$(($i + 1))) ${LIB_INIT_IMAGES[$i]}"
+        done
+        echo "$((${#LIB_INIT_IMAGES[@]} + 1))) Use custom image"
+
+        while true; do
+            read -p "Enter the number of the lib-init image you want to use: " lib_init_choice
+            if [[ "$lib_init_choice" =~ ^[0-9]+$ ]] && (( lib_init_choice >= 1 && lib_init_choice <= ${#LIB_INIT_IMAGES[@]} + 1 )); then
+                if (( lib_init_choice == ${#LIB_INIT_IMAGES[@]} + 1 )); then
+                    read -p "Enter custom lib-init image: " K8S_LIB_INIT_IMG
+                else
+                    K8S_LIB_INIT_IMG="${LIB_INIT_IMAGES[$((lib_init_choice - 1))]}"
+                fi
+                break
+            else
+                echo "❌ Invalid choice. Please select a number between 1 and $((${#LIB_INIT_IMAGES[@]} + 1))."
+            fi
+        done
+    fi
+    echo "✅ Selected lib-init image: $K8S_LIB_INIT_IMG"
+}
+
+# Helper function to select only injector image
+select_injector_image_only() {
+    spacer
+    echo -e "${YELLOW}📌 Step: Configure Injector Image${NC}"
+    echo "🔄 Fetching available injector images..."
+    echo ""
+
+    INJECTOR_IMAGES=($(python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+versions = parser.get_all_component_versions('injector')
+print(' '.join(versions))
+"))
+
+    if [[ ${#INJECTOR_IMAGES[@]} -eq 0 ]]; then
+        echo "❗No injector images found."
+        read -p "Enter custom injector image: " K8S_INJECTOR_IMG
+    else
+        echo "📝 Available injector images:"
+        for i in "${!INJECTOR_IMAGES[@]}"; do
+            echo "$(($i + 1))) ${INJECTOR_IMAGES[$i]}"
+        done
+        echo "$((${#INJECTOR_IMAGES[@]} + 1))) Use custom image"
+
+        while true; do
+            read -p "Enter the number of the injector image you want to use: " injector_choice
+            if [[ "$injector_choice" =~ ^[0-9]+$ ]] && (( injector_choice >= 1 && injector_choice <= ${#INJECTOR_IMAGES[@]} + 1 )); then
+                if (( injector_choice == ${#INJECTOR_IMAGES[@]} + 1 )); then
+                    read -p "Enter custom injector image: " K8S_INJECTOR_IMG
+                else
+                    K8S_INJECTOR_IMG="${INJECTOR_IMAGES[$((injector_choice - 1))]}"
+                fi
+                break
+            else
+                echo "❌ Invalid choice. Please select a number between 1 and $((${#INJECTOR_IMAGES[@]} + 1))."
+            fi
+        done
         echo "✅ Selected injector image: $K8S_INJECTOR_IMG"
     fi
 }
@@ -451,15 +639,15 @@ run_the_tests(){
     fi
 }
 welcome "K8s lib-injection Tests"
-ask_load_requirements
+load_requirements
 ask_load_k8s_requirements
+check_aws_account_access "$AWS_ECR_ACCOUNT"
 configure_private_registry
 ask_for_test_language
 load_workflow_data "lib-injection,lib-injection-profiling" "libinjection_scenario_defs"
 select_scenario
 select_weblog
 select_weblog_img
-select_cluster_agent
-select_helm_chart_version
-select_lib_init_and_injector
+set_default_component_versions
+review_and_customize_components
 run_the_tests
