@@ -12,6 +12,7 @@ from utils import (
     missing_feature,
     scenarios,
     features,
+    scenario_groups,
 )
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
