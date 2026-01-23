@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 import pytest
 
+from tests.parametric.test_llm_observability.utils import check_and_get_api_key
 from utils import scenarios
 from utils.docker_fixtures import TestAgentAPI
 from ..conftest import APMLibrary  # noqa: TID252
@@ -17,6 +18,16 @@ def llmobs_override_origin(test_agent: TestAgentAPI) -> str:
 @pytest.fixture
 def llmobs_project_name() -> str:
     return "test-project"
+
+
+@pytest.fixture
+def dd_api_key(request: pytest.FixtureRequest) -> str | None:
+    return check_and_get_api_key("DD_API_KEY", generate_cassettes=request.config.option.generate_cassettes)
+
+
+@pytest.fixture
+def dd_app_key(request: pytest.FixtureRequest) -> str | None:
+    return check_and_get_api_key("DD_APP_KEY", generate_cassettes=request.config.option.generate_cassettes)
 
 
 # @features.llm_observability_datasets_and_experiments

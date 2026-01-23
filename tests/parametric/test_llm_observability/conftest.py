@@ -1,5 +1,16 @@
-import os
 import pytest
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Mark all llm_observability tests as xfail when generating cassettes."""
+    if config.option.generate_cassettes:
+        for item in items:
+            item.add_marker(
+                pytest.mark.xfail(
+                    reason="Generating cassettes - test assertions are not evaluated",
+                    strict=False,
+                )
+            )
 
 
 @pytest.fixture
@@ -28,22 +39,36 @@ def llmobs_project_name() -> str | None:
 
 
 @pytest.fixture
+def dd_api_key() -> str | None:
+    return None
+
+
+@pytest.fixture
+def dd_app_key() -> str | None:
+    return None
+
+
+@pytest.fixture
 def library_env(
     llmobs_ml_app: str | None,
     dd_service: str,
     llmobs_override_origin: str | None,
     llmobs_project_name: str | None,
+    dd_api_key: str | None,
+    dd_app_key: str | None,
     *,
     llmobs_enabled: bool,
 ) -> dict[str, object]:
-    env = {
+    env: dict[str, object] = {
         "DD_LLMOBS_ENABLED": llmobs_enabled,
         "DD_SERVICE": dd_service,
-        "DD_API_KEY": os.getenv("DD_API_KEY", "test-api-key"),  # TODO: set these properly
-        "DD_APP_KEY": os.getenv(
-            "DD_APP_KEY", os.getenv("DD_APPLICATION_KEY", "test-app-key")
-        ),  # TODO: set these properly
     }
+
+    if dd_api_key is not None:
+        env["DD_API_KEY"] = dd_api_key
+
+    if dd_app_key is not None:
+        env["DD_APP_KEY"] = dd_app_key
 
     if llmobs_ml_app is not None:
         env["DD_LLMOBS_ML_APP"] = llmobs_ml_app
@@ -59,7 +84,12 @@ def library_env(
 
 
 @pytest.fixture
-def agent_env() -> dict[str, object]:
-    return {
+def agent_env(request: pytest.FixtureRequest) -> dict[str, object]:
+    agent_env: dict[str, object] = {
         "VCR_IGNORE_HEADERS": "content-security-policy",
     }
+
+    if not request.config.option.generate_cassettes:
+        agent_env["VCR_CI_MODE"] = "1"
+
+    return agent_env
