@@ -50,7 +50,6 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config(enabled=False, reset=False)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-    @bug(context.library == "python", reason="DEBUG-5000")
     def test_inproduct_enablement_di(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
