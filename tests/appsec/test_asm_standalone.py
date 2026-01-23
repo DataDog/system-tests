@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger, flaky
 
 USER = "test"
 NEW_USER = "testnew"
@@ -845,6 +845,7 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.api_security_configuration
 @scenarios.appsec_standalone_api_security
+@flaky(context.library == "java", reason="APPSEC-60872")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
