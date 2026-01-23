@@ -1450,7 +1450,6 @@ class Test_V3_Login_Events:
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
-    @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
     def test_signup_local(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
@@ -1753,7 +1752,6 @@ class Test_V3_Login_Events_Anon:
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
-    @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
     def test_signup_local(self):
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):

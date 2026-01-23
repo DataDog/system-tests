@@ -17,7 +17,6 @@ pytestmark = pytest.mark.parametrize(
 @scenarios.parametric
 @features.open_tracing_api
 class Test_Otel_Tracer:
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
     def test_otel_simple_trace(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Perform two traces"""
         with test_library:
@@ -52,8 +51,6 @@ class Test_Otel_Tracer:
         child_span2 = find_span(trace_two, child2.span_id)
         assert child_span2["resource"] == "child2"
 
-    @irrelevant(context.library == "cpp", reason="library does not implement OpenTelemetry")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     def test_otel_force_flush(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Verify that force flush flushed the spans"""
         with test_library:

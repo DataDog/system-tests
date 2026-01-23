@@ -144,7 +144,6 @@ class Test_LibraryHeaders:
 
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd")
-    @irrelevant(library="golang", reason="implemented but not testable")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
@@ -180,7 +179,6 @@ class Test_LibraryHeaders:
 
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
-    @missing_feature(context.library < "golang@1.73.0-dev", reason="Implemented in v1.72.0")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 

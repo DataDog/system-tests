@@ -114,7 +114,6 @@ class Test_UserLoginFailureEvent:
 
         self.r = weblog.get("/user_login_failure_event", headers=headers)
 
-    @irrelevant(context.library >= "golang@2.0.0-rc.1", reason="implementation deprecated")
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 

@@ -641,7 +641,6 @@ class Test_Parametric_OtelSpan_Events:
         assert events[0]["time_unix_nano"] == 1730393556000000000
         assert events[0]["attributes"]["key"] == "value"
 
-    @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
     def test_record_exception(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/record_exception adds an exception event to a span.
 

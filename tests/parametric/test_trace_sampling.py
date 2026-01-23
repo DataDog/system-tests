@@ -163,7 +163,6 @@ class Test_Trace_Sampling_Globs:
             },
         ],
     )
-    @bug(library="cpp", reason="APMAPI-908")
     def test_field_case_insensitivity(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that sampling rule field values are case insensitive"""
         with (
@@ -542,8 +541,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
     @pytest.mark.parametrize("tag_value", [-100, -0.5, 0, 5, 1000])
-    @missing_feature(library="cpp", reason="No metric interface")
-    @flaky(library="golang", reason="APMAPI-932")
     def test_metric_existence(self, test_agent: TestAgentAPI, test_library: APMLibrary, tag_value: float):
         """Tests that any patterns are equivalent to an existence check for metrics"""
 
@@ -555,7 +552,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize(
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
-    @missing_feature(library="cpp", reason="No metric interface")
     def test_metric_matching(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:

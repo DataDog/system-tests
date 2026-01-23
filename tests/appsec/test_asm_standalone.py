@@ -1078,7 +1078,6 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212133
         self._call_endpoint("/signup", NEW_USER, trace_id)
 
-    @missing_feature(context.library == "nodejs", reason="no signup events in passport")
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)

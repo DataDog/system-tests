@@ -163,8 +163,6 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9"}
         )
 
-    @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -195,7 +193,6 @@ class Test_Blocking:
             },
         )
 
-    @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
@@ -205,7 +202,6 @@ class Test_Blocking:
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json"})
 
-    @missing_feature(context.library < "golang@1.52.0")
     def test_json_template_v1(self):
         """JSON block template is v1 minified (or v3 with security_response_id)"""
         assert self.r_json_v1.status_code == 403
@@ -225,7 +221,6 @@ class Test_Blocking:
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html"})
 
-    @missing_feature(context.library < "golang@1.52.0")
     def test_html_template_v2(self):
         """HTML block template is v2 minified (or v3 with security_response_id)"""
         assert self.r_html_v2.status_code == 403

@@ -135,7 +135,6 @@ class _BaseSNS:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -197,7 +196,6 @@ class _BaseSNS:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(

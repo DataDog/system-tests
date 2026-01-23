@@ -185,7 +185,6 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(library="cpp")
     def test_dd_trace_agent_http_url_ipv6(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
@@ -205,8 +204,6 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
-    @missing_feature(library="cpp")
     def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
@@ -238,8 +235,6 @@ class Test_Config_RateLimit:
         "library_env",
         [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
     )
-    @bug(context.library == "golang", reason="APMAPI-1030")
-    @missing_feature(library="cpp")
     def test_setting_trace_rate_limit_strict(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
             with test_library.dd_start_span(name="s1"):
