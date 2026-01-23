@@ -1,0 +1,134 @@
+# yaml-language-server: $schema=./capabilities_schema.json
+---
+# This file defines the expected Remote Config capabilities reported by each tracer language
+# across different versions. It supports version-aware capability definitions to avoid
+# chicken-and-egg problems when adding new capabilities.
+#
+# Structure:
+#   capabilities:
+#     <language>:
+#       base: [list of capabilities available in all tested versions]
+#       '<version_range>': [list of capabilities added in this version]
+#
+# Version ranges use npm SemVer syntax (same as manifest files):
+#   - '>=1.2.3' - version 1.2.3 or later
+#   - '>=1.2.3 || ^0.9.0' - version 1.2.3+ or 0.9.x
+#   - See https://github.com/npm/node-semver#ranges
+
+capabilities:
+  java:
+    base:
+      - APM_TRACING_CUSTOM_TAGS
+      - APM_TRACING_DATA_STREAMS_ENABLED
+      - APM_TRACING_ENABLE_CODE_ORIGIN
+      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
+      - APM_TRACING_ENABLE_EXCEPTION_REPLAY
+      - APM_TRACING_ENABLE_LIVE_DEBUGGING
+      - APM_TRACING_ENABLED
+      - APM_TRACING_HTTP_HEADER_TAGS
+      - APM_TRACING_LOGS_INJECTION
+      - APM_TRACING_MULTICONFIG
+      - APM_TRACING_SAMPLE_RATE
+      - APM_TRACING_SAMPLE_RULES
+      - ASM_ACTIVATION
+      - ASM_AUTO_USER_INSTRUM_MODE
+      # ASM capabilities below are NOT tested in parametric because they're only
+      # registered when AppSec is active (AppSecSystem.isActive()).
+      # Parametric tests run without AppSec enabled by default.
+      # If you need to test these, enable AppSec in the test environment.
+      # - ASM_API_SECURITY_SAMPLE_RATE
+      # - ASM_CUSTOM_BLOCKING_RESPONSE
+      # - ASM_CUSTOM_RULES
+      # - ASM_DD_RULES
+      # - ASM_ENDPOINT_FINGERPRINT
+      # - ASM_EXCLUSION_DATA
+      # - ASM_EXCLUSIONS
+      # - ASM_EXTENDED_DATA_COLLECTION
+      # - ASM_HEADER_FINGERPRINT
+      # - ASM_IP_BLOCKING
+      # - ASM_NETWORK_FINGERPRINT
+      # - ASM_RASP_CMDI
+      # - ASM_RASP_LFI
+      # - ASM_RASP_SHI
+      # - ASM_RASP_SQLI
+      # - ASM_RASP_SSRF
+      # - ASM_REQUEST_BLOCKING
+      # - ASM_SESSION_FINGERPRINT
+      # - ASM_TRUSTED_IPS
+      # - ASM_USER_BLOCKING
+
+  nodejs:
+    base:
+      - APM_TRACING_CUSTOM_TAGS
+      - APM_TRACING_ENABLED
+      - APM_TRACING_HTTP_HEADER_TAGS
+      - APM_TRACING_LOGS_INJECTION
+      - APM_TRACING_SAMPLE_RATE
+      - APM_TRACING_SAMPLE_RULES
+      - ASM_ACTIVATION
+      - ASM_AUTO_USER_INSTRUM_MODE
+
+    '>=5.72.0':
+      - FFE_FLAG_CONFIGURATION_RULES
+
+    '>=5.83.0':
+      - APM_TRACING_ENABLE_CODE_ORIGIN
+      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
+      - APM_TRACING_MULTICONFIG
+
+  python:
+    base:
+      - APM_TRACING_ENABLED
+
+  dotnet:
+    base:
+      - APM_TRACING_CUSTOM_TAGS
+      - APM_TRACING_ENABLE_CODE_ORIGIN
+      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
+      - APM_TRACING_ENABLE_EXCEPTION_REPLAY
+      - APM_TRACING_ENABLE_LIVE_DEBUGGING
+      - APM_TRACING_ENABLED
+      - APM_TRACING_HTTP_HEADER_TAGS
+      - APM_TRACING_LOGS_INJECTION
+      - APM_TRACING_MULTICONFIG
+      - APM_TRACING_SAMPLE_RATE
+      - APM_TRACING_SAMPLE_RULES
+      - ASM_ACTIVATION
+      - ASM_ASM_RESPONSE_BLOCKING
+      - ASM_AUTO_USER_INSTRUM_MODE
+      - ASM_CUSTOM_BLOCKING_RESPONSE
+      - ASM_CUSTOM_RULES
+      - ASM_DD_RULES
+      - ASM_EXCLUSIONS
+      - ASM_IP_BLOCKING
+      - ASM_REQUEST_BLOCKING
+      - ASM_TRUSTED_IPS
+      - ASM_USER_BLOCKING
+
+  cpp:
+    base:
+      - APM_TRACING_CUSTOM_TAGS
+      - APM_TRACING_ENABLED
+      - APM_TRACING_SAMPLE_RATE
+      - APM_TRACING_SAMPLE_RULES
+
+  php:
+    base:
+      - APM_TRACING_ENABLED
+
+  golang:
+    base:
+      - APM_TRACING_CUSTOM_TAGS
+      - APM_TRACING_ENABLED
+      - APM_TRACING_HTTP_HEADER_TAGS
+      - APM_TRACING_SAMPLE_RATE
+      - APM_TRACING_SAMPLE_RULES
+      - ASM_ACTIVATION
+
+    '>=2.7.0':
+      - APM_TRACING_ENABLE_LIVE_DEBUGGING
+      - APM_TRACING_MULTICONFIG
+
+  ruby:
+    base:
+      - APM_TRACING_ENABLED
