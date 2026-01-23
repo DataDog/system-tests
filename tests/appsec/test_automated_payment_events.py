@@ -262,7 +262,10 @@ class Test_Automated_Payment_Events_Stripe:
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.code"] == "card_declined"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.decline_code"] == "stolen_card"
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.id"] == "pm_FAKE"
-            assert "appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email" not in span["meta"]
+            assert (
+                "appsec.events.payments.failure.last_payment_error.payment_method.billing_details.email"
+                not in span["meta"]
+            )
             assert span["meta"]["appsec.events.payments.failure.last_payment_error.payment_method.type"] == "card"
             assert span["metrics"]["appsec.events.payments.failure.livemode"] == 1
 
