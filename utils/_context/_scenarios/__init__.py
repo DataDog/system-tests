@@ -1089,7 +1089,7 @@ class _Scenarios:
         name="GO_PROXIES_DEFAULT",
         doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
-        scenario_groups=[scenario_groups.go_proxies_default],
+        scenario_groups=[],
     )
 
     go_proxies_appsec_blocking = GoProxiesScenario(
@@ -1097,7 +1097,7 @@ class _Scenarios:
         doc="Default tests for proxies using the security processor with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[scenario_groups.go_proxies_appsec_blocking],
+        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")

@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, features, scenario_groups
+from utils import weblog, interfaces, scenarios, features
 
 
 @features.threats_alpha_preview
-@scenario_groups.go_proxies_default
+@scenarios.go_proxies_default
 @scenarios.appsec_lambda_default
 @scenarios.default
 class Test_Basic:

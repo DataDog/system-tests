@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, rfc, bug, scenarios, missing_feature, features, scenario_groups
+from utils import weblog, context, interfaces, rfc, bug, scenarios, missing_feature, features
 
 from .utils import BaseFullDenyListTest
 
@@ -10,7 +10,7 @@ from .utils import BaseFullDenyListTest
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
 @features.appsec_client_ip_blocking
-@scenario_groups.go_proxies_default
+@scenarios.go_proxies_default
 @scenarios.appsec_blocking_full_denylist
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""

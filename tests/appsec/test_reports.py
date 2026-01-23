@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, scenarios, rfc, features, scenario_groups
+from utils import weblog, interfaces, scenarios, rfc, features
 from utils._weblog import HttpResponse
 
 
@@ -64,7 +64,7 @@ class Test_Info:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
-@scenario_groups.go_proxies_default
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_RequestHeaders:
@@ -102,7 +102,7 @@ class Test_RequestHeaders:
 
 
 @features.security_events_metadata
-@scenario_groups.go_proxies_default
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_TagsFromRule:
@@ -130,7 +130,7 @@ class Test_TagsFromRule:
 
 
 @features.security_events_metadata
-@scenario_groups.go_proxies_default
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_ExtraTagsFromRule:
@@ -159,7 +159,7 @@ def _get_appsec_triggers(request: HttpResponse):
 
 
 @features.security_events_metadata
-@scenario_groups.go_proxies_default
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AttackTimestamp:

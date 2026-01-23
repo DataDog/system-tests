@@ -15,7 +15,6 @@ from utils import (
     weblog,
     features,
     HttpResponse,
-    scenario_groups,
 )
 
 
@@ -40,7 +39,7 @@ def _assert_custom_event_tag_absence():
 
 
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_client_ip:
@@ -69,7 +68,7 @@ class Test_Blocking_client_ip:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -112,7 +111,7 @@ class Test_Blocking_client_ip_with_forwarded:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 class Test_Blocking_client_ip_with_K8_private_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -147,7 +146,7 @@ class Test_Blocking_user_id:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_method:
@@ -202,7 +201,7 @@ class Test_Blocking_request_method:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_uri:
@@ -268,7 +267,7 @@ class Test_Blocking_request_uri:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_path_params:
@@ -327,7 +326,7 @@ class Test_Blocking_request_path_params:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_query:
@@ -402,7 +401,7 @@ class Test_Blocking_request_query:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_headers:
@@ -461,7 +460,7 @@ class Test_Blocking_request_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_cookies:
@@ -606,7 +605,7 @@ class Test_Blocking_request_body_multipart:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_response_status:
@@ -661,7 +660,7 @@ class Test_Blocking_response_status:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenario_groups.go_proxies_appsec_blocking
+@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_response_headers:
