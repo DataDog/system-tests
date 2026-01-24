@@ -103,7 +103,7 @@ select_weblog_img(){
     echo "  1️⃣  Use an existing weblog image from the registry (default: ${WEBLOG}:latest)"
     echo "  2️⃣  Build and push your local weblog to the registry with a custom tag"
     echo ""
-    
+
     WEBLOG_IMAGE="$PRIVATE_DOCKER_REGISTRY/system-tests/$WEBLOG:latest"
 
     # Ask if user wants to build and push the weblog
@@ -152,7 +152,7 @@ select_weblog_img(){
             break
         fi
     done
-    
+
     echo -e "${GREEN}✅ Selected weblog image: ${WEBLOG_IMAGE}${NC}"
 }
 
@@ -367,14 +367,14 @@ print(' '.join(versions))
 set_default_component_versions() {
     # Use K8sComponentsParser to set default values for all components
     echo "📦 Loading default component versions..."
-    
+
     # Set default cluster agent
     CLUSTER_AGENT=$(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 parser = K8sComponentsParser()
 print(parser.get_default_component_version('cluster_agent'))
 ")
-    
+
     # Set default helm chart or helm chart operator based on scenario
     if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
         K8S_HELM_CHART_OPERATOR=$(python -c "
@@ -391,14 +391,14 @@ print(parser.get_default_component_version('helm_chart'))
 ")
         export K8S_HELM_CHART
     fi
-    
+
     # Set default lib-init image for the selected language
     K8S_LIB_INIT_IMG=$(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 parser = K8sComponentsParser()
 print(parser.get_default_component_version('lib_init', '$TEST_LIBRARY'))
 ")
-    
+
     # Set default injector image (if cluster agent is used)
     if [[ "$SCENARIO" != *"NO_AC"* ]]; then
         K8S_INJECTOR_IMG=$(python -c "
@@ -410,7 +410,7 @@ print(parser.get_default_component_version('injector'))
         K8S_INJECTOR_IMG="''"
         CLUSTER_AGENT="''"
     fi
-    
+
     echo "✅ Default component versions loaded."
 }
 
@@ -426,7 +426,7 @@ review_and_customize_components() {
     echo "  📦 Lib-init ($TEST_LIBRARY):"
     echo "     - Image: ${K8S_LIB_INIT_IMG}"
     echo ""
-    
+
     if [[ "$SCENARIO" != *"NO_AC"* ]]; then
         echo "  🔧 Cluster Agent:"
         echo "     - Image: ${CLUSTER_AGENT}"
@@ -435,7 +435,7 @@ review_and_customize_components() {
         echo "     - Image: ${K8S_INJECTOR_IMG}"
         echo ""
     fi
-    
+
     if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
         echo "  ⚙️  Helm Chart Operator:"
         echo "     - Version: ${K8S_HELM_CHART_OPERATOR}"
@@ -445,10 +445,10 @@ review_and_customize_components() {
         echo "     - Version: ${K8S_HELM_CHART}"
         echo ""
     fi
-    
+
     echo ""
     read -p "Do you want to customize any component versions? (y/n): " CUSTOMIZE
-    
+
     if [[ "$CUSTOMIZE" =~ ^[Yy]$ ]]; then
         while true; do
             echo ""
@@ -466,9 +466,9 @@ review_and_customize_components() {
             fi
             echo "  0) Finish customization"
             echo ""
-            
+
             read -p "Enter your choice: " CUSTOM_CHOICE
-            
+
             case $CUSTOM_CHOICE in
                 1)
                     select_weblog_img
@@ -505,7 +505,7 @@ review_and_customize_components() {
                     ;;
             esac
         done
-        
+
         spacer
         echo -e "${GREEN}✅ Component customization complete!${NC}"
     else

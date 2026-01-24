@@ -145,10 +145,10 @@ verify_aws_environment() {
     if ! is_var_set "ONBOARDING_AWS_INFRA_SUBNET_ID" || ! is_var_set "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID"; then
         spacer
         echo "🔍 Checking AWS environment..."
-        
+
         # Check AWS account access
         check_aws_account_access "dev-apm-dcs-system-tests"
-        
+
         echo "✅ AWS environment verified successfully!"
     fi
 }

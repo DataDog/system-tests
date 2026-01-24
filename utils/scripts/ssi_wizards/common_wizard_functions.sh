@@ -27,7 +27,7 @@ welcome() {
 check_aws_account_access() {
     local account_name="$1"
     local aws_profile="sso-${account_name}-account-admin"
-    
+
     if ! aws-vault exec "$aws_profile" -- aws s3 ls &>/dev/null; then
         echo "❌ AWS environment check failed for account: ${account_name}"
         echo ""
