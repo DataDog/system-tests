@@ -298,7 +298,7 @@ class _Scenarios:
         iast_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
+        scenario_groups=[scenario_groups.appsec_rasp],
     )
 
     appsec_api_security = EndToEndScenario(
@@ -857,7 +857,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.simple_onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -866,7 +866,7 @@ class _Scenarios:
         "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        scenario_groups=[scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )
 
@@ -878,7 +878,7 @@ class _Scenarios:
         ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )
 
@@ -887,7 +887,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )
 
@@ -895,7 +895,7 @@ class _Scenarios:
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.simple_onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -903,7 +903,7 @@ class _Scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=[scenario_groups.simple_onboarding],
         github_workflow="aws_ssi",
     )
 
@@ -922,14 +922,14 @@ class _Scenarios:
         "LIB_INJECTION_VALIDATION",
         doc="Validates the init images without kubernetes enviroment",
         github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
+        scenario_groups=[scenario_groups.lib_injection],
     )
 
     lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
         "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
         doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
         github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
+        scenario_groups=[scenario_groups.lib_injection],
     )
 
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
@@ -960,7 +960,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        scenario_groups=[scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
@@ -971,7 +971,7 @@ class _Scenarios:
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        scenario_groups=[scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
@@ -985,7 +985,7 @@ class _Scenarios:
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
         },
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        scenario_groups=[scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
@@ -1001,24 +1001,24 @@ class _Scenarios:
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=[scenario_groups.docker_ssi],
     )
     docker_ssi_servicenaming = DockerSSIScenario(
         "DOCKER_SSI_SERVICENAMING",
         doc="Validates the installer and the ssi service naming features on a docker environment",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=[scenario_groups.docker_ssi],
     )
     docker_ssi_appsec = DockerSSIScenario(
         "DOCKER_SSI_APPSEC",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
         appsec_enabled="true",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=[scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=[scenario_groups.docker_ssi],
     )
 
     appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
@@ -1089,6 +1089,7 @@ class _Scenarios:
         name="GO_PROXIES",
         doc="Go security processor proxies (Envoy or HAProxy)",
         rc_api_enabled=True,
+        scenario_groups=[scenario_groups.default],
     )
 
     go_proxies_blocking = GoProxiesScenario(
@@ -1096,6 +1097,7 @@ class _Scenarios:
         doc="Go security processor proxies with blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        scenario_groups=[scenario_groups.appsec_blocking],
     )
 
     ipv6 = IPV6Scenario("IPV6")
@@ -1119,14 +1121,14 @@ class _Scenarios:
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
         doc="Default Lambda scenario",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=[scenario_groups.appsec_lambda],
     )
     appsec_lambda_blocking = LambdaScenario(
         "APPSEC_LAMBDA_BLOCKING",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking in Lambda",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=[scenario_groups.appsec_lambda],
     )
     appsec_lambda_api_security = LambdaScenario(
         "APPSEC_LAMBDA_API_SECURITY",
@@ -1142,13 +1144,13 @@ class _Scenarios:
         Scenario for API Security feature in lambda, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=[scenario_groups.appsec_lambda],
     )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
     appsec_lambda_inferred_spans = LambdaScenario(
         "APPSEC_LAMBDA_INFERRED_SPANS",
         doc="Lambda scenario with managed services tracing enabled",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=[scenario_groups.appsec_lambda],
         trace_managed_services=True,
     )
 

@@ -1,9 +1,29 @@
-# right now, no rules are defined for groups
-# it means that we cannot b y design make some group part of another group
-# waiting for a clean solution to this problem, let's just test it
+# scenario groups can inherit from a parent group
+# validate a few important relationships
 
 from utils import scenarios, scenario_groups
 from utils._context._scenarios import get_all_scenarios
+
+
+@scenarios.test_the_test
+def test_go_proxies_inherits_appsec_and_all():
+    """Test that scenario groups inheritance is working correctly"""
+
+    go_proxies_scenario = scenarios.go_proxies
+    # Ensure go_proxies_scenario is in the go_proxies group
+    assert scenario_groups.go_proxies in go_proxies_scenario.scenario_groups, (
+        f"Scenario {go_proxies_scenario.name} is not in {scenario_groups.go_proxies.name}"
+    )
+    # Check inheritance: appsec group
+    assert scenario_groups.appsec in go_proxies_scenario.scenario_groups, (
+        f"Scenario {go_proxies_scenario.name} is in {scenario_groups.go_proxies.name} "
+        f"but not in {scenario_groups.appsec.name}"
+    )
+    # Check inheritance: all group
+    assert scenario_groups.all in go_proxies_scenario.scenario_groups, (
+        f"Scenario {go_proxies_scenario.name} is in {scenario_groups.go_proxies.name} "
+        f"but not in {scenario_groups.all.name}"
+    )
 
 
 @scenarios.test_the_test
