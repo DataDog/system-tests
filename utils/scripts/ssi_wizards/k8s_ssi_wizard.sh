@@ -204,8 +204,8 @@ select_helm_chart_version(){
     echo "🔄 Fetching available helm chart versions..."
     echo ""
 
-    # Check if this is an OPERATOR scenario
-    if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+    # Check if this scenario uses Datadog Operator
+    if [[ "$SCENARIO_WITH_DATADOG_OPERATOR" == "true" ]]; then
         # Use K8sComponentsParser to get helm chart operator versions
         HELM_CHART_OPERATOR_VERSIONS=($(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
@@ -364,26 +364,46 @@ print(' '.join(versions))
     fi
 }
 
+load_scenario_properties() {
+    # Load scenario properties from Python using the scenario inspector
+    echo "📋 Loading scenario properties..."
+
+    # Get scenario properties
+    eval "$(python utils/scripts/ssi_wizards/tools/k8s_scenario_inspector.py "$SCENARIO")"
+
+    # Export as global variables for use throughout the script
+    export SCENARIO_WITH_CLUSTER_AGENT="$with_cluster_agent"
+    export SCENARIO_WITH_DATADOG_OPERATOR="$with_datadog_operator"
+
+    echo "✅ Scenario properties loaded:"
+    echo "   - Cluster Agent: $SCENARIO_WITH_CLUSTER_AGENT"
+    echo "   - Datadog Operator: $SCENARIO_WITH_DATADOG_OPERATOR"
+}
+
 set_default_component_versions() {
     # Use K8sComponentsParser to set default values for all components
     echo "📦 Loading default component versions..."
 
-    # Set default cluster agent
-    CLUSTER_AGENT=$(python -c "
+    # Set default cluster agent (if scenario uses it)
+    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
+        CLUSTER_AGENT=$(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 parser = K8sComponentsParser()
 print(parser.get_default_component_version('cluster_agent'))
 ")
+    else
+        CLUSTER_AGENT="''"
+    fi
 
     # Set default helm chart or helm chart operator based on scenario
-    if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+    if [[ "$SCENARIO_WITH_DATADOG_OPERATOR" == "true" ]]; then
         K8S_HELM_CHART_OPERATOR=$(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 parser = K8sComponentsParser()
 print(parser.get_default_component_version('helm_chart_operator'))
 ")
         export K8S_HELM_CHART_OPERATOR
-    else
+    elif [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
         K8S_HELM_CHART=$(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 parser = K8sComponentsParser()
@@ -400,7 +420,7 @@ print(parser.get_default_component_version('lib_init', '$TEST_LIBRARY'))
 ")
 
     # Set default injector image (if cluster agent is used)
-    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
         K8S_INJECTOR_IMG=$(python -c "
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 parser = K8sComponentsParser()
@@ -408,7 +428,6 @@ print(parser.get_default_component_version('injector'))
 ")
     else
         K8S_INJECTOR_IMG="''"
-        CLUSTER_AGENT="''"
     fi
 
     echo "✅ Default component versions loaded."
@@ -427,7 +446,7 @@ review_and_customize_components() {
     echo "     - Image: ${K8S_LIB_INIT_IMG}"
     echo ""
 
-    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
         echo "  🔧 Cluster Agent:"
         echo "     - Image: ${CLUSTER_AGENT}"
         echo ""
@@ -436,11 +455,11 @@ review_and_customize_components() {
         echo ""
     fi
 
-    if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+    if [[ "$SCENARIO_WITH_DATADOG_OPERATOR" == "true" ]]; then
         echo "  ⚙️  Helm Chart Operator:"
         echo "     - Version: ${K8S_HELM_CHART_OPERATOR}"
         echo ""
-    elif [[ "$SCENARIO" != *"NO_AC"* ]]; then
+    elif [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
         echo "  📊 Helm Chart:"
         echo "     - Version: ${K8S_HELM_CHART}"
         echo ""
@@ -455,10 +474,10 @@ review_and_customize_components() {
             echo -e "${CYAN}ℹ️  Select the component you want to customize (or 0 to finish):${NC}"
             echo "  1) Weblog image"
             echo "  2) Lib-init image"
-            if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+            if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
                 echo "  3) Cluster agent image"
                 echo "  4) Injector image"
-                if [[ "$SCENARIO" == *"OPERATOR"* ]]; then
+                if [[ "$SCENARIO_WITH_DATADOG_OPERATOR" == "true" ]]; then
                     echo "  5) Helm chart operator version"
                 else
                     echo "  5) Helm chart version"
@@ -477,24 +496,24 @@ review_and_customize_components() {
                     select_lib_init_image_only
                     ;;
                 3)
-                    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
                         select_cluster_agent
                     else
-                        echo -e "${RED}❌ Invalid choice. Option 3 not available for NO_AC scenarios.${NC}"
+                        echo -e "${RED}❌ Invalid choice. Option 3 not available for this scenario.${NC}"
                     fi
                     ;;
                 4)
-                    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
                         select_injector_image_only
                     else
-                        echo -e "${RED}❌ Invalid choice. Option 4 not available for NO_AC scenarios.${NC}"
+                        echo -e "${RED}❌ Invalid choice. Option 4 not available for this scenario.${NC}"
                     fi
                     ;;
                 5)
-                    if [[ "$SCENARIO" != *"NO_AC"* ]]; then
+                    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
                         select_helm_chart_version
                     else
-                        echo -e "${RED}❌ Invalid choice. Option 5 not available for NO_AC scenarios.${NC}"
+                        echo -e "${RED}❌ Invalid choice. Option 5 not available for this scenario.${NC}"
                     fi
                     ;;
                 0)
@@ -607,13 +626,19 @@ run_the_tests(){
     echo "   🔹 Scenario:         $SCENARIO"
     echo "   🔹 Weblog:           $WEBLOG"
     echo "   🔹 Library init:     $K8S_LIB_INIT_IMG"
-    echo "   🔹 Injector:         $K8S_INJECTOR_IMG"
-    echo "   🔹 Cluster agent:    $CLUSTER_AGENT"
-    if [[ -n "$K8S_HELM_CHART_OPERATOR" ]]; then
-        echo "   🔹 Helm chart operator: $K8S_HELM_CHART_OPERATOR"
-    else
-        echo "   🔹 Helm chart:       ${K8S_HELM_CHART:-default}"
+
+    # Only show cluster agent, injector, and helm chart for scenarios that use them
+    if [[ "$SCENARIO_WITH_CLUSTER_AGENT" == "true" ]]; then
+        echo "   🔹 Cluster agent:    $CLUSTER_AGENT"
+        echo "   🔹 Injector:         $K8S_INJECTOR_IMG"
+
+        if [[ "$SCENARIO_WITH_DATADOG_OPERATOR" == "true" ]]; then
+            echo "   🔹 Helm chart operator: $K8S_HELM_CHART_OPERATOR"
+        else
+            echo "   🔹 Helm chart:       ${K8S_HELM_CHART:-default}"
+        fi
     fi
+
     echo "   🔹 Test Library:     $TEST_LIBRARY"
     echo ""
 
@@ -646,6 +671,7 @@ configure_private_registry
 ask_for_test_language
 load_workflow_data "lib-injection,lib-injection-profiling" "libinjection_scenario_defs"
 select_scenario
+load_scenario_properties
 select_weblog
 select_weblog_img
 set_default_component_versions

@@ -286,70 +286,130 @@ The K8s lib injection tests use the Kind cluster by default, but you can change 
 
 ## Component Version Matrix Configuration
 
-The component version matrix is defined in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json). This file controls which component versions are tested for each scenario.
+K8s library injection tests use a two-file configuration system to define what gets tested:
 
-### Matrix Structure
+### Configuration Files
 
-The JSON file has two main sections:
+| File | Purpose | Location |
+|------|---------|----------|
+| **Scenario-Weblog Matrix** | Maps scenarios to weblogs by language | [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json) |
+| **Component Versions** | Defines K8s component images/versions | [`utils/k8s/k8s_components.json`](../../utils/k8s/k8s_components.json) |
 
-1. **`scenario_matrix`**: Defines which components are tested for each scenario/weblog combination
-2. **Component specifications**: Maps version keys to actual image URLs or version numbers
+### How It Works
+
+```
+┌─────────────────────────────┐
+│  k8s_ssi.json               │  ← Which scenarios test which weblogs?
+│  • Scenarios ↔ Weblogs      │
+│  • Language-specific        │
+└──────────┬──────────────────┘
+           │
+           ↓
+┌─────────────────────────────┐
+│  k8s_components.json        │  ← What component versions to use?
+│  • cluster_agent            │
+│  • injector                 │
+│  • lib_init (per language)  │
+│  • helm_chart               │
+│  • helm_chart_operator      │
+└─────────────────────────────┘
+```
+
+### File Structure Examples
+
+#### `k8s_ssi.json` - Scenario/Weblog Matrix
 
 ```json
 {
   "scenario_matrix": [
     {
-      "scenarios": ["K8S_LIB_INJECTION"],
-      "weblogs": [{"java": ["dd-lib-java-init-test-app"]}],
-      "cluster_agents": ["prod", "nightly_dev"],
-      "helm_charts": ["prod", "nightly_latest"],
-      "injectors": ["prod", "dev"],
-      "lib_inits": ["prod", "dev"]
+      "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS"],
+      "weblogs": [
+        {
+          "java": ["dd-lib-java-init-test-app"],
+          "nodejs": ["sample-app"],
+          "python": ["dd-lib-python-init-test-django"]
+        }
+      ]
     }
-  ],
-  "cluster_agent_spec": {
-    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
-    "nightly_dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master"
+  ]
+}
+```
+
+#### `k8s_components.json` - Component Versions
+
+```json
+{
+  "cluster_agent": {
+    "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
+    "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master"
   },
-  "lib_init_spec": {
+  "lib_init": {
     "java": {
       "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
       "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+    },
+    "nodejs": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
     }
+  },
+  "helm_chart": {
+    "pinned": "3.156.1",
+    "prod": "3.161.1"
   }
 }
 ```
 
-### Modifying Component Versions
+### Version Selection Logic
 
-To add or update component versions:
+| Context | Versions Used | Purpose |
+|---------|---------------|---------|
+| **Default (local/manual)** | `pinned` (if exists), else `prod` | Stable, consistent testing |
+| **System-tests Scheduled CI** | All versions (`pinned`, `prod`, `dev`) | Comprehensive version coverage |
+| **System-tests PR/Commit** | All versions for injector/lib_init, `pinned` for rest | Fast feedback with key variations |
+| **Tracer Repository CI** | `pinned` or `prod` only | Stable infrastructure for tracer testing |
+| **Custom Override** | `K8S_LIB_INIT_IMG`, `K8S_INJECTOR_IMG` env vars | Testing specific versions |
 
-1. **Add a new version key** in the appropriate `_spec` section:
-   ```json
-   "cluster_agent_spec": {
-     "prod": "...:7.73.1",
-     "nightly_custom": "...:7.80.0"
-   }
-   ```
+### Modifying Configurations
 
-2. **Reference the key** in the `scenario_matrix`:
-   ```json
-   "cluster_agents": ["prod", "nightly_custom"]
-   ```
+**Add a new scenario-weblog combination:**
 
-3. The CI will generate test combinations for all listed versions.
+Edit `k8s_ssi.json`:
+```json
+{
+  "scenarios": ["MY_NEW_SCENARIO"],
+  "weblogs": [{"python": ["my-new-weblog"]}]
+}
+```
 
-### CI Pipeline Filtering
+**Update component versions:**
 
-The CI applies filters to reduce test matrix size based on context (see `apply_k8s_ci_filters` in [`gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py)):
+Edit `k8s_components.json`:
+```json
+{
+  "cluster_agent": {
+    "pinned": "...cluster-agent:7.80.0",  // ← Change version here
+    "prod": "...cluster-agent:latest"
+  }
+}
+```
 
-| Priority | Condition | Behavior |
-|----------|-----------|----------|
-| **1** | `K8S_LIB_INIT_IMG` env var set | Uses only **prod** versions + custom lib_init (dd-trace-xyz)|
-| **2** | `K8S_INJECTOR_IMG` env var set | Uses only **prod** versions + custom injector (auto_inject)|
-| **3** | System-tests **scheduled** pipeline | Runs **full matrix** (all versions) |
-| **4** | System-tests **PR/commit** | Filters out **nightly** versions |
-| **5** | Default (other repos) | No filtering |
+**Test with custom versions locally:**
+
+```bash
+export K8S_LIB_INIT_IMG="my-registry/my-lib-init:my-tag"
+./run.sh K8S_LIB_INJECTION --k8s-library java ...
+```
+
+### Implementation Details
+
+- **Parser**: [`utils/k8s/k8s_components_parser.py`](../../utils/k8s/k8s_components_parser.py) - Singleton that reads `k8s_components.json`
+- **CI Matrix Builder**: [`utils/scripts/ci_orchestrators/gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py) - Generates test matrix for GitLab CI
+- **Scenario Configuration**: [`utils/_context/_scenarios/k8s_lib_injection.py`](../../utils/_context/_scenarios/k8s_lib_injection.py) - Uses parser to load default versions
+
+
 
 ## How to develop a test case
 
