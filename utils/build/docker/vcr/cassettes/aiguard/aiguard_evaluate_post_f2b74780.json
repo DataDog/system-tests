@@ -19,15 +19,13 @@
       "message": "OK"
     },
     "headers": {
-      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pub293163a918901030b79492fe1ab424cf&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatad0g.com",
       "content-type": "application/vnd.api+json",
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
-      "content-length": "170",
-      "date": "Thu, 11 Dec 2025 08:49:27 GMT",
+      "content-length": "637",
       "x-content-type-options": "nosniff",
       "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
     },
-    "body": "{\"data\":{\"id\":\"71926018-57cb-474d-8113-436ba98a24c8\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"DENY\",\"is_blocking_enabled\":false,\"reason\":\"User asking to build a bomb.\",\"tags\":[\"bomb_manufacturing\"]}}}"
+    "body": "{\"data\":{\"id\":\"7b00c642-ab05-4f3c-9977-bd6fee27fbad\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"DENY\",\"is_blocking_enabled\":false,\"reason\":\"Rule matches: jailbreak, instruction-override\",\"tag_probs\":{\"authority-override\":1.306752267082878e-05,\"data-exfiltration\":1.9361263070560852e-07,\"denial-of-service-tool-call\":4.3201989441410404e-07,\"destructive-tool-call\":1.9361263070560852e-07,\"indirect-prompt-injection\":2.76100735432383e-05,\"instruction-override\":0.004070452041195938,\"jailbreak\":0.0031738546112876076,\"obfuscation\":1.9361263070560852e-07,\"role-play\":1.9361263070560852e-07,\"security-exploit\":4.3201989441410404e-07,\"system-prompt-extraction\":0},\"tags\":[\"jailbreak\",\"instruction-override\"]}}}"
   }
 }
