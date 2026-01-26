@@ -167,61 +167,70 @@ If you want to build and push your own custom version of the weblog:
     --docker-platform linux/arm64,linux/amd64
 ```
 
-##### Library init image
+##### Component Version Configuration
 
-Library init images are available in the private ECR registry. To find available images, check the `lib_init_spec` section in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
+All K8s component versions (lib-init images, cluster agent, injector, helm charts) are now centrally managed in [`utils/k8s/k8s_components.json`](../../utils/k8s/k8s_components.json).
 
-Common tags:
-* **prod:** Latest production release
-* **dev:** Latest snapshot from main branch
+**Available Component Versions:**
 
-Example images:
+Each component in `k8s_components.json` has multiple versions:
+* **pinned**: Stable, tested version (default for local/manual testing)
+* **prod**: Latest production release
+* **dev**: Development build from main/master branch
+
+**Component Images:**
+
+```json
+{
+  "lib_init": {
+    "java": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+    },
+    "nodejs": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
+    }
+  },
+  "cluster_agent": {
+    "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest"
+  },
+  "injector": {
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
+    "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot"
+  },
+  "helm_chart": {
+    "pinned": "3.156.1",
+    "prod": "3.161.1"
+  },
+  "helm_chart_operator": {
+    "pinned": "2.16.0",
+    "prod": "2.17.0"
+  }
+}
 ```
-235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest
-235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot
+
+**How to check current versions:**
+
+```bash
+# View the full configuration
+cat utils/k8s/k8s_components.json
+
+# Or use the parser to get default versions
+python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print('Cluster Agent:', parser.get_default_component_version('cluster_agent'))
+print('Java Lib-init:', parser.get_default_component_version('lib_init', 'java'))
+print('Injector:', parser.get_default_component_version('injector'))
+print('Helm Chart:', parser.get_default_component_version('helm_chart'))
+"
 ```
 
-##### Datadog Cluster Agent
+**Override component versions:**
 
-Cluster agent images are available in the private ECR registry. To find available images, check the `cluster_agent_spec` section in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
-
-Common tags:
-* **prod:** Production release
-* **nightly_dev:** Development build from main branch
-* **nightly_latest:** Latest nightly build
-
-Example image:
-```
-235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1
-```
-
-##### Injector image
-
-APM injector images are available in the private ECR registry. To find available images, check the `injector_spec` section in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
-
-Common tags:
-* **prod:** Latest production release
-* **dev:** Latest snapshot from main branch
-
-Example images:
-```
-235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest
-235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot
-```
-
-##### Helm chart versions
-
-Datadog Helm chart and Operator Helm chart versions are configurable. To find available versions, check the `helm_chart_spec` and `helm_chart_operator_spec` sections in [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json).
-
-Common versions:
-* **prod:** Production version
-* **nightly_latest:** Latest nightly version
-
-Example configuration:
-```
-K8S_HELM_CHART=3.156.1
-K8S_HELM_CHART_OPERATOR=2.16.0
-```
+You can override any component version using environment variables or command-line parameters. See the [Component Version Matrix Configuration](#component-version-matrix-configuration) section for details.
 
 #### Execute a test scenario
 
