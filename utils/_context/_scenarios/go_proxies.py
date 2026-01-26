@@ -155,7 +155,7 @@ class GoProxiesScenario(DockerScenario):
         self._http_app_container = DummyServerContainer()
 
         self._agent_container.depends_on = [self.proxy_container]
-        self._processor_container.depends_on = [self.proxy_container]
+        self._processor_container.depends_on = [self.proxy_container, self._agent_container]
         self._proxy_runtime_container.depends_on = [self._processor_container, self._http_app_container]
 
         self._required_containers = [

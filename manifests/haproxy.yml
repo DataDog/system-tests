@@ -2,6 +2,7 @@
 ---
 manifest:
   tests/appsec/api_security/test_api_security_rc.py: v2.4.0
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_apisecurity_telemetry.py::Test_API_Security_Telemetry_Metric: missing_feature (weblog does not support set 404 status code and /tag_value endpoint)
   tests/appsec/api_security/test_custom_data_classification.py: v2.4.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature (missing /tag_value endpoint in the weblog)
@@ -28,8 +29,8 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.4.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v2.4.0
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature (the tests is made using raw text and not json, skiped in proxies)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
@@ -53,29 +54,28 @@ manifest:
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature (weblog does not implement /headers endpoint)
   tests/appsec/test_fingerprinting.py: v2.4.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking: bug (APPSEC-000)
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: bug (APPSEC-000)
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking: missing_feature (proxies removes the 'connection' header, thus making fails the header fingerprinting rule)
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: irrelevant (Proxies doesn't support session fingerprinting)
   tests/appsec/test_ip_blocking_full_denylist.py: v2.4.0
   tests/appsec/test_remote_config_rule_changes.py: v2.4.0
   tests/appsec/test_reports.py: v2.4.0
   tests/appsec/test_request_blocking.py: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.4.0
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: bug (APPSEC-000)
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: bug (APPSEC-000)
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: irrelevant (Proxies run with appsec standalone by default)
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: irrelevant (Proxies run with appsec standalone by default)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.4.0
   tests/appsec/test_traces.py: v2.4.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: missing_feature (no endpoint to test user blocking - auto instrum irrelevant)
   tests/appsec/test_versions.py::Test_Events: v2.4.0
   tests/appsec/waf/test_blocking.py: v2.4.0
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-000)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking_security_response_id.py: v2.5.0
   tests/remote_config/test_remote_configuration.py: v2.4.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.4.0
   tests/test_resource_renaming.py: v2.4.0
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: bug (APPSEC-000)
   tests/test_scrubbing.py: v2.4.0
   tests/test_semantic_conventions.py: v2.4.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag: v2.4.0

@@ -34,6 +34,7 @@ static_resources:
                           - key: x-datadog-envoy-integration
                             value: '1'
                         timeout: 0.25s
+                      allow_mode_override: true
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
