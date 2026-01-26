@@ -16,6 +16,14 @@
       {
         "version_id": "JAVA_11",
         "version": "11.0.27-zulu"
+      },
+      {
+        "version_id": "JAVA_26_EA_24_OPEN",
+        "version": "26.ea.24-open"
+      },
+      {
+        "version_id": "JAVA_26_EA_29_OPEN",
+        "version": "26.ea.29-open"
       }
     ],
     "nodejs": [
