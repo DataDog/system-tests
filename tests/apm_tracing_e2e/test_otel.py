@@ -21,7 +21,6 @@ class Test_Otel_Span:
     # - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
     # - duration of one second
     # - span kind of SpanKind - Internal
-    @bug(context.library == "java", reason="APMAPI-912")
     def test_datadog_otel_span(self):
         spans = interfaces.agent.get_spans_list(self.req)
         assert len(spans) >= 2, "Agent did not submit the spans we want!"

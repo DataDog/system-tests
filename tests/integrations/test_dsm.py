@@ -181,7 +181,6 @@ class Test_DsmRabbitmq:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 

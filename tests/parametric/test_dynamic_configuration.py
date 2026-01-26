@@ -262,7 +262,6 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
 @features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(context.library == "java", reason="APMAPI-1225")
     @missing_feature(
         context.library < "nodejs@5.72.0",
         reason="Added new FFE flag capabilities",

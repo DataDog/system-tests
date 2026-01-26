@@ -63,7 +63,6 @@ class Test_Library:
     def setup_receive_request_trace(self):
         self.r = weblog.get("/")
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_receive_request_trace(self):
         """Basic test to verify that libraries sent traces to the agent"""
         interfaces.library.assert_receive_request_root_trace()

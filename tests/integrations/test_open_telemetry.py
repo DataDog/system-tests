@@ -57,7 +57,6 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span, span_format = self.get_span_from_agent(request)
             assert db_operation in interfaces.agent.get_span_resource(span, span_format).lower()
 
-    @missing_feature(library="python_otel", reason="Open telemetry doesn't send this span for python")
     def test_db_connection_string(self):
         """The connection string used to connect to the database."""
         for db_operation, request in self.get_requests():
@@ -65,7 +64,6 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span_meta = interfaces.agent.get_span_meta(span, span_format)
             assert span_meta["db.connection_string"].strip(), f"Test is failing for {db_operation}"
 
-    @missing_feature(library="python_otel", reason="Open Telemetry doesn't send this span for python but it should do")
     @missing_feature(library="nodejs_otel", reason="Open Telemetry doesn't send this span for nodejs but it should do")
     def test_db_operation(self):
         """The name of the operation being executed"""
@@ -122,7 +120,6 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert event["attributes"]["exception.message"].strip()
             assert event["attributes"]["exception.stacktrace"].strip()
 
-    @bug(library="python_otel", reason="OTEL-940")
     @bug(library="nodejs_otel", reason="OTEL-940")
     @bug(library="java_otel", reason="OTEL-2778")
     def test_obfuscate_query(self):
