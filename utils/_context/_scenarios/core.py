@@ -68,6 +68,7 @@ class _ScenarioGroups:
     simple_onboarding_appsec = ScenarioGroup()
     ## Groups of scenarios
     appsec_blocking = ScenarioGroup()
+    appsec_api_security = ScenarioGroup()
     appsec_api_security_rc = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:

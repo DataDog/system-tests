@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky
+from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky, scenario_groups
 from utils._weblog import HttpResponse
 from types import EllipsisType
 
@@ -46,7 +46,7 @@ def equal_value(t1: list | dict | int | EllipsisType, t2: list | dict | int | El
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
@@ -67,7 +67,7 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
@@ -91,7 +91,7 @@ class Test_Schema_Request_Cookies:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
@@ -112,7 +112,7 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
@@ -134,7 +134,7 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
@@ -155,7 +155,7 @@ class Test_Schema_Request_Json_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
@@ -196,7 +196,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
@@ -216,7 +216,7 @@ class Test_Schema_Response_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_Body:
@@ -243,7 +243,7 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Schema_Response_on_Block:
@@ -304,7 +304,7 @@ class Test_Schema_Response_Body_env_var:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @scenarios.appsec_lambda_api_security
 @features.api_security_schemas
 class Test_Scanners:

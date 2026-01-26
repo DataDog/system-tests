@@ -4,7 +4,15 @@ manifest:
   tests/appsec/api_security/test_api_security_rc.py: v1.72.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.0.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.0.0
+  tests/appsec/api_security/test_apisecurity_telemetry.py::Test_API_Security_Telemetry_Metric: missing_feature (weblog does not support set 404 status code and /tag_value endpoint)
   tests/appsec/api_security/test_custom_data_classification.py: v2.4.0
+  tests/appsec/api_security/test_schemas.py: v1.72.0
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters: irrelevant (can only infer the path parameters from the request when using proxies)
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/test_alpha.py: v1.72.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (Proxies doesn't support login events (go sdk))

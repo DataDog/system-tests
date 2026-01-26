@@ -1105,6 +1105,24 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec_blocking, scenario_groups.essentials],
     )
 
+    go_proxies_appsec_api_security = GoProxiesScenario(
+        "GO_PROXIES_APPSEC_API_SECURITY",
+        processor_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+        scenario_groups=[scenario_groups.appsec_api_security],
+    )
+
     go_proxies_appsec_api_security_rc = GoProxiesScenario(
         name="GO_PROXIES_APPSEC_API_SECURITY_RC",
         doc="Scenario to test API Security Remote config",

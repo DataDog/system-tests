@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, rfc, scenarios, weblog, features
+from utils import context, interfaces, rfc, weblog, features, scenario_groups
 
 from tests.appsec.api_security.test_schemas import get_schema
 
@@ -44,7 +44,7 @@ FRAMEWORKS = {
 @rfc(
     "https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA/edit?tab=t.0#heading=h.6shrh2msb59g"
 )
-@scenarios.appsec_api_security
+@scenario_groups.appsec_api_security
 @features.api_security_schemas
 class Test_API_Security_Telemetry_Metric:
     """Test API Security - Telemetry Metric
