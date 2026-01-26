@@ -647,7 +647,7 @@ class Test_Blocking_response_status:
         reason="Happens on a subsequent WAF run",
     )
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /finger_print is not implemented in the weblog",
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
