@@ -356,7 +356,7 @@ class _Scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec_api_security_no_response_body, scenario_groups.appsec],
     )
 
     appsec_api_security_with_sampling = EndToEndScenario(
@@ -1155,6 +1155,22 @@ class _Scenarios:
             are always coming from remote config.
         """,
         scenario_groups=[scenario_groups.appsec_blocking_full_denylist],
+    )
+
+    go_proxies_appsec_api_security_no_response_body = GoProxiesScenario(
+        "GO_PROXIES_APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+        processor_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
+        },
+        doc="""
+        Scenario for API Security feature, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+        scenario_groups=[scenario_groups.appsec_api_security_no_response_body],
     )
 
     ipv6 = IPV6Scenario("IPV6")

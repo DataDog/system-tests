@@ -11,6 +11,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters: irrelevant (can only infer the path parameters from the request when using proxies)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature (The endpoint /tag_value is not implemented in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/test_alpha.py: v1.72.0
