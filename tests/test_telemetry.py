@@ -113,7 +113,6 @@ class Test_Telemetry:
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -352,13 +351,6 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
-    @irrelevant(
-        library="java",
-        reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process).
-        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
-        """,
-    )
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
@@ -448,7 +440,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
-    @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
 
@@ -529,10 +520,6 @@ class Test_Telemetry:
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
-        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
-    )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
@@ -712,14 +699,6 @@ class Test_TelemetryV2:
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
 
-    @irrelevant(
-        library="dotnet",
-        reason="Re-enable when this automatically updates the dd-go files.",
-    )
-    @irrelevant(
-        condition=context.library not in ("python",),
-        reason="This test causes to many friction. It has been replaced by alerts on slack channels",
-    )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 

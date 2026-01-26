@@ -418,10 +418,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name not in ("java", "dotnet", "python"),
-        reason="Not yet implemented",
-    )
-    @missing_feature(
         condition=context.weblog_variant == "spring-boot-3-native",
         reason="Not yet implemented",
     )

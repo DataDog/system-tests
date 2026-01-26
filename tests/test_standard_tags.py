@@ -112,10 +112,6 @@ class Test_StandardTagsUrl:
             ),
         ]
 
-    @missing_feature(
-        context.library in ["golang", "nodejs", "ruby"],
-        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
-    )
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -139,10 +135,6 @@ class Test_StandardTagsUrl:
             "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&application-key=dogkey&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D&ecdsa-1-1%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=%09test&json=%7B%20%22app-key%22%3A%20%22test%22%7D"  # pylint: disable=line-too-long
         )
 
-    @missing_feature(
-        context.library in ["golang", "nodejs", "ruby"],
-        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
-    )
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -268,9 +260,6 @@ class Test_StandardTagsClientIp:
         self._setup_without_attack()
         self._setup_with_attack()
 
-    @bug(
-        context.library < "java@1.11.0", reason="APMRP-360"
-    )  # X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
         meta = self._get_root_span_meta(self.request_with_attack)
@@ -282,9 +271,6 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_vendor(self):
         self._setup_without_attack()
 
-    @bug(
-        context.library < "java@1.11.0", reason="APMRP-360"
-    )  # not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip_vendor(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
         self._test_client_ip(self.FORWARD_HEADERS_VENDOR)
@@ -305,9 +291,6 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_with_appsec_event_and_vendor_headers(self):
         self._setup_with_attack()
 
-    @missing_feature(
-        context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
-    )
     @missing_feature(
         context.library < "golang@1.69.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
     )

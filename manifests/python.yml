@@ -25,6 +25,7 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
+  tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.6.0
   tests/appsec/api_security/test_apisecurity_telemetry.py: 4.3.0-dev0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
@@ -1229,6 +1230,10 @@ manifest:
         "*": incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.3.0.dev
@@ -1314,12 +1319,15 @@ manifest:
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : "missing_feature (\"Issue: Does not drop dm\")"
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: bug (AIT-9945)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature (failure 2.8.0)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
@@ -1377,6 +1385,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v4.0.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: v2.16.0
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: flaky (APMAPI-734)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.8.0
@@ -1654,9 +1663,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: 'irrelevant (cgroup in weblog is 0::/, so this test can''t work)'
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant
@@ -1664,4 +1675,5 @@ manifest:
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v3.15.0+dev36.gb57f15308
   tests/test_telemetry.py::Test_TelemetryV2: v1.17.3
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
+  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes to many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py: missing_feature

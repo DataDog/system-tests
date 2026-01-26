@@ -187,10 +187,6 @@ class TestOpenAiLlmInteractions(BaseOpenaiTest):
             ignore_values=["meta.output.messages"],
         )
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Node.js LLM Observability OpenAI integration does not submit tool definitions",
-    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_chat_completion_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool
@@ -730,10 +726,6 @@ class TestOpenAiResponses(BaseOpenaiTest):
             ignore_values=["meta.output.messages"],
         )
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Node.js LLM Observability OpenAI integration does not submit tool definitions",
-    )
     @pytest.mark.parametrize("stream", [True, False])
     def test_responses_create_tool_call(
         self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi, *, stream: bool

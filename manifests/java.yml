@@ -25,6 +25,7 @@ manifest:
         vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: bug (APMAPI-912)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (Not yet implemented)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
     - weblog_declaration:
         "*": v0.2.0  # real version not known
@@ -2594,6 +2595,7 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
@@ -2666,6 +2668,8 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature (No implemented)
+  tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash: missing_feature (No implemented the endpoint /crashme)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2774,6 +2778,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.13.0
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka: irrelevant (New behavior with cluster id not merged yet.)
   tests/integrations/test_dsm.py::Test_DsmKinesis:
     - weblog_declaration:
         "*": irrelevant
@@ -2873,6 +2878,8 @@ manifest:
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_valid: 'missing_feature (Need to remove b3=b3multi alias)'
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_single_key_propagate_valid: 'missing_feature (Need to remove b3=b3multi alias)'
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_disable_settings_D003: irrelevant (The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_disabled_D007: irrelevant (The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v1.54.0-SNAPSHOT+c2aec92b86
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Implemented from 1.24.0)
@@ -2906,6 +2913,8 @@ manifest:
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
   tests/parametric/test_otel_logs.py: missing_feature
   tests/parametric/test_otel_metrics.py: missing_feature
@@ -3021,6 +3030,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id:
     - declaration: missing_feature (Not implemented)
       component_version: <=1.53.0-SNAPSHOT
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case: irrelevant (temporary use case for python, ruby and nodejs)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v1.27.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.34.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.51.0
@@ -3418,6 +3428,8 @@ manifest:
       component_version: <=1.38.1
     - declaration: flaky (APMAPI-723)
       component_version: '>=1.39.0'
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: 'irrelevant (cgroup in weblog is 0::/, so this test can''t work)'
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": v1.54.0-SNAPSHOT

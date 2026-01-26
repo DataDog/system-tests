@@ -93,7 +93,6 @@ class Test_AppSecEventSpanTags:
         weblog_variant="fastify",
         reason="APPSEC-57432",  # Response headers collection not supported yet
     )
-    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
     @irrelevant(
         context.scenario in (scenarios.go_proxies, scenarios.go_proxies_blocking),
         reason="Irrelevant tag set for golang",

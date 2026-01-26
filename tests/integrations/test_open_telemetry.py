@@ -78,10 +78,6 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             else:
                 assert db_operation.lower() in span_meta["db.operation"].lower(), f"Test is failing for {db_operation}"
 
-    @missing_feature(
-        context.library in ("python_otel", "nodejs_otel"),
-        reason="Open Telemetry doesn't send this span for python. But according to the OTEL specification it would be recommended ",
-    )
     def test_db_sql_table(self):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
         for db_operation, request in self.get_requests(excluded_operations=["procedure"]):

@@ -73,9 +73,6 @@ class _BaseKafka:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
@@ -116,9 +113,6 @@ class _BaseKafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)

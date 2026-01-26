@@ -114,10 +114,6 @@ class _BaseSQS:
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
         )
 
-    @missing_feature(
-        library="java",
-        reason="Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work",
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -238,7 +234,6 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
 
 @scenarios.crossed_tracing_libraries
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-@irrelevant(condition=True, reason="Localstack SQS does not support AWS Xray Header parsing")
 class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
@@ -248,11 +243,6 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy_{unique_id}"
     BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog_{unique_id}"
 
-    @missing_feature(
-        library="nodejs",
-        reason="Expected to fail, Node.js will not create a response span \
-                     propagating context since it cannot extract AWSTracerHeader context that Java injects",
-    )
     def test_consume(self):
         super().test_consume()
 

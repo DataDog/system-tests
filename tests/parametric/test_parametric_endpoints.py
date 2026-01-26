@@ -750,10 +750,6 @@ class Test_Parametric_Otel_Trace_Flush:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Write_Log:
-    @incomplete_test_app(
-        context.library not in ["python", "nodejs"],
-        reason="Logs endpoint is only implemented in python and node.js app",
-    )
     def test_write_log(self, test_library: APMLibrary):
         """Validates that /log/write creates a log message with the specified parameters.
 

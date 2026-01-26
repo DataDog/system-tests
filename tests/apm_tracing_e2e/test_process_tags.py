@@ -5,10 +5,6 @@ from utils.interfaces._library.miscs import validate_process_tags
 
 @scenarios.tracing_config_nondefault
 @features.process_tags
-@missing_feature(
-    condition=context.library.name not in ("java", "golang", "dotnet", "python"),
-    reason="Not yet implemented",
-)
 class Test_Process_Tags:
     """Test the presence of process tags in various payloads."""
 

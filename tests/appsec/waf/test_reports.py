@@ -157,7 +157,6 @@ class Test_Monitoring:
     def setup_waf_monitoring_optional(self):
         self.r_optional = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @irrelevant(condition=context.library not in ["golang", "dotnet", "nodejs"], reason="optional tags")
     def test_waf_monitoring_optional(self):
         """WAF monitoring span tags and metrics may send extra optional tags"""
 

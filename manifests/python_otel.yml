@@ -1,7 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/test_open_telemetry.py::Test_MsSql: missing_feature (may be OTEL-2898)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_connection_string: missing_feature (Open telemetry doesn't send this span for python)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_operation: missing_feature (Open Telemetry doesn't send this span for python but it should do)
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_sql_table: missing_feature (Open Telemetry doesn't send this span for python. But according to the OTEL specification it would be recommended )
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-940)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: 'irrelevant (cgroup in weblog is 0::/, so this test can''t work)'

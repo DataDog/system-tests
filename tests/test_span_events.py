@@ -30,7 +30,6 @@ class Test_SpanEvents_WithAgentSupport:
     def setup_v05_default_format(self):
         self.r = weblog.get("/add_event")
 
-    @irrelevant(context.library in ["ruby", "nodejs", "golang"], reason="v0.5 is not the default format")
     def test_v05_default_format(self):
         """For traces that default to the v0.5 format, send events as the span tag `events`
         given this format does not support native serialization.

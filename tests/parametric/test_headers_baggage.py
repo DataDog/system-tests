@@ -87,10 +87,6 @@ class Test_Headers_Baggage:
         assert "baggage" in headers
         assert headers["baggage"] == "foo=bar"
 
-    @irrelevant(
-        context.library in ("cpp", "goland", "java", "ruby", "php"),
-        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
-    )
     @disable_baggage()
     def test_baggage_disable_settings_D003(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
@@ -161,10 +157,6 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
-    @irrelevant(
-        context.library in ("cpp", "goland", "java", "ruby", "php"),
-        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
-    )
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library: APMLibrary) -> None:
         """Ensure that baggage headers are not injected when baggage is disabled."""

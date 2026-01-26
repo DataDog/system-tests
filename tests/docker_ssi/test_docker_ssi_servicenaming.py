@@ -25,7 +25,6 @@ class TestDockerServiceNaming:
 
         self.r = TestDockerServiceNaming._r
 
-    @missing_feature(condition=context.library in ("ruby",), reason="No implemented")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_service_name(self):
         logger.info("Testing Docker SSI service name")

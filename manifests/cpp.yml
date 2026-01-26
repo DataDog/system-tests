@@ -9,6 +9,7 @@
 # use `>1.0.0` to indicate that requirement.
 # NOTE: only parametric tests are run for cpp, there is no need to mark other tests as "missing_feature" here.
 manifest:
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -25,6 +26,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: ">1.0.0"
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: missing_feature
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_extended_configs: missing_feature (extended configs are not supported)
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention:
@@ -37,6 +39,7 @@ manifest:
     - declaration: bug (APMAPI-866)
       component_version: <=1.0.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (APMAPI-1592)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: missing_feature (Tracer doesn't support automatic logs injection)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env:
     - declaration: bug (APMAPI-863)
       component_version: <=1.0.0
@@ -49,6 +52,7 @@ manifest:
       component_version: <=1.0.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: irrelevant (The CPP tracer doesn't support http header tags)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)
@@ -64,6 +68,8 @@ manifest:
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_single_key_propagate_valid: missing_feature (format of DD_TRACE_PROPAGATION_STYLE_EXTRACT not supported)
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi: ">1.0.0"
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_disable_settings_D003: irrelevant (The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_disabled_D007: irrelevant (The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: missing_feature
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: ">1.0.0"
   tests/parametric/test_headers_none.py::Test_Headers_None: ">1.0.0"
@@ -115,6 +121,8 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: missing_feature
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_logs.py: missing_feature
   tests/parametric/test_otel_metrics.py: missing_feature
   tests/parametric/test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
@@ -185,12 +193,15 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case: missing_feature (extended configs are not supported)
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case: missing_feature (extended configs are not supported)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: ">1.0.0"
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity: bug (APMAPI-908)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_existence: missing_feature (No metric interface)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_matching: missing_feature (No metric interface)
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes: missing_feature (metrics cannot be set manually)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature
   tests/parametric/test_tracer_flare.py: missing_feature
@@ -203,4 +214,5 @@ manifest:
   tests/test_library_conf.py::Test_ExtractBehavior_Restart::test_single_tracecontext: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First::test_multiple_tracecontexts: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First::test_single_tracecontext: missing_feature (baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: 'irrelevant (cgroup in weblog is 0::/, so this test can''t work)'
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_required_headers: missing_feature

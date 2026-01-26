@@ -47,9 +47,6 @@ class Test_Headers_Tracecontext:
             make_single_request_and_get_tracecontext(test_library, [])
 
     @temporary_enable_optin_tracecontext_single_key()
-    @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config"
-    )
     def test_single_key_traceparent_included_tracestate_missing(self, test_library: APMLibrary) -> None:
         """Harness sends a request with traceparent but without tracestate
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
@@ -76,10 +73,6 @@ class Test_Headers_Tracecontext:
         assert traceparent.parent_id != "1234567890123456"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(
-        context.library == "php",
-        reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     @missing_feature(
         context.library == "python",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -532,10 +525,6 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     @missing_feature(
-        context.library == "php",
-        reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
         context.library == "golang",
         reason="golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
@@ -585,10 +574,6 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     @missing_feature(
         context.library == "php",
         reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -991,7 +976,6 @@ class Test_Headers_Tracecontext:
         assert tracestate2[key_with_vendor] == value
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation")
     def test_tracestate_ows_handling(self, test_library: APMLibrary) -> None:
         """Harness sends a request with a valid tracestate header with OWS
         expects the tracestate to be inherited

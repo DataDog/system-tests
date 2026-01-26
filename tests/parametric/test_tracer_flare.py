@@ -206,9 +206,6 @@ class TestTracerFlareV1:
         _clear_log_level(test_agent, log_cfg_id)
         assert_valid_zip(tracer_flare["flare_file"])
 
-    @missing_feature(
-        context.library < "java@1.38.0", reason="tracer log in flare has been implemented at version 1.38.0"
-    )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_tracer_flare_content(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {})
@@ -217,10 +214,6 @@ class TestTracerFlareV1:
             assert_java_log_file(tracer_flare["flare_file"])
             assert_expected_files(tracer_flare["flare_file"], files)
 
-    @missing_feature(
-        context.library < "java@v1.54.0-SNAPSHOT",
-        reason="before this version, tracer flare required tracing to be enabled ",
-    )
     @parametrize("library_env", [{**PROFILING_NOTRACING_ENVVARS}])
     def test_tracer_profiling_notracing_flare_content(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {})
