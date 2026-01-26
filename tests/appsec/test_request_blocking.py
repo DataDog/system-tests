@@ -5,13 +5,12 @@
 from utils import features
 from utils import interfaces
 from utils import remote_config
-from utils import scenarios
+from utils import scenario_groups
 from utils import weblog
 
 
 @features.appsec_request_blocking
-@scenarios.appsec_blocking_full_denylist
-# TODO: @scenario_groups.go_proxies
+@scenario_groups.appsec_blocking_full_denylist
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 

@@ -46,17 +46,18 @@ manifest:
   tests/appsec/test_fingerprinting.py: v1.72.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking: bug (APPSEC-000)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: bug (APPSEC-000)
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v1.72.0
+  tests/appsec/test_ip_blocking_full_denylist.py: v1.72.0
   tests/appsec/test_remote_config_rule_changes.py: v1.72.0
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v2.1.0
   tests/appsec/test_reports.py: v1.72.0
-  tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v1.72.0
+  tests/appsec/test_request_blocking.py: v1.72.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.1.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: bug (APPSEC-000)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: bug (APPSEC-000)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0
   tests/appsec/test_traces.py: v1.72.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
+  tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: missing_feature (no endpoint to test user blocking - auto instrum irrelevant)
   tests/appsec/test_versions.py::Test_Events: v1.72.0
   tests/appsec/waf/test_blocking.py: v1.72.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-000)

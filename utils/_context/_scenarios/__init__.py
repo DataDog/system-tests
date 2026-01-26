@@ -1142,6 +1142,21 @@ class _Scenarios:
         ],
     )
 
+    go_proxies_appsec_blocking_full_denylist = GoProxiesScenario(
+        "GO_PROXIES_APPSEC_BLOCKING_FULL_DENYLIST",
+        rc_api_enabled=True,
+        processor_env={"DD_APPSEC_RULES": None},
+        doc="""
+            The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+            In this scenario, we use remote config. By the spec, when remote config is available, rules file
+            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
+            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
+            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
+            are always coming from remote config.
+        """,
+        scenario_groups=[scenario_groups.appsec_blocking_full_denylist],
+    )
+
     ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics_enabled = EndToEndScenario(
