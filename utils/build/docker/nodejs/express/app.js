@@ -53,13 +53,19 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json())
+app.use(require('body-parser').json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf
+  }
+}))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
 iast.initMiddlewares(app)
 
 require('./auth')(app, tracer)
+
+require('./stripe')(app)
 
 app.get('/', (req, res) => {
   res.send('Hello\n')

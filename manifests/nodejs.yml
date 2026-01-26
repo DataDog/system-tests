@@ -921,6 +921,10 @@ manifest:
         "*": *ref_5_29_0
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe:
+    - weblog_declaration:
+        express4: missing_feature
+        "*": irrelevant (one weblog is enough coverage)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": *ref_5_39_0
