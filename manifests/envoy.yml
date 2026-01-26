@@ -3,9 +3,12 @@
 manifest:
   tests/appsec/api_security/test_api_security_rc.py: v1.72.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.0.0
-  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.0.0
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_apisecurity_telemetry.py::Test_API_Security_Telemetry_Metric: missing_feature (weblog does not support set 404 status code and /tag_value endpoint)
   tests/appsec/api_security/test_custom_data_classification.py: v2.4.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: missing_feature (missing /tag_value endpoint in the weblog)
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_schemas.py: v1.72.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: missing_feature (missing /tag_value endpoint in the weblog)
@@ -16,6 +19,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/test_alpha.py: v1.72.0
   tests/appsec/test_asm_standalone.py: v1.73.0
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature (weblog does not implement upstream request)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: irrelevant (Proxies doesn't support login events (go sdk))
@@ -82,4 +86,3 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
