@@ -7,7 +7,11 @@ cd /binaries
 export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
 PYTHON_VERSION=$(python --version | sed -E 's/Python ([0-9]+)\.([0-9]+)\.[0-9]+/cp\1\2/')
 
-if [ "$(ls *.whl | wc -l)" = "1" ]; then
+if [ $(ls python-load-from-local | wc -l) = 1 ]; then
+    echo "Using local dd-trace-py set in PYTHONPATH"
+    echo "Installing remaining dependencies from the official ddtrace package"
+    pip install ddtrace
+elif [ "$(ls *.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl))
     echo "Install ddtrace from ${path}"
     pip install "ddtrace @ file://${path}"

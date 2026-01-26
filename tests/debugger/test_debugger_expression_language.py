@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import re
 import json
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features
 
 
 @features.debugger_expression_language
@@ -130,7 +130,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
-    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_contextual_variables(self):
         self._assert(expected_response=200)
 
@@ -152,7 +151,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/exception")
 
-    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_access_exception(self):
         self._assert(expected_response=500)
 
@@ -314,8 +312,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
         )
 
-    @bug(library="dotnet", reason="DEBUG-2530")
-    @bug(library="nodejs", weblog_variant="express4-typescript", reason="DEBUG-3715")
     def test_expression_language_instance_of(self):
         self._assert(expected_response=200)
 
@@ -389,7 +385,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
         )
 
-    @bug(context.library == "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
         self._assert(expected_response=200)
 
@@ -521,7 +516,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
 
-    @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
         self._assert(expected_response=200)
 
@@ -770,9 +764,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
-    @bug(library="dotnet", reason="DEBUG-2602")
-    @missing_feature(library="python", reason="DEBUG-3240", force_skip=True)
-    @missing_feature(context.library <= "ruby@2.22.0", reason="Hash length not implemented")
     def test_expression_language_hash_operations(self):
         self._assert(expected_response=200)
 
@@ -905,7 +896,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/null")
 
-    @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
         self._assert(expected_response=200)
 
@@ -924,7 +914,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/null?intValue=5&strValue=haha&boolValue=true")
 
-    @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
         self._assert(expected_response=200)
 

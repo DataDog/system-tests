@@ -1,0 +1,37 @@
+
+Ö
+(utils/proxy/_decoders/remoteconfig.protodatadog.config"¬
+ConfigMetas-
+roots (2.datadog.config.TopMetaRroots5
+	timestamp (2.datadog.config.TopMetaR	timestamp3
+snapshot (2.datadog.config.TopMetaRsnapshot7
+
+topTargets (2.datadog.config.TopMetaR
+topTargetsI
+delegatedTargets (2.datadog.config.DelegatedMetaRdelegatedTargets"Ý
+DirectorMetas-
+roots (2.datadog.config.TopMetaRroots5
+	timestamp (2.datadog.config.TopMetaR	timestamp3
+snapshot (2.datadog.config.TopMetaRsnapshot1
+targets (2.datadog.config.TopMetaRtargets"O
+DelegatedMeta
+version (Rversion
+role (	Rrole
+raw (Rraw"5
+TopMeta
+version (Rversion
+raw (Rraw",
+File
+path (	Rpath
+raw (Rraw"Ö
+LatestConfigsResponse>
+config_metas (2.datadog.config.ConfigMetasRconfigMetasD
+director_metas (2.datadog.config.DirectorMetasRdirectorMetas7
+target_files (2.datadog.config.FileRtargetFiles"%
+OrgDataResponse
+uuid (	Ruuid"M
+OrgStatusResponse
+enabled (Renabled
+
+authorized (R
+authorizedbproto3

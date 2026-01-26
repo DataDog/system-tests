@@ -24,8 +24,6 @@ class Test_Partial_Flushing:
     @missing_feature(
         context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
     )
-    @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
-    @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
     def test_partial_flushing_one_span_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test assumes partial flushing is enabled by default.

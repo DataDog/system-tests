@@ -145,7 +145,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 if event and event["request_type"] in ("app-started", "app-client-configuration-change"):
                     # Sort configurations by seq_id so the latest configuration is the last one in the list
                     config_list = event["payload"].get("configuration", [])
-                    config_list.sort(key=lambda x: x.get("seq_id", 0))
+                    config_list.sort(key=lambda x: x.get("seq_id") or 0)
                     for config in config_list:
                         configurations[config["name"]] = config
         return configurations

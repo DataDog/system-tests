@@ -1,10 +1,13 @@
 LINUX_AMD64 = "linux/amd64"
 LINUX_ARM64 = "linux/arm64"
 
-try:
-    from utils.docker_ssi.docker_ssi_model import RuntimeInstallableVersion
-except ImportError:
-    from docker_ssi_model import RuntimeInstallableVersion
+
+class RuntimeInstallableVersion:
+    """Encapsulates information of the version of the language that can be installed automatically"""
+
+    def __init__(self, version_id: str, version: str) -> None:
+        self.version_id = version_id
+        self.version = version
 
 
 class JavaRuntimeInstallableVersions:

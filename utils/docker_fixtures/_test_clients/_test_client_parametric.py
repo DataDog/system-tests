@@ -1,9 +1,10 @@
 from collections.abc import Generator, Iterable
 import contextlib
+from dataclasses import asdict
 from http import HTTPStatus
 import time
 from types import TracebackType
-from typing import TypedDict
+from typing import TypedDict, cast
 import urllib.parse
 
 from _pytest.outcomes import Failed
@@ -15,6 +16,12 @@ import pytest
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.spec.llm_observability import (
+    SpanRequest,
+    LlmObsAnnotationContextRequest,
+    DatasetCreateRequest,
+    DatasetResponse,
+)
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
@@ -42,14 +49,20 @@ class ParametricTestClientFactory(TestClientFactory):
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
 
-        env = {
-            "DD_TRACE_DEBUG": "true",
-            "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
-            "DD_AGENT_HOST": test_agent.container_name,
-            "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
-            "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
-            "DD_TRACE_OTEL_ENABLED": "true",
-        }
+        # Start with container_env (includes PYTHONPATH for local dd-trace-py)
+        env = dict(self.container_env)
+
+        # Add parametric-specific environment variables
+        env.update(
+            {
+                "DD_TRACE_DEBUG": "true",
+                "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
+                "DD_AGENT_HOST": test_agent.container_name,
+                "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
+                "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
+                "DD_TRACE_OTEL_ENABLED": "true",
+            }
+        )
 
         for k, v in library_env.items():
             # Don't set env vars with a value of None
@@ -503,7 +516,13 @@ class ParametricTestClientApi:
         return HTTPStatus(r.status_code).is_success
 
     def write_log(
-        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+        self,
+        message: str,
+        level: LogLevel,
+        logger_name: str,
+        *,
+        create_logger: bool = True,
+        span_id: int | None = None,
     ) -> bool:
         """Generate a log message with the specified parameters.
 
@@ -511,20 +530,20 @@ class ParametricTestClientApi:
             message: The log message to generate
             level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             logger_name: The name of the logger to use
-            logger_type: The type of logger (0=default for the language, 1=logging, 2=loguru, 3=struct_log)
-            span_id: The ID of the span that should be active when the log is generated
+            create_logger: Whether to create a new logger if it doesn't exist
+            span_id: Optional ID of the span that should be active when the log is generated
 
         Returns:
             bool: True if the log was generated successfully, False otherwise
 
         """
         resp = self._session.post(
-            self._url("/log/write"),
+            self._url("/otel/logger/write"),
             json={
                 "message": message,
                 "level": level.value,
                 "logger_name": logger_name,
-                "logger_type": logger_type,
+                "create_logger": create_logger,
                 "span_id": span_id,
             },
         )
@@ -548,6 +567,39 @@ class ParametricTestClientApi:
             return False, f"HTTP error: {resp.status_code}"
         except Exception as e:
             return False, f"Error: {e!s}"
+
+    def create_logger(
+        self,
+        name: str,
+        level: LogLevel,
+        version: str | None = None,
+        schema_url: str | None = None,
+        attributes: dict | None = None,
+    ) -> bool:
+        """Create an OpenTelemetry logger with the specified name and optional parameters.
+
+        Args:
+            name: The name of the logger to create
+            level: Log level for the logger
+            version: Optional version string for the logger scope
+            schema_url: Optional schema URL string for the logger scope
+            attributes: Optional scope attributes dictionary (not supported in all SDKs)
+
+        Returns:
+            bool: True if the logger was created successfully, False otherwise
+
+        """
+        resp = self._session.post(
+            self._url("/otel/logger/create"),
+            json={
+                "name": name,
+                "level": level.value,
+                "version": version,
+                "schema_url": schema_url,
+                "attributes": attributes,
+            },
+        )
+        return HTTPStatus(resp.status_code).is_success
 
     @contextlib.contextmanager
     def otel_start_span(
@@ -889,6 +941,46 @@ class ParametricTestClientApi:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
 
+    def llmobs_trace(
+        self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest, *, raise_on_error: bool = True
+    ) -> dict | str | None:
+        """Send a trace structure request to the LLM Observability endpoint.
+
+        Returns:
+        - `dict`: successful response (this dict represents a possible exported simple llm observability span context)
+        - `str`: the response string text for an error response where there is no json response. this can happen when
+            the llm observability sdk purposefully raises or throws an error, but we want to assert that it does and set
+            that it does and set `raise_on_error=False`
+        - `None`: if the response is not ok and we want the error to fail
+            the test (unexpected error, `raise_on_error=True`)
+
+        """
+        resp = self._session.post(
+            self._url("/llm_observability/trace"), json={"trace_structure_request": asdict(trace_structure_request)}
+        )
+        if raise_on_error:
+            resp.raise_for_status()
+
+        return cast("dict", resp.json()) if resp.ok else resp.text
+
+    def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/create"),
+            json=dataset_create_request,
+        )
+        resp.raise_for_status()
+
+        return cast("DatasetResponse", resp.json())
+
+    def llmobs_dataset_delete(self, dataset_id: str) -> dict:
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/delete"),
+            json={"dataset_id": dataset_id},
+        )
+        resp.raise_for_status()
+
+        return resp.json()
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -985,6 +1077,16 @@ class APMLibrary:
     def otel_logs_flush(self, timeout_sec: int = 3) -> tuple[bool, str]:
         return self._client.otel_logs_flush(timeout_sec)
 
+    def create_logger(
+        self,
+        name: str,
+        level: LogLevel,
+        version: str | None = None,
+        schema_url: str | None = None,
+        attributes: dict | None = None,
+    ) -> bool:
+        return self._client.create_logger(name, level, version, schema_url, attributes)
+
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
@@ -1071,9 +1173,15 @@ class APMLibrary:
         return self._client.is_alive()
 
     def write_log(
-        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+        self,
+        message: str,
+        level: LogLevel,
+        logger_name: str,
+        *,
+        create_logger: bool = False,
+        span_id: int | None = None,
     ) -> bool:
-        return self._client.write_log(message, level, logger_name, logger_type, span_id)
+        return self._client.write_log(message, level, logger_name, create_logger=create_logger, span_id=span_id)
 
     def ffe_start(self) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
@@ -1096,6 +1204,17 @@ class APMLibrary:
             targeting_key=targeting_key,
             attributes=attributes,
         )
+
+    def llmobs_trace(
+        self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest, *, raise_on_error: bool = True
+    ) -> dict | str | None:
+        return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
+
+    def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
+        return self._client.llmobs_dataset_create(dataset_create_request)
+
+    def llmobs_dataset_delete(self, dataset_id: str) -> dict | str | None:
+        return self._client.llmobs_dataset_delete(dataset_id=dataset_id)
 
     @property
     def container(self) -> Container:

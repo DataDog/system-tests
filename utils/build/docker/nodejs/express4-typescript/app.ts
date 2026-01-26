@@ -3,7 +3,7 @@
 import { Request, Response } from "express";
 import http from 'http';
 
-const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
+const tracer = require('dd-trace').init();
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -365,11 +365,11 @@ app.get('/flush', (req: Request, res: Response) => {
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err))())
   }
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
   }
 
   Promise.all(promises).then(() => {

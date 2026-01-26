@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+// Cherry-picked from https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/remoteconfig/remoteconfig.proto
+// Contains messages needed for mocking the RC backend in system tests.
+// If you modify this file, please run:
+//   > docker run --rm -v "$(pwd):/work" -w /work golang:1.24.5 /work/utils/scripts/update_protobuf.sh
+
+package datadog.config;
+
+// Backend TUF metadata structures
+
+message ConfigMetas {
+  repeated TopMeta roots = 1;
+  TopMeta timestamp = 2;
+  TopMeta snapshot = 3;
+  TopMeta topTargets = 4;
+  repeated DelegatedMeta delegatedTargets = 5;
+}
+
+message DirectorMetas {
+  repeated TopMeta roots = 1;
+  TopMeta timestamp = 2;
+  TopMeta snapshot = 3;
+  TopMeta targets = 4;
+}
+
+message DelegatedMeta {
+  uint64 version = 1;
+  string role = 2;
+  bytes raw = 3;
+}
+
+message TopMeta {
+  uint64 version = 1;
+  bytes raw = 2;
+}
+
+message File {
+  string path = 1;
+  bytes raw = 2;
+}
+
+// Backend response sent to agent polling /api/v0.1/configurations
+
+message LatestConfigsResponse {
+  ConfigMetas config_metas = 1;
+  DirectorMetas director_metas = 2;
+  repeated File target_files = 3;
+}
+
+// Org data responses
+
+message OrgDataResponse {
+  string uuid = 1;
+}
+
+message OrgStatusResponse {
+  bool enabled = 1;
+  bool authorized = 2;
+}

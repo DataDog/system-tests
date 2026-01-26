@@ -12,7 +12,7 @@ from urllib.parse import parse_qs
 from typing import TypedDict, Literal, Any
 
 from utils import interfaces, remote_config, weblog, context, logger
-from utils.dd_constants import RemoteConfigApplyState as ApplyState
+from utils.dd_constants import RemoteConfigApplyState as ApplyState, TraceAgentPayloadFormat
 
 # Agent paths
 _CONFIG_PATH = "/v0.7/config"
@@ -100,8 +100,8 @@ class BaseDebuggerTest:
 
     probe_diagnostics: ProbeDiagnosticsCollection = {}
     probe_snapshots: dict[str, list[dict[str, Any]]] = {}
-    probe_spans: dict[str, list[dict[str, Any]]] = {}
-    all_spans: list[dict[str, Any]] = []
+    probe_spans: dict[str, list[tuple[dict[str, Any], TraceAgentPayloadFormat]]] = {}
+    all_spans: list[tuple[dict[str, Any], TraceAgentPayloadFormat]] = []
     symbols: list[dict[str, Any]] = []
 
     start_time: int | None = None
@@ -110,11 +110,12 @@ class BaseDebuggerTest:
     prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
 
-    setup_failures: list = []
+    setup_failures: list
 
     use_debugger_endpoint: bool = False
 
     def initialize_weblog_remote_config(self) -> None:
+        self.setup_failures = []
         if self.get_tracer()["language"] in ["ruby"]:
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
@@ -412,26 +413,17 @@ class BaseDebuggerTest:
                 + self._error_message
                 + "'"
             )
-            content = data["request"]["content"]
-
-            if content:
-                for payload in content["tracerPayloads"]:
-                    for chunk in payload["chunks"]:
-                        for span in chunk["spans"]:
-                            meta = span.get("meta", {})
-
-                            if "_dd.debug.error.no_capture_reason" in meta:
-                                error_msg = meta.get("error.msg", "").lower()
-
-                                logger.debug(
-                                    f"Found span with _dd.debug.error.no_capture_reason: {meta['_dd.debug.error.no_capture_reason']}, error.msg: {error_msg}"
-                                )
-
-                                if self._error_message == error_msg:
-                                    logger.debug(f"Error message '{self._error_message}' matches span error")
-
-                                    self._no_capture_reason_span_found = True
-                                    return True
+            spans = interfaces.agent.get_spans_list()
+            for span, span_format in spans:
+                meta = interfaces.agent.get_span_meta(span, span_format)
+                if "_dd.debug.error.no_capture_reason" in meta:
+                    error_msg = meta.get("error.msg", "").lower()
+                    if self._error_message == error_msg:
+                        logger.debug(
+                            f"Found span with _dd.debug.error.no_capture_reason: {meta['_dd.debug.error.no_capture_reason']}, error.msg: {error_msg}"
+                        )
+                        self._no_capture_reason_span_found = True
+                        return True
 
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
@@ -616,8 +608,7 @@ class BaseDebuggerTest:
 
     def _collect_spans(self):
         def _get_spans_hash():
-            agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
-            span_hash: dict[str, list[dict]] = {}
+            span_hash: dict[str, list[tuple[dict, TraceAgentPayloadFormat]]] = {}
 
             span_decoration_line_key = None
             if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
@@ -625,70 +616,69 @@ class BaseDebuggerTest:
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
 
-            for request in agent_logs_endpoint_requests:
-                content = request["request"]["content"]
-                if content:
-                    for payload in content["tracerPayloads"]:
-                        for chunk in payload["chunks"]:
-                            for span in chunk["spans"]:
-                                self.all_spans.append(span)
+            spans_list = interfaces.agent.get_spans_list()
+            for span, span_format in spans_list:
+                self.all_spans.append((span, span_format))
 
-                                is_span_decoration_method = span["name"] == "dd.dynamic.span"
-                                if is_span_decoration_method:
-                                    probe_id = span["meta"]["debugger.probeid"]
-                                    if probe_id not in span_hash:
-                                        span_hash[probe_id] = []
-                                    span_hash[probe_id].append(span)
-                                    continue
+                span_name = interfaces.agent.get_span_name(span, span_format)
+                meta = interfaces.agent.get_span_meta(span, span_format)
 
-                                is_span_decoration_line = span_decoration_line_key in span["meta"]
-                                if is_span_decoration_line:
-                                    probe_id = span["meta"][span_decoration_line_key]
-                                    if probe_id not in span_hash:
-                                        span_hash[probe_id] = []
-                                    span_hash[probe_id].append(span)
-                                    continue
+                is_span_decoration_method = span_name == "dd.dynamic.span"
+                if is_span_decoration_method:
+                    probe_id = meta.get("debugger.probeid")
+                    if probe_id:
+                        if probe_id not in span_hash:
+                            span_hash[probe_id] = []
+                        span_hash[probe_id].append((span, span_format))
+                    continue
 
-                                has_exception_id = "_dd.debug.error.exception_id" in span["meta"]
-                                if has_exception_id:
-                                    exception_id = span["meta"]["_dd.debug.error.exception_id"]
-                                    if exception_id not in span_hash:
-                                        span_hash[exception_id] = []
-                                    span_hash[exception_id].append(span)
-                                    continue
+                is_span_decoration_line = span_decoration_line_key in meta
+                if is_span_decoration_line:
+                    probe_id = meta[span_decoration_line_key]
+                    if probe_id not in span_hash:
+                        span_hash[probe_id] = []
+                    span_hash[probe_id].append((span, span_format))
+                    continue
 
-                                has_exception_capture_id = "_dd.debug.error.exception_capture_id" in span["meta"]
-                                if has_exception_capture_id:
-                                    if self.get_tracer()["language"] == "python":
-                                        has_stack_trace = any(
-                                            key.startswith("_dd.debug.error.") and key.endswith(".file")
-                                            for key in span["meta"]
-                                        )
+                has_exception_id = "_dd.debug.error.exception_id" in meta
+                if has_exception_id:
+                    exception_id = meta["_dd.debug.error.exception_id"]
+                    if exception_id not in span_hash:
+                        span_hash[exception_id] = []
+                    span_hash[exception_id].append((span, span_format))
+                    continue
 
-                                        if has_stack_trace:
-                                            for key in span["meta"]:
-                                                if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
-                                                    snapshot_id = span["meta"][key]
-                                                    if snapshot_id not in span_hash:
-                                                        span_hash[snapshot_id] = []
-                                                    span_hash[snapshot_id].append(span)
-                                            continue
-                                    else:
-                                        capture_id = span["meta"]["_dd.debug.error.exception_capture_id"]
-                                        if capture_id not in span_hash:
-                                            span_hash[capture_id] = []
-                                        span_hash[capture_id].append(span)
-                                    continue
+                has_exception_capture_id = "_dd.debug.error.exception_capture_id" in meta
+                if has_exception_capture_id:
+                    if self.get_tracer()["language"] == "python":
+                        has_stack_trace = any(
+                            key.startswith("_dd.debug.error.") and key.endswith(".file") for key in meta
+                        )
 
-                                has_no_capture_reason = "_dd.debug.error.no_capture_reason" in span["meta"]
-                                if has_no_capture_reason:
-                                    error_msg = span["meta"].get("error.msg", "")
-                                    if error_msg not in span_hash:
-                                        span_hash[error_msg] = []
-                                    span_hash[error_msg].append(span)
-                                    continue
+                        if has_stack_trace:
+                            for key in meta:
+                                if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
+                                    snapshot_id = meta[key]
+                                    if snapshot_id not in span_hash:
+                                        span_hash[snapshot_id] = []
+                                    span_hash[snapshot_id].append((span, span_format))
+                            continue
+                    else:
+                        capture_id = meta["_dd.debug.error.exception_capture_id"]
+                        if capture_id not in span_hash:
+                            span_hash[capture_id] = []
+                        span_hash[capture_id].append((span, span_format))
+                    continue
 
-                                # For Python, we need to look for spans with stack trace information
+                has_no_capture_reason = "_dd.debug.error.no_capture_reason" in meta
+                if has_no_capture_reason:
+                    error_msg = meta.get("error.msg", "")
+                    if error_msg not in span_hash:
+                        span_hash[error_msg] = []
+                    span_hash[error_msg].append((span, span_format))
+                    continue
+
+                # For Python, we need to look for spans with stack trace information
 
             return span_hash
 

@@ -84,6 +84,13 @@ class ParametricScenario(DockerFixturesScenario):
             "python": {"./utils/build/docker/python/parametric/apm_test_client": "/app/apm_test_client"},
         }
 
+        env = {}
+
+        if library == "python":
+            python_env, python_volumes = self.get_python_env_and_volumes()
+            env.update(python_env)
+            volumes["python"].update(python_volumes)
+
         # get tracer version info building and executing the ddtracer-version.docker file
         self._test_client_factory = ParametricTestClientFactory(
             library=library,
@@ -91,7 +98,7 @@ class ParametricScenario(DockerFixturesScenario):
             tag=f"{library}-test-client",
             container_name=f"{library}-test-client",
             container_volumes=volumes.get(library, {}),
-            container_env={},
+            container_env=env,
         )
 
         self._test_client_factory.configure(self.host_log_folder)
@@ -112,6 +119,7 @@ class ParametricScenario(DockerFixturesScenario):
                 remove=True,
                 command=["./system_tests_library_version.sh"],
                 volumes=compute_volumes(self._test_client_factory.container_volumes),
+                environment=self._test_client_factory.container_env,
             )
         else:
             output = get_docker_client().containers.run(

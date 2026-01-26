@@ -4,7 +4,6 @@ from pathlib import Path
 import re
 import requests
 import zipfile
-from tqdm import tqdm
 from pygtrie import StringTrie
 import shutil
 
@@ -48,14 +47,22 @@ def pull_artifact(url: str, token: str, data_dir: Path) -> None:
         r.raise_for_status()
         total_size = int(r.headers.get("content-length", 0))
 
-        with (
-            open("data.zip", "wb") as f,
-            tqdm(total=total_size, unit="B", unit_scale=True, desc="Downloading artifact") as pbar,
-        ):
+        print("Downloading artifact...")
+        downloaded = 0
+        last_percent_reported = -10
+
+        with open("data.zip", "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
-                    pbar.update(len(chunk))
+                    downloaded += len(chunk)
+                    if total_size > 0:
+                        percent = (downloaded * 100) // total_size
+                        if percent >= last_percent_reported + 10:
+                            last_percent_reported = (percent // 10) * 10
+                            print(f"  {last_percent_reported}% downloaded ({downloaded // 1024 // 1024} MB)")
+
+        print("Download complete.")
 
     # Extract the downloaded zip file
     shutil.rmtree(data_dir)
@@ -88,7 +95,7 @@ def parse_artifact_data(
     weblogs: dict[str, set[str]] = {}
 
     for directory in data_dir.iterdir():
-        if "_dev_" in directory.name or "_parametric_" in directory.name:
+        if "_dev_" in directory.name in directory.name:
             continue
 
         for scenario_dir in directory.iterdir():
@@ -130,21 +137,27 @@ def parse_artifact_data(
                 if outcome == "xpassed" and excluded_owners_set and test_owners & excluded_owners_set:
                     outcome = "xfailed"
 
+                nodeid = test["nodeid"].split("[")[0]
                 if outcome == "xpassed":
-                    test_data[context].xpass_nodes.append(test["nodeid"])
-                nodeid = test["nodeid"].replace("::", "/") + "/"
+                    test_data[context].xpass_nodes.append(nodeid)
+                nodeid = nodeid.replace("::", "/") + "/"
                 parts = re.finditer("/", nodeid)
                 for part in parts:
                     nodeid_slice = nodeid[: part.end()].rstrip("/")
                     previous = test_data[context].trie.get(nodeid_slice)
+
                     if outcome == "xpassed":
-                        if previous in (ActivationStatus.XFAIL, ActivationStatus.NONE):
+                        if part.end() == len(nodeid) and previous:
+                            pass
+                        elif previous in (ActivationStatus.XFAIL, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XPASS
 
                     if outcome == "xfailed":
-                        if previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
+                        if part.end() == len(nodeid):
+                            test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
+                        elif previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.NONE
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
