@@ -10,7 +10,7 @@ import pytest
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
-from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger, bug
+from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -354,7 +354,6 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     def test_library_settings_2(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
@@ -412,7 +411,6 @@ class Test_Environment:
             }
         ],
     )
-    @bug(context.library >= "cpp@2.0.1", reason="APMAPI-1784")
     def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
@@ -468,8 +466,6 @@ class Test_Environment:
             assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{matched_name}'"
 
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -556,8 +552,6 @@ class Test_Environment:
                 )
 
     @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(
         context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
     )
@@ -715,7 +709,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [
@@ -818,7 +811,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @bug(context.library == "nodejs", reason="APMAPI-1709")
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
         local_cfg: dict[str, str],

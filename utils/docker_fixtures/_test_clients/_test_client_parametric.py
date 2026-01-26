@@ -16,7 +16,12 @@ import pytest
 
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
-from utils.docker_fixtures.spec.llm_observability import SpanRequest, LlmObsAnnotationContextRequest
+from utils.docker_fixtures.spec.llm_observability import (
+    SpanRequest,
+    LlmObsAnnotationContextRequest,
+    DatasetCreateRequest,
+    DatasetResponse,
+)
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
 from utils.docker_fixtures.parametric import LogLevel, Link
 from utils._logger import logger
@@ -919,6 +924,24 @@ class ParametricTestClientApi:
 
         return cast("dict", resp.json()) if resp.ok else resp.text
 
+    def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/create"),
+            json=dataset_create_request,
+        )
+        resp.raise_for_status()
+
+        return cast("DatasetResponse", resp.json())
+
+    def llmobs_dataset_delete(self, dataset_id: str) -> dict:
+        resp = self._session.post(
+            self._url("/llm_observability/dataset/delete"),
+            json={"dataset_id": dataset_id},
+        )
+        resp.raise_for_status()
+
+        return resp.json()
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -1131,6 +1154,12 @@ class APMLibrary:
         self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest, *, raise_on_error: bool = True
     ) -> dict | str | None:
         return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
+
+    def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
+        return self._client.llmobs_dataset_create(dataset_create_request)
+
+    def llmobs_dataset_delete(self, dataset_id: str) -> dict | str | None:
+        return self._client.llmobs_dataset_delete(dataset_id=dataset_id)
 
     @property
     def container(self) -> Container:

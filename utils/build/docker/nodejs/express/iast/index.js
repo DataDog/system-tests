@@ -444,8 +444,12 @@ function initRoutes (app, tracer) {
   })
 
   app.get('/iast/untrusted_deserialization/test_insecure', (req, res) => {
-    const name = unserialize(req.query.name)
-    res.send(`OK:${name}`)
+    try {
+      const name = unserialize(req.query.name)
+      res.send(`OK:${name}`)
+    } catch (err) {
+      res.status(500).end()
+    }
   })
 
   app.get('/iast/untrusted_deserialization/test_secure', (req, res) => {

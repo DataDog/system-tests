@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal, TypedDict
 
 
 @dataclass
@@ -53,3 +53,27 @@ class LlmObsAnnotationContextRequest:
 
     children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
     type: Literal["annotation_context"] = "annotation_context"
+
+
+class DatasetRecordRequest(TypedDict, total=False):
+    input_data: dict[str, Any]
+    expected_output: Any
+    metadata: dict[str, Any]
+
+
+class DatasetCreateRequest(TypedDict, total=False):
+    dataset_name: str
+    description: str
+    records: list[DatasetRecordRequest]
+    project_name: str
+
+
+class DatasetResponse(TypedDict, total=False):
+    dataset_id: str
+    name: str
+    description: str
+    project_name: str
+    project_id: str
+    version: int
+    latest_version: int
+    records: list[dict[str, Any]]

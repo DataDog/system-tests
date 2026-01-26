@@ -2857,6 +2857,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.31.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_of7_empty_targeting_key: bug (FFL-1729)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v1.54.0-SNAPSHOT+c2aec92b86
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
@@ -2886,7 +2887,7 @@ manifest:
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
-  tests/parametric/test_llm_observability.py: incomplete_test_app
+  tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
   tests/parametric/test_otel_logs.py: missing_feature

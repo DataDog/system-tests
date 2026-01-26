@@ -1,0 +1,63 @@
+[
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "31"
+        ]
+      }
+    },
+    "language": "python",
+    "type": "snapshot",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exceptionReplayInner",
+        "lineNumber": 31
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "31": {
+          "arguments": {},
+          "locals": {
+            "ex": {
+              "type": "NoneType",
+              "isNull": true
+            },
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'outer exception'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exceptionReplayInner",
+                "lineNumber": 31
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
+  }
+]

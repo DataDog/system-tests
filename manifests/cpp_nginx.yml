@@ -238,6 +238,7 @@ manifest:
   tests/test_ipv6.py: missing_feature (APMAPI-869)
   tests/test_library_conf.py: irrelevant
   tests/test_miscs.py: irrelevant
+  tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
