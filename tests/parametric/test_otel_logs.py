@@ -12,41 +12,38 @@ from utils.docker_fixtures.spec.trace import find_only_span
 from .conftest import APMLibrary
 
 
+def _find_log_components(log_payloads: list[dict], logger_name: str, log_message: str) -> tuple[dict | None, dict | None, dict | None]:
+    """Find matching log record, scope_log, and resource_log for a specific logger and message.
+    
+    Returns:
+        Tuple of (log_record, scope_log, resource_log) or (None, None, None) if not found.
+    """
+    for payload in log_payloads:
+        for resource_log in payload.get("resource_logs", []):
+            for scope_log in resource_log.get("scope_logs", []):
+                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
+                if scope_name == logger_name:
+                    for log_record in scope_log.get("log_records", []):
+                        record_message = log_record.get("body", {}).get("string_value", "")
+                        if record_message == log_message:
+                            return log_record, scope_log, resource_log
+    return None, None, None
+
+
 def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Find a specific log record in the log payloads."""
     logger.debug(f"Searching for log record: logger_name='{logger_name}', message='{log_message}'")
     logger.debug(f"Number of log payloads to search: {len(log_payloads)}")
-
-    for payload in log_payloads:
-        resource_logs = payload["resource_logs"]
-        for resource_log in resource_logs:
-            scope_logs = resource_log["scope_logs"]
-            for scope_log in scope_logs:
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    log_records = scope_log["log_records"]
-                    for log_record in log_records:
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            return log_record
-    return None
+    log_record, _, _ = _find_log_components(log_payloads, logger_name, log_message)
+    return log_record
 
 
-def find_resource(log_payloads: list[dict], logger_name: str, log_message: str):
+def find_resource(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Extract resource from captured logs."""
-    for payload in log_payloads:
-        resource_logs = payload["resource_logs"]
-        for resource_log in resource_logs:
-            scope_logs = resource_log["scope_logs"]
-            for scope_log in scope_logs:
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    log_records = scope_log["log_records"]
-                    for log_record in log_records:
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            logger.debug(f"Found resource_log: {resource_log}")
-                            return resource_log["resource"]
+    _, _, resource_log = _find_log_components(log_payloads, logger_name, log_message)
+    if resource_log:
+        logger.debug(f"Found resource_log: {resource_log}")
+        return resource_log.get("resource")
     return None
 
 
@@ -60,36 +57,14 @@ def find_attributes(proto_object: dict) -> dict:
 
 def find_scope(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Find scope information for a specific log record."""
-    for payload in log_payloads:
-        resource_logs = payload["resource_logs"]
-        for resource_log in resource_logs:
-            scope_logs = resource_log["scope_logs"]
-            for scope_log in scope_logs:
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    log_records = scope_log["log_records"]
-                    for log_record in log_records:
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            return scope_log.get("scope", {})
-    return None
+    _, scope_log, _ = _find_log_components(log_payloads, logger_name, log_message)
+    return scope_log.get("scope", {}) if scope_log else None
 
 
 def find_scope_log(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Find ScopeLogs object for a specific log record (includes schema_url at ScopeLogs level)."""
-    for payload in log_payloads:
-        resource_logs = payload["resource_logs"]
-        for resource_log in resource_logs:
-            scope_logs = resource_log["scope_logs"]
-            for scope_log in scope_logs:
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    log_records = scope_log["log_records"]
-                    for log_record in log_records:
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            return scope_log
-    return None
+    _, scope_log, _ = _find_log_components(log_payloads, logger_name, log_message)
+    return scope_log
 
 
 @pytest.fixture
