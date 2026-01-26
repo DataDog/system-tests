@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context, logger
+from utils import scenarios, interfaces, weblog, features, irrelevant, context, logger
 
 
 @features.ssi_service_naming

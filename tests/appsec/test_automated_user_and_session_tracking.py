@@ -11,7 +11,6 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from utils import missing_feature
 
 # User entries in the internal DB:
 # users = [

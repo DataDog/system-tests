@@ -1,5 +1,5 @@
 from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
-from utils import bug, context, features, missing_feature, scenarios
+from utils import bug, features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from .utils import BaseAnthropicTest

@@ -916,8 +916,10 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.1.0-dev.2
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case: missing_feature (extended configs are not supported)
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case: missing_feature (extended configs are not supported)
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
+  : missing_feature (extended configs are not supported)
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
+  : missing_feature (extended configs are not supported)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.63.0-rc.1
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant

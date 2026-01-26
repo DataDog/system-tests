@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc
+from utils import interfaces, weblog, scenarios, features, rfc
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")

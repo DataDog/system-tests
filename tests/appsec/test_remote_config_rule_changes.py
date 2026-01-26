@@ -6,7 +6,7 @@ import re
 
 from utils.dd_constants import Capabilities
 from tests.appsec.utils import find_series
-from utils import context, missing_feature
+from utils import context
 from utils import bug
 from utils import features
 from utils import interfaces

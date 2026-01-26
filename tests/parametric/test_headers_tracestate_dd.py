@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
-from utils import bug, missing_feature, context, scenarios, features
+from utils import missing_feature, context, scenarios, features
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize

@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context, irrelevant, bug, logger
+from utils import scenarios, features, missing_feature, context, irrelevant, logger
 from utils.interfaces._library.miscs import validate_process_tags
 
 

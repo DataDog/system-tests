@@ -12,7 +12,7 @@ import time
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 
-from utils import incomplete_test_app, scenarios, features, context
+from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_span_in_traces

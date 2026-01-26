@@ -1,5 +1,5 @@
 from utils import weblog, interfaces, scenarios, features, context
-from utils import missing_feature, irrelevant
+from utils import irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 

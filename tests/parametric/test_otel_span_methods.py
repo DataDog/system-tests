@@ -11,7 +11,7 @@ from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures import TestAgentAPI
-from utils import features, missing_feature, irrelevant, context, scenarios
+from utils import features, missing_feature, context, scenarios
 from .conftest import APMLibrary
 
 # this global mark applies to all tests in this file.

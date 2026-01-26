@@ -6,7 +6,7 @@ from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import AUTO_DROP_KEY
 from utils.docker_fixtures.spec.trace import span_has_no_parent
 from utils.docker_fixtures.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils import scenarios, missing_feature, features
+from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import retrieve_span_links, find_span, find_trace, find_span_in_traces
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary

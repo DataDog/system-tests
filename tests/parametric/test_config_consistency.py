@@ -8,8 +8,6 @@ from utils import (
     scenarios,
     features,
     context,
-    missing_feature,
-    irrelevant,
     rfc,
     incomplete_test_app,
     logger,

@@ -6,10 +6,8 @@ from typing import Any
 import pytest
 
 from utils import (
-    bug,
     context,
     features,
-    irrelevant,
     missing_feature,
     rfc,
     scenarios,

@@ -2,7 +2,6 @@ from urllib.parse import urlparse
 
 from utils import (
     irrelevant,
-    missing_feature,
     scenarios,
     features,
     context,

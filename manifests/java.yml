@@ -2884,7 +2884,8 @@ manifest:
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Implemented from 1.24.0)
       component_version: <1.24.0
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog: 'irrelevant (Issue: tracecontext,Datadog was never the default configuration)'
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
+  : 'irrelevant (Issue: tracecontext,Datadog was never the default configuration)'
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy:
     - declaration: irrelevant (Implements the new 'datadog,tracecontext' default)
       component_version: '>=1.24.0'
@@ -2961,7 +2962,8 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end:
     - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event: irrelevant (Choose to not implement Go parsing logic)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
+  : irrelevant (Choose to not implement Go parsing logic)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_finished_end_options:
     - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <=1.23.0
@@ -2980,7 +2982,8 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans:
     - declaration: missing_feature (Implemented in 1.26.0)
       component_version: <1.26.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event: 'irrelevant (Java tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0)'
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
+  : 'irrelevant (Java tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0)'
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span:
     - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <=1.23.0
@@ -3030,7 +3033,8 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id:
     - declaration: missing_feature (Not implemented)
       component_version: <=1.53.0-SNAPSHOT
-  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case: irrelevant (temporary use case for python, ruby and nodejs)
+  ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case
+  : irrelevant (temporary use case for python, ruby and nodejs)
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v1.27.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.34.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.51.0

@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature, context
+from utils import rfc, scenarios, features, context
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
