@@ -1211,14 +1211,13 @@ def write_log(args: LogGenerateArgs) -> LogGenerateReturn:
         raise ValueError(f"Logger {args.logger_name} not found in registered loggers {list(logger_dict.keys())}")
 
     logger = logger_dict[args.logger_name]
-    log_level = getattr(logging, args.level.upper(), logging.INFO)
+    log_level = getattr(logging, args.level.upper())
 
     if args.span_id:
         span = spans.get(args.span_id, otel_spans.get(args.span_id))
         if not span:
             raise ValueError(f"Span not found for span_id: {args.span_id}")
-
-        if isinstance(span, OtelSpan):
+        elif isinstance(span, OtelSpan):
             with opentelemetry.trace.use_span(span):
                 logger.log(log_level, args.message)
         else:

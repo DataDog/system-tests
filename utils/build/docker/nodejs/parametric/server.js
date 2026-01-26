@@ -408,7 +408,6 @@ app.post("/otel/logger/write", (req, res) => {
   const { logs } = require('@opentelemetry/api-logs')
   const { logger_name, level, message, create_logger, span_id } = req.body
 
-  // Get or create logger
   let logger = loggerDict[logger_name]
   if (!logger) {
     if (create_logger) {
@@ -420,37 +419,27 @@ app.post("/otel/logger/write", (req, res) => {
     }
   }
 
-  // Set up span context if provided
-  let spanContext
-  if (span_id != null) {
-    const otelSpan = otelSpans[span_id]
-    const ddSpan = spans[span_id]
-    if (otelSpan) {
-      spanContext = trace.setSpan(ROOT_CONTEXT, otelSpan)
-    } else if (ddSpan) {
-      const ddSpanContext = ddSpan.context()
-      spanContext = trace.setSpanContext(ROOT_CONTEXT, {
-        spanId: ddSpanContext.toSpanId(true),
-        traceId: ddSpanContext.toTraceId(true),
-        flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0
-      })
-    }
+  let otelContext = undefined
+  const otelSpan = otelSpans[span_id]
+  const ddSpan = spans[span_id]
+  if (otelSpan) {
+    otelContext = trace.setSpan(ROOT_CONTEXT, otelSpan)
+  } else if (ddSpan) {
+    const ddSpanContext = ddSpan.context()
+    otelContext = trace.setSpanContext(ROOT_CONTEXT, {
+      spanId: ddSpanContext.toSpanId(true),
+      traceId: ddSpanContext.toTraceId(true),
+      flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0
+    })
   }
 
-  const levelUpper = level.toUpperCase()
-  const severity = SEVERITY_MAP[levelUpper] || SEVERITY_MAP['INFO']
-
-  const logRecord = {
+  const severity = SEVERITY_MAP[level.toUpperCase()]
+  logger.emit( {
     severityText: severity.text,
     severityNumber: severity.number,
-    body: message
-  }
-
-  if (spanContext !== undefined) {
-    logRecord.context = spanContext
-  }
-
-  logger.emit(logRecord)
+    body: message,
+    context: otelContext
+  })
   res.status(200).json({ success: true })
 })
 
