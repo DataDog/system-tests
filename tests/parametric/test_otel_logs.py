@@ -12,11 +12,14 @@ from utils.docker_fixtures.spec.trace import find_only_span
 from .conftest import APMLibrary
 
 
-def _find_log_components(log_payloads: list[dict], logger_name: str, log_message: str) -> tuple[dict | None, dict | None, dict | None]:
+def _find_log_components(
+    log_payloads: list[dict], logger_name: str, log_message: str
+) -> tuple[dict | None, dict | None, dict | None]:
     """Find matching log record, scope_log, and resource_log for a specific logger and message.
-    
+
     Returns:
         Tuple of (log_record, scope_log, resource_log) or (None, None, None) if not found.
+
     """
     for payload in log_payloads:
         for resource_log in payload.get("resource_logs", []):
@@ -47,8 +50,10 @@ def find_resource(log_payloads: list[dict], logger_name: str, log_message: str) 
     return None
 
 
-def find_attributes(proto_object: dict) -> dict:
+def find_attributes(proto_object: dict | None) -> dict:
     """Extract attributes from proto object."""
+    if proto_object is None:
+        return {}
     attributes = {}
     for attribute in proto_object.get("attributes", []):
         attributes[attribute.get("key")] = list(attribute.get("value", {}).values())[0]
@@ -872,7 +877,7 @@ class Test_FR13_Scope_Fields:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         scope_log = find_scope_log(log_payloads, "test_logger", "test_scope_schema_url")
         assert scope_log is not None
-        
+
         # Scope must have name field
         scope = scope_log.get("scope", {})
         assert "name" in scope, "Scope should have name field"
