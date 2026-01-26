@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from ddtrace.internal.telemetry import telemetry_writer
 from ddtrace.llmobs import LLMObs
+from ddtrace.llmobs._experiment import DatasetRecord
 from ddtrace import tracer
 
 from fastapi import APIRouter
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
-from typing import Literal, Union
+from typing import Any, Literal, Union
 
 router = APIRouter()
 
@@ -169,3 +170,59 @@ def llmobs_trace(trace_structure_request: Request):
         return maybe_exported_span_ctx or {}
     finally:
         telemetry_writer.periodic(force_flush=True)
+
+
+@dataclass
+class DatasetRecordRequest:
+    input_data: dict
+    expected_output: Any | None = None
+    metadata: dict | None = None
+
+
+class DatasetCreateRequestModel(BaseModel):
+    dataset_name: str
+    description: str | None = None
+    records: list[DatasetRecordRequest] | None = None
+    project_name: str | None = None
+
+
+class DatasetDeleteRequestModel(BaseModel):
+    dataset_id: str
+
+
+@router.post("/llm_observability/dataset/create")
+def llmobs_dataset_create(request: DatasetCreateRequestModel):
+    records = None
+    if request.records:
+        records = [
+            DatasetRecord(
+                input_data=r.input_data,
+                expected_output=r.expected_output,
+                metadata=r.metadata or {},
+            )
+            for r in request.records
+        ]
+
+    dataset = LLMObs.create_dataset(
+        dataset_name=request.dataset_name,
+        description=request.description,
+        project_name=request.project_name,
+        records=records,
+    )
+
+    return {
+        "dataset_id": dataset._id,
+        "name": dataset.name,
+        "description": dataset.description,
+        "project_name": dataset.project.get("name") if dataset.project else None,
+        "project_id": dataset.project.get("_id") if dataset.project else None,
+        "version": dataset._version,
+        "latest_version": dataset._latest_version,
+        "records": list(dataset._records),
+    }
+
+
+@router.post("/llm_observability/dataset/delete")
+def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
+    LLMObs._delete_dataset(dataset_id=request.dataset_id)
+    return {"success": True}

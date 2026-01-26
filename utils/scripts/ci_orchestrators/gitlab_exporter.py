@@ -215,7 +215,7 @@ def print_docker_ssi_gitlab_pipeline(
                 result_pipeline[vm_job]["stage"] = scenario
                 result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
                 result_pipeline[vm_job]["tags"] = [
-                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'docker-in-docker:arm64'}"
+                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'docker-in-docker:microvm-arm64'}"
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}

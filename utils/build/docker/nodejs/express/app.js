@@ -62,7 +62,6 @@ iast.initMiddlewares(app)
 require('./auth')(app, tracer)
 
 app.get('/', (req, res) => {
-  console.log('Received a request')
   res.send('Hello\n')
 })
 
@@ -168,12 +167,11 @@ app.get('/session/new', (req, res) => {
 })
 
 app.get('/status', (req, res) => {
-  res.status(parseInt(req.query.code)).send('OK')
+  res.status(parseInt(req.query.code) || 400).send('OK')
 })
 
 app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
-  console.log(url)
 
   const parsedUrl = new URL(url)
 
@@ -194,7 +192,7 @@ app.get('/make_distant_call', (req, res) => {
       res.json({
         url,
         status_code: response.statusCode,
-        request_headers: response.req._headers,
+        request_headers: response.req.getHeaders(),
         response_headers: response.headers,
         response_body: responseBody
       })
@@ -491,7 +489,6 @@ app.get('/rabbitmq/consume', (req, res) => {
 })
 
 app.get('/load_dependency', (req, res) => {
-  console.log('Load dependency endpoint')
   require('glob')
   res.send('Loaded a dependency')
 })
@@ -609,11 +606,11 @@ app.get('/flush', (req, res) => {
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err))())
   }
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
   }
 
   Promise.all(promises).then(() => {

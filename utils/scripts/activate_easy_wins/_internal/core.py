@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from functools import reduce
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 
@@ -74,6 +75,7 @@ def update_manifest(
     rule_to_tests: dict[str, set[str]] = {}  # Track unique test nodeids per rule
     unique_tests_per_language: dict[str, set[str]] = {}  # Track unique test nodeids per language
     activations_per_owner: dict[str, int] = {}  # Track activations per code owner
+    skipped_nodes = set(Path("utils/scripts/activate_easy_wins/skip.csv").read_text().splitlines())
 
     for context, test_data_item in test_data.items():
         nodes, trie = test_data_item.xpass_nodes, test_data_item.trie
@@ -83,6 +85,8 @@ def update_manifest(
             tests_per_language[context.library] = 0
             unique_tests_per_language[context.library] = set()
         for node in nodes:
+            if node in skipped_nodes:
+                continue
             views = manifest_editor.get_matches(node)
             if views:
                 tests_with_rules += 1
