@@ -1683,9 +1683,6 @@ manifest:
     - declaration: missing_feature
       component_version: <5.19.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: *ref_5_4_0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness:
-    - declaration: missing_feature (Added new FFE flag capabilities)
-      component_version: <5.72.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (APMAPI-1592)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: *ref_4_11_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: *ref_5_4_0
@@ -1743,8 +1740,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (nodejs has not implemented stats computation yet)
-  tests/parametric/test_llm_observability.py::Test_Enablement: *ref_5_66_0
-  tests/parametric/test_llm_observability.py::Test_Prompts: missing_feature
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: missing_feature
+  tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: missing_feature
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: missing_feature (this setting is not exposed in the Node.js config object)
