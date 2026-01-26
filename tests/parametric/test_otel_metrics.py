@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 import pytest
 
-from utils import features, scenarios
+from utils import features, scenarios, missing_feature, context
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -352,6 +352,7 @@ class Test_Otel_Metrics_Api_Meter:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "php", reason="min max bug in otel php", force_skip=True)
     def test_otel_create_instruments_by_distinct(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         counter_name = "test_otel_create_counter"
         updowncounter_name = "test_otel_create_updowncounter"
@@ -562,6 +563,7 @@ class Test_Otel_Metrics_Api_Instrument:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "php", reason="otel php does not follow this", force_skip=True)
     def test_otel_counter_add_non_negative_and_negative_values(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -837,6 +839,7 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "php", reason="otel php does not follow this", force_skip=True)
     def test_otel_histogram_add_non_negative_and_negative_values(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -897,6 +900,7 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @missing_feature(context.library == "php", reason="min max bug in otel php", force_skip=True)
     def test_otel_histogram_add_non_negative_values_with_different_tags(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1073,6 +1077,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         ],
         ids=["default", "delta", "cumulative"],
     )
+    @missing_feature(context.library == "php", reason="min max bug in otel php", force_skip=True)
     def test_otel_aggregation_temporality(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -1348,6 +1353,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
+    @missing_feature(context.library == "php", reason="otel php does not follow this", force_skip=True)
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1541,6 +1547,7 @@ class Test_Otel_Metrics_Host_Name:
                 **DEFAULT_ENVVARS,
                 "DD_HOSTNAME": "ddhostname",
                 "DD_TRACE_REPORT_HOSTNAME": "true",
+                "OTEL_PHP_DETECTORS": "all",
             },
         ],
     )
@@ -1553,7 +1560,12 @@ class Test_Otel_Metrics_Host_Name:
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
-        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        # Only extract attributes that have string_value
+        actual_attributes = {
+            item["key"]: item["value"]["string_value"]
+            for item in resource["attributes"]
+            if "string_value" in item["value"]
+        }
 
         assert actual_attributes.get("host.name") == "ddhostname"
 
@@ -1582,7 +1594,12 @@ class Test_Otel_Metrics_Host_Name:
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
-        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        # Only extract attributes that have string_value
+        actual_attributes = {
+            item["key"]: item["value"]["string_value"]
+            for item in resource["attributes"]
+            if "string_value" in item["value"]
+        }
 
         assert actual_attributes.get(host_attribute) == "otelenv-host"
 
@@ -1611,7 +1628,12 @@ class Test_Otel_Metrics_Host_Name:
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
-        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        # Only extract attributes that have string_value (skip non-string attributes like telemetry.distro.version)
+        actual_attributes = {
+            item["key"]: item["value"]["string_value"]
+            for item in resource["attributes"]
+            if "string_value" in item["value"]
+        }
 
         assert "host.name" not in actual_attributes
 
@@ -1652,7 +1674,12 @@ class Test_Otel_Metrics_Resource_Attributes:
 
         # Assert that the ResourceMetrics has the expected resources
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
-        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        # Only extract attributes that have string_value (skip non-string attributes like telemetry.distro.version)
+        actual_attributes = {
+            item["key"]: item["value"]["string_value"]
+            for item in resource["attributes"]
+            if "string_value" in item["value"]
+        }
         assert expected_attributes.items() <= actual_attributes.items()
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
@@ -1713,7 +1740,12 @@ class Test_Otel_Metrics_Resource_Attributes:
 
         # Assert that the ResourceMetrics has the expected resources
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
-        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        # Only extract attributes that have string_value (skip non-string attributes like telemetry.distro.version)
+        actual_attributes = {
+            item["key"]: item["value"]["string_value"]
+            for item in resource["attributes"]
+            if "string_value" in item["value"]
+        }
         assert expected_attributes.items() <= actual_attributes.items()
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
@@ -1751,7 +1783,12 @@ class Test_Otel_Metrics_Resource_Attributes:
 
         # Assert that the ResourceMetrics has the expected resources
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
-        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        # Only extract attributes that have string_value (skip non-string attributes like telemetry.distro.version)
+        actual_attributes = {
+            item["key"]: item["value"]["string_value"]
+            for item in resource["attributes"]
+            if "string_value" in item["value"]
+        }
         assert expected_attributes.items() <= actual_attributes.items()
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
