@@ -409,7 +409,7 @@ class _Scenarios:
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec_standalone, scenario_groups.appsec],
     )
 
     # Combined scenario for API Security in standalone mode
@@ -1094,7 +1094,7 @@ class _Scenarios:
         name="GO_PROXIES_DEFAULT",
         doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
-        scenario_groups=[scenario_groups.default],
+        scenario_groups=[scenario_groups.default, scenario_groups.appsec_standalone],
     )
 
     go_proxies_appsec_blocking = GoProxiesScenario(

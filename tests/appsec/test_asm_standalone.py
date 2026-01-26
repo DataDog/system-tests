@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger, flaky
+from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger, flaky, scenario_groups
 
 USER = "test"
 NEW_USER = "testnew"
@@ -805,7 +805,7 @@ class Test_AppSecStandalone_NotEnabled:
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@scenario_groups.appsec_standalone
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1007,7 +1007,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@scenario_groups.appsec_standalone
 class Test_UserEventsStandalone_Automated:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1088,7 +1088,7 @@ class Test_UserEventsStandalone_Automated:
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@scenario_groups.appsec_standalone
 class Test_UserEventsStandalone_SDK_V1:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1152,7 +1152,7 @@ class Test_UserEventsStandalone_SDK_V1:
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@scenario_groups.appsec_standalone
 class Test_UserEventsStandalone_SDK_V2:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 

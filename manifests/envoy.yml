@@ -15,6 +15,11 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block::test_request_method: missing_feature (missing /tag_value endpoint in the weblog)
   tests/appsec/test_alpha.py: v1.72.0
+  tests/appsec/test_asm_standalone.py: v1.73.0
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: missing_feature (weblog does not implement upstream request)
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: irrelevant (Proxies doesn't support login events (go sdk))
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: irrelevant (Proxies doesn't support login events (go sdk))
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (Proxies doesn't support login events (go sdk))
   tests/appsec/test_blocking_addresses.py: v1.72.0
@@ -44,6 +49,7 @@ manifest:
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
+  tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature (weblog does not implement /headers endpoint)
   tests/appsec/test_fingerprinting.py: v1.72.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking: bug (APPSEC-000)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: bug (APPSEC-000)

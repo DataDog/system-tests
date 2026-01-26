@@ -12,7 +12,7 @@ from utils import context, features, interfaces, irrelevant, scenarios, scenario
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 @scenarios.appsec_runtime_activation
-@scenarios.appsec_standalone
+@scenario_groups.appsec_standalone
 @scenario_groups.default
 @scenarios.appsec_lambda_default
 @features.language_specifics

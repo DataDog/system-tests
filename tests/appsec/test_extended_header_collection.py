@@ -2,13 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, rfc, features, missing_feature, context
+from utils import weblog, interfaces, rfc, features, missing_feature, context, scenario_groups
 from utils._weblog import HttpResponse
 
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
 @features.appsec_collect_all_headers
-@scenarios.appsec_standalone
+@scenario_groups.appsec_standalone
 class Test_ExtendedHeaderCollection:
     @staticmethod
     def assert_feature_is_enabled(response: HttpResponse) -> None:
