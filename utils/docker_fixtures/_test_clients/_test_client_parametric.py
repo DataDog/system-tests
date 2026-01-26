@@ -517,8 +517,7 @@ class ParametricTestClientApi:
         logger_name: str,
         *,
         create_logger: bool = True,
-        logger_type: int = 0,
-        span_id: int = 0,
+        span_id: int | None = None,
     ) -> bool:
         """Generate a log message with the specified parameters.
 
@@ -527,8 +526,7 @@ class ParametricTestClientApi:
             level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             logger_name: The name of the logger to use
             create_logger: Whether to create a new logger if it doesn't exist
-            logger_type: The type of logger (0=default for the language, 1=logging, 2=loguru, 3=struct_log)
-            span_id: The ID of the span that should be active when the log is generated
+            span_id: Optional ID of the span that should be active when the log is generated
 
         Returns:
             bool: True if the log was generated successfully, False otherwise
@@ -539,9 +537,8 @@ class ParametricTestClientApi:
             json={
                 "message": message,
                 "level": level.value,
-                "create_logger": create_logger,
                 "logger_name": logger_name,
-                "logger_type": logger_type,
+                "create_logger": create_logger,
                 "span_id": span_id,
             },
         )
@@ -568,20 +565,20 @@ class ParametricTestClientApi:
 
     def create_logger(
         self,
-        logger_name: str,
-        logger_level: LogLevel,
-        attributes: dict | None,
+        name: str,
+        level: LogLevel,
         version: str | None = None,
         schema_url: str | None = None,
+        attributes: dict | None = None,
     ) -> bool:
-        """Create an OpenTelemetry logger with the specified name and optional attributes, version, and schema_url.
+        """Create an OpenTelemetry logger with the specified name and optional parameters.
 
         Args:
-            logger_name: The name of the logger to create
-            logger_level: Sets the level of the logger
-            attributes: Optional scope attributes dictionary
-            version: Optional version string
-            schema_url: Optional schema URL string
+            name: The name of the logger to create
+            level: Log level for the logger
+            version: Optional version string for the logger scope
+            schema_url: Optional schema URL string for the logger scope
+            attributes: Optional scope attributes dictionary (not supported in all SDKs)
 
         Returns:
             bool: True if the logger was created successfully, False otherwise
@@ -590,11 +587,11 @@ class ParametricTestClientApi:
         resp = self._session.post(
             self._url("/otel/logger/create"),
             json={
-                "logger_name": logger_name,
-                "logger_level": logger_level.value,
-                "attributes": attributes,
+                "name": name,
+                "level": level.value,
                 "version": version,
                 "schema_url": schema_url,
+                "attributes": attributes,
             },
         )
         return HTTPStatus(resp.status_code).is_success
@@ -1059,13 +1056,13 @@ class APMLibrary:
 
     def create_logger(
         self,
-        logger_name: str,
-        logger_level: LogLevel,
-        attributes: dict | None = None,
+        name: str,
+        level: LogLevel,
         version: str | None = None,
         schema_url: str | None = None,
+        attributes: dict | None = None,
     ) -> bool:
-        return self._client.create_logger(logger_name, logger_level, attributes, version, schema_url)
+        return self._client.create_logger(name, level, version, schema_url, attributes)
 
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
@@ -1158,13 +1155,10 @@ class APMLibrary:
         level: LogLevel,
         logger_name: str,
         *,
-        create_logger: bool = True,
-        logger_type: int = 0,
-        span_id: int = 0,
+        create_logger: bool = False,
+        span_id: int | None = None,
     ) -> bool:
-        return self._client.write_log(
-            message, level, logger_name, create_logger=create_logger, logger_type=logger_type, span_id=span_id
-        )
+        return self._client.write_log(message, level, logger_name, create_logger=create_logger, span_id=span_id)
 
     def ffe_start(self) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""

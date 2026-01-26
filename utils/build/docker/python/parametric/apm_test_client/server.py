@@ -1161,34 +1161,32 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
 
 
 class LogCreateLoggerArgs(BaseModel):
-    logger_name: str
-    logger_level: str
-    attributes: Optional[dict] = None
+    name: str
+    level: str
     version: Optional[str] = None
     schema_url: Optional[str] = None
+    attributes: Optional[dict] = None
 
 
 class LogCreateLoggerReturn(BaseModel):
     success: bool
 
 
-def _create_logger(logger_name: str, logger_level: str) -> logging.Logger:
+def _create_logger(name: str, level: str) -> logging.Logger:
     """Create and configure a logger with the specified name and level."""
-    logger = logging.getLogger(logger_name)
-    log_level = getattr(logging, logger_level.upper(), logging.INFO)
-    if not isinstance(log_level, int):
-        raise AttributeError(f"Invalid log level: {logger_level}")
+    logger = logging.getLogger(name)
+    log_level = getattr(logging, level.upper())
     logger.setLevel(log_level)
-    logger_dict[logger_name] = logger
+    logger_dict[name] = logger
     return logger
 
 
 @app.post("/otel/logger/create")
 def create_logger(args: LogCreateLoggerArgs) -> LogCreateLoggerReturn:
     """Create an OpenTelemetry logger with the specified name and level."""
-    if args.logger_name in logger_dict:
+    if args.name in logger_dict:
         return LogCreateLoggerReturn(success=False)
-    _create_logger(args.logger_name, args.logger_level)
+    _create_logger(args.name, args.level)
     return LogCreateLoggerReturn(success=True)
 
 
@@ -1196,7 +1194,7 @@ class LogGenerateArgs(BaseModel):
     message: str
     level: str
     logger_name: str
-    create_logger: bool = True
+    create_logger: bool
     span_id: Optional[int] = None
 
 

@@ -387,9 +387,9 @@ app.get('/trace/config', (req, res) => {
 });
 
 app.post("/otel/logger/create", (req, res) => {
-  const { logger_name, version, schema_url } = req.body
+  const { name, level, version, schema_url, attributes } = req.body
 
-  if (loggerDict[logger_name]) {
+  if (loggerDict[name]) {
     return res.status(200).json({ success: false })
   }
 
@@ -398,9 +398,9 @@ app.post("/otel/logger/create", (req, res) => {
 
   const loggerOptions = schema_url ? { schemaUrl: schema_url } : {}
   const loggerVersion = version || ''
-  const logger = loggerProvider.getLogger(logger_name, loggerVersion, loggerOptions)
+  const logger = loggerProvider.getLogger(name, loggerVersion, loggerOptions)
 
-  loggerDict[logger_name] = logger
+  loggerDict[name] = logger
   res.status(200).json({ success: true })
 })
 
@@ -416,15 +416,13 @@ app.post("/otel/logger/write", (req, res) => {
       logger = loggerProvider.getLogger(logger_name)
       loggerDict[logger_name] = logger
     } else {
-      return res.status(400).json({
-        error: `Logger ${logger_name} not found`
-      })
+      return res.status(400).json({ error: `Logger ${logger_name} not found` })
     }
   }
 
   // Set up span context if provided
   let spanContext
-  if (span_id) {
+  if (span_id != null) {
     const otelSpan = otelSpans[span_id]
     const ddSpan = spans[span_id]
     if (otelSpan) {

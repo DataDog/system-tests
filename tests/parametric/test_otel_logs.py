@@ -816,7 +816,7 @@ class Test_FR12_Log_Levels:
         """Log records include correct severity_text and severity_number for each log level."""
         message = f"test_log_level_{log_level.value.lower()}"
         with test_library as library:
-            library.create_logger("test_logger", log_level, None)
+            library.create_logger("test_logger", level=log_level)
             library.write_log(message, log_level, "test_logger", create_logger=False)
 
         log_payloads = test_agent.wait_for_num_log_payloads(1)
@@ -847,7 +847,7 @@ class Test_FR13_Scope_Fields:
     def test_scope_attributes_field(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Scope object may include attributes field (optional in OpenTelemetry)."""
         with test_library as library:
-            library.create_logger("test_logger", LogLevel.INFO, {"scope.attr": "scope.value"})
+            library.create_logger("test_logger", level=LogLevel.INFO, attributes={"scope.attr": "scope.value"})
             library.write_log("test_scope_attributes", LogLevel.INFO, "test_logger", create_logger=False)
 
         log_payloads = test_agent.wait_for_num_log_payloads(1)
@@ -870,7 +870,7 @@ class Test_FR13_Scope_Fields:
         """ScopeLogs may include schema_url field at ScopeLogs level (optional in OpenTelemetry)."""
         with test_library as library:
             library.create_logger(
-                "test_logger", LogLevel.INFO, None, schema_url="https://opentelemetry.io/schemas/1.21.0"
+                "test_logger", level=LogLevel.INFO, schema_url="https://opentelemetry.io/schemas/1.21.0"
             )
             library.write_log("test_scope_schema_url", LogLevel.INFO, "test_logger", create_logger=False)
 
@@ -897,7 +897,7 @@ class Test_FR13_Scope_Fields:
     def test_scope_version_field(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Scope object may include version field (optional in OpenTelemetry)."""
         with test_library as library:
-            library.create_logger("test_logger", LogLevel.INFO, None, version="1.0.0")
+            library.create_logger("test_logger", level=LogLevel.INFO, version="1.0.0")
             library.write_log("test_scope_version", LogLevel.INFO, "test_logger", create_logger=False)
 
         log_payloads = test_agent.wait_for_num_log_payloads(1)
