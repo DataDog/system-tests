@@ -284,10 +284,12 @@ elif [ "$TARGET" = "golang" ]; then
     echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "envoy" ]; then
+    assert_version_is_dev
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
 elif [ "$TARGET" = "haproxy" ]; then
+    assert_version_is_dev
     echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
     echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
 
