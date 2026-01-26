@@ -1,12 +1,13 @@
 """Test the dynamic configuration via Remote Config (RC) feature of the APM libraries."""
 
 import json
+from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 from utils import (
-    bug,
     context,
     features,
     irrelevant,
@@ -14,6 +15,7 @@ from utils import (
     rfc,
     scenarios,
 )
+from utils._context.component_version import ComponentVersion
 from utils.docker_fixtures import TestAgentAPI
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.docker_fixtures.spec.trace import (
@@ -22,6 +24,7 @@ from utils.docker_fixtures.spec.trace import (
     find_trace,
     find_first_span_in_trace_payload,
 )
+from utils.manifest._internal.types import SemverRange
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -65,6 +68,80 @@ def send_and_wait_trace(
     test_library.dd_flush()
     traces = test_agent.wait_for_num_traces(num=1, clear=True, sort_by_start=False)
     return find_trace(traces, s1.trace_id)
+
+
+def _load_capabilities_yaml() -> dict[str, Any]:
+    """Load and parse the capabilities.yml file."""
+    capabilities_file = Path(__file__).parent / "capabilities.yml"
+
+    if not capabilities_file.exists():
+        raise FileNotFoundError(
+            f"Capabilities file not found: {capabilities_file}. "
+            "This file defines expected Remote Config capabilities per language and version."
+        )
+
+    with open(capabilities_file, encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if not data or "capabilities" not in data:
+        raise ValueError("Invalid capabilities.yml: missing 'capabilities' section")
+
+    return data
+
+
+def get_expected_capabilities_for_version(library: ComponentVersion) -> set[Capabilities]:
+    """Get the expected set of Remote Config capabilities for a given library version."""
+    data = _load_capabilities_yaml()
+
+    language = library.name
+    if language not in data["capabilities"]:
+        raise ValueError(
+            f"Language '{language}' not found in capabilities.yml. "
+            f"Available languages: {list(data['capabilities'].keys())}"
+        )
+
+    lang_config = data["capabilities"][language]
+
+    # Start with base capabilities (always present)
+    if "base" not in lang_config:
+        raise ValueError(f"Missing 'base' capability set for language '{language}' in capabilities.yml")
+
+    capabilities: set[Capabilities] = set()
+
+    # Add base capabilities
+    for cap_name in lang_config["base"]:
+        try:
+            capabilities.add(Capabilities[cap_name])
+        except KeyError as e:
+            raise KeyError(
+                f"Unknown capability '{cap_name}' in capabilities.yml for language '{language}'. "
+                f"Check utils/dd_constants.py for valid Capabilities enum values."
+            ) from e
+
+    # Add version-specific capabilities
+    for key, cap_list in lang_config.items():
+        if key == "base":
+            continue  # Already processed
+
+        # Parse the version range
+        try:
+            version_range = SemverRange(key)
+        except Exception as e:
+            raise ValueError(f"Invalid version range '{key}' in capabilities.yml for language '{language}': {e}") from e
+
+        # Check if the library version matches this range
+        if library.version and library.version in version_range:
+            for cap_name in cap_list:
+                try:
+                    capabilities.add(Capabilities[cap_name])
+                except KeyError as e:
+                    raise KeyError(
+                        f"Unknown capability '{cap_name}' in capabilities.yml for "
+                        f"language '{language}' version range '{key}'. "
+                        f"Check utils/dd_constants.py for valid Capabilities enum values."
+                    ) from e
+
+    return capabilities
 
 
 def _default_config(service: str, env: str) -> dict[str, Any]:
@@ -164,143 +241,44 @@ def get_sampled_trace(
 
 ENV_SAMPLING_RULE_RATE = 0.55
 
-DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
-    "java": {
-        Capabilities.ASM_ACTIVATION,
-        Capabilities.ASM_IP_BLOCKING,
-        Capabilities.ASM_DD_RULES,
-        Capabilities.ASM_EXCLUSIONS,
-        Capabilities.ASM_REQUEST_BLOCKING,
-        Capabilities.ASM_USER_BLOCKING,
-        Capabilities.ASM_CUSTOM_RULES,
-        Capabilities.ASM_CUSTOM_BLOCKING_RESPONSE,
-        Capabilities.ASM_TRUSTED_IPS,
-        Capabilities.ASM_API_SECURITY_SAMPLE_RATE,
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_LOGS_INJECTION,
-        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.ASM_EXCLUSION_DATA,
-        Capabilities.APM_TRACING_ENABLED,
-        Capabilities.APM_TRACING_DATA_STREAMS_ENABLED,
-        Capabilities.ASM_RASP_SQLI,
-        Capabilities.ASM_RASP_LFI,
-        Capabilities.ASM_RASP_SSRF,
-        Capabilities.ASM_RASP_SHI,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-        Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
-        Capabilities.ASM_ENDPOINT_FINGERPRINT,
-        Capabilities.ASM_SESSION_FINGERPRINT,
-        Capabilities.ASM_NETWORK_FINGERPRINT,
-        Capabilities.ASM_HEADER_FINGERPRINT,
-        Capabilities.ASM_RASP_CMDI,
-        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
-        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
-        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
-        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
-        Capabilities.ASM_EXTENDED_DATA_COLLECTION,
-        Capabilities.APM_TRACING_MULTICONFIG,
-    },
-    "nodejs": {
-        Capabilities.ASM_ACTIVATION,
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_LOGS_INJECTION,
-        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.APM_TRACING_ENABLED,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-        Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
-        Capabilities.FFE_FLAG_CONFIGURATION_RULES,
-    },
-    "python": {Capabilities.APM_TRACING_ENABLED},
-    "dotnet": {
-        Capabilities.ASM_ACTIVATION,
-        Capabilities.ASM_IP_BLOCKING,
-        Capabilities.ASM_DD_RULES,
-        Capabilities.ASM_EXCLUSIONS,
-        Capabilities.ASM_REQUEST_BLOCKING,
-        Capabilities.ASM_ASM_RESPONSE_BLOCKING,
-        Capabilities.ASM_USER_BLOCKING,
-        Capabilities.ASM_CUSTOM_RULES,
-        Capabilities.ASM_CUSTOM_BLOCKING_RESPONSE,
-        Capabilities.ASM_TRUSTED_IPS,
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_LOGS_INJECTION,
-        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.APM_TRACING_ENABLED,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-        Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
-        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
-        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
-        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
-        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
-        Capabilities.APM_TRACING_MULTICONFIG,
-    },
-    "cpp": {
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.APM_TRACING_ENABLED,
-    },
-    "php": {Capabilities.APM_TRACING_ENABLED},
-    "golang": {
-        Capabilities.ASM_ACTIVATION,
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.APM_TRACING_ENABLED,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-        Capabilities.APM_TRACING_MULTICONFIG,
-        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
-    },
-    "ruby": {Capabilities.APM_TRACING_ENABLED},
-}
-
 
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @bug(context.library == "java", reason="APMAPI-1225")
-    @missing_feature(
-        context.library < "nodejs@5.72.0",
-        reason="Added new FFE flag capabilities",
-        force_skip=True,
-    )
-    @missing_feature(context.library <= "golang@2.6.1", reason="Added new capabilities", force_skip=True)
     def test_default_capability_completeness(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
+        """Ensure the RC request contains the expected default capabilities per language.
+
+        For released versions: expects exact match (no more, no less).
+        For pre-release versions: allows extra capabilities to support chicken-and-egg development.
+        """
 
         assert test_library.is_alive(), "library container is not alive"
 
         if context.library is not None and context.library.name is not None:
             seen_capabilities = test_agent.wait_for_rc_capabilities()
-            expected_capabilities = set(DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG[context.library.name])
+            expected_capabilities = get_expected_capabilities_for_version(context.library)
 
-            # Dynamically add Remote Enablement capabilities for nodejs based on feature detection
-            # This is needed because:
-            # 1. System-tests must pass on master (without RE) before dd-trace-js PR lands
-            # 2. System-tests must pass on the dd-trace-js PR (with RE, version "6.0.0-pre")
-            # 3. The exact release version (5.82.0 vs 5.83.0 vs later) is unknown at merge time
-            # Solution: Detect RE support by checking if APM_TRACING_MULTICONFIG capability is present
-            #
-            # TODO: Once https://github.com/DataDog/dd-trace-js/pull/7137 lands and the minimum
-            # supported version includes Remote Enablement, move these capabilities to the static
-            # nodejs list above (DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG["nodejs"]) and remove this
-            # dynamic check.
-            if context.library.name == "nodejs" and Capabilities.APM_TRACING_MULTICONFIG in seen_capabilities:
-                expected_capabilities.add(Capabilities.APM_TRACING_MULTICONFIG)
-                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION)
-                expected_capabilities.add(Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN)
-
-            seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
             expected_but_not_seen_capabilities = expected_capabilities.difference(seen_capabilities)
 
-            if seen_but_not_expected_capabilities or expected_but_not_seen_capabilities:
+            # Always fail if expected capabilities are missing
+            if expected_but_not_seen_capabilities:
                 raise AssertionError(
-                    f"seen_but_not_expected_capabilities={seen_but_not_expected_capabilities}; expected_but_not_seen_capabilities={expected_but_not_seen_capabilities}"
+                    f"expected_but_not_seen_capabilities={expected_but_not_seen_capabilities}; "
+                    f"Update capabilities.yml to fix this."
                 )
+
+            # For released versions, enforce strict equality (no extra capabilities)
+            # For pre-release versions, allow extra capabilities (solves chicken-and-egg problem)
+            is_prerelease = context.library.version and context.library.version.prerelease
+
+            if not is_prerelease:
+                seen_but_not_expected_capabilities = seen_capabilities.difference(expected_capabilities)
+                if seen_but_not_expected_capabilities:
+                    raise AssertionError(
+                        f"seen_but_not_expected_capabilities={seen_but_not_expected_capabilities}; "
+                        f"Update capabilities.yml to fix this."
+                    )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

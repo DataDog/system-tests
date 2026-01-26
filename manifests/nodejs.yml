@@ -1687,9 +1687,6 @@ manifest:
     - declaration: missing_feature
       component_version: <5.19.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: *ref_5_4_0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness:
-    - declaration: missing_feature (Added new FFE flag capabilities)
-      component_version: <5.72.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (APMAPI-1592)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: *ref_4_11_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: *ref_5_4_0
