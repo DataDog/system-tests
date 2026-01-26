@@ -425,7 +425,7 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
         },
         doc="Scenario to test API Security in AppSec standalone mode",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=[scenario_groups.appsec_standalone_api_security, scenario_groups.appsec, scenario_groups.essentials],
     )
 
     iast_standalone = EndToEndScenario(
@@ -1094,7 +1094,7 @@ class _Scenarios:
         name="GO_PROXIES_DEFAULT",
         doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
-        scenario_groups=[scenario_groups.default, scenario_groups.appsec_standalone],
+        scenario_groups=[scenario_groups.default, scenario_groups.appsec_standalone, scenario_groups.appsec_standalone_api_security],
     )
 
     go_proxies_appsec_blocking = GoProxiesScenario(

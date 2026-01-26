@@ -73,6 +73,7 @@ class _ScenarioGroups:
     appsec_blocking_full_denylist = ScenarioGroup()
     appsec_api_security_no_response_body = ScenarioGroup()
     appsec_standalone = ScenarioGroup()
+    appsec_standalone_api_security = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()

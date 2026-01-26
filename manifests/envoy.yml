@@ -82,3 +82,4 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
