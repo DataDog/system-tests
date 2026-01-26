@@ -5,8 +5,8 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, rfc, irrelevant, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority
+from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
+from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -142,10 +142,8 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate_all(validator, allow_no_data=True)
 
-    @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd")
-    @irrelevant(library="golang", reason="implemented but not testable")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
@@ -181,8 +179,6 @@ class Test_LibraryHeaders:
 
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
-    @missing_feature(library="php", reason="not implemented yet")
-    @missing_feature(context.library < "golang@1.73.0-dev", reason="Implemented in v1.72.0")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
@@ -238,14 +234,23 @@ class Test_Agent:
         """Agent does not drop traces"""
 
         # get list of trace ids reported by the agent
-        trace_ids_reported_by_agent = set()
-        for _, span in interfaces.agent.get_spans():
-            trace_ids_reported_by_agent.add(int(span["traceID"]))
+        trace_ids_reported_by_agent = set[int]()
+        for _, chunk, chunk_format in interfaces.agent.get_traces():
+            if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+                # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
+                # We need to convert it to an integer taking only the lower 64 bits
+                # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
+                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+                trace_ids_reported_by_agent.add(trace_id)
+            elif chunk_format == TraceAgentPayloadFormat.legacy:
+                for span in chunk["spans"]:
+                    trace_ids_reported_by_agent.add(int(span["traceID"]))
+                    break
 
         def get_span_with_sampling_data(trace: list):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
-            # sampling priority tag will be returned. This isthe same logic found on the trace-agent.
+            # sampling priority tag will be returned. This is the same logic found on the trace-agent.
             span_with_sampling_data = None
             for span in trace:
                 if span.get("metrics", {}).get("_sampling_priority_v1", None) is not None:

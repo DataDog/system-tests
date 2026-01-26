@@ -179,7 +179,6 @@ def rc_check_request(data: dict, expected: dict, *, caching: bool):
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_features
 @features.appsec_onboarding
-@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the Features product"""
 
@@ -327,7 +326,6 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
 @scenarios.remote_config_mocked_backend_asm_dd
 @features.remote_config_object_supported
-@bug(context.library > "php@1.3.2", reason="APPSEC-55129")
 class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product"""
 
