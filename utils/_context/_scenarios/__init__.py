@@ -288,7 +288,7 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec_blocking_full_denylist, scenario_groups.appsec],
     )
 
     appsec_runtime_activation = EndToEndScenario(
@@ -317,7 +317,7 @@ class _Scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec_api_security, scenario_groups.appsec],
     )
 
     appsec_api_security_rc = EndToEndScenario(
