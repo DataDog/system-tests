@@ -683,7 +683,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
-  tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
+  tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
@@ -866,6 +866,7 @@ manifest:
     - weblog_declaration:
         "*": v1.0  # real version not known
         uds: missing_feature (to be confirmed)
+  tests/test_profiling.py::Test_Profile::test_process_tags: v3.35.0
   tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)

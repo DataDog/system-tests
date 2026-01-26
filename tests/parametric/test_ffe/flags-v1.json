@@ -3265,6 +3265,34 @@
         }
       ],
       "totalShards": 10000
+    },
+    "empty-targeting-key-flag": {
+      "key": "empty-targeting-key-flag",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "on": {
+          "key": "on",
+          "value": "on-value"
+        },
+        "off": {
+          "key": "off",
+          "value": "off-value"
+        }
+      },
+      "allocations": [
+        {
+          "key": "default-allocation",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "on",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
     }
   }
 }

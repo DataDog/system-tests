@@ -5,7 +5,7 @@ from collections.abc import Callable
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 
@@ -120,7 +120,6 @@ class Test_Telemetry:
             path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
-    @missing_feature(library="cpp")
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
@@ -131,7 +130,6 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
@@ -185,7 +183,6 @@ class Test_Telemetry:
 
                 last_known_data = data
 
-    @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     @features.telemetry_app_started_event
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
@@ -335,8 +332,6 @@ class Test_Telemetry:
 
     @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @flaky(context.library <= "php@0.90", reason="APMRP-360")
-    @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
@@ -359,10 +354,8 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
-    @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
-    @irrelevant(library="golang")
     @irrelevant(
         library="java",
         reason="""
@@ -448,8 +441,6 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
-    @irrelevant(library="golang")
-    @irrelevant(library="php")
     @irrelevant(library="cpp_nginx")
     @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
@@ -677,12 +668,12 @@ class Test_APMOnboardingInstallID:
         """Assert that at least one trace carries APM onboarding info"""
 
         def validate_at_least_one_span_with_tag(tag: str):
-            for _, span in interfaces.agent.get_spans():
-                meta = span.get("meta", {})
-                if tag in meta:
-                    break
-            else:
-                raise Exception(f"Did not find tag {tag} in any spans")
+            for _, chunk, chunk_format in interfaces.agent.get_traces():
+                for span in chunk.get("spans", []):
+                    span_meta = interfaces.agent.get_span_meta(span, chunk_format)
+                    if tag in span_meta:
+                        return
+            raise Exception(f"Did not find tag {tag} in any spans")
 
         validate_at_least_one_span_with_tag("_dd.install.id")
         validate_at_least_one_span_with_tag("_dd.install.time")
@@ -715,7 +706,6 @@ def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes:
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
     @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
@@ -845,9 +835,7 @@ class Test_ProductsDisabled:
             raise ValueError("app-started event not found in telemetry data")
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "nodejs", reason="feature not implemented")
     @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
-    @irrelevant(library="golang")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
         data_found = False
