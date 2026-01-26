@@ -612,9 +612,6 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <=2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v2.49.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness:
-    - declaration: missing_feature (Added new capabilities)
-      component_version: <3.29.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (dotnet tracer supports re-enabling over RC)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v2.33.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:
