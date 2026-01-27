@@ -38,3 +38,42 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                             attr_val = attribute.get("value").get("stringValue")
                             if attr_key == "http.request.headers.user-agent" and rid in attr_val:
                                 yield span.get("traceId")
+                            elif attr_key == "http.useragent" and rid in attr_val:
+                                yield span.get("traceId")
+
+    def get_otel_spans(self, request: HttpResponse):
+        paths = ["/api/v0.2/traces", "/v1/traces"]
+        rid = request.get_rid()
+
+        if rid:
+            logger.debug(f"Try to find traces related to request {rid}")
+
+        for data in self.get_data(path_filters=paths):
+            for resource_span in data.get("request").get("content").get("resourceSpans"):
+                for scope_span in resource_span.get("scopeSpans"):
+                    for span in scope_span.get("spans"):
+                        for attribute in span.get("attributes", []):
+                            attr_key = attribute.get("key")
+                            attr_val = attribute.get("value").get("stringValue")
+                            if attr_key == "http.request.headers.user-agent" and rid in attr_val:
+                                yield resource_span, span
+                                break # Skip to next span
+                            elif attr_key == "http.useragent" and rid in attr_val:
+                                yield resource_span, span
+                                break # Skip to next span
+
+    def get_trace_stats(self, resource: str):
+        paths = ["/api/v0.2/stats"]
+
+        for data in self.get_data(path_filters=paths):
+            for resource_metric in data.get("request").get("content").get("resourceMetrics"):
+                for scope_metric in resource_metric.get("scopeMetrics"):
+                    if scope_metric.get("scope").get("name") == "datadog.trace.metrics":
+                        for metric in scope_metric.get("metrics"):
+                            if metric.get("name") == "request.latencies":
+                                for data_point in metric.get("histogram").get("dataPoints"):
+                                    for attribute in data_point.get("attributes", []):
+                                        attr_key = attribute.get("key")
+                                        attr_val = attribute.get("value").get("stringValue")
+                                        if attr_key == "Resource" and attr_val == resource:
+                                            yield metric, data_point
