@@ -1163,7 +1163,7 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.ai_guard],
     )
 
 
