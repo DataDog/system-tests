@@ -77,10 +77,6 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
         context.library == "php",
         reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
@@ -536,10 +532,6 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
         context.library == "php",
         reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
@@ -593,10 +585,6 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(
-        context.library == "golang",
-        reason="golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     @missing_feature(
         context.library == "nodejs",
         reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -1003,9 +991,6 @@ class Test_Headers_Tracecontext:
         assert tracestate2[key_with_vendor] == value
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(
-        context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
-    )
     @missing_feature(context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation")
     def test_tracestate_ows_handling(self, test_library: APMLibrary) -> None:
         """Harness sends a request with a valid tracestate header with OWS
