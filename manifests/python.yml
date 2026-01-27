@@ -483,6 +483,7 @@ manifest:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev
@@ -1322,6 +1323,10 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: v3.15.0
+  tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: v3.13.0.dev
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Python SDK bug - LoggerProvider.get_logger() caching doesn't preserve scope attributes when attributes=None)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature
   tests/parametric/test_otel_metrics.py: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
