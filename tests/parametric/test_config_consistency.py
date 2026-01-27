@@ -9,7 +9,6 @@ from utils import (
     features,
     context,
     missing_feature,
-    irrelevant,
     rfc,
     incomplete_test_app,
     logger,

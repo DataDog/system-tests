@@ -1,5 +1,5 @@
 import json
-from utils import weblog, interfaces, context, logger, irrelevant
+from utils import weblog, interfaces, context, logger
 from utils._weblog import HttpResponse
 
 

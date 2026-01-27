@@ -1,5 +1,5 @@
 import pytest
-from utils import missing_feature, context, scenarios, features, irrelevant
+from utils import missing_feature, context, scenarios, features
 from .conftest import APMLibrary
 
 

@@ -12,7 +12,7 @@ import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary

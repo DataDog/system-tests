@@ -1,5 +1,5 @@
 import json
-from utils import context, features, missing_feature, scenarios
+from utils import features, scenarios
 
 import pytest
 from unittest import mock
