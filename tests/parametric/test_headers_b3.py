@@ -137,10 +137,6 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3_single_key()
-    @missing_feature(
-        context.library > "ruby@1.99.0",
-        reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0 but the name is no longer recognized in 2.x",
-    )
     def test_headers_b3_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 

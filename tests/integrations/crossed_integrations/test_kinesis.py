@@ -101,9 +101,6 @@ class _BaseKinesis:
             stream=self.WEBLOG_TO_BUDDY_STREAM,
         )
 
-    @missing_feature(
-        library="java", reason="Expected to fail, Java defaults to using Xray headers to propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -160,9 +157,6 @@ class _BaseKinesis:
             stream=self.BUDDY_TO_WEBLOG_STREAM,
         )
 
-    @missing_feature(
-        library="java", reason="Expected to fail, Java does not extract message attribute context for Kinesis"
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
