@@ -397,17 +397,24 @@ def extract_decorators_from_file(filepath: Path, tests_dir: Path) -> list[dict[s
     return results
 
 
-def find_python_files(tests_dir: Path, exclude_dirs: list[str] | None = None) -> list[Path]:
+def find_python_files(
+    tests_dir: Path,
+    exclude_dirs: list[str] | None = None,
+    exclude_patterns: list[str] | None = None,
+) -> list[Path]:
     """Find all Python test files in the tests directory.
 
     Args:
         tests_dir: Root directory to search
         exclude_dirs: List of directory names to exclude (e.g., ['test', 'fixtures'])
+        exclude_patterns: List of glob patterns to exclude files (e.g., ['**/test_otel*.py'])
 
     Returns:
         List of Python file paths, sorted
 
     """
+    import fnmatch
+
     exclude_set = set(exclude_dirs) if exclude_dirs else set()
     files: list[Path] = []
 
@@ -418,6 +425,15 @@ def find_python_files(tests_dir: Path, exclude_dirs: list[str] | None = None) ->
             if parent.name in exclude_set:
                 should_exclude = True
                 break
+
+        # Check if file matches any exclude pattern
+        if not should_exclude and exclude_patterns:
+            file_str = str(py_file)
+            for pattern in exclude_patterns:
+                if fnmatch.fnmatch(file_str, pattern) or fnmatch.fnmatch(py_file.name, pattern):
+                    should_exclude = True
+                    break
+
         if not should_exclude:
             files.append(py_file)
 
@@ -1205,6 +1221,7 @@ def output_manifest_entries(
     filter_existing: bool = False,
     manifests_dir: Path | None = None,
     show_existing: bool = False,
+    exclude_libraries: list[str] | None = None,
 ) -> None:
     """Output manifest entries generated from decorators.
 
@@ -1215,12 +1232,18 @@ def output_manifest_entries(
         filter_existing: If True, filter out entries already in manifests
         manifests_dir: Path to manifests directory (for filtering)
         show_existing: If True, also show entries that are already in manifests
+        exclude_libraries: Optional list of library names to exclude
 
     """
     manifest_data = generate_manifest_entries(decorators)
 
     if library_filter:
         manifest_data = {k: v for k, v in manifest_data.items() if k == library_filter}
+
+    # Exclude libraries if specified
+    if exclude_libraries:
+        exclude_set = set(exclude_libraries)
+        manifest_data = {k: v for k, v in manifest_data.items() if k not in exclude_set}
 
     # Filter out existing entries if requested
     filtered_results: dict[str, dict[str, list[dict[str, Any]]]] | None = None
@@ -1767,6 +1790,18 @@ def main() -> None:
         default=[],
         help="Directory names to exclude from scanning (can be specified multiple times)",
     )
+    parser.add_argument(
+        "--exclude-pattern",
+        action="append",
+        default=[],
+        help="Glob patterns to exclude files (e.g., '**/test_otel*.py', can be specified multiple times)",
+    )
+    parser.add_argument(
+        "--exclude-library",
+        action="append",
+        default=[],
+        help="Exclude decorators targeting specific libraries (e.g., 'python', can be specified multiple times)",
+    )
 
     # Simplicity filtering options
     simplicity_group = parser.add_mutually_exclusive_group()
@@ -1855,13 +1890,19 @@ def main() -> None:
         sys.exit(1)
 
     exclude_dirs = args.exclude_dir if args.exclude_dir else None
+    exclude_patterns = args.exclude_pattern if args.exclude_pattern else None
     if not args.json and not args.manifest:
-        exclude_msg = f" (excluding: {', '.join(exclude_dirs)})" if exclude_dirs else ""
+        exclusions = []
+        if exclude_dirs:
+            exclusions.append(f"dirs: {', '.join(exclude_dirs)}")
+        if exclude_patterns:
+            exclusions.append(f"patterns: {', '.join(exclude_patterns)}")
+        exclude_msg = f" (excluding {'; '.join(exclusions)})" if exclusions else ""
         sys.stderr.write(f"Scanning {tests_dir} for decorators{exclude_msg}...\n")
 
     all_results: list[dict[str, Any]] = []
 
-    for filepath in find_python_files(tests_dir, exclude_dirs=exclude_dirs):
+    for filepath in find_python_files(tests_dir, exclude_dirs=exclude_dirs, exclude_patterns=exclude_patterns):
         results = extract_decorators_from_file(filepath, tests_dir)
         all_results.extend(results)
 
@@ -1886,6 +1927,11 @@ def main() -> None:
         # Filter by library if specified
         if args.manifest_library:
             manifest_data = {k: v for k, v in manifest_data.items() if k == args.manifest_library}
+
+        # Exclude libraries if specified
+        if args.exclude_library:
+            exclude_set = set(args.exclude_library)
+            manifest_data = {k: v for k, v in manifest_data.items() if k not in exclude_set}
 
         # Filter to only NEW entries
         filtered_results = filter_all_entries_not_in_manifests(manifest_data, manifests_dir)
@@ -1959,6 +2005,11 @@ def main() -> None:
         # Filter by library if specified
         if args.manifest_library:
             manifest_data = {k: v for k, v in manifest_data.items() if k == args.manifest_library}
+
+        # Exclude libraries if specified
+        if args.exclude_library:
+            exclude_set = set(args.exclude_library)
+            manifest_data = {k: v for k, v in manifest_data.items() if k not in exclude_set}
 
         # Filter to find IDENTICAL entries
         filtered_results = filter_all_entries_not_in_manifests(manifest_data, manifests_dir)
@@ -2054,6 +2105,7 @@ def main() -> None:
             filter_existing=args.filter_existing,
             manifests_dir=manifests_dir,
             show_existing=args.show_existing,
+            exclude_libraries=args.exclude_library if args.exclude_library else None,
         )
         return
 
