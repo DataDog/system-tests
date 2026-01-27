@@ -11,9 +11,6 @@ class Test_Partial_Flushing:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true"}]
     )
-    @missing_feature(
-        context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
-    )
     def test_partial_flushing_one_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test explicitly enables partial flushing.
@@ -21,9 +18,6 @@ class Test_Partial_Flushing:
         self.do_partial_flush_test(test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1"}])
-    @missing_feature(
-        context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
-    )
     def test_partial_flushing_one_span_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test assumes partial flushing is enabled by default.

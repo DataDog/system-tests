@@ -259,7 +259,6 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))
@@ -288,7 +287,6 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))

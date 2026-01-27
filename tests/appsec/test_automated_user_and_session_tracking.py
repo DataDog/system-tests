@@ -73,7 +73,6 @@ class Test_Automated_User_Tracking:
         self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         self.r_users = weblog.get("/users?user=sdkUser", cookies=self.r_login.cookies)
 
-    @missing_feature(context.library == "java")
     def test_user_tracking_sdk_overwrite(self):
         assert self.r_login.status_code == 200
 
@@ -176,7 +175,6 @@ class Test_Automated_User_Blocking:
             cookies=self.r_login.cookies,
         )
 
-    @missing_feature(context.library == "java")
     def test_user_blocking_sdk(self):
         assert self.r_login.status_code == 200
 

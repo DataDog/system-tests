@@ -327,7 +327,6 @@ class Test_AsmDdMultiConfiguration:
     and provide the ASM_DD_MULTICONFIG(42) capability
     """
 
-    @missing_feature(context.library == "java")
     def test_asm_dd_multiconfig_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
 

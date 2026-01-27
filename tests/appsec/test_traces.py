@@ -88,7 +88,6 @@ class Test_AppSecEventSpanTags:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
-    @bug(library="python_lambda", reason="APPSEC-58202")
     @bug(
         context.library < "nodejs@5.57.0",
         weblog_variant="fastify",
@@ -238,7 +237,6 @@ class Test_AppSecObfuscator:
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
     @scenarios.appsec_custom_rules
-    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -265,7 +263,6 @@ class Test_AppSecObfuscator:
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
-    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.
@@ -301,7 +298,6 @@ class Test_CollectRespondHeaders:
         context.scenario is scenarios.go_proxies,
         reason="The endpoint /headers is not implemented in the weblog",
     )
-    @bug(library="python_lambda", reason="APPSEC-58202")
     def test_header_collection(self):
         def assert_header_in_span_meta(span: dict, header: str):
             if header not in span["meta"]:

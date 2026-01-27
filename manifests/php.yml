@@ -428,6 +428,7 @@ manifest:
     - weblog_declaration:
         apache-mod-8.0: irrelevant
   tests/appsec/waf/test_rules.py::Test_NoSqli: v0.68.3
+  tests/appsec/waf/test_rules.py::Test_NoSqli::test_nosqli_keys: missing_feature (Need to use last WAF version)
   tests/appsec/waf/test_rules.py::Test_PhpCodeInjection: v0.68.3
   tests/appsec/waf/test_rules.py::Test_RFI: v0.68.3
   tests/appsec/waf/test_rules.py::Test_SQLI: v0.68.3

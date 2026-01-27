@@ -215,9 +215,6 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_otel_enabled"] == "true"
 
     @missing_feature(
-        context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
-    )
-    @missing_feature(
         context.library == "java",
         reason="Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.",
     )
