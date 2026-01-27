@@ -181,7 +181,7 @@ class Test_Blocking_request_method:
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
@@ -247,7 +247,7 @@ class Test_Blocking_request_uri:
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
@@ -306,7 +306,7 @@ class Test_Blocking_request_path_params:
         self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /param is not implemented in the weblog",
     )
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
@@ -381,7 +381,7 @@ class Test_Blocking_request_query:
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
@@ -440,7 +440,7 @@ class Test_Blocking_request_headers:
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
@@ -499,7 +499,7 @@ class Test_Blocking_request_cookies:
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies_blocking,
+        context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")

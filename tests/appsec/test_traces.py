@@ -301,7 +301,7 @@ class Test_CollectRespondHeaders:
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @missing_feature(
-        context.scenario is scenarios.go_proxies,
+        context.scenario is scenarios.go_proxies_default,
         reason="The endpoint /headers is not implemented in the weblog",
     )
     @bug(library="python_lambda", reason="APPSEC-58202")

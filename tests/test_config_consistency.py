@@ -15,7 +15,6 @@ from utils import (
     bug,
     missing_feature,
     logger,
-    incomplete_test_app,
 )
 
 # get the default log output
