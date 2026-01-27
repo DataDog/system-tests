@@ -2,9 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as debugger
+import pytest
 import re
 import json
+
+import tests.debugger.utils as debugger
 from utils import scenarios, features
 
 
@@ -131,6 +133,8 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
     def test_expression_language_contextual_variables(self):
+        if self.get_tracer()["language"] == "nodejs":
+            pytest.fail("Contextual variables (@return, @duration) are not supported in Node.js - method probes not available")
         self._assert(expected_response=200)
 
     ############ access exception ############
