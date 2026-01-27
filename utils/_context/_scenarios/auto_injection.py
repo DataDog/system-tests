@@ -52,13 +52,16 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
         # Check if the datadog-apm-library is installed.
+        logger.stdout(f"RMM Provision install error: {self.vm_provider.vm.provision_install_error}")
+        apm_library_version = self.components.get("datadog-apm-library", None)
         if (
-            "datadog-apm-library" not in self.components or not self.components["datadog-apm-library"]
+            not apm_library_version or apm_library_version == "0.0.0"
         ) and self.vm_provider.vm.provision_install_error is None:
             logger.stdout("❌ No datadog-apm-library found ❌ ")
             logger.stdout("This is not a valid scenario")
             logger.stdout("Please, check the log file for more details")
             logger.stdout(f"Log file: {self.host_log_folder}/tests.log")
+            pytest.exit("No datadog-apm-library found", returncode=3)
 
     def configure(self, config: pytest.Config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
