@@ -313,6 +313,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: v3.10.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v3.10.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v3.10.0
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: v3.11.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking::test_session_blocking: missing_feature (Session ids can't be set.)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v3.10.0

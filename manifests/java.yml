@@ -1548,6 +1548,7 @@ manifest:
         spring-boot-3-native: flaky (APMAPI-979)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v1.46.0
