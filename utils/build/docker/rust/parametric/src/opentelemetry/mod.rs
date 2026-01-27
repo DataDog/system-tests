@@ -8,9 +8,10 @@ use axum::{
     Json, Router,
 };
 use opentelemetry::{
+    logs::{LoggerProvider, Logger, LogRecord, Severity, AnyValue},
     metrics::{Counter, Gauge, Histogram, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
     trace::{Link, Span, TraceContextExt, Tracer},
-    Context, KeyValue,
+    Context, InstrumentationScope, KeyValue,
 };
 
 use tracing::debug;
@@ -53,6 +54,8 @@ pub fn app() -> Router<AppState> {
         .route("/metrics/otel/create_asynchronous_updowncounter", post(otel_create_asynchronous_updowncounter))
         .route("/metrics/otel/create_asynchronous_gauge", post(otel_create_asynchronous_gauge))
         .route("/metrics/otel/force_flush", post(otel_metrics_force_flush))
+        .route("/otel/logger/create", post(otel_create_logger))
+        .route("/otel/logger/write", post(otel_write_log))
 }
 
 // Handler implementations
@@ -763,4 +766,90 @@ async fn otel_metrics_force_flush(
         false
     };
     Json(OtelMetricsForceFlushReturn { success: result })
+}
+
+// --- Logs Handlers ---
+
+async fn otel_create_logger(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateLoggerArgs>,
+) -> Json<OtelCreateLoggerReturn> {
+    let mut loggers = state.otel_loggers.lock().unwrap();
+    if loggers.contains_key(&args.name) {
+        return Json(OtelCreateLoggerReturn { success: false });
+    }
+
+    loggers.insert(args.name.clone(), (args.name.clone(), args.version.clone(), args.schema_url.clone()));
+    Json(OtelCreateLoggerReturn { success: true })
+}
+
+async fn otel_write_log(
+    State(state): State<AppState>,
+    Json(args): Json<OtelWriteLogArgs>,
+) -> Json<OtelWriteLogReturn> {
+    let loggers = state.otel_loggers.lock().unwrap();
+    let (logger_name, version, schema_url) = loggers
+        .get(&args.logger_name)
+        .expect("Logger not found in registered loggers");
+
+    let logger_provider_guard = state.logger_provider.lock().unwrap();
+    let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
+    
+    let name_static: &'static str = Box::leak(logger_name.clone().into_boxed_str());
+    let mut scope_builder = InstrumentationScope::builder(name_static);
+    
+    if let Some(v) = version {
+        let version_static: &'static str = Box::leak(v.clone().into_boxed_str());
+        scope_builder = scope_builder.with_version(version_static);
+    }
+    
+    if let Some(s) = schema_url {
+        let schema_url_static: &'static str = Box::leak(s.clone().into_boxed_str());
+        scope_builder = scope_builder.with_schema_url(schema_url_static);
+    }
+    
+    let scope = scope_builder.build();
+    let logger = logger_provider.logger_with_scope(scope);
+
+    let severity = match args.level.to_uppercase().as_str() {
+        "DEBUG" => Severity::Debug,
+        "INFO" => Severity::Info,
+        "WARNING" | "WARN" => Severity::Warn,
+        "ERROR" => Severity::Error,
+        _ => Severity::Info,
+    };
+
+    let severity_text_static: &'static str = Box::leak(args.level.to_uppercase().into_boxed_str());
+    let message_static: &'static str = Box::leak(args.message.clone().into_boxed_str());
+
+    let mut log_record = logger.create_log_record();
+    log_record.set_severity_number(severity);
+    log_record.set_severity_text(severity_text_static);
+    log_record.set_body(AnyValue::String(message_static.into()));
+    
+    if let Some(span_id) = args.span_id {
+        let contexts = state.contexts.lock().unwrap();
+        let otel_spans = state.extracted_span_contexts.lock().unwrap();
+        
+        if let Some(ctx) = contexts.get(&span_id) {
+            let span = ctx.context.span();
+            let span_context = span.span_context();
+            log_record.set_trace_context(
+                span_context.trace_id(),
+                span_context.span_id(),
+                Some(span_context.trace_flags()),
+            );
+        } else if let Some(ctx) = otel_spans.get(&span_id) {
+            let span = ctx.span();
+            let span_context = span.span_context();
+            log_record.set_trace_context(
+                span_context.trace_id(),
+                span_context.span_id(),
+                Some(span_context.trace_flags()),
+            );
+        }
+    }
+
+    logger.emit(log_record);
+    Json(OtelWriteLogReturn { success: true })
 }
