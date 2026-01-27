@@ -755,7 +755,7 @@ class Test_Parametric_Write_Log:
         reason="Logs endpoint is only implemented in python and node.js app",
     )
     def test_write_log(self, test_library: APMLibrary):
-        """Validates that /log/write creates a log message with the specified parameters.
+        """Validates that /otel/logger/write creates a log message with the specified parameters.
 
         Supported Parameters:
         - message: str
@@ -767,18 +767,18 @@ class Test_Parametric_Write_Log:
         - success: bool
         """
         # Test with different log levels
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger")
+        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", create_logger=True)
         assert result is True
 
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger")
+        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", create_logger=True)
         assert result is True
 
         # Test with custom logger name
-        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
+        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger", create_logger=True)
         assert result is True
 
     def test_write_log_with_span_id(self, test_library: APMLibrary):
-        """Validates that /log/write creates a log message with the specified parameters.
+        """Validates that /otel/logger/write creates a log message with the specified parameters.
 
         Supported Parameters:
         - message: str
@@ -792,10 +792,14 @@ class Test_Parametric_Write_Log:
         with test_library.dd_start_span("dd_span") as s2:
             pass
 
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", span_id=s1.span_id)
+        result = test_library.write_log(
+            "Warning message", LogLevel.WARNING, "warning_logger", create_logger=True, span_id=s1.span_id
+        )
         assert result is True
 
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", span_id=s2.span_id)
+        result = test_library.write_log(
+            "Error message", LogLevel.ERROR, "error_logger", create_logger=True, span_id=s2.span_id
+        )
         assert result is True
 
 
