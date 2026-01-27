@@ -26,7 +26,7 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.6.0
-  tests/appsec/api_security/test_apisecurity_telemetry.py: 4.3.0-dev0
+  tests/appsec/api_security/test_apisecurity_telemetry.py: v4.3.0-dev0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
@@ -303,42 +303,42 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
     - weblog_declaration:
         "*": v3.18.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
     - weblog_declaration:
         "*": v4.1.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_status:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
@@ -396,41 +396,41 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.11.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v2.16.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
     - weblog_declaration:
         "*": v3.5.0.dev
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
@@ -483,7 +483,7 @@ manifest:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
-  tests/appsec/test_automated_payment_events.py: missing_feature
+  tests/appsec/test_automated_payment_events.py: v4.2.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev
