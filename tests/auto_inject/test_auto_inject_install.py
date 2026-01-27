@@ -93,13 +93,6 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
         "Ubuntu_25_04_arm64",
     ]
 
-    @missing_feature(
-        context.vm_name in ruby_bug_platforms,
-        library="ruby",
-        reason="""Missing TCP cgroup2 support.
-        See: https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3189670032/Traces+missing+container+tags+with+cgroup+V2#Tracer-Side
-        """,
-    )
     def test_install(self):
         self._test_install(context.virtual_machine, origin_detection=True)
 
