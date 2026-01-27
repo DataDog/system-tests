@@ -288,13 +288,25 @@ def analyze_decorator_simplicity(decorator: ast.expr) -> tuple[bool, str]:
         # Uses attributes other than context.library
         return False, f"Uses non-library attributes: {', '.join(sorted(non_library_attrs))}"
 
+    # Check for 'or' operator - makes conditions complex
+    if " or " in condition_str.lower():
+        return False, "Condition uses 'or' operator"
+
+    # Check for '!=' operator - affects multiple libraries (all except specified)
+    if "!=" in condition_str:
+        return False, "Condition uses '!=' operator (affects multiple libraries)"
+
+    # Check for 'not in' operator - affects multiple libraries
+    if " not in " in condition_str:
+        return False, "Condition uses 'not in' operator (affects multiple libraries)"
+
     # Check if condition involves multiple libraries
     lib_count = count_libraries_in_condition(condition_str)
     if lib_count > 1:
         return False, f"Condition involves {lib_count} libraries"
 
     # Check for 'in' operator with multiple values (e.g., context.library in ['java', 'python'])
-    if " in " in condition_str or " not in " in condition_str:
+    if " in " in condition_str:
         # Check if it's a list/tuple with multiple items
         if re.search(r"\[.*,.*\]|\(.*,.*\)", condition_str):
             return False, "Condition uses 'in' with multiple values"
