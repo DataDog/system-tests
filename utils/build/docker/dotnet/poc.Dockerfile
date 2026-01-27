@@ -3,8 +3,6 @@ WORKDIR /app
 
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
-COPY utils/build/docker/dotnet/weblog/nuget.config ./nuget.config
-COPY utils/build/docker/dotnet/weblog/nuget/ ./nuget/
 RUN dotnet restore
 
 # dotnet publish

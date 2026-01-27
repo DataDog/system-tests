@@ -47,8 +47,9 @@
         <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="OpenFeature" Version="2.0.0" />
+        <PackageReference Include="Datadog.FeatureFlags.OpenFeature" Version="2.0.0" />
 
-        <PackageReference Include="Datadog.Trace" Version="3.36.0" />
+        <PackageReference Include="Datadog.Trace" Version="*" />
         <PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
     </ItemGroup>
 </Project>
