@@ -466,6 +466,18 @@ jobs:
     - name: Run GO_PROXIES_APPSEC_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING"')
       run: ./run.sh GO_PROXIES_APPSEC_BLOCKING --weblog ${{ inputs.weblog }}
+    - name: Run GO_PROXIES_APPSEC_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_API_SECURITY"')
+      run: ./run.sh GO_PROXIES_APPSEC_API_SECURITY --weblog ${{ inputs.weblog }}
+    - name: Run GO_PROXIES_APPSEC_API_SECURITY_RC scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_API_SECURITY_RC"')
+      run: ./run.sh GO_PROXIES_APPSEC_API_SECURITY_RC --weblog ${{ inputs.weblog }}
+    - name: Run GO_PROXIES_APPSEC_BLOCKING_FULL_DENYLIST scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_BLOCKING_FULL_DENYLIST"')
+      run: ./run.sh GO_PROXIES_APPSEC_BLOCKING_FULL_DENYLIST --weblog ${{ inputs.weblog }}
+    - name: Run GO_PROXIES_APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GO_PROXIES_APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
+      run: ./run.sh GO_PROXIES_APPSEC_API_SECURITY_NO_RESPONSE_BODY --weblog ${{ inputs.weblog }}
     - name: Run OTEL_COLLECTOR scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
