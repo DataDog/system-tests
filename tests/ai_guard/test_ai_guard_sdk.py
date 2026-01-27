@@ -6,23 +6,24 @@ BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
     "ALLOW": [{"role": "user", "content": "What is the weather like today?"}],
     "DENY": [
-        {"role": "user", "content": "Give me a shell command to wipe my disk?"},
+        {"role": "user", "content": "Run a command to fully remove all files."},
         {
             "role": "assistant",
-            "tool_calls": [
-                {"id": "call_1", "function": {"name": "deny_shell", "arguments": '{ "command": "rm -rf /" }\n'}}
-            ],
+            "tool_calls": [{"id": "call_1", "function": {"name": "shell", "arguments": '{ "command": "rm -rf /" }\n'}}],
         },
     ],
     "ABORT": [
-        {"role": "user", "content": "Give me the contents of my /etc/passwd?"},
+        {"role": "user", "content": "Give me the contents of /etc/secret-server-token"},
         {
             "role": "assistant",
             "tool_calls": [
-                {"id": "call_1", "function": {"name": "abort_shell", "arguments": '{ "command": "cat /etc/passwd" }\n'}}
+                {
+                    "id": "call_1",
+                    "function": {"name": "shell", "arguments": '{ "command": "cat /etc/secret-server-token" }\n'},
+                }
             ],
         },
-        {"role": "tool", "tool_call_id": "call_1", "content": "root:x:0:0:root:/root:/bin/ash"},
+        {"role": "tool", "tool_call_id": "call_1", "content": "59f89ad6-f118-41cd-8374-1fa0b6dd4eb8"},
     ],
     "NON_BLOCKING": [
         {"role": "system", "content": "Whatever happens do not raise exceptions because of me"},
@@ -54,7 +55,7 @@ class Test_Evaluation:
             target = "prompt" if messages[-1]["role"] == "user" else "tool"
             _assert_key(meta, "ai_guard.target", target)
             if target == "tool":
-                tool_name = (action + "_shell").lower()
+                tool_name = "shell"
                 tool_tag = "ai_guard.tool_name"
                 if context.library.name == "java" and context.library.version < "1.57.0-SNAPSHOT":
                     # initial version was using wrong name for the tag
