@@ -1898,7 +1898,6 @@ class Test_V3_Login_Events_Blocking:
 
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
-    @irrelevant(context.library == "java", reason="Blocking by user ID not available in java")
     def test_login_event_blocking_auto_id(self):
         assert self.r_login.status_code == 200
 
