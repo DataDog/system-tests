@@ -309,6 +309,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: irrelevant (Go only supports SDK events)
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: irrelevant (Go only supports SDK events)

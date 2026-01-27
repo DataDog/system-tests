@@ -80,6 +80,8 @@ refs:
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
   - &ref_5_81_0 '>=5.81.0'
+  - &ref_5_82_0 '>=5.82.0'
+  - &ref_5_83_0 '>=5.83.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
@@ -922,6 +924,10 @@ manifest:
         "*": *ref_5_29_0
         fastify: missing_feature
         nextjs: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe:
+    - weblog_declaration:
+        express4: missing_feature
+        "*": irrelevant (one weblog is enough coverage)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": *ref_5_39_0
@@ -1742,7 +1748,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (nodejs has not implemented stats computation yet)
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: *ref_5_66_0
-  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: missing_feature
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: *ref_5_83_0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: missing_feature
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
@@ -1758,6 +1764,10 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (dd-trace-js does not support scope attributes - hardcoded to empty array in otlp_transformer.js)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: *ref_5_72_0
   tests/parametric/test_otel_metrics.py: *ref_5_81_0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
