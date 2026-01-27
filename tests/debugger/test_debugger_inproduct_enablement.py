@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, context, logger, bug
+from utils import features, scenarios, context, logger, bug, missing_feature
 import json
 import time
 
@@ -167,6 +167,8 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
+@missing_feature(context.library == "java", force_skip=True)
+@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def _check_code_origin(self):
