@@ -3,7 +3,7 @@
 # Copyright 2024 Datadog, Inc.
 
 import json
-from utils import weblog, scenarios, features, incomplete_test_app
+from utils import weblog, scenarios, features
 
 
 @features.otel_propagators_api

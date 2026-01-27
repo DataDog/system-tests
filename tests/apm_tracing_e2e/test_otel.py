@@ -1,4 +1,4 @@
-from utils import context, weblog, scenarios, interfaces, irrelevant, bug, features
+from utils import context, weblog, scenarios, interfaces, irrelevant, features
 from utils.dd_constants import TraceAgentPayloadFormat
 
 

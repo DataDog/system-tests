@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
+from utils import weblog, interfaces, scenarios, features, bug, context, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
