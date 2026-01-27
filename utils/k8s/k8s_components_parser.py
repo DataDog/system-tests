@@ -34,7 +34,10 @@ class K8sComponentsParser:
             component_data = component_data[lang]
 
         # Return pinned if exists, otherwise prod
-        result: str = component_data.get("pinned", component_data["prod"])
+        if "pinned" in component_data:
+            result: str = component_data["pinned"]
+        else:
+            result = component_data["prod"]
         return result
 
     def get_all_component_versions(self, component: str, lang: str | None = None) -> list[str]:
