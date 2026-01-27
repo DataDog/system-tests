@@ -36,12 +36,9 @@
         }
     },
     "helm_chart": {
-        "pinned": "3.156.1",
-        "prod": "3.161.1"
+        "pinned": "3.161.1"
     },
     "helm_chart_operator": {
-        "pinned": "2.16.0",
-        "prod": "2.17.0",
-        "dev": "2.18.0-dev.1"
+        "pinned": "2.17.0"
     }
 }
