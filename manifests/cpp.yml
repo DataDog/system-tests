@@ -9,6 +9,7 @@
 # use `>1.0.0` to indicate that requirement.
 # NOTE: only parametric tests are run for cpp, there is no need to mark other tests as "missing_feature" here.
 manifest:
+  tests/openfeature/test_ddtrace_without_openfeature.py: irrelevant (nodejs-only test)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: missing_feature (propagation style not supported)
