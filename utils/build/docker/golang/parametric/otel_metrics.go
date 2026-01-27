@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 )
@@ -577,28 +578,14 @@ func (s *apmClientServer) otelMetricsForceFlushHandler(w http.ResponseWriter, r 
 }
 
 func (s *apmClientServer) OtelMetricsForceFlush() bool {
-	// Get the global meter provider configured by dd-trace-go
-	meterProvider := otel.GetMeterProvider()
-
-	// The SDK MeterProvider has a ForceFlush method
-	// We need to type assert to access it
-	type flusher interface {
-		ForceFlush(context.Context) error
+	// Use the dd-trace-go helper to flush metrics
+	mp := otel.GetMeterProvider()
+	ctx := context.Background()
+	if err := ddmetric.ForceFlush(ctx, mp); err != nil {
+		fmt.Printf("Error flushing metrics: %v\n", err)
+		return false
 	}
-
-	if f, ok := meterProvider.(flusher); ok {
-		ctx := context.Background()
-		if err := f.ForceFlush(ctx); err != nil {
-			fmt.Printf("Error flushing metrics: %v\n", err)
-			return false
-		}
-		return true
-	}
-
-	// If ForceFlush is not available, return false
-	// This happens when OpenTelemetry metrics is disabled
-	fmt.Printf("MeterProvider does not support ForceFlush\n")
-	return false
+	return true
 }
 
 // Helper function to create instrument key
