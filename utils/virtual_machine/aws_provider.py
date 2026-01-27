@@ -78,7 +78,13 @@ class AWSPulumiProvider(VmProvider):
             )
         except pulumi.automation.errors.CommandError as pulumi_command_exception:
             logger.stdout("❌ Exception launching aws provision step remote command ❌")
-            logger.stdout(f"(Please, check the log file: {context.vm_name}.log)")
+            logger.stdout(f"(Please, check the log file: {context.scenario.host_log_folder}/{context.vm_name}.log)")
+            logger.stdout(
+                "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#troubleshooting"
+            )
+            logger.stdout(
+                "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+            )
             vm_logger(context.scenario.host_log_folder, context.vm_name).error(
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
@@ -86,8 +92,16 @@ class AWSPulumiProvider(VmProvider):
             self._handle_provision_error(pulumi_command_exception)
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
-            logger.stdout(f"(Please, check the log file: tests.log and search for the text chain 'Diagnostics:')")
+            logger.stdout(
+                f"(Please, check the log file: {context.scenario.host_log_folder}/tests.log and search for the text chain 'Diagnostics:')"
+            )
             logger.debug(f"The error class name: {pulumi_exception.__class__.__name__}")
+            logger.stdout(
+                "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#troubleshooting"
+            )
+            logger.stdout(
+                "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+            )
             self._handle_provision_error(pulumi_exception)
 
     def get_windows_user_data(self):

@@ -52,7 +52,9 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
         # Check if the datadog-apm-library is installed.
-        if "datadog-apm-library" not in self.components or not self.components["datadog-apm-library"]:
+        if (
+            "datadog-apm-library" not in self.components or not self.components["datadog-apm-library"]
+        ) and self.vm_provider.vm.provision_install_error is None:
             logger.stdout("❌ No datadog-apm-library found ❌ ")
             logger.stdout("This is not a valid scenario")
             logger.stdout("Please, check the log file for more details")
