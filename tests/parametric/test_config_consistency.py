@@ -10,8 +10,6 @@ from utils import (
     context,
     missing_feature,
     irrelevant,
-    flaky,
-    bug,
     rfc,
     incomplete_test_app,
     logger,
@@ -98,7 +96,6 @@ class Test_Config_UnifiedServiceTagging:
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
-    @missing_feature(context.library < "ruby@2.7.1-dev")
     def test_specific_version(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
             with test_library.dd_start_span(name="s1") as s1:
@@ -187,8 +184,6 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(context.library == "ruby", reason="does not support ipv6")
-    @missing_feature(library="cpp")
     def test_dd_trace_agent_http_url_ipv6(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
@@ -208,11 +203,6 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
-    @missing_feature(library="cpp")
     def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
@@ -244,9 +234,6 @@ class Test_Config_RateLimit:
         "library_env",
         [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
     )
-    @flaky(library="java", reason="APMAPI-908")
-    @bug(context.library == "golang", reason="APMAPI-1030")
-    @missing_feature(library="cpp")
     def test_setting_trace_rate_limit_strict(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
             with test_library.dd_start_span(name="s1"):
@@ -557,7 +544,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_extended_configs(
         self,
         test_library: APMLibrary,
@@ -648,7 +634,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    @bug(context.library <= "ruby@2.22.0", reason="APMAPI-1774")
     def test_invalid_files(self, test_library: APMLibrary, path: str):
         with test_library:
             self.write_stable_config_content(

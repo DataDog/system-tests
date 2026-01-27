@@ -129,7 +129,8 @@
         "properties": {
           "ddsource": { "type": "string" },
           "service": { "type": "string" },
-          "runtimeId": { "type": "string" }
+          "runtimeId": { "type": "string" },
+          "debugger.type": { "type": "string" }
         },
         "required": [
           "ddsource",
@@ -138,10 +139,11 @@
         ],
         "not": {
           "anyOf": [
-            { "required": ["debugger"] },
             { "required": ["env"] },
             { "required": ["language"] },
-            { "required": ["scopes"] }
+            { "required": ["scopes"] },
+            { "required": ["message"] },
+            { "required": ["snapshot"] }
           ]
         }
       },

@@ -76,6 +76,10 @@ on:
         default: "datadoghq.com"
         required: false
         type: string
+    secrets:
+      TEST_OPTIMIZATION_API_KEY:
+        description: "API key for pushing test results to DataDog Test Optimization"
+        required: false
 
 env:
   REGISTRY: ghcr.io

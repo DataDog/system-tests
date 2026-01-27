@@ -12,7 +12,7 @@ import time
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 
-from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context
+from utils import incomplete_test_app, scenarios, features, context
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_span_in_traces
@@ -641,8 +641,6 @@ class Test_Parametric_OtelSpan_Events:
         assert events[0]["time_unix_nano"] == 1730393556000000000
         assert events[0]["attributes"]["key"] == "value"
 
-    @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
-    @bug(library="nodejs", reason="APMAPI-778")  # doees not set attributes on the exception event
     def test_record_exception(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/record_exception adds an exception event to a span.
 
@@ -757,7 +755,7 @@ class Test_Parametric_Write_Log:
         reason="Logs endpoint is only implemented in python and node.js app",
     )
     def test_write_log(self, test_library: APMLibrary):
-        """Validates that /log/write creates a log message with the specified parameters.
+        """Validates that /otel/logger/write creates a log message with the specified parameters.
 
         Supported Parameters:
         - message: str
@@ -769,18 +767,18 @@ class Test_Parametric_Write_Log:
         - success: bool
         """
         # Test with different log levels
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger")
+        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", create_logger=True)
         assert result is True
 
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger")
+        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", create_logger=True)
         assert result is True
 
         # Test with custom logger name
-        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
+        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger", create_logger=True)
         assert result is True
 
     def test_write_log_with_span_id(self, test_library: APMLibrary):
-        """Validates that /log/write creates a log message with the specified parameters.
+        """Validates that /otel/logger/write creates a log message with the specified parameters.
 
         Supported Parameters:
         - message: str
@@ -794,10 +792,14 @@ class Test_Parametric_Write_Log:
         with test_library.dd_start_span("dd_span") as s2:
             pass
 
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", span_id=s1.span_id)
+        result = test_library.write_log(
+            "Warning message", LogLevel.WARNING, "warning_logger", create_logger=True, span_id=s1.span_id
+        )
         assert result is True
 
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", span_id=s2.span_id)
+        result = test_library.write_log(
+            "Error message", LogLevel.ERROR, "error_logger", create_logger=True, span_id=s2.span_id
+        )
         assert result is True
 
 

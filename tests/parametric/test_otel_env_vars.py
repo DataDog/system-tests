@@ -95,10 +95,6 @@ class Test_Otel_Env_Vars:
         if context.library != "php":
             assert resp["dd_runtime_metrics_enabled"] == "false"
 
-    @missing_feature(context.library == "python", reason="DD_LOG_LEVEL is not supported in Python")
-    @missing_feature(context.library == "dotnet", reason="DD_LOG_LEVEL is not supported in .NET")
-    @missing_feature(context.library == "ruby", reason="DD_LOG_LEVEL is not supported in ruby")
-    @missing_feature(context.library == "golang", reason="DD_LOG_LEVEL is not supported in go")
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "error"}])
     def test_otel_log_level_env(self, test_library: APMLibrary):
         with test_library as t:
@@ -209,26 +205,19 @@ class Test_Otel_Env_Vars:
         # If dd_log_level is set it must be consistent with dd_trace_debug
         assert (resp["dd_log_level"] == "debug") or (resp["dd_log_level"] is None)
 
-    @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
     @missing_feature(
         context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
     )
-    @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}])
     def test_dd_trace_otel_enabled_takes_precedence(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_otel_enabled"] == "true"
 
-    @missing_feature(context.library == "nodejs", reason="this setting is not exposed in the Node.js config object")
-    @missing_feature(
-        context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
-    )
     @missing_feature(
         context.library == "java",
         reason="Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.",
     )
-    @irrelevant(context.library == "golang", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED")
     @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true", "DD_TRACE_OTEL_ENABLED": None}])
     def test_otel_sdk_disabled_set(self, test_library: APMLibrary):
         with test_library as t:

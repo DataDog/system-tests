@@ -10,11 +10,8 @@ from utils.dd_constants import SamplingPriority
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
@@ -56,11 +53,8 @@ class Test_RetainTraces:
         interfaces.library.validate_one_span(self.r, validator=validate_appsec_event_span_tags)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
@@ -94,8 +88,6 @@ class Test_AppSecEventSpanTags:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
-    @bug(library="python_lambda", reason="APPSEC-58202")
-    @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @bug(
         context.library < "nodejs@5.57.0",
         weblog_variant="fastify",
@@ -103,7 +95,7 @@ class Test_AppSecEventSpanTags:
     )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
     @irrelevant(
-        context.scenario is scenarios.external_processing or context.scenario is scenarios.stream_processing_offload,
+        context.scenario in (scenarios.go_proxies, scenarios.go_proxies_blocking),
         reason="Irrelevant tag set for golang",
     )
     def test_header_collection(self):
@@ -123,7 +115,6 @@ class Test_AppSecEventSpanTags:
             missing_response_headers = set(required_response_headers) - set(span.get("meta", {}).keys())
             assert not missing_response_headers, f"Missing response headers: {missing_response_headers}"
 
-    @bug(context.library < "java@0.93.0", reason="APMRP-360")
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc", "serverless"]
@@ -142,12 +133,9 @@ class Test_AppSecEventSpanTags:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
@@ -219,7 +207,6 @@ class Test_AppSecObfuscator:
             params={"payload": sensitive_raw_payload},
         )
 
-    @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
         reason="Query string not supported yet",
@@ -250,7 +237,6 @@ class Test_AppSecObfuscator:
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
     @scenarios.appsec_custom_rules
-    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -277,7 +263,6 @@ class Test_AppSecObfuscator:
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
-    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.
@@ -299,11 +284,8 @@ class Test_AppSecObfuscator:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
@@ -313,10 +295,9 @@ class Test_CollectRespondHeaders:
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @missing_feature(
-        context.scenario is scenarios.external_processing or context.scenario is scenarios.stream_processing_offload,
+        context.scenario is scenarios.go_proxies,
         reason="The endpoint /headers is not implemented in the weblog",
     )
-    @bug(library="python_lambda", reason="APPSEC-58202")
     def test_header_collection(self):
         def assert_header_in_span_meta(span: dict, header: str):
             if header not in span["meta"]:
@@ -331,11 +312,8 @@ class Test_CollectRespondHeaders:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
@@ -367,11 +345,8 @@ class Test_CollectDefaultRequestHeader:
 
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:

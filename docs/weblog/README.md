@@ -132,6 +132,39 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /endpoint_fallback
+
+This endpoint tests RFC-1076: API Security sampling fallback behavior when
+`http.route` is absent. The endpoint behavior is controlled by the `case` query
+parameter.
+
+- Query parameter `case`: Required. Specifies which test case to execute. Valid
+  values:
+
+1. **with_route**: Tests that `http.route` is used for sampling when present
+   - Sets: `http.route = "/users/{id}/profile"`
+   - Response: 200 OK
+
+2. **with_endpoint**: Tests fallback to `http.endpoint` when `http.route` is
+absent
+   - Sets: `http.endpoint = "/api/products/{param:int}"`
+   - Does NOT set: `http.route`
+   - Response: 200 OK
+
+3. **404**: Tests that `http.endpoint` is NOT used for sampling when status is
+404
+   - Sets: `http.endpoint = "/api/notfound/{param:int}"`
+   - Does NOT set: `http.route`
+   - Response: 404 Not Found
+
+4. **computed**: Tests on-demand endpoint computation from URL
+   - Sets: `http.url =
+     "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456"`
+   - Does NOT set: `http.route` or `http.endpoint`
+   - **Important**: The endpoint is computed internally for sampling but must
+     NOT be added as a span tag
+   - Response: 200 OK
+
 ### GET /external_request
 ### POST /external_request
 ### TRACE /external_request
@@ -1199,6 +1232,29 @@ Successful evaluation:
   "tags": []
 }
 ```
+
+### POST /stripe/create_checkout_session
+
+This endpoint takes a JSON request body, that must be passed directly to the Stripe SDK method that creates a Checkout Session (`stripe.checkout.sessions.create()` or equivalent).
+The object returned by that Stripe SDK method must be returned as JSON in the response body.
+If an error happens, the endpoint must respond with a 500 error code.
+
+**Important: The SDK should be configured to use the Stripe API mock located at `http://internal_server:8089`, and use API key `sk_FAKE`, instead of using the public Stripe API backend.**
+
+### POST /stripe/create_payment_intent
+
+This endpoint takes a JSON request body, that must be passed directly to the Stripe SDK method that creates a Payment Intent (`stripe.paymentIntents.create()` or equivalent).
+The object returned by that Stripe SDK method must be returned as JSON in the response body.
+If an error happens, the endpoint must respond with a 500 error code.
+
+**Important: The SDK should be configured to use the Stripe API mock located at `http://internal_server:8089`, and use API key `sk_FAKE`, instead of using the public Stripe API backend.**
+
+### POST /stripe/webhook
+
+This endpoint acts as a webhook receiver of events sent by the Stripe backend.
+It takes a raw (unparsed) request body, and a signature located in header `Stripe-Signature`, that must be passed directly, along the secret key `whsec_FAKE`, to the Stripe SDK method that parses webhook events (`stripe.webhooks.constructEvent()` or equivalent).
+The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
+If an error happens, the endpoint must respond with a 403 error code.
 
 ## Weblog specification
 
