@@ -38,11 +38,10 @@ def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, d
 
 def add_pytest_marker(
     item: pytest.Module | pytest.Function | FunctionType | MethodType,
-    declaration: TestDeclaration | None,
+    declaration: TestDeclaration,
     declaration_details: str | None,
     *,
     force_skip: bool = False,
-    force_skip_if_xfail: bool = False,
 ) -> pytest.Module | pytest.Function | FunctionType | MethodType:
     if (
         not inspect.isfunction(item)
@@ -57,10 +56,10 @@ def add_pytest_marker(
 
     if force_skip or declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
         marker = pytest.mark.skip
-    elif force_skip_if_xfail and not declaration:
-        marker = pytest.mark.skip_if_xfail
     else:
         marker = pytest.mark.xfail
+
+    reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
     if isinstance(item, (pytest.Module, pytest.Function)):
         add_marker = item.add_marker
@@ -70,11 +69,8 @@ def add_pytest_marker(
 
         add_marker = item.pytestmark.append  # type: ignore[union-attr]
 
-    reason = None
-    if declaration:
-        reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
-        add_marker(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))
     add_marker(marker(reason=reason))
+    add_marker(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))
 
     return item
 
@@ -119,13 +115,12 @@ def _expected_to_fail(
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
     *,
-    declaration: TestDeclaration | None = None,
-    condition: bool | None = None,
-    library: str | None = None,
-    weblog_variant: str | None = None,
-    declaration_details: str | None = None,
+    declaration: TestDeclaration,
+    condition: bool | None,
+    library: str | None,
+    weblog_variant: str | None,
+    declaration_details: str | None,
     force_skip: bool = False,
-    force_skip_if_xfail: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -136,11 +131,7 @@ def _decorator(
         return function_or_class
 
     return add_pytest_marker(
-        function_or_class,
-        declaration=declaration,
-        declaration_details=declaration_details,
-        force_skip=force_skip,
-        force_skip_if_xfail=force_skip_if_xfail,
+        function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
     )
 
 
@@ -239,15 +230,12 @@ def rfc(link: str):  # noqa: ARG001
     return wrapper
 
 
-def slow():
-    """Decorator, allow to mark a test function/class as slow to run.
-    Such tests are only executed if they were not deactivated
-    """
-    return partial(_decorator, force_skip_if_xfail=True)
+slow = pytest.mark.skip_if_xfail
+"""Decorator, allow to mark a test function/class as slow to run.
+Such tests are only executed if they were not deactivated
+"""
 
-
-def scenario_crash():
-    """Decorator, allow to mark a test function/class as making its scenario crash when failing.
-    Such tests are only executed if they were not deactivated
-    """
-    return partial(_decorator, force_skip_if_xfail=True)
+scenario_crash = pytest.mark.skip_if_xfail
+"""Decorator, allow to mark a test function/class as making its scenario crash when failing.
+Such tests are only executed if they were not deactivated
+"""
