@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
@@ -24,8 +25,12 @@ from .endtoend import DockerScenario
 ProcessorContainer = ExternalProcessingContainer | StreamProcessingOffloadContainer
 ProxyRuntimeContainer = EnvoyContainer | HAProxyContainer
 
+
+proxy_component = Literal["envoy", "haproxy"]
+""" Possible values for proxy components """
+
 # Link each weblog variant to the proxy component it uses
-GO_PROXIES_WEBLOGS: dict[str, str] = {
+GO_PROXIES_WEBLOGS: dict[str, proxy_component] = {
     "envoy": "envoy",
     "haproxy-spoa": "haproxy",
 }
@@ -44,7 +49,7 @@ class GoProxiesScenario(DockerScenario):
     ) -> None:
         self._processor_env = processor_env
         self._processor_volumes = processor_volumes
-        self._scenario_groups = (scenario_groups or []) + [
+        scenario_groups = (scenario_groups or []) + [
             all_scenario_groups.go_proxies,
             all_scenario_groups.appsec,
             all_scenario_groups.end_to_end,
@@ -55,7 +60,7 @@ class GoProxiesScenario(DockerScenario):
             name,
             doc=doc,
             github_workflow="endtoend",
-            scenario_groups=self._scenario_groups,
+            scenario_groups=scenario_groups,
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
@@ -212,7 +217,7 @@ class GoProxiesScenario(DockerScenario):
         return self._weblog_variant
 
     @property
-    def proxy_component(self) -> str:
+    def proxy_component(self) -> proxy_component:
         return self._proxy_component
 
     @property
