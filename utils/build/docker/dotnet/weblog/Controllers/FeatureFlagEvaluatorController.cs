@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace weblog
 {
     [ApiController]
-    [Route("ffe")]    
+    [Route("ffe")]
     public class FeatureFlagEvaluatorController : Controller
     {
         private static global::OpenFeature.FeatureClient? _client = InitClient();
