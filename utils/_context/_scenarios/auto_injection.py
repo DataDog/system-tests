@@ -52,7 +52,6 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
         # Check if the datadog-apm-library is installed.
-        logger.stdout(f"RMM Provision install error: {self.vm_provider.vm.provision_install_error}")
         apm_library_version = self.components.get("datadog-apm-library", None)
         if (
             not apm_library_version or apm_library_version == "0.0.0"
