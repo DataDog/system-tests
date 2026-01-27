@@ -1085,17 +1085,19 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    go_proxies = GoProxiesScenario(
-        name="GO_PROXIES",
-        doc="Go security processor proxies (Envoy or HAProxy)",
+    go_proxies_default = GoProxiesScenario(
+        name="GO_PROXIES_DEFAULT",
+        doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
+        scenario_groups=[],
     )
 
-    go_proxies_blocking = GoProxiesScenario(
-        name="GO_PROXIES_BLOCKING",
-        doc="Go security processor proxies with blocking rule file",
+    go_proxies_appsec_blocking = GoProxiesScenario(
+        name="GO_PROXIES_APPSEC_BLOCKING",
+        doc="Default tests for proxies using the security processor with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")
