@@ -11,3 +11,4 @@ packaging==25.0
 itsdangerous
 xmltodict==0.14.2
 openfeature-sdk==0.8.3
+stripe==13.2.0
