@@ -4,6 +4,10 @@ refs:
   - &django "django-poc, django-py3.13, python3.12"
   - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.3.0rc1
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

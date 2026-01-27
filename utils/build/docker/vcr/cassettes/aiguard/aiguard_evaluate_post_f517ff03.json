@@ -1,0 +1,30 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "DD-AI-GUARD-LANGUAGE": "python",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-VERSION": "4.2.2",
+      "Content-Type": "application/json",
+      "Accept-Encoding": "gzip",
+      "User-Agent": "python-requests/2.32.3"
+    },
+    "body": "{\"data\":{\"attributes\":{\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"What is in this image?\"},{\"type\":\"image_url\",\"image_url\":{\"url\":\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"}}]}],\"meta\":{\"env\":\"system-tests\",\"service\":\"weblog\"}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "542",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"9d1abc23-4e5f-6c7d-8e9f-12a3b4c5d6e7\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match for multi-modal content.\",\"tag_probs\":{\"authority-override\":0,\"data-exfiltration\":2.45e-07,\"denial-of-service-tool-call\":0,\"destructive-tool-call\":0,\"indirect-prompt-injection\":1.8e-07,\"instruction-override\":0,\"jailbreak\":6.2e-07,\"obfuscation\":0,\"role-play\":0,\"security-exploit\":1.5e-07,\"system-prompt-extraction\":0},\"tags\":[]}}}"
+  }
+}

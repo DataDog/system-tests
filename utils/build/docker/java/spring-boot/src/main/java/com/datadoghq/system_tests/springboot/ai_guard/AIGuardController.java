@@ -2,6 +2,7 @@ package com.datadoghq.system_tests.springboot.ai_guard;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import datadog.trace.api.aiguard.AIGuard;
 import datadog.trace.api.aiguard.AIGuard.Evaluation;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +42,7 @@ public class AIGuardController {
         private String role;
 
         @JsonProperty("content")
-        private String content;
+        private JsonNode content;  // Can be String or Array of content parts
 
         @JsonProperty("tool_calls")
         private List<ToolCall> toolCalls;
@@ -55,7 +57,7 @@ public class AIGuardController {
 
         public Message(String role, String content) {
             this.role = role;
-            this.content = content;
+            this.content = null;  // Will be handled by Jackson
         }
 
         public String getRole() {
@@ -66,11 +68,11 @@ public class AIGuardController {
             this.role = role;
         }
 
-        public String getContent() {
+        public JsonNode getContent() {
             return content;
         }
 
-        public void setContent(String content) {
+        public void setContent(JsonNode content) {
             this.content = content;
         }
 
@@ -100,13 +102,32 @@ public class AIGuardController {
 
         public AIGuard.Message toAIGuard() {
             if (toolCallId != null) {
-                return AIGuard.Message.tool(toolCallId, content);
+                String contentStr = content != null && content.isTextual() ? content.asText() : null;
+                return AIGuard.Message.tool(toolCallId, contentStr);
             }
             if (toolCalls != null && !toolCalls.isEmpty()) {
                 return AIGuard.Message.assistant(
                         toolCalls.stream().map(ToolCall::toAIGuard).toArray(AIGuard.ToolCall[]::new));
             }
-            return AIGuard.Message.message(role, content);
+            // Handle content parts vs string content
+            if (content != null && content.isArray()) {
+                // Content parts format
+                List<AIGuard.ContentPart> parts = new ArrayList<>();
+                for (JsonNode partNode : content) {
+                    String type = partNode.get("type").asText();
+                    if ("text".equals(type)) {
+                        parts.add(AIGuard.ContentPart.text(partNode.get("text").asText()));
+                    } else if ("image_url".equals(type)) {
+                        String url = partNode.get("image_url").get("url").asText();
+                        parts.add(AIGuard.ContentPart.imageUrl(url));
+                    }
+                }
+                return AIGuard.Message.message(role, parts);
+            } else {
+                // String content format
+                String contentStr = content != null && content.isTextual() ? content.asText() : null;
+                return AIGuard.Message.message(role, contentStr);
+            }
         }
     }
 
