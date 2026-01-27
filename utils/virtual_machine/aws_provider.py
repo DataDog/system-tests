@@ -25,6 +25,8 @@ from utils.virtual_machine.vm_logger import vm_logger
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 
+import pytest
+
 
 class AWSPulumiProvider(VmProvider):
     def __init__(self):
@@ -114,7 +116,7 @@ class AWSPulumiProvider(VmProvider):
                     repr(exception),
                     ["operation:up", "result:retry", f"stack:{self.stack_name}"],
                 )
-                raise exception  # Re-raise the exception if matched
+                pytest.exit(f"Known infraestructure exception:: {known_message}", returncode=3)
         # If the exception is not known, we will store it in the vm object and error event to dd
         self.vm.provision_install_error = exception
         self.datadog_event_sender.sendEventToDatadog(
