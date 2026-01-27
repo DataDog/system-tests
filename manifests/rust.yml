@@ -50,8 +50,7 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_logs.py: missing_feature
-  tests/parametric/test_otel_metrics.py: v0.3.0
+  tests/parametric/test_otel_logs.py: v0.2.0
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_histogram_add_non_negative_and_negative_values
   : missing_feature (OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature

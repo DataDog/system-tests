@@ -47,8 +47,8 @@ struct AppState {
     meter_provider: Arc<Mutex<Option<SdkMeterProvider>>>,
     otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
     otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
-    logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
-    otel_loggers: Arc<Mutex<HashMap<String, (String, Option<String>, Option<String>)>>>, // name, version, schema_url
+        logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
+    otel_loggers: Arc<Mutex<HashMap<String, (String, Option<String>, Option<String>, Option<HashMap<String, serde_json::Value>>)>>>, // name, version, schema_url, attributes
 }
 
 #[derive(Default, Clone)]

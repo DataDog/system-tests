@@ -779,7 +779,7 @@ async fn otel_create_logger(
         return Json(OtelCreateLoggerReturn { success: false });
     }
 
-    loggers.insert(args.name.clone(), (args.name.clone(), args.version.clone(), args.schema_url.clone()));
+    loggers.insert(args.name.clone(), (args.name.clone(), args.version.clone(), args.schema_url.clone(), args.attributes.clone()));
     Json(OtelCreateLoggerReturn { success: true })
 }
 
@@ -788,7 +788,7 @@ async fn otel_write_log(
     Json(args): Json<OtelWriteLogArgs>,
 ) -> Json<OtelWriteLogReturn> {
     let loggers = state.otel_loggers.lock().unwrap();
-    let (logger_name, version, schema_url) = loggers
+    let (logger_name, version, schema_url, attributes) = loggers
         .get(&args.logger_name)
         .expect("Logger not found in registered loggers");
 
@@ -808,18 +808,24 @@ async fn otel_write_log(
         scope_builder = scope_builder.with_schema_url(schema_url_static);
     }
     
+    if let Some(attrs) = attributes {
+        let scope_attrs = dto::parse_attributes(Some(attrs));
+        scope_builder = scope_builder.with_attributes(scope_attrs);
+    }
+    
     let scope = scope_builder.build();
     let logger = logger_provider.logger_with_scope(scope);
 
-    let severity = match args.level.to_uppercase().as_str() {
+    let level_upper = args.level.to_uppercase();
+    let severity = match level_upper.as_str() {
         "DEBUG" => Severity::Debug,
         "INFO" => Severity::Info,
-        "WARNING" | "WARN" => Severity::Warn,
+        "WARN" => Severity::Warn,
         "ERROR" => Severity::Error,
         _ => Severity::Info,
     };
 
-    let severity_text_static: &'static str = Box::leak(args.level.to_uppercase().into_boxed_str());
+    let severity_text_static: &'static str = Box::leak(level_upper.into_boxed_str());
     let message_static: &'static str = Box::leak(args.message.clone().into_boxed_str());
 
     let mut log_record = logger.create_log_record();
