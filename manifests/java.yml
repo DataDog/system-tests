@@ -3280,7 +3280,10 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.47.0
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_rum_injection.py:
     - weblog_declaration:
         "*": irrelevant (RUM injection only supported for spring-boot)

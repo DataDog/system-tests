@@ -6,15 +6,26 @@ import akka.http.scaladsl.server.Route
 
 object MainRoutes {
 
-  val route: Route = path("sample_rate_route" / """\d{1,3}""".r) { (i) =>
-    get {
-      complete(
-        HttpResponse(
-          status = StatusCodes.OK,
-          entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "OK\n")
+  val route: Route =
+    path("sample_rate_route" / """\d{1,3}""".r) { (i) =>
+      get {
+        complete(
+          HttpResponse(
+            status = StatusCodes.OK,
+            entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "OK\n")
+          )
         )
-      )
+      }
+    } ~
+    pathPrefix("resource_renaming") {
+      get {
+        complete(
+          HttpResponse(
+            status = StatusCodes.OK,
+            entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "ok")
+          )
+        )
+      }
     }
-  }
 
 }
