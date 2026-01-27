@@ -15,7 +15,6 @@ from utils import (
     bug,
     missing_feature,
     logger,
-    incomplete_test_app,
 )
 
 # get the default log output
@@ -602,9 +601,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "Test_Config_LogInjection_128Bit_TraceId_Enabled.test_incoming_64bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
-    @incomplete_test_app(
-        context.library == "ruby", reason="rails70 app does not use the incoming headers in log correlation"
-    )
     def test_incoming_64bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)

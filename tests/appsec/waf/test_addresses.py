@@ -98,7 +98,6 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
-    @irrelevant(library="cpp_nginx", reason="Header rejected by nginx ('client sent invalid header line'")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """Attacks on specific header X_Filename, and report it"""

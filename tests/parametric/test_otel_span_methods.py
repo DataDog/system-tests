@@ -91,11 +91,6 @@ class Test_Otel_Span_Methods:
 
         assert test_span["meta"]["http.status_code"] == "200"
 
-    @irrelevant(
-        context.library == "java",
-        reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
-    )
-    @missing_feature(context.library == "rust", reason="Old array encoding not supported")
     def test_otel_set_attributes_different_types_legacy(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """- Set attributes of multiple types for an otel span
         This tests legacy behavior. The new behavior is tested in
@@ -357,7 +352,6 @@ class Test_Otel_Span_Methods:
         assert span_result.get("name") == "internal"
         assert span_result.get("resource") == "ok_span"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_otel_get_span_context(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """This test verifies retrieving the span context of a span
         accordingly to the Otel API spec
@@ -408,7 +402,6 @@ class Test_Otel_Span_Methods:
         assert result_span["name"] == "kafka.receive"
         assert result_span["resource"] == "operation"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_otel_span_started_with_link_from_another_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -478,7 +471,6 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("bools.0").casefold() == "true"
         assert link["attributes"].get("bools.1").casefold() == "false"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link from a span to another span."""
         with test_library, test_library.otel_start_span("root", end_on_exit=False) as parent:
@@ -620,14 +612,6 @@ class Test_Otel_Span_Methods:
         )
 
     @irrelevant(
-        context.library == "java",
-        reason="Java tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
-    )
-    @irrelevant(
-        context.library == "golang",
-        reason="Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
-    )
-    @irrelevant(
         context.library == "ruby",
         reason="Ruby tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
     )
@@ -653,8 +637,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @irrelevant(context.library == "java", reason="Choose to not implement Go parsing logic")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
     @missing_feature(context.library == "rust", reason="Not implemented")
     @pytest.mark.parametrize(
         ("analytics_event_value", "expected_metric_value"), [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0)]

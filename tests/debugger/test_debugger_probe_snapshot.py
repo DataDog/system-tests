@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context, irrelevant, bug, logger
+from utils import scenarios, features, missing_feature, context, irrelevant, logger
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -317,8 +317,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
         return self._measure_captured_depth(nested, current_depth + 1)
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
-    @bug(context.library.name == "ruby", reason="DEBUG-4675")  # Ruby has off-by-one bug: captures 4 levels instead of 3
     def test_default_max_reference_depth(self):
         """Test that the tracer uses default maxReferenceDepth=3 when capture property is omitted"""
         deep_object = self._get_snapshot_locals_variable("deepObject")
@@ -327,7 +325,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             f"deepObject should have been captured with {self.DEFAULT_MAX_REFERENCE_DEPTH} levels, got: {actual_depth}"
         )
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     def test_default_max_field_count(self):
         """Test that the tracer uses default maxFieldCount=20 when capture property is omitted"""
         many_fields = self._get_snapshot_locals_variable("manyFields")
@@ -340,7 +337,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             f"manyFields should have exactly {self.DEFAULT_MAX_FIELD_COUNT} fields captured, got: {captured_count}"
         )
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
     def test_default_max_collection_size(self):
         """Test that the tracer uses default maxCollectionSize=100 when capture property is omitted"""
         large_collection = self._get_snapshot_locals_variable("largeCollection")
@@ -363,8 +359,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             f"largeCollection should have exactly {self.DEFAULT_MAX_COLLECTION_SIZE} elements, got: {captured_count}"
         )
 
-    @bug(context.library.name == "nodejs", reason="DEBUG-4611")  # Correct default works (fails if no root capture obj)
-    @bug(context.library.name == "dotnet", reason="DEBUG-4669")  # .NET uses a different default maxLength: 1000
     def test_default_max_length(self):
         """Test that the tracer uses default maxLength=255 when capture property is omitted"""
         long_string = self._get_snapshot_locals_variable("longString")
@@ -430,14 +424,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     @missing_feature(
         condition=context.weblog_variant == "spring-boot-3-native",
         reason="Not yet implemented",
-    )
-    @missing_feature(
-        condition=context.library < "dotnet@3.32.0",
-        reason="Not implemented in older versions",
-    )
-    @missing_feature(
-        condition=context.library < "python@4.1.0",
-        reason="Not implemented in older versions",
     )
     def test_process_tags_snapshot(self):
         self._assert()

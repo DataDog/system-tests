@@ -10,3 +10,4 @@ xmltodict==0.14.2
 zope.event==5.1.1
 zope.interface==7.2
 openfeature-sdk==0.8.3
+stripe==14.2.0
