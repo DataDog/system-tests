@@ -244,6 +244,7 @@ class EndToEndScenario(DockerScenario):
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
+        include_opentelemetry: bool = False,
         require_api_key: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
@@ -323,6 +324,7 @@ class EndToEndScenario(DockerScenario):
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
         self._library_interface_timeout = library_interface_timeout
+        self.include_opentelemetry = include_opentelemetry
 
     def configure(self, config: pytest.Config):
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
@@ -330,6 +332,7 @@ class EndToEndScenario(DockerScenario):
 
         self.weblog_infra.configure(config)
         self._set_containers_dependancies()
+        self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY")
 
         super().configure(config)
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
@@ -338,6 +341,9 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
+
+        if self.include_opentelemetry:
+            interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
             container.interface.configure(self.host_log_folder, replay=self.replay)
@@ -412,7 +418,7 @@ class EndToEndScenario(DockerScenario):
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog(
-            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
+            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies] + [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
 
     def _set_weblog_domain(self):
@@ -472,6 +478,10 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
 
+            if self.include_opentelemetry:
+                interfaces.open_telemetry.load_data_from_logs()
+                interfaces.open_telemetry.check_deserialization_errors()
+
         else:
             self._wait_interface(
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
@@ -495,6 +505,11 @@ class EndToEndScenario(DockerScenario):
             self._wait_interface(
                 interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
             )
+
+            if self.include_opentelemetry:
+                self._wait_interface(
+                    interfaces.open_telemetry, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+                )
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")

@@ -191,6 +191,8 @@ def deserialize_http_message(
             return MessageToDict(ExportMetricsServiceResponse.FromString(content))
         if path == "/v1/logs":
             return MessageToDict(ExportLogsServiceResponse.FromString(content))
+        if path == "/api/v0.2/stats":
+            return MessageToDict(ExportMetricsServiceRequest.FromString(content))
         if path == "/api/v0.2/traces":
             result = MessageToDict(TracePayload.FromString(content))
             _deserialized_nested_json_from_trace_payloads(result, interface)
