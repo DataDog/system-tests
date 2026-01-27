@@ -37,7 +37,7 @@ class Test_TraceTaggingRules:
             return True
 
         assert self.r_tt1.status_code == 200
-        interfaces.library.validate_one_span(self.r_tt1, validator=validate)
+        interfaces.agent.validate_one_span(self.r_tt1, validator=validate)
 
     def setup_rule_with_attributes_keep_no_event(self):
         self.r_tt2 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v2"})
@@ -59,7 +59,7 @@ class Test_TraceTaggingRules:
             return True
 
         assert self.r_tt2.status_code == 200
-        interfaces.library.validate_one_span(self.r_tt2, validator=validate)
+        interfaces.agent.validate_one_span(self.r_tt2, validator=validate)
 
     def setup_rule_with_attributes_keep_event(self):
         self.r_tt3 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v3"})
@@ -81,8 +81,8 @@ class Test_TraceTaggingRules:
             return True
 
         assert self.r_tt3.status_code == 200
-        interfaces.library.assert_waf_attack(self.r_tt3, rule="ttr-000-003")
-        interfaces.library.validate_one_span(self.r_tt3, validator=validate)
+        interfaces.agent.assert_waf_attack(self.r_tt3, rule="ttr-000-003")
+        interfaces.agent.validate_one_span(self.r_tt3, validator=validate)
 
     def setup_rule_with_attributes_no_keep_event(self):
         self.r_tt4 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v4"})
@@ -104,8 +104,8 @@ class Test_TraceTaggingRules:
             return True
 
         assert self.r_tt4.status_code == 200
-        interfaces.library.assert_waf_attack(self.r_tt4, rule="ttr-000-004")
-        interfaces.library.validate_one_span(self.r_tt4, validator=validate)
+        interfaces.agent.assert_waf_attack(self.r_tt4, rule="ttr-000-004")
+        interfaces.agent.validate_one_span(self.r_tt4, validator=validate)
 
 
 @scenarios.appsec_api_security_rc
@@ -116,4 +116,4 @@ class Test_TraceTaggingRulesRcCapability:
     """
 
     def test_trace_tagging_rules_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_TRACE_TAGGING_RULES)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_TRACE_TAGGING_RULES)

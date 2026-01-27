@@ -104,7 +104,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
@@ -126,7 +126,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
@@ -144,7 +144,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         assert self.r.status_code == 200
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
@@ -171,7 +171,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r,
             validator=self.get_user_login_success_tags_validator(
                 LOGIN_SAFE, USER_ID_SAFE, metadata, unexpected_metadata
@@ -223,7 +223,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.agent.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 @features.event_tracking_sdk_v2
@@ -245,7 +245,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.agent.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 class BaseUserLoginSuccessEventV2Metrics:
@@ -296,7 +296,7 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
 
         assert self.r.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
+        interfaces.agent.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
 
     def setup_user_login_success_unsafe_login_event(self):
         data = {"login": LOGIN_IN_RULE, "user_id": USER_ID_SAFE}
@@ -308,8 +308,8 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
 
         assert self.r.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
-        interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
+        interfaces.agent.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
+        interfaces.agent.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
 
     def setup_user_login_success_unsafe_user_id_event(self):
         data = {"login": LOGIN_SAFE, "user_id": USER_ID_IN_RULE}
@@ -321,8 +321,8 @@ class Test_UserLoginSuccessEventV2_Libddwaf:
 
         assert self.r.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r, rule="002_trigger_on_usr_id")
-        interfaces.library.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
+        interfaces.agent.assert_waf_attack(self.r, rule="002_trigger_on_usr_id")
+        interfaces.agent.assert_waf_attack(self.r, rule="003_trigger_on_login_success")
 
 
 class BaseUserLoginFailureEventV2Tags:
@@ -363,7 +363,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True, metadata=metadata)
         )
 
@@ -385,7 +385,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False, metadata=metadata)
         )
 
@@ -403,7 +403,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         assert self.r.status_code == 200
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False)
         )
 
@@ -430,7 +430,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.r,
             validator=self.get_user_login_failure_tags_validator(
                 LOGIN_SAFE, exists=False, metadata=metadata, unexpected_metadata=unexpected_metadata
@@ -480,7 +480,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.agent.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 @features.event_tracking_sdk_v2
@@ -502,7 +502,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.agent.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 class BaseUserLoginFailureEventV2Metrics:
@@ -553,7 +553,7 @@ class Test_UserLoginFailureEventV2_Libddwaf:
 
         assert self.r.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
+        interfaces.agent.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
 
     def setup_user_login_failure_unsafe_login_event(self):
         data = {"login": LOGIN_IN_RULE, "exists": "true"}
@@ -565,5 +565,5 @@ class Test_UserLoginFailureEventV2_Libddwaf:
 
         assert self.r.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
-        interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
+        interfaces.agent.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
+        interfaces.agent.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")

@@ -16,10 +16,10 @@ class Test_ShellExecution:
     def fetch_command_execution_span(r: HttpResponse) -> dict:
         assert r.status_code == 200
 
-        traces = [t for _, t in interfaces.library.get_traces(request=r)]
+        traces = [t for _, t, _ in interfaces.agent.get_traces(request=r)]
         assert traces, "No traces found"
         assert len(traces) == 1
-        spans = traces[0]
+        spans = traces[0]["spans"]
         spans = [s for s in spans if s["name"] == "command_execution"]
         assert spans, "No command_execution span found"
         assert len(spans) == 1, "More than one command_execution span found"

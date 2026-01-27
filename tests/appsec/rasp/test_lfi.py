@@ -32,7 +32,7 @@ class Test_Lfi_UrlQuery:
     def test_lfi_get(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-930-100",
             {
@@ -56,7 +56,7 @@ class Test_Lfi_BodyUrlEncoded:
     def test_lfi_post_urlencoded(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-930-100",
             {
@@ -81,7 +81,7 @@ class Test_Lfi_BodyXml:
     def test_lfi_post_xml(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-930-100",
             {
@@ -106,7 +106,7 @@ class Test_Lfi_BodyJson:
     def test_lfi_post_json(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-930-100",
             {
@@ -260,7 +260,7 @@ class Test_Lfi_RC_CustomAction:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_1b.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r1.status_code == 403
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r1,
             "rasp-930-100",
             {
@@ -271,7 +271,7 @@ class Test_Lfi_RC_CustomAction:
 
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r2.status_code == 505
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r2,
             "rasp-930-100",
             {
@@ -284,7 +284,7 @@ class Test_Lfi_RC_CustomAction:
         assert self.r3.status_code == 302
         assert self.r3.headers["Location"] == "http://google.com"
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r3,
             "rasp-930-100",
             {
@@ -295,7 +295,7 @@ class Test_Lfi_RC_CustomAction:
 
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r4.status_code == 403
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r4,
             "rasp-930-100",
             {
@@ -307,7 +307,7 @@ class Test_Lfi_RC_CustomAction:
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r5.status_code == 200
 
-        interfaces.library.assert_no_appsec_event(self.r5)
+        interfaces.agent.assert_no_appsec_event(self.r5)
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
@@ -317,7 +317,7 @@ class Test_Lfi_Capability:
     """Validate that ASM_RASP_LFI (22) capability is sent"""
 
     def test_lfi_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_LFI)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_RASP_LFI)
 
 
 @features.rasp_local_file_inclusion

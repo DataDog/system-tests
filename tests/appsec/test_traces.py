@@ -50,7 +50,7 @@ class Test_RetainTraces:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_appsec_event_span_tags)
+        interfaces.agent.validate_one_span(self.r, validator=validate_appsec_event_span_tags)
 
 
 @features.security_events_metadata
@@ -67,7 +67,7 @@ class Test_AppSecEventSpanTags:
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
-        spans = [span for _, span in interfaces.library.get_root_spans()]
+        spans = [span for _, span in interfaces.agent.get_root_spans()]
         assert spans, "No root spans to validate"
         spans = [s for s in spans if s.get("type") in ("web", "serverless")]
         assert spans, "No spans of type web or serverless to validate"
@@ -103,7 +103,7 @@ class Test_AppSecEventSpanTags:
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.
         """
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r)]
+        spans = [span for _, span, _, _ in interfaces.agent.get_spans(request=self.r)]
         assert spans, "No spans to validate"
         for span in spans:
             required_request_headers = ["user-agent", "host", "content-type"]
@@ -119,7 +119,7 @@ class Test_AppSecEventSpanTags:
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc", "serverless"]
-        spans = [span for _, _, span in interfaces.library.get_spans()]
+        spans = [span for _, span, _, _ in interfaces.agent.get_spans()]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         for span in spans:
@@ -171,9 +171,9 @@ class Test_AppSecObfuscator:
                 "The security events contain the secret value that should be obfuscated"
             )
 
-        interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
-        interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_key, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
+        interfaces.agent.assert_waf_attack(self.r_key, address="server.request.query")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_key, allow_no_data=True)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -223,9 +223,9 @@ class Test_AppSecObfuscator:
                 "The security events contain the secret value that should be obfuscated"
             )
 
-        interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
-        interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_value, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
+        interfaces.agent.assert_waf_attack(self.r_value, address="server.request.query")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_value, allow_no_data=True)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -250,9 +250,9 @@ class Test_AppSecObfuscator:
                 "The security events contain the secret value that should be obfuscated"
             )
 
-        interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
-        interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_custom, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_custom, address="server.request.cookies")
+        interfaces.agent.assert_waf_attack(self.r_custom, address="server.request.query")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_custom, allow_no_data=True)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -282,8 +282,8 @@ class Test_AppSecObfuscator:
                 "Non-sensitive cookie is not reported"
             )
 
-        interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_cookies_custom, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_cookies_custom, allow_no_data=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -312,7 +312,7 @@ class Test_CollectRespondHeaders:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_response_headers)
+        interfaces.agent.validate_one_span(self.r, validator=validate_response_headers)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -335,7 +335,7 @@ class Test_CollectDefaultRequestHeader:
         if context.library != "golang":
             # TODO(APPSEC-56898): Golang weblogs do not respond to this request.
             assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(self.r)
+        span = interfaces.agent.get_root_span(self.r)
         for key, value in self.HEADERS.items():
             meta = span.get("meta", {})
             meta_key = f"http.request.headers.{key.lower()}"
@@ -390,4 +390,4 @@ class Test_ExternalWafRequestsIdentification:
                 assert_header_in_span_meta(span, f"http.request.headers.{header}")
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_request_headers)
+        interfaces.agent.validate_one_span(self.r, validator=validate_request_headers)

@@ -21,7 +21,7 @@ class Test_Endpoint_Discovery:
         validate_app_endpoints_schema()
 
         discovered: list[dict] = []
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.agent.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-endpoints":
                 continue
@@ -65,7 +65,7 @@ class Test_Endpoint_Discovery:
         validate_app_endpoints_schema()
 
         is_first_count = 0
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.agent.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-endpoints":
                 continue

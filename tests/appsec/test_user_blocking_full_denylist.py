@@ -20,8 +20,8 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             return True
 
         assert self.r_nonblock.status_code == 200
-        interfaces.library.validate_one_span(self.r_nonblock, validator=validate_nonblock_user)
-        interfaces.library.assert_no_appsec_event(self.r_nonblock)
+        interfaces.agent.validate_one_span(self.r_nonblock, validator=validate_nonblock_user)
+        interfaces.agent.assert_no_appsec_event(self.r_nonblock)
 
     def setup_blocking_test(self):
         self.setup_scenario()
@@ -39,8 +39,8 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
 
         for r in self.r_blocked_requests:
             assert r.status_code == 403
-            interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
-            span = interfaces.library.get_root_span(r)
+            interfaces.agent.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
+            span = interfaces.agent.get_root_span(r)
             assert span["meta"]["appsec.event"] == "true"
             assert span["meta"]["appsec.blocked"] == "true"
             assert span["meta"]["http.status_code"] == "403"

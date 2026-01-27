@@ -39,7 +39,7 @@ class Test_Shi_UrlQuery(Test_Shi_Base):
     def test_shi_get(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-100",
             {
@@ -63,7 +63,7 @@ class Test_Shi_BodyUrlEncoded(Test_Shi_Base):
     def test_shi_post_urlencoded(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-100",
             {
@@ -88,7 +88,7 @@ class Test_Shi_BodyXml(Test_Shi_Base):
     def test_shi_post_xml(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-100",
             {
@@ -113,7 +113,7 @@ class Test_Shi_BodyJson(Test_Shi_Base):
     def test_shi_post_json(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-100",
             {
@@ -255,7 +255,7 @@ class Test_Shi_Capability:
     """Validate that ASM_RASP_SHI (24) capability is sent"""
 
     def test_shi_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_RASP_SHI)
 
 
 @features.rasp_shell_injection

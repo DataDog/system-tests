@@ -48,7 +48,7 @@ class Test_Ssrf_UrlQuery:
 
         expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
@@ -74,7 +74,7 @@ class Test_Ssrf_BodyUrlEncoded:
 
         expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
@@ -107,7 +107,7 @@ class Test_Ssrf_BodyXml:
 
         expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
@@ -140,7 +140,7 @@ class Test_Ssrf_BodyJson:
 
         expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
@@ -268,7 +268,7 @@ class Test_Ssrf_Capability:
     """Validate that ASM_RASP_SSRF (23) capability is sent"""
 
     def test_ssrf_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SSRF)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_RASP_SSRF)
 
 
 @features.rasp_server_side_request_forgery

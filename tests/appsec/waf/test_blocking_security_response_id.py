@@ -203,7 +203,7 @@ class Test_SecurityResponseId_In_Span_Triggers:
         assert self.r.status_code == 403, f"Expected 403, got {self.r.status_code}"
 
         # Get the root span and extract appsec data
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
         meta_struct = span.get("meta_struct", {})
 

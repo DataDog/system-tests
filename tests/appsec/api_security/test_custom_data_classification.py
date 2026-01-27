@@ -10,7 +10,7 @@ from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
+    for _, span, _, _ in interfaces.agent.get_spans(request):
         meta = span.get("meta", {})
         key = "_dd.appsec.s." + address
         payload = meta.get(key)
@@ -34,10 +34,10 @@ class Test_API_Security_Custom_Data_Classification_Capabilities(BaseAppsecApiSec
     def test_capabilities_check(self):
         """Verify both ASM_PROCESSOR_OVERRIDES and ASM_CUSTOM_DATA_SCANNERS capabilities"""
         # Verify capability 16: ASM_PROCESSOR_OVERRIDES
-        interfaces.library.assert_rc_capability(Capabilities.ASM_PROCESSOR_OVERRIDES)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_PROCESSOR_OVERRIDES)
 
         # Verify capability 17: ASM_CUSTOM_DATA_SCANNERS
-        interfaces.library.assert_rc_capability(Capabilities.ASM_CUSTOM_DATA_SCANNERS)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_CUSTOM_DATA_SCANNERS)
 
 
 @rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")

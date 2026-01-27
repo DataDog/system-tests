@@ -7,7 +7,7 @@ from utils.dd_constants import RemoteConfigApplyState
 
 def find_series(namespace: str, metrics: list[str]) -> list:
     series = []
-    for data in interfaces.library.get_telemetry_data():
+    for data in interfaces.agent.get_telemetry_data():
         content = data["request"]["content"]
         if content.get("request_type") != "generate-metrics":
             continue
@@ -21,7 +21,7 @@ def find_series(namespace: str, metrics: list[str]) -> list:
 
 
 def find_configuration() -> Generator:
-    for data in interfaces.library.get_telemetry_data():
+    for data in interfaces.agent.get_telemetry_data():
         content = data["request"]["content"]
         if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
             continue
@@ -64,8 +64,8 @@ class BaseFullDenyListTest:
 
     def assert_protocol_is_respected(self) -> None:
         assert self.states is not None
-        interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
-        interfaces.library.assert_rc_targets_version_states(
+        interfaces.agent.assert_rc_targets_version_states(targets_version=0, config_states=[])
+        interfaces.agent.assert_rc_targets_version_states(
             targets_version=self.states.version,
             config_states=[
                 {

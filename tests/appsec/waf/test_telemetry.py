@@ -35,7 +35,7 @@ class Test_TelemetryMetrics:
 
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
-        datas = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        datas = list(interfaces.agent.get_telemetry_data(flatten_message_batches=False))
         assert len(datas) > 0, "No telemetry received"
         for data in datas:
             request_type = data["request"]["content"].get("request_type")
@@ -160,7 +160,7 @@ class Test_TelemetryMetrics:
 
     def test_waf_requests_match_traced_requests(self):
         """Total waf.requests metric should match the number of requests in traces."""
-        spans = [s for _, s in interfaces.library.get_root_spans()]
+        spans = [s for _, s in interfaces.agent.get_root_spans()]
         spans = [
             s
             for s in spans
@@ -182,7 +182,7 @@ class Test_TelemetryMetrics:
 
     def _find_series(self, request_type: str, namespace: str, metric: str):
         series = []
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.agent.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != request_type:
                 continue

@@ -14,7 +14,7 @@ class Test_StatusCode:
 
     def test_basic(self):
         assert self.r.status_code == 404
-        interfaces.library.assert_waf_attack(self.r)
+        interfaces.agent.assert_waf_attack(self.r)
 
         def check_http_code_legacy(event: dict):
             status_code = event["context"]["http"]["response"]["status"]
@@ -28,9 +28,7 @@ class Test_StatusCode:
 
             return True
 
-        interfaces.library.validate_one_appsec(
-            self.r, validator=check_http_code, legacy_validator=check_http_code_legacy
-        )
+        interfaces.agent.validate_one_appsec(self.r, validator=check_http_code)
 
 
 @features.security_events_metadata
@@ -59,7 +57,7 @@ class Test_Info:
 
             return True
 
-        interfaces.library.validate_one_appsec(self.r, legacy_validator=_check_service_legacy, validator=_check_service)
+        interfaces.agent.validate_one_appsec(self.r, validator=_check_service)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -90,15 +88,15 @@ class Test_RequestHeaders:
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 
-        interfaces.library.add_appsec_reported_header(self.r, "x-forwarded-for")
-        interfaces.library.add_appsec_reported_header(self.r, "x-client-ip")
-        interfaces.library.add_appsec_reported_header(self.r, "x-real-ip")
-        interfaces.library.add_appsec_reported_header(self.r, "x-forwarded")
-        interfaces.library.add_appsec_reported_header(self.r, "x-cluster-client-ip")
-        interfaces.library.add_appsec_reported_header(self.r, "forwarded-for")
-        interfaces.library.add_appsec_reported_header(self.r, "forwarded")
-        interfaces.library.add_appsec_reported_header(self.r, "via")
-        interfaces.library.add_appsec_reported_header(self.r, "true-client-ip")
+        interfaces.agent.add_appsec_reported_header(self.r, "x-forwarded-for")
+        interfaces.agent.add_appsec_reported_header(self.r, "x-client-ip")
+        interfaces.agent.add_appsec_reported_header(self.r, "x-real-ip")
+        interfaces.agent.add_appsec_reported_header(self.r, "x-forwarded")
+        interfaces.agent.add_appsec_reported_header(self.r, "x-cluster-client-ip")
+        interfaces.agent.add_appsec_reported_header(self.r, "forwarded-for")
+        interfaces.agent.add_appsec_reported_header(self.r, "forwarded")
+        interfaces.agent.add_appsec_reported_header(self.r, "via")
+        interfaces.agent.add_appsec_reported_header(self.r, "true-client-ip")
 
 
 @features.security_events_metadata
@@ -146,7 +144,7 @@ class Test_ExtraTagsFromRule:
 
 
 def _get_appsec_triggers(request: HttpResponse):
-    datas = [appsec_data for _, _, _, appsec_data in interfaces.library.get_appsec_events(request=request)]
+    datas = [appsec_data for _, _, _, appsec_data in interfaces.agent.get_appsec_events(request=request)]
     assert datas, "No AppSec events found"
     triggers = []
     for data in datas:
@@ -170,7 +168,7 @@ class Test_AttackTimestamp:
 
     def test_basic(self):
         """Attack timestamp is given by start property of span"""
-        spans = [span for _, _, span, _ in interfaces.library.get_appsec_events(request=self.r)]
+        spans = [span for _, _, span, _ in interfaces.agent.get_appsec_events(request=self.r)]
         assert spans, "No AppSec events found"
         for span in spans:
             assert "start" in span, "span should contain start property"

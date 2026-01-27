@@ -58,7 +58,7 @@ class Test_ExtendedDataCollectionCapability:
     """Validate that ASM_EXTENDED_DATA_COLLECTION (44) capability is sent"""
 
     def test_extended_data_collection_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_EXTENDED_DATA_COLLECTION)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_EXTENDED_DATA_COLLECTION)
 
 
 @features.appsec_extended_data_collection
@@ -98,7 +98,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Check that extended headers are collected when the rule matches
@@ -143,7 +143,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection is ignored by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Check that extended headers are NOT collected when there is no event
@@ -188,7 +188,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection header limit is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Ensure no more than 50 meta entries start with "http.request.headers."
@@ -241,7 +241,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Check that extended headers are redacted
@@ -290,7 +290,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Check that extended response headers are collected when the rule matches
@@ -328,7 +328,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection is not working when rule is not triggered
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Check that extended response headers are NOT collected when the rule is not triggered
@@ -369,7 +369,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection header limit is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Ensure exactly 50 meta entries start with "http.response.headers."
@@ -410,7 +410,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection header limit is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
         # Check that extended headers are redacted
@@ -453,7 +453,7 @@ class Test_ExtendedRequestBodyCollection:
         assert self.response.status_code == 200
 
         # Verify extended request body data collection is working by checking span meta_struct
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta_struct = span.get("meta_struct", {})
 
         # Check that request body is collected in meta_struct when the rule matches
@@ -486,7 +486,7 @@ class Test_ExtendedRequestBodyCollection:
         assert self.response.status_code == 200
 
         # Verify extended request body data collection is not working when rule is not triggered
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta_struct = span.get("meta_struct", {})
 
         # Check that request body is NOT collected when the rule is not triggered
@@ -517,7 +517,7 @@ class Test_ExtendedRequestBodyCollection:
         assert self.response.status_code == 200
 
         # Verify extended request body data collection with truncation is working by checking span meta_struct
-        span = interfaces.library.get_root_span(request=self.response)
+        span = interfaces.agent.get_root_span(request=self.response)
         meta_struct = span.get("meta_struct", {})
 
         # Check that request body is collected in meta_struct when the rule matches

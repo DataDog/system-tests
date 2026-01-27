@@ -30,7 +30,7 @@ class Test_Sqli_UrlQuery:
     def test_sqli_get(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-942-100",
             {
@@ -55,7 +55,7 @@ class Test_Sqli_BodyUrlEncoded:
     def test_sqli_post_urlencoded(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-942-100",
             {
@@ -81,7 +81,7 @@ class Test_Sqli_BodyXml:
     def test_sqli_post_xml(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-942-100",
             {
@@ -107,7 +107,7 @@ class Test_Sqli_BodyJson:
     def test_sqli_post_json(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-942-100",
             {
@@ -224,7 +224,7 @@ class Test_Sqli_Capability:
     """Validate that ASM_RASP_SQLI (21) capability is sent"""
 
     def test_sqli_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_RASP_SQLI)
 
 
 @features.rasp_sql_injection

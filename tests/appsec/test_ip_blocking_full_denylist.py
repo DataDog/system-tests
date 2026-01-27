@@ -32,7 +32,7 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
 
         for r in self.blocked_requests:
             assert r.status_code == 403
-            interfaces.library.assert_waf_attack(r, rule="blk-001-001")
+            interfaces.agent.assert_waf_attack(r, rule="blk-001-001")
 
         assert self.not_blocked_request.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.not_blocked_request)
+        interfaces.agent.assert_no_appsec_event(self.not_blocked_request)

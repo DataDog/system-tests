@@ -14,7 +14,7 @@ DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
 
 
 def get_span_meta(r: HttpResponse):
-    res = [span.get("meta", {}) for _, _, span in interfaces.library.get_spans(request=r)]
+    res = [span.get("meta", {}) for _, span, _, _ in interfaces.agent.get_spans(request=r)]
     assert res, f"no spans found in {r}"
     return res
 
@@ -229,7 +229,7 @@ class Test_Fingerprinting_Endpoint_Capability:
     """Validate that ASM_ENDPOINT_FINGERPRINT (32) capability is sent"""
 
     def test_fingerprinting_endpoint_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_ENDPOINT_FINGERPRINT)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_ENDPOINT_FINGERPRINT)
 
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
@@ -239,7 +239,7 @@ class Test_Fingerprinting_Session_Capability:
     """Validate that ASM_SESSION_FINGERPRINT (33) capability is sent"""
 
     def test_fingerprinting_endpoint_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_SESSION_FINGERPRINT)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_SESSION_FINGERPRINT)
 
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
@@ -249,7 +249,7 @@ class Test_Fingerprinting_Network_Capability:
     """Validate that ASM_NETWORK_FINGERPRINT (34) capability is sent"""
 
     def test_fingerprinting_endpoint_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_NETWORK_FINGERPRINT)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_NETWORK_FINGERPRINT)
 
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
@@ -259,4 +259,4 @@ class Test_Fingerprinting_Header_Capability:
     """Validate that ASM_HEADER_FINGERPRINT (35) capability is sent"""
 
     def test_fingerprinting_endpoint_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_HEADER_FINGERPRINT)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_HEADER_FINGERPRINT)

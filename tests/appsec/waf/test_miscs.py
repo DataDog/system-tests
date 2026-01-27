@@ -16,7 +16,7 @@ class Test_404:
         """AppSec WAF catches attacks, even on 404"""
 
         assert self.r.status_code == 404
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r,
             rule=waf_rules.security_scanner.ua0_600_12x,
             pattern="Arachni/v",
@@ -35,7 +35,7 @@ class Test_MultipleHighlight:
 
     def test_multiple_hightlight(self):
         """Rule with multiple condition are reported on all conditions"""
-        interfaces.library.assert_waf_attack(self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"])
+        interfaces.agent.assert_waf_attack(self.r, "multiple_highlight_rule", patterns=["highlight1", "highlight2"])
 
 
 @features.appsec_blocking_action
@@ -51,8 +51,8 @@ class Test_MultipleAttacks:
     )
     def test_basic(self):
         """Basic test with more than one attack"""
-        interfaces.library.assert_waf_attack(self.r_basic, pattern="/../")
-        interfaces.library.assert_waf_attack(self.r_basic, pattern="appscan_fingerprint")
+        interfaces.agent.assert_waf_attack(self.r_basic, pattern="/../")
+        interfaces.agent.assert_waf_attack(self.r_basic, pattern="appscan_fingerprint")
 
     def setup_same_source(self):
         self.r_same_source = weblog.get(
@@ -61,16 +61,16 @@ class Test_MultipleAttacks:
 
     def test_same_source(self):
         """Test with more than one attack in headers"""
-        interfaces.library.assert_waf_attack(self.r_same_source, pattern="acunetix-user-agreement")
-        interfaces.library.assert_waf_attack(self.r_same_source, pattern="/../")
+        interfaces.agent.assert_waf_attack(self.r_same_source, pattern="acunetix-user-agreement")
+        interfaces.agent.assert_waf_attack(self.r_same_source, pattern="/../")
 
     def setup_same_location(self):
         self.r_same_location = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1 and /../"})
 
     def test_same_location(self):
         """Test with more than one attack in a unique property"""
-        interfaces.library.assert_waf_attack(self.r_same_location, pattern="/../")
-        interfaces.library.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
+        interfaces.agent.assert_waf_attack(self.r_same_location, pattern="/../")
+        interfaces.agent.assert_waf_attack(self.r_same_location, pattern="Arachni/v")
 
 
 @features.waf_features
@@ -82,5 +82,5 @@ class Test_CorrectOptionProcessing:
         self.r_no_match = weblog.get("/waf/", params={"x-attack": "query_string"})
 
     def test_main(self):
-        interfaces.library.assert_waf_attack(self.r_match)
-        interfaces.library.assert_no_appsec_event(self.r_no_match)
+        interfaces.agent.assert_waf_attack(self.r_match)
+        interfaces.agent.assert_no_appsec_event(self.r_no_match)

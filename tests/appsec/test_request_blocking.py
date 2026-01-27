@@ -36,7 +36,7 @@ class Test_AppSecRequestBlocking:
         assert self.config_state.state == remote_config.ApplyState.ACKNOWLEDGED
 
         assert self.blocked_requests1.status_code == 403
-        interfaces.library.assert_waf_attack(self.blocked_requests1, rule="ua0-600-12x")
+        interfaces.agent.assert_waf_attack(self.blocked_requests1, rule="ua0-600-12x")
 
         assert self.blocked_requests2.status_code == 403
-        interfaces.library.assert_waf_attack(self.blocked_requests2, rule="crs-913-120")
+        interfaces.agent.assert_waf_attack(self.blocked_requests2, rule="crs-913-120")

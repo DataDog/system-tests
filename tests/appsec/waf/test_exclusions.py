@@ -17,18 +17,18 @@ class Test_Exclusions:
     def test_input_exclusion_negative_test(self):
         assert self.r_iexnt1.status_code == 200, "Request failed"
         assert self.r_iexnt2.status_code == 200, "Request failed"
-        interfaces.library.assert_waf_attack(self.r_iexnt1, pattern="true", address="server.request.query")
-        interfaces.library.assert_waf_attack(self.r_iexnt2, pattern="true", address="server.request.query")
+        interfaces.agent.assert_waf_attack(self.r_iexnt1, pattern="true", address="server.request.query")
+        interfaces.agent.assert_waf_attack(self.r_iexnt2, pattern="true", address="server.request.query")
 
     def setup_input_exclusion_positive_test(self):
         self.r_iexpt = weblog.get("/waf/", params={"excluded_key": "true", "activate_exclusion": "true"})
 
     def test_input_exclusion_positive_test(self):
         assert self.r_iexpt.status_code == 200, "Request failed"
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r_iexpt)]
+        spans = [span for _, span, _, _ in interfaces.agent.get_spans(request=self.r_iexpt)]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
-        interfaces.library.assert_no_appsec_event(self.r_iexpt)
+        interfaces.agent.assert_no_appsec_event(self.r_iexpt)
 
     def setup_rule_exclusion_negative_test(self):
         self.r_rent1 = weblog.get("/waf/", params={"foo": "bbbb"})
@@ -41,15 +41,15 @@ class Test_Exclusions:
     def test_rule_exclusion_negative_test(self):
         assert self.r_rent1.status_code == 200, "Request failed"
         assert self.r_rent2.status_code == 200, "Request failed"
-        interfaces.library.assert_waf_attack(self.r_rent1, pattern="bbbb", address="server.request.query")
-        interfaces.library.assert_waf_attack(self.r_rent2, pattern="bbbb", address="server.request.query")
+        interfaces.agent.assert_waf_attack(self.r_rent1, pattern="bbbb", address="server.request.query")
+        interfaces.agent.assert_waf_attack(self.r_rent2, pattern="bbbb", address="server.request.query")
 
     def setup_rule_exclusion_positive_test(self):
         self.r_rept = weblog.get("/waf/", params={"foo": "bbbb", "activate_exclusion": "true"})
 
     def test_rule_exclusion_positive_test(self):
         assert self.r_rept.status_code == 200, "Request failed"
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r_rept)]
+        spans = [span for _, span, _, _ in interfaces.agent.get_spans(request=self.r_rept)]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
-        interfaces.library.assert_no_appsec_event(self.r_rept)
+        interfaces.agent.assert_no_appsec_event(self.r_rept)

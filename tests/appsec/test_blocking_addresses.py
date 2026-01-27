@@ -52,7 +52,7 @@ class Test_Blocking_client_ip:
         """Can block the request forwarded for the ip"""
 
         assert self.rm_req_block.status_code == 403
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
 
     def setup_blocking_before(self):
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"X-Forwarded-For": "1.1.1.1"})
@@ -62,8 +62,8 @@ class Test_Blocking_client_ip:
         """Test that blocked requests are blocked before being processed"""
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="blk-001-001")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @features.appsec_request_blocking
@@ -82,7 +82,7 @@ class Test_Blocking_client_ip_with_forwarded:
         """Can block the request forwarded for the ip (in IPv4 format)"""
 
         assert self.rm_req_block.status_code == 403
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
 
     def setup_blocking_ipv6(self):
         self.rm_req_block = weblog.get(
@@ -93,7 +93,7 @@ class Test_Blocking_client_ip_with_forwarded:
         """Can block the request forwarded for the ip (in IPv6 format)"""
 
         assert self.rm_req_block.status_code == 403
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
 
     def setup_blocking_before(self):
         self.block_req2 = weblog.get(
@@ -105,8 +105,8 @@ class Test_Blocking_client_ip_with_forwarded:
         """Test that blocked requests are blocked before being processed"""
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="blk-001-001")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @features.appsec_request_blocking
@@ -126,7 +126,7 @@ class Test_Blocking_client_ip_with_K8_private_ip:
 
         for request in self.rm_req_block:
             assert request.status_code == 403
-            interfaces.library.assert_waf_attack(request, rule="blk-001-001")
+            interfaces.agent.assert_waf_attack(request, rule="blk-001-001")
 
 
 @scenarios.appsec_blocking
@@ -142,7 +142,7 @@ class Test_Blocking_user_id:
         """Can block the request from the user"""
 
         assert self.rm_req_block.status_code == 403
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="block-users")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="block-users")
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -166,7 +166,7 @@ class Test_Blocking_request_method:
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-006")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="tst-037-006")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -191,13 +191,13 @@ class Test_Blocking_request_method:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert "Value tagged" in self.set_req1.text
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3876")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-006")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-006")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -225,7 +225,7 @@ class Test_Blocking_request_uri:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403
-            interfaces.library.assert_waf_attack(response, rule="tst-037-002")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-002")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -240,7 +240,7 @@ class Test_Blocking_request_uri:
         self.rm_req_uri_raw = weblog.get("/waf/uri_raw_should_not_include_scheme_domain_and_port")
 
     def test_blocking_uri_raw(self):
-        interfaces.library.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
+        interfaces.agent.assert_waf_attack(self.rm_req_uri_raw, rule="tst-037-011")
         assert self.rm_req_uri_raw.status_code == 403
 
     def setup_blocking_before(self):
@@ -257,13 +257,13 @@ class Test_Blocking_request_uri:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert "Value tagged" in self.set_req1.text
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3877")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-002")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-002")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -294,7 +294,7 @@ class Test_Blocking_request_path_params:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403
-            interfaces.library.assert_waf_attack(response, rule="tst-037-007")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-007")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -324,13 +324,13 @@ class Test_Blocking_request_path_params:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3878")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-007")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-007")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -354,7 +354,7 @@ class Test_Blocking_request_query:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403
-            interfaces.library.assert_waf_attack(response, rule="tst-037-001")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-001")
 
     def setup_blocking_case_sensitive(self):
         self.case_req_block1 = weblog.get("/waf?attack=none&Attack=magic_key_oe1rh0goiw8jef&ATTACK=none")
@@ -399,13 +399,13 @@ class Test_Blocking_request_query:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3879")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-001")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-001")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -429,7 +429,7 @@ class Test_Blocking_request_headers:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403
-            interfaces.library.assert_waf_attack(response, rule="tst-037-003")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-003")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -458,13 +458,13 @@ class Test_Blocking_request_headers:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert "Value tagged" in self.set_req1.text
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3880")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-003")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-003")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -488,7 +488,7 @@ class Test_Blocking_request_cookies:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403
-            interfaces.library.assert_waf_attack(response, rule="tst-037-008")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-008")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -517,13 +517,13 @@ class Test_Blocking_request_cookies:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3881")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-008")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-008")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -546,7 +546,7 @@ class Test_Blocking_request_body:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403
-            interfaces.library.assert_waf_attack(response, rule="tst-037-004")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-004")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -588,13 +588,13 @@ class Test_Blocking_request_body:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3882")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-004")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-004")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @scenarios.appsec_blocking
@@ -609,7 +609,7 @@ class Test_Blocking_request_body_multipart:
     def test_blocking(self):
         """Can block on server.request.body (multipart/form-data variant)"""
 
-        interfaces.library.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
+        interfaces.agent.assert_waf_attack(self.rbmp_req, rule="tst-037-004")
         assert self.rbmp_req.status_code == 403
 
 
@@ -643,7 +643,7 @@ class Test_Blocking_response_status:
         """Test if requests that should be blocked are blocked"""
         for response in self.rm_req_block.values():
             assert response.status_code == 403, response.request.url
-            interfaces.library.assert_waf_attack(response, rule="tst-037-005")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-005")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -675,7 +675,7 @@ class Test_Blocking_response_status:
     def test_not_found(self):
         """Can block on server.response.status"""
 
-        interfaces.library.assert_waf_attack(self.rnf_req, rule="tst-037-010")
+        interfaces.agent.assert_waf_attack(self.rnf_req, rule="tst-037-010")
         assert self.rnf_req.status_code == 403
 
 
@@ -704,7 +704,7 @@ class Test_Blocking_response_headers:
         """Test if requests that should be blocked are blocked"""
         for response in (self.rm_req_block1, self.rm_req_block2):
             assert response.status_code == 403, response.request.url
-            interfaces.library.assert_waf_attack(response, rule="tst-037-009")
+            interfaces.agent.assert_waf_attack(response, rule="tst-037-009")
 
     def setup_non_blocking(self):
         self.setup_blocking()
@@ -750,7 +750,7 @@ class Test_Suspicious_Request_Blocking:
     def test_blocking(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-012")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="tst-037-012")
 
     def setup_blocking_before(self):
         self.set_req1 = weblog.post(
@@ -780,14 +780,14 @@ class Test_Suspicious_Request_Blocking:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3882")
         )
 
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-012")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
     def setup_blocking_without_path_params(self):
         self.rm_req_block = weblog.get(
@@ -799,7 +799,7 @@ class Test_Suspicious_Request_Blocking:
     def test_blocking_without_path_params(self):
         """Test if requests that should be blocked are blocked"""
         assert self.rm_req_block.status_code == 403, self.rm_req_block.request.url
-        interfaces.library.assert_waf_attack(self.rm_req_block, rule="tst-037-013")
+        interfaces.agent.assert_waf_attack(self.rm_req_block, rule="tst-037-013")
 
     def setup_blocking_before_without_path_params(self):
         self.set_req1 = weblog.post(
@@ -818,14 +818,14 @@ class Test_Suspicious_Request_Blocking:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_one_span(
+        interfaces.agent.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3882")
         )
 
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
-        interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-013")
-        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.agent.assert_waf_attack(self.block_req2, rule="tst-037-013")
+        interfaces.agent.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @scenarios.graphql_appsec
@@ -850,7 +850,7 @@ class Test_BlockingGraphqlResolvers:
 
     def test_request_block_attack(self):
         assert self.r_attack.status_code == 403
-        span = interfaces.library.get_root_span(request=self.r_attack)
+        span = interfaces.agent.get_root_span(request=self.r_attack)
         meta = span.get("meta", {})
         meta_struct = span.get("meta_struct", {})
         assert meta["appsec.event"] == "true"
@@ -887,7 +887,7 @@ class Test_BlockingGraphqlResolvers:
 
     def test_request_block_attack_directive(self):
         assert self.r_attack.status_code == 403
-        span = interfaces.library.get_root_span(request=self.r_attack)
+        span = interfaces.agent.get_root_span(request=self.r_attack)
         meta = span.get("meta", {})
         meta_struct = span.get("meta_struct", {})
         assert meta["appsec.event"] == "true"

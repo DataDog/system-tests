@@ -46,7 +46,7 @@ class Test_Main:
         trace_count = 0
 
         for r in self.requests:
-            for data, _, span, _ in interfaces.library.get_appsec_events(request=r):
+            for data, _, span, _ in interfaces.agent.get_appsec_events(request=r):
                 # the logic is to set USER_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
 

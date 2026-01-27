@@ -25,7 +25,7 @@ class Test_ConfigurationVariables:
 
     def test_enabled(self):
         """Test DD_APPSEC_ENABLED = true"""
-        interfaces.library.assert_waf_attack(self.r_enabled)
+        interfaces.agent.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -35,7 +35,7 @@ class Test_ConfigurationVariables:
     def test_disabled(self):
         """Test DD_APPSEC_ENABLED = false"""
         assert self.r_disabled.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.r_disabled)
+        interfaces.agent.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
         self.r_appsec_rules = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
@@ -43,7 +43,7 @@ class Test_ConfigurationVariables:
     @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
         """Test DD_APPSEC_RULES = custom rules file"""
-        interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
+        interfaces.agent.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
         long_payload = "?" + "&".join(
@@ -59,7 +59,7 @@ class Test_ConfigurationVariables:
     def test_waf_timeout(self):
         """Test DD_APPSEC_WAF_TIMEOUT = low value"""
         assert self.r_waf_timeout.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
+        interfaces.agent.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
@@ -73,8 +73,8 @@ class Test_ConfigurationVariables:
                 "The security events contain the secret value that should be obfuscated"
             )
 
-        interfaces.library.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_key, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_op_key, pattern="<Redacted>")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_op_key, allow_no_data=True)
 
     def setup_obfuscation_parameter_value(self):
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
@@ -89,8 +89,8 @@ class Test_ConfigurationVariables:
                 "The security events contain the secret value that should be obfuscated"
             )
 
-        interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
@@ -116,5 +116,5 @@ class Test_ConfigurationVariables_New_Obfuscation:
             )
 
         # previously, the value was obfuscated as "<Redacted>", now only the secret part is obfuscated
-        interfaces.library.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
-        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)
+        interfaces.agent.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
+        interfaces.agent.validate_all_appsec(validate_appsec_span_tags, self.r_op_value, allow_no_data=True)

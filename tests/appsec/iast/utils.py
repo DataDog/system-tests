@@ -17,7 +17,7 @@ def _get_expectation(d: str | dict | None) -> str | None:
 
 
 def _get_span_meta(request: HttpResponse):
-    span = interfaces.library.get_root_span(request)
+    span = interfaces.agent.get_root_span(request)
     meta = span.get("meta", {})
     meta_struct = span.get("meta_struct", {})
     return meta, meta_struct
@@ -56,7 +56,7 @@ def assert_iast_vulnerability(
 def assert_metric(request: HttpResponse, metric: str, *, expected: bool) -> None:
     spans_checked = 0
     metric_available = False
-    for _, __, span in interfaces.library.get_spans(request):
+    for _, span, _, _ in interfaces.agent.get_spans(request):
         if metric in span["metrics"]:
             metric_available = True
         spans_checked += 1
@@ -68,7 +68,7 @@ def _check_telemetry_response_from_agent():
     # Java tracer (at least) disable telemetry if agent answer 403
     # Checking that agent answers 200
     # we do not fail the test, because we are not sure it's the official behavior
-    for data in interfaces.library.get_telemetry_data():
+    for data in interfaces.agent.get_telemetry_data():
         code = data["response"]["status_code"]
         if code != 200:
             filename = data["log_filename"]
@@ -77,13 +77,13 @@ def _check_telemetry_response_from_agent():
 
 
 def get_all_iast_events() -> list:
-    spans = [span[2] for span in interfaces.library.get_spans()]
+    spans = [span[1] for span in interfaces.agent.get_spans()]
     assert spans, "No spans found"
     spans_meta = [span.get("meta") for span in spans if span.get("meta")]
     spans_meta_struct = [span.get("meta_struct") for span in spans if span.get("meta_struct")]
     assert spans_meta or spans_meta_struct, "No spans meta found"
-    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
-    iast_events += [metastruct.get("iast") for metastruct in spans_meta_struct if metastruct.get("iast")]
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta and meta.get("_dd.iast.json")]
+    iast_events += [metastruct.get("iast") for metastruct in spans_meta_struct if metastruct and metastruct.get("iast")]
     assert iast_events, "No iast events found"
 
     return iast_events
@@ -153,7 +153,7 @@ class BaseSinkTestWithoutTelemetry:
         # to avoid false positive, we need to check that iast is implemented
         # AND that the insecure endpoint is vulnerable
 
-        interfaces.library.assert_iast_implemented()
+        interfaces.agent.assert_iast_implemented()
         self.test_insecure()
 
     def setup_secure(self) -> None:
@@ -198,7 +198,7 @@ class BaseSinkTestWithoutTelemetry:
 
 
 def validate_stack_traces(request: HttpResponse) -> None:
-    span = interfaces.library.get_root_span(request)
+    span = interfaces.agent.get_root_span(request)
     meta = span.get("meta", {})
     meta_struct = span.get("meta_struct", {})
     iast = meta.get("_dd.iast.json") or meta_struct.get("iast")
@@ -289,7 +289,7 @@ def validate_stack_traces(request: HttpResponse) -> None:
 def validate_extended_location_data(
     request: HttpResponse, vulnerability_type: str | None, *, is_expected_location_required: bool = True
 ) -> None:
-    span = interfaces.library.get_root_span(request)
+    span = interfaces.agent.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json") or span.get("meta_struct", {}).get("iast")
     assert iast, f"Expected at least one vulnerability in span {span.get('span_id')}"
     assert iast["vulnerabilities"], f"Expected at least one vulnerability: {iast['vulnerabilities']}"
@@ -364,7 +364,7 @@ def validate_extended_location_data(
 
 
 def get_hardcoded_vulnerabilities(vulnerability_type: str, request: HttpResponse | None = None) -> list:
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
+    spans = [s for _, s in interfaces.agent.get_root_spans(request=request)]
     assert spans, "No spans found"
     spans_meta = [span.get("meta") for span in spans]
     assert spans_meta, "No spans meta found"
@@ -393,7 +393,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
         expected_namespace = "iast"
         expected_metric = "instrumented.sink"
-        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
+        series = interfaces.agent.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logger.debug("Series: %s", series)
 
@@ -424,7 +424,7 @@ class BaseSinkTest(BaseSinkTestWithoutTelemetry):
 
         expected_namespace = "iast"
         expected_metric = "executed.sink"
-        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
+        series = interfaces.agent.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logger.debug("Series: %s", series)
 
@@ -475,7 +475,7 @@ class BaseSourceTest:
             self.validate_request_reported(request)
 
     def check_test_telemetry_should_execute(self) -> None:
-        interfaces.library.assert_iast_implemented()
+        interfaces.agent.assert_iast_implemented()
 
         # to avoid false positive, we need to check that at least
         # one test is working before running the telemetry tests
@@ -532,7 +532,7 @@ class BaseSourceTest:
 
         expected_namespace = "iast"
         expected_metric = "instrumented.source"
-        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
+        series = interfaces.agent.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
         logger.debug(f"Series: {json.dumps(series, indent=2)}")
 
@@ -562,7 +562,7 @@ class BaseSourceTest:
 
         expected_namespace = "iast"
         expected_metric = "executed.source"
-        series = interfaces.library.get_telemetry_metric_series(expected_namespace, expected_metric)
+        series = interfaces.agent.get_telemetry_metric_series(expected_namespace, expected_metric)
         assert series, f"Got no series for metric {expected_metric}"
 
         # lower the source_type, as all assertion will be case-insensitive

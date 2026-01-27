@@ -119,9 +119,7 @@ class Test_Blocking:
         """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
 
-        interfaces.library.assert_waf_attack(
-            self.r_abt, pattern="Arachni/v", address="server.request.headers.no_cookies"
-        )
+        interfaces.agent.assert_waf_attack(self.r_abt, pattern="Arachni/v", address="server.request.headers.no_cookies")
 
         def validate_appsec_blocked(span: dict):
             if span.get("type") not in ("web", "serverless"):
@@ -135,7 +133,7 @@ class Test_Blocking:
 
             return True
 
-        interfaces.library.validate_one_span(self.r_abt, validator=validate_appsec_blocked)
+        interfaces.agent.validate_one_span(self.r_abt, validator=validate_appsec_blocked)
 
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
@@ -249,7 +247,7 @@ class Test_Blocking_strip_response_headers:
     def test_strip_response_headers(self):
         """Test if headers are stripped from the blocking response"""
         assert self.r_srh.status_code == 403
-        interfaces.library.assert_waf_attack(self.r_srh, rule="tst-037-009")
+        interfaces.agent.assert_waf_attack(self.r_srh, rule="tst-037-009")
         # x-secret-header is set by the app so is should be not be present in the response
         assert "x-secret-header" not in self.r_srh.headers
         # content-length is set by the blocking response so it should be present

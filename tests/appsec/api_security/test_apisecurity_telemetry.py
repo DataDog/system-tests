@@ -76,7 +76,7 @@ class Test_API_Security_Telemetry_Metric:
         for parameter_name in ("accept-encoding", "host", "user-agent"):
             assert parameter_name in schema[0]
             assert isinstance(schema[0][parameter_name], list)
-        datas = _extract_telemetry_metrics(list(interfaces.library.get_telemetry_data(flatten_message_batches=True)))
+        datas = _extract_telemetry_metrics(list(interfaces.agent.get_telemetry_data(flatten_message_batches=True)))
         # at least on schema computed
         assert any(metric_data["metric"] == "api_security.request.schema" for metric_data in datas), (
             "api_security.request.schema metric not found in telemetry metrics"

@@ -101,17 +101,17 @@ class Test_Suspicious_Attacker_Blocking:
     def test_block_suspicious_attacker(self):
         # ASM disabled
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_1)
+        interfaces.agent.assert_no_appsec_event(self.response_1)
         assert self.response_1.status_code == 200
 
         # normal block
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 403
 
         # block on 405 if suspicious IP
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_3, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_3, rule="ua0-600-56x")
         assert self.response_3.status_code == 405
         assert self.response_3b.status_code == 403
         # non blocking rule should block with suspicious IP
@@ -120,7 +120,7 @@ class Test_Suspicious_Attacker_Blocking:
 
         # block on 416 if suspicious IP
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 416
         assert self.response_4b.status_code == 403
         # non blocking rule should block with suspicious IP
@@ -129,7 +129,7 @@ class Test_Suspicious_Attacker_Blocking:
 
         # no more suspicious IP
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_5, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_5, rule="ua0-600-56x")
         # non blocking rule should not block anymore
         assert self.response_5.status_code == 403
         assert self.response_5ᐩ.status_code == 200

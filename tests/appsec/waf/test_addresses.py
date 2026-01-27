@@ -16,7 +16,7 @@ class Test_UrlQueryKey:
 
     def test_query_key(self):
         """AppSec catches attacks in URL query key"""
-        interfaces.library.assert_waf_attack(self.r, pattern="$eq", address="server.request.query")
+        interfaces.agent.assert_waf_attack(self.r, pattern="$eq", address="server.request.query")
 
 
 @features.appsec_request_blocking
@@ -28,7 +28,7 @@ class Test_UrlQuery:
 
     def test_query_argument(self):
         """AppSec catches attacks in URL query value"""
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r_query_argument, pattern="appscan_fingerprint", address="server.request.query"
         )
 
@@ -37,7 +37,7 @@ class Test_UrlQuery:
 
     def test_query_encoded(self):
         """AppSec catches attacks in URL query value, even encoded"""
-        interfaces.library.assert_waf_attack(self.r_query_encoded, address="server.request.query")
+        interfaces.agent.assert_waf_attack(self.r_query_encoded, address="server.request.query")
 
     def setup_query_with_strict_regex(self):
         self.r_query_with_strict_regex = weblog.get("/waf/", params={"value": "0000012345"})
@@ -45,7 +45,7 @@ class Test_UrlQuery:
     @irrelevant(context.agent_version >= "1.2.6", reason="Need to find another rule")
     def test_query_with_strict_regex(self):
         """AppSec catches attacks in URL query value, even with regex containing start and end char"""
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r_query_with_strict_regex, pattern="0000012345", address="server.request.query"
         )
 
@@ -59,7 +59,7 @@ class Test_UrlRaw:
 
     def test_path(self):
         """AppSec catches attacks in raw URL path"""
-        interfaces.library.assert_waf_attack(self.r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
+        interfaces.agent.assert_waf_attack(self.r, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
 
 @features.appsec_request_blocking
@@ -72,7 +72,7 @@ class Test_Headers:
     def test_value(self):
         """Appsec WAF detects attacks in header value"""
 
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r_value, pattern="Arachni/v", address="server.request.headers.no_cookies", key_path=["user-agent"]
         )
 
@@ -83,15 +83,15 @@ class Test_Headers:
 
     def test_specific_key(self):
         """Appsec WAF detects attacks on specific header x-file-name or referer, and report it"""
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r_sk_1, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-file-name"]
         )
 
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r_sk_2, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-file-name"]
         )
 
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.r_sk_3, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
         )
 
@@ -103,12 +103,12 @@ class Test_Headers:
     def test_specific_key2(self):
         """Attacks on specific header X_Filename, and report it"""
         try:
-            interfaces.library.assert_waf_attack(
+            interfaces.agent.assert_waf_attack(
                 self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x_filename"]
             )
         except ValueError:
             # also accept report on x-filename
-            interfaces.library.assert_waf_attack(
+            interfaces.agent.assert_waf_attack(
                 self.r_sk_4, pattern="routing.yml", address="server.request.headers.no_cookies", key_path=["x-filename"]
             )
 
@@ -119,8 +119,8 @@ class Test_Headers:
     def test_specific_key3(self):
         """When a specific header key is specified, other key are ignored"""
         address = "server.request.headers.no_cookies"
-        interfaces.library.assert_waf_attack(self.r_sk_5, address=address, key_path=["referer"])
-        interfaces.library.assert_waf_attack(self.r_sk_6, address=address, key_path=["referer"])
+        interfaces.agent.assert_waf_attack(self.r_sk_5, address=address, key_path=["referer"])
+        interfaces.agent.assert_waf_attack(self.r_sk_6, address=address, key_path=["referer"])
 
     def setup_specific_wrong_key(self):
         self.r_wk_1 = weblog.get("/waf/", headers={"xfilename": "routing.yml"})
@@ -132,11 +132,11 @@ class Test_Headers:
         for r in [self.r_wk_1, self.r_wk_2]:
             logger.debug(f"Testing {r.request.headers}")
             assert r.status_code == 200
-            spans = [span for _, span in interfaces.library.get_root_spans(request=r)]
+            spans = [span for _, span in interfaces.agent.get_root_spans(request=r)]
             assert spans, "No spans to validate"
             assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
-        interfaces.library.assert_no_appsec_event(self.r_wk_1)
-        interfaces.library.assert_no_appsec_event(self.r_wk_2)
+        interfaces.agent.assert_no_appsec_event(self.r_wk_1)
+        interfaces.agent.assert_no_appsec_event(self.r_wk_2)
 
 
 @features.appsec_request_blocking
@@ -152,7 +152,7 @@ class Test_Cookies:
     @scenarios.appsec_custom_rules
     def test_cookies_custom_rules(self):
         """Appsec WAF detects attackes in cookies"""
-        interfaces.library.assert_waf_attack(self.r_ccr, pattern=".htaccess", address="server.request.cookies")
+        interfaces.agent.assert_waf_attack(self.r_ccr, pattern=".htaccess", address="server.request.cookies")
 
     def setup_cookies_with_semicolon_custom_rules(self):
         self.r_cwsccr = weblog.get("/waf", cookies={"value": "%3Bshutdown--"})
@@ -165,7 +165,7 @@ class Test_Cookies:
     @scenarios.appsec_custom_rules
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""
-        interfaces.library.assert_waf_attack(self.r_cwsccr, pattern=";shutdown--", address="server.request.cookies")
+        interfaces.agent.assert_waf_attack(self.r_cwsccr, pattern=";shutdown--", address="server.request.cookies")
 
     def setup_cookies_with_spaces_custom_rules(self):
         self.r_cwscr_2 = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
@@ -173,7 +173,7 @@ class Test_Cookies:
     @scenarios.appsec_custom_rules
     def test_cookies_with_spaces_custom_rules(self):
         """Cookie with pattern containing a space"""
-        interfaces.library.assert_waf_attack(self.r_cwscr_2, pattern="var_dump ()", address="server.request.cookies")
+        interfaces.agent.assert_waf_attack(self.r_cwscr_2, pattern="var_dump ()", address="server.request.cookies")
 
     def setup_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
@@ -182,7 +182,7 @@ class Test_Cookies:
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
-        interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
+        interfaces.agent.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
 
 
 @features.appsec_request_blocking
@@ -195,7 +195,7 @@ class Test_BodyRaw:
     @irrelevant(reason="no rule with body raw yet")
     def test_raw_body(self):
         """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
+        interfaces.agent.assert_waf_attack(self.r, address="server.request.body.raw")
 
 
 @bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
@@ -209,7 +209,7 @@ class Test_BodyUrlEncoded:
     @irrelevant(reason="matching against keys is impossible with current rules")
     def test_body_key(self):
         """AppSec detects attacks in URL encoded body keys"""
-        interfaces.library.assert_waf_attack(self.r_key, pattern="x", address="x")
+        interfaces.agent.assert_waf_attack(self.r_key, pattern="x", address="x")
 
     def setup_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
@@ -217,7 +217,7 @@ class Test_BodyUrlEncoded:
 
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
-        interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
+        interfaces.agent.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
 @bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
@@ -232,7 +232,7 @@ class Test_BodyJson:
     @irrelevant(reason="matching against keys is impossible with current rules")
     def test_json_key(self):
         """AppSec detects attacks in JSON body keys"""
-        interfaces.library.assert_waf_attack(self.r_key, pattern="x", address="x")
+        interfaces.agent.assert_waf_attack(self.r_key, pattern="x", address="x")
 
     def setup_json_value(self):
         """AppSec detects attacks in JSON body values"""
@@ -240,14 +240,14 @@ class Test_BodyJson:
 
     def test_json_value(self):
         """AppSec detects attacks in JSON body values"""
-        interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
+        interfaces.agent.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
     def setup_json_array(self):
         self.r_array = weblog.post("/waf", json=['<vmlframe src="xss">'])
 
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
-        interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
+        interfaces.agent.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
 @bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
@@ -275,8 +275,8 @@ class Test_BodyXml:
         reason="APMRP-360",
     )
     def test_xml_attr_value(self):
-        interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
-        interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
+        interfaces.agent.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
+        interfaces.agent.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
 
     def setup_xml_content(self):
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
@@ -287,8 +287,8 @@ class Test_BodyXml:
         reason="APMRP-360",
     )
     def test_xml_content(self):
-        interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
-        interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
+        interfaces.agent.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
+        interfaces.agent.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
 
 
 @features.appsec_request_blocking
@@ -300,7 +300,7 @@ class Test_ResponseStatus:
 
     def test_basic(self):
         """AppSec reports 404 responses"""
-        interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
+        interfaces.agent.assert_waf_attack(self.r, pattern="404", address="server.response.status")
 
 
 @features.appsec_request_blocking
@@ -312,9 +312,7 @@ class Test_PathParams:
 
     def test_security_scanner(self):
         """AppSec catches attacks in URL path param"""
-        interfaces.library.assert_waf_attack(
-            self.r, pattern="appscan_fingerprint", address="server.request.path_params"
-        )
+        interfaces.agent.assert_waf_attack(self.r, pattern="appscan_fingerprint", address="server.request.path_params")
 
 
 @features.grpc_threats_management
@@ -331,7 +329,7 @@ class Test_gRPC:
         """AppSec detects some basic attack"""
         for r in self.requests:
             try:
-                interfaces.library.assert_waf_attack(r, address="grpc.server.request.message")
+                interfaces.agent.assert_waf_attack(r, address="grpc.server.request.message")
             except Exception as e:
                 raise ValueError(f"Basic attack #{self.requests.index(r)} not detected") from e
 
@@ -369,7 +367,7 @@ class Test_GraphQL:
         """Verify that no AppSec event was reported"""
 
         assert self.r_no_attack.status_code == 200  # There is no attack here!
-        interfaces.library.assert_no_appsec_event(self.r_no_attack)
+        interfaces.agent.assert_no_appsec_event(self.r_no_attack)
 
     def base_test_request_monitor_attack(self, resolvers_key_path: list[str], all_resolvers_key_path: list[str]):
         """Verify that the request triggered a directive attack event"""
@@ -379,7 +377,7 @@ class Test_GraphQL:
         failures = []
 
         try:
-            interfaces.library.assert_waf_attack(
+            interfaces.agent.assert_waf_attack(
                 self.r_attack,
                 rule="monitor-resolvers",
                 key_path=resolvers_key_path,
@@ -390,7 +388,7 @@ class Test_GraphQL:
             failures.append(e)
 
         try:
-            interfaces.library.assert_waf_attack(
+            interfaces.agent.assert_waf_attack(
                 self.r_attack,
                 rule="monitor-all-resolvers",
                 key_path=all_resolvers_key_path,
@@ -466,7 +464,7 @@ class Test_GrpcServerMethod:
         self.request = weblog.grpc("Mr Bean")
 
     def test_grpc_server_method_rule(self):
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.request, address="grpc.server.method", span_validator=self.validate_span
         )
 
@@ -474,6 +472,6 @@ class Test_GrpcServerMethod:
         self.request_streaming = weblog.grpc("Mr Stream", streaming=True)
 
     def test_streaming_grpc_server_method_rule(self):
-        interfaces.library.assert_waf_attack(
+        interfaces.agent.assert_waf_attack(
             self.request_streaming, address="grpc.server.method", span_validator=self.validate_span
         )

@@ -22,7 +22,7 @@ class Test_ExtendedRequestBodyCollection:
     @staticmethod
     def assert_feature_is_enabled(response: HttpResponse) -> None:
         assert response.status_code == 403
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             response,
             "rasp-932-110",
             {
@@ -36,7 +36,7 @@ class Test_ExtendedRequestBodyCollection:
                 },
             },
         )
-        span = interfaces.library.get_root_span(request=response)
+        span = interfaces.agent.get_root_span(request=response)
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
@@ -56,7 +56,7 @@ class Test_ExtendedRequestBodyCollection:
 
     def test_request_body_truncated(self):
         assert self.r.status_code == 403
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-110",
             {
@@ -70,7 +70,7 @@ class Test_ExtendedRequestBodyCollection:
                 },
             },
         )
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
@@ -90,7 +90,7 @@ class Test_ExtendedRequestBodyCollection:
     def test_if_no_rasp_event_no_collect_request_body(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta_struct = span.get("meta_struct", {})
         assert meta_struct.get("http.request.body") is None
 

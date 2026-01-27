@@ -71,24 +71,24 @@ class Test_BlockingActionChangesWithRemoteConfig:
     def test_block_405(self):
         # normal block
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         # block on 405/json with RC
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 405
         # assert self.response_2.headers["content-type"] == "application/json"
 
         # block on 505/html with RC
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_3, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_3, rule="ua0-600-56x")
         assert self.response_3.status_code == 505
         assert self.response_3.headers["content-type"].startswith("text/html")
 
         # block on 505/html with RC
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_4, rule="ua0-600-56x")
         assert self.response_4.status_code == 302
         assert self.response_4.text == "" or '<a href="http://google.com">' in self.response_4.text
         assert self.response_4.headers["location"] == "http://google.com"
@@ -96,7 +96,7 @@ class Test_BlockingActionChangesWithRemoteConfig:
         # ASM disabled
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_5.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_5)
+        interfaces.agent.assert_no_appsec_event(self.response_5)
 
 
 RULE_FILE: tuple[str, dict] = (
@@ -183,39 +183,39 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         # normal block
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
-        interfaces.library.validate_one_appsec(self.response_1, validate_waf_rule_version_tag)
-        interfaces.library.assert_waf_attack(self.response_1b, rule="ua0-600-12x")
+        interfaces.agent.validate_one_appsec(self.response_1, validate_waf_rule_version_tag)
+        interfaces.agent.assert_waf_attack(self.response_1b, rule="ua0-600-12x")
         assert self.response_1b.status_code == 200
-        interfaces.library.validate_one_appsec(self.response_1b, validate_waf_rule_version_tag)
+        interfaces.agent.validate_one_appsec(self.response_1b, validate_waf_rule_version_tag)
 
         # new rule file with only 12x
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_2)
+        interfaces.agent.assert_no_appsec_event(self.response_2)
         assert self.response_2.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_2)
-        interfaces.library.assert_waf_attack(self.response_2b, rule="ua0-600-12x")
+        interfaces.agent.assert_no_appsec_event(self.response_2)
+        interfaces.agent.assert_waf_attack(self.response_2b, rule="ua0-600-12x")
         assert self.response_2b.status_code == 200
-        interfaces.library.validate_one_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
+        interfaces.agent.validate_one_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
 
         # block on 405/json with RC. It must not change anything for the new rule file
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_3)
+        interfaces.agent.assert_no_appsec_event(self.response_3)
         assert self.response_3.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_3)
-        interfaces.library.assert_waf_attack(self.response_3b, rule="ua0-600-12x")
+        interfaces.agent.assert_no_appsec_event(self.response_3)
+        interfaces.agent.assert_waf_attack(self.response_3b, rule="ua0-600-12x")
         assert self.response_3b.status_code == 200
-        interfaces.library.validate_one_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
+        interfaces.agent.validate_one_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
 
         # Switch back to default rules but keep updated blocking action
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
-        interfaces.library.validate_one_appsec(self.response_4, validate_waf_rule_version_tag)
+        interfaces.agent.assert_waf_attack(self.response_4, rule="ua0-600-56x")
+        interfaces.agent.validate_one_appsec(self.response_4, validate_waf_rule_version_tag)
         assert self.response_4.status_code == 405
-        interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
+        interfaces.agent.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
         assert self.response_4b.status_code == 200
-        interfaces.library.validate_one_appsec(self.response_4b, validate_waf_rule_version_tag)
+        interfaces.agent.validate_one_appsec(self.response_4b, validate_waf_rule_version_tag)
 
         # ASM disabled
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
@@ -329,7 +329,7 @@ class Test_AsmDdMultiConfiguration:
 
     @missing_feature(context.library == "java")
     def test_asm_dd_multiconfig_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
 
     def setup_update_rules(self):
         rc.tracer_rc_state.reset().apply()
@@ -361,31 +361,31 @@ class Test_AsmDdMultiConfiguration:
 
     def test_update_rules(self):
         # Arachni using the default rule file
-        interfaces.library.assert_waf_attack(self.response_0, rule="ua0-600-12x")
+        interfaces.agent.assert_waf_attack(self.response_0, rule="ua0-600-12x")
 
         # After FIRST_RULE_FILE is provided:
         # - The default rule file has been replaced with the one provided
         # - The Arachni user-agent doesn't result in an event as the rule has been removed
         # - The TechnoViking user-agent results in an event
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_1a)
-        interfaces.library.assert_waf_attack(self.response_1b, rule="str-000-001")
+        interfaces.agent.assert_no_appsec_event(self.response_1a)
+        interfaces.agent.assert_waf_attack(self.response_1b, rule="str-000-001")
 
         # After SECOND_RULE_FILE is provided both the TechnoViking user-agent and the Anubis
         # user-agent result in an event as both rules must have been merged by the WAF builder.
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2a, rule="str-000-001")
-        interfaces.library.assert_waf_attack(self.response_2b, rule="str-000-002")
+        interfaces.agent.assert_waf_attack(self.response_2a, rule="str-000-001")
+        interfaces.agent.assert_waf_attack(self.response_2b, rule="str-000-002")
 
         # After FIRST_RULE_FILE is removed, only the Anubis user-agent results in an event
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_3a)
-        interfaces.library.assert_waf_attack(self.response_3b, rule="str-000-002")
+        interfaces.agent.assert_no_appsec_event(self.response_3a)
+        interfaces.agent.assert_waf_attack(self.response_3b, rule="str-000-002")
 
         # After SECOND_RULE_FILE is removed, we're back to the default rule file
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_4a)
-        interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
+        interfaces.agent.assert_no_appsec_event(self.response_4a)
+        interfaces.agent.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
 
     def setup_update_rules_with_rules_compat(self):
         rc.tracer_rc_state.reset().apply()
@@ -417,31 +417,31 @@ class Test_AsmDdMultiConfiguration:
 
     def test_update_rules_with_rules_compat(self):
         # Arachni using the default rule file
-        interfaces.library.assert_waf_attack(self.response_0, rule="ua0-600-12x")
+        interfaces.agent.assert_waf_attack(self.response_0, rule="ua0-600-12x")
 
         # After FIRST_RULE_FILE is provided:
         # - The default rule file has been replaced with the one provided
         # - The Arachni user-agent doesn't result in an event as the rule has been removed
         # - The TechnoViking user-agent results in an event
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_1a)
-        interfaces.library.assert_waf_attack(self.response_1b, rule="str-000-001")
+        interfaces.agent.assert_no_appsec_event(self.response_1a)
+        interfaces.agent.assert_waf_attack(self.response_1b, rule="str-000-001")
 
         # After RULES_COMPAT_FILE is provided both the TechnoViking user-agent and the Anubis
         # user-agent result in an event as both rules must have been merged by the WAF builder.
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2a, rule="str-000-001")
-        interfaces.library.assert_waf_attack(self.response_2b, rule="str-000-002")
+        interfaces.agent.assert_waf_attack(self.response_2a, rule="str-000-001")
+        interfaces.agent.assert_waf_attack(self.response_2b, rule="str-000-002")
 
         # After FIRST_RULE_FILE is removed, only the Anubis user-agent results in an event
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_3a)
-        interfaces.library.assert_waf_attack(self.response_3b, rule="str-000-002")
+        interfaces.agent.assert_no_appsec_event(self.response_3a)
+        interfaces.agent.assert_waf_attack(self.response_3b, rule="str-000-002")
 
         # After RULES_COMPAT_FILE is removed, we're back to the default rule file
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_4a)
-        interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
+        interfaces.agent.assert_no_appsec_event(self.response_4a)
+        interfaces.agent.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
 
 
 # This is used to test that configuring a new undefined action like "foo" does not break the library RC feature.
@@ -470,16 +470,16 @@ class Test_Unknown_Action:
 
     def test_unknown_action(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 403
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_3)
+        interfaces.agent.assert_no_appsec_event(self.response_3)
 
 
 # tests that the library can handle multiple actions in the same remote config.
@@ -509,16 +509,16 @@ class Test_Multiple_Actions:
 
     def test_multiple_actions(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 406
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_3)
+        interfaces.agent.assert_no_appsec_event(self.response_3)
 
 
 EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
@@ -541,18 +541,18 @@ class Test_Empty_Config:
 
     def test_empty_config(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         assert (
             self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
         )  # empty configs should be acknowledged and should not trigger errors
-        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 403
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_3)
+        interfaces.agent.assert_no_appsec_event(self.response_3)
 
 
 DUPLICATE_ID_CONFIG = (
@@ -581,7 +581,7 @@ class Test_Invalid_Config:
 
     def test_invalid_config(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        interfaces.agent.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         assert self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
@@ -598,4 +598,4 @@ class Test_Invalid_Config:
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_3)
+        interfaces.agent.assert_no_appsec_event(self.response_3)

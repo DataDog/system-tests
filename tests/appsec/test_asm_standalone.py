@@ -75,7 +75,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         product_enabled = False
         tags = "_dd.iast.json" if product == "iast" else "_dd.appsec.json"
         meta_struct_key = "iast" if product == "iast" else "appsec"
-        spans = list(items[2] for items in interfaces.library.get_spans(request=response))
+        spans = list(items[1] for items in interfaces.agent.get_spans(request=response))
         logger.debug(f"Found {len(spans)} spans")
         for span in spans:
             # Check if the product is enabled in meta
@@ -141,7 +141,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
@@ -187,7 +187,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
@@ -233,7 +233,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
@@ -279,7 +279,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
@@ -323,7 +323,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -367,7 +367,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -413,7 +413,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x in [0, 2]}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -458,7 +458,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x in [1, 2]}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -503,7 +503,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -545,7 +545,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -587,7 +587,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -629,7 +629,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
@@ -701,7 +701,7 @@ class BaseSCAStandaloneTelemetry:
     def assert_standalone_is_enabled(self, request0: HttpResponse, request1: HttpResponse):
         # test standalone is enabled and dropping traces
         spans_checked = 0
-        for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
+        for _, span, _, _ in list(interfaces.agent.get_spans(request0)) + list(interfaces.agent.get_spans(request1)):
             if span["metrics"]["_dd.apm.enabled"] == 0:
                 spans_checked += 1
 
@@ -716,7 +716,7 @@ class BaseSCAStandaloneTelemetry:
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
         configuration_by_name: dict[str, list[dict]] = {}
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.agent.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                 continue
@@ -762,7 +762,7 @@ class BaseSCAStandaloneTelemetry:
 
         seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
-        for data in interfaces.library.get_telemetry_data():
+        for data in interfaces.agent.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-dependencies-loaded":
                 continue
@@ -796,7 +796,7 @@ class Test_AppSecStandalone_NotEnabled:
 
     def test_client_computed_stats_header_is_not_present(self):
         spans_checked = 0
-        for data, _, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, _ in interfaces.agent.get_spans(request=self.r):
             assert span["trace_id"] == 1212121212121212122
             assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
             spans_checked += 1
@@ -858,7 +858,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     @staticmethod
     def get_schema(request: HttpResponse, address: str) -> list | None:
         """Extract API security schema from span metadata"""
-        for _, _, span in interfaces.library.get_spans(request=request):
+        for _, span, _, _ in interfaces.agent.get_spans(request=request):
             meta = span.get("meta", {})
             if payload := meta.get("_dd.appsec.s." + address):
                 return payload
@@ -872,7 +872,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         tested_metrics: dict[str, str | Callable | None] = {
             SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0
         }
-        for data, trace, span in interfaces.library.get_spans(request=request):
+        for data, span, _, trace in interfaces.agent.get_spans(request=request):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
@@ -1032,7 +1032,7 @@ class Test_UserEventsStandalone_Automated:
         tested_meta: dict[str, str | Callable | None] = {
             "_dd.p.ts": "02",
         }
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
@@ -1105,7 +1105,7 @@ class Test_UserEventsStandalone_SDK_V1:
         tested_meta: dict[str, str | Callable | None] = {
             "_dd.p.ts": "02",
         }
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
@@ -1169,7 +1169,7 @@ class Test_UserEventsStandalone_SDK_V2:
         tested_meta: dict[str, str | Callable | None] = {
             "_dd.p.ts": "02",
         }
-        for data, trace, span in interfaces.library.get_spans(request=self.r):
+        for data, span, _, trace in interfaces.agent.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222

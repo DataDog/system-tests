@@ -17,7 +17,7 @@ class Test_Lambda_Inferred_Span_Tags:
         self.r = weblog.get("/waf/?message=<script>alert()</script>")
 
     def test_lambda_inferred_span(self) -> None:
-        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
+        for _, _, span, appsec_data in interfaces.agent.get_appsec_events(self.r):
             if span.get("name") == "aws.lambda":
                 lambda_span_appsec_data = appsec_data
 
@@ -46,7 +46,7 @@ class Test_Lambda_Inferred_Span_Tags:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_inferred_span, full_trace=True)
+        interfaces.agent.validate_one_span(self.r, validator=validate_inferred_span, full_trace=True)
 
 
 @scenarios.integrations
@@ -76,7 +76,7 @@ class Test_Proxy_Inferred_Span_Tags:
 
     def test_proxy_inferred_span(self) -> None:
         service_entry_span_appsec_data = None
-        for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
+        for _, _, span, appsec_data in interfaces.agent.get_appsec_events(self.r):
             if span.get("service") == "weblog":
                 service_entry_span_appsec_data = appsec_data
 
@@ -102,4 +102,4 @@ class Test_Proxy_Inferred_Span_Tags:
 
             return True
 
-        interfaces.library.validate_one_span(self.r, validator=validate_inferred_span, full_trace=True)
+        interfaces.agent.validate_one_span(self.r, validator=validate_inferred_span, full_trace=True)

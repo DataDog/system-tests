@@ -18,7 +18,7 @@ class Test_Basic:
     def test_uri(self):
         """Via server.request.uri.raw"""
         # Note: we do not check the returned key_path nor rule_id for the alpha version
-        interfaces.library.assert_waf_attack(self.r_uri, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
+        interfaces.agent.assert_waf_attack(self.r_uri, pattern="0x5c0x2e0x2e0x2f", address="server.request.uri.raw")
 
     def setup_headers(self):
         self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
@@ -29,8 +29,8 @@ class Test_Basic:
         # Note: we do not check the returned key_path nor rule_id for the alpha version
         address = "server.request.headers.no_cookies"
         pattern = "../"
-        interfaces.library.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
-        interfaces.library.assert_waf_attack(self.r_headers_2, pattern="Arachni/v", address=address)
+        interfaces.agent.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
+        interfaces.agent.assert_waf_attack(self.r_headers_2, pattern="Arachni/v", address=address)
 
     def setup_no_cookies(self):
         self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
@@ -43,5 +43,5 @@ class Test_Basic:
         # to validate that cookies are properly excluded from server.request.headers.no_cookies.
         address = "server.request.headers.no_cookies"
         pattern = "../"
-        interfaces.library.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
-        interfaces.library.assert_no_appsec_event(self.r_headers_2)
+        interfaces.agent.assert_waf_attack(self.r_headers_1, pattern=pattern, address=address)
+        interfaces.agent.assert_no_appsec_event(self.r_headers_2)

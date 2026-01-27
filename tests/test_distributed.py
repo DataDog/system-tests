@@ -269,7 +269,7 @@ class Test_Synthetics_APM_Datadog:
         self.assert_trace_id_equals(trace, trace_format, "1234567890")
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span, span_format, _ = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         meta = interfaces.agent.get_span_meta(span, span_format)
@@ -298,7 +298,7 @@ class Test_Synthetics_APM_Datadog:
 
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span, span_format, _ = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         meta = interfaces.agent.get_span_meta(span, span_format)

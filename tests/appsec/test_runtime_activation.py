@@ -41,8 +41,8 @@ class Test_RuntimeActivation:
         # ensure last config was applied
         assert self.reset_state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_no_appsec_event(self.response_with_deactivated_waf)
-        interfaces.library.assert_waf_attack(self.response_with_activated_waf)
+        interfaces.agent.assert_no_appsec_event(self.response_with_deactivated_waf)
+        interfaces.agent.assert_waf_attack(self.response_with_activated_waf)
 
 
 @scenarios.appsec_runtime_activation
@@ -69,6 +69,6 @@ class Test_RuntimeDeactivation:
         # ensure last empty config was applied
         assert all(s == rc.ApplyState.ACKNOWLEDGED for s in self.config_states)
         for response in self.response_with_deactivated_waf:
-            interfaces.library.assert_no_appsec_event(response)
+            interfaces.agent.assert_no_appsec_event(response)
         for response in self.response_with_activated_waf:
-            interfaces.library.assert_waf_attack(response)
+            interfaces.agent.assert_waf_attack(response)

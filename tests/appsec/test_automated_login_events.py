@@ -92,7 +92,7 @@ class Test_Login_Events:
 
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
@@ -104,7 +104,7 @@ class Test_Login_Events:
 
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
@@ -116,7 +116,7 @@ class Test_Login_Events:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -128,7 +128,7 @@ class Test_Login_Events:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -141,7 +141,7 @@ class Test_Login_Events:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -161,7 +161,7 @@ class Test_Login_Events:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -179,7 +179,7 @@ class Test_Login_Events:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -199,7 +199,7 @@ class Test_Login_Events:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -219,7 +219,7 @@ class Test_Login_Events:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -235,7 +235,7 @@ class Test_Login_Events:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -252,7 +252,7 @@ class Test_Login_Events:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -270,7 +270,7 @@ class Test_Login_Events:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -291,7 +291,7 @@ class Test_Login_Events_Extended:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -322,7 +322,7 @@ class Test_Login_Events_Extended:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -351,7 +351,7 @@ class Test_Login_Events_Extended:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -381,7 +381,7 @@ class Test_Login_Events_Extended:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -409,7 +409,7 @@ class Test_Login_Events_Extended:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -434,7 +434,7 @@ class Test_Login_Events_Extended:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -459,7 +459,7 @@ class Test_Login_Events_Extended:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -475,7 +475,7 @@ class Test_Login_Events_Extended:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -492,7 +492,7 @@ class Test_Login_Events_Extended:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -510,7 +510,7 @@ class Test_Login_Events_Extended:
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -537,7 +537,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.agent.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -557,7 +557,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.agent.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -589,7 +589,7 @@ class Test_V2_Login_Events:
 
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
             assert meta["usr.id"] == "social-security-id"
@@ -606,7 +606,7 @@ class Test_V2_Login_Events:
 
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
             assert meta["usr.id"] == "social-security-id"
@@ -623,7 +623,7 @@ class Test_V2_Login_Events:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -639,7 +639,7 @@ class Test_V2_Login_Events:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -658,7 +658,7 @@ class Test_V2_Login_Events:
     )
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -682,7 +682,7 @@ class Test_V2_Login_Events:
     )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -704,7 +704,7 @@ class Test_V2_Login_Events:
     )
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -734,7 +734,7 @@ class Test_V2_Login_Events:
     )
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -761,7 +761,7 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -777,7 +777,7 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -793,7 +793,7 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -810,7 +810,7 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -834,7 +834,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -854,7 +854,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -878,7 +878,7 @@ class Test_V2_Login_Events_Anon:
     )
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -902,7 +902,7 @@ class Test_V2_Login_Events_Anon:
     )
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -920,7 +920,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library != "java":
                 # Currently in java there is no way to check if the user exists upon authentication failure so
@@ -947,7 +947,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library != "java":
                 # Currently in java there is no way to check if the user exists upon authentication failure so
@@ -975,7 +975,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -991,7 +991,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
@@ -1007,7 +1007,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -1024,7 +1024,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
@@ -1051,7 +1051,7 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.agent.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -1071,7 +1071,7 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.agent.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 def assert_priority(span: dict, trace: list[dict]):
@@ -1152,7 +1152,7 @@ class Test_V2_Login_Events_RC:
         assert config_states.state == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
-        spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
+        spans = [s for _, s, _, _ in interfaces.agent.get_spans(request=request)]
         assert spans, "No spans to validate"
         for span in spans:
             meta = span.get("meta", {})
@@ -1220,7 +1220,7 @@ class Test_V3_Login_Events:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1240,7 +1240,7 @@ class Test_V3_Login_Events:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1260,7 +1260,7 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1281,7 +1281,7 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1300,7 +1300,7 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1325,7 +1325,7 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1355,7 +1355,7 @@ class Test_V3_Login_Events:
     def test_login_sdk_success_local(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1383,7 +1383,7 @@ class Test_V3_Login_Events:
     def test_login_sdk_success_basic(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1411,7 +1411,7 @@ class Test_V3_Login_Events:
     def test_login_sdk_failure_local(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1435,7 +1435,7 @@ class Test_V3_Login_Events:
     def test_login_sdk_failure_basic(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1452,7 +1452,7 @@ class Test_V3_Login_Events:
 
     def test_signup_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1485,7 +1485,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.agent.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -1505,7 +1505,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.agent.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1522,7 +1522,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1542,7 +1542,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1562,7 +1562,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1583,7 +1583,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1602,7 +1602,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1627,7 +1627,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_wrong_user_failure):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1657,7 +1657,7 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_success_local(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1685,7 +1685,7 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_success_basic(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1713,7 +1713,7 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_failure_local(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1737,7 +1737,7 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_failure_basic(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
+            for _, span, _, trace in interfaces.agent.get_spans(request=request):
                 assert_priority(span, trace)
                 meta = span.get("meta", {})
 
@@ -1754,7 +1754,7 @@ class Test_V3_Login_Events_Anon:
 
     def test_signup_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, span, _, trace in interfaces.agent.get_spans(request=self.r_success):
             assert_priority(span, trace)
             meta = span.get("meta", {})
 
@@ -1790,7 +1790,7 @@ class Test_V3_Login_Events_RC:
         assert config_state.state == rc.ApplyState.ACKNOWLEDGED
         assert request.status_code == 200
 
-        spans = [s for _, _, s in interfaces.library.get_spans(request=request)]
+        spans = [s for _, s, _, _ in interfaces.agent.get_spans(request=request)]
         assert spans, "No spans to validate"
         for span in spans:
             meta = span.get("meta", {})
@@ -1906,7 +1906,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
         if context.library not in libs_without_user_id:
-            interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
+            interfaces.agent.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
             assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_auto_login(self):
@@ -1925,7 +1925,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
-        interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
+        interfaces.agent.assert_waf_attack(self.r_login_blocked, rule="block-user-login")
         assert self.r_login_blocked.status_code == 403
 
     def setup_login_event_blocking_sdk(self):
@@ -1958,7 +1958,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
         for request in self.r_login_blocked:
-            interfaces.library.assert_waf_attack(request, rule="block-user-id")
+            interfaces.agent.assert_waf_attack(request, rule="block-user-id")
             assert request.status_code == 403
 
 
@@ -1969,4 +1969,4 @@ class Test_V3_Auto_User_Instrum_Mode_Capability:
     """Validate that ASM_AUTO_USER_INSTRUM_MODE (31) capability is sent"""
 
     def test_capability_auto_user_instrum_mode(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_AUTO_USER_INSTRUM_MODE)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_AUTO_USER_INSTRUM_MODE)

@@ -58,7 +58,7 @@ class Test_Automated_User_Tracking:
         assert self.r_login.status_code == 200
 
         assert self.r_home.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_home):
+        for _, span, _, _ in interfaces.agent.get_spans(request=self.r_home):
             meta = span.get("meta", {})
             if context.library in libs_without_user_id:
                 assert meta["usr.id"] == USER
@@ -78,7 +78,7 @@ class Test_Automated_User_Tracking:
         assert self.r_login.status_code == 200
 
         assert self.r_users.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_users):
+        for _, span, _, _ in interfaces.agent.get_spans(request=self.r_users):
             meta = span.get("meta", {})
             assert meta["usr.id"] == "sdkUser"
             if context.library in libs_without_user_id:
@@ -156,7 +156,7 @@ class Test_Automated_User_Blocking:
 
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        interfaces.library.assert_waf_attack(self.r_home_blocked, rule="block-users")
+        interfaces.agent.assert_waf_attack(self.r_home_blocked, rule="block-users")
         assert self.r_home_blocked.status_code == 403
 
     def setup_user_blocking_sdk(self):
@@ -184,7 +184,7 @@ class Test_Automated_User_Blocking:
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r_not_blocked.status_code == 200
 
-        interfaces.library.assert_waf_attack(self.r_blocked, rule="block-users")
+        interfaces.agent.assert_waf_attack(self.r_blocked, rule="block-users")
         assert self.r_blocked.status_code == 403
 
 
@@ -245,5 +245,5 @@ class Test_Automated_Session_Blocking:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
-        interfaces.library.assert_waf_attack(self.r_home_blocked, pattern=self.session_id, rule="block-sessions")
+        interfaces.agent.assert_waf_attack(self.r_home_blocked, pattern=self.session_id, rule="block-sessions")
         assert self.r_home_blocked.status_code == 403

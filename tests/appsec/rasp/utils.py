@@ -13,7 +13,7 @@ def validate_span_tags(
     request: HttpResponse, expected_meta: Sequence[str] = (), expected_metrics: Sequence[str] = ()
 ) -> None:
     """Validate RASP span tags are added when an event is generated"""
-    span = interfaces.library.get_root_span(request)
+    span = interfaces.agent.get_root_span(request)
     meta = span["meta"]
     for m in expected_meta:
         assert m in meta, f"missing span meta tag `{m}` in {meta}"
@@ -24,7 +24,7 @@ def validate_span_tags(
 
 
 def validate_stack_traces(request: HttpResponse) -> None:
-    events = list(interfaces.library.get_appsec_events(request=request))
+    events = list(interfaces.agent.get_appsec_events(request=request))
     assert len(events) != 0, "No appsec event has been reported"
 
     for _, _, span, appsec_data in events:
@@ -76,7 +76,7 @@ def find_series(
 ) -> list:
     request_type = "generate-metrics" if is_metrics else "distributions"
     series = []
-    for data in interfaces.library.get_telemetry_data():
+    for data in interfaces.agent.get_telemetry_data():
         content = data["request"]["content"]
         if content.get("request_type") != request_type:
             continue

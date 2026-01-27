@@ -13,7 +13,7 @@ class Test_ExtendedHeaderCollection:
     @staticmethod
     def assert_feature_is_enabled(response: HttpResponse) -> None:
         assert response.status_code == 200
-        span = interfaces.library.get_root_span(request=response)
+        span = interfaces.agent.get_root_span(request=response)
         meta = span.get("meta", {})
         assert meta.get("http.request.headers.x-my-header-1") == "value1"
 
@@ -41,7 +41,7 @@ class Test_ExtendedHeaderCollection:
 
     def test_if_appsec_event_collect_all_request_headers(self):
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
         assert meta.get("http.request.headers.x-my-header-1") == "value1"
         assert meta.get("http.request.headers.x-my-header-2") == "value2"
@@ -67,7 +67,7 @@ class Test_ExtendedHeaderCollection:
     def test_if_no_appsec_event_collect_allowed_request_headers(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
         assert meta.get("http.request.headers.x-my-header-1") is None
         assert meta.get("http.request.headers.x-my-header-2") is None
@@ -91,7 +91,7 @@ class Test_ExtendedHeaderCollection:
     def test_not_exceed_default_50_maximum_request_header_collection(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
 
         # Ensure no more than 50 meta entries start with "http.request.headers."
@@ -121,7 +121,7 @@ class Test_ExtendedHeaderCollection:
     )
     def test_if_appsec_event_collect_all_response_headers(self):
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
         assert meta.get("http.response.headers.x-test-header-1") == "value1"
         assert meta.get("http.response.headers.x-test-header-2") == "value2"
@@ -139,7 +139,7 @@ class Test_ExtendedHeaderCollection:
     def test_if_no_appsec_event_collect_allowed_response_headers(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
         assert meta.get("http.response.headers.x-test-header-1") is None
         assert meta.get("http.response.headers.x-test-header-2") is None
@@ -168,7 +168,7 @@ class Test_ExtendedHeaderCollection:
     def test_not_exceed_default_50_maximum_response_header_collection(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span = interfaces.agent.get_root_span(request=self.r)
         meta = span.get("meta", {})
 
         # Ensure no more than 50 meta entries start with "http.request.headers."

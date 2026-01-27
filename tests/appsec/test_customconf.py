@@ -23,7 +23,7 @@ class Test_CorruptedRules:
         for r in [self.r_1, self.r_2]:
             assert r.status_code == 200
             # Appsec does not catch any attack
-            interfaces.library.assert_no_appsec_event(r)
+            interfaces.agent.assert_no_appsec_event(r)
 
 
 @scenarios.appsec_corrupted_rules
@@ -68,7 +68,7 @@ class Test_MissingRules:
         for r in [self.r_1, self.r_2]:
             assert r.status_code == 200
             # Appsec does not catch any attack
-            interfaces.library.assert_no_appsec_event(r)
+            interfaces.agent.assert_no_appsec_event(r)
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
@@ -83,8 +83,8 @@ class Test_ConfRuleSet:
 
     def test_requests(self):
         """Appsec does not catch any attack"""
-        interfaces.library.assert_no_appsec_event(self.r_1)
-        interfaces.library.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
+        interfaces.agent.assert_no_appsec_event(self.r_1)
+        interfaces.agent.assert_waf_attack(self.r_2, pattern="dedicated-value-for-testing-purpose")
 
     def test_log(self):
         # Check if it's implemented for the weblog variant
@@ -107,5 +107,5 @@ class Test_NoLimitOnWafRules:
         self.r_2 = weblog.get("/waf", headers={"attack": "last_pattern_of_a_very_long_list"})
 
     def test_main(self):
-        interfaces.library.assert_waf_attack(self.r_1, pattern="first_pattern_of_a_very_long_list")
-        interfaces.library.assert_waf_attack(self.r_2, pattern="last_pattern_of_a_very_long_list")
+        interfaces.agent.assert_waf_attack(self.r_1, pattern="first_pattern_of_a_very_long_list")
+        interfaces.agent.assert_waf_attack(self.r_2, pattern="last_pattern_of_a_very_long_list")

@@ -30,7 +30,7 @@ class Test_Cmdi_UrlQuery:
     def test_cmdi_get(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-110",
             {
@@ -60,7 +60,7 @@ class Test_Cmdi_BodyUrlEncoded:
     def test_cmdi_post_urlencoded(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-110",
             {
@@ -93,7 +93,7 @@ class Test_Cmdi_BodyXml:
     def test_cmdi_post_xml(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-110",
             {
@@ -118,7 +118,7 @@ class Test_Cmdi_BodyJson:
     def test_cmdi_post_json(self):
         assert self.r.status_code == 403
 
-        interfaces.library.assert_rasp_attack(
+        interfaces.agent.assert_rasp_attack(
             self.r,
             "rasp-932-110",
             {
@@ -268,7 +268,7 @@ class Test_Cmdi_Capability:
     """Validate that ASM_RASP_CMDI (37) capability is sent"""
 
     def test_cmdi_capability(self):
-        interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_CMDI)
+        interfaces.agent.assert_rc_capability(Capabilities.ASM_RASP_CMDI)
 
 
 @features.rasp_command_injection

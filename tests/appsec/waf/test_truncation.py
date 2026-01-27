@@ -31,7 +31,7 @@ class Test_Truncation:
         )
 
     def test_truncation(self):
-        span = interfaces.library.get_root_span(self.req)
+        span = interfaces.agent.get_root_span(self.req)
         metrics = span.get("metrics")
         assert metrics, "Expected metrics"
 
