@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -437,7 +438,6 @@ manifest:
   tests/appsec/test_traces.py::Test_RetainTraces: v1.29.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v2.30.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v2.8.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v2.7.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v2.8.0
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_spaces_custom_rules: irrelevant (One space in the whole value cause kestrel to erase the whole value)
@@ -568,8 +568,8 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
-  tests/ffe/test_dynamic_evaluation.py: missing_feature
-  tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_dynamic_evaluation.py: v3.36.0
+  tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: v2.0.0-prerelease

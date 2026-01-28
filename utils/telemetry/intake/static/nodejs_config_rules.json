@@ -2,9 +2,12 @@
     "normalization_rules": {
         "DD_TRACE_MIDDLEWARE_ENABLED": "trace_middleware_enabled",
         "middlewareTracingEnabled": "trace_middleware_enabled",
+        "dynamicinstrumentation.capturetimeoutms": "dynamic_instrumentation_capture_timeout",
         "experimental.flaggingprovider.enabled": "experimental_flagging_provider_enabled",
+        "experimental.flaggingprovider.initializationtimeoutms": "experimental_flagging_provider_initialization_timeout",
         "profiling.heuristicsenabled": "profiling_heuristics_enabled",
         "profiling.ssi": "profiling_ssi",
+        "propagateprocesstags.enabled": "experimental_propagate_process_tags_enabled",
         "traceremoveintegrationservicenamesenabled": "trace_remove_integration_service_names_enabled"
     },
     "prefix_block_list": [

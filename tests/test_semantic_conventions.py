@@ -14,6 +14,8 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
+    "envoy": "go",
+    "haproxy": "go",
 }
 
 """
@@ -35,6 +37,7 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
     "graphql-go": "graphql-go/graphql",
@@ -143,8 +146,6 @@ def get_component_name(span_name: str):
         expected_component = "aspnet_core"
     elif language == "cpp":
         expected_component = "nginx"
-    elif language == "golang" and context.weblog_variant == "haproxy":
-        expected_component = "haproxy-spoa"
     else:
         # using weblog variant to get name of component that should be on set within each span's metadata
         expected_component = VARIANT_COMPONENT_MAP.get(context.weblog_variant, context.weblog_variant)
@@ -164,7 +165,7 @@ optional_uds_feature = (
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -338,7 +339,7 @@ class Test_MetaDatadogTags:
 
 
 @features.trace_data_integrity
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

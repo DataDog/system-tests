@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -388,7 +389,6 @@ manifest:
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.0.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v0.86.3
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v0.98.1  # TODO what is the earliest version?
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v0.98.0
   tests/appsec/waf/test_addresses.py::Test_Cookies: v0.68.3

@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
-from utils import missing_feature, irrelevant, context, scenarios, features
+from utils import irrelevant, context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -374,7 +374,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert propagation_error is None
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],

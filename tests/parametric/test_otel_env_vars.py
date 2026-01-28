@@ -1,5 +1,5 @@
 import pytest
-from utils import missing_feature, context, scenarios, features, irrelevant
+from utils import missing_feature, context, scenarios, features
 from .conftest import APMLibrary
 
 
@@ -123,9 +123,6 @@ class Test_Otel_Env_Vars:
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
 
-    @missing_feature(
-        context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
-    )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_otel_traces_always_on(self, test_library: APMLibrary):
         with test_library as t:
@@ -150,9 +147,6 @@ class Test_Otel_Env_Vars:
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
-    @missing_feature(
-        context.library <= "php@1.1.0", reason="The always_on sampler mapping is properly implemented in v1.2.0"
-    )
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_on", "DD_TRACE_OTEL_ENABLED": "true"}]
     )
@@ -193,10 +187,6 @@ class Test_Otel_Env_Vars:
             resp = t.config()
         assert resp["dd_trace_enabled"] == "false"
 
-    @irrelevant(
-        context.library == "php",
-        reason="PHP uses DD_TRACE_DEBUG to set DD_TRACE_LOG_LEVEL=debug, so it does not do this mapping in the reverse direction",
-    )
     @pytest.mark.parametrize("library_env", [{"OTEL_LOG_LEVEL": "debug", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_otel_log_level_to_debug_mapping(self, test_library: APMLibrary):
         with test_library as t:
@@ -205,19 +195,12 @@ class Test_Otel_Env_Vars:
         # If dd_log_level is set it must be consistent with dd_trace_debug
         assert (resp["dd_log_level"] == "debug") or (resp["dd_log_level"] is None)
 
-    @missing_feature(
-        context.library == "ruby", reason="does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED"
-    )
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}])
     def test_dd_trace_otel_enabled_takes_precedence(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_otel_enabled"] == "true"
 
-    @missing_feature(
-        context.library == "java",
-        reason="Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.",
-    )
     @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true", "DD_TRACE_OTEL_ENABLED": None}])
     def test_otel_sdk_disabled_set(self, test_library: APMLibrary):
         with test_library as t:

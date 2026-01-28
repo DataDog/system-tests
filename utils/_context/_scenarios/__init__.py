@@ -17,7 +17,7 @@ from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
-from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
+from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .go_proxies import GoProxiesScenario
@@ -197,6 +197,7 @@ class _Scenarios:
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -918,20 +919,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    lib_injection_validation = WeblogInjectionScenario(
-        "LIB_INJECTION_VALIDATION",
-        doc="Validates the init images without kubernetes enviroment",
-        github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
-    )
-
-    lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
-        "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
-        doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
-        github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
-    )
-
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
     k8s_lib_injection_operator = K8sScenario(
         "K8S_LIB_INJECTION_OPERATOR",
@@ -943,14 +930,18 @@ class _Scenarios:
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
+    k8s_lib_injection_no_ac = K8sScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
+        with_cluster_agent=False,
+        with_datadog_operator=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
+    k8s_lib_injection_no_ac_uds = K8sScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
         use_uds=True,
+        with_cluster_agent=False,
+        with_datadog_operator=False,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
@@ -1085,17 +1076,19 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    go_proxies = GoProxiesScenario(
-        name="GO_PROXIES",
-        doc="Go security processor proxies (Envoy or HAProxy)",
+    go_proxies_default = GoProxiesScenario(
+        name="GO_PROXIES_DEFAULT",
+        doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
+        scenario_groups=[],
     )
 
-    go_proxies_blocking = GoProxiesScenario(
-        name="GO_PROXIES_BLOCKING",
-        doc="Go security processor proxies with blocking rule file",
+    go_proxies_appsec_blocking = GoProxiesScenario(
+        name="GO_PROXIES_APPSEC_BLOCKING",
+        doc="Default tests for proxies using the security processor with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")
