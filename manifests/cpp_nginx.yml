@@ -9,6 +9,7 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -61,19 +62,28 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: missing_feature
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v1.2.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature (RFC 6598 block not recognized)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature (Forwarded not yet supported)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v1.4.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.4.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.2.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: v1.2.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: v1.2.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: irrelevant
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: v1.2.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: v1.2.0
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri::test_blocking_before: irrelevant (Tag adding happens before WAF run)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: v1.6.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: v1.6.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: missing_feature (users not supported)
@@ -107,6 +117,12 @@ manifest:
   tests/appsec/test_trace_tagging.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v1.2.0
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.2.0
+  tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_cookies_with_custom_rules:
+    - declaration: bug (APPSEC-58808)
+      component_version: '>=1.8.0'
+  tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_key_with_custom_rules:
+    - declaration: bug (APPSEC-58808)
+      component_version: '>=1.8.0'
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v1.7.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders: v1.2.0
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.2.0
@@ -122,6 +138,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: irrelevant
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: irrelevant
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.2.0
+  tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2: irrelevant (Header rejected by nginx ('client sent invalid header line)
   tests/appsec/waf/test_addresses.py::Test_PathParams: irrelevant (path params waf address unfilled)
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.2.0
@@ -232,6 +249,10 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: missing_feature
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: missing_feature (not implemented yet)
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: missing_feature (not implemented yet)
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_headers: missing_feature (Trace are not reported)
+  tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
@@ -262,7 +283,12 @@ manifest:
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays: missing_feature (DD_TELEMETRY_HEARTBEAT_INTERVAL not supported)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: missing_feature
+  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
+  tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature
   tests/test_v1_payloads.py: missing_feature

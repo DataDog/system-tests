@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
+from utils import weblog, interfaces, scenarios, features, bug, context, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
@@ -259,7 +259,6 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))
@@ -288,7 +287,6 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))

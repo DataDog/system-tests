@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": v2.25.0-dev
@@ -376,6 +377,7 @@ manifest:
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: irrelevant
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v2.16.0
@@ -829,6 +831,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.8.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.8.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.8.0
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScript::test_install: 'missing_feature (Missing TCP cgroup2 support.\n        See: https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3189670032/Traces+missing+container+tags+with+cgroup+V2#Tracer-Side\n        )'
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
@@ -873,6 +876,7 @@ manifest:
         rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth: bug (DEBUG-4675)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track: missing_feature (DEBUG-4343)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination: missing_feature (DEBUG-4343)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
@@ -1058,6 +1062,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         rails72: v2.0.0
+  tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Ruby extract seems to fail even though it should be supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.17.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_chars: missing_feature (not implemented)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_long: missing_feature (not implemented)
@@ -1344,6 +1349,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (endpoint not implemented)
         rails72: v2.14.0
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled::test_incoming_64bit_traceid: incomplete_test_app (rails70 app does not use the incoming headers in log correlation)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
     - weblog_declaration:

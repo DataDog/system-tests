@@ -10,7 +10,7 @@ from .utils import BaseFullDenyListTest
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
 @features.appsec_client_ip_blocking
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.appsec_blocking_full_denylist
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""
@@ -24,7 +24,6 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
         self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in self.blocked_ips]
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
-    @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
     def test_blocked_ips(self):
         """Test blocked ips are enforced"""
 

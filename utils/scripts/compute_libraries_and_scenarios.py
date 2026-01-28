@@ -39,6 +39,8 @@ LIBRARIES = {
     "ruby",
     "python_lambda",
     "rust",
+    "envoy",
+    "haproxy",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
@@ -236,11 +238,11 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self._append_scenarios_from_test_files(scenario_names)
 
-            elif file.endswith(("/utils.py", "/conftest.py", ".json")):
+            elif file.endswith(("/utils.py", "/conftest.py", ".json", ".yml")):
                 # particular use case for modification in tests/ of a file utils.py or conftest.py:
                 # in that situation, takes all scenarios executed in tests/<path>/
 
-                # same for any json file
+                # same for any json or yml file
 
                 folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
 
