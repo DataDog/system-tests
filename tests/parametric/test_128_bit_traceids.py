@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
-from utils import missing_feature, irrelevant, context, scenarios, features
+from utils import irrelevant, context, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -125,7 +125,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "rust", reason="128 bit traceid is always enabled")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -145,7 +144,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -165,7 +163,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "Datadog"}])
     def test_datadog_128_bit_generation_enabled_by_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that 128-bit TraceIds are properly generated, propagated in
@@ -182,7 +179,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
         reason="Supports the value `b3` instead of the deprecated `B3 single header`",
@@ -208,7 +204,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
         reason="Supports the value `b3` instead of the deprecated `B3 single header`",
@@ -230,7 +225,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
         reason="Supports the value `b3` instead of the deprecated `B3 single header`",
@@ -250,7 +244,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @irrelevant(
         context.library in ("ruby", "python"),
         reason="Supports the value `b3` instead of the deprecated `B3 single header`",
@@ -270,7 +263,6 @@ class Test_128_Bit_Traceids:
 
         check_128_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -291,7 +283,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         check_128_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -310,7 +301,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -325,7 +315,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "rust", reason="propagation style not supported")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -340,7 +329,6 @@ class Test_128_Bit_Traceids:
 
         check_128_bit_trace_id(headers["x-b3-traceid"], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -386,11 +374,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert propagation_error is None
 
-    @irrelevant(
-        context.library == "ruby",
-        reason="ruby tracer adds trace level tags to the local root span and not the chunk root span. This inconsistency is not a bug and is expected.",
-    )
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -411,7 +394,6 @@ class Test_128_Bit_Traceids:
         tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_w3c_128_bit_propagation_tid_in_trace_chunk(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that atleast one span in the trace chunk contains the tid."""
         with (
@@ -432,7 +414,6 @@ class Test_128_Bit_Traceids:
         else:
             raise AssertionError(f"No span in the trace chunk contains the tid: {traces}")
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -455,7 +436,6 @@ class Test_128_Bit_Traceids:
         assert trace_id == int("abcdefab12345678", 16)
         assert dd_p_tid == "640cfd8d00000000"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -495,7 +475,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
-    @missing_feature(context.library == "rust", reason="128 bit traceid is always enabled")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -511,7 +490,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(fields[1], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],

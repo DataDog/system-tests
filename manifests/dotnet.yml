@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -549,6 +550,10 @@ manifest:
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.53.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: bug (DEBUG-4746)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: v2.53.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_length: bug (DEBUG-4669)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
+    - declaration: missing_feature (Not implemented in older versions)
+      component_version: '<3.32.0'
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.53.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.53.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
@@ -564,8 +569,8 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
-  tests/ffe/test_dynamic_evaluation.py: missing_feature
-  tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_dynamic_evaluation.py: v3.36.0
+  tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: v2.0.0-prerelease

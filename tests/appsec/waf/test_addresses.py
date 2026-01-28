@@ -98,7 +98,6 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
-    @irrelevant(library="cpp_nginx", reason="Header rejected by nginx ('client sent invalid header line'")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """Attacks on specific header X_Filename, and report it"""
@@ -157,11 +156,6 @@ class Test_Cookies:
     def setup_cookies_with_semicolon_custom_rules(self):
         self.r_cwsccr = weblog.get("/waf", cookies={"value": "%3Bshutdown--"})
 
-    @irrelevant(
-        library="java",
-        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
-        "encoded to represent disallowed octets",
-    )
     @scenarios.appsec_custom_rules
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""

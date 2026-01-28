@@ -22,11 +22,11 @@ from .mocked_response import (
     MockedTracerResponse,
     MockedBackendResponse,
 )
+from .utils import logger
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
 
-logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 

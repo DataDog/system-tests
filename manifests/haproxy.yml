@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
+---
+manifest:
+  tests/appsec/test_alpha.py: v2.4.0
+  tests/appsec/test_blocking_addresses.py: v2.4.0
+  tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking: missing_feature (The endpoint /param is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking_before: missing_feature (The endpoint /param is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_non_blocking: missing_feature (The endpoint /param is not implemented in the weblog (from the test_blocking test))
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri::test_blocking_before: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: irrelevant (not supported on proxies)
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: missing_feature (can't test with set tag)
+  tests/appsec/test_client_ip.py: v2.4.0
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.4.0
+  tests/appsec/test_reports.py: v2.4.0
+  tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: v2.4.0
+  tests/appsec/test_traces.py: v2.4.0
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
+  tests/appsec/test_versions.py::Test_Events: v2.4.0
+  tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.4.0
+  tests/test_scrubbing.py: v2.4.0
+  tests/test_semantic_conventions.py: v2.4.0
+  tests/test_standard_tags.py: v2.4.0
+  tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)

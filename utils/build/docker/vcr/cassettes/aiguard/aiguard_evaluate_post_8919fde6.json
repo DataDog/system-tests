@@ -19,15 +19,13 @@
       "message": "OK"
     },
     "headers": {
-      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pub293163a918901030b79492fe1ab424cf&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatad0g.com",
       "content-type": "application/vnd.api+json",
       "vary": "Accept-Encoding",
       "x-frame-options": "SAMEORIGIN",
-      "content-length": "170",
-      "date": "Thu, 11 Dec 2025 08:49:27 GMT",
+      "content-length": "514",
       "x-content-type-options": "nosniff",
       "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
     },
-    "body": "{\"data\":{\"id\":\"71926018-57cb-474d-8113-436ba98a24c8\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"tags\":[]}}}"
+    "body": "{\"data\":{\"id\":\"8c09bc01-3f4d-4b7f-aaca-57e4e0a05a58\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"tag_probs\":{\"authority-override\":0,\"data-exfiltration\":3.12816276770711e-07,\"denial-of-service-tool-call\":0,\"destructive-tool-call\":0,\"indirect-prompt-injection\":1.9361263070560852e-07,\"instruction-override\":0,\"jailbreak\":7.896306621901772e-07,\"obfuscation\":0,\"role-play\":0,\"security-exploit\":1.9361263070560852e-07,\"system-prompt-extraction\":0},\"tags\":[]}}}"
   }
 }

@@ -517,20 +517,18 @@ class ParametricTestClientApi:
 
     def write_log(
         self,
-        message: str,
-        level: LogLevel,
         logger_name: str,
+        level: LogLevel,
+        message: str,
         *,
-        create_logger: bool = True,
         span_id: int | None = None,
     ) -> bool:
         """Generate a log message with the specified parameters.
 
         Args:
-            message: The log message to generate
-            level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             logger_name: The name of the logger to use
-            create_logger: Whether to create a new logger if it doesn't exist
+            level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            message: The log message to generate
             span_id: Optional ID of the span that should be active when the log is generated
 
         Returns:
@@ -540,10 +538,9 @@ class ParametricTestClientApi:
         resp = self._session.post(
             self._url("/otel/logger/write"),
             json={
-                "message": message,
-                "level": level.value,
                 "logger_name": logger_name,
-                "create_logger": create_logger,
+                "level": level.value,
+                "message": message,
                 "span_id": span_id,
             },
         )
@@ -1174,14 +1171,13 @@ class APMLibrary:
 
     def write_log(
         self,
-        message: str,
-        level: LogLevel,
         logger_name: str,
+        level: LogLevel,
+        message: str,
         *,
-        create_logger: bool = False,
         span_id: int | None = None,
     ) -> bool:
-        return self._client.write_log(message, level, logger_name, create_logger=create_logger, span_id=span_id)
+        return self._client.write_log(logger_name, level, message, span_id=span_id)
 
     def ffe_start(self) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""

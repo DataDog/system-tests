@@ -6,7 +6,7 @@ import re
 
 from utils.dd_constants import Capabilities
 from tests.appsec.utils import find_series
-from utils import context, missing_feature
+from utils import context
 from utils import bug
 from utils import features
 from utils import interfaces
@@ -160,9 +160,6 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.tracer_rc_state.reset().apply()
 
-    @bug(
-        context.library < "nodejs@5.25.0", reason="APMRP-360"
-    )  # rules version was not correctly reported after an RC update
     def test_update_rules(self):
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
@@ -327,7 +324,6 @@ class Test_AsmDdMultiConfiguration:
     and provide the ASM_DD_MULTICONFIG(42) capability
     """
 
-    @missing_feature(context.library == "java")
     def test_asm_dd_multiconfig_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
 

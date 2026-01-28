@@ -330,8 +330,6 @@ class Test_Telemetry:
 
         return delays_by_runtime
 
-    @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
-    @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
         """Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
@@ -354,15 +352,6 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
-    @irrelevant(library="cpp_nginx")
-    @irrelevant(library="cpp_httpd")
-    @irrelevant(
-        library="java",
-        reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process).
-        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
-        """,
-    )
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
@@ -441,8 +430,6 @@ class Test_Telemetry:
             if not seen:
                 raise Exception(dependency + " not received in app-dependencies-loaded message")
 
-    @irrelevant(library="cpp_nginx")
-    @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -706,8 +693,6 @@ def is_key_accepted_by_telemetry(key: str, allowed_keys: list, allowed_prefixes:
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
-    @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -720,10 +705,6 @@ class Test_TelemetryV2:
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
 
-    @irrelevant(
-        library="dotnet",
-        reason="Re-enable when this automatically updates the dd-go files.",
-    )
     @irrelevant(
         condition=context.library not in ("python",),
         reason="This test causes to many friction. It has been replaced by alerts on slack channels",
@@ -772,8 +753,6 @@ class Test_TelemetryV2:
                         "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
-    @missing_feature(library="cpp_nginx")
-    @missing_feature(library="cpp_httpd")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
@@ -794,7 +773,6 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "java", reason="feature not implemented")
     def test_app_started_product_disabled(self):
         data_found = False
         app_started_found = False
@@ -835,7 +813,6 @@ class Test_ProductsDisabled:
             raise ValueError("app-started event not found in telemetry data")
 
     @scenarios.telemetry_app_started_products_disabled
-    @missing_feature(context.library == "java", reason="will be default on since 1.55.0")
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
         data_found = False

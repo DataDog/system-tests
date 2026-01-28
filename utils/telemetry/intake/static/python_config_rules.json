@@ -21,6 +21,10 @@
         "dd_django_include_user_name": "trace_django_include_user_name",
         "dd_django_include_user_realname": "trace_django_include_user_realname",
         "DD_DJANGO_TRACING_MINIMAL": "trace_django_tracing_minimal",
+        "dd_pyramid_analytics_enabled": "trace_pyramid_analytics_enabled",
+        "dd_trace_pyramid_analytics_enabled": "trace_pyramid_analytics_enabled",
+        "dd_trace_pyramid_analytics_sample_rate": "trace_pyramid_analytics_sample_rate",
+        "dd_trace_sample_rate": "trace_sample_rate",
         "dd_trace_span_aggregator_rlock": "trace_span_aggregator_rlock_enabled",
         "dd_user_model_email_field": "trace_user_model_email_field",
         "dd_user_model_login_field": "trace_user_model_login_field",
@@ -30,7 +34,11 @@
         "python_soabi": "python_soabi",
         "trace_report_handled_exceptions": "trace_report_handled_exceptions",
         "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_FLUSH_INTERVAL": "trace_experimental_long_running_flush_interval",
-        "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_INITIAL_FLUSH_INTERVAL": "trace_experimental_long_running_initial_flush_interval"
+        "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_INITIAL_FLUSH_INTERVAL": "trace_experimental_long_running_initial_flush_interval",
+        "DD_TRACE_RAY_CORE_API": "trace_ray_core_api",
+        "DD_TRACE_RAY_REDACT_ENTRYPOINT_PATHS": "trace_ray_redact_entrypoint_paths",
+        "DD_TRACE_RAY_ARGS_KWARGS": "trace_ray_args_kwargs",
+        "DD_TRACE_RAY_USE_ENTRYPOINT_AS_SERVICE_NAME": "trace_ray_use_entrypoint_as_service_name"
     },
     "prefix_block_list": [],
     "redaction_list": [],

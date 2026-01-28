@@ -297,7 +297,7 @@ patterns:
     utils/telemetry/*:
         scenario_groups: telemetry
     utils/proxy/*:
-        scenario_groups: [ end_to_end, open_telemetry, go_proxies ]
+        scenario_groups: [ end_to_end, open_telemetry ]
     utils/virtual_machine/*:
         scenario_groups: onboarding
 
@@ -383,6 +383,13 @@ patterns:
         libraries: golang
     utils/build/build_golang_base_images.sh:
         libraries: golang
+
+    manifests/envoy.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: envoy
+    manifests/haproxy.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: haproxy
 
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
