@@ -1,4 +1,5 @@
 use ::opentelemetry::global::{self, BoxedTracer};
+use ::opentelemetry::InstrumentationScope;
 use ::opentelemetry::metrics::Meter;
 use anyhow::{Context, Result};
 use axum::{
@@ -48,7 +49,7 @@ struct AppState {
     otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
     otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
         logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
-    otel_loggers: Arc<Mutex<HashMap<String, (String, Option<String>, Option<String>, Option<HashMap<String, serde_json::Value>>)>>>, // name, version, schema_url, attributes
+    otel_loggers: Arc<Mutex<HashMap<String, InstrumentationScope>>>,
 }
 
 #[derive(Default, Clone)]
@@ -117,8 +118,26 @@ fn init_metrics() -> SdkMeterProvider {
 }
 
 fn init_logs() -> SdkLoggerProvider {
-    datadog_opentelemetry::logs()
-        .init()
+    info!("Initializing logger provider...");
+    let logger_provider = datadog_opentelemetry::logs()
+        .init();
+    
+    // Debug: Log environment variables related to resource attributes
+    if let Ok(otel_resource_attrs) = env::var("OTEL_RESOURCE_ATTRIBUTES") {
+        info!("OTEL_RESOURCE_ATTRIBUTES={}", otel_resource_attrs);
+    }
+    if let Ok(dd_service) = env::var("DD_SERVICE") {
+        info!("DD_SERVICE={}", dd_service);
+    }
+    if let Ok(dd_env) = env::var("DD_ENV") {
+        info!("DD_ENV={}", dd_env);
+    }
+    if let Ok(dd_version) = env::var("DD_VERSION") {
+        info!("DD_VERSION={}", dd_version);
+    }
+    
+    info!("Logger provider initialized");
+    logger_provider
 }
 
 fn log_error(error: &impl Display) {

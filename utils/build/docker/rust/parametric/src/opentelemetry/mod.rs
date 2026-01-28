@@ -779,7 +779,29 @@ async fn otel_create_logger(
         return Json(OtelCreateLoggerReturn { success: false });
     }
 
-    loggers.insert(args.name.clone(), (args.name.clone(), args.version.clone(), args.schema_url.clone(), args.attributes.clone()));
+    let logger_provider_guard = state.logger_provider.lock().unwrap();
+    let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
+    
+    let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
+    let mut scope_builder = InstrumentationScope::builder(name_static);
+    
+    if let Some(v) = &args.version {
+        let version_static: &'static str = Box::leak(v.clone().into_boxed_str());
+        scope_builder = scope_builder.with_version(version_static);
+    }
+    
+    if let Some(s) = &args.schema_url {
+        let schema_url_static: &'static str = Box::leak(s.clone().into_boxed_str());
+        scope_builder = scope_builder.with_schema_url(schema_url_static);
+    }
+    
+    if let Some(attrs) = &args.attributes {
+        let scope_attrs = dto::parse_attributes(Some(attrs));
+        scope_builder = scope_builder.with_attributes(scope_attrs);
+    }
+    
+    let scope = scope_builder.build();
+    loggers.insert(args.name, scope);
     Json(OtelCreateLoggerReturn { success: true })
 }
 
@@ -788,33 +810,13 @@ async fn otel_write_log(
     Json(args): Json<OtelWriteLogArgs>,
 ) -> Json<OtelWriteLogReturn> {
     let loggers = state.otel_loggers.lock().unwrap();
-    let (logger_name, version, schema_url, attributes) = loggers
+    let scope = loggers
         .get(&args.logger_name)
         .expect("Logger not found in registered loggers");
 
     let logger_provider_guard = state.logger_provider.lock().unwrap();
     let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
-    
-    let name_static: &'static str = Box::leak(logger_name.clone().into_boxed_str());
-    let mut scope_builder = InstrumentationScope::builder(name_static);
-    
-    if let Some(v) = version {
-        let version_static: &'static str = Box::leak(v.clone().into_boxed_str());
-        scope_builder = scope_builder.with_version(version_static);
-    }
-    
-    if let Some(s) = schema_url {
-        let schema_url_static: &'static str = Box::leak(s.clone().into_boxed_str());
-        scope_builder = scope_builder.with_schema_url(schema_url_static);
-    }
-    
-    if let Some(attrs) = attributes {
-        let scope_attrs = dto::parse_attributes(Some(attrs));
-        scope_builder = scope_builder.with_attributes(scope_attrs);
-    }
-    
-    let scope = scope_builder.build();
-    let logger = logger_provider.logger_with_scope(scope);
+    let logger = logger_provider.logger_with_scope(scope.clone());
 
     let level_upper = args.level.to_uppercase();
     let severity = match level_upper.as_str() {

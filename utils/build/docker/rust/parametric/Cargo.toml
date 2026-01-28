@@ -35,4 +35,4 @@ opentelemetry-stdout    = { version = "0.31.0", features = ["trace", "logs"] }
 opentelemetry-semantic-conventions = { version = "0.31.0" }
 
 
-datadog-opentelemetry  = { path = "../../../../../binaries/dd-trace-rs/datadog-opentelemetry" }
+datadog-opentelemetry  = { path = "../../../../../binaries/dd-trace-rs/datadog-opentelemetry", features = ["logs-grpc", "logs-http"] }
