@@ -759,7 +759,7 @@ class Test_Parametric_Write_Log:
 
         Supported Parameters:
         - logger_name: str
-        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR)
+        - level: LogLevel enum (DEBUG, INFO, WARN, ERROR)
         - message: str
         - span_id: int (optional)
 
@@ -781,7 +781,7 @@ class Test_Parametric_Write_Log:
 
         Supported Parameters:
         - name: str
-        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR)
+        - level: LogLevel enum (DEBUG, INFO, WARN, ERROR)
         - version: str (optional)
         - schema_url: str (optional)
         - attributes: dict (optional)
