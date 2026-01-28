@@ -197,6 +197,7 @@ class _Scenarios:
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
