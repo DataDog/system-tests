@@ -2,22 +2,31 @@
 ---
 manifest:
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_exception_event:
-    - component_version: "<7.75.0"
+    - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)
+  tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_message:
+    - component_version: ">=7.75.0-0"
+      declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_type_and_stack:
-    - component_version: ">=7.75.0"
+    - component_version: ">=7.75.0-0"
       declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/integrations/test_open_telemetry.py::Test_MySql::test_error_exception_event:
-    - component_version: "<7.75.0"
+    - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_error_message:
+    - component_version: ">=7.75.0-0"
+      declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/integrations/test_open_telemetry.py::Test_MySql::test_error_type_and_stack:
-    - component_version: ">=7.75.0"
+    - component_version: ">=7.75.0-0"
       declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_exception_event:
-    - component_version: "<7.75.0"
+    - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_message:
+    - component_version: ">=7.75.0-0"
+      declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_type_and_stack:
-    - component_version: ">=7.75.0"
+    - component_version: ">=7.75.0-0"
       declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: v7.48.0
   tests/test_sampling_rates.py::Test_SamplingRates: v7.33.0

@@ -76,11 +76,6 @@ class Test_Headers_Tracecontext:
         assert traceparent.parent_id != "1234567890123456"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="the first observed traceparent is used")
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     @missing_feature(
         context.library == "php",
         reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -226,7 +221,6 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(library="cpp")
     def test_traceparent_version_illegal_characters(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with illegal characters in version
         expects a valid traceparent from the output header, with a newly generated trace_id
@@ -537,11 +531,6 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="the first observed tracestate is used")
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     @missing_feature(
         context.library == "php",
         reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -596,11 +585,6 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="the first observed tracestate is used")
-    @missing_feature(
-        context.library == "golang",
-        reason="golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
     @missing_feature(
         context.library == "nodejs",
         reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
@@ -696,9 +680,6 @@ class Test_Headers_Tracecontext:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id tag is set according to the W3C Phase 2 spec"""
         with test_library:
@@ -734,9 +715,6 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_library: APMLibrary) -> None:
         """Ensure the last parent id is propagated according to the W3C spec"""
         with test_library:
@@ -750,9 +728,6 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert f"p:{int(span.span_id):016x}" in tracestate
 
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract_and_inject(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id is propagated according to the W3C spec"""
         with test_library:
@@ -800,9 +775,6 @@ class Test_Headers_Tracecontext:
         # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
         assert f"p:{int(s2.span_id):016x}" in tracestate2
 
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id tag is set according to the W3C phase 3 spec"""
@@ -916,8 +888,6 @@ class Test_Headers_Tracecontext:
         "library_env",
         [{"DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true", "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}],
     )
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_phase_3_extract_first(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id tag is not set when only Datadog headers are extracted"""
 
@@ -1021,9 +991,6 @@ class Test_Headers_Tracecontext:
         assert tracestate2[key_with_vendor] == value
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(
-        context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
-    )
     @missing_feature(context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation")
     def test_tracestate_ows_handling(self, test_library: APMLibrary) -> None:
         """Harness sends a request with a valid tracestate header with OWS
