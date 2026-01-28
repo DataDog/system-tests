@@ -9,6 +9,11 @@ on:
       ref:
         description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
         type: string
+      ci_secrets_environment:
+        description: "GitHub environment name to use for loading secrets (optional)"
+        required: false
+        type: string
+        default: ''
       scenarios:
         description: "Comma-separated list scenarios to run"
         default: DEFAULT
@@ -176,6 +181,7 @@ jobs:
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       force_execute: ${{ inputs.force_execute }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
+      ci_secrets_environment: ${{ inputs.ci_secrets_environment }}
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
@@ -267,6 +273,7 @@ jobs:
       force_execute: ${{ inputs.force_execute }}
       binaries_artifact: ${{ matrix.job.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
+      ci_secrets_environment: ${{ inputs.ci_secrets_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}

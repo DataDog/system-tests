@@ -47,6 +47,11 @@ on:
         default: 'custom'
         required: false
         type: string
+      ci_secrets_environment:
+        description: "GitHub environment name to use for loading secrets (optional)"
+        required: false
+        type: string
+        default: ''
       _build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
@@ -106,6 +111,7 @@ jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
     runs-on: ${{ inputs.runs_on }}
+    environment: ${{ inputs.ci_secrets_environment != '' && inputs.ci_secrets_environment || null }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

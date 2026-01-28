@@ -21,6 +21,11 @@ on:
         default: 'custom'
         required: false
         type: string
+      ci_secrets_environment:
+        description: "GitHub environment name to use for loading secrets (optional)"
+        required: false
+        type: string
+        default: ''
       job_count:
         description: "How many job should be spawned for the parametric test"
         default: 1
@@ -87,6 +92,7 @@ jobs:
 
   parametric:
     runs-on: ${{ fromJson( inputs._experimental_runs_on ) }}
+    environment: ${{ inputs.ci_secrets_environment != '' && inputs.ci_secrets_environment || null }}
     strategy:
       fail-fast: false
       matrix:
