@@ -225,8 +225,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
-        reason="python 3.8 is not supported on ddtrace >= 3.x",
+        context.library == "python" and context.installed_language_runtime < "3.9.0", reason="Python 3.9+ required"
     )
     def test_install(self):
         virtual_machine = context.virtual_machine
@@ -255,8 +254,7 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
         reason="Origin detection is not supported on host environments",
     )
     @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
-        reason="python 3.8 is not supported on ddtrace >= 3.x",
+        context.library == "python" and context.installed_language_runtime < "3.9.0", reason="Python 3.9+ required"
     )
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
@@ -273,8 +271,7 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
     @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
-        reason="python 3.8 is not supported on ddtrace >= 3.x",
+        context.library == "python" and context.installed_language_runtime < "3.9.0", reason="Python 3.9+ required"
     )
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")

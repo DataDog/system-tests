@@ -826,6 +826,9 @@ manifest:
         rails80: missing_feature
         uds-sinatra: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.8.0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.8.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.8.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
@@ -936,6 +939,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <2.19.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-884)
     - declaration: missing_feature (Not implemented)
