@@ -266,6 +266,8 @@ manifest:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
+      component_version: '>=5.50.0'
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -301,6 +303,8 @@ manifest:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
+      component_version: '>=5.50.0'
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -321,6 +325,8 @@ manifest:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
+      component_version: '>=5.50.0'
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
