@@ -17,6 +17,7 @@ import pytest
 from utils.docker_fixtures._core import get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
 from utils.docker_fixtures.spec.llm_observability import (
+    LlmObsEvaluationRequest,
     SpanRequest,
     LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
@@ -941,7 +942,7 @@ class ParametricTestClientApi:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
 
-    def llmobs_trace(self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict | None:
+    def llmobs_trace(self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict:
         """Send a trace structure request to the LLM Observability endpoint."""
         resp = self._session.post(
             self._url("/llm_observability/trace"), json={"trace_structure_request": asdict(trace_structure_request)}
@@ -949,6 +950,13 @@ class ParametricTestClientApi:
         resp.raise_for_status()
 
         return cast("dict", resp.json())
+
+    def llmobs_submit_evaluation(self, evaluation_request: LlmObsEvaluationRequest) -> None:
+        resp = self._session.post(
+            self._url("/llm_observability/submit_evaluation"),
+            json=evaluation_request,
+        )
+        resp.raise_for_status()
 
     def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
         resp = self._session.post(
@@ -1192,8 +1200,7 @@ class APMLibrary:
             attributes=attributes,
         )
 
-    def llmobs_trace(
-        self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict | None:
+    def llmobs_trace(self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest) -> dict | None:
         return self._client.llmobs_trace(trace_structure_request)
 
     def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:

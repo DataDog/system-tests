@@ -495,7 +495,7 @@ class TestAgentAPI:
             f"Number ({num}) of traces not available from test agent, got {num_received}:\n{llmobs_requests}"
         )
 
-    def wait_for_llmobs_evaluations_requests(self, num: int, *, wait_loops: int = 30) -> list[Any]:
+    def wait_for_llmobs_evaluations_requests(self, num: int, *, wait_loops: int = 30) -> list[dict]:
         """Wait for `num` LLMobs evaluations requests to be received from the test agent."""
         num_received = None
         llmobs_evaluations_requests = []
@@ -507,10 +507,17 @@ class TestAgentAPI:
             else:
                 num_received = len(llmobs_evaluations_requests)
                 if num_received == num:
-                    return llmobs_evaluations_requests
+                    return sorted(
+                        [
+                            eval_metric
+                            for req in llmobs_evaluations_requests
+                            for eval_metric in req["data"]["attributes"]["metrics"]
+                        ],
+                        key=lambda x: x["timestamp_ms"],
+                    )
             time.sleep(0.1)
         raise ValueError(
-            f"""Number ({num}) of LLMobs evaluations requests not available from test agent, got {num_received}:
+            f"""Number ({num}) of LLMObs evaluations requests not available from test agent, got {num_received}:
             {llmobs_evaluations_requests}"""
         )
 

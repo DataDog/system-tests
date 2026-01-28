@@ -55,6 +55,19 @@ class LlmObsAnnotationContextRequest:
     type: Literal["annotation_context"] = "annotation_context"
 
 
+class LlmObsEvaluationRequest(TypedDict, total=False):
+    trace_id: str | None
+    span_id: str | None
+    span_with_tag_value: dict[str, str] | None
+    label: str | None
+    metric_type: Literal["categorical", "numerical", "boolean"] | None
+    value: str | int | float | bool | None
+    tags: dict[str, str] | None
+    ml_app: str | None
+    timestamp_ms: float | None
+    metadata: dict[str, object] | None
+
+
 class DatasetRecordRequest(TypedDict, total=False):
     input_data: dict[str, Any]
     expected_output: Any

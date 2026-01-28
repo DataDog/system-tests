@@ -172,6 +172,44 @@ def llmobs_trace(trace_structure_request: Request):
         telemetry_writer.periodic(force_flush=True)
 
 
+class LlmObsEvaluationRequest(BaseModel):
+    trace_id: str | None = None
+    span_id: str | None = None
+    span_with_tag_value: dict[str, str] | None = None
+    label: str | None = None
+    metric_type: Literal["categorical", "numerical", "boolean"] | None = None
+    value: str | int | float | bool | None = None
+    tags: dict[str, str] | None = None
+    ml_app: str | None = None
+    timestamp_ms: float | None = None
+    metadata: dict[str, object] | None = None
+
+
+@router.post("/llm_observability/submit_evaluation")
+def llmobs_submit_evaluation(evaluation_request: LlmObsEvaluationRequest):
+    joining_options = {}
+
+    if evaluation_request.trace_id or evaluation_request.span_id:
+        joining_options["span"] = {
+            "trace_id": evaluation_request.trace_id,
+            "span_id": evaluation_request.span_id,
+        }
+
+    if evaluation_request.span_with_tag_value:
+        joining_options["span_with_tag_value"] = evaluation_request.span_with_tag_value
+
+    LLMObs.submit_evaluation(
+        label=evaluation_request.label,
+        metric_type=evaluation_request.metric_type,
+        value=evaluation_request.value,
+        tags=evaluation_request.tags,
+        ml_app=evaluation_request.ml_app,
+        timestamp_ms=evaluation_request.timestamp_ms,
+        metadata=evaluation_request.metadata,
+        **joining_options,
+    )
+
+
 @dataclass
 class DatasetRecordRequest:
     input_data: dict

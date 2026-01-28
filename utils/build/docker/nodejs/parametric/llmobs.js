@@ -18,6 +18,25 @@ function addRoutes (app) {
     }
   });
 
+  app.post('/llm_observability/submit_evaluation', (req, res) => {
+    const { trace_id, span_id, label, metric_type, value, tags, ml_app, timestamp_ms } = req.body;
+    const spanContext = {
+      traceId: trace_id,
+      spanId: span_id,
+    }
+
+    llmobs.submitEvaluation(spanContext, {
+      label,
+      metricType: metric_type,
+      value,
+      tags,
+      mlApp: ml_app,
+      timestampMs: timestamp_ms,
+    })
+
+    res.json({});
+  })
+
   app.post('/sdk/flush', async (req, res) => {
     llmobs.flush();
     telemetry.appClosing()
