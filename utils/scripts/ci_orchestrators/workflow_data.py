@@ -19,29 +19,38 @@ def _get_weblog_spec(weblogs_spec: list[dict], weblog_name: str) -> dict:
 
 
 def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
-    """Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language."""
-    k8s_ssi = _load_json(k8s_ssi_file)
-    cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
+    """Computes the K8s test matrix mapping scenarios to weblogs and their component versions.
 
-    results = defaultdict(lambda: defaultdict(list))  # type: dict
-    scenario_matrix = k8s_ssi["scenario_matrix"]
-    for entry in scenario_matrix:
-        applicable_scenarios = entry["scenarios"]
-        weblogs = entry["weblogs"]
-        supported_cluster_agents = entry.get("cluster_agents", [])
+    Args:
+        k8s_ssi_file: Path to the k8s_ssi.json configuration file
+        scenarios: List of scenario names to include in the matrix
+        language: Programming language to filter weblogs (e.g., "nodejs", "java")
+
+    Returns:
+        Nested dictionary structure: {scenario: {weblog[]}}
+
+    """
+    k8s_config = _load_json(k8s_ssi_file)
+
+    results: dict[str, list] = defaultdict(list)
+
+    # Process each entry in the scenario matrix
+    for matrix_entry in k8s_config["scenario_matrix"]:
+        applicable_scenarios = matrix_entry["scenarios"]
+        weblogs = matrix_entry["weblogs"]
+
+        # Match scenarios and weblogs
         for scenario in scenarios:
-            if scenario in applicable_scenarios:
-                for weblog_entry in weblogs:
-                    if language in weblog_entry:
-                        for weblog in weblog_entry[language]:
-                            if supported_cluster_agents:
-                                for cluster_agent in supported_cluster_agents:
-                                    if cluster_agent in cluster_agent_specs:
-                                        results[scenario][weblog].append(cluster_agent_specs[cluster_agent])
-                                    else:
-                                        raise ValueError(f"Cluster agent {cluster_agent} not found in the k8s_ssi.json")
-                            else:
-                                results[scenario][weblog] = []
+            if scenario not in applicable_scenarios:
+                continue
+
+            for weblog_entry in weblogs:
+                if language not in weblog_entry:
+                    continue
+
+                for weblog in weblog_entry[language]:
+                    results[scenario].append(weblog)
+
     return results
 
 
@@ -653,8 +662,6 @@ if __name__ == "__main__":
             "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
             "K8S_LIB_INJECTION_SPARK_DJM",
             "K8S_LIB_INJECTION_UDS",
-            "LIB_INJECTION_VALIDATION",
-            "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
         ],
         "testthetest": [],
         "opentelemetry": ["OTEL_INTEGRATIONS", "OTEL_LOG_E2E", "OTEL_METRIC_E2E", "OTEL_TRACING_E2E"],
