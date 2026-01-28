@@ -717,7 +717,6 @@ manifest:
         sinatra20: irrelevant (unsupported by framework)
         sinatra21: irrelevant (unsupported by framework)
         uds-sinatra: irrelevant (unsupported by framework)
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: v1.1.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.8.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: irrelevant (unsupported by framework)
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: missing_feature
