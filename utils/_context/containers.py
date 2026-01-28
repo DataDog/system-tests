@@ -1573,7 +1573,7 @@ class EnvoyContainer(TestedContainer):
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            volumes={"./utils/build/docker/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
                 "test": "/bin/bash -c \"\
@@ -1629,11 +1629,8 @@ class ExternalProcessingContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        if "language" in lib:
-            self.library = ComponentVersion(lib["language"], lib["version"])
-        else:
-            self.library = ComponentVersion(lib["name"], lib["version"])
-
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("envoy", lib["version"])
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
 
@@ -1677,7 +1674,7 @@ class StreamProcessingOffloadContainer(TestedContainer):
             with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
-            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
+            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
             "DD_SERVICE": "service_test",
@@ -1707,10 +1704,8 @@ class StreamProcessingOffloadContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        if "language" in lib:
-            self.library = ComponentVersion(lib["language"], lib["version"])
-        else:
-            self.library = ComponentVersion(lib["name"], lib["version"])
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("haproxy", lib["version"])
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
