@@ -8,7 +8,7 @@ from typing import Any, Literal, TypedDict
 class SpanRequest:
     sdk: Literal["tracer", "llmobs"]
     name: str | None = None
-    children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
+    children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest | ApmSpanRequest] | None = None
 
     annotations: list[LlmObsAnnotationRequest] | None = None
     annotate_after: bool | None = None

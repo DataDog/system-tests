@@ -17,7 +17,7 @@ router = APIRouter()
 class SpanRequest:
     sdk: Literal["tracer", "llmobs"]
     name: str | None = None
-    children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
+    children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest | ApmSpanRequest] | None = None
 
     annotations: list[LlmObsAnnotationRequest] | None = None
     annotate_after: bool | None = None
@@ -44,8 +44,8 @@ class LlmObsSpanRequest(SpanRequest):
 
 @dataclass
 class LlmObsAnnotationRequest:
-    input_data: dict | str | list[dict | str] | None = None
-    output_data: dict | str | list[dict | str] | None = None
+    input_data: list[dict | str] | dict | str | None = None
+    output_data: list[dict | str] | dict | str | None = None
     metadata: dict | None = None
     metrics: dict | None = None
     tags: dict | None = None
