@@ -173,7 +173,7 @@ patterns:
     .github/workflows/run-open-telemetry.yml:
         scenario_groups: open_telemetry
     .github/workflows/run-parametric.yml:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
     .github/*:
@@ -192,7 +192,7 @@ patterns:
     utils/_context/_scenarios/debugger.py:
         scenario_groups: debugger
     utils/_context/_scenarios/default.py:
-        scenario_groups: default
+        scenarios: DEFAULT
     utils/_context/_scenarios/_docker_fixtures.py:
         scenario_groups: docker_fixtures
     utils/_context/_scenarios/appsec_rasp.py:
@@ -200,7 +200,7 @@ patterns:
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/integration_frameworks.py:
-        scenario: INTEGRATION_FRAMEWORKS
+        scenarios: INTEGRATION_FRAMEWORKS
     utils/_context/_scenarios/integrations.py:
         scenario_groups: integrations
     utils/_context/_scenarios/ipv6.py:
@@ -209,7 +209,7 @@ patterns:
         scenario_groups: open_telemetry
         libraries: *otel_libraries
     utils/_context/_scenarios/parametric.py:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
     utils/_context/_scenarios/go_proxies.py:
@@ -245,7 +245,7 @@ patterns:
         scenario_groups: null
         libraries: null
     utils/scripts/parametric/*:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
     utils/scripts/slack/send_changelog.sh:
@@ -272,7 +272,7 @@ patterns:
     utils/docker_ssi/*:
         scenario_groups: docker_ssi
     utils/_features.py:
-        scenario_groups: default
+        scenarios: DEFAULT
     utils/interfaces/schemas*:
         scenario_groups: end_to_end
     utils/k8s_lib_injection*:
@@ -312,7 +312,7 @@ patterns:
     utils/build/docker/nodejs_otel/*:
         scenario_groups: open_telemetry
     utils/build/docker/*/parametric/*:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
