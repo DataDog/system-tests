@@ -11,6 +11,7 @@ import boto3
 import django
 import httpx
 import requests
+import stripe
 from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
@@ -68,6 +69,10 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 tracer.trace("init.service").finish()
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
 
 from openfeature import api
 from ddtrace.openfeature import DataDogProvider
@@ -1158,6 +1163,35 @@ def ffe(request):
     return JsonResponse({"value": value}, status=200)
 
 
+@csrf_exempt
+def stripe_create_checkout_session(request):
+    try:
+        body = json.loads(request.body)
+        result = stripe.checkout.Session.create(**body)
+        return JsonResponse(dict(result))
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def stripe_create_payment_intent(request):
+    try:
+        body = json.loads(request.body)
+        result = stripe.PaymentIntent.create(**body)
+        return JsonResponse(dict(result))
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    try:
+        event = stripe.Webhook.construct_event(request.body, request.headers.get("Stripe-Signature"), "whsec_FAKE")
+        return JsonResponse(event.data.object)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=403)
+
+
 urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
@@ -1257,4 +1291,7 @@ urlpatterns = [
     path("external_request", external_request),
     path("external_request/redirect", external_request_redirect),
     path("ffe", ffe),
+    path("stripe/create_checkout_session", stripe_create_checkout_session),
+    path("stripe/create_payment_intent", stripe_create_payment_intent),
+    path("stripe/webhook", stripe_webhook),
 ]

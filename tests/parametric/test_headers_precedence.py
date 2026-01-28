@@ -89,9 +89,6 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> pytest.MarkDecor
 @features.datadog_headers_propagation
 class Test_Headers_Precedence:
     @irrelevant(
-        context.library >= "dotnet@2.22.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
         context.library >= "golang@1.47.0", reason="Newer versions include tracecontext as a default propagator"
     )
     @irrelevant(
@@ -211,8 +208,6 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "rust", reason="Issue: tracecontext,Datadog was never the default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:

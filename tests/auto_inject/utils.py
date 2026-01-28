@@ -84,13 +84,13 @@ class AutoInjectBaseTest:
 
         if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
             logger.error(
-                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found",
+                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found %s",
                 metrics.get("_dd.appsec.enabled"),
             )
             return False
 
         if "appsec.event" not in meta or meta["appsec.event"] != "true":
-            logger.error("expected 'appsec.event' to be true in trace meta but found", meta.get("appsec.event"))
+            logger.error("expected 'appsec.event' to be true in trace meta but found %s", meta.get("appsec.event"))
             return False
 
         return True

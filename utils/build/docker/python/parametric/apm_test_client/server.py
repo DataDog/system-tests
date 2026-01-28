@@ -1194,7 +1194,6 @@ class LogGenerateArgs(BaseModel):
     message: str
     level: str
     logger_name: str
-    create_logger: bool
     span_id: Optional[int] = None
 
 
@@ -1205,9 +1204,7 @@ class LogGenerateReturn(BaseModel):
 @app.post("/otel/logger/write")
 def write_log(args: LogGenerateArgs) -> LogGenerateReturn:
     """Write a log message using the specified logger."""
-    if args.create_logger:
-        _create_logger(args.logger_name, args.level)
-    elif args.logger_name not in logger_dict:
+    if args.logger_name not in logger_dict:
         raise ValueError(f"Logger {args.logger_name} not found in registered loggers {list(logger_dict.keys())}")
 
     logger = logger_dict[args.logger_name]

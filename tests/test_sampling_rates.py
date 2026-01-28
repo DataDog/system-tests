@@ -9,7 +9,7 @@ from random import randint, seed
 from typing import Any
 from urllib.parse import urlparse
 
-from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger
+from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
 
 """Those are the constants used by the sampling algorithm in all the tracers
@@ -107,7 +107,6 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sampling_rates(self):
         """Basic test"""
         assert_all_traces_requests_forwarded(self.paths)
@@ -310,7 +309,6 @@ class Test_SampleRateFunction:
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))
 
-    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 

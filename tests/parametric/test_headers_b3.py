@@ -145,31 +145,25 @@ class Test_Headers_B3:
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_extract_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_inject_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
     @enable_migrated_b3_single_key()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)

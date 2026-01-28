@@ -3,7 +3,7 @@
 # Copyright 2024 Datadog, Inc.
 
 import json
-from utils import weblog, scenarios, features, incomplete_test_app
+from utils import weblog, scenarios, features
 
 
 @features.otel_propagators_api
@@ -17,8 +17,6 @@ class Test_Otel_Context_Propagation_Default_Propagator_Api:
         }
         self.r = weblog.get("/otel_drop_in_default_propagator_extract", headers=extract_headers)
 
-    @incomplete_test_app(library="nodejs", reason="Node.js extract endpoint doesn't seem to be working.")
-    @incomplete_test_app(library="ruby", reason="Ruby extract seems to fail even though it should be supported")
     def test_propagation_extract(self):
         content = json.loads(self.r.text)
 
@@ -31,7 +29,6 @@ class Test_Otel_Context_Propagation_Default_Propagator_Api:
     def setup_propagation_inject(self):
         self.r = weblog.get("/otel_drop_in_default_propagator_inject")
 
-    @incomplete_test_app(library="nodejs", reason="Node.js inject endpoint doesn't seem to be working.")
     def test_propagation_inject(self):
         content = json.loads(self.r.text)
 

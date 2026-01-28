@@ -23,8 +23,6 @@ class Test_TraceUniqueness:
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
-    @missing_feature(library="cpp_nginx")
-    @missing_feature(library="cpp_httpd")
     def test_traces_header_present(self):
         """Verify that headers described in RFC are present in traces submitted to the agent"""
 
@@ -84,7 +82,6 @@ class Test_TraceHeaders:
         reason="Missing endpoint",
     )
     @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
-    @missing_feature(context.library == "cpp_httpd", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
@@ -142,8 +139,6 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate_all(validator, allow_no_data=True)
 
-    @missing_feature(library="cpp_nginx", reason="not implemented yet")
-    @missing_feature(library="cpp_httpd")
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
@@ -177,8 +172,6 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate_all(validator, allow_no_data=True)
 
-    @missing_feature(library="cpp_nginx", reason="not implemented yet")
-    @missing_feature(library="cpp_httpd", reason="not implemented yet")
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
@@ -202,8 +195,6 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate_all(validator, allow_no_data=True)
 
-    @missing_feature(library="cpp_nginx", reason="Trace are not reported")
-    @missing_feature(library="cpp_httpd")
     # we are not using dev agent, so activate this to see if it fails
     # @flaky(context.agent_version > "7.62.2", reason="APMSP-1791")
     def test_headers(self):

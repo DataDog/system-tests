@@ -58,6 +58,7 @@ from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
 import requests
+import stripe
 import opentelemetry.baggage
 import opentelemetry.context
 import opentelemetry.propagate
@@ -234,6 +235,10 @@ DB_USER = {
 }
 
 tracer.trace("init.service").finish()
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
 
 
 def reset_dsm_context():
@@ -2104,3 +2109,32 @@ def ai_guard_evaluate():
             ), 403
         else:
             return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
+
+
+@app.route("/stripe/create_checkout_session", methods=["POST"])
+def stripe_create_checkout_session():
+    try:
+        result = stripe.checkout.Session.create(**flask_request.get_json())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stripe/create_payment_intent", methods=["POST"])
+def stripe_create_payment_intent():
+    try:
+        result = stripe.PaymentIntent.create(**flask_request.get_json())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    try:
+        event = stripe.Webhook.construct_event(
+            flask_request.data, flask_request.headers.get("Stripe-Signature"), "whsec_FAKE"
+        )
+        return jsonify(event.data.object)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 403

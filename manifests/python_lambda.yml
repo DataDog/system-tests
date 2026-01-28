@@ -223,9 +223,11 @@ manifest:
   tests/appsec/test_reports.py::Test_StatusCode: v7.112.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v8.113.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v7.112.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: bug (APPSEC-58202)
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v7.112.0
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v7.112.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders: v7.112.0
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: bug (APPSEC-58202)
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v7.112.0
   tests/appsec/test_traces.py::Test_RetainTraces: v7.112.0
   tests/appsec/test_versions.py::Test_Events: v7.112.0

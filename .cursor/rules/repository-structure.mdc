@@ -24,7 +24,7 @@ system-tests/
 |   |   |-- lifecycle.md        # Scenario lifecycle documentation
 |   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation. You can find here the details about the onboarding tests and how to operate with them. i.e., how to run the tests, how to create a new virtual machine, a new weblog, create provisions...
 |   |   |-- parametric.md       # Parametric scenarios documentation
-|   |   |-- external_processing.md # External processing documentation
+|   |   |-- go_proxies_envoy_haproxy.md # Go proxies (Envoy and HAProxy) documentation
 |   |-- weblog/         # Weblog service documentation
 |
 |-- lib-injection/      # Weblog applications used for all SSI tests: AWS SSI, Docker SSI, K8s lib injection

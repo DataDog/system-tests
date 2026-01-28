@@ -57,6 +57,8 @@ if __name__ == "__main__":
             "nodejs_otel",
             "python_lambda",
             "rust",
+            "envoy",
+            "haproxy",
             "",
         ],
     )

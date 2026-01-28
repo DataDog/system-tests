@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -428,6 +429,7 @@ manifest:
     - weblog_declaration:
         apache-mod-8.0: irrelevant
   tests/appsec/waf/test_rules.py::Test_NoSqli: v0.68.3
+  tests/appsec/waf/test_rules.py::Test_NoSqli::test_nosqli_keys: missing_feature (Need to use last WAF version)
   tests/appsec/waf/test_rules.py::Test_PhpCodeInjection: v0.68.3
   tests/appsec/waf/test_rules.py::Test_RFI: v0.68.3
   tests/appsec/waf/test_rules.py::Test_SQLI: v0.68.3

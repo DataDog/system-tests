@@ -11,6 +11,7 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -67,10 +68,17 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: missing_feature
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: missing_feature
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: missing_feature (not implemented yet)
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_headers: missing_feature
+  tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: missing_feature (Missing endpoint)
+  tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics: missing_feature (A non-root span carry user agent informations)
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics_browser: missing_feature (A non-root span carry user agent informations)
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature (APMAPI-869)
@@ -81,21 +89,29 @@ manifest:
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.0.0  # real version unknown
+  tests/test_sampling_rates.py::Test_SampleRateFunction::test_sample_rate_function: missing_feature (/sample_rate_route is not implemented)
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDeterminism: v1.0.0  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingRates: v1.0.0  # real version unknown
+  tests/test_sampling_rates.py::Test_SamplingRates::test_sampling_rates: missing_feature (/sample_rate_route is not implemented)
   tests/test_scrubbing.py: irrelevant
   tests/test_semantic_conventions.py::Test_Meta::test_meta_http_method: missing_feature (For some reason, span type is server i/o web)
   tests/test_semantic_conventions.py::Test_Meta::test_meta_http_status_code: missing_feature (For some reason, span type is server i/o web)
   tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url: missing_feature (For some reason, span type is server i/o web)
   tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind: bug (APMAPI-924)
+  tests/test_smoke.py::Test_Library::test_receive_request_trace: missing_feature (For some reason, span type is server i/o web)
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py: irrelevant
   tests/test_telemetry.py::Test_Log_Generation: missing_feature
   tests/test_telemetry.py::Test_MessageBatch: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays: missing_feature (DD_TELEMETRY_HEARTBEAT_INTERVAL not supported)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
+  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
+  tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature
   tests/test_v1_payloads.py: missing_feature

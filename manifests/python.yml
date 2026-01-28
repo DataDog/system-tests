@@ -4,6 +4,10 @@ refs:
   - &django "django-poc, django-py3.13, python3.12"
   - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.3.0rc1
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -26,7 +30,7 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.6.0
-  tests/appsec/api_security/test_apisecurity_telemetry.py: 4.3.0-dev0
+  tests/appsec/api_security/test_apisecurity_telemetry.py: v4.3.0-dev0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
@@ -303,42 +307,42 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
     - weblog_declaration:
         "*": v3.18.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
     - weblog_declaration:
         "*": v4.1.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_status:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
@@ -396,41 +400,41 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.11.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v2.16.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
     - weblog_declaration:
         "*": v3.5.0.dev
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": v2.10.0
-        *django: 4.3.0-dev0 (with httpx support)
+        *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
@@ -483,7 +487,7 @@ manifest:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
-  tests/appsec/test_automated_payment_events.py: missing_feature
+  tests/appsec/test_automated_payment_events.py: v4.2.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
         "*": v3.11.0.dev
@@ -946,6 +950,9 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination:
     - declaration: missing_feature (Python 3.15.0 introduced the track change)
       component_version: <3.15.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
+    - declaration: missing_feature (Not implemented in older versions)
+      component_version: '<4.1.0'
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
@@ -1216,6 +1223,12 @@ manifest:
         uwsgi-poc: v4.2.0
         uds-flask: v4.2.0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
+  : - declaration: bug (APMON-1496)
+      component_version: '>2.12.2'
+  ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride::test_profiling_override_cluster_env
+  : - declaration: bug (APMON-1496)
+      component_version: '>2.12.2'
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
@@ -1615,6 +1628,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
         flask-poc: v3.0.0
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v04_v07_default_format: irrelevant (v0.4/0.7 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format:
     - declaration: irrelevant (DD_TRACE_NATIVE_SPAN_EVENTS overrides v0.5)
       component_version: '>3.3.0'

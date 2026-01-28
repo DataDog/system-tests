@@ -15,7 +15,6 @@ from utils import (
     bug,
     missing_feature,
     logger,
-    incomplete_test_app,
 )
 
 # get the default log output
@@ -402,7 +401,7 @@ def _get_span_by_tags(spans: list, tags: dict):
 
 
 @features.unified_service_tagging
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
@@ -602,9 +601,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "Test_Config_LogInjection_128Bit_TraceId_Enabled.test_incoming_64bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
-    @incomplete_test_app(
-        context.library == "ruby", reason="rails70 app does not use the incoming headers in log correlation"
-    )
     def test_incoming_64bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)

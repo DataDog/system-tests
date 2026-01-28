@@ -317,7 +317,6 @@ class Test_Library_Tracestats:
 
     @enable_tracestats(sample_rate=0.0)
     @enable_agent_version()
-    @missing_feature(context.library == "java", reason="FIXME: Undefined behavior according the java tracer core team")
     def test_sample_rate_0_TS007(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
