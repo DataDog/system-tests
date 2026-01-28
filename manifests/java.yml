@@ -2186,12 +2186,6 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v0.99.0
         vertx4: v1.47.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw:
-    - weblog_declaration:
-        "*": missing_feature
-        akka-http: v1.22.0
-        play: v1.22.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
     - weblog_declaration:
         "*": v0.95.1
