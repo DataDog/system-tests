@@ -321,7 +321,7 @@ def print_docker_ssi_gitlab_pipeline(
 
                 result_pipeline[vm_job]["script"] = [
                     "aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}",  # noqa: E501
-                    "./build.sh -i runner",
+                    "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
                     (
