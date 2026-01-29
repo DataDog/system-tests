@@ -564,21 +564,9 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_RFI: v1.28.6
   tests/appsec/waf/test_rules.py::Test_SSRF: v1.28.6
   tests/appsec/waf/test_rules.py::Test_Scanners: v1.28.6
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        uds: '>=3.36.0'
-        poc: '>=3.36.0'
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_headers_are_correct:  # Created by easy win activation script
-    - weblog_declaration:
-        uds: missing_feature
-        poc: missing_feature
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests:  # Created by easy win activation script
-    - weblog_declaration:
-        uds: missing_feature
-        poc: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: v3.37.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
-  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v3.36.0
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: bug (PROF-12209)
