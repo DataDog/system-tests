@@ -22,6 +22,7 @@ When executed locally, tests run against the latest version of dd-trace by defau
 - Entries in the manifest file must be sorted in alphabetical order. This is validated by the TEST_THE_TESTS scenario/linter.
 - Manifest files are validated using JSON schema in system tests CI
 - An error will occur if a manifest file refers to a directory/file/class/function that does not exists
+- **After modifying any manifest file, always run `./format.sh`** to validate syntax and sort entries alphabetically.
 
 The example below shows a combination of options that can be deployed in manifest files.
 
