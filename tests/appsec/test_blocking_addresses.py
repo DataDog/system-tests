@@ -184,7 +184,6 @@ class Test_Blocking_request_method:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
-    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -250,7 +249,6 @@ class Test_Blocking_request_uri:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
-    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -309,7 +307,6 @@ class Test_Blocking_request_path_params:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /param is not implemented in the weblog",
     )
-    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -384,7 +381,6 @@ class Test_Blocking_request_query:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
-    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -443,7 +439,6 @@ class Test_Blocking_request_headers:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
-    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -502,7 +497,6 @@ class Test_Blocking_request_cookies:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
-    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -650,7 +644,6 @@ class Test_Blocking_response_status:
         context.scenario is scenarios.go_proxies_appsec_blocking,
         reason="The endpoint /finger_print is not implemented in the weblog",
     )
-    @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     def test_not_found(self):
         """Can block on server.response.status"""
 

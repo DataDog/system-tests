@@ -304,7 +304,6 @@ class Test_CollectRespondHeaders:
         context.scenario is scenarios.go_proxies_default,
         reason="The endpoint /headers is not implemented in the weblog",
     )
-    @bug(library="python_lambda", reason="APPSEC-58202")
     def test_header_collection(self):
         def assert_header_in_span_meta(span: dict, header: str):
             if header not in span["meta"]:
