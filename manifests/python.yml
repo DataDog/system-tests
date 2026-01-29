@@ -462,6 +462,7 @@ manifest:
         "*": v3.2.0.dev
         flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
         uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
+        tornado: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
@@ -733,7 +734,6 @@ manifest:
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
     - weblog_declaration:
         "*": v2.9.0
-        tornado: missing_feature
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - weblog_declaration:
         "*": v1.4.0-rc1

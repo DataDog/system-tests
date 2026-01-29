@@ -102,7 +102,6 @@ class MainHandler(BaseHandler):
 class HeadersHandler(BaseHandler):
     def get(self) -> None:
         self.set_header("Content-Type", "text")
-        self.set_header("Content-Length", "16")
         self.set_header("Content-Language", "en-US")
         self.write("Hello headers!\n")
 
@@ -1114,6 +1113,7 @@ def make_app() -> Application:
             (r"/stripe/webhook", StripeWebhookHandler),
         ],
         debug=False,
+        cookie_secret="just_for_tests",  # noqa: S106
     )
 
 
