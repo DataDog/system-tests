@@ -26,7 +26,16 @@ from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
-from utils._context.containers import PostgresContainer, KafkaContainer, VCRCassettesContainer
+from utils._context.containers import (
+    CassandraContainer,
+    KafkaContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+    PostgresContainer,
+    RabbitMqContainer,
+    VCRCassettesContainer,
+)
 
 update_environ_with_local_env()
 
@@ -57,13 +66,15 @@ class _Scenarios:
         },
         include_intake=False,
         include_collector=False,
-        include_postgres_db=True,
-        include_cassandra_db=True,
-        include_mongo_db=True,
-        include_kafka=True,
-        include_rabbitmq=True,
-        include_mysql_db=True,
-        include_sqlserver=True,
+        extra_containers=(
+            MsSqlServerContainer,
+            MySqlContainer,
+            RabbitMqContainer,
+            KafkaContainer,
+            MongoContainer,
+            CassandraContainer,
+            PostgresContainer,
+        ),
         doc=(
             "We use the open telemetry library to automatically instrument the weblogs instead of using the DD library."
             "This scenario represents this case in the integration with different external systems, for example the "

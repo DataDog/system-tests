@@ -13,6 +13,7 @@ from utils._context.component_version import Version
 from utils._context.containers import (
     AgentContainer,
     OpenTelemetryCollectorContainer,
+    TestedContainer,
     WeblogContainer,
 )
 
@@ -33,16 +34,10 @@ class OpenTelemetryScenario(DockerScenario):
         include_agent: bool = True,
         include_collector: bool = True,
         include_intake: bool = True,
-        include_postgres_db: bool = False,
-        include_cassandra_db: bool = False,
-        include_mongo_db: bool = False,
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_mysql_db: bool = False,
-        include_sqlserver: bool = False,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
         mocked_backend: bool = True,
+        extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
             name,
@@ -51,13 +46,7 @@ class OpenTelemetryScenario(DockerScenario):
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
             mocked_backend=mocked_backend,
-            include_postgres_db=include_postgres_db,
-            include_cassandra_db=include_cassandra_db,
-            include_mongo_db=include_mongo_db,
-            include_kafka=include_kafka,
-            include_rabbitmq=include_rabbitmq,
-            include_mysql_db=include_mysql_db,
-            include_sqlserver=include_sqlserver,
+            extra_containers=extra_containers,
         )
         if include_agent:
             self.agent_container = AgentContainer(use_proxy=True)

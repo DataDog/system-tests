@@ -4,7 +4,7 @@ from pathlib import Path
 
 from utils import interfaces
 from utils._context.component_version import Version
-from utils._context.containers import OpenTelemetryCollectorContainer
+from utils._context.containers import OpenTelemetryCollectorContainer, PostgresContainer
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
@@ -21,9 +21,9 @@ class OtelCollectorScenario(DockerScenario):
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
-            include_postgres_db=True,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
+            extra_containers=(PostgresContainer,),
         )
 
         self.collector_container = OpenTelemetryCollectorContainer(

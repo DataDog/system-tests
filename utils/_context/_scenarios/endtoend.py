@@ -19,12 +19,6 @@ from utils._context.containers import (
     AgentContainer,
     ProxyContainer,
     PostgresContainer,
-    MongoContainer,
-    KafkaContainer,
-    CassandraContainer,
-    RabbitMqContainer,
-    MySqlContainer,
-    MsSqlServerContainer,
     BuddyContainer,
     TestedContainer,
 )
@@ -65,13 +59,7 @@ class DockerScenario(Scenario):
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
-        include_postgres_db: bool = False,
-        include_cassandra_db: bool = False,
-        include_mongo_db: bool = False,
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_mysql_db: bool = False,
-        include_sqlserver: bool = False,
+        extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -90,7 +78,7 @@ class DockerScenario(Scenario):
             raise ValueError("rc_backend_enabled requires rc_api_enabled")
 
         self._required_containers: list[TestedContainer] = []
-        self._supporting_containers: list[TestedContainer] = []
+        self._supporting_containers: list[TestedContainer] = [container() for container in extra_containers]
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
@@ -104,28 +92,6 @@ class DockerScenario(Scenario):
             )
 
             self._required_containers.append(self.proxy_container)
-
-        if include_postgres_db:
-            self.postgres_container = PostgresContainer()
-            self._supporting_containers.append(self.postgres_container)
-
-        if include_mongo_db:
-            self._supporting_containers.append(MongoContainer())
-
-        if include_cassandra_db:
-            self._supporting_containers.append(CassandraContainer())
-
-        if include_kafka:
-            self._supporting_containers.append(KafkaContainer())
-
-        if include_rabbitmq:
-            self._supporting_containers.append(RabbitMqContainer())
-
-        if include_mysql_db:
-            self._supporting_containers.append(MySqlContainer())
-
-        if include_sqlserver:
-            self._supporting_containers.append(MsSqlServerContainer())
 
         self._required_containers.extend(self._supporting_containers)
 
