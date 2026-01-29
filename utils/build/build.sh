@@ -229,14 +229,11 @@ build() {
                         flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
                             PYTHON_VERSION="3.11"
                             ;;
-                        python3.12)
-                            PYTHON_VERSION="3.12"
-                            ;;
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        tornado)
-                            PYTHON_VERSION="3.14"
+                        python3.12)
+                            PYTHON_VERSION="3.12"
                             ;;
                         *)
                             echo "Error: Unknown weblog variant, python version could not be determined" >&2
