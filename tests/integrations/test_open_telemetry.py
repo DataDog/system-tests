@@ -104,6 +104,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @bug(library="python_otel", reason="OTEL-940")
     @bug(library="nodejs_otel", reason="OTEL-940")
+    @bug(library="dotnet_otel", reason="OTEL-940")
     @bug(library="java_otel", reason="OTEL-2778")
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
@@ -161,7 +162,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     db_service = "mssql"
 
     @irrelevant(
-        context.library in ("java_otel", "nodejs_otel"),
+        context.library in ("java_otel", "nodejs_otel", "dotnet_otel"),
         reason="Open Telemetry doesn't generate this span. It's recomended but not mandatory",
     )
     def test_db_mssql_instance_name(self):
@@ -200,6 +201,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
         super().test_db_connection_string()
 
     @bug(library="nodejs_otel", reason="OTEL-940")
+    @bug(library="dotnet_otel", reason="OTEL-940")
     @bug(library="java_otel", reason="OTEL-2778")
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""

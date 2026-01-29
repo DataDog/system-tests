@@ -35,7 +35,7 @@
 
 refs:
   - &lambda_libraries [python_lambda]
-  - &otel_libraries [java_otel, python_otel]
+  - &otel_libraries [dotnet_otel, java_otel, python_otel]
 
 patterns:
 
@@ -484,6 +484,17 @@ patterns:
         libraries: java_otel
     utils/build/build_java_otel_base_images.sh:
         libraries: java_otel
+
+    manifests/dotnet_otel.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: dotnet_otel
+    utils/build/docker/dotnet_otel/*:
+        scenario_groups: open_telemetry
+        libraries: dotnet_otel
+    lib-injection/build/docker/dotnet_otel/*:
+        libraries: dotnet_otel
+    utils/build/build_dotnet_otel_base_images.sh:
+        libraries: dotnet_otel
 
 ################################### Odd rules ##################################
 # This section contains the rules that don't fit in any other sections. If you

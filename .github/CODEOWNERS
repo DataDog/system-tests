@@ -2,6 +2,7 @@
 
 /utils/build/docker/cpp/ @DataDog/dd-trace-cpp @DataDog/system-tests-core
 /utils/build/docker/dotnet*/ @DataDog/apm-dotnet @DataDog/asm-dotnet @DataDog/system-tests-core
+/utils/build/docker/dotnet_otel/ @DataDog/apm-dotnet @DataDog/system-tests-core
 /utils/build/docker/golang*/ @DataDog/dd-trace-go-guild @DataDog/system-tests-core
 /utils/build/docker/java*/ @DataDog/apm-java @DataDog/asm-java @DataDog/system-tests-core
 /utils/build/docker/java_otel/ @DataDog/opentelemetry @DataDog/system-tests-core

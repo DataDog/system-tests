@@ -42,7 +42,7 @@ LIBRARIES = {
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
-OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
+OTEL_LIBRARIES = {"dotnet_otel", "java_otel", "python_otel"}  # , "nodejs_otel"]
 
 ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
 

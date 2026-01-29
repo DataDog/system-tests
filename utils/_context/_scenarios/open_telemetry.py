@@ -127,7 +127,7 @@ class OpenTelemetryScenario(DockerScenario):
         observer.start()
 
     def _wait_for_app_readiness(self):
-        supported_libraries = ("java_otel", "nodejs_otel", "python_otel")
+        supported_libraries = ("java_otel", "nodejs_otel", "python_otel", "dotnet_otel")
         if self.library.name not in supported_libraries:
             pytest.exit(f"{self.name} scenario support only thoses libraries: {supported_libraries}", 1)
 
