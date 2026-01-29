@@ -155,6 +155,39 @@ Always write entries in the standard format and let the formatter handle long li
 3. **Valid markers only**: Use only `irrelevant`, `bug`, `flaky`, `missing_feature`, `incomplete_test_app`
 4. **JIRA references**: Always include JIRA ticket for `bug` and `flaky` markers
 
+### Using YAML References (Anchors)
+
+Manifests often define reusable references at the top in a `refs:` section:
+
+```yaml
+refs:
+  - &ref_5_0_0 v5.0.0
+  - &ref_5_6_0 '>=5.6.0'
+manifest:
+  tests/path/test.py::TestClass: *ref_5_0_0
+```
+
+**Rules for using references:**
+1. **Check for existing references**: Before adding a version, look at the `refs:` section at the top of the manifest. If a matching reference exists, use it instead of hardcoding the value.
+2. **Always verify reference content**: Before using a reference, check what it actually contains. References can be:
+   - Simple versions: `&ref_5_0_0 v5.0.0`
+   - Version ranges: `&ref_5_6_backports '>=5.6.0 || ^4.3.0'`
+   - Markers: `&ref_missing missing_feature`
+3. **Don't mix reference types**: A version reference should only be used where a version is expected. Never use a version range reference as a `declaration` value or vice versa.
+
+**Example mistake to avoid:**
+```yaml
+# WRONG - using a version ref where a declaration is expected
+tests/path/test.py::TestClass:
+  - declaration: *ref_5_0_0  # ref_5_0_0 is "v5.0.0", not a valid declaration!
+    component_version: '<5.0.0'
+
+# CORRECT
+tests/path/test.py::TestClass:
+  - declaration: missing_feature (Description)
+    component_version: '<5.0.0'
+```
+
 ### After Modifying Manifests
 
 **ALWAYS run `./format.sh` after any manifest modification.** This script:
