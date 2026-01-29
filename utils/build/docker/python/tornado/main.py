@@ -18,6 +18,7 @@ import tornado
 import xmltodict
 from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.appsec import track_user_sdk
 from ddtrace.contrib.trace_utils import set_user
 from ddtrace.openfeature import DataDogProvider
 from ddtrace.trace import tracer
@@ -324,13 +325,6 @@ class UserLoginFailureEventHandler(RequestHandler):
 
 class UserLoginSuccessEventV2Handler(RequestHandler):
     def post(self) -> None:
-        try:
-            from ddtrace.appsec import track_user_sdk  # noqa: PLC0415
-        except ImportError:
-            self.set_status(420)
-            self.write("KO")
-            return
-
         json_data = json.loads(self.request.body)
         login = json_data.get("login")
         user_id = json_data.get("user_id")
@@ -341,13 +335,6 @@ class UserLoginSuccessEventV2Handler(RequestHandler):
 
 class UserLoginFailureEventV2Handler(RequestHandler):
     def post(self) -> None:
-        try:
-            from ddtrace.appsec import track_user_sdk  # noqa: PLC0415
-        except ImportError:
-            self.set_status(420)
-            self.write("KO")
-            return
-
         json_data = json.loads(self.request.body)
         login = json_data.get("login")
         exists = json_data.get("exists") != "false"
@@ -360,6 +347,24 @@ class CustomEventHandler(RequestHandler):
     def get(self) -> None:
         appsec_trace_utils.track_custom_event(tracer, event_name="system_tests_event", metadata=_TRACK_METADATA)
         self.write("OK")
+
+
+class SignupHandler(RequestHandler):
+    def post(self) -> None:
+        try:
+            username = self.get_body_argument("username", None)
+            password = self.get_body_argument("password", None)
+
+            if not username or not password:
+                self.set_status(400)
+                self.write("signup failure: username and password required")
+                return
+
+            track_user_sdk.track_signup(user_id="new-user", login=username)
+            self.write("OK")
+        except Exception as e:  # noqa: BLE001
+            self.set_status(400)
+            self.write(f"signup failure {e!r}")
 
 
 class LoginHandler(RequestHandler):
@@ -993,6 +998,7 @@ def make_app() -> Application:
             # User endpoints
             (r"/users", UsersHandler),
             (r"/login", LoginHandler),
+            (r"/signup", SignupHandler),
             (r"/set_cookie", SetCookieHandler),
             # Session endpoints
             (r"/session/new", SessionNewHandler),

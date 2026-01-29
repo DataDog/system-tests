@@ -4,6 +4,9 @@ refs:
   - &django "django-poc, django-py3.13, python3.12"
   - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
+  tests/:
+    - weblog_declaration:
+        tornado: v4.4.0-rc2
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -23,9 +26,6 @@ manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
-  tests/appsec/api_security/test_api_security_rc.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.6.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: v2.6.0
@@ -34,9 +34,6 @@ manifest:
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.6.0
   tests/appsec/api_security/test_apisecurity_telemetry.py: v4.3.0-dev0
-  tests/appsec/api_security/test_custom_data_classification.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
@@ -488,7 +485,6 @@ manifest:
     - weblog_declaration:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_signup_local:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
@@ -693,10 +689,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: v4.2.0
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
-    - weblog_declaration:
-        "*": v2.11.0
-        tornado: missing_feature
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
@@ -710,9 +703,6 @@ manifest:
   tests/appsec/test_rate_limiter.py::Test_Main:
     - weblog_declaration:
         "*": v2.0.0
-        tornado: missing_feature
-  tests/appsec/test_remote_config_rule_changes.py:
-    - weblog_declaration:
         tornado: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
@@ -732,7 +722,6 @@ manifest:
     - weblog_declaration:
         "*": v1.10.0
         fastapi: v2.4.0
-        tornado: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.10.1
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.10.1
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v3.12.0.dev
@@ -741,9 +730,6 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.12.0.dev
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v2.11.0-rc
-  tests/appsec/test_trace_tagging.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v0.58.5
@@ -1523,7 +1509,10 @@ manifest:
         django-poc: v2.14.0
         flask-poc: v2.14.0
         python3.12: v2.14.0
-  tests/stats/test_stats.py: v2.8.0
+  tests/stats/test_stats.py:
+    - weblog_declaration:
+        "*": v2.8.0
+        tornado: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
@@ -1603,13 +1592,14 @@ manifest:
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags:
     - weblog_declaration:
         tornado: missing_feature
-  tests/test_distributed.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/test_distributed.py::Test_DistributedHttp:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
+        tornado: v4.4.0-rc2
         flask-poc: v1.5.0-rc2  # actual version unknown
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
