@@ -1654,8 +1654,6 @@ manifest:
         fastify: *ref_5_37_0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
-  ? tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported::test_invalid_weblog_not_instrumented
-  : bug (APMRP-361)
   tests/openfeature/test_ddtrace_without_openfeature.py:
     - weblog_declaration:
         "*": irrelevant (only testing nodejs without openfeature)
