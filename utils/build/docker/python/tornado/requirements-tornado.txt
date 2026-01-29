@@ -8,5 +8,4 @@ packaging==25.0
 xmltodict==0.14.2
 openfeature-sdk==0.8.3
 stripe==11.6.0
-requests
-urllib3
+httpx

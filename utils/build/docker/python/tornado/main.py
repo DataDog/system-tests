@@ -6,16 +6,14 @@ import os
 import sqlite3
 import subprocess
 import sys
-import urllib.error
-import urllib.parse
-import urllib.request
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any, ClassVar
+from urllib.parse import parse_qs
 
 import ddtrace
+import httpx
 import psycopg2
-import requests
 import stripe
 import tornado
 import xmltodict
@@ -235,7 +233,7 @@ class TagValueHandler(RequestHandler):
         if "application/json" in content_type:
             return json.loads(body)
         if "application/x-www-form-urlencoded" in content_type:
-            return {k.decode(): v[-1].decode() for k, v in urllib.parse.parse_qs(body).items()}
+            return {k.decode(): v[-1].decode() for k, v in parse_qs(body).items()}
         return {}
 
     def get(self, tag_value: str, status_code: str) -> None:
@@ -249,10 +247,11 @@ class TagValueHandler(RequestHandler):
 
 
 class MakeDistantCallHandler(RequestHandler):
-    def get(self) -> None:
+    async def get(self) -> None:
         url = self.get_argument("url")
 
-        response = requests.get(url)  # noqa: S113
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
 
         result = {
             "url": url,
@@ -523,7 +522,7 @@ class RaspLfiHandler(RequestHandler):
 
 
 class RaspSsrfHandler(RequestHandler):
-    def _handle(self) -> None:
+    async def _handle(self) -> None:
         domain = _get_rasp_param(self, "domain")
         if domain is None:
             self.set_status(400)
@@ -531,17 +530,18 @@ class RaspSsrfHandler(RequestHandler):
             return
         url = f"http://{domain}"
         try:
-            with urllib.request.urlopen(url, timeout=1) as response:  # noqa: S310
-                content = response.read()
+            async with httpx.AsyncClient(timeout=1) as client:
+                response = await client.get(url)
+                content = response.content
                 self.write(f"url {url} open with {len(content)} bytes")
         except Exception as e:  # noqa: BLE001
             self.write(f"url {url} could not be open: {e!r}")
 
-    def get(self) -> None:
-        self._handle()
+    async def get(self) -> None:
+        await self._handle()
 
-    def post(self) -> None:
-        self._handle()
+    async def post(self) -> None:
+        await self._handle()
 
 
 class RaspSqliHandler(RequestHandler):
@@ -730,42 +730,44 @@ class IastNoSameSiteCookieEmptyHandler(RequestHandler):
 
 # Downstream request handlers
 class RequestDownstreamHandler(RequestHandler):
-    def _handle(self) -> None:
+    async def _handle(self) -> None:
         url = "http://localhost:7777/returnheaders"
         try:
-            with urllib.request.urlopen(url, timeout=10) as response:  # noqa: S310
-                self.write(response.read())
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(url)
+                self.write(response.content)
         except Exception as e:  # noqa: BLE001
             self.write(f"Error: {e!r}")
 
-    def get(self) -> None:
-        self._handle()
+    async def get(self) -> None:
+        await self._handle()
 
-    def post(self) -> None:
-        self._handle()
+    async def post(self) -> None:
+        await self._handle()
 
-    def options(self) -> None:
-        self._handle()
+    async def options(self) -> None:
+        await self._handle()
 
 
 class VulnerableRequestDownstreamHandler(RequestHandler):
-    def _handle(self) -> None:
+    async def _handle(self) -> None:
         weak_hash()
         url = "http://localhost:7777/returnheaders"
         try:
-            with urllib.request.urlopen(url, timeout=10) as response:  # noqa: S310
-                self.write(response.read())
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(url)
+                self.write(response.content)
         except Exception as e:  # noqa: BLE001
             self.write(f"Error: {e!r}")
 
-    def get(self) -> None:
-        self._handle()
+    async def get(self) -> None:
+        await self._handle()
 
-    def post(self) -> None:
-        self._handle()
+    async def post(self) -> None:
+        await self._handle()
 
-    def options(self) -> None:
-        self._handle()
+    async def options(self) -> None:
+        await self._handle()
 
 
 class ReturnHeadersHandler(RequestHandler):
@@ -839,7 +841,7 @@ class StripeWebhookHandler(RequestHandler):
 class ExternalRequestHandler(RequestHandler):
     SUPPORTED_METHODS = ("GET", "POST", "PUT", "TRACE")
 
-    def _handle(self) -> None:
+    async def _handle(self) -> None:
         # Get query parameters - convert to dict for headers
         queries = {k: str(v[0]) for k, v in self.request.arguments.items()}
         status = queries.pop("status", "200")
@@ -853,26 +855,24 @@ class ExternalRequestHandler(RequestHandler):
         if body:
             queries["Content-Type"] = self.request.headers.get("Content-Type") or "application/json"
 
-        # Create the request with the same method
-        req = urllib.request.Request(  # noqa: S310
-            url,
-            method=self.request.method,
-            headers=queries,
-            data=body,
-        )
-
         # Make the request
         try:
-            with urllib.request.urlopen(req, timeout=10) as response:  # noqa: S310
-                payload = response.read().decode()
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.request(
+                    method=self.request.method,
+                    url=url,
+                    headers=queries,
+                    content=body,
+                )
+                payload = response.text
                 result = {
-                    "status": int(response.status),
+                    "status": int(response.status_code),
                     "headers": dict(response.headers.items()),
                     "payload": json.loads(payload),
                 }
-        except urllib.error.HTTPError as e:
+        except httpx.HTTPStatusError as e:
             result = {
-                "status": int(e.status) if e.status else None,
+                "status": int(e.response.status_code) if e.response else None,
                 "error": repr(e),
             }
         except Exception as e:  # noqa: BLE001
@@ -885,43 +885,38 @@ class ExternalRequestHandler(RequestHandler):
         self.set_header("Content-Type", "application/json")
         self.write(json.dumps(result))
 
-    def get(self) -> None:
-        self._handle()
+    async def get(self) -> None:
+        await self._handle()
 
-    def post(self) -> None:
-        self._handle()
+    async def post(self) -> None:
+        await self._handle()
 
-    def put(self) -> None:
-        self._handle()
+    async def put(self) -> None:
+        await self._handle()
 
-    def trace(self) -> None:
-        self._handle()
+    async def trace(self) -> None:
+        await self._handle()
 
 
 class ExternalRequestRedirectHandler(RequestHandler):
-    def get(self) -> None:
+    async def get(self) -> None:
         queries = {k: str(v[0]) for k, v in self.request.arguments.items()}
         total_redirects = queries.get("totalRedirects", "0")
 
         url = f"http://internal_server:8089/redirect?totalRedirects={total_redirects}"
 
-        req = urllib.request.Request(  # noqa: S310
-            url,
-            method="GET",
-            headers=queries,
-        )
-
         try:
-            with urllib.request.urlopen(req, timeout=10) as response:  # noqa: S310
-                payload = response.read().decode()
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(url, headers=queries)
+                payload = response.text
                 result = {
-                    "status": int(response.status),
+                    "status": int(response.status_code),
                     "headers": dict(response.headers.items()),
                     "payload": json.loads(payload),
                 }
-        except urllib.error.HTTPError as e:
+        except httpx.HTTPStatusError as e:
             result = {
-                "status": int(e.status) if e.status else None,
+                "status": int(e.response.status_code) if e.response else None,
                 "error": repr(e),
             }
         except Exception as e:  # noqa: BLE001
