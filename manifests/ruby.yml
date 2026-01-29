@@ -232,8 +232,36 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails80: '>=2.27.0'
+        sinatra14: '>=2.27.0'
+        uds-sinatra: '>=2.27.0'
+        sinatra32: '>=2.27.0'
+        rack: '>=2.27.0'
+        rails52: '>=2.27.0'
+        rails72: '>=2.27.0'
+        sinatra41: '>=2.27.0'
+        uds-rails: '>=2.27.0'
+        rails61: '>=2.27.0'
+        sinatra22: '>=2.27.0'
+        rails42: '>=2.27.0'
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails80: '>=2.27.0'
+        sinatra14: '>=2.27.0'
+        uds-sinatra: '>=2.27.0'
+        sinatra32: '>=2.27.0'
+        rack: '>=2.27.0'
+        rails52: '>=2.27.0'
+        rails72: '>=2.27.0'
+        sinatra41: '>=2.27.0'
+        uds-rails: '>=2.27.0'
+        rails61: '>=2.27.0'
+        sinatra22: '>=2.27.0'
+        rails42: '>=2.27.0'
   tests/appsec/rasp/test_cmdi.py: missing_feature
   tests/appsec/rasp/test_lfi.py: missing_feature
   tests/appsec/rasp/test_shi.py: missing_feature
@@ -752,7 +780,21 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails80: '>=2.27.0'
+        sinatra14: '>=2.27.0'
+        uds-sinatra: '>=2.27.0'
+        sinatra32: '>=2.27.0'
+        rack: '>=2.27.0'
+        rails52: '>=2.27.0'
+        rails72: '>=2.27.0'
+        sinatra41: '>=2.27.0'
+        uds-rails: '>=2.27.0'
+        rails61: '>=2.27.0'
+        sinatra22: '>=2.27.0'
+        rails42: '>=2.27.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
@@ -873,8 +915,18 @@ manifest:
         rails80: v2.8.0
         uds-rails: v2.12.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_reference_depth: bug (DEBUG-4675)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track: missing_feature (DEBUG-4343)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination: missing_feature (DEBUG-4343)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_debug_track:  # Modified by easy win activation script
+    - declaration: missing_feature (DEBUG-4343)
+      component_version: <2.27.0
+      weblog: [rails80, rails72, uds-rails]
+    - declaration: missing_feature (DEBUG-4343)
+      excluded_weblog: [rails80, rails72, uds-rails]
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_log_line_snapshot_new_destination:  # Modified by easy win activation script
+    - declaration: missing_feature (DEBUG-4343)
+      component_version: <2.27.0
+      weblog: [rails80, rails72, uds-rails]
+    - declaration: missing_feature (DEBUG-4343)
+      excluded_weblog: [rails80, rails72, uds-rails]
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
@@ -1059,15 +1111,23 @@ manifest:
         rails72: v2.0.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract: incomplete_test_app (Ruby extract seems to fail even though it should be supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.17.0
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_chars: missing_feature (not implemented)
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_long: missing_feature (not implemented)
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_short: missing_feature (not implemented)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_chars:  # Modified by easy win activation script
+    - declaration: missing_feature (not implemented)
+      component_version: <2.27.0
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_long:  # Modified by easy win activation script
+    - declaration: missing_feature (not implemented)
+      component_version: <2.27.0
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation_tid_short:  # Modified by easy win activation script
+    - declaration: missing_feature (not implemented)
+      component_version: <2.27.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_in_chunk_root: irrelevant (ruby tracer adds trace level tags to the local root span and not the chunk root span. This inconsistency is not a bug and is expected.)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.0.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v2.14.0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v2.5.0
-  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6: missing_feature (does not support ipv6 hostname)
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6:  # Modified by easy win activation script
+    - declaration: missing_feature (does not support ipv6 hostname)
+      component_version: <2.27.0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_trace_agent_http_url_ipv6: missing_feature (does not support ipv6)
   tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: v2.0.0
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature
@@ -1086,13 +1146,25 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: bug (APMAPI-867)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: bug (APMAPI-867)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: bug (APMAPI-868)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: missing_feature
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: bug (APMAPI-867)  # theorical version is v1.13.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-867)
+      component_version: <2.27.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default: bug (APMAPI-867)  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: bug (APMAPI-867)  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: bug (APMAPI-867)  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
-  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
     - declaration: missing_feature (Missing for 2.x)
       component_version: '>1.99.0'
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid:
@@ -1119,7 +1191,21 @@ manifest:
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_single_key_propagate_valid:
     - declaration: missing_feature (Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0)
       component_version: <1.8.0
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_extract_header_D005: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_D008: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_all_D009: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_inject_header_D004: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D015: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_D010: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_all_D011: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_D006: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v2.22.1-dev
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Implemented from 1.17.0)
@@ -1133,8 +1219,12 @@ manifest:
   : - declaration: missing_feature (Implemented in 1.17.0)
       component_version: <1.17.0
   ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_single_key_traceparent_included_tracestate_missing
-  : missing_feature (Propagators not configured for DD_TRACE_PROPAGATION_STYLE config)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (the tracer should reject the incoming traceparent(s) when there are multiple traceparent headers)
+  :  # Modified by easy win activation script
+    - declaration: missing_feature (Propagators not configured for DD_TRACE_PROPAGATION_STYLE config)
+      component_version: <2.27.0
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated:  # Modified by easy win activation script
+    - declaration: missing_feature (the tracer should reject the incoming traceparent(s) when there are multiple traceparent headers)
+      component_version: <2.27.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_header_name_valid_casing: missing_feature (Ruby doesn't support case-insensitive distributed headers)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_header_name_valid_casing: missing_feature (Ruby doesn't support case-insensitive distributed headers)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:
@@ -1149,11 +1239,17 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <2.0.0
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: bug (APMAPI-812)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-812)
+      component_version: <2.27.0
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
-  : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
+  :  # Modified by easy win activation script
+    - declaration: 'missing_feature ("Issue: Does not reset dm to DEFAULT")'
+      component_version: <2.27.0
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
-  : "missing_feature (\"Issue: does not escape '~' characters to '=' in _dd.p.usr.id\")"
+  :  # Modified by easy win activation script
+    - declaration: "missing_feature (\"Issue: does not escape '~' characters to '=' in _dd.p.usr.id\")"
+      component_version: <2.27.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (ruby has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (ruby has not implemented stats computation yet)
@@ -1167,7 +1263,19 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: missing_feature (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: missing_feature (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
-  tests/parametric/test_otel_logs.py: missing_feature
+  tests/parametric/test_otel_logs.py: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_metrics.py: v2.24.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_asynchronous_counter_constant_callback_value: missing_feature (Measurements are not aggregated by Exporter)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_asynchronous_gauge_constant_callback_value: missing_feature (Measurements are not aggregated by Exporter)
@@ -1211,7 +1319,9 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling:
     - declaration: missing_feature (Not implemented)
       component_version: <2.0.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span: missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span:  # Modified by easy win activation script
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.27.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans:
     - declaration: bug (APMAPI-917)
     - declaration: missing_feature (Not implemented)
@@ -1222,16 +1332,19 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not supported)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: missing_feature
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.18.0
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: missing_feature (Not yet implemented)
   tests/parametric/test_sampling_delegation.py::Test_Decisionless_Extraction: v2.4.0
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -1244,7 +1357,7 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_sst003: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_tiny_sst004: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002: bug (APMAPI-737)
-  tests/parametric/test_span_events.py::Test_Span_Events: missing_feature
+  tests/parametric/test_span_events.py::Test_Span_Events: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: irrelevant (Does not support v0.5)
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v07: irrelevant (Does not support v0.7)
   tests/parametric/test_span_links.py::Test_Span_Links: v2.0.0
@@ -1272,7 +1385,8 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.18.0
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1631)
-  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.1.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.18.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
@@ -1283,7 +1397,14 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v2.4.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.4.0
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.21.0
-  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v1.13.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
@@ -1293,7 +1414,99 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
-  tests/stats/test_stats.py: missing_feature
+  tests/stats/test_stats.py:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails80: '>=2.27.0'
+        sinatra14: '>=2.27.0'
+        uds-sinatra: '>=2.27.0'
+        sinatra32: '>=2.27.0'
+        rack: '>=2.27.0'
+        rails52: '>=2.27.0'
+        rails72: '>=2.27.0'
+        sinatra41: '>=2.27.0'
+        uds-rails: '>=2.27.0'
+        rails61: '>=2.27.0'
+        sinatra22: '>=2.27.0'
+        rails42: '>=2.27.0'
+  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:  # Created by easy win activation script
+    - weblog_declaration:
+        rails80: missing_feature
+        uds-rails: missing_feature
+        rails42: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:  # Created by easy win activation script
+    - weblog_declaration:
+        rails80: missing_feature
+        uds-rails: missing_feature
+        rails42: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation:  # Created by easy win activation script
+    - weblog_declaration:
+        rack: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        uds-sinatra: missing_feature
+        sinatra41: missing_feature
+        sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats:  # Created by easy win activation script
+    - weblog_declaration:
+        rails80: missing_feature
+        uds-rails: missing_feature
+        rails42: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Created by easy win activation script
+    - weblog_declaration:
+        rails80: missing_feature
+        uds-rails: missing_feature
+        rails42: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
+  tests/stats/test_stats.py::Test_Transport_Headers:  # Created by easy win activation script
+    - weblog_declaration:
+        rails80: missing_feature
+        uds-rails: missing_feature
+        rails42: missing_feature
+        rails72: missing_feature
+        uds-sinatra: missing_feature
+        sinatra41: missing_feature
+        rack: missing_feature
+        rails61: missing_feature
+        sinatra32: missing_feature
+        sinatra14: missing_feature
+        rails52: missing_feature
+        sinatra22: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v2.13.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v2.13.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v2.13.0
@@ -1344,7 +1557,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (endpoint not implemented)
         rails72: v2.14.0
-  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled::test_incoming_64bit_traceid: incomplete_test_app (rails70 app does not use the incoming headers in log correlation)
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled::test_incoming_64bit_traceid:  # Modified by easy win activation script
+    - declaration: incomplete_test_app (rails70 app does not use the incoming headers in log correlation)
+      component_version: <2.27.0
+      weblog: [rails72]
+    - declaration: incomplete_test_app (rails70 app does not use the incoming headers in log correlation)
+      excluded_weblog: [rails72]
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
     - weblog_declaration:
@@ -1363,7 +1581,12 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: v2.0.0
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: missing_feature (not implemented yet)
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: missing_feature (not implemented yet)
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:  # Modified by easy win activation script
+    - declaration: missing_feature (not implemented yet)
+      component_version: <2.27.0
+      weblog: [rails80, sinatra14, uds-sinatra, sinatra32, rack, rails52, rails72, sinatra41, uds-rails, rails61, sinatra22, rails42]
+    - declaration: missing_feature (not implemented yet)
+      excluded_weblog: [rails80, sinatra14, uds-sinatra, sinatra32, rack, rails52, rails72, sinatra41, uds-rails, rails61, sinatra22, rails42]
   tests/test_distributed.py::Test_DistributedHttp: v2.22.1-dev
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
@@ -1482,18 +1705,18 @@ manifest:
       excluded_weblog: [rails52, rails80, uds-rails, rails61, uds-sinatra, rails72, sinatra41, sinatra14, rack, sinatra32, sinatra22, rails42]
   tests/test_profiling.py::Test_Profile::test_process_tags:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        uds-rails: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        sinatra22: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        rails61: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        rails72: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        rails52: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        sinatra32: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        rack: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        sinatra41: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        sinatra14: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        rails80: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
-        uds-sinatra: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
+        rails42: v2.27.0  # Modified by easy win activation script
+        uds-rails: v2.27.0  # Modified by easy win activation script
+        sinatra22: v2.27.0  # Modified by easy win activation script
+        rails61: v2.27.0  # Modified by easy win activation script
+        rails72: v2.27.0  # Modified by easy win activation script
+        rails52: v2.27.0  # Modified by easy win activation script
+        sinatra32: v2.27.0  # Modified by easy win activation script
+        rack: v2.27.0  # Modified by easy win activation script
+        sinatra41: v2.27.0  # Modified by easy win activation script
+        sinatra14: v2.27.0  # Modified by easy win activation script
+        rails80: v2.27.0  # Modified by easy win activation script
+        uds-sinatra: v2.27.0  # Modified by easy win activation script
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
     - weblog_declaration:
