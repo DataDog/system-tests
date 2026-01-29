@@ -135,10 +135,14 @@ tests/path/test.py::TestClass:
 
 #### Format F: Long Node IDs (YAML Multiline)
 
+**Do not use this format manually.** If a node ID is too long, `./format.sh` will automatically convert it to multiline syntax:
+
 ```yaml
 ? tests/very/long/path/to/test_file.py::VeryLongTestClassName::very_long_method
 : bug (JIRA-123)
 ```
+
+Always write entries in the standard format and let the formatter handle long lines.
 
 ### Manifest Syntax Rules
 
