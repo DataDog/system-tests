@@ -2,5 +2,7 @@
 ---
 manifest:
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_obfuscate_query: bug (OTEL-2778)
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_obfuscate_query: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::Test_MySql::test_properties: bug (OTEL-2778)
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-2778)
