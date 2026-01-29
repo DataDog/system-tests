@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, rfc, weblog, HttpResponse, flaky
+from utils import features, rfc, weblog, HttpResponse
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -74,7 +74,6 @@ class TestHeaderInjection(BaseSinkTest):
     "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
 )
 @features.iast_stack_trace
-@flaky(context.library == "java", reason="APPSEC-59975")
 class TestHeaderInjection_StackTrace:
     """Validate stack trace generation"""
 

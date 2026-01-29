@@ -1,4 +1,4 @@
-from utils import context, interfaces, scenarios, weblog, bug, features
+from utils import interfaces, scenarios, weblog, features
 
 from .utils import BaseFullDenyListTest
 
@@ -31,7 +31,6 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             weblog.get("/users", params={"user": self.NUM_OF_BLOCKED_USERS - 1}),
         ]
 
-    @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 

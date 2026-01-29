@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
-from utils import missing_feature, context, scenarios, features
+from utils import scenarios, features
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -306,10 +306,6 @@ class Test_Headers_Tracestate_DD:
         assert "o:tracing2.0" in dd_items6
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(
-        context.library == "rust",
-        reason="can't guarantee the order of strings in the tracestate since they came from the map.",
-    )
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id

@@ -581,7 +581,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library == "rust", reason="Not implemented")
     @pytest.mark.parametrize(
         ("analytics_event_value", "expected_metric_value"), [("something-else", None), ("fAlse", None), ("trUe", None)]
     )

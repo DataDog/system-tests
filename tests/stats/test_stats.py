@@ -1,5 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, context, bug, logger
+from utils import interfaces, weblog, features, scenarios, logger
 
 """
 Test scenarios we want:
@@ -28,7 +28,6 @@ class Test_Client_Stats:
         for _ in range(3):
             weblog.get("/stats-unique?code=204")
 
-    @bug(context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"), library="python", reason="APMSP-1375")
     def test_client_stats(self):
         stats_count = 0
         ok_hits = 0
@@ -80,7 +79,6 @@ class Test_Client_Stats:
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
-    @bug(context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"), library="python", reason="APMSP-1375")
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
         Note: Once all tracers have implemented it and the test xpasses for all of them, we can move these

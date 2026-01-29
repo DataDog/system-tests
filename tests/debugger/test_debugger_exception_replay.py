@@ -10,7 +10,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import interfaces, scenarios, features, bug, context, irrelevant, missing_feature, logger
+from utils import interfaces, scenarios, features, context, irrelevant, missing_feature, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 
 
@@ -34,7 +34,6 @@ _timeout_next = 30
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@irrelevant(context.library <= "dotnet@3.28.0", reason="DEBUG-4582")
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: list[dict] = []
     spans: dict = {}
@@ -532,7 +531,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_20(self):
         self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
 
-    @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 9)
