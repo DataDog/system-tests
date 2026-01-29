@@ -7,7 +7,6 @@ import sqlite3
 import subprocess
 import sys
 from http import HTTPStatus
-from pathlib import Path
 from typing import Any, ClassVar
 from urllib.parse import parse_qs
 
@@ -623,7 +622,7 @@ class RaspMultipleHandler(RequestHandler):
         lengths = []
         for file_path in [file1, file2, "../etc/passwd"]:
             try:
-                with Path(file_path).open("rb") as f:
+                with open(file_path, "rb") as f:  # noqa: PTH123
                     f.seek(0, os.SEEK_END)
                     lengths.append(f.tell())
             except Exception:  # noqa: BLE001

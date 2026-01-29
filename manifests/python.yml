@@ -456,9 +456,6 @@ manifest:
         "*": v1.1.0-rc2
         fastapi: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
-  tests/appsec/test_asm_standalone.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - component_version: "<3.11.0"
@@ -501,12 +498,10 @@ manifest:
     - weblog_declaration:
         "*": v2.20.0.dev
         *django: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_signup_local:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
         *django: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
-        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
     - weblog_declaration:
         "*": v2.20.0.dev
@@ -1528,10 +1523,7 @@ manifest:
         django-poc: v2.14.0
         flask-poc: v2.14.0
         python3.12: v2.14.0
-  tests/stats/test_stats.py:
-    - weblog_declaration:
-        "*": v2.8.0
-        tornado: missing_feature
+  tests/stats/test_stats.py: v2.8.0
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
@@ -1565,10 +1557,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         fastapi: v2.16.0
-  tests/test_config_consistency.py:
-    - weblog_declaration:
-        "*": v2.0.0
-        tornado: missing_feature
+  tests/test_config_consistency.py: v2.0.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: v2.17.3
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: v2.12.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: v2.12.0
@@ -1635,9 +1624,6 @@ manifest:
   tests/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/test_identify.py::Test_Propagate: v1.9.0
   tests/test_identify.py::Test_Propagate_Legacy: v1.5.0-rc1
-  tests/test_library_conf.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.20.0
