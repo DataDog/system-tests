@@ -59,6 +59,7 @@ from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
 import requests
+import stripe
 import opentelemetry.baggage
 import opentelemetry.context
 import opentelemetry.propagate
@@ -235,6 +236,10 @@ DB_USER = {
 }
 
 tracer.trace("init.service").finish()
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
 
 
 def reset_dsm_context():
@@ -2166,3 +2171,59 @@ def external_request_redirect():
             )
     except urllib.error.HTTPError as e:
         return jsonify({"status": int(e.status), "error": repr(e)})
+
+
+@app.route("/ai_guard/evaluate", methods=["POST"])
+def ai_guard_evaluate():
+    """AI Guard evaluation endpoint."""
+    from ddtrace.internal.settings.asm import ai_guard_config
+
+    if not ai_guard_config._ai_guard_enabled:
+        return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
+
+    try:
+        from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+
+        should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
+        messages = flask_request.get_json()
+
+        client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
+        evaluation = client.evaluate(messages, Options(block=should_block))
+        return jsonify(evaluation), 200
+
+    except Exception as e:
+        if isinstance(e, AIGuardAbortError):
+            return jsonify(
+                {"action": getattr(e, "action", ""), "reason": getattr(e, "reason", ""), "tags": getattr(e, "tags", [])}
+            ), 403
+        else:
+            return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
+
+
+@app.route("/stripe/create_checkout_session", methods=["POST"])
+def stripe_create_checkout_session():
+    try:
+        result = stripe.checkout.Session.create(**flask_request.get_json())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stripe/create_payment_intent", methods=["POST"])
+def stripe_create_payment_intent():
+    try:
+        result = stripe.PaymentIntent.create(**flask_request.get_json())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    try:
+        event = stripe.Webhook.construct_event(
+            flask_request.data, flask_request.headers.get("Stripe-Signature"), "whsec_FAKE"
+        )
+        return jsonify(event.data.object)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 403

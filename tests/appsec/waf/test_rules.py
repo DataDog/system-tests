@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, flaky, features, waf_rules
+from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, features, waf_rules
 
 
 @features.waf_rules
@@ -30,8 +30,6 @@ class Test_HttpProtocol:
     def setup_http_protocol(self):
         self.r_1 = weblog.get("/waf/", params={"key": ".cookie;domain="})
 
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
-    @bug(context.library < "java@0.98.1", reason="APMRP-360")
     def test_http_protocol(self):
         """AppSec catches attacks by violation of HTTP protocol in encoded cookie value"""
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.http_protocol_violation.crs_943_100)
@@ -69,8 +67,6 @@ class Test_LFI:
         self.r_4 = weblog.get("/waf/%2e%2e%2f")
 
     # AH00026: found %2f (encoded '/') in URI path (/waf/%2e%2e%2f), returning 404
-    @irrelevant(library="php", weblog_variant="apache-mod-8.0")
-    @irrelevant(library="python", weblog_variant="django-poc")
     def test_lfi_percent_2f(self):
         """Appsec catches encoded LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_4, waf_rules.lfi)
@@ -78,10 +74,6 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @bug(context.library < "java@0.92.0", reason="APMRP-360")
-    @flaky(context.library >= "java@1.42.1", reason="APPSEC-55828")
-    @irrelevant(library="python", weblog_variant="django-poc")
-    @irrelevant(library="dotnet", reason="lfi patterns are always filtered by the host web-server")
     @irrelevant(
         context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
     )
@@ -211,7 +203,6 @@ class Test_SQLI:
         self.r_3 = weblog.get("/waf/", params={"value": "alter d char set f"})
         self.r_4 = weblog.get("/waf/", params={"value": "merge using("})
 
-    @flaky(context.library <= "php@0.68.2", reason="APMRP-360")
     def test_sqli2(self):
         """Other SQLI patterns"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.sql_injection.crs_942_240)
@@ -226,9 +217,6 @@ class Test_NoSqli:
         self.r_3 = weblog.get("/waf/", params={"[$ne]": "value"})
         self.r_4 = weblog.get("/waf/", params={"$nin": "value"})
 
-    @missing_feature(context.library in ["php"], reason="Need to use last WAF version")
-    @missing_feature(context.library < "java@0.96.0", reason="Was using a too old WAF version")
-    @irrelevant(library="nodejs", reason="brackets are interpreted as arrays and thus truncated")
     def test_nosqli_keys(self):
         """AppSec catches NoSQLI attacks in keys"""
         interfaces.library.assert_waf_attack(self.r_3, waf_rules.nosql_injection)
@@ -281,7 +269,6 @@ class Test_DiscoveryScan:
         self.r11 = weblog.get("/login.pwd")
 
     @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
 

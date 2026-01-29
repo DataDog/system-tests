@@ -54,6 +54,8 @@ class Version(version_module.Version):
 class ComponentVersion:
     known_versions: dict[str, set[str]] = defaultdict(set)
     version: Version
+    raw_version: str
+    """Exact value as exposed by the component"""
 
     def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.name if library is None else library
@@ -64,6 +66,7 @@ class ComponentVersion:
             raise ValueError("Library's name can't contains '@'")
 
         self.name = name
+        self.raw_version = version.strip()
 
         if version:
             version = version.strip()
@@ -104,6 +107,12 @@ class ComponentVersion:
                 # the we can hack to move it to the built part:
                 version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
+            elif name == "python":
+                # dd-trace-py has to use 4.3.0.dev0 because that is the PyPI/pip compatible version tag,
+                # otherwise it isn't compatible with the Python packaging ecosystem. We need to translate 4.3.0.dev0
+                # into 4.3.0-dev0, otherwise, coerce will set dev0 as build metadata, instead of pre-release.
+                version = re.sub(r"(\d+\.\d+.\d+)\.([^.]+)", r"\1-\2", version)
+
             self.version = Version(version)
 
             self.add_known_version(self.version)
@@ -141,7 +150,7 @@ class ComponentVersion:
         library = other
         return self.name == library
 
-    def _extract_members(self, other: object) -> tuple[str | None, Version | None]:
+    def _extract_members(self, other: object) -> tuple[str, Version]:
         if isinstance(other, ComponentVersion):
             return other.name, other.version
 

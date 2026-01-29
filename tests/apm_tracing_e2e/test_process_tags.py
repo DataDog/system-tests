@@ -1,12 +1,12 @@
 from utils import weblog, interfaces, scenarios, features, context
-from utils._decorators import missing_feature, irrelevant
+from utils import missing_feature, irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 
 @scenarios.tracing_config_nondefault
 @features.process_tags
 @missing_feature(
-    condition=context.library.name not in ("java", "golang"),
+    condition=context.library.name not in ("java", "golang", "dotnet", "python", "ruby"),
     reason="Not yet implemented",
 )
 class Test_Process_Tags:
@@ -18,12 +18,18 @@ class Test_Process_Tags:
     def test_tracing_process_tags(self):
         # Get all the spans from the agent
         found = False
-        for data, _ in interfaces.agent.get_spans(self.req):
+        for data, _, _ in interfaces.agent.get_traces(self.req):
             # Check that the agent managed to extract the process tags from the first chunk
-            for payload in data["request"]["content"]["tracerPayloads"]:
-                process_tags = payload["tags"]["_dd.tags.process"]
-                validate_process_tags(process_tags)
-                found = True
+            if "idxTracerPayloads" in data["request"]["content"]:
+                for payload in data["request"]["content"]["idxTracerPayloads"]:
+                    process_tags = payload["attributes"]["_dd.tags.process"]
+                    validate_process_tags(process_tags)
+                    found = True
+            elif "tracerPayloads" in data["request"]["content"]:
+                for payload in data["request"]["content"]["tracerPayloads"]:
+                    process_tags = payload["tags"]["_dd.tags.process"]
+                    validate_process_tags(process_tags)
+                    found = True
         assert found, "Process tags are missing"
 
     def setup_remote_config_process_tags(self):
@@ -51,6 +57,13 @@ class Test_Process_Tags:
         found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())
         for data in telemetry_data:
+            # for python, libdatadog also send telemetry on its own not containing process_tags
+            payload = data["request"]["content"].get("payload")
+            if payload is not None and "series" in payload:
+                if any("src_library:libdatadog" in series.get("tags", []) for series in payload["series"]):
+                    continue
+
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
             found = True
+
         assert found, "Process tags are missing"

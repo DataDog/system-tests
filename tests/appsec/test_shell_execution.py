@@ -50,7 +50,6 @@ class Test_ShellExecution:
             "/shell_execution", json={"command": "echo", "options": {"shell": True}, "args": "foo"}
         )
 
-    @irrelevant(library="java", reason="No method for shell execution in Java")
     def test_track_shell_exec(self):
         span = self.fetch_command_execution_span(self.r_shell_exec)
         assert span["resource"] == "sh"
@@ -67,8 +66,6 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="java", reason="APPSEC-55672")
-    @bug(library="php", reason="APPSEC-55673")
     def test_truncate_1st_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
@@ -86,7 +83,6 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="java", reason="APPSEC-55672")
     def test_truncate_blank_2nd_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"

@@ -1,9 +1,6 @@
 'use strict'
 
-const opts = {
-  debug: true,
-  flushInterval: 5000
-}
+const opts = {}
 
 // This mimics a scenario where a user has one config setting set in multiple sources
 // so that config chaining data is sent
@@ -56,7 +53,11 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json())
+app.use(require('body-parser').json({
+  verify: (req, res, buf) => {
+    req.rawBody = buf
+  }
+}))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
@@ -64,8 +65,9 @@ iast.initMiddlewares(app)
 
 require('./auth')(app, tracer)
 
+require('./stripe')(app)
+
 app.get('/', (req, res) => {
-  console.log('Received a request')
   res.send('Hello\n')
 })
 
@@ -171,12 +173,11 @@ app.get('/session/new', (req, res) => {
 })
 
 app.get('/status', (req, res) => {
-  res.status(parseInt(req.query.code)).send('OK')
+  res.status(parseInt(req.query.code) || 400).send('OK')
 })
 
 app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
-  console.log(url)
 
   const parsedUrl = new URL(url)
 
@@ -197,7 +198,7 @@ app.get('/make_distant_call', (req, res) => {
       res.json({
         url,
         status_code: response.statusCode,
-        request_headers: response.req._headers,
+        request_headers: response.req.getHeaders(),
         response_headers: response.headers,
         response_body: responseBody
       })
@@ -494,7 +495,6 @@ app.get('/rabbitmq/consume', (req, res) => {
 })
 
 app.get('/load_dependency', (req, res) => {
-  console.log('Load dependency endpoint')
   require('glob')
   res.send('Loaded a dependency')
 })
@@ -612,11 +612,11 @@ app.get('/flush', (req, res) => {
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err))())
   }
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
   }
 
   Promise.all(promises).then(() => {
@@ -666,6 +666,21 @@ app.get('/add_event', (req, res) => {
 })
 
 require('./rasp')(app)
+
+app.post('/ai_guard/evaluate', async (req, res) => {
+  const block = req.headers['x-ai-guard-block'] === 'true'
+  const messages = req.body
+  try {
+    const evaluation = await tracer.aiguard.evaluate(messages, { block })
+    res.status(200).json(evaluation)
+  } catch (e) {
+    if (e.name === 'AIGuardAbortError') {
+      res.status(403).json(e)
+    } else {
+      res.status(500).json(e)
+    }
+  }
+})
 
 let openFeatureClient = null
 

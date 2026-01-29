@@ -1,20 +1,12 @@
 from pathlib import Path
-import pytest
 
-from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
+from utils import interfaces, bug, scenarios, weblog, rfc, features
 from utils._context.core import context
 from .test_blocking_security_response_id import (
     is_valid_uuid4,
     extract_security_response_id_from_json,
     extract_security_response_id_from_html,
 )
-
-
-if context.library > "python_lambda@8.117.0":
-    pytestmark = [
-        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
-        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
-    ]
 
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"
@@ -114,8 +106,6 @@ class Test_Blocking:
 
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
     @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="APMRP-360")
-    @bug(context.library < "python@1.16.1", reason="APMRP-360")
-    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
@@ -125,7 +115,6 @@ class Test_Blocking:
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @flaky(context.library >= "java@1.19.0", reason="APPSEC-10798")
     def test_blocking_appsec_blocked_tag(self):
         """Tag appsec.blocked is set when blocking"""
         assert self.r_abt.status_code == 403
@@ -151,7 +140,6 @@ class Test_Blocking:
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
 
-    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_all(self):
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
@@ -164,7 +152,6 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.7, application/*;q=0.8, */*;q=0.9"}
         )
 
-    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_partial_json(self):
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
@@ -176,12 +163,6 @@ class Test_Blocking:
             "/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/*;q=0.8, application/*;q=0.7, */*;q=0.9"}
         )
 
-    @missing_feature(context.library == "php", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "dotnet", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "golang", reason="Support for partial html not implemented")
-    @missing_feature(context.library == "nodejs", reason="Support for partial html not implemented")
-    @missing_feature(context.library < "python@2.11.0.dev")
-    @missing_feature(context.library == "ruby", reason="Support for partial html not implemented")
     def test_accept_partial_html(self):
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
@@ -197,7 +178,6 @@ class Test_Blocking:
             },
         )
 
-    @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     def test_accept_full_json(self):
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
@@ -213,10 +193,6 @@ class Test_Blocking:
             },
         )
 
-    @missing_feature(context.library == "php", reason="Support for quality not implemented")
-    @missing_feature(context.library == "dotnet", reason="Support for quality not implemented")
-    @missing_feature(context.library == "nodejs", reason="Support for quality not implemented")
-    @missing_feature(context.library == "ruby", reason="Support for quality not implemented")
     def test_accept_full_html(self):
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
@@ -226,13 +202,6 @@ class Test_Blocking:
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json"})
 
-    @missing_feature(context.library < "java@1.14.0")
-    @missing_feature(context.library < "nodejs@4.1.0")
-    @missing_feature(context.library < "golang@1.52.0")
-    @missing_feature(library="dotnet")
-    @missing_feature(library="php")
-    @missing_feature(context.library < "python@2.11.0.dev")
-    @missing_feature(library="ruby")
     def test_json_template_v1(self):
         """JSON block template is v1 minified (or v3 with security_response_id)"""
         assert self.r_json_v1.status_code == 403
@@ -252,12 +221,6 @@ class Test_Blocking:
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html"})
 
-    @missing_feature(context.library < "java@1.14.0")
-    @missing_feature(context.library < "nodejs@4.1.0")
-    @missing_feature(context.library < "golang@1.52.0")
-    @missing_feature(library="dotnet")
-    @missing_feature(context.library < "python@2.11.0.dev")
-    @missing_feature(library="ruby")
     def test_html_template_v2(self):
         """HTML block template is v2 minified (or v3 with security_response_id)"""
         assert self.r_html_v2.status_code == 403

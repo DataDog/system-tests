@@ -1,10 +1,13 @@
 LINUX_AMD64 = "linux/amd64"
 LINUX_ARM64 = "linux/arm64"
 
-try:
-    from utils.docker_ssi.docker_ssi_model import RuntimeInstallableVersion
-except ImportError:
-    from docker_ssi_model import RuntimeInstallableVersion
+
+class RuntimeInstallableVersion:
+    """Encapsulates information of the version of the language that can be installed automatically"""
+
+    def __init__(self, version_id: str, version: str) -> None:
+        self.version_id = version_id
+        self.version = version
 
 
 class JavaRuntimeInstallableVersions:
@@ -166,3 +169,34 @@ class DotnetRuntimeInstallableVersions:
             if version_check.version == version:
                 return version_check.version_id
         raise ValueError(f".NET version {version} not supported")
+
+
+class RubyRuntimeInstallableVersions:
+    """Ruby runtime versions that can be installed automatically"""
+
+    RB26 = RuntimeInstallableVersion("RB26", "2.6.10")
+    RB27 = RuntimeInstallableVersion("RB27", "2.7.8")
+    RB30 = RuntimeInstallableVersion("RB30", "3.0.7")
+    RB31 = RuntimeInstallableVersion("RB31", "3.1.7")
+    RB32 = RuntimeInstallableVersion("RB32", "3.2.9")
+    RB33 = RuntimeInstallableVersion("RB33", "3.3.9")
+    RB34 = RuntimeInstallableVersion("RB34", "3.4.7")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            RubyRuntimeInstallableVersions.RB26,
+            RubyRuntimeInstallableVersions.RB27,
+            RubyRuntimeInstallableVersions.RB30,
+            RubyRuntimeInstallableVersions.RB31,
+            RubyRuntimeInstallableVersions.RB32,
+            RubyRuntimeInstallableVersions.RB33,
+            RubyRuntimeInstallableVersions.RB34,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in RubyRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"Ruby version {version} not supported")

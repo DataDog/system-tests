@@ -29,6 +29,7 @@ from utils._context.containers import (
     TestedContainer,
     LocalstackContainer,
     ElasticMQContainer,
+    VCRCassettesContainer,
 )
 
 from utils._logger import logger
@@ -62,8 +63,10 @@ class DockerScenario(Scenario):
         use_proxy: bool = True,
         mocked_backend: bool = True,
         rc_api_enabled: bool = False,
+        rc_backend_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
+        client_drop_p0s: bool | None = None,
         include_postgres_db: bool = False,
         include_cassandra_db: bool = False,
         include_mongo_db: bool = False,
@@ -73,17 +76,23 @@ class DockerScenario(Scenario):
         include_sqlserver: bool = False,
         include_localstack: bool = False,
         include_elasticmq: bool = False,
+        include_vcr_cassettes: bool = False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
         self.use_proxy = use_proxy
         self.enable_ipv6 = enable_ipv6
         self.rc_api_enabled = rc_api_enabled
+        self.rc_backend_enabled = rc_backend_enabled
         self.meta_structs_disabled = False
         self.span_events = span_events
+        self.client_drop_p0s = client_drop_p0s
 
         if not self.use_proxy and self.rc_api_enabled:
             raise ValueError("rc_api_enabled requires use_proxy")
+
+        if self.rc_backend_enabled and not self.rc_api_enabled:
+            raise ValueError("rc_backend_enabled requires rc_api_enabled")
 
         self._required_containers: list[TestedContainer] = []
         self._supporting_containers: list[TestedContainer] = []
@@ -91,8 +100,10 @@ class DockerScenario(Scenario):
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
                 rc_api_enabled=rc_api_enabled,
+                rc_backend_enabled=rc_backend_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
+                client_drop_p0s=client_drop_p0s,
                 enable_ipv6=enable_ipv6,
                 mocked_backend=mocked_backend,
             )
@@ -126,6 +137,9 @@ class DockerScenario(Scenario):
 
         if include_elasticmq:
             self._supporting_containers.append(ElasticMQContainer())
+
+        if include_vcr_cassettes:
+            self._supporting_containers.append(VCRCassettesContainer())
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -278,8 +292,10 @@ class EndToEndScenario(DockerScenario):
         use_proxy_for_weblog: bool = True,
         use_proxy_for_agent: bool = True,
         rc_api_enabled: bool = False,
+        rc_backend_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
+        client_drop_p0s: bool | None = None,
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_postgres_db: bool = False,
@@ -291,6 +307,7 @@ class EndToEndScenario(DockerScenario):
         include_sqlserver: bool = False,
         include_localstack: bool = False,
         include_elasticmq: bool = False,
+        include_vcr_cassettes: bool = False,
         include_otel_drop_in: bool = False,
         include_buddies: bool = False,
         require_api_key: bool = False,
@@ -309,8 +326,10 @@ class EndToEndScenario(DockerScenario):
             enable_ipv6=enable_ipv6,
             use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
+            rc_backend_enabled=rc_backend_enabled,
             meta_structs_disabled=meta_structs_disabled,
             span_events=span_events,
+            client_drop_p0s=client_drop_p0s,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -320,6 +339,7 @@ class EndToEndScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
             include_localstack=include_localstack,
             include_elasticmq=include_elasticmq,
+            include_vcr_cassettes=include_vcr_cassettes,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
@@ -327,7 +347,9 @@ class EndToEndScenario(DockerScenario):
 
         self._require_api_key = require_api_key
 
-        self.agent_container = AgentContainer(use_proxy=use_proxy_for_agent, environment=agent_env)
+        self.agent_container = AgentContainer(
+            use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
+        )
 
         if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -454,7 +476,7 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._get_weblog_system_info)
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
-            self.warmups.append(self._set_components)
+        self.warmups.append(self._set_components)
 
     def _get_weblog_system_info(self):
         try:
@@ -485,6 +507,7 @@ class EndToEndScenario(DockerScenario):
     def _set_components(self):
         self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
         if self._use_proxy_for_weblog:

@@ -39,10 +39,8 @@ def test_tracer_release():
         scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
         scenarios.docker_ssi_servicenaming,
-        scenarios.external_processing_blocking,  # need to declare a white list of library in get-workflow-parameters
-        scenarios.external_processing,  # need to declare a white list of library in get-workflow-parameters
-        scenarios.stream_processing_offload_blocking,  # need to declare a white list of library in get-workflow-parameters
-        scenarios.stream_processing_offload,  # need to declare a white list of library in get-workflow-parameters
+        scenarios.go_proxies_default,
+        scenarios.go_proxies_appsec_blocking,
         scenarios.host_auto_injection_install_script_appsec,
         scenarios.host_auto_injection_install_script_profiling,
         scenarios.host_auto_injection_install_script,
@@ -58,14 +56,11 @@ def test_tracer_release():
         scenarios.k8s_lib_injection_uds,
         scenarios.k8s_lib_injection,
         scenarios.k8s_injector_dev_single_service,
-        scenarios.lib_injection_validation_unsupported_lang,
-        scenarios.lib_injection_validation,
         scenarios.local_auto_injection_install_script,
         scenarios.simple_auto_injection_appsec,
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
-        scenarios.demo_aws,
         scenarios.otel_collector_e2e,
     ]
 

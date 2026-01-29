@@ -4,7 +4,9 @@ from pathlib import Path
 import shutil
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
+    from utils._context.component_version import Version
     from collections.abc import Callable
 
 import pytest
@@ -39,6 +41,7 @@ class _ScenarioGroups:
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
+    integration_frameworks = ScenarioGroup()
     ipv6 = ScenarioGroup()
     lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
@@ -53,15 +56,13 @@ class _ScenarioGroups:
     simple_onboarding_appsec = ScenarioGroup()
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
-    external_processing = ScenarioGroup()
-    stream_processing_offload = ScenarioGroup()
+    go_proxies = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
-    default = ScenarioGroup()
-    feature_flag_exposure = ScenarioGroup()
+    ffe = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -104,13 +105,14 @@ class Scenario:
         self.replay = False
         self.doc = doc
         self.rc_api_enabled = False
+        self.rc_backend_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
         self.scenario_groups = scenario_groups or []
 
         self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
 
         # key value pair of what is actually tested
-        self.components: dict[str, str] = {}
+        self.components: dict[str, Version | str] = {}
 
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
@@ -124,6 +126,7 @@ class Scenario:
             group.scenarios.append(self)
 
         self.warmups: list[Callable] = []
+        self.collect_only: bool = False
 
     def _create_log_subfolder(self, subfolder: str, *, remove_if_exists: bool = False):
         if self.replay:
@@ -145,6 +148,7 @@ class Scenario:
 
     def pytest_configure(self, config: pytest.Config):
         self.replay = config.option.replay
+        self.collect_only = config.option.collectonly
 
         # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
         # we are in the main worker, not in a xdist sub-worker
@@ -212,6 +216,11 @@ class Scenario:
 
     def customize_feature_parity_dashboard(self, result: dict):
         pass
+
+    def get_libraries(self) -> set[str] | None:
+        """Some scenarios are valid only with a subset of libraries."""
+
+        return None
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__} '{self.name}'"

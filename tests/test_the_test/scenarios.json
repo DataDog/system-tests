@@ -3159,12 +3159,6 @@
   "tests/auto_inject/test_blocklist_auto_inject.py::TestAutoInjectBlockListInstallManualHost::test_builtin_instrument_args": [
     "INSTALLER_AUTO_INJECTION"
   ],
-  "tests/auto_inject/test_demo.py::TestDemoAws::test_demo_provision_weblog": [
-    "DEMO_AWS"
-  ],
-  "tests/auto_inject/test_demo.py::TestDemoAws::test_run_simple_command": [
-    "DEMO_AWS"
-  ],
   "tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present": [
     "DEBUGGER_PROBES_SNAPSHOT"
   ],
@@ -3845,12 +3839,6 @@
   ],
   "tests/k8s_injector_dev/test_k8s_injector_dev.py::TestK8sLibInjection::test_k8s_injector_dev": [
     "K8S_INJECTOR_DEV_SINGLE_SERVICE"
-  ],
-  "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidator::test_valid_weblog_instrumented": [
-    "LIB_INJECTION_VALIDATION"
-  ],
-  "tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported::test_invalid_weblog_not_instrumented": [
-    "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG"
   ],
   "tests/k8s_lib_injection/test_k8s_lib_injection.py::TestK8sLibInjection::test_k8s_lib_injection": [
     "K8S_LIB_INJECTION_NO_AC_UDS",

@@ -1,94 +1,220 @@
-from functools import lru_cache
 from pathlib import Path
-import re
-import semantic_version as semver
-
-from manifests.parser.core import validate_manifest_files, load
-
+import tempfile
+import textwrap
+import pytest
 from utils import scenarios
+from utils._context.component_version import Version
+from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
+from utils.manifest._internal.types import SemverRange as CustomSpec
 
 
-def get_variants_map():
-    result = {}
-
-    for folder in Path("utils/build/docker").iterdir():
-        if not folder.is_dir():
-            continue
-
-        result[folder.name] = ["*"]
-        for file in folder.iterdir():
-            if file.is_dir():
-                continue
-            if not file.name.endswith(".Dockerfile"):
-                continue
-
-            variant = file.name.removesuffix(".Dockerfile")
-            result[folder.name].append(variant)
-
-    return result
+def manifest_init(
+    components: dict[str, Version],
+    weblog: str = "some_variant",
+    path: Path = Path("tests/test_the_test/manifests/manifests_parser_test/"),
+):
+    return Manifest(components, weblog, path)
 
 
 @scenarios.test_the_test
-def test_formats():
-    validate_manifest_files()
+class TestManifest:
+    def test_formats(self):
+        Manifest.validate()
 
+    def test_parser(self):
+        manifest = Manifest.parse(Path("tests/test_the_test/manifests/manifests_parser_test/"))
+        assert manifest == {
+            "tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span": [
+                {
+                    "excluded_component_version": CustomSpec(">=3.4.5"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for java is v3.4.5"),
+                    "component": "java",
+                },
+                {
+                    "declaration": SkipDeclaration("missing_feature", "missing /e2e_otel_span endpoint on weblog"),
+                    "component": "python",
+                },
+            ],
+            "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners": [
+                {
+                    "excluded_component_version": CustomSpec(">=2.6.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for agent is v2.6.0"),
+                    "component": "agent",
+                },
+                {"declaration": SkipDeclaration("missing_feature"), "component": "java"},
+                {
+                    "excluded_component_version": CustomSpec(">=2.6.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.6.0"),
+                    "component": "python",
+                },
+            ],
+            "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery": [
+                {
+                    "excluded_weblog": ["spring-boot"],
+                    "excluded_component_version": CustomSpec(">=1.2.3"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for java is v1.2.3"),
+                    "component": "java",
+                },
+                {"weblog": ["spring-boot"], "declaration": SkipDeclaration("missing_feature"), "component": "java"},
+                {
+                    "excluded_weblog": ["django-poc", "django-py3.13", "python3.12"],
+                    "declaration": SkipDeclaration("missing_feature"),
+                    "component": "python",
+                },
+                {
+                    "weblog": ["django-poc", "django-py3.13", "python3.12"],
+                    "excluded_component_version": CustomSpec(">=3.12.0-dev"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v3.12.0.dev"),
+                    "component": "python",
+                },
+            ],
+            "tests/appsec/api_security/test_schemas.py::Test_Scanners": [
+                {
+                    "excluded_weblog": ["fastapi"],
+                    "excluded_component_version": CustomSpec(">=2.4.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.4.0"),
+                    "component": "python",
+                },
+                {"weblog": ["fastapi"], "declaration": SkipDeclaration("missing_feature"), "component": "python"},
+            ],
+            "tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies": [
+                {
+                    "excluded_weblog": ["fastapi"],
+                    "excluded_component_version": CustomSpec(">=2.1.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.1.0"),
+                    "component": "python",
+                },
+                {
+                    "weblog": ["fastapi"],
+                    "excluded_component_version": CustomSpec(">=2.5.0"),
+                    "declaration": SkipDeclaration("missing_feature", "declared version for python is v2.5.0"),
+                    "component": "python",
+                },
+            ],
+            "tests/appsec/iast/sink": [{"declaration": SkipDeclaration("missing_feature"), "component": "python"}],
+            "tests/appsec/iast": [
+                {
+                    "component": "python",
+                    "component_version": CustomSpec("<3.11.0"),
+                    "declaration": SkipDeclaration(
+                        "missing_feature",
+                        "APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP",
+                    ),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12"],
+                }
+            ],
+            "tests/appsec/iast/test": [
+                {
+                    "component": "python",
+                    "component_version": CustomSpec("<3.11.0"),
+                    "declaration": SkipDeclaration("irrelevant"),
+                    "weblog": ["django-poc", "django-py3.13", "python3.12", "fastapi"],
+                }
+            ],
+        }
 
-@scenarios.test_the_test
-def test_content():
-    @lru_cache
-    def get_file_content(path: str):
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
+    def test_all_missing_feature(self):
+        manifest = manifest_init({"python": Version("3.12.0")}, "django-poc")
+        assert manifest.get_declarations("tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_function") == [
+            SkipDeclaration(TestDeclaration.MISSING_FEATURE, "missing /e2e_otel_span endpoint on weblog")
+        ]
 
-    def assert_valid_declaration(declaration: str):
-        assert isinstance(declaration, str)
+    def test_variant_conditions(self):
+        manifest = manifest_init({"python": Version("3.12.0")}, "django-poc")
+        assert (
+            manifest.get_declarations(
+                "tests/apm_tracing_e2e/test_otel.py::Test_API_Security_RC_ASM_DD_scanners::test_function"
+            )
+            == []
+        )
+        assert (
+            manifest.get_declarations(
+                "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_function"
+            )
+            == []
+        )
+        assert (
+            manifest.get_declarations(
+                "tests/appsec/api_security/test_schemas.py::Test_Endpoint_Discovery::test_function"
+            )
+            == []
+        )
 
-        if re.match(r"^(bug|flaky|irrelevant|missing_feature|incomplete_test_app)( \(.+\))?$", declaration):
-            return
+    def test_variant_star(self):
+        manifest = manifest_init({"python": Version("3.12.0")})
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, None)]
 
-        # must be a version declaration or semver spec
-        if declaration.startswith("v"):
-            assert re.match(r"^v\d.+", declaration)
-        else:
+    def test_variant_lower_version(self):
+        manifest = manifest_init({"python": Version("2.4.0")})
+
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, "declared version for python is v2.6.0")]
+        assert manifest.get_declarations("tests/appsec/api_security/test_schemas.py::Test_Scanners") == []
+        assert manifest.get_declarations("tests/appsec/iast/sink/file.py::Class::function") == [
+            SkipDeclaration(TestDeclaration.MISSING_FEATURE)
+        ]
+
+    def test_parametric_test(self):
+        manifest = manifest_init({"python": Version("3.12.0")})
+
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::func[param]"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE)]
+
+    def test_non_library_component(self):
+        manifest = manifest_init({"python": Version("3.12.0"), "agent": Version("1.12.0")})
+
+        assert manifest.get_declarations(
+            "tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners::func"
+        ) == [SkipDeclaration(TestDeclaration.MISSING_FEATURE, details="declared version for agent is v2.6.0")]
+
+    def test_validate_assume_sorted(self):
+        """Test that assume_sorted parameter skips key order validation."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            manifest_path = Path(tmpdir)
+            # Create dummy test files to satisfy nodeid validation
+            test_a_path = Path("tests/test_the_test/test_a.py")
+            test_b_path = Path("tests/test_the_test/test_b.py")
+            test_a_content = textwrap.dedent(
+                """\
+                class Test_A:
+                    def test_method(self): pass
+                """
+            )
+            test_b_content = textwrap.dedent(
+                """\
+                class Test_B:
+                    def test_method(self): pass
+                """
+            )
+            test_a_path.write_text(test_a_content)
+            test_b_path.write_text(test_b_content)
+
             try:
-                semver.NpmSpec(declaration)
-            except Exception as e:
-                raise ValueError(
-                    f"{declaration} is neither a version, a version range or a test state (bug, flaky ...)"
-                ) from e
-
-    manifest = load()
-
-    variants_map = get_variants_map()
-
-    for nodeid in sorted(manifest):
-        component = list(manifest[nodeid])[0]  # blame the first one
-
-        if "::" in nodeid:
-            path, klass = nodeid.split("::")
-        else:
-            path, klass = nodeid, None
-
-        if path.endswith(".py"):
-            try:
-                content = get_file_content(path)
-            except FileNotFoundError as e:
-                raise ValueError(f"In {component} manifest, file {path} is declared, but does not exists") from e
-
-            if klass is not None:
-                assert f"class {klass}" in content, (
-                    f"In {component} manifest, class {klass} is declared in {path}, but does not exists"
+                # Create a manifest file with unsorted keys
+                unsorted_manifest = manifest_path / "test.yml"
+                manifest_content = textwrap.dedent(
+                    """\
+                    ---
+                    manifest:
+                      tests/test_the_test/test_b.py::Test_B: missing_feature
+                      tests/test_the_test/test_a.py::Test_A: missing_feature
+                    """
                 )
+                unsorted_manifest.write_text(manifest_content)
 
-        elif path.endswith("/"):
-            assert Path(path).is_dir(), f"In {component} manifest, folder {path} is declared, but does not exists"
+                # Validation should fail with assume_sorted=False (default)
+                with pytest.raises(AssertionError, match="Key order errors"):
+                    Manifest.validate(path=manifest_path, assume_sorted=False)
 
-        # check variant names
-        for component, declaration in manifest[nodeid].items():
-            if isinstance(declaration, str):
-                assert_valid_declaration(declaration)
-                continue
-
-            for variant in declaration:
-                assert variant in variants_map[component], f"Variant {variant} does not exists for {component}"
-                assert_valid_declaration(declaration[variant])
+                # Validation should pass with assume_sorted=True (skips key order check)
+                Manifest.validate(path=manifest_path, assume_sorted=True)
+            finally:
+                # Clean up dummy test files
+                if test_a_path.exists():
+                    test_a_path.unlink()
+                if test_b_path.exists():
+                    test_b_path.unlink()

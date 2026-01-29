@@ -185,7 +185,7 @@ public class App {
         return response;
     }
 
-    @GetMapping("/headers")
+    @GetMapping(value = "/headers", produces = "text/plain")
     String headers(HttpServletResponse response) {
         response.setHeader("content-language", "en-US");
         return "012345678901234567890123456789012345678901";

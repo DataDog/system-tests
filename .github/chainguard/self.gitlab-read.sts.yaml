@@ -1,0 +1,15 @@
+issuer: https://gitlab.ddbuild.io
+
+subject_pattern: "project_path:DataDog/system-tests:ref_type:branch:ref:main"
+
+claim_pattern:
+  project_path: "DataDog/system-tests"
+  ref: "main"
+  ref_type: "branch"
+  ref_path: "refs/heads/main"
+  ref_protected: "true"
+  pipeline_source: "push"
+  ci_config_ref_uri: "gitlab\\.ddbuild\\.io/DataDog/system-tests//\\.gitlab-ci\\.yml@refs/heads/main"
+
+permissions:
+  contents: read

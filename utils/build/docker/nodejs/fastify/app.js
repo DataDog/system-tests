@@ -1,9 +1,6 @@
 'use strict'
 
-const tracer = require('dd-trace').init({
-  debug: true,
-  flushInterval: 5000
-})
+const tracer = require('dd-trace').init()
 
 const { promisify } = require('util')
 const axios = require('axios')

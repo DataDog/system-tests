@@ -1,6 +1,9 @@
+from copy import copy
 import os
 import json
 import hashlib
+
+from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
 
 
 class AWSInfraConfig:
@@ -29,19 +32,19 @@ class DataDogConfig:
 
 
 class _VagrantConfig:
-    def __init__(self, box_name) -> None:
+    def __init__(self, box_name: str) -> None:
         self.box_name = box_name
 
 
 class _KrunVmConfig:
-    def __init__(self, oci_image_name) -> None:
+    def __init__(self, oci_image_name: str) -> None:
         self.oci_image_name = oci_image_name
         # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
         self.stdin = None
 
 
 class _AWSConfig:
-    def __init__(self, ami_id, ami_instance_type, user, volume_size=20) -> None:
+    def __init__(self, ami_id: str, ami_instance_type: str, user: str, volume_size: int = 20) -> None:
         self.ami_id = ami_id
         self.ami_instance_type = ami_instance_type
         self.user = user
@@ -50,7 +53,14 @@ class _AWSConfig:
 
 
 class _SSHConfig:
-    def __init__(self, hostname=None, port=22, username=None, key_filename=None, pkey=None) -> None:
+    def __init__(
+        self,
+        hostname: str | None = None,
+        port: int = 22,
+        username: str | None = None,
+        key_filename: str | None = None,
+        pkey: str | None = None,
+    ) -> None:
         self.hostname = hostname
         self.port = port
         self.username = username
@@ -58,7 +68,7 @@ class _SSHConfig:
         self.pkey = pkey
         self.pkey_path = pkey
 
-    def set_pkey(self, pkey):
+    def set_pkey(self, pkey: str):
         self.pkey = pkey
 
     def get_ssh_connection(self):
@@ -78,15 +88,16 @@ class _SSHConfig:
 class _VirtualMachine:
     def __init__(
         self,
-        name,
-        aws_config,
-        vagrant_config,
-        krunvm_config,
-        os_type,
-        os_distro,
-        os_branch,
-        os_cpu,
-        default_vm=True,
+        name: str,
+        aws_config: _AWSConfig,
+        vagrant_config: _VagrantConfig,
+        krunvm_config: _KrunVmConfig,
+        os_type: str,
+        os_distro: str,
+        os_branch: str,
+        os_cpu: str,
+        *,
+        default_vm: bool = True,
         **kwargs,
     ) -> None:
         self.name = name
@@ -99,13 +110,13 @@ class _VirtualMachine:
         self.os_distro = os_distro
         self.os_branch = os_branch
         self.os_cpu = os_cpu
-        self._vm_provision = None
+        self._vm_provision: Provision | None = None
         self.tested_components = {}
-        self.deffault_open_port = 5985
-        self.agent_env = None
-        self.app_env = None
-        self.default_vm = default_vm
-        self._deployed_weblog = None
+        self.deffault_open_port: int = 5985
+        self.agent_env: dict[str, str] | None = None
+        self.app_env: dict[str, str] | None = None
+        self.default_vm: bool = default_vm
+        self._deployed_weblog: _DeployedWeblog | None = None
         self.provision_install_error = None
 
     def get_deployed_weblog(self):
@@ -115,13 +126,13 @@ class _VirtualMachine:
 
         return self._deployed_weblog
 
-    def set_deployed_weblog(self, deployed_weblog):
+    def set_deployed_weblog(self, deployed_weblog: _DeployedWeblog):
         self._deployed_weblog = deployed_weblog
 
     def get_vm_unique_id(self):
         return f"{self.name}_{self.get_deployed_weblog().runtime_version}_{self.get_deployed_weblog().app_type}"
 
-    def set_ip(self, ip):
+    def set_ip(self, ip: str):
         self.ssh_config.hostname = ip
 
     def get_ssh_connection(self):
@@ -136,22 +147,23 @@ class _VirtualMachine:
 
     def _check_provsion_install_error(self):
         assert self.provision_install_error is None, (
-            f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
+            f"❌ There are previous errors in the virtual machine provisioning steps. "
+            f"Check this file in the logs scenario folder: {self.name}.log"
         )
 
-    def add_provision(self, provision):
+    def add_provision(self, provision: Provision) -> None:
         self._vm_provision = provision
 
-    def get_provision(self):
+    def get_provision(self) -> Provision:
         return self._vm_provision
 
-    def add_agent_env(self, agent_env):
+    def add_agent_env(self, agent_env: dict[str, str]):
         self.agent_env = agent_env
 
-    def add_app_env(self, app_env):
+    def add_app_env(self, app_env: dict[str, str]):
         self.app_env = app_env
 
-    def set_tested_components(self, components_json):
+    def set_tested_components(self, components_json: str):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
         self.tested_components = json.loads(components_json.replace("'", '"'))
 
@@ -184,7 +196,7 @@ class _VirtualMachine:
             full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
         return full_cache_name
 
-    def get_command_environment(self):
+    def get_command_environment(self) -> dict[str, str]:
         """Get the environment that will be injected as environment variables for all launched remote commands"""
         command_env = {}
         for key, value in self.get_provision().env.items():
@@ -231,8 +243,29 @@ class _VirtualMachine:
 
         return command_env
 
+    def get_tested_apps_vms(self):
+        """Workaround for multicontainer apps. We are going duplicate the machines for each runtime inside of docker
+        compose. This means, if I have a multicontainer app with 3 containers (runtimes) running on 1 vm, I will have 3
+        machines with the same configuration but with different runtimes.
+        NOTE: On AWS we only run 1 vm. We duplicate the vms for test isolation.
+        """
+        vms_by_runtime = []
+        vms_by_runtime_ids = []
+        deployed_weblog = self.get_provision().get_deployed_weblog()
+        if deployed_weblog.app_type == "multicontainer":
+            for weblog in deployed_weblog.multicontainer_apps:
+                vm_by_runtime = copy(self)
+                vm_by_runtime.set_deployed_weblog(weblog)
+                vms_by_runtime.append(vm_by_runtime)
+                vms_by_runtime_ids.append(vm_by_runtime.get_vm_unique_id())
+        else:
+            vms_by_runtime.append(self)
+            vms_by_runtime_ids.append(self.get_vm_unique_id())
 
-def load_virtual_machines(provider_id):
+        return vms_by_runtime, vms_by_runtime_ids
+
+
+def load_virtual_machines(provider_id: str):
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         data = json.load(file)
 

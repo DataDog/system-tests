@@ -6,6 +6,7 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
+const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
@@ -24,6 +25,17 @@ const app = express();
 app.use(express.json());
 
 let dummyIdIncrementer = 10000000
+
+// Map log level to OpenTelemetry severity
+const SEVERITY_MAP = {
+  'TRACE': { text: 'TRACE', number: 1 },
+  'DEBUG': { text: 'DEBUG', number: 5 },
+  'INFO': { text: 'INFO', number: 9 },
+  'WARN': { text: 'WARN', number: 13 },
+  'WARNING': { text: 'WARN', number: 13 },
+  'ERROR': { text: 'ERROR', number: 17 },
+  'FATAL': { text: 'FATAL', number: 21 }
+}
 
 function microLongToHrTime (timestamp) {
   if (timestamp === null) {
@@ -54,6 +66,7 @@ const ddContext = new Map()
 const otelSpans = new Map()
 const otelMeters = new Map()
 const otelMeterInstruments = new Map()
+const loggerDict = {}
 
 // Helper function to create instrument keys
 function createInstrumentKey(meterName, name, kind, unit, description) {
@@ -171,6 +184,22 @@ app.post('/trace/span/set_metric', (req, res) => {
   const value = args.value;
   const span = spans[spanId];
   span.setTag(key, value);
+  res.json({});
+});
+
+app.post('/trace/span/manual_keep', (req, res) => {
+  const args = req.body;
+  const spanId = args.span_id;
+  const span = spans[spanId];
+  span.setTag(MANUAL_KEEP, true);
+  res.json({});
+});
+
+app.post('/trace/span/manual_drop', (req, res) => {
+  const args = req.body;
+  const spanId = args.span_id;
+  const span = spans[spanId];
+  span.setTag(MANUAL_DROP, true);
   res.json({});
 });
 
@@ -357,27 +386,55 @@ app.get('/trace/config', (req, res) => {
   });
 });
 
-app.post("/log/write", (req, res) => {
-  const { logs } = require('@opentelemetry/api-logs')
+app.post("/otel/logger/create", (req, res) => {
+  const { name, level, version, schema_url, attributes } = req.body
 
-  const logger = logs.getLogger(req?.body?.logger_name)
-  const otelSpan = otelSpans[req?.body?.span_id]
-  const ddSpan = spans[req?.body?.span_id]
-  let context = undefined
-  if (otelSpan) {
-    context = trace.setSpan(ROOT_CONTEXT, otelSpan)
-  } else if (ddSpan) {
-    const ddSpanContext = ddSpan.context()
-    const sp = {spanId: ddSpanContext.toSpanId(true), traceId: ddSpanContext.toTraceId(true), flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0}
-    context = trace.setSpanContext(ROOT_CONTEXT, sp)
+  if (loggerDict[name]) {
+    return res.status(200).json({ success: false })
   }
 
-  logger.emit({
-    severityText: req.body.level,
-    body: req.body.message,
-    context: context
+  const { logs } = require('@opentelemetry/api-logs')
+  const loggerProvider = logs.getLoggerProvider()
+
+  const loggerOptions = schema_url ? { schemaUrl: schema_url } : {}
+  const loggerVersion = version || ''
+  const logger = loggerProvider.getLogger(name, loggerVersion, loggerOptions)
+
+  loggerDict[name] = logger
+  res.status(200).json({ success: true })
+})
+
+app.post("/otel/logger/write", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+  const { logger_name, level, message, span_id } = req.body
+
+  const logger = loggerDict[logger_name]
+  if (!logger) {
+    return res.status(400).json({ error: `Logger ${logger_name} not found` })
+  }
+
+  let otelContext = undefined
+  const otelSpan = otelSpans[span_id]
+  const ddSpan = spans[span_id]
+  if (otelSpan) {
+    otelContext = trace.setSpan(ROOT_CONTEXT, otelSpan)
+  } else if (ddSpan) {
+    const ddSpanContext = ddSpan.context()
+    otelContext = trace.setSpanContext(ROOT_CONTEXT, {
+      spanId: ddSpanContext.toSpanId(true),
+      traceId: ddSpanContext.toTraceId(true),
+      flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0
+    })
+  }
+
+  const severity = SEVERITY_MAP[level.toUpperCase()]
+  logger.emit( {
+    severityText: severity.text,
+    severityNumber: severity.number,
+    body: message,
+    context: otelContext
   })
-  res.status(200).json({})
+  res.status(200).json({ success: true })
 })
 
 app.post("/log/otel/flush", (req, res) => {
@@ -702,13 +759,17 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
 
 app.post('/metrics/otel/force_flush', (req, res) => {
   const meterProvider = metrics.getMeterProvider();
-  if (meterProvider.forceFlush) {
-    meterProvider.forceFlush()
+  if (meterProvider.reader) {
+    meterProvider.reader.forceFlush()
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Force flush not supported' });
   }
 });
+
+// add LLM Observability routes
+const addLlmObsRoutes = require('./llmobs');
+addLlmObsRoutes(app);
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {

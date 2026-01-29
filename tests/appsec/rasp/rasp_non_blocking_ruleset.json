@@ -301,6 +301,15 @@
             ]
           },
           "operator": "exact_match"
+        }, {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.response.headers"
+              }
+            ]
+          },
+          "operator": "exists"
         }
       ],
       "transformers": [],

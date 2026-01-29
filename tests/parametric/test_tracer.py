@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, context, rfc, scenarios, features
+from utils import missing_feature, rfc, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -16,8 +16,6 @@ parametrize = pytest.mark.parametrize
 @scenarios.parametric
 @features.trace_annotation
 class Test_Tracer:
-    @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
-    @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
     def test_tracer_span_top_level_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""
         with (
@@ -137,7 +135,6 @@ class Test_TracerSCITagging:
             },
         ],
     )
-    @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:

@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger, flaky
+from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger, flaky
 
 USER = "test"
 NEW_USER = "testnew"
@@ -135,14 +135,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         else:
             return default_checks
 
-    @missing_feature(
-        condition=(
-            context.scenario.name == scenarios.appsec_standalone_api_security.name
-            and context.weblog_variant in ("django-poc", "django-py3.13", "python3.12")
-            and context.library < "python@3.11.0.dev"
-        ),
-        reason="APPSEC-57830 (python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)",
-    )
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
@@ -667,33 +659,18 @@ class BaseAppSecStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagati
     request_downstream_url: str = "/requestdownstream"
     tested_product: str = "appsec"
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         super().test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0()
 
-    @bug(library="java", weblog_variant="akka-http", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="jersey-grizzly2", reason="APPSEC-55001")
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55001")
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         super().test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1()
 
@@ -705,19 +682,15 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
 
     tested_product = "iast"
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
 
-    @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
@@ -777,7 +750,6 @@ class BaseSCAStandaloneTelemetry:
         self.r0 = weblog.get("/load_dependency")
         self.r1 = weblog.get("/load_dependency")
 
-    @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
@@ -873,7 +845,7 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.api_security_configuration
 @scenarios.appsec_standalone_api_security
-@flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
+@flaky(context.library == "java", reason="APPSEC-60872")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
@@ -1107,11 +1079,6 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212133
         self._call_endpoint("/signup", NEW_USER, trace_id)
 
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="no signup events in Python except for django",
-    )
-    @missing_feature(context.library == "nodejs", reason="no signup events in passport")
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)

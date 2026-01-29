@@ -42,6 +42,8 @@ from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
 
@@ -60,6 +62,8 @@ except ImportError:
     from ddtrace.sampling_rule import SamplingRule
 
 from opentelemetry._logs import get_logger_provider
+
+from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
@@ -80,6 +84,7 @@ ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 otel_meters: Dict[str, Meter] = {}
 otel_meter_instruments: Dict[str, Instrument] = {}
+logger_dict: Dict[str, Any] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
 active_ddspan = [None]
@@ -326,6 +331,28 @@ def trace_span_set_metric(args: SpanSetMetricArgs) -> SpanSetMetricReturn:
     span = spans[args.span_id]
     span.set_metric(args.key, args.value)
     return SpanSetMetricReturn()
+
+
+class SpanIDArgs(BaseModel):
+    span_id: int
+
+
+class EmptyReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/manual_keep")
+def trace_span_manual_keep(args: SpanIDArgs) -> EmptyReturn:
+    span = spans[args.span_id]
+    span.set_tag(MANUAL_KEEP_KEY)
+    return EmptyReturn()
+
+
+@app.post("/trace/span/manual_drop")
+def trace_span_manual_drop(args: SpanIDArgs) -> EmptyReturn:
+    span = spans[args.span_id]
+    span.set_tag(MANUAL_DROP_KEY)
+    return EmptyReturn()
 
 
 class SpanInjectArgs(BaseModel):
@@ -1133,6 +1160,36 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     return OtelMetricsForceFlushReturn(success=True)
 
 
+class LogCreateLoggerArgs(BaseModel):
+    name: str
+    level: str
+    version: Optional[str] = None
+    schema_url: Optional[str] = None
+    attributes: Optional[dict] = None
+
+
+class LogCreateLoggerReturn(BaseModel):
+    success: bool
+
+
+def _create_logger(name: str, level: str) -> logging.Logger:
+    """Create and configure a logger with the specified name and level."""
+    logger = logging.getLogger(name)
+    log_level = getattr(logging, level.upper())
+    logger.setLevel(log_level)
+    logger_dict[name] = logger
+    return logger
+
+
+@app.post("/otel/logger/create")
+def create_logger(args: LogCreateLoggerArgs) -> LogCreateLoggerReturn:
+    """Create an OpenTelemetry logger with the specified name and level."""
+    if args.name in logger_dict:
+        return LogCreateLoggerReturn(success=False)
+    _create_logger(args.name, args.level)
+    return LogCreateLoggerReturn(success=True)
+
+
 class LogGenerateArgs(BaseModel):
     message: str
     level: str
@@ -1144,34 +1201,25 @@ class LogGenerateReturn(BaseModel):
     success: bool
 
 
-@app.post("/log/write")
-def write_log(args: LogGenerateArgs):
-    # Create a logger with the specified name
-    logger = logging.getLogger(args.logger_name)
+@app.post("/otel/logger/write")
+def write_log(args: LogGenerateArgs) -> LogGenerateReturn:
+    """Write a log message using the specified logger."""
+    if args.logger_name not in logger_dict:
+        raise ValueError(f"Logger {args.logger_name} not found in registered loggers {list(logger_dict.keys())}")
 
-    # Set the log level based on the provided level
-    level_mapping = {
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-    }
-    log_level = level_mapping.get(args.level.upper(), logging.INFO)
-    logger.setLevel(log_level)
+    logger = logger_dict[args.logger_name]
+    log_level = getattr(logging, args.level.upper())
 
     if args.span_id:
         span = spans.get(args.span_id, otel_spans.get(args.span_id))
-
         if not span:
             raise ValueError(f"Span not found for span_id: {args.span_id}")
-
-        if isinstance(span, OtelSpan):
+        elif isinstance(span, OtelSpan):
             with opentelemetry.trace.use_span(span):
                 logger.log(log_level, args.message)
         else:
             with ddtrace.tracer._activate_context(span.context):
                 logger.log(log_level, args.message)
-
     else:
         logger.log(log_level, args.message)
 
@@ -1311,6 +1359,9 @@ async def rc_start() -> JSONResponse:
         return JSONResponse({}, status_code=200)
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+app.include_router(llmobs_router)
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests
