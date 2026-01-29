@@ -607,6 +607,131 @@ fastify.get('/otel_drop_in_default_propagator_inject', async (request, reply) =>
   return result
 })
 
+fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
+  const api = require('@opentelemetry/api')
+
+  const url = request.query.url
+  console.log(url)
+
+  const parsedUrl = new URL(url)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const baggageRemove = request.query.baggage_remove
+  const baggageSet = request.query.baggage_set
+  const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
+  const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
+
+  let baggage = api.propagation.getActiveBaggage() || api.propagation.createBaggage()
+  for (const key of baggageToRemove) {
+    baggage = baggage.removeEntry(key.trim())
+  }
+  for (const [key, value] of baggageToSet) {
+    baggage = baggage.setEntry(key.trim(), { value: value.trim() })
+  }
+
+  const newContext = api.propagation.setBaggage(api.context.active(), baggage)
+
+  return new Promise((resolve, reject) => {
+    api.context.with(newContext, () => {
+      const httpRequest = http.request(options, (response) => {
+        let responseBody = ''
+        response.on('data', (chunk) => {
+          responseBody += chunk
+        })
+
+        response.on('end', () => {
+          resolve({
+            url,
+            status_code: response.statusCode,
+            request_headers: response.req._headers,
+            response_headers: response.headers,
+            response_body: responseBody
+          })
+        })
+      })
+
+      httpRequest.on('error', (error) => {
+        console.log(error)
+        resolve({
+          url,
+          status_code: 500,
+          request_headers: null,
+          response_headers: null
+        })
+      })
+
+      httpRequest.end()
+    })
+  })
+})
+
+fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
+  const { setBaggageItem, removeBaggageItem } = require('dd-trace/packages/dd-trace/src/baggage')
+
+  const url = request.query.url
+  console.log(url)
+
+  const parsedUrl = new URL(url)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const baggageRemove = request.query.baggage_remove
+  const baggageSet = request.query.baggage_set
+  const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
+  const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
+
+  for (const key of baggageToRemove) {
+    console.log(`Removing baggage item: ${key.trim()}`)
+    removeBaggageItem(key.trim())
+  }
+  for (const [key, value] of baggageToSet) {
+    console.log(`Setting baggage item: ${key.trim()} = ${value.trim()}`)
+    setBaggageItem(key.trim(), value.trim())
+  }
+
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request(options, (response) => {
+      let responseBody = ''
+      response.on('data', (chunk) => {
+        responseBody += chunk
+      })
+
+      response.on('end', () => {
+        resolve({
+          url,
+          status_code: response.statusCode,
+          request_headers: response.req._headers,
+          response_headers: response.headers,
+          response_body: responseBody
+        })
+      })
+    })
+
+    httpRequest.on('error', (error) => {
+      console.log(error)
+      resolve({
+        url,
+        status_code: 500,
+        request_headers: null,
+        response_headers: null
+      })
+    })
+
+    httpRequest.end()
+  })
+})
+
 fastify.post('/shell_execution', async (request, reply) => {
   const { spawnSync } = require('child_process')
   const options = { shell: !!request?.body?.options?.shell }

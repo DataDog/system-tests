@@ -39,6 +39,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.baggage.BaggageBuilder;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
@@ -1318,6 +1319,67 @@ public class App {
         String jsonString = mapper.writeValueAsString(map);
 
         return jsonString;
+    }
+
+    @RequestMapping("/otel_drop_in_baggage_api_otel")
+    DistantCallResponse otelDropInBaggageApiOTel(@RequestParam String url, @RequestParam String baggage_remove, @RequestParam String baggage_set) throws Exception {
+        // Insert baggage operations here
+        BaggageBuilder baggageBuilder = Baggage.current().toBuilder();
+
+        // for each
+        if (baggage_remove != null) {
+            for (String key : baggage_remove.split(",")) {
+                baggageBuilder = baggageBuilder.remove(key.trim());
+            }
+        }
+
+        if (baggage_set != null) {
+            for (String key : baggage_set.split(",")) {
+                String[] keyValue = key.split("=");
+                baggageBuilder =baggageBuilder.put(keyValue[0].trim(), keyValue[1].trim());
+            }
+        }
+
+        Baggage newBaggage = baggageBuilder.build();
+        try (Scope scope = newBaggage.makeCurrent()) {
+            HashMap<String, String> request_headers = new HashMap<>();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    request_headers.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            Response response = client.newCall(request).execute();
+
+            // Save response headers and status code
+            int status_code = response.code();
+            HashMap<String, String> response_headers = new HashMap<String, String>();
+            Headers headers = response.headers();
+            for (String name : headers.names()) {
+                response_headers.put(name, headers.get(name));
+            }
+
+            DistantCallResponse result = new DistantCallResponse();
+            result.url = url;
+            result.status_code = status_code;
+            result.request_headers = request_headers;
+            result.response_headers = response_headers;
+
+            return result;
+        }
     }
 
     @GetMapping(value = "/requestdownstream")
