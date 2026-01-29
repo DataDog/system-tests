@@ -1,5 +1,6 @@
 import asyncio
 import base64
+import contextlib
 import json
 import logging
 import os
@@ -71,7 +72,26 @@ _TRACK_METADATA = {"metadata0": "value0", "metadata1": "value1"}
 _TRACK_USER = "system_tests_user"
 
 
-class MainHandler(RequestHandler):
+class BaseHandler(RequestHandler):
+    """Base handler with automated user tracking middleware."""
+
+    def prepare(self) -> None:
+        """Middleware to automatically track users from session cookies."""
+        with contextlib.suppress(Exception):
+            user_id_bytes = self.get_secure_cookie("user_id")
+            session_id = self.get_cookie("session_id")
+
+            if user_id_bytes or session_id:
+                user_id_str = user_id_bytes.decode("utf-8") if user_id_bytes else None
+                track_user_sdk.track_user(
+                    login=user_id_str,
+                    user_id=user_id_str,
+                    session_id=session_id,
+                    _auto=True,
+                )
+
+
+class MainHandler(BaseHandler):
     def get(self) -> None:
         self.write("Hello world!\n")
 
@@ -79,7 +99,7 @@ class MainHandler(RequestHandler):
         self.write("Hello world!\n")
 
 
-class HeadersHandler(RequestHandler):
+class HeadersHandler(BaseHandler):
     def get(self) -> None:
         self.set_header("Content-Type", "text")
         self.set_header("Content-Length", "16")
@@ -87,7 +107,7 @@ class HeadersHandler(RequestHandler):
         self.write("Hello headers!\n")
 
 
-class HtmlHandler(RequestHandler):
+class HtmlHandler(BaseHandler):
     def get(self) -> None:
         self.set_header("Content-Type", "text/html")
         self.write(
@@ -103,7 +123,7 @@ class HtmlHandler(RequestHandler):
         )
 
 
-class IdentifyHandler(RequestHandler):
+class IdentifyHandler(BaseHandler):
     def get(self) -> None:
         set_user(
             tracer,
@@ -117,7 +137,7 @@ class IdentifyHandler(RequestHandler):
         self.write("OK")
 
 
-class IdentifyPropagateHandler(RequestHandler):
+class IdentifyPropagateHandler(BaseHandler):
     def get(self) -> None:
         set_user(
             tracer,
@@ -132,22 +152,22 @@ class IdentifyPropagateHandler(RequestHandler):
         self.write("OK")
 
 
-class ParamsHandler(RequestHandler):
+class ParamsHandler(BaseHandler):
     def get(self, path: str) -> None:  # noqa: ARG002
         self.write("Hello world!\n")
 
 
-class SampleRateRouteHandler(RequestHandler):
+class SampleRateRouteHandler(BaseHandler):
     def get(self, i: str) -> None:  # noqa: ARG002
         self.write("Hello world!\n")
 
 
-class ApiSecuritySamplingHandler(RequestHandler):
+class ApiSecuritySamplingHandler(BaseHandler):
     def get(self, i: str) -> None:  # noqa: ARG002
         self.write("OK\n")
 
 
-class ApiSecuritySamplingStatusHandler(RequestHandler):
+class ApiSecuritySamplingStatusHandler(BaseHandler):
     def get(self, status_code: str) -> None:
         code = int(status_code)
         self.set_status(code)
@@ -155,7 +175,7 @@ class ApiSecuritySamplingStatusHandler(RequestHandler):
             self.write("Hello!\n")
 
 
-class StatusHandler(RequestHandler):
+class StatusHandler(BaseHandler):
     def get(self) -> None:
         code = int(self.get_argument("code", "200"))
         self.set_status(code)
@@ -163,7 +183,7 @@ class StatusHandler(RequestHandler):
             self.write("OK, probably")
 
 
-class StatsUniqueHandler(RequestHandler):
+class StatsUniqueHandler(BaseHandler):
     def get(self) -> None:
         code = int(self.get_argument("code", "200"))
         self.set_status(code)
@@ -171,7 +191,7 @@ class StatsUniqueHandler(RequestHandler):
             self.write("OK, probably")
 
 
-class HealthcheckHandler(RequestHandler):
+class HealthcheckHandler(BaseHandler):
     def get(self) -> None:
         self.set_header("Content-Type", "application/json")
         self.write(
@@ -184,7 +204,7 @@ class HealthcheckHandler(RequestHandler):
         )
 
 
-class WafHandler(RequestHandler):
+class WafHandler(BaseHandler):
     def _handle(self) -> None:
         self.write("Hello world!\n")
 
@@ -207,7 +227,7 @@ class WafHandler(RequestHandler):
         self._handle()
 
 
-class TagValueHandler(RequestHandler):
+class TagValueHandler(BaseHandler):
     def _handle(self, tag_value: str, status_code: str) -> None:
         appsec_trace_utils.track_custom_event(
             tracer,
@@ -246,7 +266,7 @@ class TagValueHandler(RequestHandler):
         self._handle(tag_value, status_code)
 
 
-class MakeDistantCallHandler(RequestHandler):
+class MakeDistantCallHandler(BaseHandler):
     async def get(self) -> None:
         url = self.get_argument("url")
 
@@ -264,7 +284,7 @@ class MakeDistantCallHandler(RequestHandler):
         self.write(json.dumps(result))
 
 
-class UsersHandler(RequestHandler):
+class UsersHandler(BaseHandler):
     def get(self) -> None:
         user = self.get_argument("user")
         set_user(
@@ -279,7 +299,7 @@ class UsersHandler(RequestHandler):
         self.write("OK")
 
 
-class DbmHandler(RequestHandler):
+class DbmHandler(BaseHandler):
     def get(self) -> None:
         integration = self.get_argument("integration")
         operation = self.get_argument("operation", "")
@@ -301,7 +321,7 @@ class DbmHandler(RequestHandler):
         self.write(f"Integration is not supported: {integration}")
 
 
-class UserLoginSuccessEventHandler(RequestHandler):
+class UserLoginSuccessEventHandler(BaseHandler):
     def get(self) -> None:
         appsec_trace_utils.track_user_login_success_event(
             tracer,
@@ -312,7 +332,7 @@ class UserLoginSuccessEventHandler(RequestHandler):
         self.write("OK")
 
 
-class UserLoginFailureEventHandler(RequestHandler):
+class UserLoginFailureEventHandler(BaseHandler):
     def get(self) -> None:
         appsec_trace_utils.track_user_login_failure_event(
             tracer,
@@ -323,7 +343,7 @@ class UserLoginFailureEventHandler(RequestHandler):
         self.write("OK")
 
 
-class UserLoginSuccessEventV2Handler(RequestHandler):
+class UserLoginSuccessEventV2Handler(BaseHandler):
     def post(self) -> None:
         json_data = json.loads(self.request.body)
         login = json_data.get("login")
@@ -333,7 +353,7 @@ class UserLoginSuccessEventV2Handler(RequestHandler):
         self.write("OK")
 
 
-class UserLoginFailureEventV2Handler(RequestHandler):
+class UserLoginFailureEventV2Handler(BaseHandler):
     def post(self) -> None:
         json_data = json.loads(self.request.body)
         login = json_data.get("login")
@@ -343,13 +363,13 @@ class UserLoginFailureEventV2Handler(RequestHandler):
         self.write("OK")
 
 
-class CustomEventHandler(RequestHandler):
+class CustomEventHandler(BaseHandler):
     def get(self) -> None:
         appsec_trace_utils.track_custom_event(tracer, event_name="system_tests_event", metadata=_TRACK_METADATA)
         self.write("OK")
 
 
-class SignupHandler(RequestHandler):
+class SignupHandler(BaseHandler):
     def post(self) -> None:
         try:
             username = self.get_body_argument("username", None)
@@ -367,7 +387,7 @@ class SignupHandler(RequestHandler):
             self.write(f"signup failure {e!r}")
 
 
-class LoginHandler(RequestHandler):
+class LoginHandler(BaseHandler):
     DB_USER: ClassVar[dict[str, tuple[str, str, str, str]]] = {
         "test": ("social-security-id", "test", "1234", "testuser@ddog.com"),
         "testuuid": (
@@ -383,7 +403,7 @@ class LoginHandler(RequestHandler):
             return (self.DB_USER[username][2] == password), self.DB_USER[username][0]
         return False, None
 
-    def _handle(self) -> None:
+    def _handle(self) -> None:  # noqa: C901
         username = None
         password = None
 
@@ -406,6 +426,8 @@ class LoginHandler(RequestHandler):
                 login_events_mode="auto",
                 login=username,
             )
+            if user_id:
+                self.set_secure_cookie("user_id", user_id)
         elif user_id:
             appsec_trace_utils.track_user_login_failure_event(
                 tracer,
@@ -458,7 +480,7 @@ class LoginHandler(RequestHandler):
         self._handle()
 
 
-class SetCookieHandler(RequestHandler):
+class SetCookieHandler(BaseHandler):
     def get(self) -> None:
         name = self.get_argument("name")
         value = self.get_argument("value")
@@ -466,14 +488,14 @@ class SetCookieHandler(RequestHandler):
         self.write("OK")
 
 
-class SessionNewHandler(RequestHandler):
+class SessionNewHandler(BaseHandler):
     def get(self) -> None:
         session_id = "random_session_id"
         self.set_cookie("session_id", session_id)
         self.write(session_id)
 
 
-class SessionUserHandler(RequestHandler):
+class SessionUserHandler(BaseHandler):
     def get(self) -> None:
         user = self.get_argument("sdk_user", "")
         session_cookie = self.get_cookie("session_id", "")
@@ -504,7 +526,7 @@ def _get_rasp_param(handler: RequestHandler, key: str) -> str | None:
     return None
 
 
-class RaspLfiHandler(RequestHandler):
+class RaspLfiHandler(BaseHandler):
     def _handle(self) -> None:
         file_path = _get_rasp_param(self, "file")
         if file_path is None:
@@ -525,7 +547,7 @@ class RaspLfiHandler(RequestHandler):
         self._handle()
 
 
-class RaspSsrfHandler(RequestHandler):
+class RaspSsrfHandler(BaseHandler):
     async def _handle(self) -> None:
         domain = _get_rasp_param(self, "domain")
         if domain is None:
@@ -548,7 +570,7 @@ class RaspSsrfHandler(RequestHandler):
         await self._handle()
 
 
-class RaspSqliHandler(RequestHandler):
+class RaspSqliHandler(BaseHandler):
     def _handle(self) -> None:
         user_id = _get_rasp_param(self, "user_id")
         if user_id is None:
@@ -570,7 +592,7 @@ class RaspSqliHandler(RequestHandler):
         self._handle()
 
 
-class RaspShiHandler(RequestHandler):
+class RaspShiHandler(BaseHandler):
     def _handle(self) -> None:
         list_dir = _get_rasp_param(self, "list_dir")
         if list_dir is None:
@@ -592,7 +614,7 @@ class RaspShiHandler(RequestHandler):
         self._handle()
 
 
-class RaspCmdiHandler(RequestHandler):
+class RaspCmdiHandler(BaseHandler):
     def _handle(self) -> None:
         cmd = _get_rasp_param(self, "command")
         logger.info("And the cmd is %r", cmd)
@@ -616,7 +638,7 @@ class RaspCmdiHandler(RequestHandler):
         self._handle()
 
 
-class RaspMultipleHandler(RequestHandler):
+class RaspMultipleHandler(BaseHandler):
     def _handle(self) -> None:
         file1 = self.get_argument("file1", None)
         file2 = self.get_argument("file2", None)
@@ -642,98 +664,98 @@ class RaspMultipleHandler(RequestHandler):
 
 
 # IAST Handlers
-class IastInsecureHashingMultipleHandler(RequestHandler):
+class IastInsecureHashingMultipleHandler(BaseHandler):
     def get(self) -> None:
         weak_hash_multiple()
         self.write("OK")
 
 
-class IastInsecureHashingSecureHandler(RequestHandler):
+class IastInsecureHashingSecureHandler(BaseHandler):
     def get(self) -> None:
         weak_hash_secure_algorithm()
         self.write("OK")
 
 
-class IastInsecureHashingMd5Handler(RequestHandler):
+class IastInsecureHashingMd5Handler(BaseHandler):
     def get(self) -> None:
         weak_hash()
         self.write("OK")
 
 
-class IastInsecureHashingDeduplicateHandler(RequestHandler):
+class IastInsecureHashingDeduplicateHandler(BaseHandler):
     def get(self) -> None:
         weak_hash_duplicates()
         self.write("OK")
 
 
-class IastInsecureCipherInsecureHandler(RequestHandler):
+class IastInsecureCipherInsecureHandler(BaseHandler):
     def get(self) -> None:
         weak_cipher()
         self.write("OK")
 
 
-class IastInsecureCipherSecureHandler(RequestHandler):
+class IastInsecureCipherSecureHandler(BaseHandler):
     def get(self) -> None:
         weak_cipher_secure_algorithm()
         self.write("OK")
 
 
-class IastInsecureCookieInsecureHandler(RequestHandler):
+class IastInsecureCookieInsecureHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("insecure", "cookie", secure=False, httponly=False, samesite="None")
         self.write("OK")
 
 
-class IastInsecureCookieSecureHandler(RequestHandler):
+class IastInsecureCookieSecureHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("secure3", "value", secure=True, httponly=True, samesite="Strict")
         self.write("OK")
 
 
-class IastInsecureCookieEmptyHandler(RequestHandler):
+class IastInsecureCookieEmptyHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
         self.write("OK")
 
 
-class IastNoHttpOnlyCookieInsecureHandler(RequestHandler):
+class IastNoHttpOnlyCookieInsecureHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("insecure", "cookie", secure=True, httponly=False, samesite="Strict")
         self.write("OK")
 
 
-class IastNoHttpOnlyCookieSecureHandler(RequestHandler):
+class IastNoHttpOnlyCookieSecureHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("secure3", "value", secure=True, httponly=True, samesite="Strict")
         self.write("OK")
 
 
-class IastNoHttpOnlyCookieEmptyHandler(RequestHandler):
+class IastNoHttpOnlyCookieEmptyHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("secure3", "", secure=True, httponly=True, samesite="Strict")
         self.write("OK")
 
 
-class IastNoSameSiteCookieInsecureHandler(RequestHandler):
+class IastNoSameSiteCookieInsecureHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("insecure", "cookie", secure=True, httponly=True, samesite="None")
         self.write("OK")
 
 
-class IastNoSameSiteCookieSecureHandler(RequestHandler):
+class IastNoSameSiteCookieSecureHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("secure3", "value", secure=True, httponly=True, samesite="Strict")
         self.write("OK")
 
 
-class IastNoSameSiteCookieEmptyHandler(RequestHandler):
+class IastNoSameSiteCookieEmptyHandler(BaseHandler):
     def get(self) -> None:
         self.set_cookie("secure3", "", secure=True, httponly=True, samesite="None")
         self.write("OK")
 
 
 # Downstream request handlers
-class RequestDownstreamHandler(RequestHandler):
+class RequestDownstreamHandler(BaseHandler):
     async def _handle(self) -> None:
         url = "http://localhost:7777/returnheaders"
         try:
@@ -753,7 +775,7 @@ class RequestDownstreamHandler(RequestHandler):
         await self._handle()
 
 
-class VulnerableRequestDownstreamHandler(RequestHandler):
+class VulnerableRequestDownstreamHandler(BaseHandler):
     async def _handle(self) -> None:
         weak_hash()
         url = "http://localhost:7777/returnheaders"
@@ -774,7 +796,7 @@ class VulnerableRequestDownstreamHandler(RequestHandler):
         await self._handle()
 
 
-class ReturnHeadersHandler(RequestHandler):
+class ReturnHeadersHandler(BaseHandler):
     def _handle(self) -> None:
         headers = dict(self.request.headers.items())
         self.set_header("Content-Type", "application/json")
@@ -790,7 +812,7 @@ class ReturnHeadersHandler(RequestHandler):
         self._handle()
 
 
-class CreateExtraServiceHandler(RequestHandler):
+class CreateExtraServiceHandler(BaseHandler):
     def get(self) -> None:
         service_name = self.get_argument("serviceName", "")
         if service_name:
@@ -798,12 +820,12 @@ class CreateExtraServiceHandler(RequestHandler):
         self.write("OK")
 
 
-class ResourceRenamingHandler(RequestHandler):
+class ResourceRenamingHandler(BaseHandler):
     def get(self, path: str | None = None) -> None:  # noqa: ARG002
         self.write("ok")
 
 
-class StripeCreateCheckoutSessionHandler(RequestHandler):
+class StripeCreateCheckoutSessionHandler(BaseHandler):
     async def post(self) -> None:
         try:
             body = json.loads(self.request.body)
@@ -816,7 +838,7 @@ class StripeCreateCheckoutSessionHandler(RequestHandler):
             self.write(json.dumps({"error": str(e)}))
 
 
-class StripeCreatePaymentIntentHandler(RequestHandler):
+class StripeCreatePaymentIntentHandler(BaseHandler):
     async def post(self) -> None:
         try:
             body = json.loads(self.request.body)
@@ -829,7 +851,7 @@ class StripeCreatePaymentIntentHandler(RequestHandler):
             self.write(json.dumps({"error": str(e)}))
 
 
-class StripeWebhookHandler(RequestHandler):
+class StripeWebhookHandler(BaseHandler):
     async def post(self) -> None:
         try:
             signature = self.request.headers.get("Stripe-Signature")
@@ -842,12 +864,14 @@ class StripeWebhookHandler(RequestHandler):
             self.write(json.dumps({"error": str(e)}))
 
 
-class ExternalRequestHandler(RequestHandler):
+class ExternalRequestHandler(BaseHandler):
     SUPPORTED_METHODS = ("GET", "POST", "PUT", "TRACE")
 
     async def _handle(self) -> None:
         # Get query parameters - convert to dict for headers
-        queries = {k: str(v[0]) for k, v in self.request.arguments.items()}
+        queries = {
+            k: v[0].decode("utf-8") if isinstance(v[0], bytes) else str(v[0]) for k, v in self.request.arguments.items()
+        }
         status = queries.pop("status", "200")
         url_extra = queries.pop("url_extra", "")
 
@@ -863,7 +887,7 @@ class ExternalRequestHandler(RequestHandler):
         try:
             async with httpx.AsyncClient(timeout=10) as client:
                 response = await client.request(
-                    method=self.request.method,
+                    method=self.request.method or "GET",
                     url=url,
                     headers=queries,
                     content=body,
@@ -902,15 +926,17 @@ class ExternalRequestHandler(RequestHandler):
         await self._handle()
 
 
-class ExternalRequestRedirectHandler(RequestHandler):
+class ExternalRequestRedirectHandler(BaseHandler):
     async def get(self) -> None:
-        queries = {k: str(v[0]) for k, v in self.request.arguments.items()}
+        queries = {
+            k: v[0].decode("utf-8") if isinstance(v[0], bytes) else str(v[0]) for k, v in self.request.arguments.items()
+        }
         total_redirects = queries.get("totalRedirects", "0")
 
         url = f"http://internal_server:8089/redirect?totalRedirects={total_redirects}"
 
         try:
-            async with httpx.AsyncClient(timeout=10) as client:
+            async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:
                 response = await client.get(url, headers=queries)
                 payload = response.text
                 result = {
@@ -934,7 +960,7 @@ class ExternalRequestRedirectHandler(RequestHandler):
         self.write(json.dumps(result))
 
 
-class FfeHandler(RequestHandler):
+class FfeHandler(BaseHandler):
     """OpenFeature evaluation endpoint for Feature Flag Evaluation (FFE)."""
 
     def post(self) -> None:

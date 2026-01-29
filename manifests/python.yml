@@ -312,9 +312,6 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
@@ -480,7 +477,6 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability:
     - weblog_declaration:
         "*": v2.11.0
-        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
     - weblog_declaration:
         "*": v2.20.0.dev
@@ -489,7 +485,6 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
         *django: v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
-        tornado: missing_feature
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
     - weblog_declaration:
         "*": v2.20.0.dev
@@ -508,7 +503,6 @@ manifest:
     - weblog_declaration:
         "*": v3.11.0.dev
         *django: v3.3.0.dev
-        tornado: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
@@ -519,12 +513,10 @@ manifest:
         django-poc: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
         django-py3.13: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
         python3.12: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
-        tornado: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
     - weblog_declaration:
         "*": v3.1.0.dev
         *django: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
-        tornado: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
     - weblog_declaration:
@@ -1597,12 +1589,12 @@ manifest:
         "*": missing_feature (Missing on weblog)
         tornado: v4.4.0-rc2
         flask-poc: v1.5.0-rc2  # actual version unknown
-  tests/test_distributed.py::Test_Synthetics_APM_Datadog:
-    - weblog_declaration:
-        tornado: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog:
+    - weblog_declaration:
+        tornado: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature
