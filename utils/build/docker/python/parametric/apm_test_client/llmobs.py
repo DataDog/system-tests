@@ -6,9 +6,9 @@ from ddtrace.llmobs._experiment import DatasetRecord
 from ddtrace import tracer
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, StrictStr, StrictBool, StrictFloat, StrictInt
 from pydantic.dataclasses import dataclass
-from typing import Any, Literal, Union
+from typing import Annotated, Any, Literal, Union
 
 router = APIRouter()
 
@@ -175,13 +175,13 @@ def llmobs_trace(trace_structure_request: Request):
 class LlmObsEvaluationRequest(BaseModel):
     trace_id: str | None = None
     span_id: str | None = None
-    span_with_tag_value: dict[str, str] | None = None
-    label: str | None = None
-    metric_type: Literal["categorical", "numerical", "boolean"] | None = None
-    value: str | int | float | bool | None = None
+    span_with_tag_value: dict[str, Any] | None = None
+    label: Any | None = None
+    metric_type: Literal["categorical", "score", "boolean"] | Any | None = None
+    value: StrictBool | StrictStr | StrictFloat | StrictInt | None = None
     tags: dict[str, str] | None = None
     ml_app: str | None = None
-    timestamp_ms: float | None = None
+    timestamp_ms: int | None = None
     metadata: dict[str, object] | None = None
 
 
@@ -197,6 +197,8 @@ def llmobs_submit_evaluation(evaluation_request: LlmObsEvaluationRequest):
 
     if evaluation_request.span_with_tag_value:
         joining_options["span_with_tag_value"] = evaluation_request.span_with_tag_value
+
+    print(f"value: {evaluation_request.value} and type: {type(evaluation_request.value)}")
 
     LLMObs.submit_evaluation(
         label=evaluation_request.label,

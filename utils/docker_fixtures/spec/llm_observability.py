@@ -58,13 +58,13 @@ class LlmObsAnnotationContextRequest:
 class LlmObsEvaluationRequest(TypedDict, total=False):
     trace_id: str | None
     span_id: str | None
-    span_with_tag_value: dict[str, str] | None
-    label: str | None
-    metric_type: Literal["categorical", "numerical", "boolean"] | None
-    value: str | int | float | bool | None
+    span_with_tag_value: dict[str, Any] | None
+    label: Any | None
+    metric_type: Literal["categorical", "score", "boolean"] | Any | None
+    value: str | bool | float | int | None
     tags: dict[str, str] | None
     ml_app: str | None
-    timestamp_ms: float | None
+    timestamp_ms: int | Any | None
     metadata: dict[str, object] | None
 
 
