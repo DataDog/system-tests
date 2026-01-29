@@ -51,21 +51,20 @@ class EndToEndWeblogInfra(WeblogInfra):
         )
         self._other_containers = [container() for container in other_containers]
 
+        self.http_container.environment |= {
+            "INCLUDE_POSTGRES": "true" if PostgresContainer in other_containers else "false",
+            "INCLUDE_CASSANDRA": "true" if CassandraContainer in other_containers else "false",
+            "INCLUDE_MONGO": "true" if MongoContainer in other_containers else "false",
+            "INCLUDE_KAFKA": "true" if KafkaContainer in other_containers else "false",
+            "INCLUDE_RABBITMQ": "true" if RabbitMqContainer in other_containers else "false",
+            "INCLUDE_MYSQL": "true" if MySqlContainer in other_containers else "false",
+            "INCLUDE_SQLSERVER": "true" if MsSqlServerContainer in other_containers else "false",
+        }
+
     def get_containers(self) -> tuple[TestedContainer, ...]:
         return (self.http_container, *self._other_containers)
 
     def configure(self, config: pytest.Config):
-        other_container_classes = (container.__class__ for container in self._other_containers)
-
-        self.http_container.environment |= {
-            "INCLUDE_POSTGRES": "true" if PostgresContainer in other_container_classes else "false",
-            "INCLUDE_CASSANDRA": "true" if CassandraContainer in other_container_classes else "false",
-            "INCLUDE_MONGO": "true" if MongoContainer in other_container_classes else "false",
-            "INCLUDE_KAFKA": "true" if KafkaContainer in other_container_classes else "false",
-            "INCLUDE_RABBITMQ": "true" if RabbitMqContainer in other_container_classes else "false",
-            "INCLUDE_MYSQL": "true" if MySqlContainer in other_container_classes else "false",
-            "INCLUDE_SQLSERVER": "true" if MsSqlServerContainer in other_container_classes else "false",
-        }
 
         self.http_container.depends_on.extend(self._other_containers)
 
