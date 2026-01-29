@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios, missing_feature, context, logger, bug
+from utils import features, scenarios, context, logger, bug, missing_feature
 import json
 import time
 
@@ -26,13 +26,12 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(*, enabled: bool | None = None):
+        def _send_config(*, enabled: bool | None = None, reset: bool = True):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
-            self.send_rc_apm_tracing(dynamic_instrumentation_enabled=enabled)
-            self.send_rc_probes()
+            self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=enabled, reset=reset)
             self.send_weblog_request("/debugger/log")
 
         self.initialize_weblog_remote_config()
@@ -42,13 +41,13 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config()
         self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=True)
+        _send_config(enabled=True, reset=False)
         self.di_explicit_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config()
+        _send_config(reset=False)
         self.di_empty_config = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=False)
+        _send_config(enabled=False, reset=False)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
     def test_inproduct_enablement_di(self):
@@ -172,31 +171,42 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
-    def setup_inproduct_enablement_code_origin(self):
-        def _send_config(*, enabled: bool | None = None):
-            self.send_rc_apm_tracing(code_origin_enabled=enabled)
-            self.send_weblog_request("/healthcheck")
+    def _check_code_origin(self):
+        """Send a request and check if code origin spans are present."""
+        self.send_weblog_request("/")
+        return self.wait_for_code_origin_span(TIMEOUT)
 
+    def _set_code_origin_and_check(self, *, enabled: bool | None):
+        """Set code origin via remote config and check if spans are present."""
+        self.send_rc_apm_tracing(code_origin_enabled=enabled)
+        return self._check_code_origin()
+
+    def setup_inproduct_enablement_code_origin(self):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
-        self.rc_states = []
 
-        self.er_initial_enabled = not self.wait_for_code_origin_span(TIMEOUT)
+        # Check initial state (default varies by language)
+        self.co_initial_state = self._check_code_origin()
 
-        _send_config(enabled=True)
-        self.er_explicit_enabled = self.wait_for_code_origin_span(TIMEOUT)
+        # Explicitly enable via remote config
+        self.co_explicit_enabled = self._set_code_origin_and_check(enabled=True)
 
-        _send_config()
-        self.er_empty_config = self.wait_for_code_origin_span(TIMEOUT)
+        # Send empty config (null value), should maintain enabled state
+        self.co_empty_config = self._set_code_origin_and_check(enabled=None)
 
-        _send_config(enabled=False)
-        self.er_explicit_disabled = not self.wait_for_code_origin_span(TIMEOUT)
+        # Explicitly disable via remote config
+        self.co_explicit_disabled = not self._set_code_origin_and_check(enabled=False)
 
     def test_inproduct_enablement_code_origin(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
 
-        assert self.er_initial_enabled, "Expected no spans when code origin was disabled"
-        assert self.er_explicit_enabled, "Expected spans to emit after enabling code origin"
-        assert self.er_empty_config, "Expected spans to continue emitting with empty config"
-        assert self.er_explicit_disabled, "Expected spans to stop emitting after explicit disable"
+        # Check initial state based on language-specific defaults
+        if context.library == "nodejs":
+            assert self.co_initial_state, "Expected code origin enabled by default"
+        else:
+            assert not self.co_initial_state, "Expected code origin disabled by default"
+
+        assert self.co_explicit_enabled, "Expected spans with code origin after explicit enable"
+        assert self.co_empty_config, "Expected spans to continue emitting with empty config"
+        assert self.co_explicit_disabled, "Expected spans to stop emitting after explicit disable"
