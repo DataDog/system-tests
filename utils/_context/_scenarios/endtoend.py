@@ -286,7 +286,7 @@ class EndToEndScenario(DockerScenario):
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
         require_api_key: bool = False,
-        other_weblog_containers: tuple[TestedContainer, ...] = (),
+        other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         scenario_groups = [
             all_scenario_groups.all,
@@ -315,6 +315,7 @@ class EndToEndScenario(DockerScenario):
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
         )
+        self._required_containers.append(self.agent_container)
 
         self._weblog_env = dict(weblog_env) if weblog_env else {}
         self.weblog_infra = EndToEndWeblogInfra(
@@ -328,6 +329,7 @@ class EndToEndScenario(DockerScenario):
             volumes=weblog_volumes,
             other_containers=other_weblog_containers,
         )
+        self._required_containers += self.weblog_infra.get_containers()
 
         # buddies are a set of weblog app that are not directly the test target
         # but are used only to test feature that invlove another app with a datadog tracer
@@ -356,6 +358,8 @@ class EndToEndScenario(DockerScenario):
                 )
                 for language, trace_agent_port, host_port, image_name in supported_languages
             ]
+
+        self._required_containers += self.buddies
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
@@ -409,22 +413,14 @@ class EndToEndScenario(DockerScenario):
         if self._use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
 
-        self._required_containers.append(self.agent_container)
-
         for container in self.weblog_infra.get_containers():
             container.depends_on.append(self.agent_container)
-            container.depends_on.extend(self._supporting_containers)
 
             if self._use_proxy_for_weblog:
                 container.depends_on.append(self.proxy_container)
 
-            self._required_containers.append(container)
-
-            for buddy in self.buddies:
-                buddy.depends_on.append(self.agent_container)
-                buddy.depends_on.extend(self._supporting_containers)
-
-            self._required_containers += self.buddies
+        for buddy in self.buddies:
+            buddy.depends_on.append(self.agent_container)
 
     def _get_weblog_system_info(self):
         try:

@@ -52,15 +52,15 @@ class IntegrationsScenario(EndToEndScenario):
                 "INCLUDE_OTEL_DROP_IN": "true",
             },
             other_weblog_containers=(
-                ElasticMQContainer(),
-                LocalstackContainer(),
-                PostgresContainer(),
-                CassandraContainer(),
-                MongoContainer(),
-                KafkaContainer(),
-                RabbitMqContainer(),
-                MySqlContainer(),
-                MySqlContainer(),
+                ElasticMQContainer,
+                LocalstackContainer,
+                PostgresContainer,
+                CassandraContainer,
+                MongoContainer,
+                KafkaContainer,
+                RabbitMqContainer,
+                MySqlContainer,
+                MySqlContainer,
             ),
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
@@ -93,7 +93,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
             },
             doc=doc,
-            other_weblog_containers=(ElasticMQContainer(), LocalstackContainer()),
+            other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
         )
 
@@ -115,10 +115,10 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
             other_weblog_containers=(
-                ElasticMQContainer(),
-                LocalstackContainer(),
-                RabbitMqContainer(),
-                KafkaContainer(),
+                ElasticMQContainer,
+                LocalstackContainer,
+                RabbitMqContainer,
+                KafkaContainer,
             ),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
         )

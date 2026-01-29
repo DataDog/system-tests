@@ -37,7 +37,7 @@ class EndToEndWeblogInfra(WeblogInfra):
         additional_trace_header_tags: tuple[str, ...] = (),
         use_proxy: bool = True,
         volumes: dict | None = None,
-        other_containers: tuple[TestedContainer, ...] = (),
+        other_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         self.http_container = WeblogContainer(
             environment=environment,
@@ -49,7 +49,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             use_proxy=use_proxy,
             volumes=volumes,
         )
-        self._other_containers = other_containers
+        self._other_containers = [container() for container in other_containers]
 
     def get_containers(self) -> tuple[TestedContainer, ...]:
         return (self.http_container, *self._other_containers)

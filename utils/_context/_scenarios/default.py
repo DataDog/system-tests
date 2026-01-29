@@ -72,7 +72,7 @@ class DefaultScenario(EndToEndScenario):
                 "DD_RUM_REMOTE_CONFIGURATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
-            other_weblog_containers=(PostgresContainer(),),
+            other_weblog_containers=(PostgresContainer,),
             scenario_groups=[scenario_groups.essentials, scenario_groups.telemetry],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )

@@ -37,7 +37,7 @@ class AppsecRaspScenario(EndToEndScenario):
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario],
-            other_weblog_containers=(InternalServerContainer(),),
+            other_weblog_containers=(InternalServerContainer,),
         )
 
 
