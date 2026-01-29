@@ -160,9 +160,6 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.tracer_rc_state.reset().apply()
 
-    @bug(
-        context.library < "nodejs@5.25.0", reason="APMRP-360"
-    )  # rules version was not correctly reported after an RC update
     def test_update_rules(self):
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"

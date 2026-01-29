@@ -352,13 +352,6 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
-    @irrelevant(
-        library="java",
-        reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process).
-        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
-        """,
-    )
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
@@ -712,10 +705,6 @@ class Test_TelemetryV2:
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
 
-    @irrelevant(
-        library="dotnet",
-        reason="Re-enable when this automatically updates the dd-go files.",
-    )
     @irrelevant(
         condition=context.library not in ("python",),
         reason="This test causes to many friction. It has been replaced by alerts on slack channels",
