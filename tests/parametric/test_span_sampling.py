@@ -23,10 +23,6 @@ from .conftest import APMLibrary
 @features.single_span_sampling
 @scenarios.parametric
 class Test_Span_Sampling:
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -50,10 +46,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -98,10 +90,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -151,10 +139,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -228,10 +212,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(
-        context.library == "php",
-        reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -338,34 +318,6 @@ class Test_Span_Sampling:
         context.library == "*",
         reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
     )
-    @missing_feature(
-        library="golang",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="nodejs",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="python",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="php",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="ruby",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="java",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
-    @missing_feature(
-        library="dotnet",
-        reason="this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -390,14 +342,6 @@ class Test_Span_Sampling:
         # the below does not apply to all agent APIs
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == USER_KEEP
 
-    @missing_feature(
-        context.library == "golang",
-        reason="The Go tracer does not have a way to modulate trace sampling once started",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: does not respect manual.drop or manual.keep span tags",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -470,10 +414,6 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) > 0
 
-    @missing_feature(
-        context.library == "php",
-        reason="PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests)",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -653,18 +593,6 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="The .NET tracer sends the full trace to the agent anyways.",
-    )
-    @missing_feature(
-        context.library == "php",
-        reason="The PHP tracer always sends the full trace to the agent.",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: sending the complete trace when only the root span is expected",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -724,18 +652,6 @@ class Test_Span_Sampling:
         assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="The .NET tracer sends the full trace to the agent anyways.",
-    )
-    @missing_feature(
-        context.library == "php",
-        reason="The PHP tracer always sends the full trace to the agent.",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: sending the complete trace when only the root span is expected",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -799,18 +715,6 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason="The .NET tracer sends the full trace to the agent anyways.",
-    )
-    @missing_feature(
-        context.library == "php",
-        reason="The PHP tracer always sends the full trace to the agent.",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="Issue: sending the complete trace when only the root span is expected",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [

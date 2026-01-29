@@ -84,12 +84,12 @@ class Param:
     ):
         self.libraries = _setify(parameters.get("libraries", LIBRARIES))
 
-        if "scenario_groups" not in parameters and "scenario" not in parameters:  # no instruction -> run all
+        if "scenario_groups" not in parameters and "scenarios" not in parameters:  # no instruction -> run all
             self.scenario_groups = {all_scenario_groups.all.name}
             self.scenarios: set[str] = set()
         else:
             self.scenario_groups = _setify(parameters.get("scenario_groups"))
-            self.scenarios = _setify(parameters.get("scenario"))
+            self.scenarios = _setify(parameters.get("scenarios"))
 
         if not check_libraries(self.libraries):
             raise ValueError(f"One or more of the libraries for {pattern} does not exist: {self.libraries}")

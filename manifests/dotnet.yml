@@ -438,7 +438,6 @@ manifest:
   tests/appsec/test_traces.py::Test_RetainTraces: v1.29.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v2.30.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v2.8.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v2.7.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v2.8.0
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_spaces_custom_rules: irrelevant (One space in the whole value cause kestrel to erase the whole value)

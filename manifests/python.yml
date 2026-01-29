@@ -729,12 +729,6 @@ manifest:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw:
-    - weblog_declaration:
-        "*": missing_feature
-        django-poc: v1.5.2
-        fastapi: v2.4.0
-        python3.12: v1.5.2
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
     - weblog_declaration:
         "*": v1.4.0-rc1
