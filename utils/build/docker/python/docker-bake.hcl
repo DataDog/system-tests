@@ -51,5 +51,5 @@ target "uwsgi-poc" {
 target "tornado" {
   context    = "."
   dockerfile = "utils/build/docker/python/tornado.base.Dockerfile"
-  tags       = ["datadog/system-tests:tornado.base-v1"]
+  tags       = ["datadog/system-tests:tornado.base-v2"]
 }
