@@ -14,9 +14,8 @@ class TestDockerSSIAppsecFeatures:
         parsed_url = urlparse(scenarios.docker_ssi_appsec.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
-    @irrelevant(
-        context.library == "python" and context.installed_language_runtime < "3.9.0", reason="Python 3.9+ required"
-    )
+    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0", reason="Ruby 2.6+ required")
     def test_telemetry_source_ssi(self):
         root_span = interfaces.test_agent.get_traces(request=self.r)
