@@ -6,7 +6,7 @@ claim_pattern:
   event_name: (workflow_dispatch|schedule)
   ref: refs/heads/main
   ref_protected: "true"
-  job_workflow_ref: DataDog/system-tests/\.github/workflows/update_k8s_components\.yml@refs/heads/main
+  job_workflow_ref: DataDog/system-tests/.github/workflows/update_k8s_components.yml@refs/heads/robertomonteromiguel/update_k8s_components_pr"
 
 permissions:
   contents: write
