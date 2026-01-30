@@ -50,7 +50,7 @@ ssi_tests:
     retry:
       max: 2
       when:
-        - timeout
+        - job_execution_timeout
         - unknown_failure
         - data_integrity_failure
         - runner_system_failure
@@ -148,7 +148,7 @@ ssi_tests:
     retry:
       max: 2
       when:
-        - timeout
+        - job_execution_timeout
         - unknown_failure
         - data_integrity_failure
         - runner_system_failure
@@ -215,7 +215,7 @@ ssi_tests:
   retry:
     max: 2
     when:
-      - timeout
+      - job_execution_timeout
       - unknown_failure
       - data_integrity_failure
       - runner_system_failure
