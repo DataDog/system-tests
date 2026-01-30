@@ -232,36 +232,8 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        rails80: '>=2.27.0'
-        sinatra14: '>=2.27.0'
-        uds-sinatra: '>=2.27.0'
-        sinatra32: '>=2.27.0'
-        rack: '>=2.27.0'
-        rails52: '>=2.27.0'
-        rails72: '>=2.27.0'
-        sinatra41: '>=2.27.0'
-        uds-rails: '>=2.27.0'
-        rails61: '>=2.27.0'
-        sinatra22: '>=2.27.0'
-        rails42: '>=2.27.0'
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        rails80: '>=2.27.0'
-        sinatra14: '>=2.27.0'
-        uds-sinatra: '>=2.27.0'
-        sinatra32: '>=2.27.0'
-        rack: '>=2.27.0'
-        rails52: '>=2.27.0'
-        rails72: '>=2.27.0'
-        sinatra41: '>=2.27.0'
-        uds-rails: '>=2.27.0'
-        rails61: '>=2.27.0'
-        sinatra22: '>=2.27.0'
-        rails42: '>=2.27.0'
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
   tests/appsec/rasp/test_cmdi.py: missing_feature
   tests/appsec/rasp/test_lfi.py: missing_feature
   tests/appsec/rasp/test_shi.py: missing_feature
