@@ -495,7 +495,11 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: v2.50.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
+    - weblog_declaration:
+        "*": v2.50.0
+    - declaration: irrelevant (DEBUG-4582)
+      component_version: '<=3.28.0'
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_async: flaky (DEBUG-3281)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
     - declaration: bug (DEBUG-2799)
