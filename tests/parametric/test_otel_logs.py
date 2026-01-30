@@ -338,7 +338,6 @@ class Test_FR07_Host_Name:
             },
         ],
     )
-    @irrelevant(context.library != "python", reason="DD_HOSTNAME is only supported in Python")
     def test_hostname_from_dd_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is set from DD_HOSTNAME."""
         with test_library as library:

@@ -802,10 +802,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
-    )
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
         local_cfg: dict[str, str],
@@ -882,11 +878,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
-    )
-    @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self,
         local_cfg: dict[str, str],

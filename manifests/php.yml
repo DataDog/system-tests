@@ -828,3 +828,14 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2: v0.90
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing (both in libdatadog and php))
   tests/test_v1_payloads.py: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_disable_settings_D003: irrelevant (The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_disabled_D007: irrelevant (The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win)
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_temporary_use_case: irrelevant (temporary use case for python, ruby and nodejs)
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+  tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration: missing_feature (Telemetry is not implemented yet.)

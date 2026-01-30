@@ -10,7 +10,6 @@ from utils.dd_constants import SamplingPriority
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
-@bug(context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427")
 @scenarios.appsec_rate_limiter
 @features.appsec_rate_limiter
 class Test_Main:

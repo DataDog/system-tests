@@ -625,7 +625,6 @@ class Test_Trace_Sampling_With_W3C:
             },
         ],
     )
-    @bug(context.library in ("cpp", "golang", "ruby"), reason="APMAPI-1563")
     def test_distributed_headers_synthetics_sampling_decision(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that trace sampling rules does not override sampling priority from distributed headers
         even when sampling priority is set via synthetics.

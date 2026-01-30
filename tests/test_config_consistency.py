@@ -401,11 +401,6 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     def setup_specified_service_name(self):
         self.r = weblog.get("/")
 
-    @irrelevant(
-        library="golang",
-        weblog_variant="gin",
-        reason="A custom service name is specified on the gin integration, causing a conflict",
-    )
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
