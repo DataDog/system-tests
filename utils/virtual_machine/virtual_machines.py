@@ -147,7 +147,8 @@ class _VirtualMachine:
 
     def _check_provsion_install_error(self):
         assert self.provision_install_error is None, (
-            f"❌ There are previous errors in the virtual machine provisioning steps. Check the logs: {self.name}.log"
+            f"❌ There are previous errors in the virtual machine provisioning steps. "
+            f"Check this file in the logs scenario folder: {self.name}.log"
         )
 
     def add_provision(self, provision: Provision) -> None:

@@ -550,9 +550,6 @@ class Test_Environment:
                     f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otel_hiding}"
                 )
 
-    @missing_feature(
-        context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1237,10 +1234,6 @@ class Test_TelemetrySCAEnvVar:
         assert cfg_appsec_enabled[0].get("value") in (outcome_value, str(outcome_value).lower())
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @missing_feature(
-        context.library <= "python@2.16.0",
-        reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
-    )
     def test_telemetry_sca_enabled_not_propagated(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         assert test_library.is_alive(), "Library container is not running"
         configuration_by_name = test_agent.wait_for_telemetry_configurations()

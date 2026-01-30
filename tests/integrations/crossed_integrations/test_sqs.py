@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant, logger
+from utils import interfaces, scenarios, weblog, features, context, irrelevant, logger
 
 
 class _BaseSQS:
@@ -114,10 +114,6 @@ class _BaseSQS:
             queue=self.WEBLOG_TO_BUDDY_QUEUE,
         )
 
-    @missing_feature(
-        library="java",
-        reason="Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work",
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -248,11 +244,6 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     WEBLOG_TO_BUDDY_QUEUE = f"SQS_propagation_via_xray_headers_weblog_to_buddy_{unique_id}"
     BUDDY_TO_WEBLOG_QUEUE = f"SQS_propagation_via_xray_headers_buddy_to_weblog_{unique_id}"
 
-    @missing_feature(
-        library="nodejs",
-        reason="Expected to fail, Node.js will not create a response span \
-                     propagating context since it cannot extract AWSTracerHeader context that Java injects",
-    )
     def test_consume(self):
         super().test_consume()
 

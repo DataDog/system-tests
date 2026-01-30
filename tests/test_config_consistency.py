@@ -139,10 +139,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
 
     @missing_feature(
-        context.library < "golang@2.1.0-dev",
-        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
-    )
-    @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
@@ -167,10 +163,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
 
-    @missing_feature(
-        context.library < "golang@2.1.0-dev",
-        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
-    )
     @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
@@ -401,7 +393,7 @@ def _get_span_by_tags(spans: list, tags: dict):
 
 
 @features.unified_service_tagging
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
@@ -575,7 +567,6 @@ class Test_Config_LogInjection_Default_Unstructured:
 @scenarios.tracing_config_empty
 @features.log_injection
 @features.log_injection_128bit_traceid
-@bug(context.library == "golang@2.1.0", reason="LANGPLAT-670")
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
@@ -631,10 +622,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 @scenarios.tracing_config_nondefault_4
 @features.log_injection
 @features.log_injection_128bit_traceid
-@bug(context.library == "golang@2.1.0", reason="LANGPLAT-670")
-@irrelevant(
-    context.library == "python", reason="The Python tracer does not support disabling logging 128-bit trace IDs"
-)
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 

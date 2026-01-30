@@ -27,14 +27,19 @@ on:
         description: Run scenario against last release (prod) or last commit on main (dev)?
         default: "prod"
         type: string
+      library_target_branch:
+        description: Specify an arbitrary branch of the lib (if set, dev_or_prod is ignored)
+        default: ""
+        type: string
 
 env:
-  LIBRARY:      ${{ (github.event_name == 'workflow_dispatch' && inputs.library)     || 'php' }}
-  WEBLOG:       ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)      || 'apache-mod-8.1' }}
-  SCENARIO:     ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)    || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
-  JOB_COUNT:    ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)   || '10' }}
-  AGENT_IMAGE:  ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image) || 'datadog/agent:latest' }}
-  DEV_OR_PROD:  ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod) || 'prod' }}
+  LIBRARY:                ${{ (github.event_name == 'workflow_dispatch' && inputs.library)               || 'php' }}
+  WEBLOG:                 ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)                || 'apache-mod-8.1' }}
+  SCENARIO:               ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)              || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
+  JOB_COUNT:              ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)             || '10' }}
+  AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
+  DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
+  LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
 
 jobs:
   generate-matrix:

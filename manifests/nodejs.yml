@@ -83,6 +83,7 @@ refs:
   - &ref_5_82_0 '>=5.82.0'
   - &ref_5_83_0 '>=5.83.0'
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -204,7 +205,7 @@ manifest:
         fastify: *ref_5_61_0
         nextjs: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords::test_hardcoded_passwords_exec:
-    - component_version: "5.82.0"
+    - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation:
     - weblog_declaration:
@@ -212,7 +213,7 @@ manifest:
         fastify: *ref_5_61_0
         nextjs: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation::test_extended_location_data:
-    - component_version: "5.82.0"
+    - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_StackTrace: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets:
@@ -221,7 +222,7 @@ manifest:
         fastify: *ref_5_61_0
         nextjs: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets::test_hardcoded_secrets_exec:
-    - component_version: "5.82.0"
+    - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended:
     - weblog_declaration:
@@ -229,7 +230,7 @@ manifest:
         fastify: *ref_5_61_0
         nextjs: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended::test_hardcoded_secrets_extended_exec:
-    - component_version: "5.82.0"
+    - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation:
     - weblog_declaration:
@@ -237,7 +238,7 @@ manifest:
         fastify: *ref_5_61_0
         nextjs: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation::test_extended_location_data:
-    - component_version: "5.82.0"
+    - component_version: ">=5.82.0"
       declaration: bug (APPSEC-60648)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: missing_feature
   tests/appsec/iast/sink/test_header_injection.py: irrelevant (Header Injection detection was removed)
@@ -265,6 +266,8 @@ manifest:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
+      component_version: '>=5.50.0'
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -300,6 +303,8 @@ manifest:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
+      component_version: '>=5.50.0'
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -320,6 +325,8 @@ manifest:
         "*": *ref_5_24_0_5_49_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+    - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
+      component_version: '>=5.50.0'
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -1137,7 +1144,11 @@ manifest:
         nextjs: missing_feature
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: *ref_3_11_0
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
+    - weblog_declaration:
+        "*": *ref_3_11_0
+    - declaration: bug (APMRP-360)
+      component_version: '>3.16.0 <3.18.0'
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: v2.2.0
@@ -1150,7 +1161,11 @@ manifest:
       component_version: '>3.14.1'
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: *ref_5_59_0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
-  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: *ref_3_19_0
+  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
+    - weblog_declaration:
+        "*": *ref_3_19_0
+    - declaration: bug (APMRP-360)
+      component_version: '>=5.58.0 <5.63.0'
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: *ref_5_66_0
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config::test_invalid_config:
     - declaration: bug (APPSEC-59077)
@@ -1205,17 +1220,22 @@ manifest:
         "*": v2.2.0
         fastify: *ref_5_57_0
         nextjs: *ref_4_17_0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
+    - declaration: bug (APMRP-360)
+      component_version: 2.8.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
     - weblog_declaration:
         "*": v2.2.0
         fastify: *ref_5_57_0
         nextjs: *ref_5_3_0
+    - declaration: bug (APMRP-360)
+      component_version: 2.8.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml:
     - weblog_declaration:
         "*": v2.2.0
         fastify: *ref_5_57_0
         nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
+    - declaration: bug (APMRP-360)
+      component_version: 2.8.0
   tests/appsec/waf/test_addresses.py::Test_Cookies:
     - weblog_declaration:
         "*": v2.0.0
@@ -1369,8 +1389,14 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:
     - weblog_declaration:
         express4-typescript: bug (DEBUG-3715)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
@@ -1425,8 +1451,8 @@ manifest:
         "*": incomplete_test_app
         express4: *ref_5_77_0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1730)
-  tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: flaky (MLOB-5361)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: flaky (MLOB-5361)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_with_tools: missing_feature (Node.js LLM Observability Anthropic integration does not submit tool definitions)
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
@@ -1648,8 +1674,6 @@ manifest:
         fastify: *ref_5_37_0
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
-  ? tests/k8s_lib_injection/test_k8s_init_image_validator.py::TestK8sInitImageValidatorUnsupported::test_invalid_weblog_not_instrumented
-  : bug (APMRP-361)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)

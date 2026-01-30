@@ -406,17 +406,11 @@ app.post("/otel/logger/create", (req, res) => {
 
 app.post("/otel/logger/write", (req, res) => {
   const { logs } = require('@opentelemetry/api-logs')
-  const { logger_name, level, message, create_logger, span_id } = req.body
+  const { logger_name, level, message, span_id } = req.body
 
-  let logger = loggerDict[logger_name]
+  const logger = loggerDict[logger_name]
   if (!logger) {
-    if (create_logger) {
-      const loggerProvider = logs.getLoggerProvider()
-      logger = loggerProvider.getLogger(logger_name)
-      loggerDict[logger_name] = logger
-    } else {
-      return res.status(400).json({ error: `Logger ${logger_name} not found` })
-    }
+    return res.status(400).json({ error: `Logger ${logger_name} not found` })
   }
 
   let otelContext = undefined

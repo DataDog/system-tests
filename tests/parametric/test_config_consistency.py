@@ -9,7 +9,6 @@ from utils import (
     features,
     context,
     missing_feature,
-    irrelevant,
     rfc,
     incomplete_test_app,
     logger,
@@ -56,7 +55,6 @@ class Test_Config_TraceEnabled:
 
 @scenarios.parametric
 @features.trace_log_directory
-@missing_feature(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
 class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]
@@ -226,10 +224,6 @@ class Test_Config_RateLimit:
             resp = t.config()
         assert resp["dd_trace_rate_limit"] == "100"
 
-    @irrelevant(
-        context.library == "php",
-        reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
-    )
     @parametrize(
         "library_env",
         [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
