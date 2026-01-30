@@ -919,6 +919,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.4.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
@@ -1195,6 +1196,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v2.16.0
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
     - weblog_declaration:
         "*": irrelevant
@@ -1258,6 +1260,10 @@ manifest:
         "*": incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.3.0.dev
@@ -1632,6 +1638,9 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: v3.15.0+dev36.gb57f15308
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
@@ -1704,6 +1713,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
@@ -1715,13 +1725,3 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2: v1.17.3
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
   tests/test_v1_payloads.py: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
-  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: "irrelevant (\"Supports the value `b3` instead of the deprecated `B3 single header`\")"
-  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
-  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
-  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)

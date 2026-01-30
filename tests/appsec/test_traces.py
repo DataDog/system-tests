@@ -4,7 +4,6 @@
 
 from utils import (
     weblog,
-    bug,
     context,
     interfaces,
     irrelevant,

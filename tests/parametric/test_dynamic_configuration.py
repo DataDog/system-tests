@@ -10,8 +10,6 @@ import yaml
 from utils import (
     context,
     features,
-    irrelevant,
-    missing_feature,
     rfc,
     scenarios,
 )

@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from utils import scenarios, features, logger, irrelevant, context
+from utils import scenarios, features, logger
 from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span

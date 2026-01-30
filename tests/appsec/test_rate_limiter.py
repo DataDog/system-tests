@@ -5,7 +5,7 @@
 import datetime
 import time
 
-from utils import weblog, context, interfaces, rfc, bug, scenarios, features, logger
+from utils import weblog, interfaces, rfc, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
 
 

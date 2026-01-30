@@ -173,6 +173,7 @@ manifest:
   tests/appsec/waf/test_telemetry.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/waf/test_truncation.py: missing_feature (WAF truncation metrics not implemented)
   tests/debugger/: irrelevant
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
@@ -193,6 +194,7 @@ manifest:
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
   tests/integrations/test_dsm.py::Test_DsmKafka: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: missing_feature
@@ -204,6 +206,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v1.3.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (we opt into cache)
@@ -256,6 +259,9 @@ manifest:
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature (APMAPI-869)
   tests/test_library_conf.py: irrelevant
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_miscs.py: irrelevant
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_protobuf.py: missing_feature
@@ -281,16 +287,10 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays: missing_feature (DD_TELEMETRY_HEARTBEAT_INTERVAL not supported)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature
   tests/test_v1_payloads.py: missing_feature
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
-  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
-  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
-  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
-  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)

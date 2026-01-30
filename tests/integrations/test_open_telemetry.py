@@ -1,4 +1,4 @@
-from utils import context, features, interfaces, irrelevant, missing_feature, scenarios, logger
+from utils import context, features, interfaces, irrelevant, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
 import json

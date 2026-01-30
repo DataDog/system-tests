@@ -10,7 +10,6 @@ from utils import (
     scenarios,
     features,
     rfc,
-    irrelevant,
     context,
     bug,
     missing_feature,

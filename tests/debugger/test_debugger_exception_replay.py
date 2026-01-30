@@ -10,7 +10,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import interfaces, scenarios, features, context, irrelevant, missing_feature, logger
+from utils import interfaces, scenarios, features, context, missing_feature, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 
 
