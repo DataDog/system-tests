@@ -197,6 +197,7 @@ class _Scenarios:
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -746,9 +747,10 @@ class _Scenarios:
     debugger_inproduct_enablement = EndToEndScenario(
         "DEBUGGER_INPRODUCT_ENABLEMENT",
         rc_api_enabled=True,
-        rc_backend_enabled=True,
+        rc_backend_enabled=False,
         weblog_env={
-            "DD_APM_TRACING_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
+            "DD_TRACE_FLUSH_INTERVAL": "100",
         },
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",

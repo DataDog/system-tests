@@ -337,7 +337,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
         remote_config.send_sequential_commands(payloads)
 
-    @bug(context.library >= "java@1.1.0" and context.library < "java@1.4.0", reason="APMRP-360")
     @irrelevant(
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",

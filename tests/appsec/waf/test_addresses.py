@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import pytest
-from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, logger
+from utils import weblog, bug, context, interfaces, missing_feature, rfc, scenarios, features, logger
 
 
 @features.appsec_request_blocking
@@ -38,16 +38,6 @@ class Test_UrlQuery:
     def test_query_encoded(self):
         """AppSec catches attacks in URL query value, even encoded"""
         interfaces.library.assert_waf_attack(self.r_query_encoded, address="server.request.query")
-
-    def setup_query_with_strict_regex(self):
-        self.r_query_with_strict_regex = weblog.get("/waf/", params={"value": "0000012345"})
-
-    @irrelevant(context.agent_version >= "1.2.6", reason="Need to find another rule")
-    def test_query_with_strict_regex(self):
-        """AppSec catches attacks in URL query value, even with regex containing start and end char"""
-        interfaces.library.assert_waf_attack(
-            self.r_query_with_strict_regex, pattern="0000012345", address="server.request.query"
-        )
 
 
 @features.appsec_request_blocking
@@ -180,30 +170,8 @@ class Test_Cookies:
 
 
 @features.appsec_request_blocking
-class Test_BodyRaw:
-    """Appsec supports <body>"""
-
-    def setup_raw_body(self):
-        self.r = weblog.post("/waf", data="/.adsensepostnottherenonobook")
-
-    @irrelevant(reason="no rule with body raw yet")
-    def test_raw_body(self):
-        """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
-
-
-@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
-@features.appsec_request_blocking
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
-
-    def setup_body_key(self):
-        self.r_key = weblog.post("/waf", data={'<vmlframe src="xss">': "value"})
-
-    @irrelevant(reason="matching against keys is impossible with current rules")
-    def test_body_key(self):
-        """AppSec detects attacks in URL encoded body keys"""
-        interfaces.library.assert_waf_attack(self.r_key, pattern="x", address="x")
 
     def setup_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
@@ -214,19 +182,9 @@ class Test_BodyUrlEncoded:
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyJson:
     """Appsec supports <JSON encoded body>"""
-
-    def setup_json_key(self):
-        """AppSec detects attacks in JSON body keys"""
-        self.r_key = weblog.post("/waf", json={'<vmlframe src="xss">': "value"})
-
-    @irrelevant(reason="matching against keys is impossible with current rules")
-    def test_json_key(self):
-        """AppSec detects attacks in JSON body keys"""
-        interfaces.library.assert_waf_attack(self.r_key, pattern="x", address="x")
 
     def setup_json_value(self):
         """AppSec detects attacks in JSON body values"""
@@ -244,7 +202,6 @@ class Test_BodyJson:
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""

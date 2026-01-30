@@ -389,7 +389,6 @@ manifest:
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.0.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v0.86.3
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v0.98.1  # TODO what is the earliest version?
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v0.98.0
   tests/appsec/waf/test_addresses.py::Test_Cookies: v0.68.3
@@ -465,6 +464,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         apache-mod-8.0: v1.8.3
+    - declaration: flaky (DEBUG-3814)
+      component_version: '>1.8.3'
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:

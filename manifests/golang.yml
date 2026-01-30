@@ -485,7 +485,6 @@ manifest:
         "*": v1.36.0
         gin: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.37.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_Cookies:

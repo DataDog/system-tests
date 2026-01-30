@@ -6,8 +6,6 @@ import re
 
 from utils.dd_constants import Capabilities
 from tests.appsec.utils import find_series
-from utils import context
-from utils import bug
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
@@ -522,8 +520,6 @@ EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
-# Empty RC updates were incorrectly sent to waf
-@bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")
 class Test_Empty_Config:
     def setup_empty_config(self):
         self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()

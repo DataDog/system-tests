@@ -130,7 +130,6 @@ manifest:
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: missing_feature (User blocking not implemented)
   tests/appsec/test_versions.py::Test_Events: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.4.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Cookies: v1.2.0
