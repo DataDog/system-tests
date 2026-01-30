@@ -50,3 +50,38 @@ class K8sComponentsParser:
                 raise ValueError("Language parameter required for lib_init component")
             component_data = component_data[lang]
         return list(component_data.values())
+
+    def update_pinned_version(self, component: str, new_version: str) -> bool:
+        """Update the pinned version for a component.
+
+        Args:
+            component: Component name (e.g., 'cluster_agent', 'helm_chart', 'helm_chart_operator')
+            new_version: New version string to set
+
+        Returns:
+            True if the version was updated, False if it was already at that version
+
+        """
+        if component not in self._components:
+            raise ValueError(f"Component '{component}' not found in configuration")
+
+        component_data = self._components[component]
+
+        if "pinned" not in component_data:
+            raise ValueError(f"Component '{component}' does not have a 'pinned' field")
+
+        # Check if version changed
+        current_version = component_data["pinned"]
+        if current_version == new_version:
+            return False
+
+        # Update in memory
+        component_data["pinned"] = new_version
+
+        # Save to file
+        config_file = Path(__file__).parent / "k8s_components.json"
+        with open(config_file, "w", encoding="utf-8") as f:
+            json.dump(self._components, f, indent=4, ensure_ascii=False)
+            f.write("\n")  # Add trailing newline
+
+        return True
