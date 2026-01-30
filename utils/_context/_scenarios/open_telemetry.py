@@ -50,16 +50,16 @@ class OpenTelemetryScenario(DockerScenario):
         )
         if include_agent:
             self.agent_container = AgentContainer(use_proxy=True)
-            self._required_containers.append(self.agent_container)
+            self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
-            self._required_containers.append(self.collector_container)
+            self._containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
             self.weblog_container.depends_on.append(self.agent_container)
         if include_collector:
             self.weblog_container.depends_on.append(self.collector_container)
-        self._required_containers.append(self.weblog_container)
+        self._containers.append(self.weblog_container)
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake

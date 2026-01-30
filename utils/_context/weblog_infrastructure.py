@@ -16,6 +16,8 @@ from utils._context.containers import (
 
 
 class WeblogInfra(ABC):
+    """Infrastructure shipping the HTTP app (aka weblog) instrumented by a library."""
+
     @abstractmethod
     def configure(self, config: pytest.Config) -> None:
         """Perform any configuration. Executed only if the weblog will be used"""
@@ -26,6 +28,10 @@ class WeblogInfra(ABC):
 
 
 class EndToEndWeblogInfra(WeblogInfra):
+    """Infrastructure shipping the HTTP app (aka weblog) instrumented by a library.
+    This class is meant to work with EndToEndScenario
+    """
+
     def __init__(
         self,
         *,
@@ -65,7 +71,6 @@ class EndToEndWeblogInfra(WeblogInfra):
         return (self.http_container, *self._other_containers)
 
     def configure(self, config: pytest.Config):
-
         self.http_container.depends_on.extend(self._other_containers)
 
         if config.option.force_dd_trace_debug:

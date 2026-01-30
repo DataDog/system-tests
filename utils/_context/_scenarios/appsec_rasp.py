@@ -71,6 +71,6 @@ class AppSecLambdaRaspScenario(LambdaScenario):
     def configure(self, config: pytest.Config):
         self._internal_server = InternalServerContainer()
         self.lambda_weblog.depends_on.append(self._internal_server)
-        self._required_containers.append(self._internal_server)
+        self._containers.append(self._internal_server)
 
         super().configure(config)

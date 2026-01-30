@@ -45,7 +45,7 @@ class OtelCollectorScenario(DockerScenario):
                 },
             },
         )
-        self._required_containers.append(self.collector_container)
+        self._containers.append(self.collector_container)
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)

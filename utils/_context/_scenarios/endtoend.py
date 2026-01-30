@@ -77,8 +77,8 @@ class DockerScenario(Scenario):
         if self.rc_backend_enabled and not self.rc_api_enabled:
             raise ValueError("rc_backend_enabled requires rc_api_enabled")
 
-        self._required_containers: list[TestedContainer] = []
-        self._supporting_containers: list[TestedContainer] = [container() for container in extra_containers]
+        self._containers: list[TestedContainer] = [container() for container in extra_containers]
+        """ list of containers that will be started in this scenario """
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
@@ -91,15 +91,11 @@ class DockerScenario(Scenario):
                 mocked_backend=mocked_backend,
             )
 
-            self._required_containers.append(self.proxy_container)
-
-        self._required_containers.extend(self._supporting_containers)
+            self._containers.append(self.proxy_container)
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         return [
-            image_name
-            for container in self._required_containers
-            for image_name in container.get_image_list(library, weblog)
+            image_name for container in self._containers for image_name in container.get_image_list(library, weblog)
         ]
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
@@ -109,14 +105,14 @@ class DockerScenario(Scenario):
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
 
-        for container in reversed(self._required_containers):
+        for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
-        for container in self._required_containers:
+        for container in self._containers:
             self.warmups.append(container.post_start)
 
     def get_container_by_dd_integration_name(self, name: str):
-        for container in self._required_containers:
+        for container in self._containers:
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
         return None
@@ -173,13 +169,13 @@ class DockerScenario(Scenario):
         logger.stdout("Starting containers...")
         threads = []
 
-        for container in self._required_containers:
+        for container in self._containers:
             threads.append(container.async_start(self._network))
 
         for thread in threads:
             thread.join()
 
-        for container in self._required_containers:
+        for container in self._containers:
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
 
@@ -187,7 +183,7 @@ class DockerScenario(Scenario):
         self.close_targets()
 
     def close_targets(self):
-        for container in reversed(self._required_containers):
+        for container in reversed(self._containers):
             container.remove()
 
     def test_schemas(
@@ -281,7 +277,7 @@ class EndToEndScenario(DockerScenario):
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
         )
-        self._required_containers.append(self.agent_container)
+        self._containers.append(self.agent_container)
 
         self._weblog_env = dict(weblog_env) if weblog_env else {}
         self.weblog_infra = EndToEndWeblogInfra(
@@ -295,7 +291,7 @@ class EndToEndScenario(DockerScenario):
             volumes=weblog_volumes,
             other_containers=other_weblog_containers,
         )
-        self._required_containers += self.weblog_infra.get_containers()
+        self._containers += self.weblog_infra.get_containers()
 
         # buddies are a set of weblog app that are not directly the test target
         # but are used only to test feature that invlove another app with a datadog tracer
@@ -325,7 +321,7 @@ class EndToEndScenario(DockerScenario):
                 for language, trace_agent_port, host_port, image_name in supported_languages
             ]
 
-        self._required_containers += self.buddies
+        self._containers += self.buddies
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
