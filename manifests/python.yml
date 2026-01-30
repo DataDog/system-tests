@@ -946,7 +946,9 @@ manifest:
         *flask: v2.11.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
     - declaration: bug (DEBUG-3127)
+      component_version: 2.16.0
     - declaration: bug (DEBUG-3127)
+      component_version: 2.16.1
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:
     - weblog_declaration:
         "*": missing_feature
