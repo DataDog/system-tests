@@ -118,26 +118,8 @@ fn init_metrics() -> SdkMeterProvider {
 }
 
 fn init_logs() -> SdkLoggerProvider {
-    info!("Initializing logger provider...");
-    let logger_provider = datadog_opentelemetry::logs()
-        .init();
-    
-    // Debug: Log environment variables related to resource attributes
-    if let Ok(otel_resource_attrs) = env::var("OTEL_RESOURCE_ATTRIBUTES") {
-        info!("OTEL_RESOURCE_ATTRIBUTES={}", otel_resource_attrs);
-    }
-    if let Ok(dd_service) = env::var("DD_SERVICE") {
-        info!("DD_SERVICE={}", dd_service);
-    }
-    if let Ok(dd_env) = env::var("DD_ENV") {
-        info!("DD_ENV={}", dd_env);
-    }
-    if let Ok(dd_version) = env::var("DD_VERSION") {
-        info!("DD_VERSION={}", dd_version);
-    }
-    
-    info!("Logger provider initialized");
-    logger_provider
+    datadog_opentelemetry::logs()
+        .init()
 }
 
 fn log_error(error: &impl Display) {

@@ -50,7 +50,12 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_logs.py: v0.2.0
+  tests/parametric/test_otel_logs.py: v0.3.0
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (opentelemetry-rust BatchLogProcessor does not attach resource from logger provider to export)
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_otel_resource_attributes: missing_feature (opentelemetry-rust BatchLogProcessor does not attach resource from logger provider to export)
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_otel_resources: missing_feature (opentelemetry-rust BatchLogProcessor does not attach resource from logger provider to export)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature (opentelemetry-rust BatchLogProcessor does not attach resource from logger provider to export)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature (opentelemetry-rust BatchLogProcessor does not attach resource from logger provider to export)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
