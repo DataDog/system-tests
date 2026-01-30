@@ -18,7 +18,6 @@ from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
     ProxyContainer,
-    PostgresContainer,
     BuddyContainer,
     TestedContainer,
 )
@@ -41,8 +40,6 @@ class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
 
     _network: Network = None
-
-    postgres_container: PostgresContainer
 
     def __init__(
         self,

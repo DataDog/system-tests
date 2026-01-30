@@ -14,6 +14,7 @@ from .endtoend import DockerScenario
 
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
+    postgres_container: PostgresContainer
 
     def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
         super().__init__(
@@ -23,8 +24,10 @@ class OtelCollectorScenario(DockerScenario):
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
-            extra_containers=(PostgresContainer,),
         )
+
+        self.postgres_container = PostgresContainer()
+        self._containers.append(self.postgres_container)
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
@@ -49,6 +52,8 @@ class OtelCollectorScenario(DockerScenario):
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
+
+        self.collector_container.depends_on.append(self.postgres_container)
 
         if not self.proxy_container.mocked_backend:
             interfaces.backend.configure(self.host_log_folder, replay=self.replay)
