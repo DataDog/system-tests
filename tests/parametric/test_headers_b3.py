@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.docker_fixtures.spec.trace import span_has_no_parent
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
-from utils import missing_feature, context, scenarios, features, logger
+from utils import scenarios, features, logger
 
 parametrize = pytest.mark.parametrize
 
@@ -137,39 +137,29 @@ class Test_Headers_B3:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3_single_key()
-    @missing_feature(
-        context.library > "ruby@1.99.0",
-        reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0 but the name is no longer recognized in 2.x",
-    )
     def test_headers_b3_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_extract_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_extract_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_extract_invalid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_inject_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_inject_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)
 
     @enable_migrated_b3()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_propagate_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_invalid(test_agent, test_library)
 
     @enable_migrated_b3_single_key()
-    @missing_feature(context.library == "java", reason="Need to remove b3=b3multi alias")
     def test_headers_b3_migrated_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3_propagate_valid(test_agent, test_library)

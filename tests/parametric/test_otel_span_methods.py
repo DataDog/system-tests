@@ -11,7 +11,7 @@ from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures import TestAgentAPI
-from utils import features, missing_feature, irrelevant, context, scenarios
+from utils import features, missing_feature, context, scenarios
 from .conftest import APMLibrary
 
 # this global mark applies to all tests in this file.
@@ -91,11 +91,6 @@ class Test_Otel_Span_Methods:
 
         assert test_span["meta"]["http.status_code"] == "200"
 
-    @irrelevant(
-        context.library == "java",
-        reason="Old array encoding was removed in 1.22.0 and new span naming introduced in 1.24.0: no version elligible for this test.",
-    )
-    @missing_feature(context.library == "rust", reason="Old array encoding not supported")
     def test_otel_set_attributes_different_types_legacy(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """- Set attributes of multiple types for an otel span
         This tests legacy behavior. The new behavior is tested in
@@ -165,20 +160,6 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
-    @missing_feature(
-        context.library < "java@1.24.0",
-        reason="New array encoding implemented in 1.22.0 and new operation name mapping in 1.24.0",
-    )
-    @missing_feature(
-        context.library < "golang@1.59.0",
-        reason="New naming breaks old tests, so only run old tests on previous versions.",
-    )
-    @missing_feature(
-        context.library == "nodejs", reason="New operation name mapping & array encoding not yet implemented"
-    )
-    @missing_feature(
-        context.library == "python", reason="New operation name mapping & array encoding not yet implemented"
-    )
     def test_otel_set_attributes_different_types_with_array_encoding(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):
@@ -233,10 +214,6 @@ class Test_Otel_Span_Methods:
         assert root_span["metrics"]["d_int_val"] == 2
         assert root_span["metrics"]["d_double_val"] == 3.14
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
-    )
     def test_otel_span_is_recording(self, test_library: APMLibrary):
         """Test functionality of ending a span.
         - before ending - span.is_recording() is true
@@ -248,10 +225,6 @@ class Test_Otel_Span_Methods:
                 assert parent.is_recording()
             assert not parent.is_recording()
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation does not change IsAllDataRequested to false after ending a span. OpenTelemetry follows this as well for IsRecording.",
-    )
     def test_otel_span_finished_end_options(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test functionality of ending a span with end options.
         After finishing the span, finishing the span with different end options has no effect
@@ -309,10 +282,6 @@ class Test_Otel_Span_Methods:
         assert child_span["resource"] == "child"
         assert child_span["parent_id"] == parent_span["span_id"]
 
-    @missing_feature(
-        context.library == "dotnet",
-        reason=".NET's native implementation unsets the error message. OpenTelemetry also unsets the error message.",
-    )
     def test_otel_set_span_status_error(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """This test verifies that setting the status of a span
         behaves accordingly to the Otel API spec
@@ -333,10 +302,6 @@ class Test_Otel_Span_Methods:
         assert span.get("name") == "internal"
         assert span.get("resource") == "error_span"
 
-    @missing_feature(
-        context.library == "python",
-        reason="Default state of otel spans is OK, updating the status from OK to ERROR is supported",
-    )
     def test_otel_set_span_status_ok(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """This test verifies that setting the status of a span
         behaves accordingly to the Otel API spec
@@ -357,7 +322,6 @@ class Test_Otel_Span_Methods:
         assert span_result.get("name") == "internal"
         assert span_result.get("resource") == "ok_span"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_otel_get_span_context(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """This test verifies retrieving the span context of a span
         accordingly to the Otel API spec
@@ -408,7 +372,6 @@ class Test_Otel_Span_Methods:
         assert result_span["name"] == "kafka.receive"
         assert result_span["resource"] == "operation"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_otel_span_started_with_link_from_another_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span.
         This tests the functionality of "create a direct link between two spans
@@ -478,7 +441,6 @@ class Test_Otel_Span_Methods:
         assert link["attributes"].get("bools.0").casefold() == "true"
         assert link["attributes"].get("bools.1").casefold() == "false"
 
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     def test_otel_span_started_with_link_from_other_spans(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link from a span to another span."""
         with test_library, test_library.otel_start_span("root", end_on_exit=False) as parent:
@@ -619,20 +581,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @irrelevant(
-        context.library == "java",
-        reason="Java tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
-    )
-    @irrelevant(
-        context.library == "golang",
-        reason="Go tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
-    )
-    @irrelevant(
-        context.library == "ruby",
-        reason="Ruby tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0",
-    )
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    @missing_feature(context.library == "rust", reason="Not implemented")
     @pytest.mark.parametrize(
         ("analytics_event_value", "expected_metric_value"), [("something-else", None), ("fAlse", None), ("trUe", None)]
     )
@@ -653,9 +601,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @irrelevant(context.library == "java", reason="Choose to not implement Go parsing logic")
-    @missing_feature(context.library == "python_http", reason="Not implemented")
-    @missing_feature(context.library == "rust", reason="Not implemented")
     @pytest.mark.parametrize(
         ("analytics_event_value", "expected_metric_value"), [("t", 1), ("T", 1), ("f", 0), ("F", 0), ("1", 1), ("0", 0)]
     )
@@ -827,9 +772,6 @@ class Test_Otel_Span_Methods:
             error_message = root_span["meta"].get("error.message") or root_span["meta"].get("error.msg")
             assert error_message == "message override"
 
-    @missing_feature(
-        context.library == "php", reason="Not supported: DD only sets error.stack to not break tracer semantics"
-    )
     def test_otel_record_exception_sets_all_error_tracking_tags(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ):

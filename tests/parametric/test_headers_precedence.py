@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
-from utils import bug, context, irrelevant, scenarios, features
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -88,17 +88,6 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> pytest.MarkDecor
 @scenarios.parametric
 @features.datadog_headers_propagation
 class Test_Headers_Precedence:
-    @irrelevant(
-        context.library >= "dotnet@2.22.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
-        context.library >= "golang@1.47.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
-        context.library >= "nodejs@3.14.0",
-        reason="Newer versions include tracecontext as a default propagator (2.27.0 and 3.14.0)",
-    )
-    @irrelevant(context.library == "rust", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -211,8 +200,6 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "rust", reason="Issue: tracecontext,Datadog was never the default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -643,9 +630,6 @@ class Test_Headers_Precedence:
         )
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
-    @bug(
-        context.library < "golang@1.57.0", reason="APMRP-360"
-    )  # Legacy behaviour: tracecontext propagator would always take precedence
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:

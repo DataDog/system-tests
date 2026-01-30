@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -287,6 +288,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon::test_login_wrong_user_failure_basic: missing_feature (Basic auth not implemented)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v1.8.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v1.8.0
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v1.8.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: v1.8.0
@@ -387,7 +389,6 @@ manifest:
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.0.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v0.86.3
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v0.98.1  # TODO what is the earliest version?
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v0.68.3
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v0.98.0
   tests/appsec/waf/test_addresses.py::Test_Cookies: v0.68.3
@@ -427,6 +428,7 @@ manifest:
     - weblog_declaration:
         apache-mod-8.0: irrelevant
   tests/appsec/waf/test_rules.py::Test_NoSqli: v0.68.3
+  tests/appsec/waf/test_rules.py::Test_NoSqli::test_nosqli_keys: missing_feature (Need to use last WAF version)
   tests/appsec/waf/test_rules.py::Test_PhpCodeInjection: v0.68.3
   tests/appsec/waf/test_rules.py::Test_RFI: v0.68.3
   tests/appsec/waf/test_rules.py::Test_SQLI: v0.68.3
@@ -462,6 +464,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         apache-mod-8.0: v1.8.3
+    - declaration: flaky (DEBUG-3814)
+      component_version: '>1.8.3'
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:

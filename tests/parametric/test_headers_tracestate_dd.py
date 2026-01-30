@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
-from utils import bug, missing_feature, context, scenarios, features
+from utils import scenarios, features
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -306,18 +306,6 @@ class Test_Headers_Tracestate_DD:
         assert "o:tracing2.0" in dd_items6
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(
-        context.library == "cpp", reason="_dd.p.dm is reset to DEFAULT because we made the sampling decision"
-    )
-    @missing_feature(
-        context.library == "golang",
-        reason="False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present",
-    )
-    @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
-    @missing_feature(
-        context.library == "rust",
-        reason="can't guarantee the order of strings in the tracestate since they came from the map.",
-    )
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -424,9 +412,6 @@ class Test_Headers_Tracestate_DD:
                 )
 
     @temporary_enable_propagationstyle_default()
-    @missing_feature(
-        context.library == "nodejs", reason="Issue: the decision maker is removed. Is that allowed behavior?"
-    )
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_library: APMLibrary):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id

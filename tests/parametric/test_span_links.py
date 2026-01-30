@@ -6,7 +6,7 @@ from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import AUTO_DROP_KEY
 from utils.docker_fixtures.spec.trace import span_has_no_parent
 from utils.docker_fixtures.spec.tracecontext import TRACECONTEXT_FLAGS_SET
-from utils import scenarios, missing_feature, features
+from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import retrieve_span_links, find_span, find_trace, find_span_in_traces
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -84,9 +84,6 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
-    @missing_feature(
-        library="nodejs", reason="does not currently support creating a link from distributed datadog headers"
-    )
     def test_span_link_from_distributed_datadog_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for
