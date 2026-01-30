@@ -4,7 +4,7 @@ from pathlib import Path
 
 from utils import interfaces
 from utils._context.component_version import Version
-from utils._context.containers import OpenTelemetryCollectorContainer
+from utils._context.containers import OpenTelemetryCollectorContainer, PostgresContainer
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
@@ -14,6 +14,7 @@ from .endtoend import DockerScenario
 
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
+    postgres_container: PostgresContainer
 
     def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
         super().__init__(
@@ -21,10 +22,12 @@ class OtelCollectorScenario(DockerScenario):
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
-            include_postgres_db=True,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,
         )
+
+        self.postgres_container = PostgresContainer()
+        self._containers.append(self.postgres_container)
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
@@ -45,10 +48,12 @@ class OtelCollectorScenario(DockerScenario):
                 },
             },
         )
-        self._required_containers.append(self.collector_container)
+        self._containers.append(self.collector_container)
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
+
+        self.collector_container.depends_on.append(self.postgres_container)
 
         if not self.proxy_container.mocked_backend:
             interfaces.backend.configure(self.host_log_folder, replay=self.replay)

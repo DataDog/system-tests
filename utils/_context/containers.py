@@ -74,8 +74,8 @@ class TestedContainer:
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
         self,
-        name: str,
-        image_name: str,
+        name: str = "",
+        image_name: str = "",
         *,
         allow_old_container: bool = False,
         binary_file_name: str | None = None,
@@ -92,6 +92,9 @@ class TestedContainer:
         working_dir: str | None = None,
         pid_mode: str | None = None,
     ) -> None:
+        assert name
+        assert image_name
+
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.allow_old_container = allow_old_container

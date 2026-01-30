@@ -26,7 +26,7 @@ class ProfilingScenario(EndToEndScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        library = self.weblog_container.image.labels["system-tests-library"]
+        library = self.weblog_infra.library_name
         if library == "dotnet":
             # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
             self.weblog_container.environment["LD_PRELOAD"] = (
