@@ -11,6 +11,7 @@ from utils._context.containers import (
     PostgresContainer,
     CassandraContainer,
     MongoContainer,
+    MsSqlServerContainer,
     MySqlContainer,
 )
 
@@ -59,7 +60,7 @@ class IntegrationsScenario(EndToEndScenario):
                 MongoContainer,
                 KafkaContainer,
                 RabbitMqContainer,
-                MySqlContainer,
+                MsSqlServerContainer,
                 MySqlContainer,
             ),
             doc=(
