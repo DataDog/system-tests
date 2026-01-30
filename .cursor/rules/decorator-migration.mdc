@@ -1,0 +1,414 @@
+# Decorator to Manifest Migration Guide
+
+This guide describes how to migrate pytest decorator-based test skip/xfail declarations to YAML manifest files in the system-tests repository.
+
+## Overview
+
+System-tests uses two mechanisms to control test execution based on library versions and configurations:
+1. **Decorators** (legacy): Python decorators on test classes/methods
+2. **Manifests** (preferred): YAML files in the `manifests/` directory
+
+The goal is to migrate from decorators to manifests for simpler, more maintainable test activation rules.
+
+---
+
+## Part 1: Understanding Decorators
+
+### What Are Test Decorators?
+
+Decorators are Python annotations applied to test classes or methods that control when tests should be skipped, marked as expected failures, or considered irrelevant.
+
+### Decorator Types
+
+| Decorator | Purpose | Manifest Equivalent |
+|-----------|---------|---------------------|
+| `@missing_feature` | Feature not yet implemented in the library | Version number (e.g., `v1.2.0`) or `missing_feature` marker |
+| `@bug` | Known bug affecting the test | `bug (JIRA-123)` |
+| `@irrelevant` | Test doesn't apply to this library/configuration | `irrelevant` or `irrelevant (reason)` |
+| `@flaky` | Test has intermittent failures | `flaky` or `flaky (JIRA-123)` |
+| `@incomplete_test_app` | Weblog endpoint not implemented | `incomplete_test_app (reason)` |
+
+### Decorator Structure
+
+```python
+@decorator_name(condition, reason="explanation")
+```
+
+**Common condition patterns:**
+```python
+# Single library
+@irrelevant(library="java", reason="Not applicable")
+
+# Library with version comparison
+@missing_feature(context.library < "python@2.5.0", reason="Feature added in 2.5.0")
+
+# Multiple libraries (inclusion)
+@irrelevant(context.library in ["java", "python"], reason="...")
+
+# Multiple libraries (exclusion)
+@irrelevant(context.library != "golang", reason="Golang-specific test")
+@irrelevant(context.library not in ["java", "python"], reason="...")
+
+# All libraries
+@missing_feature(condition=True, reason="Not implemented anywhere")
+
+# With force_skip (prevents test execution entirely)
+@missing_feature(context.library < "java@1.0.0", reason="...", force_skip=True)
+```
+
+### Decorator Location
+
+Decorators can be applied at:
+- **File level**: Affects all tests in the file (rare)
+- **Class level**: Affects all test methods in the class
+- **Method level**: Affects only that specific test method
+
+---
+
+## Part 2: Understanding Manifests
+
+### What Are Manifests?
+
+Manifests are YAML files in `manifests/` that declare test activation rules per library. Each library has its own manifest file (e.g., `java.yml`, `python.yml`, `nodejs.yml`).
+
+### Manifest Structure
+
+```yaml
+# manifests/python.yml
+refs:
+  - &ref_2_0_0 v2.0.0
+  - &ref_2_5_0 v2.5.0
+manifest:
+  # Simple version activation
+  tests/path/to/test.py::TestClass: v1.2.0
+  
+  # Simple marker
+  tests/path/to/test.py::TestClass::test_method: irrelevant
+  
+  # Marker with reason
+  tests/path/to/test.py::TestClass::test_method: irrelevant (Not applicable to Python)
+  
+  # Marker with YAML anchor reference
+  tests/path/to/test.py::TestClass: *ref_2_5_0
+```
+
+### Node ID Format
+
+The key in manifest entries is the pytest node ID:
+```
+tests/path/to/file.py::ClassName::method_name
+tests/path/to/file.py::ClassName  # Applies to all methods in class
+tests/path/to/file.py  # Applies to all tests in file
+```
+
+---
+
+## Part 3: Manifest Entry Formats
+
+### Format 1: Simple Version
+
+Use when a feature becomes available from a specific version:
+
+```yaml
+tests/example.py::TestClass: v1.2.0
+```
+
+**Migrates from:**
+```python
+@missing_feature(context.library < "python@1.2.0")
+```
+
+### Format 2: Simple Marker
+
+Use for permanent states without version conditions:
+
+```yaml
+tests/example.py::TestClass::test_method: irrelevant
+tests/example.py::TestClass::test_method: missing_feature
+tests/example.py::TestClass::test_method: flaky
+```
+
+### Format 3: Marker with Reason
+
+Use when explanation is needed:
+
+```yaml
+tests/example.py::TestClass::test_method: irrelevant (Test only applies to Java)
+tests/example.py::TestClass::test_method: bug (APMAPI-1234)
+tests/example.py::TestClass::test_method: missing_feature (Endpoint not implemented)
+```
+
+**Important:** Values containing special YAML characters (`:`, `>`, `<`, etc.) must be quoted:
+```yaml
+tests/example.py::TestClass: 'irrelevant (Issue: something with colon)'
+```
+
+### Format 4: Explicit Declaration with Version
+
+Use when both a marker with reason AND a version constraint are needed:
+
+```yaml
+tests/example.py::TestClass::test_method:
+  - declaration: missing_feature (Feature description)
+    component_version: '<2.0.0'
+```
+
+**Migrates from:**
+```python
+@missing_feature(context.library < "python@2.0.0", reason="Feature description")
+```
+
+### Format 5: Weblog Declaration
+
+Use when different weblogs have different activation rules:
+
+```yaml
+tests/example.py::TestClass:
+  - weblog_declaration:
+      "*": v1.0.0           # Default for all weblogs
+      flask-poc: v2.0.0     # Specific version for flask-poc
+      fastify: missing_feature  # Not available for fastify
+```
+
+**Weblog declaration keys:**
+- `"*"`: Default for all weblogs not explicitly listed
+- Specific weblog names: `flask-poc`, `express4`, `spring-boot`, etc.
+
+### Format 6: Long Node IDs (YAML Multiline)
+
+When node IDs are very long, use YAML's `?` and `:` syntax:
+
+```yaml
+? tests/very/long/path/to/test_file.py::VeryLongTestClassName::very_long_test_method_name
+: irrelevant (reason)
+```
+
+---
+
+## Part 4: Migration Rules
+
+### Rule 1: Single Library → Single Manifest
+
+A decorator targeting one library creates one manifest entry:
+
+```python
+# Before (in test file)
+@irrelevant(library="python", reason="Python-specific limitation")
+class TestSomething:
+    pass
+```
+
+```yaml
+# After (in manifests/python.yml)
+tests/path/test.py::TestSomething: irrelevant (Python-specific limitation)
+```
+
+### Rule 2: Multiple Libraries → Multiple Manifests
+
+A decorator targeting multiple libraries creates entries in each manifest:
+
+```python
+# Before
+@irrelevant(context.library in ["java", "python"], reason="Not supported")
+```
+
+```yaml
+# manifests/java.yml
+tests/path/test.py::TestClass: irrelevant (Not supported)
+
+# manifests/python.yml
+tests/path/test.py::TestClass: irrelevant (Not supported)
+```
+
+### Rule 3: Exclusion Patterns → All Other Manifests
+
+A decorator excluding specific libraries creates entries in all OTHER manifests:
+
+```python
+# Before
+@irrelevant(context.library != "golang", reason="Golang-specific test")
+```
+
+Creates entries in ALL manifests EXCEPT `golang.yml`.
+
+### Rule 4: Version Comparisons
+
+| Decorator Operator | Manifest Format |
+|--------------------|-----------------|
+| `< "lib@X.Y.Z"` | `vX.Y.Z` (feature available FROM this version) |
+| `<= "lib@X.Y.Z"` | Use explicit format with `<=X.Y.Z` |
+| `> "lib@X.Y.Z"` | Use explicit format with `>X.Y.Z` |
+| `>= "lib@X.Y.Z"` | Use explicit format with `>=X.Y.Z` |
+
+### Rule 5: Preserve Reasons
+
+Always preserve the `reason` parameter in the manifest entry:
+
+```python
+@bug(library="java", reason="APMAPI-1234")
+```
+
+```yaml
+tests/path/test.py::TestClass: bug (APMAPI-1234)
+```
+
+### Rule 6: force_skip=True
+
+Decorators with `force_skip=True` should NOT be migrated automatically. They require manual review because:
+- They completely prevent test execution
+- Often indicate temporary workarounds
+- May need different handling per case
+
+### Rule 7: Alphabetical Order
+
+Manifest entries MUST be sorted alphabetically by node ID within the `manifest:` section.
+
+### Rule 8: Class vs Method Level
+
+- If a decorator is on a CLASS, create a class-level manifest entry
+- If a decorator is on a METHOD, create a method-level manifest entry
+- Method-level entries override class-level entries for that specific method
+
+---
+
+## Part 5: Complex Patterns (Manual Migration)
+
+These patterns require manual analysis and cannot be automatically migrated:
+
+### 1. Weblog Variant Conditions
+
+```python
+@missing_feature(context.weblog_variant == "spring-boot", reason="...")
+```
+→ Requires `weblog_declaration` format
+
+### 2. Combined Conditions
+
+```python
+@bug(context.library == "java" and context.weblog_variant in ["vertx3", "vertx4"], reason="...")
+```
+→ Requires `weblog_declaration` with specific variants
+
+### 3. Non-Library Context Attributes
+
+```python
+@irrelevant(context.scenario == scenarios.some_scenario, reason="...")
+@missing_feature(context.agent_version < "7.0.0", reason="...")
+```
+→ Cannot be expressed in manifests (keep as decorator)
+
+### 4. Inherited Test Methods
+
+Tests that inherit methods from base classes need individual entries:
+```python
+class BaseTest:
+    @irrelevant(library="java")
+    def test_something(self):
+        pass
+
+class ChildTest(BaseTest):  # Inherits test_something
+    pass
+```
+→ Need entries for BOTH `BaseTest::test_something` AND `ChildTest::test_something`
+
+---
+
+## Part 6: Valid Libraries
+
+When migrating, only use these valid library names:
+
+```
+cpp, cpp_httpd, cpp_nginx, dotnet, golang, java, java_otel, 
+nodejs, nodejs_otel, php, python, python_lambda, python_otel, ruby, rust
+```
+
+---
+
+## Part 7: Migration Checklist
+
+For each decorator:
+
+1. [ ] Identify the target library/libraries
+2. [ ] Determine the manifest entry format needed
+3. [ ] Check if the node ID already exists in the manifest
+4. [ ] If exists: decide if it's identical, different, or a conflict
+5. [ ] Add entry in alphabetical order
+6. [ ] Quote values with special YAML characters
+7. [ ] Remove the decorator from the source file
+8. [ ] Verify manifest syntax is valid
+
+---
+
+## Part 8: Examples
+
+### Example 1: Simple Single-Library Migration
+
+**Before:**
+```python
+# tests/test_example.py
+@irrelevant(library="java", reason="Not applicable to Java")
+class TestFeature:
+    def test_something(self):
+        pass
+```
+
+**After:**
+```yaml
+# manifests/java.yml
+manifest:
+  tests/test_example.py::TestFeature: irrelevant (Not applicable to Java)
+```
+
+### Example 2: Version-Based Migration with Reason
+
+**Before:**
+```python
+@missing_feature(context.library < "python@2.5.0", reason="Feature added in 2.5.0")
+def test_new_feature(self):
+    pass
+```
+
+**After:**
+```yaml
+# manifests/python.yml
+manifest:
+  tests/test_example.py::TestClass::test_new_feature:
+    - declaration: missing_feature (Feature added in 2.5.0)
+      component_version: '<2.5.0'
+```
+
+### Example 3: Multi-Library Exclusion
+
+**Before:**
+```python
+@irrelevant(context.library != "golang", reason="Golang-specific test")
+class TestGolangFeature:
+    pass
+```
+
+**After:** Add to ALL manifests except golang.yml:
+```yaml
+# manifests/java.yml, manifests/python.yml, etc.
+manifest:
+  tests/test_example.py::TestGolangFeature: irrelevant (Golang-specific test)
+```
+
+### Example 4: Weblog-Specific Declaration
+
+**Before:**
+```python
+@missing_feature(
+    context.library == "nodejs" and context.weblog_variant == "fastify",
+    reason="Not implemented in fastify"
+)
+```
+
+**After:**
+```yaml
+# manifests/nodejs.yml
+manifest:
+  tests/test_example.py::TestClass:
+    - weblog_declaration:
+        "*": v1.0.0
+        fastify: missing_feature (Not implemented in fastify)
+```
