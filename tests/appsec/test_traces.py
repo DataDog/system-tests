@@ -4,7 +4,6 @@
 
 from utils import (
     weblog,
-    bug,
     context,
     interfaces,
     irrelevant,
@@ -98,11 +97,6 @@ class Test_AppSecEventSpanTags:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
-    @bug(
-        context.library < "nodejs@5.57.0",
-        weblog_variant="fastify",
-        reason="APPSEC-57432",  # Response headers collection not supported yet
-    )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.

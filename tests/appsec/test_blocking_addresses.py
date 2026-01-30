@@ -705,10 +705,6 @@ class Test_Suspicious_Request_Blocking:
         condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
         reason="function-url event type does not support path params",
     )
-    @irrelevant(
-        context.library == "ruby" and context.weblog_variant == "rack",
-        reason="Rack don't send anything to the server.request.path_params WAF address",
-    )
     @bug(weblog_variant="akka-http", reason="APPSEC-54985")
     @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")
     def test_blocking(self):
@@ -732,10 +728,6 @@ class Test_Suspicious_Request_Blocking:
         library="python_lambda",
         condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
         reason="function-url event type does not support path params",
-    )
-    @irrelevant(
-        context.library == "ruby" and context.weblog_variant == "rack",
-        reason="Rack don't send anything to the server.request.path_params WAF address",
     )
     @bug(weblog_variant="akka-http", reason="APPSEC-54985")
     @bug(weblog_variant="spring-boot-payara", reason="APPSEC-54985")

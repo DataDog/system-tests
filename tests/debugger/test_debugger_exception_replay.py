@@ -10,7 +10,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import interfaces, scenarios, features, context, irrelevant, missing_feature, logger
+from utils import interfaces, scenarios, features, context, missing_feature, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 
 
@@ -538,7 +538,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 
-    @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
     def test_exception_replay_recursion_inlined(self):
         self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
         self._validate_recursion_snapshots(self.snapshots, 4)

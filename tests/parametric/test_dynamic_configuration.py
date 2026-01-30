@@ -10,8 +10,6 @@ import yaml
 from utils import (
     context,
     features,
-    irrelevant,
-    missing_feature,
     rfc,
     scenarios,
 )
@@ -490,10 +488,6 @@ class TestDynamicConfigV1:
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
-    @missing_feature(
-        context.library in ("cpp", "golang"),
-        reason="Tracer doesn't support automatic logs injection",
-    )
     @parametrize(
         "library_env",
         [
@@ -710,10 +704,6 @@ class TestDynamicConfigV2:
         assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
 
-    @irrelevant(
-        context.library in ("cpp", "golang"),
-        reason="Tracer doesn't support automatic logs injection",
-    )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the logs injection capability."""

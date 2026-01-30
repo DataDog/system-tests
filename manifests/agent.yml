@@ -1,6 +1,11 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
+    - declaration: missing_feature (Single Spans is not available in agents pre 7.40.)
+      component_version: <7.40
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_exception_event:
     - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)
@@ -29,6 +34,16 @@ manifest:
     - component_version: ">=7.75.0-0"
       declaration: irrelevant (has been replaced by test_error_exception_event)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: v7.48.0
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_sampling_rates.py::Test_SamplingRates: v7.33.0
   tests/test_telemetry.py::Test_APMOnboardingInstallID: v7.50.0
+  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
+    - declaration: bug (APMAPI-926)
+      component_version: '>7.53.0'
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
+    - declaration: bug (APMAPI-926)
+      component_version: '>7.53.0'
   tests/test_v1_payloads.py::Test_V1Payloads: v7.73.0-devel
