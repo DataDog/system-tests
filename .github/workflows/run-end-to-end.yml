@@ -401,7 +401,7 @@ jobs:
       run: ./run.sh DEBUGGER_SYMDB
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
-      run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
+      run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT --force-dd-trace-debug
     - name: Run DEBUGGER_TELEMETRY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
       run: ./run.sh DEBUGGER_TELEMETRY
