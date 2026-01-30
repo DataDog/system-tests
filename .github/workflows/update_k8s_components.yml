@@ -2,6 +2,12 @@ name: Update k8s components
 
 on:
   workflow_dispatch: {}
+  push:
+    paths:
+      - '.github/workflows/update_k8s_components.yml'
+      - 'utils/scripts/update_k8s_pinned_versions.py'
+      - 'utils/k8s/k8s_components_parser.py'
+      - 'utils/k8s/k8s_components.json'
   schedule:
     - cron: '0 3 * * 0'  # Every Sunday at 3:00 AM UTC
 
