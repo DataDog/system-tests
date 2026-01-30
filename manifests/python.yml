@@ -985,10 +985,18 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+    - declaration: bug (DEBUG-3127)
+      component_version: 2.16.0
+    - declaration: bug (DEBUG-3127)
+      component_version: 2.16.1
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+    - declaration: bug (DEBUG-3127)
+      component_version: 2.16.0
+    - declaration: bug (DEBUG-3127)
+      component_version: 2.16.1
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": missing_feature
