@@ -10,7 +10,7 @@ from utils import (
     features,
     remote_config as rc,
 )
-from utils.proxy.mocked_response import StaticJsonMockedTracerResponse
+from tests.ffe.utils import get_ffe_rc_state, get_rc_config_path, mock_rc_unavailable, restore_rc
 
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -42,6 +42,7 @@ UFC_FIXTURE_DATA = {
 
 
 @scenarios.feature_flagging_and_experimentation
+@scenarios.feature_flagging_and_experimentation_backend
 @features.feature_flags_dynamic_evaluation
 class Test_FFE_RC_Unavailable:
     """Test FFE SDK resilience when the Remote Configuration service becomes unavailable.
@@ -53,20 +54,21 @@ class Test_FFE_RC_Unavailable:
     def setup_ffe_rc_unavailable_graceful_degradation(self):
         """Set up FFE with valid config, then simulate RC unavailability and verify cached config still works."""
         self.config_request_data = None
+        rc_path = get_rc_config_path()
 
         def wait_for_config_503(data: dict) -> bool:
-            if data["path"] == "/v0.7/config" and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
+            if data["path"] == rc_path and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
                 self.config_request_data = data
                 return True
             return False
 
-        rc.tracer_rc_state.reset().apply()
+        get_ffe_rc_state().reset().apply()
 
         self.flag_key = "test-flag"  # From UFC_FIXTURE_DATA, returns "on"
         self.not_delivered_flag_key = "test-flag-not-delivered"
         self.default_value = "default_fallback"
 
-        self.config_state = rc.tracer_rc_state.set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
+        self.config_state = get_ffe_rc_state().set_config(f"{RC_PATH}/ffe-test/config", UFC_FIXTURE_DATA).apply()
 
         # Baseline: evaluate flag with RC working
         self.baseline_eval = weblog.post(
@@ -81,9 +83,7 @@ class Test_FFE_RC_Unavailable:
         )
 
         # Simulate RC unavailability by returning 503 errors
-        StaticJsonMockedTracerResponse(
-            path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
-        ).send()
+        mock_rc_unavailable()
 
         # Wait for tracer to receive 503 from RC before evaluating flag
         interfaces.library.wait_for(wait_for_config_503, timeout=60)
@@ -112,8 +112,8 @@ class Test_FFE_RC_Unavailable:
             },
         )
 
-        # Restore normal RC behavior (empty response)
-        StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
+        # Restore normal RC behavior
+        restore_rc()
 
     def test_ffe_rc_unavailable_graceful_degradation(self):
         """Test that cached flag configs continue working when RC is unavailable."""
@@ -146,6 +146,7 @@ class Test_FFE_RC_Unavailable:
 
 
 @scenarios.feature_flagging_and_experimentation
+@scenarios.feature_flagging_and_experimentation_backend
 @features.feature_flags_dynamic_evaluation
 class Test_FFE_RC_Down_From_Start:
     """Test FFE behavior when RC is unavailable from application start."""
@@ -153,16 +154,15 @@ class Test_FFE_RC_Down_From_Start:
     def setup_ffe_rc_down_from_start(self):
         """Simulate RC being down from the start - no config ever delivered."""
         self.config_request_data = None
+        rc_path = get_rc_config_path()
 
         def wait_for_config_503(data: dict) -> bool:
-            if data["path"] == "/v0.7/config" and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
+            if data["path"] == rc_path and data["response"]["status_code"] == HTTPStatus.SERVICE_UNAVAILABLE:
                 self.config_request_data = data
                 return True
             return False
 
-        StaticJsonMockedTracerResponse(
-            path="/v0.7/config", mocked_json={"error": "Service Unavailable"}, status_code=503
-        ).send()
+        mock_rc_unavailable()
 
         # Wait for tracer to receive 503 from RC before evaluating flag
         interfaces.library.wait_for(wait_for_config_503, timeout=60)
@@ -181,7 +181,7 @@ class Test_FFE_RC_Down_From_Start:
             },
         )
 
-        StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={}).send()
+        restore_rc()
 
     def test_ffe_rc_down_from_start(self):
         """Test that default value is returned when RC is down from start."""
