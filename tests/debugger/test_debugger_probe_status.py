@@ -139,7 +139,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_log_line_status(self):
         self._setup("probe_status_log_line", probe_type="log")
 
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_log_line_status(self):
         self._assert()
@@ -201,7 +200,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_metric_line", probe_type="metric")
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_metric_line_status(self):
         self._assert()
@@ -211,7 +209,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_spandecoration_line", probe_type="decor")
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_status(self):
         self._assert()
