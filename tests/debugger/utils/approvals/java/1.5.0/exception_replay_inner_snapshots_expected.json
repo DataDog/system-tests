@@ -9,7 +9,7 @@
       "return": {
         "arguments": {
           "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController",
             "fields": {}
           }
         },
@@ -20,7 +20,7 @@
           "message": "500 INTERNAL_SERVER_ERROR \"Outer exception\"; nested exception is org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"Inner exception\"",
           "stacktrace": [
             {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayInner",
+              "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayInner",
               "lineNumber": 34
             },
             {
@@ -43,12 +43,12 @@
       "location": {
         "lines": [],
         "method": "exceptionReplayInner",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+        "type": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayInner",
+        "function": "com.datadoghq.system_tests.springboot.debugger.ExceptionReplayController.exceptionReplayInner",
         "lineNumber": 34
       },
       {

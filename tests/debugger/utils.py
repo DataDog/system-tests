@@ -204,21 +204,18 @@ class BaseDebuggerTest:
                         probe["where"]["methodName"] = "main.(*DebuggerController)." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     source_file = ""
-                    # Use full paths when testing edge cases (unknown path prefixes, casing differences,
-                    # backslashes) to verify tracers can correctly strip prefixes and normalize paths.
-                    # Otherwise, use simple filenames since tracers with bugs in path handling would fail
-                    # the edge case tests but should still pass the basic functionality tests.
-                    # TODO: Once all tracers pass the edge case tests (DEBUG-5101-5111), always use full
-                    # paths as they are more realistic and provide better test coverage.
-                    use_full_paths = path_prefix or uppercase_source_files or use_backslashes
 
                     if language == "dotnet":
-                        source_file = f"{'Controllers/' if use_full_paths else ''}DebuggerController.cs"
+                        # TODO (DEBUG-5101, DEBUG-5104, DEBUG-5108): Use "Controllers/DebuggerController.cs" once
+                        # the .NET tracer properly handles source paths with subdirectories for method/line probes.
+                        # Currently, the tracer requires exact filename match without subdirectories, which makes
+                        # edge case tests (path prefixes, casing, backslashes) meaningless for .NET.
+                        # The validation in test_debugger_probe_status.py will catch this once the bugs are fixed.
+                        source_file = "DebuggerController.cs"
                     elif language == "java":
-                        prefix = "com/datadoghq/system_tests/springboot/debugger/" if use_full_paths else ""
-                        source_file = f"{prefix}DebuggerController.java"
+                        source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
                     elif language == "python":
-                        source_file = f"{'flask/' if use_full_paths else ''}debugger_controller.py"
+                        source_file = "debugger/debugger_controller.py"
                     elif language == "ruby":
                         # In docker container the controller will not have the
                         # shared/rails prefix, this is fine because DI will
@@ -230,7 +227,7 @@ class BaseDebuggerTest:
                         else:
                             source_file = "debugger/index.js"
                     elif language == "php":
-                        source_file = f"{'common/' if use_full_paths else ''}debugger.php"
+                        source_file = "debugger/debugger.php"
 
                     if uppercase_source_files:
                         source_file = source_file.upper()

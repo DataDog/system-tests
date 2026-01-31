@@ -148,6 +148,17 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_probe_status_log_line_with_unknown_path_prefix(self):
         self._setup("probe_status_log_line", "log", path_prefix="unknown-prefix")
 
+        # Validate that the source file actually contains a path separator to ensure
+        # this test is meaningful (i.e., it's actually testing prefix stripping)
+        for probe in self.probe_definitions:
+            source_file = probe["where"].get("sourceFile", "")
+            if "/" not in source_file and "\\" not in source_file:
+                self.setup_failures.append(
+                    f"Test expects source file to contain a path separator, but got: {source_file}. "
+                    f"This suggests the tracer's source path doesn't include subdirectories, "
+                    f"making this edge case test meaningless. See DEBUG-5101 for .NET."
+                )
+
     def test_probe_status_log_line_with_unknown_path_prefix(self):
         self._assert()
 
@@ -155,12 +166,32 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_probe_status_log_line_with_different_casing(self):
         self._setup("probe_status_log_line", "log", uppercase_source_files=True)
 
+        # Validate that the source file was actually uppercased to ensure this test is meaningful
+        for probe in self.probe_definitions:
+            source_file = probe["where"].get("sourceFile", "")
+            if source_file.islower():
+                self.setup_failures.append(
+                    f"Test expects source file to be uppercased, but got: {source_file}. "
+                    f"This suggests the uppercase transformation didn't work."
+                )
+
     def test_probe_status_log_line_with_different_casing(self):
         self._assert()
 
     ############ log line probe with Windows path ############
     def setup_probe_status_log_line_with_windows_path(self):
         self._setup("probe_status_log_line", "log", use_backslashes=True)
+
+        # Validate that the source file actually contains backslashes to ensure
+        # this test is meaningful (i.e., it's actually testing Windows path handling)
+        for probe in self.probe_definitions:
+            source_file = probe["where"].get("sourceFile", "")
+            if "\\" not in source_file:
+                self.setup_failures.append(
+                    f"Test expects source file to contain backslashes for Windows path testing, "
+                    f"but got: {source_file}. This suggests the tracer's source path doesn't include "
+                    f"subdirectories, making this edge case test meaningless. See DEBUG-5108 for .NET."
+                )
 
     def test_probe_status_log_line_with_windows_path(self):
         self._assert()

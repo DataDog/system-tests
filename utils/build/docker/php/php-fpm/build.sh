@@ -23,8 +23,9 @@ apt-get install -y
 
 find /var/www/html -mindepth 1 -delete
 
-mkdir -p /var/www/html/rasp
+mkdir -p /var/www/html/rasp /var/www/html/debugger
 cp -rf /tmp/php/common/* /var/www/html/
+cp -rf /tmp/php/debugger/* /var/www/html/debugger/
 cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
 cp /tmp/php/php-fpm/entrypoint.sh /
