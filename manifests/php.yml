@@ -459,10 +459,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
-    - weblog_declaration:
-        "*": missing_feature
-        apache-mod-8.0: v1.8.3
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (PHP reports EMITTING instead of INSTALLED status)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
