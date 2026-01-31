@@ -140,6 +140,11 @@ public class Main {
             ctx.pathParams().toString();
             ctx.response().end("Hello world!");
         });
+        router.getWithRegex("/resource_renaming(?:/(.*))?").handler(ctx -> {
+            // Consume path params
+            ctx.pathParams().toString();
+            ctx.response().end("ok");
+        });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")
                 .produces("text/plain")
