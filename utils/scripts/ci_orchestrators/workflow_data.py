@@ -580,6 +580,12 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     if "@" in weblog or scenario == "INTEGRATION_FRAMEWORKS":
         return "@" in weblog and scenario == "INTEGRATION_FRAMEWORKS"
 
+    # express4-no-openfeature is a minimal weblog for testing dd-trace without OpenFeature
+    # It only implements basic endpoints and should only run in DEFAULT scenario
+    if weblog == "express4-no-openfeature":
+        if scenario != "DEFAULT":
+            return False
+
     return True
 
 
