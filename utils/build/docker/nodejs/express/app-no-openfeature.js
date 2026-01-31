@@ -24,25 +24,15 @@ app.get('/flush', (req, res) => {
   tracer.dogstatsd?.flush?.()
   const timeout = Number(req.query.timeout) || 5000
   const start = Date.now()
-  let interval
 
-  function onFlush () {
-    clearInterval(interval)
-    res.json({ status: 'ok' })
-  }
-
-  function onTimeout () {
-    clearInterval(interval)
-    res.status(504).json({ error: 'Timed out waiting for traces to flush' })
-  }
-
-  interval = setInterval(() => {
+  const interval = setInterval(() => {
     const stats = tracer._tracer._exporter?._writer?._stats || {}
     if (stats.count === stats.acked || Date.now() - start > timeout) {
+      clearInterval(interval)
       if (stats.count === stats.acked) {
-        onFlush()
+        res.json({ status: 'ok' })
       } else {
-        onTimeout()
+        res.status(504).json({ error: 'Timed out waiting for traces to flush' })
       }
     }
   }, 50)
