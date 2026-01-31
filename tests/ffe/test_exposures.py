@@ -7,7 +7,6 @@ from utils import (
     interfaces,
     scenarios,
     features,
-    remote_config as rc,
 )
 from tests.ffe.utils import get_ffe_rc_state
 

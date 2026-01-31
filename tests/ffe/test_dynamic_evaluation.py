@@ -8,7 +8,6 @@ from utils import (
     interfaces,
     scenarios,
     features,
-    remote_config as rc,
 )
 from tests.ffe.utils import get_ffe_rc_state, get_rc_config_path, mock_rc_unavailable, restore_rc
 
