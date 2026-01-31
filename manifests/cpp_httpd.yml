@@ -37,7 +37,15 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
-  tests/stats/test_stats.py: missing_feature
+  tests/stats/test_stats.py: '>=1.0.3'  # Modified by easy win activation script
+  tests/stats/test_stats.py::Test_Agent_Info_Endpoint: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Stats::test_client_stats: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Peer_Tags: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py::Test_Transport_Headers: missing_feature  # Created by easy win activation script
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not implemented)
@@ -63,19 +71,22 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: missing_feature
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: '>=1.0.3'  # Modified by easy win activation script
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: missing_feature
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: missing_feature
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id: missing_feature
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env: missing_feature (not implemented yet)
-  tests/test_data_integrity.py::Test_LibraryHeaders::test_headers: missing_feature
+  tests/test_data_integrity.py::Test_LibraryHeaders::test_headers: '>=1.0.3'  # Modified by easy win activation script
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: missing_feature (Missing endpoint)
   tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature
   tests/test_distributed.py::Test_DistributedHttp: missing_feature
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts:  # Modified by easy win activation script
+    - declaration: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+      component_version: <1.0.3
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)  # Created by easy win activation script
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics: missing_feature (A non-root span carry user agent informations)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics_browser: missing_feature (A non-root span carry user agent informations)
@@ -103,14 +114,24 @@ manifest:
   tests/test_smoke.py::Test_Library::test_receive_request_trace: missing_feature (For some reason, span type is server i/o web)
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py: irrelevant
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
-  tests/test_telemetry.py::Test_MessageBatch: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_MessageBatch: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization: missing_feature  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays: missing_feature (DD_TELEMETRY_HEARTBEAT_INTERVAL not supported)
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
+  tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:  # Modified by easy win activation script
+    - declaration: missing_feature (DD_TELEMETRY_HEARTBEAT_INTERVAL not supported)
+      component_version: <1.0.3
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: '>=1.0.3'  # Modified by easy win activation script
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature
