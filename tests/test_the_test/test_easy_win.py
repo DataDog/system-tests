@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+import yaml
 
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
@@ -557,3 +558,54 @@ def test_e2e_activation_handles_mixed_outcomes():
         assert test_data[context].trie.get("tests/mixed/test_mixed.py/Test_Mixed") == ActivationStatus.NONE
         # The all-pass class should have XPASS status
         assert test_data[context].trie.get("tests/passing/test_all_pass.py/Test_AllPass") == ActivationStatus.XPASS
+
+
+def test_manifest_editor_add_condition_to_function_level_inline_declaration():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "python_flask_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="python",
+            library_version="2.5.0",
+            weblog_variant="flask",
+            tests=[
+                {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
+                {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method2", "outcome": "xfailed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+        scenario_dir = data_dir / "python_django_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="python",
+            library_version="2.5.0",
+            weblog_variant="django",
+            tests=[],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        manifest_content = """---
+manifest:
+  tests/appsec/test_feature.py::Test_Feature: missing_feature
+  tests/appsec/test_feature.py::Test_Feature::test_method2: bug (XXXX)
+"""
+        (manifest_dir / "python.yml").write_text(manifest_content)
+
+        test_data, weblogs = parse_artifact_data(data_dir, ["python"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
+        update_manifest(manifest_editor, test_data)
+
+        manifest_editor.write(manifest_dir)
+
+        with (manifest_dir / "python.yml").open() as f:
+            result = yaml.safe_load(f)
+
+        rule = result["manifest"].get("tests/appsec/test_feature.py::Test_Feature::test_method2")
+        assert rule == [{"declaration": "bug (XXXX)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
