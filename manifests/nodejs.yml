@@ -1677,7 +1677,7 @@ manifest:
   tests/openfeature/test_ddtrace_without_openfeature.py:
     - weblog_declaration:
         "*": irrelevant (only testing nodejs without openfeature)
-        express4-no-openfeature: 6.0.0-pre
+        express4-no-openfeature: *ref_5_75_0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
