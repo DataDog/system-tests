@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	ddotellog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
 	of "github.com/open-feature/go-sdk/openfeature"
@@ -35,6 +36,11 @@ type spanContext struct {
 func newServer() *apmClientServer {
 	tp := ddotel.NewTracerProvider()
 	otel.SetTracerProvider(tp)
+
+	// Initialize OTel logs if DD_LOGS_OTEL_ENABLED is set
+	if err := ddotellog.StartIfEnabled(context.Background()); err != nil {
+		log.Printf("failed to start OTel logs: %v", err)
+	}
 
 	s := &apmClientServer{
 		spans:        make(map[uint64]*tracer.Span),
@@ -99,6 +105,10 @@ func main() {
 	http.HandleFunc("/trace/otel/span_context", s.otelSpanContextHandler)
 	http.HandleFunc("/trace/otel/add_event", s.otelAddEventHandler)
 	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
+
+	// otel-logs endpoints:
+	http.HandleFunc("/log/write", s.logWriteHandler)
+	http.HandleFunc("/log/otel/flush", s.otelLogsFlushHandler)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
