@@ -1,0 +1,49 @@
+name: Broadcast Update
+
+on:
+  # This might be too aggresssive and might generate a lot of noise
+  # 
+  # Maybe should consider other trigger alternatives:
+  # 1. On release event
+  # 2. On tag event
+  # 3. On scheduled event (for example: everyday)
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  broadcast:
+    name: Broadcast Update
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        repository:
+        - name: dd-trace-rb
+    steps:
+    - name: Generate GitHub App Token
+      id: generate-token
+      uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
+      with:
+        app-id: ${{ secrets.APP_ID }}
+        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        owner: ${{ github.repository_owner }}
+        repositories: ${{ matrix.repository.name }}
+
+    - env:
+        GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+      run: |
+        gh api repos/${{ github.repository_owner }}/${{ matrix.repository.name }}/dispatches \
+          --method POST \
+          --field event_type=update-system-tests \
+          --field client_payload[ref]=main \
+          --field client_payload[dry-run]=false \
+          --field client_payload[triggered_by]="${{ github.actor }}" \
+          --field client_payload[source_repo]="${{ github.repository }}" \
+          --field client_payload[source_commit]="${{ github.sha }}" \
+          --field client_payload[source_run_id]="${{ github.run_id }}"
