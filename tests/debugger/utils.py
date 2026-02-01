@@ -186,7 +186,7 @@ class BaseDebuggerTest:
                             probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
                         )
                     elif language == "python":
-                        probe["where"]["typeName"] = "debugger_controller"
+                        probe["where"]["typeName"] = "debugger.debugger_controller"
                         probe["where"]["methodName"] = re.sub(
                             r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
                         ).lower()
