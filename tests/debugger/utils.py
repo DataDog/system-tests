@@ -227,7 +227,7 @@ class BaseDebuggerTest:
                         else:
                             source_file = "debugger/index.js"
                     elif language == "php":
-                        source_file = "debugger/debugger.php"
+                        source_file = "debugger.php"
 
                     if uppercase_source_files:
                         source_file = source_file.upper()
