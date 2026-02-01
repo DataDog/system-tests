@@ -206,11 +206,6 @@ class BaseDebuggerTest:
                     source_file = ""
 
                     if language == "dotnet":
-                        # TODO (DEBUG-5101, DEBUG-5104, DEBUG-5108): Use "Controllers/DebuggerController.cs" once
-                        # the .NET tracer properly handles source paths with subdirectories for method/line probes.
-                        # Currently, the tracer requires exact filename match without subdirectories, which makes
-                        # edge case tests (path prefixes, casing, backslashes) meaningless for .NET.
-                        # The validation in test_debugger_probe_status.py will catch this once the bugs are fixed.
                         source_file = "DebuggerController.cs"
                     elif language == "java":
                         source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
