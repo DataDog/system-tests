@@ -12,7 +12,15 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
     expected_diagnostics: dict[str, debugger.ProbeStatus] = {}
     expect_error_on_missing_symbol: bool = False
 
-    def _setup(self, probes_name: str, probe_type: str):
+    def _setup(
+        self,
+        probes_name: str,
+        probe_type: str,
+        *,
+        path_prefix: str = "",
+        uppercase_source_files: bool = False,
+        use_backslashes: bool = False,
+    ):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
@@ -25,7 +33,12 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
                 suffix = "installed"
             probe["id"] = debugger.generate_probe_id(probe_type, suffix)
 
-        self.set_probes(probes)
+        self.set_probes(
+            probes,
+            path_prefix=path_prefix,
+            uppercase_source_files=uppercase_source_files,
+            use_backslashes=use_backslashes,
+        )
 
         # The Go debugger can report an ERROR status if a symbol is missing
         # because it knows definitively that a symbol will not later show up.
@@ -126,9 +139,60 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_log_line_status(self):
         self._setup("probe_status_log_line", probe_type="log")
 
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_log_line_status(self):
+        self._assert()
+
+    ############ log line probe with unknown path prefix ############
+    def setup_probe_status_log_line_with_unknown_path_prefix(self):
+        self._setup("probe_status_log_line", "log", path_prefix="unknown-prefix")
+
+        # Validate that the source file actually contains a path separator to ensure
+        # this test is meaningful (i.e., it's actually testing prefix stripping)
+        for probe in self.probe_definitions:
+            source_file = probe["where"].get("sourceFile", "")
+            if "/" not in source_file and "\\" not in source_file:
+                self.setup_failures.append(
+                    f"Test expects source file to contain a path separator, but got: {source_file}. "
+                    f"This suggests the tracer's source path doesn't include subdirectories, "
+                    f"making this edge case test meaningless. See DEBUG-5101 for .NET."
+                )
+
+    def test_probe_status_log_line_with_unknown_path_prefix(self):
+        self._assert()
+
+    ############ log line probe with different casing ############
+    def setup_probe_status_log_line_with_different_casing(self):
+        self._setup("probe_status_log_line", "log", uppercase_source_files=True)
+
+        # Validate that the source file was actually uppercased to ensure this test is meaningful
+        for probe in self.probe_definitions:
+            source_file = probe["where"].get("sourceFile", "")
+            if source_file.islower():
+                self.setup_failures.append(
+                    f"Test expects source file to be uppercased, but got: {source_file}. "
+                    f"This suggests the uppercase transformation didn't work."
+                )
+
+    def test_probe_status_log_line_with_different_casing(self):
+        self._assert()
+
+    ############ log line probe with Windows path ############
+    def setup_probe_status_log_line_with_windows_path(self):
+        self._setup("probe_status_log_line", "log", use_backslashes=True)
+
+        # Validate that the source file actually contains backslashes to ensure
+        # this test is meaningful (i.e., it's actually testing Windows path handling)
+        for probe in self.probe_definitions:
+            source_file = probe["where"].get("sourceFile", "")
+            if "\\" not in source_file:
+                self.setup_failures.append(
+                    f"Test expects source file to contain backslashes for Windows path testing, "
+                    f"but got: {source_file}. This suggests the tracer's source path doesn't include "
+                    f"subdirectories, making this edge case test meaningless. See DEBUG-5108 for .NET."
+                )
+
+    def test_probe_status_log_line_with_windows_path(self):
         self._assert()
 
     ############ metric line probe ############
@@ -136,7 +200,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_metric_line", probe_type="metric")
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_metric_line_status(self):
         self._assert()
@@ -146,7 +209,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_spandecoration_line", probe_type="decor")
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_status(self):
         self._assert()
