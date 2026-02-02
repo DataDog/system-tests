@@ -625,6 +625,9 @@ manifest:
         gin: v1.37.0
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: v2.0.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: v2.0.0
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.0.0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.0.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.0.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature (feature not implemented)
@@ -642,6 +645,7 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.2.3
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.2.3
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/ffe/test_exposures.py: v2.6.0-dev
@@ -847,7 +851,11 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in go)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: irrelevant (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
   tests/parametric/test_otel_logs.py: missing_feature
-  tests/parametric/test_otel_metrics.py: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error: missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags: missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:

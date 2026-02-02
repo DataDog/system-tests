@@ -2,3 +2,12 @@
 ---
 manifest:
   tests/integrations/test_open_telemetry.py::Test_MsSql: missing_feature (may be OTEL-2898)
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_db_connection_string: "missing_feature (Open telemetry doesn't send this span for python)"
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for python but it should do)"
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_obfuscate_query: bug (OTEL-940)
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_db_connection_string: "missing_feature (Open telemetry doesn't send this span for python)"
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for python but it should do)"
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-940)
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_connection_string: "missing_feature (Open telemetry doesn't send this span for python)"
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for python but it should do)"
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-940)

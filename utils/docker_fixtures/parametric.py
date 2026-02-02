@@ -5,7 +5,7 @@ from typing import TypedDict, NotRequired
 class LogLevel(Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
-    WARNING = "WARNING"
+    WARN = "WARN"
     ERROR = "ERROR"
 
 
