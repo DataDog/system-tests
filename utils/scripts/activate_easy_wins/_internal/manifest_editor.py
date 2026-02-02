@@ -360,6 +360,13 @@ class ManifestEditor:
                     manifest[rule] = []
                     self.write_comment(manifest, rule, "Created by easy win activation script", "inline")
                 condition_dict = self.serialize_condition(condition)
+                if isinstance(manifest[rule], str):
+                    if "excluded_component_version" in self.manifest.data:
+                        manifest[rule] = [
+                            {"weblog_declaration": {"*": manifest.rules[rule]["excluded_component_version"]}}
+                        ]
+                    else:
+                        manifest[rule] = [ManifestEditor.serialize_condition(self.manifest.data[rule][0])]
                 manifest[rule].append(condition_dict)
                 if isinstance(manifest[rule], CommentedSeq) and len(manifest[rule]) > 0:
                     last_index = len(manifest[rule]) - 1

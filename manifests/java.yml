@@ -128,7 +128,7 @@ manifest:
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
   tests/appsec/api_security/test_schemas.py::Test_Scanners::test_request_method:
-    - component_version: ">=1.59.0-SNAPSHOT"
+    - component_version: ">=1.58.2"
       declaration: flaky (APPSEC-61042)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
     - weblog_declaration:
@@ -175,7 +175,7 @@ manifest:
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters::test_request_method:
-    - component_version: ">=1.59.0-SNAPSHOT"
+    - component_version: ">=1.58.2"
       declaration: flaky (APPSEC-61042)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
     - weblog_declaration:
@@ -2462,6 +2462,9 @@ manifest:
     - declaration: bug (APPSEC-51509)
       component_version: <1.29.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.12.0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.12.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.12.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
@@ -2680,6 +2683,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
