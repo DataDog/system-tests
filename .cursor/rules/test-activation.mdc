@@ -147,11 +147,25 @@ Always write entries in the standard format and let the formatter handle long li
 ### Manifest Syntax Rules
 
 1. **Alphabetical order**: Entries MUST be sorted alphabetically by node ID
-2. **Quote special characters**: Values starting with `>`, `<`, or containing `:` must be quoted:
+2. **Quote special characters**: Values containing YAML special characters MUST be quoted to avoid syntax errors:
+   - `>` and `<` - Version comparisons (interpreted as YAML folded/literal block indicators)
+   - `:` - Colons in reasons or descriptions (interpreted as YAML key-value separators)
+   - `#` - Hash symbols (interpreted as YAML comments)
+   - `@`, `!`, `*`, `&`, `|`, `{`, `}`, `[`, `]` - Other YAML reserved characters
+   
+   **Examples:**
    ```yaml
+   # WRONG - will cause YAML parsing errors
+   component_version: >=5.0.0
+   test: irrelevant (Issue: something with colon)
+   
+   # CORRECT - properly quoted
    component_version: '>=5.0.0'
    test: 'irrelevant (Issue: something with colon)'
+   test: "bug (See ticket #123)"
    ```
+   
+   **Tip:** When in doubt, quote the value. Single quotes (`'`) are preferred for version ranges; double quotes (`"`) work too.
 3. **Valid markers only**: Use only `irrelevant`, `bug`, `flaky`, `missing_feature`, `incomplete_test_app`
 4. **JIRA references**: Always include JIRA ticket for `bug` and `flaky` markers
 
