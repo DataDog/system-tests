@@ -407,6 +407,50 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    appsec_apm_standalone = EndToEndScenario(
+        "APPSEC_APM_STANDALONE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
+        agent_env={
+            "DD_CORE_AGENT_ENABLED": "false",
+            "DD_ENABLE_PAYLOADS_EVENTS": "false",
+            "DD_ENABLE_PAYLOADS_SERIES": "false",
+            "DD_ENABLE_PAYLOADS_SERVICE_CHECKS": "false",
+            "DD_ENABLE_PAYLOADS_SKETCHES": "false",
+            "DD_ECS_COLLECT_RESOURCE_TAGS_EC2": "false",
+        },
+        doc="Appsec with APM Standalone (infra opt out)",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_smoke_tests],
+    )
+
+    appsec_standalone_apm_standalone = EndToEndScenario(
+        "APPSEC_STANDALONE_APM_STANDALONE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_TELEMETRY_METRICS_ENABLED": "true",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+        },
+        agent_env={
+            "DD_CORE_AGENT_ENABLED": "false",
+            "DD_ENABLE_PAYLOADS_EVENTS": "false",
+            "DD_ENABLE_PAYLOADS_SERIES": "false",
+            "DD_ENABLE_PAYLOADS_SERVICE_CHECKS": "false",
+            "DD_ENABLE_PAYLOADS_SKETCHES": "false",
+            "DD_ECS_COLLECT_RESOURCE_TAGS_EC2": "false",
+        },
+        doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_smoke_tests],
+    )
+
     # Combined scenario for API Security in standalone mode
     appsec_standalone_api_security = EndToEndScenario(
         "APPSEC_STANDALONE_API_SECURITY",
