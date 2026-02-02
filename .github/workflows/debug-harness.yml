@@ -1,7 +1,6 @@
 name: Run multiple times a scenario to trigger a flake
 
 on:
-  pull_request: {}
   workflow_dispatch:
     inputs:
       library:
@@ -30,10 +29,10 @@ on:
         type: string
 
 env:
-  LIBRARY:      ${{ (github.event_name == 'workflow_dispatch' && inputs.library)     || 'nodejs' }}
-  WEBLOG:       ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)      || 'nextjs' }}
-  SCENARIO:     ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)    || 'DEFAULT' }}
-  JOB_COUNT:    ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)   || '100' }}
+  LIBRARY:      ${{ (github.event_name == 'workflow_dispatch' && inputs.library)     || 'php' }}
+  WEBLOG:       ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)      || 'apache-mod-8.1' }}
+  SCENARIO:     ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)    || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
+  JOB_COUNT:    ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)   || '10' }}
   AGENT_IMAGE:  ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image) || 'datadog/agent:latest' }}
   DEV_OR_PROD:  ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod) || 'prod' }}
 
@@ -58,9 +57,8 @@ jobs:
       - name: Select agent image
         run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
       - name: Get dev artifact
+        if: env.DEV_OR_PROD == 'dev'
         run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
-        env:
-          LIBRARY_TARGET_BRANCH: ccapell/check-discarded-payloads
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
