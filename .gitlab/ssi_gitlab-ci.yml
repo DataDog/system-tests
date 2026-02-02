@@ -81,7 +81,7 @@ ssi_tests:
               aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}/install_script_agent7.sh binaries/
               chmod +x binaries/install_script_agent7.sh
             fi
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 timeout 120 ./build.sh -i runner
+        - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=120 ./build.sh -i runner
         - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
@@ -173,7 +173,7 @@ ssi_tests:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
   script:
-    - SYSTEM_TEST_BUILD_ATTEMPTS=3 timeout 120 ./build.sh -i runner # rebuild runner in case there were changes
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=120 ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate
     - python --version
     - pip freeze
