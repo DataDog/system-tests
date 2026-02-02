@@ -11,11 +11,13 @@ import (
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	ddotellog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
+	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
 	of "github.com/open-feature/go-sdk/openfeature"
 	"go.opentelemetry.io/otel"
 	otellog "go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/metric"
 	otel_trace "go.opentelemetry.io/otel/trace"
 )
 
@@ -28,6 +30,10 @@ type apmClientServer struct {
 	tracer       otel_trace.Tracer
 	ofClient     *of.Client
 	ddProvider   of.FeatureProvider
+	// OTel Metrics
+	mp          metric.MeterProvider
+	meters      map[string]metric.Meter
+	instruments map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
 }
 
 type spanContext struct {
@@ -44,6 +50,11 @@ func newServer() *apmClientServer {
 	if err := ddotellog.Start(context.Background()); err != nil {
 		log.Printf("failed to start OTel logs: %v", err)
 	}
+	mp, err := ddmetric.NewMeterProvider()
+	if err != nil {
+		log.Fatalf("failed to create Datadog OTel MeterProvider: %v", err)
+	}
+	otel.SetMeterProvider(mp)
 
 	s := &apmClientServer{
 		spans:        make(map[uint64]*tracer.Span),
@@ -51,9 +62,11 @@ func newServer() *apmClientServer {
 		otelSpans:    make(map[uint64]spanContext),
 		loggers:      make(map[string]otellog.Logger),
 		tp:           tp,
+		mp:           mp,
+		meters:       make(map[string]metric.Meter),
+		instruments:  make(map[string]interface{}),
 	}
 
-	var err error
 	s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
 	if err != nil {
 		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
@@ -118,6 +131,20 @@ func main() {
 	http.HandleFunc("/otel/logger/create", s.otelLoggerCreateHandler)
 	http.HandleFunc("/otel/logger/write", s.otelLoggerWriteHandler)
 	http.HandleFunc("/log/otel/flush", s.otelLogsFlushHandler)
+	// otel-metrics endpoints:
+	http.HandleFunc("/metrics/otel/get_meter", s.otelGetMeterHandler)
+	http.HandleFunc("/metrics/otel/create_counter", s.otelCreateCounterHandler)
+	http.HandleFunc("/metrics/otel/counter_add", s.otelCounterAddHandler)
+	http.HandleFunc("/metrics/otel/create_updowncounter", s.otelCreateUpDownCounterHandler)
+	http.HandleFunc("/metrics/otel/updowncounter_add", s.otelUpDownCounterAddHandler)
+	http.HandleFunc("/metrics/otel/create_gauge", s.otelCreateGaugeHandler)
+	http.HandleFunc("/metrics/otel/gauge_record", s.otelGaugeRecordHandler)
+	http.HandleFunc("/metrics/otel/create_histogram", s.otelCreateHistogramHandler)
+	http.HandleFunc("/metrics/otel/histogram_record", s.otelHistogramRecordHandler)
+	http.HandleFunc("/metrics/otel/create_asynchronous_counter", s.otelCreateAsynchronousCounterHandler)
+	http.HandleFunc("/metrics/otel/create_asynchronous_updowncounter", s.otelCreateAsynchronousUpDownCounterHandler)
+	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
+	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
