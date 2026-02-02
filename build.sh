@@ -7,11 +7,17 @@ BUILD_TIMEOUT=${SYSTEM_TEST_BUILD_TIMEOUT:=600}  # Default 10 minutes per attemp
 for (( i=1; i<=$ATTEMPT; i++ ))
 do
     echo "== Run build script (attempt $i on $ATTEMPT) with timeout ${BUILD_TIMEOUT}s =="
-    if timeout "$BUILD_TIMEOUT" ./utils/build/build.sh "$@"; then
+
+    # Temporarily disable exit on error to capture the exit code
+    set +e
+    timeout "$BUILD_TIMEOUT" ./utils/build/build.sh "$@"
+    exit_code=$?
+    set -e
+
+    if [ $exit_code -eq 0 ]; then
         exit 0
     fi
 
-    exit_code=$?
     if [ $exit_code -eq 124 ]; then
         echo "⏱️  Attempt $i timed out after ${BUILD_TIMEOUT} seconds"
     else
