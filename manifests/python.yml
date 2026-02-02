@@ -1649,7 +1649,6 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: bug (APMSP-2359)
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:

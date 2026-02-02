@@ -65,6 +65,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
     def setup_stats_aggregation_with_method_and_endpoint(self):
         """Generate multiple requests to create stats"""
         # Generate multiple requests to the same endpoint for aggregation
+        interfaces.library.wait_for_client_side_stats_payload()
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
