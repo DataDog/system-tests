@@ -292,6 +292,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     must_pass_item_count = 0
     for item in items:
+        marker_names = [marker.name for marker in item.iter_markers()]
+        if "skip_if_xfail" in marker_names and "declaration" in marker_names:
+            item.add_marker(pytest.mark.skip())
+
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents
         own_markers = [marker for marker in item.own_markers if marker.name == "scenario"]

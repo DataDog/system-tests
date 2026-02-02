@@ -677,6 +677,12 @@ class EndToEndScenario(DockerScenario):
                 and self.name in ("APPSEC_BLOCKING", "TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
                 ticket="APMSP-2158",
             ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library >= "python@4.3.0-rc1" and self.name == "PROFILING",
+                ticket="APMSP-2590",
+            ),
         ]
 
         self.test_schemas(session, interfaces.library, library_bugs)
@@ -733,6 +739,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$[]",
                 condition=self.library >= "php@1.8.3",
                 ticket="DEBUG-3709",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library >= "python@4.3.0-rc1" and self.name == "PROFILING",
+                ticket="APMSP-2590",
             ),
         ]
         self.test_schemas(session, interfaces.agent, agent_bugs)

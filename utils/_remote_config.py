@@ -240,9 +240,11 @@ def build_debugger_command(probes: list | None, version: int):
 
 
 def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
-    """Send a debugger command. Requires rc_backend_enabled=True on the scenario."""
+    """Send a debugger command."""
     raw_payload = build_debugger_command(probes, version)
-    return send_state(raw_payload, target="backend")
+    # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
+    target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
+    return send_state(raw_payload, target=target)
 
 
 def build_symdb_command(version: int):
@@ -251,9 +253,11 @@ def build_symdb_command(version: int):
 
 
 def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
-    """Send a symbol database command. Requires rc_backend_enabled=True on the scenario."""
+    """Send a symbol database command."""
     raw_payload = build_symdb_command(version)
-    return send_state(raw_payload, target="backend")
+    # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
+    target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
+    return send_state(raw_payload, target=target)
 
 
 def build_apm_tracing_command(
@@ -328,8 +332,126 @@ def send_apm_tracing_command(
         env=env,
     )
 
-    # APM tracing commands are used by debugger scenarios which require rc_backend_enabled=True
-    return send_state(raw_payload, target="backend")
+    # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
+    target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
+    return send_state(raw_payload, target=target)
+
+
+def build_combined_apm_tracing_and_debugger_command(
+    version: int,
+    prev_payloads: list[dict[str, Any]],
+    probes: list | None = None,
+    *,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Build a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
+
+    Remote Config's client_configs field represents the COMPLETE list of configs that should
+    be active. Sending separate payloads causes previously applied configs to be unapplied
+    if they're not in the new client_configs list, regardless of product filtering.
+
+    Returns:
+        A tuple of (rc_command, apm_config). The caller should update prev_payloads with
+        the returned apm_config if tracking state across multiple calls.
+
+    """
+    path_payloads: dict[str, Any] = {}
+
+    # Build new APM_TRACING config by merging with previous config (if any)
+    lib_config: dict[str, str | bool] = {
+        "library_language": "all",
+        "library_version": "latest",
+    }
+
+    # If there's a previous config, inherit its lib_config fields as defaults.
+    # This enables tests to send sequential configs that only specify changed values
+    # (e.g., calling with enabled=None after enabled=True preserves the True value).
+    if prev_payloads:
+        prev_lib_config = prev_payloads[-1].get("lib_config", {})
+        # Copy previous fields, but allow new values to override
+        lib_config |= {
+            key: value
+            for key, value in prev_lib_config.items()
+            if key not in ["library_language", "library_version", "tracing_enabled"]
+        }
+
+    # Apply new values (overriding previous ones)
+    lib_config["tracing_enabled"] = True
+    if dynamic_instrumentation_enabled is not None:
+        lib_config["dynamic_instrumentation_enabled"] = dynamic_instrumentation_enabled
+    if exception_replay_enabled is not None:
+        lib_config["exception_replay_enabled"] = exception_replay_enabled
+    if live_debugging_enabled is not None:
+        lib_config["live_debugging_enabled"] = live_debugging_enabled
+    if code_origin_enabled is not None:
+        lib_config["code_origin_enabled"] = code_origin_enabled
+    if dynamic_sampling_enabled is not None:
+        lib_config["dynamic_sampling_enabled"] = dynamic_sampling_enabled
+
+    apm_config = {
+        "schema_version": "v1.0.0",
+        "action": "enable",
+        "lib_config": lib_config,
+        "service_target": {"service": service_name, "env": env},
+    }
+
+    # Only send the latest APM_TRACING config, not all previous ones
+    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = apm_config
+
+    # Add LIVE_DEBUGGING configs (probes)
+    if probes:
+        for probe in probes:
+            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
+            path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
+            path_payloads[path] = probe
+
+    return _build_base_command(path_payloads, version), apm_config
+
+
+def send_combined_apm_tracing_and_debugger_command(
+    prev_payloads: list[dict[str, Any]],
+    probes: list | None = None,
+    *,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
+    version: int = 1,
+) -> RemoteConfigStateResults:
+    """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
+
+    Note: This function updates prev_payloads in place with the new config, replacing
+    all previous entries. This allows callers to track state across sequential calls.
+    """
+    raw_payload, apm_config = build_combined_apm_tracing_and_debugger_command(
+        version,
+        prev_payloads,
+        probes,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
+    )
+
+    # Update prev_payloads with just the new config (don't accumulate)
+    prev_payloads.clear()
+    prev_payloads.append(apm_config)
+
+    # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
+    target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
+    return send_state(raw_payload, target=target)
 
 
 def _json_to_base64(json_object: dict) -> str:

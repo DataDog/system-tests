@@ -192,10 +192,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             # A human readable version of the stack trace.
             assert span_meta["error.stack"].strip()
 
-    @missing_feature(
-        library="java",
-        reason="The Java tracer normalizing the SQL by replacing literals to reduce resource-name cardinality",
-    )
     def test_not_obfuscate_query(self):
         """All queries come out without obfuscation from tracer library"""
         for db_operation, request in self.get_requests():

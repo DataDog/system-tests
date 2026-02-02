@@ -9,6 +9,7 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -129,7 +130,6 @@ manifest:
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: missing_feature (User blocking not implemented)
   tests/appsec/test_versions.py::Test_Events: v1.2.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.4.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: missing_feature
   tests/appsec/waf/test_addresses.py::Test_Cookies: v1.2.0
@@ -172,7 +172,11 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_XSS: v1.2.0
   tests/appsec/waf/test_telemetry.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/waf/test_truncation.py: missing_feature (WAF truncation metrics not implemented)
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
   tests/debugger/: irrelevant
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
