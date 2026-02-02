@@ -24,13 +24,13 @@ def _setup_baggage_api_request(endpoint: str):
         endpoint,
         params={
             "url": "http://weblog:7777",
-            "baggage_set": "foo=overwrite_value,new_foo=new_value",
+            "baggage_set": "foo_case_sensitive_key=overwrite_value,new_foo=new_value",
             "baggage_remove": "remove_me_key",
         },
         headers={
             "x-datadog-parent-id": "10",
             "x-datadog-trace-id": "2",
-            "baggage": "foo=value_to_be_replaced,FOO=UNTOUCHED,remove_me_key=remove_me_value",
+            "baggage": "foo_case_sensitive_key=value_to_be_replaced,FOO_CASE_SENSITIVE_KEY=UNTOUCHED,remove_me_key=remove_me_value",
         },
     )
 
@@ -44,12 +44,12 @@ def _assert_baggage_api_response(response: requests.Response):
     items = header_str.split(",")
 
     # Expect the following baggage items:
-    # - "foo=overwrite_value (new pair with conflicting case-sensitive key replaces old pair)
-    # - "FOO=BAR (keys are case-sensitive, so it does not get replaced)
+    # - "foo_case_sensitive_key=overwrite_value (new pair with conflicting case-sensitive key replaces old pair)
+    # - "FOO_CASE_SENSITIVE_KEY=UNTOUCHED (keys are case-sensitive, so it does not get replaced)
     # - "new_foo=new_value (new pair added)
     assert len(items) == 3
-    assert "foo=overwrite_value" in items
-    assert "FOO=UNTOUCHED" in items
+    assert "foo_case_sensitive_key=overwrite_value" in items
+    assert "FOO_CASE_SENSITIVE_KEY=UNTOUCHED" in items
     assert "new_foo=new_value" in items
 
 
