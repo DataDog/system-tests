@@ -495,7 +495,11 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: v2.50.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
+    - weblog_declaration:
+        "*": v2.50.0
+    - declaration: irrelevant (DEBUG-4582)
+      component_version: '<=3.28.0'
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_async: flaky (DEBUG-3281)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
     - declaration: bug (DEBUG-2799)
@@ -532,12 +536,8 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: bug (DEBUG-2618)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : bug (DEBUG-2560)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: v3.29.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin::test_inproduct_enablement_code_origin
-  : bug (DEBUG-4637)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v3.29.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
-  : bug (DEBUG-4637)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : bug (DEBUG-4637)
@@ -568,6 +568,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
