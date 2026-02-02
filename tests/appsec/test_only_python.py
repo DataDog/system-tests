@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import context, features, interfaces, scenarios
+from utils import context, features, interfaces, irrelevant, scenarios, scenario_groups
 
 
 @scenarios.appsec_blocking
@@ -15,7 +15,9 @@ from utils import context, features, interfaces, scenarios
 @scenarios.appsec_standalone
 @scenarios.default
 @scenarios.appsec_lambda_default
+@scenario_groups.appsec_smoke_tests
 @features.language_specifics
+@irrelevant(context.library not in ("python", "python_lambda"), reason="specific tests for python tracer")
 class Test_ImportError:
     """Tests to verify that we don't have import errors due to tracer instrumentation."""
 
