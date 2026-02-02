@@ -1016,6 +1016,7 @@ manifest:
       component_version: <3.11.0
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry:
     - declaration: bug (INPLAT-448)
+      component_version: 2.19.1
     - declaration: bug (INPLAT-448)
       component_version: '>=3.0.0-dev'
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
@@ -1495,7 +1496,9 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures::test_tracer_update_sequence: bug (APMRP-360)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures::test_tracer_update_sequence: 
+    - declaration: bug (APMRP-360)
+      component_version: 1.9.2
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject:
