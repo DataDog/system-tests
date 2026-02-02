@@ -232,8 +232,36 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.27.0'
+        sinatra22: '>=2.27.0'
+        uds-rails: '>=2.27.0'
+        rails42: '>=2.27.0'
+        sinatra14: '>=2.27.0'
+        rails52: '>=2.27.0'
+        rails80: '>=2.27.0'
+        rails61: '>=2.27.0'
+        rack: '>=2.27.0'
+        rails72: '>=2.27.0'
+        uds-sinatra: '>=2.27.0'
+        sinatra32: '>=2.27.0'
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        sinatra41: '>=2.27.0'
+        sinatra22: '>=2.27.0'
+        uds-rails: '>=2.27.0'
+        rails42: '>=2.27.0'
+        sinatra14: '>=2.27.0'
+        rails52: '>=2.27.0'
+        rails80: '>=2.27.0'
+        rails61: '>=2.27.0'
+        rack: '>=2.27.0'
+        rails72: '>=2.27.0'
+        uds-sinatra: '>=2.27.0'
+        sinatra32: '>=2.27.0'
   tests/appsec/rasp/test_cmdi.py: missing_feature
   tests/appsec/rasp/test_lfi.py: missing_feature
   tests/appsec/rasp/test_shi.py: missing_feature
@@ -1121,8 +1149,8 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: '>=2.27.0'  # Modified by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
     - declaration: bug (APMAPI-867)
       component_version: <2.27.0
