@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, rfc, weblog
+from utils import features, rfc, weblog
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -29,16 +29,12 @@ class TestSqlInjection(BaseSinkTest):
     def test_insecure(self):
         super().test_insecure()
 
-    @missing_feature(
-        context.weblog_variant in ("fastapi", "flask-poc", "uwsgi-poc", "uds-flask"), reason="Not implemented yet"
-    )
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 500")
     def test_secure(self):
         super().test_secure()
 

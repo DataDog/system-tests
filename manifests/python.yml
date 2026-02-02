@@ -187,6 +187,9 @@ manifest:
     - weblog_declaration:
         '*': v1.18.0
         fastapi: v2.15.0
+  tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection::test_telemetry_metric_instrumented_sink:
+    - declaration: missing_feature (Not implemented yet)
+      weblog: [fastapi, flask-poc, uwsgi-poc, uds-flask]
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
@@ -1709,6 +1712,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
