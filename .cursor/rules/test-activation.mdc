@@ -23,12 +23,15 @@ Does the condition depend ONLY on:
   - Library name (java, python, nodejs, etc.)
   - Library version
   - Weblog variant
+  - Agent version (alone)
 ?
     │
     ├─► YES → Use MANIFEST (preferred)
+    │         - Library conditions → manifests/{library}.yml
+    │         - Agent version conditions → manifests/agent.yml
     │
-    └─► NO (uses context.scenario, context.agent_version, 
-            context.vm_name, or other attributes)
+    └─► NO (uses context.scenario, context.vm_name, 
+            or other attributes, or complex combinations)
             → Use DECORATOR (only option)
 ```
 
@@ -177,6 +180,7 @@ Manifests often define reusable references at the top in a `refs:` section:
 refs:
   - &ref_5_0_0 v5.0.0
   - &ref_5_6_0 '>=5.6.0'
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
 manifest:
   tests/path/test.py::TestClass: *ref_5_0_0
 ```
@@ -187,6 +191,7 @@ manifest:
    - Simple versions: `&ref_5_0_0 v5.0.0`
    - Version ranges: `&ref_5_6_backports '>=5.6.0 || ^4.3.0'`
    - Markers: `&ref_missing missing_feature`
+   - Weblog lists: `&django_weblogs "django-poc, django-py3.13, python3.12"`
 3. **Don't mix reference types**: A version reference should only be used where a version is expected. Never use a version range reference as a `declaration` value or vice versa.
 
 **Example mistake to avoid:**
@@ -200,6 +205,45 @@ tests/path/test.py::TestClass:
 tests/path/test.py::TestClass:
   - declaration: missing_feature (Description)
     component_version: '<5.0.0'
+```
+
+### Advanced Patterns
+
+For more complex scenarios, see @docs/edit/manifest.md#advanced-syntax-examples and test manifests in `tests/test_the_test/manifests/`.
+
+**Weblog filtering with explicit format:**
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+manifest:
+  # Apply to specific weblogs only
+  tests/appsec/iast:
+    - component_version: "<3.11.0"
+      declaration: missing_feature (Description)
+      weblog: *django_weblogs
+
+  # Exclude specific weblogs (apply to all others)
+  tests/appsec/test.py:
+    - excluded_weblog: [django-py3.13, django-poc]
+      component_version: "<3.13.0"
+      declaration: missing_feature
+```
+
+**Directory-level rules:**
+```yaml
+manifest:
+  tests/appsec/iast/sink: missing_feature  # Entire directory
+  tests/appsec/iast/sink/test_specific.py: v2.0.0  # Override for specific file
+```
+
+**Weblog declaration with wildcard and overrides:**
+```yaml
+manifest:
+  tests/path/test.py::TestClass:
+    - weblog_declaration:
+        "*": v2.4.0          # Default for all weblogs
+        fastapi: missing_feature  # Override for fastapi
+        flask-poc: v2.5.0    # Different version for flask
 ```
 
 ### After Modifying Manifests
@@ -223,10 +267,10 @@ If `format.sh` fails, fix the reported issues before committing. You can also ru
 
 Use decorators ONLY when the condition cannot be expressed in manifests:
 - `context.scenario` - Scenario-specific conditions
-- `context.agent_version` - Agent version conditions
 - `context.vm_name` - VM-specific conditions
 - `context.installed_language_runtime` - Runtime version conditions
-- Complex boolean logic combining non-library attributes
+- `context.agent_version` combined with other conditions (agent version alone can use `manifests/agent.yml`)
+- Complex boolean logic combining multiple attributes
 - `force_skip=True` requirement (completely prevents test execution)
 
 ### Decorator Types and Behavior
@@ -273,13 +317,16 @@ from utils import bug, flaky, irrelevant, missing_feature, incomplete_test_app
 def test_something(self):
     pass
 
-# Agent version (cannot use manifest)
-@missing_feature(context.agent_version < "7.50.0", reason="Requires agent 7.50.0+")
+# VM-specific (cannot use manifest)
+@flaky(context.vm_name == "Amazon_Linux_2023_amd64", reason="JIRA-123")
 def test_something(self):
     pass
 
-# VM-specific (cannot use manifest)
-@flaky(context.vm_name == "Amazon_Linux_2023_amd64", reason="JIRA-123")
+# Combined conditions (cannot use manifest - multiple attributes)
+@missing_feature(
+    context.library == "java" and context.agent_version < "7.50.0",
+    reason="Requires agent 7.50.0+ for Java"
+)
 def test_something(self):
     pass
 
@@ -297,15 +344,16 @@ def test_something(self):
 
 | User Request | Use | Format |
 |--------------|-----|--------|
-| "Bug for {library}" | Manifest | `bug (JIRA-XXX)` |
+| "Bug for {library}" | Manifest | `bug (JIRA-XXX)` in `{library}.yml` |
 | "Bug for {library} >= X.Y.Z" | Manifest | Explicit with `component_version` |
 | "Feature available from X.Y.Z" | Manifest | `vX.Y.Z` |
 | "Irrelevant for {library}" | Manifest | `irrelevant (reason)` |
 | "Flaky for {library}" | Manifest | `flaky (JIRA-XXX)` |
 | "Bug on {weblog} variant" | Manifest | `weblog_declaration` format |
+| "Bug for agent version X" | Manifest | Entry in `agent.yml` |
 | "Bug for scenario X" | **Decorator** | `@bug(context.scenario == ...)` |
-| "Bug for agent version X" | **Decorator** | `@bug(context.agent_version ...)` |
 | "Bug on specific VM" | **Decorator** | `@bug(context.vm_name == ...)` |
+| "Bug for agent + library combo" | **Decorator** | Complex condition |
 | "Skip test completely" | **Decorator** | With `force_skip=True` |
 
 ### Common Mistakes to Avoid

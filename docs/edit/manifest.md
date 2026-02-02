@@ -51,6 +51,108 @@ manifest:
     tests/appsec/test_distributed.py::Test_FeatureE: *5_6_and_someid_backports
 ```
 
+## Advanced Syntax Examples
+
+The following examples demonstrate more complex manifest patterns. For reference test manifests, see `tests/test_the_test/manifests/`.
+
+### YAML References for Weblog Groups
+
+Define reusable weblog lists to avoid repetition:
+
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+  - &legacy_weblogs "flask-poc, uwsgi-poc"
+
+manifest:
+  tests/appsec/test_feature.py::Test_Feature:
+    - weblog_declaration:
+        "*": missing_feature
+        *django_weblogs: "v3.12.0.dev"  # All Django variants enabled at this version
+```
+
+### Explicit Format with Weblog Filtering
+
+Use `weblog` or `excluded_weblog` to target specific weblogs with version conditions:
+
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+
+manifest:
+  # Apply to specific weblogs only
+  tests/appsec/iast:
+    - component_version: "<3.11.0"
+      declaration: missing_feature (JIRA-12345 description of the issue)
+      weblog: *django_weblogs
+
+  # Exclude specific weblogs (apply to all others)
+  tests/appsec/api_security/test_endpoint_discovery.py:
+    - excluded_weblog: [django-py3.13, django-poc, python3.12]
+      component_version: "<3.13.0-dev"
+      declaration: missing_feature
+
+  # Target a single weblog
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Discovery:
+    - weblog: django-poc
+      component_version: "<3.12.0-dev"
+      declaration: missing_feature
+```
+
+### Weblog Lists in Explicit Format
+
+Combine YAML references with arrays:
+
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+
+manifest:
+  tests/appsec/iast/test:
+    - component_version: "<3.11.0"
+      declaration: irrelevant
+      weblog: [*django_weblogs, fastapi]  # Combines reference with additional weblog
+```
+
+### Directory-Level Rules
+
+Apply rules to entire directories:
+
+```yaml
+manifest:
+  # All tests in the sink subdirectory
+  tests/appsec/iast/sink: "missing_feature"
+  
+  # More specific rules override directory rules
+  tests/appsec/iast/sink/test_specific.py: "v2.0.0"
+```
+
+### Combining Weblog Declaration with Wildcard Override
+
+```yaml
+manifest:
+  tests/appsec/api_security/test_schemas.py::Test_Scanners:
+    - weblog_declaration:
+        "*": "v2.4.0"        # Default: enabled from v2.4.0
+        fastapi: missing_feature  # Override: not yet implemented for fastapi
+
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
+    - weblog_declaration:
+        "*": "v2.1.0"        # Default version
+        fastapi: "v2.5.0"    # Fastapi needs a later version
+```
+
+### Agent Manifest Examples
+
+The `agent.yml` manifest uses the same syntax for agent version conditions:
+
+```yaml
+manifest:
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: "v7.48.0"
+  tests/test_sampling_rates.py::Test_SamplingRates: "v7.33.0"
+  tests/test_telemetry.py::Test_APMOnboardingInstallID: "v7.50.0"
+```
+
 #### Notes
 - The wildcard `*` is supported for weblog declarations. This will associate missing_feature/bug/flaky/etc. marking to all unspecified weblog variables.
 - Manifests support the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
