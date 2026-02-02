@@ -901,11 +901,14 @@ manifest:
         "*": v1.14.0
         fastapi: v2.4.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: v3.3.0.dev
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.14.0
   ? tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess::test_crash_no_zombie
   : flaky (APMLP-313)
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.14.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual::test_install:
     - declaration: irrelevant (Avoid blocking 2.21 release pipeline)
       component_version: <3.0.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.14.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: irrelevant (PROF-11296)
       component_version: <3.0.0
