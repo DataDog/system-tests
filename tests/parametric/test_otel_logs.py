@@ -84,15 +84,6 @@ def otlp_endpoint_library_env(
         )
 
     port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
-    # For OTEL_EXPORTER_OTLP_ENDPOINT, don't add a path - the SDK appends /v1/logs
-    # For OTEL_EXPORTER_OTLP_LOGS_ENDPOINT, add /v1/logs as it's the signal-specific endpoint
-    # For grpc, use "/" as the path
-    # if protocol == "grpc":
-    #     path = "/"
-    # elif endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT":
-    #     path = ""
-    # else:
-    #     path = "/v1/logs"
     path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/logs"
 
     library_env[endpoint_env] = f"http://{test_agent.container_name}:{port}{path}"
@@ -830,8 +821,8 @@ class Test_FR12_Log_Levels:
             ),
             (
                 {"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None},
-                LogLevel.WARNING,
-                "WARN",  # Python uses "WARN" instead of "WARNING"
+                LogLevel.WARN,
+                "WARN",
                 "SEVERITY_NUMBER_WARN",
             ),
             (

@@ -15,6 +15,7 @@ import (
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
 	of "github.com/open-feature/go-sdk/openfeature"
 	"go.opentelemetry.io/otel"
+	otellog "go.opentelemetry.io/otel/log"
 	otel_trace "go.opentelemetry.io/otel/trace"
 )
 
@@ -22,6 +23,7 @@ type apmClientServer struct {
 	spans        map[uint64]*tracer.Span
 	spanContexts map[uint64]*tracer.SpanContext
 	otelSpans    map[uint64]spanContext
+	loggers      map[string]otellog.Logger
 	tp           *ddotel.TracerProvider
 	tracer       otel_trace.Tracer
 	ofClient     *of.Client
@@ -33,12 +35,13 @@ type spanContext struct {
 	ctx  context.Context
 }
 
+
 func newServer() *apmClientServer {
 	tp := ddotel.NewTracerProvider()
 	otel.SetTracerProvider(tp)
 
 	// Initialize OTel logs if DD_LOGS_OTEL_ENABLED is set
-	if err := ddotellog.StartIfEnabled(context.Background()); err != nil {
+	if err := ddotellog.Start(context.Background()); err != nil {
 		log.Printf("failed to start OTel logs: %v", err)
 	}
 
@@ -46,6 +49,7 @@ func newServer() *apmClientServer {
 		spans:        make(map[uint64]*tracer.Span),
 		spanContexts: make(map[uint64]*tracer.SpanContext),
 		otelSpans:    make(map[uint64]spanContext),
+		loggers:      make(map[string]otellog.Logger),
 		tp:           tp,
 	}
 
@@ -67,6 +71,10 @@ func main() {
 	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
+		// Shutdown OTel logger provider on exit
+		if err := ddotellog.Stop(); err != nil {
+			log.Printf("failed to stop OTel logs: %v", err)
+		}
 		if err := recover(); err != nil {
 			log.Print("encountered unexpected panic", err)
 		}
@@ -107,7 +115,8 @@ func main() {
 	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
 
 	// otel-logs endpoints:
-	http.HandleFunc("/log/write", s.logWriteHandler)
+	http.HandleFunc("/otel/logger/create", s.otelLoggerCreateHandler)
+	http.HandleFunc("/otel/logger/write", s.otelLoggerWriteHandler)
 	http.HandleFunc("/log/otel/flush", s.otelLogsFlushHandler)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
