@@ -11,7 +11,6 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel/attribute"
 	otellog "go.opentelemetry.io/otel/log"
-	sdklog "go.opentelemetry.io/otel/sdk/log"
 )
 
 // otelLoggerCreateHandler handles the /otel/logger/create endpoint
@@ -90,6 +89,15 @@ func (s *apmClientServer) otelLoggerWriteHandler(w http.ResponseWriter, r *http.
 	}
 	defer r.Body.Close()
 
+	// Check if OTel logs are enabled
+	provider := ddotellog.GetGlobalLoggerProvider()
+	if provider == nil {
+		// OTel logs not enabled - return success without emitting log
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(&LogGenerateReturn{Success: true})
+		return
+	}
+
 	// Check if logger exists in registry
 	logger, exists := s.loggers[args.LoggerName]
 	if !exists {
@@ -156,21 +164,14 @@ func (s *apmClientServer) writeLog(args LogGenerateArgs, logger otellog.Logger) 
 	logger.Emit(ctx, record)
 
 	// Force flush to ensure the log is exported immediately (tests expect immediate availability)
-	provider := ddotellog.GetGlobalLoggerProvider()
-	if provider != nil {
-		// Try to type-assert to SDK LoggerProvider which has ForceFlush
-		if sdkProvider, ok := provider.(*sdklog.LoggerProvider); ok {
-			flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if err := sdkProvider.ForceFlush(flushCtx); err != nil {
-				return fmt.Errorf("failed to flush logs: %w", err)
-			}
-		}
+	flushCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := ddotellog.ForceFlush(flushCtx); err != nil {
+		return fmt.Errorf("failed to flush logs: %w", err)
 	}
 
 	return nil
 }
-
 
 // otelLogsFlushHandler handles the /log/otel/flush endpoint
 func (s *apmClientServer) otelLogsFlushHandler(w http.ResponseWriter, r *http.Request) {
@@ -181,50 +182,27 @@ func (s *apmClientServer) otelLogsFlushHandler(w http.ResponseWriter, r *http.Re
 	}
 	defer r.Body.Close()
 
-	// Get the logger provider from dd-trace-go
-	loggerProvider := ddotellog.GetGlobalLoggerProvider()
-	if loggerProvider == nil {
-		// OTel logs not enabled
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(&OtelLogsFlushReturn{
-			Success: true,
-			Message: "nil (OTel logs not enabled)",
-		})
-		return
+	// Set timeout for flush operation
+	timeout := time.Duration(args.Seconds) * time.Second
+	if timeout == 0 {
+		timeout = 5 * time.Second
 	}
-	providerName := fmt.Sprintf("%T", loggerProvider)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
-	// Try to type-assert to SDK LoggerProvider which has ForceFlush
-	if sdkProvider, ok := loggerProvider.(*sdklog.LoggerProvider); ok {
-		timeout := time.Duration(args.Seconds) * time.Second
-		if timeout == 0 {
-			timeout = 5 * time.Second
-		}
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-
-		if err := sdkProvider.ForceFlush(ctx); err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(&OtelLogsFlushReturn{
-				Success: false,
-				Message: fmt.Sprintf("Error flushing logs: %v", err),
-			})
-			return
-		}
+	// Use package-level ForceFlush function
+	if err := ddotellog.ForceFlush(ctx); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(&OtelLogsFlushReturn{
-			Success: true,
-			Message: providerName,
+			Success: false,
+			Message: fmt.Sprintf("Error flushing logs: %v", err),
 		})
 		return
 	}
 
-	// If we can't type-assert, return success anyway (provider may handle flushing internally)
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(&OtelLogsFlushReturn{
+	json.NewEncoder(w).Encode(&OtelLogsFlushReturn{
 		Success: true,
-		Message: providerName,
-	}); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+		Message: "flushed",
+	})
 }
