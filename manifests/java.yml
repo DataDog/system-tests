@@ -218,7 +218,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        # vertx3: '>=1.58.2+06122213c8' -> Needs to be checked
+        vertx3: '>=1.58.2+06122213c8' # Needs to be checked
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
     - weblog_declaration:
         "*": v1.51.0-SNAPSHOT
@@ -1034,7 +1034,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
+        vertx3: '>=1.58.2+06122213c8' # Needs to be checked
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
@@ -1064,11 +1064,11 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
+        vertx3: '>=1.58.2+06122213c8' # Needs to be checked
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
+        vertx3: '>=1.58.2+06122213c8' # Needs to be checked
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -1358,7 +1358,7 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        vertx3: v1.58.2+06122213c8  # Modified by easy win activation script
+        vertx3: v1.58.2  # Modified by easy win activation script -  Needs to be checked
         vertx4: missing_feature (APPSEC-55781)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
@@ -2075,23 +2075,10 @@ manifest:
     - weblog_declaration:
         "*": v1.51.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability:  # Modified by easy win activation script
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability:
     - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
-        ratpack: '>=1.58.2+06122213c8'
-        spring-boot-wildfly: '>=1.58.2+06122213c8'
-        resteasy-netty3: '>=1.58.2+06122213c8'
-        vertx4: '>=1.58.2+06122213c8'
-        spring-boot-jetty: '>=1.58.2+06122213c8'
-        jersey-grizzly2: '>=1.58.2+06122213c8'
-        spring-boot: '>=1.58.2+06122213c8'
-        spring-boot-undertow: '>=1.58.2+06122213c8'
-        akka-http: '>=1.58.2+06122213c8'
-        spring-boot-openliberty: '>=1.58.2+06122213c8'
-        play: '>=1.58.2+06122213c8'
-        uds-spring-boot: '>=1.58.2+06122213c8'
-        spring-boot-payara: '>=1.58.2+06122213c8'
+        '*': 1.58.2
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
     - weblog_declaration:
         "*": v1.42.0
