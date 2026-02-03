@@ -8,8 +8,9 @@ use axum::{
     Json, Router,
 };
 use opentelemetry::{
+    global,
     logs::{LoggerProvider, Logger, LogRecord, Severity, AnyValue},
-    metrics::{Counter, Gauge, Histogram, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
+    metrics::{Counter, Gauge, Histogram, Meter, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
     trace::{Link, Span, TraceContextExt, Tracer},
     Context, InstrumentationScope, KeyValue,
 };
@@ -397,12 +398,27 @@ async fn otel_get_meter(
     Json(args): Json<OtelGetMeterArgs>,
 ) -> Json<OtelGetMeterReturn> {
     let mut meters = state.otel_meters.lock().unwrap();
+    // Store meters by name only, matching the behavior of other language implementations
     if !meters.contains_key(&args.name) {
-        if let Some(meter_provider) = state.meter_provider.lock().unwrap().as_ref() {
-            let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
-            let meter = meter_provider.meter(name_static);
-            meters.insert(args.name.clone(), meter);
+        // Use global meter provider configured by init_metrics(), matching Python's get_meter_provider() behavior
+        let meter_provider = global::meter_provider();
+        let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
+
+        // Create InstrumentationScope with name, version, and schema_url
+        // Let the SDK handle attributes internally - no custom parsing needed
+        let mut scope_builder = InstrumentationScope::builder(name_static);
+        if let Some(version) = args.version.as_ref() {
+            scope_builder = scope_builder.with_version(version.clone());
         }
+        if let Some(schema_url) = args.schema_url.as_ref() {
+            scope_builder = scope_builder.with_schema_url(schema_url.clone());
+        }
+        // Note: attributes are handled by the SDK internally, similar to Python's get_meter()
+        let scope = scope_builder.build();
+
+        // Use meter_with_scope() to include version and schema_url
+        let meter = meter_provider.meter_with_scope(scope);
+        meters.insert(args.name.clone(), meter);
     }
     Json(OtelGetMeterReturn {})
 }
