@@ -123,7 +123,7 @@ manifest:
         spring-boot-openliberty: v1.52.0
         uds-spring-boot: v1.52.0
         spring-boot-payara: v1.52.0
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication:  # Created by easy win activation script
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication:
     - weblog_declaration:
         spring-boot: irrelevant (Not applicable to weblog variant)
         spring-boot-undertow: irrelevant (Not applicable to weblog variant)
@@ -132,14 +132,15 @@ manifest:
         spring-boot-wildfly: irrelevant (Not applicable to weblog variant)
         uds-spring-boot: irrelevant (Not applicable to weblog variant)
         spring-boot-jetty: irrelevant (Not applicable to weblog variant)
-  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code:  # Created by easy win activation script
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code:
     - weblog_declaration:
-        spring-boot-undertow: missing_feature
-        spring-boot-openliberty: missing_feature
-        spring-boot-payara: missing_feature
-        spring-boot-wildfly: missing_feature
-        uds-spring-boot: missing_feature
-        spring-boot-jetty: missing_feature
+        spring-boot: irrelevant (Not applicable to weblog variant)
+        spring-boot-undertow: irrelevant (Not applicable to weblog variant)
+        spring-boot-openliberty: irrelevant (Not applicable to weblog variant)
+        spring-boot-payara: irrelevant (Not applicable to weblog variant)
+        spring-boot-wildfly: irrelevant (Not applicable to weblog variant)
+        uds-spring-boot: irrelevant (Not applicable to weblog variant)
+        spring-boot-jetty: irrelevant (Not applicable to weblog variant)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:

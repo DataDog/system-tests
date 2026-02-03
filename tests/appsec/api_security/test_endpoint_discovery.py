@@ -153,13 +153,6 @@ class Test_Endpoint_Discovery:
         """Setup for optional response code test."""
         self.main_setup()
 
-    @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("java", "spring-boot"),
-        ],
-        reason="Not applicable to weblog variant",
-    )
     @irrelevant(context.library in ["dotnet", "nodejs", "ruby"], reason="Not supported")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
