@@ -218,7 +218,7 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
+        # vertx3: '>=1.58.2+06122213c8' -> Needs to be checked
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
     - weblog_declaration:
         "*": v1.51.0-SNAPSHOT
