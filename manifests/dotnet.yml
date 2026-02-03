@@ -806,6 +806,8 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: missing_feature
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: v3.6.0
+  tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: bug (APMAPI-1849)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v3.6.0
