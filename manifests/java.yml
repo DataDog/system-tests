@@ -117,12 +117,12 @@ manifest:
         "*": missing_feature
         spring-boot: v1.52.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-wildfly: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-jetty: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-undertow: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
-        uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
+        spring-boot-wildfly: v1.52.0
+        spring-boot-jetty: v1.52.0
+        spring-boot-undertow: v1.52.0
+        spring-boot-openliberty: v1.52.0
+        uds-spring-boot: v1.52.0
+        spring-boot-payara: v1.52.0
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-undertow: missing_feature
