@@ -566,7 +566,7 @@ manifest:
         "*": v1.36.0
         gin: v1.37.0
   tests/appsec/waf/test_reports.py::Test_Monitoring: v1.38.0
-  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: bug (LANGPLAT-584)
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: irrelevant (expected tags were deprecated by rfc1025)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once:
     - declaration: irrelevant (replaced by test_waf_monitoring_once_rfc1025)
       component_version: '>=2.1.0-dev'
