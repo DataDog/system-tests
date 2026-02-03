@@ -484,8 +484,8 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_RFI: v1.28.6
   tests/appsec/waf/test_rules.py::Test_SSRF: v1.28.6
   tests/appsec/waf/test_rules.py::Test_Scanners: v1.28.6
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
-  tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: v3.37.0
+  tests/appsec/waf/test_truncation.py::Test_Truncation: v3.37.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: bug (PROF-12209)
