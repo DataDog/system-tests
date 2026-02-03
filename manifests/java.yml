@@ -90,7 +90,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities:
     - weblog_declaration:
         "*": v1.55.0
-        akka-http: v1.58.2+06122213c8  # Modified by easy win activation script
+        akka-http: v1.58.2
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
     - weblog_declaration:
