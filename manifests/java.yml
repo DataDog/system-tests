@@ -2173,45 +2173,19 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:  # Modified by easy win activation script
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:
     - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
-        ratpack: '>=1.58.2+06122213c8'
-        spring-boot-wildfly: '>=1.58.2+06122213c8'
-        resteasy-netty3: '>=1.58.2+06122213c8'
-        vertx4: '>=1.58.2+06122213c8'
-        spring-boot-jetty: '>=1.58.2+06122213c8'
-        jersey-grizzly2: '>=1.58.2+06122213c8'
-        spring-boot: '>=1.58.2+06122213c8'
-        spring-boot-undertow: '>=1.58.2+06122213c8'
-        akka-http: '>=1.58.2+06122213c8'
-        spring-boot-openliberty: '>=1.58.2+06122213c8'
-        play: '>=1.58.2+06122213c8'
-        uds-spring-boot: '>=1.58.2+06122213c8'
-        spring-boot-payara: '>=1.58.2+06122213c8'
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event:  # Created by easy win activation script
+        '*': 1.58.2
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event:  # Created by easy win activation script -> Needs to be checked
     - weblog_declaration:
         akka-http: missing_feature
         play: missing_feature
         jersey-grizzly2: missing_feature
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability:  # Modified by easy win activation script
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability:
     - weblog_declaration:
-        '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'
-        ratpack: '>=1.58.2+06122213c8'
-        spring-boot-wildfly: '>=1.58.2+06122213c8'
-        resteasy-netty3: '>=1.58.2+06122213c8'
-        vertx4: '>=1.58.2+06122213c8'
-        spring-boot-jetty: '>=1.58.2+06122213c8'
-        jersey-grizzly2: '>=1.58.2+06122213c8'
-        spring-boot: '>=1.58.2+06122213c8'
-        spring-boot-undertow: '>=1.58.2+06122213c8'
-        akka-http: '>=1.58.2+06122213c8'
-        spring-boot-openliberty: '>=1.58.2+06122213c8'
-        play: '>=1.58.2+06122213c8'
-        uds-spring-boot: '>=1.58.2+06122213c8'
-        spring-boot-payara: '>=1.58.2+06122213c8'
+        '*': 1.58.2
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
     - weblog_declaration:
         "*": v0.104.0
