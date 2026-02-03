@@ -151,10 +151,7 @@ manifest:
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace:
-    - weblog_declaration:
-        "*": v3.9.0.dev
-        tornado: v4.4.0.rc
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
@@ -165,10 +162,7 @@ manifest:
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace:
-    - weblog_declaration:
-        "*": v3.9.0.dev
-        tornado: v4.4.0.rc
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
         "*": v1.19.0
@@ -176,10 +170,7 @@ manifest:
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink: v3.1.0
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace:
-    - weblog_declaration:
-        "*": v3.9.0.dev
-        tornado: v4.4.0.rc
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_StackTrace: missing_feature
@@ -239,27 +230,16 @@ manifest:
     - weblog_declaration:
         "*": v1.18.0
         fastapi: v2.15.0
-        tornado: v4.4.0.rc
-  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation:
-    - weblog_declaration:
-        "*": v3.1.0.dev
-        tornado: v4.4.0.rc
-  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace:
-    - weblog_declaration:
-        "*": v3.9.0.dev
-        tornado: v4.4.0.rc
+  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation: v3.1.0.dev
+  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication:
     - weblog_declaration:
         "*": v1.18.0
-        tornado: v4.4.0.rc
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash:
     - weblog_declaration:
         "*": v1.18.0
   tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_ExtendedLocation: v3.1.0.dev
-  tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_StackTrace:
-    - weblog_declaration:
-        "*": v3.9.0.dev
-        tornado: v4.4.0.rc
+  tests/appsec/iast/sink/test_weak_hash.py::TestWeakHash_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness:
     - weblog_declaration:
         "*": v2.0.0
@@ -331,10 +311,7 @@ manifest:
         *flask: v3.11.0.dev
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
-  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema:
-    - weblog_declaration:
-        "*": v3.8.0.dev
-        tornado: v4.4.0.rc
+  tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
