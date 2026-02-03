@@ -259,6 +259,7 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v3.26.3
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v2.51.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v3.4.1
+  tests/appsec/test_agent_level_smoke_tests.py: missing_feature
   tests/appsec/test_alpha.py::Test_Basic: v1.28.6
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.17.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0

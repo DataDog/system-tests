@@ -42,6 +42,7 @@ manifest:
   tests/appsec/iast/test_security_controls.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/rasp/: irrelevant (ASM is not implemented in C++)
+  tests/appsec/test_agent_level_smoke_tests.py: missing_feature
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.7.0
