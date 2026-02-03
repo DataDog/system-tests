@@ -79,7 +79,7 @@ class ActivationStatus(enum.Enum):
 
 @dataclass
 class TestData:
-    xpass_nodes: list[str] = field(default_factory=list)
+    xpass_nodes: set[str] = field(default_factory=set)
     trie: StringTrie = field(default_factory=StringTrie)
     nodeid_to_owners: dict[str, set[str]] = field(default_factory=dict)
 
@@ -139,7 +139,9 @@ def parse_artifact_data(
 
                 nodeid = test["nodeid"].split("[")[0]
                 if outcome == "xpassed":
-                    test_data[context].xpass_nodes.append(nodeid)
+                    test_data[context].xpass_nodes.add(nodeid)
+                elif nodeid in test_data[context].xpass_nodes:
+                    test_data[context].xpass_nodes.remove(nodeid)
                 nodeid = nodeid.replace("::", "/") + "/"
                 parts = re.finditer("/", nodeid)
                 for part in parts:
