@@ -817,8 +817,8 @@ class Test_FR12_Log_Levels:
             ),
             (
                 {"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None},
-                LogLevel.WARNING,
-                "WARN",  # Python uses "WARN" instead of "WARNING"
+                LogLevel.WARN,
+                "WARN",
                 "SEVERITY_NUMBER_WARN",
             ),
             (

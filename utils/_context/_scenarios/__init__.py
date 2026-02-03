@@ -747,9 +747,10 @@ class _Scenarios:
     debugger_inproduct_enablement = EndToEndScenario(
         "DEBUGGER_INPRODUCT_ENABLEMENT",
         rc_api_enabled=True,
-        rc_backend_enabled=True,
+        rc_backend_enabled=False,
         weblog_env={
-            "DD_APM_TRACING_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
+            "DD_TRACE_FLUSH_INTERVAL": "100",
         },
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",
@@ -1162,7 +1163,7 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.ai_guard],
     )
 
 

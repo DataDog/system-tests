@@ -1,7 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.59.0
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -127,6 +130,9 @@ manifest:
         spring-boot-payara: v1.54.0-SNAPSHOT+c2aec92b86
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
+  tests/appsec/api_security/test_schemas.py::Test_Scanners::test_request_method:
+    - component_version: ">=1.58.2"
+      declaration: flaky (APPSEC-61042)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
     - weblog_declaration:
         "*": v1.31.0
@@ -171,6 +177,9 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters::test_request_method:
+    - component_version: ">=1.58.2"
+      declaration: flaky (APPSEC-61042)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
     - weblog_declaration:
         "*": v1.31.0
@@ -803,6 +812,8 @@ manifest:
   tests/appsec/iast/source/test_body.py::TestRequestBody::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.9.0
+    - declaration: bug (APMRP-360)
+      component_version: '>=1.13.0 <1.17.0'
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName:
     - weblog_declaration:
         "*": v1.4.0
@@ -819,6 +830,8 @@ manifest:
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.9.0
+    - declaration: bug (APMRP-360)
+      component_version: '>=1.16.0 <1.22.0'
   tests/appsec/iast/source/test_cookie_value.py::TestCookieValue:
     - weblog_declaration:
         "*": v1.10.0
@@ -1376,6 +1389,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: bug (APPSEC-56870)
         vertx4: bug (APPSEC-56871)
+    - declaration: flaky (APPSEC-60872)
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0
   : - weblog_declaration:
         akka-http: bug (APPSEC-55001)
@@ -2091,6 +2105,8 @@ manifest:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+    - declaration: bug (APMRP-360)
+      component_version: 1.6.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
     - weblog_declaration:
         "*": v0.115.0
@@ -2112,6 +2128,8 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature (endpoint not implemented)
         vertx4: missing_feature (endpoint not implemented)
+    - declaration: bug (APPSEC-10243)
+      component_version: <1.29.0
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_track_shell_exec: irrelevant (No method for shell execution in Java)
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_1st_argument: bug (APPSEC-55672)
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_blank_2nd_argument: bug (APPSEC-55672)
@@ -2173,6 +2191,8 @@ manifest:
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist::test_blocking_test:
     - weblog_declaration:
         spring-boot-payara: bug (APPSEC-56006)
+    - declaration: bug (APMRP-360)
+      component_version: '>=1.22.0 <1.35.0'
   tests/appsec/test_versions.py::Test_Events: v0.90.0
   tests/appsec/test_versions.py::Test_Events::test_appsec_in_traces:
     - declaration: missing_feature
@@ -2445,6 +2465,9 @@ manifest:
     - declaration: bug (APPSEC-51509)
       component_version: <1.29.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.12.0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.12.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.12.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
@@ -2495,6 +2518,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
+    - declaration: bug (DEBUG-3390)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -2662,6 +2686,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant

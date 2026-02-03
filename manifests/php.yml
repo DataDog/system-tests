@@ -440,8 +440,11 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_XSS: v0.68.3
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: v1.9.0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: v1.9.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
@@ -464,6 +467,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         apache-mod-8.0: v1.8.3
+    - declaration: flaky (DEBUG-3814)
+      component_version: '>1.8.3'
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
@@ -472,6 +477,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature

@@ -508,7 +508,7 @@ class TestDynamicConfigV1:
         There is no way (at the time of writing) to check the logs produced by the library.
         """
         assert test_library.is_alive(), "library container is not alive"
-        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
+        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
         assert cfg_state["apply_state"] == 2
 
 
@@ -705,7 +705,7 @@ class TestDynamicConfigV2:
         assert_trace_has_tags(traces[0], expected_local_tags)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_tracing_sample_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_capability_tracing_sampling_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rate capability."""
         assert test_library.is_alive(), "library container is not alive"
         test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
