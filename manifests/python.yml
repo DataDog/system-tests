@@ -22,7 +22,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": v3.18.1
+        "flask-poc": v4.0.0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -901,11 +901,14 @@ manifest:
         "*": v1.14.0
         fastapi: v2.4.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: v3.3.0.dev
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.14.0
   ? tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess::test_crash_no_zombie
   : flaky (APMLP-313)
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v1.14.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManual::test_install:
     - declaration: irrelevant (Avoid blocking 2.21 release pipeline)
       component_version: <3.0.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.14.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: irrelevant (PROF-11296)
       component_version: <3.0.0
@@ -1013,6 +1016,7 @@ manifest:
       component_version: <3.11.0
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry:
     - declaration: bug (INPLAT-448)
+      component_version: 2.19.1
     - declaration: bug (INPLAT-448)
       component_version: '>=3.0.0-dev'
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
@@ -1492,7 +1496,9 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures::test_tracer_update_sequence: bug (APMRP-360)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures::test_tracer_update_sequence:
+    - declaration: bug (APMRP-360)
+      component_version: 1.9.2
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject:
