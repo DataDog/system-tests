@@ -4,7 +4,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.59.0-SNAPSHOT
+        "spring-boot": v1.59.0
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
