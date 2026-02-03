@@ -1439,12 +1439,8 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_39_0
         nextjs: irrelevant
-  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
-    - declaration: missing_feature (Not implemented yet)
-      component_version: <5.66.0
-  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
-    - declaration: missing_feature (Not implemented yet)
-      component_version: <5.66.0
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata: *ref_5_77_0
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi: *ref_5_77_0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:

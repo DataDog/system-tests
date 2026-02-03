@@ -565,13 +565,9 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.53.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co: missing_feature (feature not implemented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: flaky (DEBUG-3322)
-  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
-    - declaration: missing_feature (Not implemented yet)
-      component_version: <3.22.0
-  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
-    - declaration: missing_feature (Not implemented yet)
-      component_version: <3.22.0
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata: v3.36.0
+  tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi: v3.36.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature (feature not implemented)
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
