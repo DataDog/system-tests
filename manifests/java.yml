@@ -2085,22 +2085,8 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v1.58.2
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        vertx3: v1.58.2+06122213c8  # Modified by easy win activation script
-        ratpack: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-wildfly: v1.58.2+06122213c8  # Modified by easy win activation script
-        resteasy-netty3: v1.58.2+06122213c8  # Modified by easy win activation script
-        vertx4: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-jetty: v1.58.2+06122213c8  # Modified by easy win activation script
-        jersey-grizzly2: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-undertow: v1.58.2+06122213c8  # Modified by easy win activation script
-        akka-http: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
-        play: v1.58.2+06122213c8  # Modified by easy win activation script
-        uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
-        spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
     - weblog_declaration:
