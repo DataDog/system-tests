@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y curl
 RUN python --version && curl --version
 
 # install python deps
-RUN pip install --upgrade pip
-RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 psycopg2-binary packaging==25.0 itsdangerous xmltodict==0.14.2
+COPY utils/build/docker/python/fastapi/requirements-fastapi.txt /tmp/fastapi-requirements.txt
+RUN pip install --upgrade pip && pip install -r /tmp/fastapi-requirements.txt
 
 RUN mkdir app
 WORKDIR /app
 
-# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v7 .
-# docker push datadog/system-tests:fastapi.base-v7
+# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v8 .
+# docker push datadog/system-tests:fastapi.base-v8

@@ -73,9 +73,8 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         c.close()
         logger.info(f"Successfully downloaded all folders from {vm.get_ip()}")
 
-    except Exception as e:
-        logger.error(f"Cannot download folders from remote machine {vm.get_ip()}")
-        logger.exception(e)
+    except Exception:
+        logger.error("Cannot download folders from remote machine")
 
 
 def _download_folder_recursive(sftp, remote_dir, local_dir):
@@ -96,6 +95,5 @@ def _download_folder_recursive(sftp, remote_dir, local_dir):
                 logger.info(f"Downloading file: {remote_path} -> {local_path}")
                 sftp.get(remote_path, str(local_path))
 
-    except Exception as e:
+    except Exception:
         logger.error(f"Error downloading from {remote_dir}")
-        logger.exception(e)

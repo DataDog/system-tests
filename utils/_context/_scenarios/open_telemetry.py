@@ -80,6 +80,7 @@ class OpenTelemetryScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
         self._check_env_vars()
+
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
@@ -100,6 +101,13 @@ class OpenTelemetryScenario(DockerScenario):
         if not self.replay:
             self.warmups.insert(0, self._start_interface_watchdog)
             self.warmups.append(self._wait_for_app_readiness)
+
+        self.warmups.append(self._set_components)
+
+    def _set_components(self):
+        self.components["agent"] = self.agent_version
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
@@ -126,6 +134,10 @@ class OpenTelemetryScenario(DockerScenario):
         observer.start()
 
     def _wait_for_app_readiness(self):
+        supported_libraries = ("java_otel", "nodejs_otel", "python_otel")
+        if self.library.name not in supported_libraries:
+            pytest.exit(f"{self.name} scenario support only thoses libraries: {supported_libraries}", 1)
+
         if self.use_proxy:
             logger.debug("Wait for app readiness")
 
@@ -134,7 +146,24 @@ class OpenTelemetryScenario(DockerScenario):
             logger.debug("Open telemetry ready")
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
-        if self.use_proxy:
+        if self.replay:
+            logger.terminal.write(
+                "\nReplay mode is not fully functional for this scenario, you may encounter errors\n",
+                bold=True,
+                red=True,
+            )
+            logger.terminal.write_sep("-", "Load all data from logs")
+            logger.terminal.flush()
+
+            interfaces.open_telemetry.load_data_from_logs()
+            interfaces.open_telemetry.check_deserialization_errors()
+
+            if self.include_agent:
+                interfaces.agent.load_data_from_logs()
+                interfaces.agent.check_deserialization_errors()
+
+            interfaces.backend.load_data_from_logs()
+        elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
@@ -153,13 +182,13 @@ class OpenTelemetryScenario(DockerScenario):
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         if self.include_intake:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")
-            ), "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
+                "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            )
         if self.include_collector:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")
-            ), "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            assert all(key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")), (
+                "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            )
 
     @property
     def library(self):
@@ -172,3 +201,8 @@ class OpenTelemetryScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.weblog_container.weblog_variant
+
+    def get_libraries(self) -> set[str] | None:
+        # return {"python_otel", "java_otel", "nodejs_otel"}
+        # nodejs_otel is broken since a while
+        return {"python_otel", "java_otel"}

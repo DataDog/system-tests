@@ -1,15 +1,15 @@
 import json
 
 import pytest
-from utils import bug, context, scenarios, features
-from utils.parametric.spec.trace import MANUAL_DROP_KEY
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
-from utils.parametric.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
-from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
-from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
-from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils import scenarios, features
+from utils.docker_fixtures.spec.trace import MANUAL_DROP_KEY
+from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_AGENT_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import SAMPLING_DECISION_MAKER_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
+from utils.docker_fixtures.spec.trace import SAMPLING_RULE_PRIORITY_RATE
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -75,23 +75,14 @@ def _assert_sampling_tags(
             _assert_equal(parent_span.get("metrics", {}).get(rate_key), None, description=description)
         assert rate_key not in child_span.get("metrics", {}), "non-root spans should never include _dd.*_psr tags"
     if child_span != first_span:
-        assert (
-            child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None
-        ), "non-root spans that are not first in a chunk should never includ the _dd.p.dm tag"
+        assert child_span.get("meta", {}).get(SAMPLING_DECISION_MAKER_KEY) is None, (
+            "non-root spans that are not first in a chunk should never includ the _dd.p.dm tag"
+        )
 
 
 @scenarios.parametric
 @features.trace_sampling
 class Test_Sampling_Span_Tags:
-    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
-    @bug(library="nodejs", reason="APMAPI-737")  # Node.js does not set priority on parent span
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
-    @bug(library="golang", reason="APMAPI-737")  # golang sets priority 2
-    @bug(library="php", reason="APMAPI-737")  # php sets priority 2
-    @bug(library="java", reason="APMAPI-737")  # java sets priority 2
-    @bug(library="cpp", reason="APMAPI-737")  # c++ does not support magic tags
-    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -3
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_dropped_sst001(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_DROP_KEY)
@@ -106,13 +97,6 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
-    @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -3 on first span
-    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -3 on first span
-    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -3 on first span
-    @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -3 on first span
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_child_kept_sst007(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library, child_span_tag=MANUAL_KEEP_KEY)
@@ -127,11 +111,6 @@ class Test_Sampling_Span_Tags:
             "be set",
         )
 
-    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag -0
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
-    @bug(library="cpp", reason="APMAPI-737")  # unknown
-    @bug(context.library < "nodejs@5.17.0", reason="APMAPI-737")  # APMRP-360  # actual fixed version is not known
     def test_tags_defaults_sst002(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
         _assert_sampling_tags(
@@ -147,13 +126,6 @@ class Test_Sampling_Span_Tags:
             "be either set to the default rate or unset",
         )
 
-    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
-    @bug(library="golang", reason="APMAPI-737")  # golang sets limit_psr
-    @bug(library="java", reason="APMAPI-737")  # java sets limit_psr
-    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets limit_psr
-    @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1}])
     def test_tags_defaults_rate_1_sst003(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -169,14 +141,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate, which is 1",
         )
 
-    @bug(library="java", reason="APMAPI-737")  # Java sets rate tag 9.9999 on parent span
-    @bug(library="dotnet", reason="APMAPI-737")  # .NET sets rate tag 9.9999 on parent span
-    @bug(library="nodejs", reason="APMAPI-737")  # Node.js does not set dm tag on first span
-    @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag on first span
-    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag on first span
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
-    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1 on first span
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1e-06}])
     def test_tags_defaults_rate_tiny_sst004(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -192,13 +156,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rate",
         )
 
-    @bug(library="python", reason="APMAPI-737")  # Python sets dm tag on child span
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
-    @bug(library="golang", reason="APMAPI-737")  # golang sets limit_psr
-    @bug(library="java", reason="APMAPI-737")  # java sets limit_psr
-    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets limit_psr
-    @bug(library="cpp", reason="APMAPI-737")  # c++ sets limit_psr
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 1}])}]
     )
@@ -217,14 +174,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rule rate, which is 1",
         )
 
-    @bug(library="nodejs", reason="APMAPI-737")  # Node.js does not set dm tag on first span
-    @bug(library="php", reason="APMAPI-737")  # php does not set dm tag on first span
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag on first span
-    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag on first span
-    @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag on first span
-    @bug(library="java", reason="APMAPI-737")  # java does not set dm tag on first span
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag on first span
-    @bug(library="golang", reason="APMAPI-737")  # golang sets priority tag 2
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}])}]
     )
@@ -243,13 +192,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given rule rate, which is 0",
         )
 
-    @bug(library="golang", reason="APMAPI-737")  # golang does not set dm tag
-    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
-    @bug(library="nodejs", reason="APMAPI-737")  # nodejs does not set dm tag
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
-    @bug(library="php", reason="APMAPI-737")  # php does not set limit_psr
-    @bug(library="cpp", reason="APMAPI-737")  # this test times out with the c++ tracer
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": 1, "DD_TRACE_RATE_LIMIT": 0}])
     def test_tags_defaults_rate_1_and_rate_limit_0_sst008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -266,14 +208,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given sample rate (1), and the limit sample rate tag should be set ",
         )
 
-    @bug(library="golang", reason="APMAPI-737")  # golang sets priority tag 2
-    @bug(library="php", reason="APMAPI-737")  # php does not set dm tag
-    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
-    @bug(library="java", reason="APMAPI-737")  # java does not set dm tag
-    @bug(library="nodejs", reason="APMAPI-737")  # nodejs does not set dm tag
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
-    @bug(library="cpp", reason="APMAPI-737")  # c++ does not set dm tag
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -302,14 +236,6 @@ class Test_Sampling_Span_Tags:
             "be set to the given sample rate (0), and the limit sample rate tag should be set",
         )
 
-    @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -1
-    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1
-    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
-    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -1
-    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets dm tag -0
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
-    @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": 3}])
     def test_tags_defaults_rate_1_and_rate_limit_3_sst010(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -325,14 +251,6 @@ class Test_Sampling_Span_Tags:
             "and the limit sample rate tag should be set",
         )
 
-    @bug(library="golang", reason="APMAPI-737")  # golang sets dm tag -1
-    @bug(library="php", reason="APMAPI-737")  # php sets dm tag -1
-    @bug(library="python", reason="APMAPI-737")  # python does not set dm tag
-    @bug(library="dotnet", reason="APMAPI-737")  # dotnet does not set dm tag
-    @bug(library="java", reason="APMAPI-737")  # java sets dm tag -1
-    @bug(library="nodejs", reason="APMAPI-737")  # nodejs sets dm tag -0
-    @bug(library="ruby", reason="APMAPI-737")  # ruby does not set dm tag
-    @bug(library="cpp", reason="APMAPI-737")  # c++ sets dm tag -0
     @pytest.mark.parametrize("library_env", [{"DD_APPSEC_ENABLED": 1}])
     def test_tags_appsec_enabled_sst011(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         parent_span, child_span, first_span = _get_spans(test_agent, test_library)
@@ -373,7 +291,7 @@ class Test_Knuth_Sample_Rate:
         ids=["truncate_trailing_zeros", "percision_of_6_digits"],
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, library_env: dict[str, str], sample_rate: str
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, sample_rate: str
     ):
         """When a trace is sampled via a sampling rule, the knuth sample rate
         is sent to the agent on the chunk root span with the _dd.p.ksr key in the meta field.

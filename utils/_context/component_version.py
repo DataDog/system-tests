@@ -54,6 +54,8 @@ class Version(version_module.Version):
 class ComponentVersion:
     known_versions: dict[str, set[str]] = defaultdict(set)
     version: Version
+    raw_version: str
+    """Exact value as exposed by the component"""
 
     def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.name if library is None else library
@@ -64,6 +66,7 @@ class ComponentVersion:
             raise ValueError("Library's name can't contains '@'")
 
         self.name = name
+        self.raw_version = version.strip()
 
         if version:
             version = version.strip()
@@ -84,7 +87,7 @@ class ComponentVersion:
                 build = r"[a-f0-9]+"
                 if re.match(rf"{base}[\. ]{prerelease}[\. ]{build}", version):
                     version = re.sub(rf"({base})[\. ]({prerelease})[\. ]({build})", r"\1-\2+\3", version)
-                elif re.match(rf"{base}[\. ]{build}", version):
+                elif re.match(rf"{base} {build}", version):
                     version = re.sub(rf"({base})[\. ]({build})", r"\1+\2", version)
                 elif re.match(rf"{base}[\. ]{prerelease}", version):
                     version = re.sub(rf"({base})[\. ]({prerelease})", r"\1-\2", version)
@@ -104,33 +107,13 @@ class ComponentVersion:
                 # the we can hack to move it to the built part:
                 version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
+            elif name == "python":
+                # dd-trace-py has to use 4.3.0.dev0 because that is the PyPI/pip compatible version tag,
+                # otherwise it isn't compatible with the Python packaging ecosystem. We need to translate 4.3.0.dev0
+                # into 4.3.0-dev0, otherwise, coerce will set dev0 as build metadata, instead of pre-release.
+                version = re.sub(r"(\d+\.\d+.\d+)\.([^.]+)", r"\1-\2", version)
+
             self.version = Version(version)
-
-            if name == "ruby":
-                if len(self.version.build) != 0 or len(self.version.prerelease) != 0:
-                    # we are not in a released version
-
-                    # dd-trace-rb main branch expose a version equal to the last release, so hack it:
-                    # * add 1 to minor version
-                    # * and set z as prerelease if not prerelease is set, because z will be after any other prerelease
-
-                    # if dd-trace-rb repo fix the underlying issue, we can remove this hack.
-                    self.version = Version(
-                        major=self.version.major,
-                        minor=self.version.minor,
-                        patch=self.version.patch + 1,
-                        prerelease=self.version.prerelease,
-                        build=self.version.build,
-                    )
-
-                    if not self.version.prerelease:
-                        self.version = Version(
-                            major=self.version.major,
-                            minor=self.version.minor,
-                            patch=self.version.patch,
-                            prerelease=("z",),
-                            build=self.version.build,
-                        )
 
             self.add_known_version(self.version)
         else:
@@ -167,7 +150,7 @@ class ComponentVersion:
         library = other
         return self.name == library
 
-    def _extract_members(self, other: object) -> tuple[str | None, Version | None]:
+    def _extract_members(self, other: object) -> tuple[str, Version]:
         if isinstance(other, ComponentVersion):
             return other.name, other.version
 

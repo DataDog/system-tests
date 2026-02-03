@@ -89,7 +89,6 @@ class Test_Fingerprinting_Session:
         self.cookies = self.r_create_session.cookies
         self.r_user = weblog.get("/user_login_success_event", cookies=self.cookies)
 
-    @missing_feature(context.library < "python@3.0.0", reason="missing_feature")
     def test_session(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200
@@ -121,7 +120,6 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
     def setup_fingerprinting_endpoint_blocking(self):
         self.r = weblog.get("/waf?dummyparam=true")
 
-    @missing_feature(library="nodejs", weblog_variant="nextjs", reason="Blocking on querystring is not supported")
     def test_fingerprinting_endpoint_blocking(self):
         assert self.r.status_code == 403
         r_span_meta = get_span_meta(self.r)
@@ -203,7 +201,6 @@ class Test_Fingerprinting_Session_Preprocessor:
     @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "resteasy-netty3", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.library < "python@3.0.0", reason="missing_feature")
     def test_session_non_blocking(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200

@@ -14,31 +14,32 @@ from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from ._docker_fixtures import DockerFixturesScenario
+from .core import scenario_groups as groups
 
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
+    _required_cassette_generation_api_keys: dict[str, list[str]] = {
+        "openai": ["OPENAI_API_KEY"],
+        "anthropic": ["ANTHROPIC_API_KEY"],
+        "google_genai": ["GEMINI_API_KEY"],
+    }
 
-    def __init__(self, name: str, doc: str, *, require_openai_api_key: bool = False) -> None:
+    def __init__(self, name: str, doc: str) -> None:
         super().__init__(
             name,
             doc=doc,
             github_workflow="endtoend",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.38.0",
+            scenario_groups=(groups.integration_frameworks,),
         )
 
-        self.environment = {
-            "DD_TRACE_DEBUG": "true",
-            "DD_TRACE_OTEL_ENABLED": "true",
-        }
-
-        self.require_openai_api_key = require_openai_api_key
+        self.environment: dict[str, str] = {}
 
     def configure(self, config: pytest.Config):
-        self._check_and_set_api_keys()
-
         library: str = config.option.library
         weblog: str = config.option.weblog
+        generate_cassettes: bool = config.option.generate_cassettes
 
         if not library:
             pytest.exit("No library specified, please set -L option", 1)
@@ -47,22 +48,43 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             pytest.exit("No framework specified, please set -W option", 1)
 
         if "@" not in weblog:
-            pytest.exit("Weblog must be of the form : openai@2.0.0.", 1)
+            pytest.exit(
+                f"No version specified for {weblog}, please use the format {weblog}@<version>.\n"
+                f"To use the latest version, use the format {weblog}@latest.\n"
+                "Example: openai-py@2.0.0 or openai-js@latest",
+                1,
+            )
+
+        self.weblog_variant = weblog
 
         framework, framework_version = weblog.split("@", 1)
+
+        if config.option.force_dd_trace_debug:
+            self.environment["DD_TRACE_DEBUG"] = "true"
 
         # Handle weblog language name suffix needed for weblog definitions
         # e.g., "openai-py" -> "openai", "openai-js" -> "openai"
         framework_dir = framework.rsplit("-", 1)[0] if "-" in framework else framework
+        self._check_and_set_api_keys(framework=framework_dir, generate_cassettes=generate_cassettes)
 
         self._set_dd_trace_integrations_enabled(library)
+
+        # Setup container volumes with app code
+        container_volumes = {f"./utils/build/docker/{library}/{framework_dir}_app": "/app/integration_frameworks"}
+
+        if library == "nodejs":
+            container_volumes.update(self.get_node_volumes())
+        elif library == "python":
+            python_env, python_volumes = self.get_python_env_and_volumes()
+            self.environment.update(python_env)
+            container_volumes.update(python_volumes)
 
         self._test_client_factory = FrameworkTestClientFactory(
             library=library,
             framework=framework,
             framework_version=framework_version,
             container_env=self.environment,
-            container_volumes={f"./utils/build/docker/{library}/{framework_dir}_app": "/app/integration_frameworks"},
+            container_volumes=container_volumes,
         )
 
         self._test_agent_factory.configure(self.host_log_folder)
@@ -86,6 +108,11 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         logger.debug(f"Library: {library}, Framework: {framework}=={framework_version}, Version: {self._library}")
 
         self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
+        self.warmups.append(self._set_components)
+
+    def _set_components(self):
+        self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     @contextlib.contextmanager
     def get_client(
@@ -109,15 +136,18 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     def library(self):
         return self._library
 
-    def _check_and_set_api_keys(self):
-        """Set the necessary provider environment variables if required."""
-        if self.require_openai_api_key:
-            openai_api_key = os.getenv("OPENAI_API_KEY")
-            if not openai_api_key:
-                pytest.exit("OPENAI_API_KEY environment variable is required but not set", 1)
-            self.environment["OPENAI_API_KEY"] = openai_api_key  # type: ignore[assignment]
+    def _check_and_set_api_keys(self, framework: str, *, generate_cassettes: bool = False) -> None:
+        required_api_keys = self._required_cassette_generation_api_keys.get(framework, [])
+
+        if generate_cassettes:
+            for key in required_api_keys:
+                api_key = os.getenv(key)
+                if not api_key:
+                    pytest.exit(f"{key} is required to generate cassettes", 1)
+                self.environment[key] = api_key  # type: ignore[assignment]
         else:
-            self.environment["OPENAI_API_KEY"] = "<not-a-real-key>"
+            for key in required_api_keys:
+                self.environment[key] = "<not-a-real-key>"
 
     def _set_dd_trace_integrations_enabled(self, library: str) -> None:
         """Set environment variables to disable certain integrations based on the library."""

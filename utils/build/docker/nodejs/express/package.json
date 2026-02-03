@@ -5,15 +5,16 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ."
+    "fix_lint": "eslint . --fix",
+    "check_lint": "eslint ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/core": "^1.30.1",
     "@openfeature/core": "^1.9.0",
     "@openfeature/server-sdk": "~1.19.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^1.30.1",
     "amqplib": "^0.10.3",
     "aws-sdk": "^2.1530.0",
     "axios": "1.2.3",
@@ -37,6 +38,7 @@
     "pug": "^3.0.3",
     "semver": "^7.6.3",
     "sinon": "^17.0.1",
+    "stripe": "^20.0.0",
     "winston": "^3.17.0"
   },
   "devDependencies": {

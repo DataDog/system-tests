@@ -10,9 +10,9 @@
 
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils.docker_fixtures.spec.tracecontext import get_tracecontext
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -39,25 +39,20 @@ def temporary_enable_optin_tracecontext_single_key() -> pytest.MarkDecorator:
 @features.datadog_headers_propagation
 class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
-    def test_both_traceparent_and_tracestate_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_both_traceparent_and_tracestate_missing(self, test_library: APMLibrary) -> None:
         """Harness sends a request without traceparent or tracestate
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(test_library, [])
+            make_single_request_and_get_tracecontext(test_library, [])
 
     @temporary_enable_optin_tracecontext_single_key()
-    @missing_feature(
-        context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config"
-    )
-    def test_single_key_traceparent_included_tracestate_missing(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_single_key_traceparent_included_tracestate_missing(self, test_library: APMLibrary) -> None:
         """Harness sends a request with traceparent but without tracestate
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -65,12 +60,12 @@ class Test_Headers_Tracecontext:
         assert traceparent.parent_id != "1234567890123456"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_included_tracestate_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_included_tracestate_missing(self, test_library: APMLibrary) -> None:
         """Harness sends a request with traceparent but without tracestate
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -78,32 +73,7 @@ class Test_Headers_Tracecontext:
         assert traceparent.parent_id != "1234567890123456"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="the first observed traceparent is used")
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "php",
-        reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "python",
-        reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "golang",
-        reason="golang does not reconcile duplicate http headers, if duplicate headers received the propagator will not be used",
-    )
-    @missing_feature(
-        context.library == "ruby",
-        reason="the tracer should reject the incoming traceparent(s) when there are multiple traceparent headers",
-    )
-    @missing_feature(
-        context.library == "rust",
-        reason="multi-value header extraction is not supported by otel rust yet",
-    )
-    def test_traceparent_duplicated(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_duplicated(self, test_library: APMLibrary) -> None:
         """Harness sends a request with two traceparent headers
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
@@ -120,16 +90,16 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_header_name(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_header_name(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent using wrong names
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("trace-parent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("trace.parent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -137,21 +107,20 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
-    def test_traceparent_header_name_valid_casing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_header_name_valid_casing(self, test_library: APMLibrary) -> None:
         """Harness sends a valid traceparent using different combination of casing
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("TraceParent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("TrAcEpArEnT", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent3, tracestate = make_single_request_and_get_tracecontext(
+            traceparent3, _ = make_single_request_and_get_tracecontext(
                 test_library, [("TRACEPARENT", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -160,16 +129,16 @@ class Test_Headers_Tracecontext:
         assert traceparent3.trace_id == "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_version_0x00(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_version_0x00(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with extra trailing characters
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01.")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     (
@@ -183,7 +152,7 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_version_0xcc(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_version_0xcc(self, test_library: APMLibrary) -> None:
         """Harness sends an valid traceparent with future version 204 (0xcc)
         expects a valid traceparent from the output header with the same trace_id
         """
@@ -217,29 +186,28 @@ class Test_Headers_Tracecontext:
         assert traceparent3.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_version_0xff(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_version_0xff(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with version 255 (0xff)
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "ff-12345678901234567890123456789012-1234567890123456-01")]
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(library="cpp")
-    def test_traceparent_version_illegal_characters(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_version_illegal_characters(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with illegal characters in version
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", ".0-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "0.-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -247,16 +215,16 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_version_too_long(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_version_too_long(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with version more than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "000-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "0000-12345678901234567890123456789012-1234567890123456-01")]
             )
 
@@ -264,40 +232,40 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_version_too_short(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_version_too_short(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with version less than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "0-12345678901234567890123456789012-1234567890123456-01")]
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_id_all_zero(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_trace_id_all_zero(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with trace_id = 00000000000000000000000000000000
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-00000000000000000000000000000000-1234567890123456-01")]
             )
 
         assert traceparent.trace_id != "00000000000000000000000000000000"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_id_illegal_characters(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_trace_id_illegal_characters(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with illegal characters in trace_id
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-.2345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-1234567890123456789012345678901.-1234567890123456-01")]
             )
 
@@ -305,12 +273,12 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "1234567890123456789012345678901."
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_id_too_long(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_trace_id_too_long(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with trace_id more than 32 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-123456789012345678901234567890123-1234567890123456-01")]
             )
 
@@ -319,40 +287,40 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "23456789012345678901234567890123"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_id_too_short(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_trace_id_too_short(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with trace_id less than 32 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-1234567890123456789012345678901-1234567890123456-01")]
             )
 
         assert traceparent.trace_id != "1234567890123456789012345678901"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_parent_id_all_zero(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_parent_id_all_zero(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with parent_id = 0000000000000000
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-0000000000000000-01")]
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_parent_id_illegal_characters(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_parent_id_illegal_characters(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with illegal characters in parent_id
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-.234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-123456789012345.-01")]
             )
 
@@ -360,42 +328,40 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_parent_id_too_long(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_parent_id_too_long(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with parent_id more than 16 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-12345678901234567-01")]
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_parent_id_too_short(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_parent_id_too_short(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with parent_id less than 16 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-123456789012345-01")]
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_flags_illegal_characters(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_traceparent_trace_flags_illegal_characters(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with illegal characters in trace_flags
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-.0")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-0.")]
             )
 
@@ -403,7 +369,7 @@ class Test_Headers_Tracecontext:
         assert traceparent2.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_flags_too_long(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_trace_flags_too_long(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with trace_flags more than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
@@ -415,40 +381,40 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_flags_too_short(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_trace_flags_too_short(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid traceparent with trace_flags less than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
-            traceparent, tracestate = make_single_request_and_get_tracecontext(
+            traceparent, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-1")]
             )
 
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_ows_handling(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_traceparent_ows_handling(self, test_library: APMLibrary) -> None:
         """Harness sends an valid traceparent with heading and trailing OWS
         expects a valid traceparent from the output header
         """
         with test_library:
-            traceparent1, tracestate = make_single_request_and_get_tracecontext(
+            traceparent1, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", " 00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent2, tracestate = make_single_request_and_get_tracecontext(
+            traceparent2, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "\t00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
-            traceparent3, tracestate = make_single_request_and_get_tracecontext(
+            traceparent3, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01 ")]
             )
 
-            traceparent4, tracestate = make_single_request_and_get_tracecontext(
+            traceparent4, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01\t")]
             )
 
-            traceparent5, tracestate = make_single_request_and_get_tracecontext(
+            traceparent5, _ = make_single_request_and_get_tracecontext(
                 test_library, [("traceparent", "\t 00-12345678901234567890123456789012-1234567890123456-01 \t")]
             )
 
@@ -459,7 +425,7 @@ class Test_Headers_Tracecontext:
         assert traceparent5.trace_id == "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_tracestate_included_traceparent_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_included_traceparent_missing(self, test_library: APMLibrary) -> None:
         """Harness sends a request with tracestate but without traceparent
         expects a valid traceparent from the output header
         expects the tracestate to be discarded
@@ -473,7 +439,7 @@ class Test_Headers_Tracecontext:
         assert len(tracestate1.split(",")) == len(tracestate2.split(","))
 
     @temporary_enable_optin_tracecontext()
-    def test_tracestate_included_traceparent_included(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_included_traceparent_included(self, test_library: APMLibrary) -> None:
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
@@ -492,12 +458,12 @@ class Test_Headers_Tracecontext:
         assert tracestate["bar"] == "2"
 
     @temporary_enable_optin_tracecontext()
-    def test_tracestate_header_name(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_header_name(self, test_library: APMLibrary) -> None:
         """Harness sends an invalid tracestate using wrong names
         expects the tracestate to be discarded
         """
         with test_library:
-            traceparent, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -505,7 +471,7 @@ class Test_Headers_Tracecontext:
                 ],
             )
 
-            traceparent, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -517,23 +483,22 @@ class Test_Headers_Tracecontext:
         assert "foo" not in tracestate2
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
-    def test_tracestate_header_name_valid_casing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_header_name_valid_casing(self, test_library: APMLibrary) -> None:
         """Harness sends a valid tracestate using different combination of casing
         expects the tracestate to be inherited
         """
         with test_library:
-            traceparent, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), ("TraceState", "foo=1")],
             )
 
-            traceparent, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), ("TrAcEsTaTe", "foo=1")],
             )
 
-            traceparent, tracestate3 = make_single_request_and_get_tracecontext(
+            _, tracestate3 = make_single_request_and_get_tracecontext(
                 test_library,
                 [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"), ("TRACESTATE", "foo=1")],
             )
@@ -543,28 +508,7 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="the first observed tracestate is used")
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "php",
-        reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "golang",
-        reason="golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "python",
-        reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "rust",
-        reason="multi-value header extraction is not supported by otel rust yet",
-    )
-    def test_tracestate_empty_header(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_empty_header(self, test_library: APMLibrary) -> None:
         """Harness sends a request with empty tracestate header
         expects the empty tracestate to be discarded
         """
@@ -602,30 +546,7 @@ class Test_Headers_Tracecontext:
         assert tracestate3["foo"] == "1"
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(context.library == "cpp", reason="the first observed tracestate is used")
-    @missing_feature(
-        context.library == "golang",
-        reason="golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "nodejs",
-        reason="nodejs does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "php",
-        reason="php does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "python",
-        reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
-    )
-    @missing_feature(
-        context.library == "rust",
-        reason="multi-value header extraction is not supported by otel rust yet",
-    )
-    def test_tracestate_multiple_headers_different_keys(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_tracestate_multiple_headers_different_keys(self, test_library: APMLibrary) -> None:
         """Harness sends a request with multiple tracestate headers, each contains different set of keys
         expects a combined tracestate
         """
@@ -652,7 +573,7 @@ class Test_Headers_Tracecontext:
         assert str(tracestate).index("congo=2") < str(tracestate).index("baz=3")
 
     @temporary_enable_optin_tracecontext()
-    def test_tracestate_duplicated_keys(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_duplicated_keys(self, test_library: APMLibrary) -> None:
         """Harness sends a request with an invalid tracestate header with duplicated keys
         expects the tracestate to be inherited, and the duplicated keys to be either kept as-is or one of them
         to be discarded
@@ -704,14 +625,6 @@ class Test_Headers_Tracecontext:
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert "foo=1" in str(tracestate4) or "foo=2" in str(tracestate4)
 
-    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id tag is set according to the W3C Phase 2 spec"""
         with test_library:
@@ -747,15 +660,7 @@ class Test_Headers_Tracecontext:
         assert case2["name"] == "p_invalid"
         assert case2["meta"]["_dd.parent_id"] == "XX!X"
 
-    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.35.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
-    def test_tracestate_w3c_p_inject(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_w3c_p_inject(self, test_library: APMLibrary) -> None:
         """Ensure the last parent id is propagated according to the W3C spec"""
         with test_library:
             with test_library.dd_start_span(name="new_span") as span:
@@ -768,14 +673,6 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert f"p:{int(span.span_id):016x}" in tracestate
 
-    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
-    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.50.0", reason="Not implemented")
-    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract_and_inject(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id is propagated according to the W3C spec"""
         with test_library:
@@ -823,14 +720,6 @@ class Test_Headers_Tracecontext:
         # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
         assert f"p:{int(s2.span_id):016x}" in tracestate2
 
-    @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
-    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
-    @missing_feature(context.library < "java@1.39.0", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
-    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id tag is set according to the W3C phase 3 spec"""
@@ -944,8 +833,6 @@ class Test_Headers_Tracecontext:
         "library_env",
         [{"DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true", "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}],
     )
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_phase_3_extract_first(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the last parent id tag is not set when only Datadog headers are extracted"""
 
@@ -970,7 +857,6 @@ class Test_Headers_Tracecontext:
         assert case1["parent_id"] == 987654320
         assert "_dd.parent_id" not in case1["meta"]
 
-    @missing_feature(context.library < "java@1.36", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_context_leak(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure high order bits do not leak between traces"""
@@ -1010,7 +896,7 @@ class Test_Headers_Tracecontext:
         assert case2["meta"].get("_dd.p.tid") is None
 
     @temporary_enable_optin_tracecontext()
-    def test_tracestate_all_allowed_characters(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_all_allowed_characters(self, test_library: APMLibrary) -> None:
         """Harness sends a request with a valid tracestate header with all legal characters
         expects the tracestate to be inherited
         """
@@ -1027,7 +913,7 @@ class Test_Headers_Tracecontext:
         )
 
         with test_library:
-            traceparent1, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -1035,7 +921,7 @@ class Test_Headers_Tracecontext:
                 ],
             )
 
-            traceparent2, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -1050,16 +936,12 @@ class Test_Headers_Tracecontext:
         assert tracestate2[key_with_vendor] == value
 
     @temporary_enable_optin_tracecontext()
-    @missing_feature(
-        context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
-    )
-    @missing_feature(context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation")
-    def test_tracestate_ows_handling(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracestate_ows_handling(self, test_library: APMLibrary) -> None:
         """Harness sends a request with a valid tracestate header with OWS
         expects the tracestate to be inherited
         """
         with test_library:
-            traceparent1, tracestate1 = make_single_request_and_get_tracecontext(
+            _, tracestate1 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),
@@ -1067,7 +949,7 @@ class Test_Headers_Tracecontext:
                 ],
             )
 
-            traceparent2, tracestate2 = make_single_request_and_get_tracecontext(
+            _, tracestate2 = make_single_request_and_get_tracecontext(
                 test_library,
                 [
                     ("traceparent", "00-12345678901234567890123456789012-1234567890123456-00"),

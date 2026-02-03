@@ -3,7 +3,7 @@
 import { Request, Response } from "express";
 import http from 'http';
 
-const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
+const tracer = require('dd-trace').init();
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -365,11 +365,11 @@ app.get('/flush', (req: Request, res: Response) => {
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err))())
   }
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
   }
 
   Promise.all(promises).then(() => {
@@ -412,9 +412,29 @@ app.get('/set_cookie', (req: Request, res: Response) => {
 
 require('./rasp')(app)
 
-require('./graphql')(app).then(() => {
-  app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => {})
-    console.log('listening')
+const startServer = () => {
+  return new Promise((resolve) => {
+    const server = http.createServer((req: http.IncomingMessage, res: http.ServerResponse) => {
+      if (req.url?.startsWith('/resource_renaming')) {
+        res.writeHead(200)
+        res.end('OK')
+      } else {
+        // Everything else goes to Express
+        app(req, res)
+      }
+    })
+
+    server.listen(7777, '0.0.0.0', () => {
+      tracer.trace('init.service', () => {})
+      console.log('listening')
+      resolve(true)
+    })
   })
-})
+}
+
+require('./graphql')(app)
+  .then(startServer)
+  .catch((error: Error) => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })

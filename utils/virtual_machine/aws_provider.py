@@ -1,3 +1,5 @@
+from collections.abc import Callable
+from io import TextIOWrapper
 import os
 import pathlib
 import uuid
@@ -21,6 +23,9 @@ from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
+from utils.virtual_machine.virtual_machines import _VirtualMachine
+
+import pytest
 
 
 class AWSPulumiProvider(VmProvider):
@@ -29,9 +34,9 @@ class AWSPulumiProvider(VmProvider):
         self.commander = AWSCommander()
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
-        self.stack_name = "system-tests_onboarding"
+        self.stack_name = "system-tests_dev_onboarding"
 
-    def configure(self, virtual_machine):
+    def configure(self, virtual_machine: _VirtualMachine):
         super().configure(virtual_machine)
         # Configure the ssh connection for the VMs
         self.pulumi_ssh = PulumiSSH()
@@ -54,7 +59,7 @@ class AWSPulumiProvider(VmProvider):
             self._configure_cached_amis(self.vm)
 
             logger.info(
-                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{ self.vm.datadog_config.skip_cache}] --"
+                f"-- Starting AWS VM: [{self.vm.name}], ID:[{self.vm.aws_config.ami_id}], update cache:[{self.vm.datadog_config.update_cache}], skip cache: [{self.vm.datadog_config.skip_cache}] --"
             )
             self._start_vm(self.vm)
 
@@ -73,7 +78,13 @@ class AWSPulumiProvider(VmProvider):
             )
         except pulumi.automation.errors.CommandError as pulumi_command_exception:
             logger.stdout("❌ Exception launching aws provision step remote command ❌")
-            logger.stdout(f"(Please, check the log file: {context.vm_name}.log)")
+            logger.stdout(f"(Please, check the log file: {context.scenario.host_log_folder}/{context.vm_name}.log)")
+            logger.stdout(
+                "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#troubleshooting"
+            )
+            logger.stdout(
+                "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+            )
             vm_logger(context.scenario.host_log_folder, context.vm_name).error(
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
@@ -81,8 +92,16 @@ class AWSPulumiProvider(VmProvider):
             self._handle_provision_error(pulumi_command_exception)
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
-            logger.stdout(f"(Please, check the log file: tests.log and search for the text chain 'Diagnostics:')")
-            logger.debug(f"The error class name: { pulumi_exception.__class__.__name__}")
+            logger.stdout(
+                f"(Please, check the log file: {context.scenario.host_log_folder}/tests.log and search for the text chain 'Diagnostics:')"
+            )
+            logger.debug(f"The error class name: {pulumi_exception.__class__.__name__}")
+            logger.stdout(
+                "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#troubleshooting"
+            )
+            logger.stdout(
+                "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
+            )
             self._handle_provision_error(pulumi_exception)
 
     def get_windows_user_data(self):
@@ -99,7 +118,7 @@ class AWSPulumiProvider(VmProvider):
         with open("utils/virtual_machine/aws_infra_exceptions.json", "r") as f:
             return json.load(f)
 
-    def _handle_provision_error(self, exception):
+    def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
         """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
 
         exception_message = str(exception)
@@ -111,7 +130,7 @@ class AWSPulumiProvider(VmProvider):
                     repr(exception),
                     ["operation:up", "result:retry", f"stack:{self.stack_name}"],
                 )
-                raise exception  # Re-raise the exception if matched
+                pytest.exit(f"Known infraestructure exception:: {known_message}", returncode=3)
         # If the exception is not known, we will store it in the vm object and error event to dd
         self.vm.provision_install_error = exception
         self.datadog_event_sender.sendEventToDatadog(
@@ -120,7 +139,7 @@ class AWSPulumiProvider(VmProvider):
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
 
-    def _start_vm(self, vm):
+    def _start_vm(self, vm: _VirtualMachine):
         ec2_user_data = None
         if vm.os_type == "windows":
             if vm.aws_config.ami_id == "AMI_FROM_SSM":
@@ -192,7 +211,7 @@ class AWSPulumiProvider(VmProvider):
                 f"Did not destroy VM as ONBOARDING_KEEP_VMS is set. To destroy them, re-run the test without this env var."
             )
 
-    def _get_cached_amis(self, vm):
+    def _get_cached_amis(self, vm: _VirtualMachine):
         """Get all the cached AMIs for the VM"""
         names_filter_to_check = []
         cached_amis = []
@@ -221,7 +240,7 @@ class AWSPulumiProvider(VmProvider):
                 cached_amis.append(ami_recent)
         return cached_amis
 
-    def _configure_cached_amis(self, vm):
+    def _configure_cached_amis(self, vm: _VirtualMachine):
         """Configure the cached AMIs for the VM"""
         before_time = time.time()
         cached_amis = self._get_cached_amis(vm)
@@ -256,7 +275,7 @@ class AWSPulumiProvider(VmProvider):
 
         logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 
-    def _get_ec2_tags(self, vm):
+    def _get_ec2_tags(self, vm: _VirtualMachine):
         """Build the ec2 tags for the VM"""
         tags = {"Name": vm.name, "CI": "system-tests"}
 
@@ -317,7 +336,7 @@ class AWSPulumiProvider(VmProvider):
 
 
 class AWSCommander(Commander):
-    def create_cache(self, vm, server, last_task):
+    def create_cache(self, vm: _VirtualMachine, server: aws.ec2.Instance, last_task: command.remote.Command):
         """Create a cache : Create an AMI from the server current status."""
         ami_name = vm.get_cache_name()
         # Ok. All third party software is installed, let's create the ami to reuse it in the future
@@ -336,7 +355,14 @@ class AWSCommander(Commander):
         )
         return task_dep
 
-    def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
+    def execute_local_command(
+        self,
+        local_command_id: str,
+        local_command: str,
+        env: dict[str, str],
+        last_task: command.remote.Command,
+        logger_name: str,
+    ):
         last_task = command.local.Command(
             local_command_id,
             create=local_command,
@@ -348,7 +374,15 @@ class AWSCommander(Commander):
         )
         return last_task
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
+    def copy_file(
+        self,
+        id: str,
+        local_path: str,
+        remote_path: str,
+        connection: command.remote.ConnectionArgs,
+        last_task: command.remote.Command,
+        vm: _VirtualMachine | None = None,
+    ):
         last_task = command.remote.CopyFile(
             id,
             connection=connection,
@@ -360,15 +394,16 @@ class AWSCommander(Commander):
 
     def remote_command(
         self,
-        vm,
-        installation_id,
-        remote_command,
-        env,
-        connection,
-        last_task,
-        logger_name=None,
-        output_callback=None,
-        populate_env=True,
+        vm: _VirtualMachine,
+        installation_id: str,
+        remote_command: str,
+        env: dict[str, str],
+        connection: command.remote.ConnectionArgs,
+        last_task: command.remote.Command,
+        logger_name: str | None = None,
+        output_callback: Callable | None = None,
+        *,
+        populate_env: bool = True,
     ):
         if not populate_env:
             ##error: Unable to set 'DD_env'. This only works if your SSH server is configured to accept
@@ -405,7 +440,15 @@ class AWSCommander(Commander):
         return cmd_exec_install
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
+        self,
+        source_folder: str,
+        destination_folder: str | None,
+        command_id: str,
+        connection: command.remote.ConnectionArgs,
+        depends_on: command.remote.Command,
+        *,
+        relative_path: bool = False,
+        vm: _VirtualMachine = None,
     ):
         # If we don't use remote_path, the remote_path will be a default remote user home
         if not destination_folder:
@@ -469,7 +512,7 @@ class PulumiSSH:
     aws_key_resource = None
     pem_file = None
 
-    def load(self, virtual_machine):
+    def load(self, virtual_machine: _VirtualMachine):
         # Optional parameters. You can use for local testing
         user_provided_keyPairName = os.getenv("ONBOARDING_AWS_INFRA_KEYPAIR_NAME")
         user_provided_privateKeyPath = os.getenv("ONBOARDING_AWS_INFRA_KEY_PATH")
@@ -505,7 +548,7 @@ class PulumiSSH:
 
         virtual_machine.ssh_config.username = virtual_machine.aws_config.user
 
-    def _write_pem_file(self, pem_file, content):
+    def _write_pem_file(self, pem_file: TextIOWrapper, content: str):
         pem_file.write(content)
         pem_file.close()
 
@@ -514,11 +557,11 @@ class DatadogEventSender:
     """Send events to Datadog ddev organization"""
 
     def __init__(self):
-        self.ddev_api_key = os.getenv("DDEV_API_KEY")
-        self.ci_project_name = os.getenv("CI_PROJECT_NAME", "local")
-        self.ci_job_url = os.getenv("CI_JOB_URL", "local")
+        self.ddev_api_key: str = os.getenv("DDEV_API_KEY")
+        self.ci_project_name: str = os.getenv("CI_PROJECT_NAME", "local")
+        self.ci_job_url: str = os.getenv("CI_JOB_URL", "local")
 
-    def sendEventToDatadog(self, title, message, tags):
+    def sendEventToDatadog(self, title: str, message: str, tags: list[str]):
         if not self.ddev_api_key:
             logger.error("Datadog API key not found to send event to ddev organization. Skipping event.")
             return

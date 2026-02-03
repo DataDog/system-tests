@@ -9,7 +9,7 @@ from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature, context
+from utils import rfc, scenarios, features, context
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -133,12 +133,16 @@ def _clear_task(test_agent: TestAgentAPI, task_id: int) -> None:
     )
 
 
-def trigger_tracer_flare_and_wait(test_agent: TestAgentAPI, task_overrides: dict[str, Any]) -> dict:
+def trigger_tracer_flare_and_wait(
+    test_agent: TestAgentAPI, test_library: APMLibrary, task_overrides: dict[str, Any]
+) -> dict:
     """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded."""
     task_config = _tracer_flare_task_config()
     task_args = task_config["args"]
     for k, v in task_overrides.items():
         task_args[k] = v
+
+    assert test_library.is_alive(), "library must be running"
 
     task_id = _add_task(test_agent, task_config)
     tracer_flare = test_agent.wait_for_tracer_flare(task_args["case_id"], clear=True)
@@ -177,79 +181,51 @@ def assert_java_log_file_debug(content: str):
 @features.tracer_flare
 class TestTracerFlareV1:
     @parametrize("library_env", [{"DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"}])
-    def test_telemetry_app_started(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_app_started(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        assert test_library.is_alive(), "library must be running"
         events = test_agent.wait_for_telemetry_event("app-started")
         assert len(events) > 0
 
-    @missing_feature(library="php", reason="APMLP-195")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_flare_log_level_order(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_flare_log_level_order(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        assert test_library.is_alive(), "library must be running"
         test_agent.set_remote_config(
             path="datadog/2/AGENT_CONFIG/configuration_order/config", payload=_flare_log_level_order()
         )
         test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
 
-    @missing_feature(library="php", reason="APMLP-195")
-    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_tracer_flare(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
-        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
+    def test_tracer_flare(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {})
         assert_valid_zip(tracer_flare["flare_file"])
 
-    @missing_feature(library="php", reason="APMLP-195")
-    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_tracer_flare_with_debug(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_tracer_flare_with_debug(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         log_cfg_id = _set_log_level(test_agent, "debug")
-        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {"case_id": "12345-with-debug"})
         _clear_log_level(test_agent, log_cfg_id)
         assert_valid_zip(tracer_flare["flare_file"])
 
-    @missing_feature(library="php", reason="APMLP-195")
-    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
-    @missing_feature(
-        context.library < "java@1.38.0", reason="tracer log in flare has been implemented at version 1.38.0"
-    )
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_tracer_flare_content(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
-        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
+    def test_tracer_flare_content(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {})
         if context.library == "java":
             files = _java_tracer_flare_filenames()
             assert_java_log_file(tracer_flare["flare_file"])
             assert_expected_files(tracer_flare["flare_file"], files)
 
-    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
-    @missing_feature(
-        context.library < "java@v1.54.0-SNAPSHOT",
-        reason="before this version, tracer flare required tracing to be enabled ",
-    )
     @parametrize("library_env", [{**PROFILING_NOTRACING_ENVVARS}])
-    def test_tracer_profiling_notracing_flare_content(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
-        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {})
+    def test_tracer_profiling_notracing_flare_content(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {})
         if context.library == "java":
             files = _java_tracer_profiling_notracing_flare_filenames()
             assert_java_log_file(tracer_flare["flare_file"])
             assert_expected_files(tracer_flare["flare_file"], files)
 
-    @missing_feature(library="php", reason="APMLP-195")
-    @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
-    @missing_feature(context.library < "java@1.42.0", reason="config id needed to be a specific string before 1.42.0")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_tracer_flare_content_with_debug(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_tracer_flare_content_with_debug(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         log_cfg_id = _set_log_level(test_agent, "debug")
-        tracer_flare = trigger_tracer_flare_and_wait(test_agent, {"case_id": "12345-with-debug"})
+        tracer_flare = trigger_tracer_flare_and_wait(test_agent, test_library, {"case_id": "12345-with-debug"})
         _clear_log_level(test_agent, log_cfg_id)
         assert_valid_zip(tracer_flare["flare_file"])
         if context.library == "java":
@@ -257,17 +233,16 @@ class TestTracerFlareV1:
             assert_java_log_file_debug(tracer_flare["flare_file"])
             assert_expected_files(tracer_flare["flare_file"], files)
 
-    @missing_feature(library="php", reason="APMLP-195")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_no_tracer_flare_for_other_task_types(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_no_tracer_flare_for_other_task_types(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         task_config = {
             "args": {"case_id": "12345", "hostname": "my.hostname", "user_handle": "its.me@datadoghq.com"},
             "task_type": "flare",  # this task_type is used to trigger the agent's own flare
         }
 
         task_id = _add_task(test_agent, task_config)
+
+        assert test_library.is_alive(), "library must be running"
 
         try:
             tracer_flare = test_agent.wait_for_tracer_flare(clear=True)

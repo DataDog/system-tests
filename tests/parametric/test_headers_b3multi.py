@@ -1,9 +1,9 @@
 import pytest
 
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.parametric.spec.trace import span_has_no_parent
-from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.docker_fixtures.spec.trace import span_has_no_parent
+from utils.docker_fixtures.spec.trace import find_only_span
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -147,7 +147,6 @@ class Test_Headers_B3multi:
         assert span["meta"].get(ORIGIN) is None
 
     @enable_b3multi_single_key()
-    @missing_feature(context.library < "ruby@1.8.0", reason="Added DD_TRACE_PROPAGATION_STYLE config in version 1.8.0")
     def test_headers_b3multi_single_key_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure that b3multi distributed tracing headers are extracted
         and injected properly.
@@ -155,6 +154,5 @@ class Test_Headers_B3multi:
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)
 
     @enable_case_insensitive_b3multi()
-    @missing_feature(context.library < "ruby@2.0.0", reason="Implemented in 2.x")
     def test_headers_b3multi_case_insensitive_propagate_valid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         self.test_headers_b3multi_propagate_valid(test_agent, test_library)

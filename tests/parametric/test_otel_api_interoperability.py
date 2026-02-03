@@ -2,9 +2,8 @@ import pytest
 
 from utils import scenarios, features
 from opentelemetry.trace import SpanKind
-from utils.parametric.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
-from utils.parametric._library_client import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
 # this global mark applies to all tests in this file.
@@ -23,7 +22,7 @@ TEST_ATTRIBUTES = {"arg1": "val1"}
 @features.f_otel_interoperability
 @scenarios.parametric
 class Test_Otel_API_Interoperability:
-    def test_span_creation_using_otel(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_span_creation_using_otel(self, test_library: APMLibrary):
         """- A span created with the OTel API should be visible in the DD API"""
         with test_library, test_library.otel_start_span("otel_span") as otel_span:
             dd_current_span = test_library.dd_current_span()
@@ -31,7 +30,7 @@ class Test_Otel_API_Interoperability:
             assert dd_current_span is not None
             assert dd_current_span.span_id == otel_span.span_id
 
-    def test_span_creation_using_datadog(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_span_creation_using_datadog(self, test_library: APMLibrary):
         """- A span created with the DD API should be visible in the OTel API"""
         with test_library, test_library.dd_start_span("dd_span") as dd_span:
             otel_current_span = test_library.otel_current_span()

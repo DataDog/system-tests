@@ -32,6 +32,7 @@ markers =[
     "features: declare the feature id",
     "owners: declare the owner of the test",
     "declaration: declare the expected outcome of a test",
+    "skip_if_xfail: skip the test if it is marked as xfail"
 ]
 
 python_files = "test_*.py *utils.py"
@@ -96,7 +97,6 @@ ignore = [
     "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
     "C901",     # complex-structure: TODO (52 occurences)
-    "E722",     # bare-except: TODO big project to enable this (15 occurences)
     "PERF401",  # manual-list-comprehension: TODO TBD, the "good" code can be harder to read (13 occurences)
     "PLR0911",  # too-many-return-statements: TODO (7 occurences)
     "PLR0912",  # too-many-branches: TODO (17 occurences)
@@ -149,8 +149,6 @@ ignore = [
     "TD004",  # todo found
     "TRY300", # not always obvious
     "UP015",  # redundant-open-modes: yes it's redundant. But explicit is better than implicit
-    "UP038",  # not a big fan
-
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -164,8 +162,10 @@ ignore = [
     "ANN201",   # missing-return-type-undocumented-public-function
     "ARG001",   # unused-function-argument
     "INP001",   # implicit-namespace-package
+    "PLC0415",  # import-outside-top-level TODO
     "PTH119",   # os-path-basename
     "PTH122",   # os-path-splitext
+    "PTH208",   # os-listdir: TODO
     "RET503",   # implicit-return
     "S105",     # hardcoded-password-string
     "T201",     # print
@@ -175,9 +175,6 @@ ignore = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
 ]
 
-"tests/debugger/test_debugger_exception_replay.py" = [
-    "ANN001",    # missing-type-function-argument: TODO
-]
 "tests/*" = [
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO
@@ -206,6 +203,7 @@ ignore = [
 ]
 "tests/auto_inject/*" = [
     "ANN001",  # missing-type-function-argument: TODO
+    "RUF059",   # unused-unpacked-variable: TODO
     "SLF001",  # private-member-access: TODO
 ]
 "tests/fuzzer/*" = [
@@ -213,9 +211,6 @@ ignore = [
 ]
 "tests/fuzzer/request_mutator.py" = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
-]
-"tests/parametric/*" = [
-    "ARG002",   # unused-method-argument: TODO
 ]
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
     "N802",      # invalid-function-name: some tests methods contains code with capital letters
@@ -229,6 +224,7 @@ ignore = [
 ]
 "utils/_context/_scenarios/auto_injection.py" = [
     "ANN001",   # missing-type-function-argument: TODO
+    "PLC0415",  # import-outside-top-level TODO
 ]
 "utils/{_context/_scenarios/docker_ssi.py,docker_ssi/docker_ssi_matrix_utils.py}" = [
     "ANN001",   # missing-type-function-argument: TODO
@@ -266,6 +262,7 @@ ignore = [
     "FBT002",   # boolean-default-value-positional-argument: TODO
     "RET505",   # superfluous-else-return: TODO
     "RET508",   # superfluous-else-break: TODO
+    "RUF059",   # unused-unpacked-variable: TODO
     "SIM108",   # if-else-block-instead-of-if-exp: TODO
     "SIM115",   # open-file-with-context-handler: TODO
     "SLF001",   # private-member-access: TODO
@@ -301,23 +298,22 @@ ignore = [
     "PLR2004",  # magic-value-comparison: TODO
 ]
      
-"utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
-"utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
-    "INP001",  # implicit-namespace-package: this is not a package
-    "T201"     # print: allow print statements in scripts folder
+    "INP001",   # implicit-namespace-package: this is not a package
+    "LOG015",   # usage of logging
+    "PTH208",   # os-listdir: TODO
+    "T201",     # print: allow print statements in scripts folder
 ]
 "utils/virtual_machine/virtual_machines.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "ARG002",   # unused-method-argument: TODO
     "FBT002",   # boolean-default-value-positional-argument: TODO
+    "PLC0415",  # import-outside-top-level TODO
     "PLR2004",  # magic-value-comparison: TODO
     "TRY002",   # raise-vanilla-class: TODO
 ]
 "utils/virtual_machine/aws_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
     "F541",    # f-string-missing-placeholders: TODO
@@ -330,20 +326,18 @@ ignore = [
     "SIM115",  # open-file-with-context-handler: TODO
     "ARG002",  # unused-method-argument: TODO
     "PTH113",  # os-path-isfile: TODO
+    "PTH208",  # os-listdir: TODO
     "N802",    # invalid-function-name: TODO
-    "F401",    # unused-import: TODO
     "F841",    # unused-variable: TODO
     "TRY002",  # raise-vanilla-class: TODO
     "PLR2004", # magic-value-comparison: TODO
 ]
 "utils/virtual_machine/krunvm_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN002",  # missing-type-args: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
     "E501",    # line-too-long: TODO
-    "F401",    # unused-import: TODO
     "F811",    # redefined-while-unused: TODO
     "FBT002",  # boolean-default-value-positional-argument: TODO
     "N803",    # invalid-argument-name: TODO
@@ -358,15 +352,14 @@ ignore = [
     "SLF001",  # private-member-access: TODO
 ]
 "utils/virtual_machine/utils.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "E501",    # line-too-long: TODO
+    "PLC0415", # import-outside-top-level TODO
     "RET503",  # implicit-return: TODO
     "RET504",  # unnecessary-assign: TODO
     "SIM300",  # yoda-conditions: TODO
 ]
 "utils/virtual_machine/vagrant_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
@@ -375,12 +368,13 @@ ignore = [
     "FBT002",  # boolean-default-value-positional-argument: TODO
     "PLW1510", # subprocess-run-without-check: TODO
     "PTH113",  # os-path-isfile: TODO
+    "PTH208",   # os-listdir: TODO
+    "RUF059",   # unused-unpacked-variable: TODO
     "UP008",   # super-call-with-parameters: TODO
     "UP024",   # os-error-alias: TODO
     "UP031",   # printf-string-formatting: TODO
 ]
 "utils/virtual_machine/virtual_machine_provider.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
@@ -388,13 +382,12 @@ ignore = [
     "E731",    # lambda-assignment: TODO
     "F541",    # f-string-missing-placeholders: TODO
     "FBT002",  # boolean-default-value-positional-argument: TODO
+    "PLC0415", # import-outside-top-level TODO
     "PTH112",  # os-path-isdir: TODO
     "PTH119",  # os-path-basename: TODO
     "RET505",  # superfluous-else-return: TODO
 ]
 "utils/virtual_machine/virtual_machine_provisioner.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file

@@ -11,6 +11,7 @@ import time
 
 import requests
 
+from requests.exceptions import JSONDecodeError
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.tools import get_rid_from_span
@@ -94,9 +95,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         rid = request.get_rid()
         traces_data = list(self._wait_for_request_traces(rid))
         traces = [self._extract_trace_from_backend_response(data["response"]) for data in traces_data]
-        assert (
-            len(traces) >= min_traces_len
-        ), f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
+        assert len(traces) >= min_traces_len, (
+            f"We only found {len(traces)} traces in the library (tracers), but we expected {min_traces_len}!"
+        )
         return traces
 
     def assert_otlp_trace_exist(
@@ -247,7 +248,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         try:
             response_content = r.json()
-        except:
+        except JSONDecodeError:
             response_content = r.text
 
         data = {

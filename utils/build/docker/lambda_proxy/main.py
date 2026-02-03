@@ -39,6 +39,8 @@ def invoke_lambda_function_api_gateway_rest():
         stage_name="Prod",
     )
 
+    converted_event["requestContext"]["identity"]["userAgent"] = request.user_agent.string
+
     response = post(
         RIE_URL,
         json=converted_event,
@@ -64,6 +66,7 @@ def invoke_lambda_function_api_gateway_http():
     path = PathConverter.convert_path_to_api_gateway(request.path)
     route_key = LocalApigwService._v2_route_key(request.method, path, is_default_route=False)
     converted_event = construct_v2_event_http(request, PORT, binary_types=BINARY_TYPES, route_key=route_key)
+    converted_event["requestContext"]["http"]["userAgent"] = request.user_agent.string
 
     response = post(
         RIE_URL,
@@ -167,7 +170,6 @@ ROUTES = [
     ("/", ["GET", "POST", "OPTIONS"]),
     ("/finger_print", ["GET"]),
     ("/headers", ["GET"]),
-    ("/healthcheck", ["GET"]),
     ("/external_request", ["GET", "POST", "PUT", "TRACE"]),
     ("/params/<path>/", ["GET", "POST", "OPTIONS"]),
     ("/session/new", ["GET"]),
@@ -192,3 +194,8 @@ for endpoint, methods in ROUTES:
         lambda **kwargs: lambda_invoker(),
         methods=methods,
     )
+
+
+@app.get("/healthcheck")
+def healthcheck():
+    return "Ok"

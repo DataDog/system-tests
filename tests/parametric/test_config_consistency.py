@@ -4,8 +4,16 @@ from urllib.parse import urlparse
 
 import pytest
 import yaml
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
-from utils.parametric.spec.trace import find_span_in_traces, find_only_span
+from utils import (
+    scenarios,
+    features,
+    context,
+    missing_feature,
+    rfc,
+    incomplete_test_app,
+    logger,
+)
+from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary, StableConfigWriter
 
@@ -31,9 +39,9 @@ class Test_Config_TraceEnabled:
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
         with test_library, test_library.dd_start_span("allowed"):
             pass
-        assert test_agent.wait_for_num_traces(
-            num=1
-        ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+        assert test_agent.wait_for_num_traces(num=1), (
+            "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+        )
 
     @enable_tracing_disabled()
     def test_tracing_disabled(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -47,14 +55,11 @@ class Test_Config_TraceEnabled:
 
 @scenarios.parametric
 @features.trace_log_directory
-@missing_feature(context.library == "php", reason="Can't create /parametric-tracer-logs at build step")
 class Test_Config_TraceLogDirectory:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_ENABLED": "true", "DD_TRACE_LOG_DIRECTORY": "/parametric-tracer-logs"}]
     )
-    def test_trace_log_directory_configured_with_existing_directory(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_trace_log_directory_configured_with_existing_directory(self, test_library: APMLibrary):
         with test_library, test_library.dd_start_span("allowed"):
             pass
 
@@ -73,7 +78,7 @@ def set_service_version_tags():
 @features.unified_service_tagging
 class Test_Config_UnifiedServiceTagging:
     @parametrize("library_env", [{}])
-    def test_default_config(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_default_config(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library, test_library.dd_start_span(name="s1") as s1:
             pass
 
@@ -89,8 +94,7 @@ class Test_Config_UnifiedServiceTagging:
 
     # Assert that iff a span has service name set by DD_SERVICE, it also gets the version specified in DD_VERSION
     @parametrize("library_env", [{"DD_SERVICE": "version_test", "DD_VERSION": "5.2.0"}])
-    @missing_feature(context.library < "ruby@2.7.1-dev")
-    def test_specific_version(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_specific_version(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
             with test_library.dd_start_span(name="s1") as s1:
                 pass
@@ -140,9 +144,7 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_trace_agent_unix_url_nonexistent(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_dd_trace_agent_unix_url_nonexistent(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -161,9 +163,7 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    def test_dd_trace_agent_http_url_nonexistent(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_dd_trace_agent_http_url_nonexistent(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -182,11 +182,7 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(context.library == "ruby", reason="does not support ipv6")
-    @missing_feature(library="cpp")
-    def test_dd_trace_agent_http_url_ipv6(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_dd_trace_agent_http_url_ipv6(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -205,12 +201,7 @@ class Test_Config_TraceAgentURL:
             }
         ],
     )
-    @missing_feature(context.library == "ruby", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
-    @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
-    @missing_feature(library="cpp")
-    def test_dd_agent_host_ipv6(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_agent_host_ipv6(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
 
@@ -228,27 +219,16 @@ class Test_Config_RateLimit:
     # which would be unreliable for testing and require significant effort for each tracer's weblog application.
     # The feature is mainly tested in the second test case, where the rate limit is set to 1 to ensure it works as expected.
     @parametrize("library_env", [{"DD_TRACE_SAMPLE_RATE": "1"}])
-    def test_default_trace_rate_limit(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_default_trace_rate_limit(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_trace_rate_limit"] == "100"
 
-    @irrelevant(
-        context.library == "php",
-        reason="PHP backfill model does not support strict two-trace limit, see test below for its behavior",
-    )
     @parametrize(
         "library_env",
         [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
     )
-    @flaky(library="java", reason="APMAPI-908")
-    @bug(context.library == "golang", reason="APMAPI-1030")
-    @missing_feature(library="cpp")
-    def test_setting_trace_rate_limit_strict(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_setting_trace_rate_limit_strict(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
             with test_library.dd_start_span(name="s1"):
                 pass
@@ -263,9 +243,7 @@ class Test_Config_RateLimit:
         assert trace_1_sampling_priority == -1
 
     @parametrize("library_env", [{"DD_TRACE_RATE_LIMIT": "1"}])
-    def test_trace_rate_limit_without_trace_sample_rate(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_trace_rate_limit_without_trace_sample_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library:
             with test_library.dd_start_span(name="s1"):
                 pass
@@ -289,9 +267,7 @@ class Test_Config_RateLimit:
             }
         ],
     )
-    def test_setting_trace_rate_limit(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_setting_trace_rate_limit(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
         # As long as the amount of allowance is greater than zero, the request is allowed.
         # Meaning that if the rate limit is 2 and you do two requests within 0.2 seconds, the remaining limit is 0.4, allowing for one more request.
@@ -300,13 +276,13 @@ class Test_Config_RateLimit:
         with test_library:
             # Generate three traces to demonstrate rate limiting in PHP's backfill model
             for i in range(3):
-                with test_library.dd_start_span(name=f"s{i+1}"):
+                with test_library.dd_start_span(name=f"s{i + 1}"):
                     pass
 
         traces = test_agent.wait_for_num_traces(3)
-        assert any(
-            trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces
-        ), "Expected at least one trace to be rate-limited with sampling priority -1."
+        assert any(trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces), (
+            "Expected at least one trace to be rate-limited with sampling priority -1."
+        )
 
 
 tag_scenarios: dict = {
@@ -361,7 +337,7 @@ class Test_Config_Tags:
             }
         ],
     )
-    def test_dd_service_override(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dd_service_override(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library, test_library.dd_start_span(name="sample_span"):
             pass
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -381,32 +357,26 @@ class Test_Config_Dogstatsd:
     @incomplete_test_app(
         reason="PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer"
     )
-    def test_dogstatsd_default(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_dogstatsd_default(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "localhost"
         assert resp["dd_dogstatsd_port"] == "8125"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "192.168.10.1"}])
-    def test_dogstatsd_custom_ip_address(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_dogstatsd_custom_ip_address(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "192.168.10.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "127.0.0.1"}])
-    def test_dogstatsd_custom_hostname(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_dogstatsd_custom_hostname(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "127.0.0.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_PORT": "8150"}])
-    def test_dogstatsd_custom_port(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_dogstatsd_custom_port(self, test_library: APMLibrary):
         with test_library as t:
             resp = t.config()
         assert resp["dd_dogstatsd_port"] == "8150"
@@ -517,14 +487,13 @@ class Test_Stable_Config_Default(StableConfigWriter):
     )
     def test_default_config(
         self,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         path: str,
-        library_env: dict[str, str],
         name: str,
         apm_configuration_default: dict,
         expected: dict,
     ):
+        logger.info(f"Testing stable config for {name} at path {path}")
         with test_library:
             self.write_stable_config(
                 {
@@ -569,13 +538,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_extended_configs(
         self,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         path: str,
-        library_env: dict[str, str],
         name: str,
         apm_configuration_default: dict,
         expected: dict[str, list | str],
@@ -587,6 +553,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
         in test_default_config. It ensures SDKs can handle complex configuration values
         like tag arrays and propagation style settings through the stable config mechanism.
         """
+        logger.info(f"Testing stable config for {name} at path {path}")
         with test_library:
             self.write_stable_config(
                 {
@@ -640,9 +607,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_unknown_key_skipped(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, library_env: dict[str, str], test: dict
-    ):
+    def test_unknown_key_skipped(self, test_library: APMLibrary, path: str, test: dict):
         with test_library:
             self.write_stable_config(
                 {
@@ -663,9 +628,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_invalid_files(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, path: str, library_env: dict[str, str]
-    ):
+    def test_invalid_files(self, test_library: APMLibrary, path: str):
         with test_library:
             self.write_stable_config_content(
                 "?? ??; ??\t\n\n --- `??",
@@ -719,13 +682,12 @@ class Test_Stable_Config_Default(StableConfigWriter):
     def test_config_precedence(
         self,
         name: str,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         local_cfg: dict,
-        library_env: dict[str, str],
         fleet_cfg: dict,
         expected: dict,
     ):
+        logger.info(f"Testing stable config for {name}")
         with test_library:
             self.write_stable_config(
                 {
@@ -756,7 +718,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
     """Verify that stable config targeting rules work as intended (apm_configuration_rules)"""
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
-    def test_targeting_rules(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_targeting_rules(self, test_library: APMLibrary):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             self.write_stable_config(
@@ -780,9 +742,9 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            assert (
-                config["dd_service"] == "my-service"
-            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+            assert config["dd_service"] == "my-service", (
+                f"Service name is '{config['dd_service']}' instead of 'my-service'"
+            )
 
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
@@ -790,7 +752,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             ["-Darg1=value"]
         ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
     )
-    def test_process_arguments(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_process_arguments(self, test_library: APMLibrary):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             config = {
@@ -813,6 +775,6 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             self.write_stable_config_content(stable_config_content, path, test_library)
             test_library.container_restart()
             lib_config = test_library.config()
-            assert (
-                lib_config["dd_service"] == "value"
-            ), f"Service name is '{lib_config["dd_service"]}' instead of 'value'"
+            assert lib_config["dd_service"] == "value", (
+                f"Service name is '{lib_config['dd_service']}' instead of 'value'"
+            )

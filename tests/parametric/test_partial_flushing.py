@@ -1,6 +1,6 @@
 import pytest
-from utils.parametric.spec.trace import find_span, find_trace
-from utils import missing_feature, features, context, scenarios
+from utils.docker_fixtures.spec.trace import find_span, find_trace
+from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -11,9 +11,6 @@ class Test_Partial_Flushing:
     @pytest.mark.parametrize(
         "library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1", "DD_TRACE_PARTIAL_FLUSH_ENABLED": "true"}]
     )
-    @missing_feature(
-        context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
-    )
     def test_partial_flushing_one_span(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test explicitly enables partial flushing.
@@ -21,11 +18,6 @@ class Test_Partial_Flushing:
         self.do_partial_flush_test(test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PARTIAL_FLUSH_MIN_SPANS": "1"}])
-    @missing_feature(
-        context.library == "java", reason="java uses '>' so it needs one more span to force a partial flush"
-    )
-    @missing_feature(context.library == "golang", reason="partial flushing not enabled by default")
-    @missing_feature(context.library == "dotnet", reason="partial flushing not enabled by default")
     def test_partial_flushing_one_span_default(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Create a trace with a root span and a single child. Finish the child, and ensure
         partial flushing triggers. This test assumes partial flushing is enabled by default.
@@ -65,6 +57,7 @@ class Test_Partial_Flushing:
             # verify the partially flushed chunk has proper "trace level" tags
             assert child_span["metrics"]["_sampling_priority_v1"] == 1.0
             assert len(child_span["meta"]["_dd.p.tid"]) > 0
+            assert len(child_span["meta"]["_dd.p.dm"]) > 0
 
         traces = test_agent.wait_for_num_traces(1, clear=True)
         full_trace = find_trace(traces, parent_span.trace_id)

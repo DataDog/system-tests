@@ -5,13 +5,13 @@
 from collections.abc import Callable
 import re
 
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
     whitelist = re.compile(whitelist_pattern) if whitelist_pattern is not None else None
 
-    def crawler(data: dict | list | tuple | str | float | bool | None) -> None:
+    def crawler(data: dict | list | tuple | str | float | bool | None) -> None:  # noqa: FBT001
         if isinstance(data, str):
             if whitelist is not None and not whitelist.match(data):
                 assert needle not in data
@@ -29,11 +29,8 @@ def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Calla
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.library_scrubbing
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
@@ -61,7 +58,6 @@ class Test_UrlQuery:
             },
         )
 
-    @bug(context.library < "dotnet@2.21.0", reason="APPSEC-5773")
     def test_multiple_matching_substring(self):
         interfaces.library.validate_all(validate_no_leak("leak-url-multiple"), allow_no_data=True)
 
@@ -106,11 +102,8 @@ class Test_UrlField:
         interfaces.library.validate_all(validate_no_leak("leak-name-url", whitelist_pattern), allow_no_data=True)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.library_scrubbing
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_EnvVar:
     """Environnement variables are not leaked"""

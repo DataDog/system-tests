@@ -41,6 +41,30 @@ The following text may be written to the body of the response:
 Hello headers!\n
 ```
 
+### GET /html
+
+This endpoint returns an HTML page instead of a JSON response. It is used to test features that require HTML content, such as RUM (Real User Monitoring) auto-injection.
+
+**Important:** This is a server-rendered HTML endpoint, not a REST/JSON endpoint. The tracer may inject additional scripts (like the RUM SDK) into the HTML response when RUM injection is enabled.
+
+The response content type must be `text/html`.
+
+The HTML content **must** be :
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello</title>
+</head>
+<body>
+    <h1>Hello</h1>
+</body>
+</html>
+```
+
+**Note:** When RUM injection is enabled via environment variables (`DD_RUM_ENABLED=true`), the tracer will automatically inject the RUM SDK script into the HTML response.
+
 ### GET /identify
 
 This endpoint must set the following tags on the local root span:
@@ -108,6 +132,39 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /endpoint_fallback
+
+This endpoint tests RFC-1076: API Security sampling fallback behavior when
+`http.route` is absent. The endpoint behavior is controlled by the `case` query
+parameter.
+
+- Query parameter `case`: Required. Specifies which test case to execute. Valid
+  values:
+
+1. **with_route**: Tests that `http.route` is used for sampling when present
+   - Sets: `http.route = "/users/{id}/profile"`
+   - Response: 200 OK
+
+2. **with_endpoint**: Tests fallback to `http.endpoint` when `http.route` is
+absent
+   - Sets: `http.endpoint = "/api/products/{param:int}"`
+   - Does NOT set: `http.route`
+   - Response: 200 OK
+
+3. **404**: Tests that `http.endpoint` is NOT used for sampling when status is
+404
+   - Sets: `http.endpoint = "/api/notfound/{param:int}"`
+   - Does NOT set: `http.route`
+   - Response: 404 Not Found
+
+4. **computed**: Tests on-demand endpoint computation from URL
+   - Sets: `http.url =
+     "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456"`
+   - Does NOT set: `http.route` or `http.endpoint`
+   - **Important**: The endpoint is computed internally for sampling but must
+     NOT be added as a span tag
+   - Response: 200 OK
+
 ### GET /external_request
 ### POST /external_request
 ### TRACE /external_request
@@ -134,6 +191,31 @@ if the request to `internal_server` is a failure, it must return a json body wit
 - `status` the status code of the `internal_server` response if available or a null value
 - `error` a string describing the error, for debug purposes
 
+### GET /external_request/redirect
+
+This endpoint tests HTTP redirect chains with downstream requests, using the fastapi application in `/utils/build/docker/internal_server/app.py`
+
+Query parameters:
+- `totalRedirects`: number of redirects (default 0)
+
+The endpoint calls `/redirect?totalRedirects={totalRedirects}` and follows all 302 redirects until receiving a 200 response.
+
+How it works:
+- `/redirect` decrements `totalRedirects` and redirects to itself until `totalRedirects=0`
+- When `totalRedirects=0`, redirects to `/mirror/200` which returns 200 OK
+
+Example with `totalRedirects=2`:
+1. `/redirect?totalRedirects=2` → 302
+2. `/redirect?totalRedirects=1` → 302
+3. `/redirect?totalRedirects=0` → 302
+4. `/mirror/200` → 200 OK
+
+Total: 4 downstream requests (totalRedirects + 2).
+
+All query parameters are sent as headers to `internal_server` requests.
+
+Returns 200 status code.
+
 ### GET /spans
 
 The endpoint may accept two query string parameters:
@@ -155,7 +237,7 @@ The endpoint must accept a query string parameter `q`. This parameter should be 
 
 The output of the query should be written to the body of the response.
 
-### `GET /status`
+### GET /status
 
 The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message.
 
@@ -673,7 +755,7 @@ The parameters in the body are:
 - `exists`: String with "true" or "false" value
 - `metadata`: Objet with the metadata
 
-### GET '/inferred-proxy/span-creation'
+### GET /inferred-proxy/span-creation
 
 This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy
 spans for routers such as AWS API Gateway. Not including the headers means a span will not be created by the tracer
@@ -768,7 +850,7 @@ Additionally, both methods support the following query parameters to use the sdk
 - `sdk_mail`: user's mail to be used in the sdk call.
 - `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
 
-### \[POST\] /signup
+### POST /signup
 
 This endpoint is used to create a new user. Do not keep the user in memory for later use, only call the framework method to pretend to do so.
 Body fields accepted in POST method:
@@ -786,7 +868,7 @@ Additionally, the method supports the following query parameters to use the sdk 
 
 These endpoints are used for the `Dynamic Instrumentation` tests.
 
-#### GET /exceptionreplay/*
+### GET /exceptionreplay/*
 
 These endpoints will be used for `Exception Replay` tests.
 
@@ -885,7 +967,7 @@ Examples:
 - `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
 - `POST`: `{"user_id": "' OR 1 = 1 --"}`
 
-### \[GET\] /rasp/multiple
+### GET /rasp/multiple
 
 The idea of this endpoint is to have an endpoint where multiple rasp operation take place. All of them will generate a MATCH on the WAF but none of them will block. The goal of this endpoint is to verify that the `rasp.rule.match` telemetry entry is updated properly. While this seems easy, the WAF requires that data given on `call` is passed as ephemeral and not as persistent.
 
@@ -910,7 +992,7 @@ This endpoint is used to validate DSM context extraction works correctly when pr
 This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning its value (the headers received) to inspect them, looking for
 distributed tracing propagation headers.
 
-### \[GET\] /vulnerablerequestdownstream
+### GET /vulnerablerequestdownstream
 
 Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and return the resulting json data structure from `/returnheaders` in its response.
 
@@ -918,7 +1000,7 @@ Similar to `/requestdownstream`. This is used to test standalone IAST downstream
 
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
-### \[GET\] /stats-unique
+### GET /stats-unique
 
 The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
 This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
@@ -989,11 +1071,11 @@ Examples:
 - `GET`: `/rasp/cmdi?command=/usr/bin/touch /tmp/passwd
 - `POST`: `{"command": ["/usr/bin/touch", "/tmp/passwd"]}`
 
-### \[GET\] /set_cookie
+### GET /set_cookie
 
 This endpoint get a `name` and a `value` form the query string, and adds a header `Set-Cookie` with `{name}={value}` as header value in the HTTP response
 
-### \[GET\] /session/new
+### GET /session/new
 
 This endpoint is the initial endpoint used to test session fingerprints, consequently it must initialize a new session and the web client should be able to deal with the persistence mechanism (e.g. cookies).
 
@@ -1007,7 +1089,7 @@ Examples:
 
 - `GET`: `/session/new`
 
-### **UNUSED** \[GET\] /session/user
+### **UNUSED** GET /session/user
 
 Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
 
@@ -1019,7 +1101,7 @@ Examples:
 
 - `GET`: `/session/user?sdk_user=sdkUser`
 
-### \[GET\] /mock_s3/put_object
+### GET /mock_s3/put_object
 
 This endpoint is used to test the s3 integration. It creates a bucket if
 necessary based on the `bucket` query parameter and puts an object at the `key`
@@ -1032,7 +1114,7 @@ Examples:
 
 - `GET`: `/mock_s3/put_object?bucket=somebucket&key=somekey`
 
-### \[GET\] /mock_s3/copy_object
+### GET /mock_s3/copy_object
 
 This endpoint is used to test the s3 integration. It creates a bucket if
 necessary based on the `original_bucket` query parameter and puts an object at
@@ -1047,7 +1129,7 @@ Examples:
 
 - `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
 
-### \[GET\] /mock_s3/multipart_upload
+### GET /mock_s3/multipart_upload
 
 This endpoint is used to test the s3 integration. It creates a bucket if
 necessary based on the `bucket` query parameter and puts an object at the `key`
@@ -1062,7 +1144,7 @@ Examples:
 
 - `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
 
-### \[GET\] /mock_s3/copy_object
+### GET /mock_s3/copy_object
 
 This endpoint is used to test the s3 integration. It creates a bucket if
 necessary based on the `original_bucket` query parameter and puts an object at
@@ -1077,7 +1159,7 @@ Examples:
 
 - `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
 
-### \[GET\] /protobuf/serialize
+### GET /protobuf/serialize
 
 This endpoint serializes a constant protobuf message. Returns the serialized message as a base64 encoded string. It is meant to be used to test the protobuf serialization integration.
 
@@ -1085,7 +1167,7 @@ Examples:
 
 - `GET`: `/protobuf/serialize`
 
-### \[GET\] /protobuf/deserialize
+### GET /protobuf/deserialize
 
 This endpoint deserializes a protobuf message from a base64 encoded string provided in the query parameters. Returns "ok" if deserialization is successful. The simplest way to use it is to pass the output of the `/protobuf/serialize` endpoint to it. It is meant to be used to test the protobuf deserialization integration.
 
@@ -1097,9 +1179,82 @@ Examples:
 
 - `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`
 
-#### GET /resource_renaming/*
+### GET /resource_renaming/*
 
 This endpoint will be used for `Resource Renaming` tests, it allows all subpaths.
+
+#### POST /ai_guard/evaluate
+This endpoint triggers AI Guard SDK evaluations using the `evaluate()` method from the AI Guard SDK.
+
+**Request Format:**
+- **Content-Type:** `application/json`
+- **Body:** List of AI Guard `Message` objects to be evaluated
+- **Header:** `X-AI-Guard-Block` (optional, default: `false`) - Controls whether blocking is enabled
+
+**Request Body Example:**
+```json
+[
+  {
+    "role": "system",
+    "content": "You are a helpful AI assistant"
+  },
+  {
+    "role": "user",
+    "content": "What is the weather like today in New York?"
+  },
+  {
+    "role": "assistant",
+    "tool_calls": [
+      {
+        "id": "call_1",
+        "function": {
+          "name": "get_weather",
+          "arguments": "{ \"location\": \"New York\" }\n"
+        }
+      }
+    ]
+  }
+]
+```
+
+**Response Behavior:**
+- **Success (200 OK):** Returns the `Evaluation` result as JSON when evaluation succeeds
+- **Blocked (403 Forbidden):** Returns `AIGuardAbortError` when blocking is enabled and content is flagged
+- **Error (500 Internal Server Error):** Returns exception details for unexpected errors
+
+**Response Examples:**
+
+Successful evaluation:
+```json
+{
+  "action": "ALLOW",
+  "reason": "All looks good",
+  "tags": []
+}
+```
+
+### POST /stripe/create_checkout_session
+
+This endpoint takes a JSON request body, that must be passed directly to the Stripe SDK method that creates a Checkout Session (`stripe.checkout.sessions.create()` or equivalent).
+The object returned by that Stripe SDK method must be returned as JSON in the response body.
+If an error happens, the endpoint must respond with a 500 error code.
+
+**Important: The SDK should be configured to use the Stripe API mock located at `http://internal_server:8089`, and use API key `sk_FAKE`, instead of using the public Stripe API backend.**
+
+### POST /stripe/create_payment_intent
+
+This endpoint takes a JSON request body, that must be passed directly to the Stripe SDK method that creates a Payment Intent (`stripe.paymentIntents.create()` or equivalent).
+The object returned by that Stripe SDK method must be returned as JSON in the response body.
+If an error happens, the endpoint must respond with a 500 error code.
+
+**Important: The SDK should be configured to use the Stripe API mock located at `http://internal_server:8089`, and use API key `sk_FAKE`, instead of using the public Stripe API backend.**
+
+### POST /stripe/webhook
+
+This endpoint acts as a webhook receiver of events sent by the Stripe backend.
+It takes a raw (unparsed) request body, and a signature located in header `Stripe-Signature`, that must be passed directly, along the secret key `whsec_FAKE`, to the Stripe SDK method that parses webhook events (`stripe.webhooks.constructEvent()` or equivalent).
+The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
+If an error happens, the endpoint must respond with a 403 error code.
 
 ## Weblog specification
 

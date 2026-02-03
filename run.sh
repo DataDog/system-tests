@@ -22,8 +22,6 @@ NAME
 SYNOPSIS
     ${program} +h
 
-    ${program} [+d] [+S scenario...] [+G scenario group...] [++] [pytest arguments]
-
     ${program} [+d] SCENARIO [pytest arguments]
 
     ${program} [+d] GROUPED_SCENARIOS [pytest arguments]
@@ -40,9 +38,6 @@ OPTIONS
 
     +d, ++docker
       Run tests in a Docker container. The runner image must be built beforehand.
-
-    +S, ++scenario SCENARIO
-      Add scenario SCENARIO to the list of scenarios to run. Case-insensitive.
 
     +G, ++scenario-group GROUPED_SCENARIOS
       Add all scenarios in GROUPED_SCENARIOS group to the list of scenarios to
@@ -496,6 +491,30 @@ function main() {
                     continue
         fi
         if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == EXTERNAL_PROCESSING ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == EXTERNAL_PROCESSING_BLOCKING ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == STREAM_PROCESSING_OFFLOAD ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == STREAM_PROCESSING_OFFLOAD_BLOCKING ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == GO_PROXIES ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
+        if [[ "${scenario}" == GO_PROXIES_BLOCKING ]]; then
                             echo "${scenario} was removed, skipping."
                             continue
         fi

@@ -5,6 +5,9 @@
         "id": "",
         "version": 0,
         "captureSnapshot": true,
+        "capture": {
+            "maxFieldCount": 200
+        },
         "where": {
             "typeName": null,
             "sourceFile": "ACTUAL_SOURCE_FILE",

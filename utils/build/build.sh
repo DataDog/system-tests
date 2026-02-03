@@ -29,7 +29,7 @@ readonly DEFAULT_python=flask-poc
 readonly DEFAULT_ruby=rails72
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
-readonly DEFAULT_java_otel=spring-boot-native
+readonly DEFAULT_java_otel=spring-boot-otel
 readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
@@ -217,6 +217,9 @@ build() {
                 docker load --input $BINARIES_FILENAME
             else
 
+                if [[ $TEST_LIBRARY == python ]]; then
+                    DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}"
+                fi
                 # dd-trace-py compilation if required
                 if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
                     echo "Compiling dd-trace-py"
@@ -226,11 +229,14 @@ build() {
                         flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
                             PYTHON_VERSION="3.11"
                             ;;
+                        python3.12)
+                            PYTHON_VERSION="3.12"
+                            ;;
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        python3.12)
-                            PYTHON_VERSION="3.12"
+                        tornado)
+                            PYTHON_VERSION="3.14"
                             ;;
                         *)
                             echo "Error: Unknown weblog variant, python version could not be determined" >&2
@@ -239,7 +245,7 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run --platform linux/amd64 -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile

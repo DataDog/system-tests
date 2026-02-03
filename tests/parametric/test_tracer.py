@@ -1,12 +1,12 @@
 import pytest
 
-from utils.parametric.spec.trace import find_trace
-from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.trace import find_first_span_in_trace_payload
-from utils.parametric.spec.trace import find_root_span
-from utils import missing_feature, context, rfc, scenarios, features
+from utils.docker_fixtures.spec.trace import find_trace
+from utils.docker_fixtures.spec.trace import find_span
+from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
+from utils.docker_fixtures.spec.trace import find_root_span
+from utils import missing_feature, rfc, scenarios, features
+from utils.docker_fixtures import TestAgentAPI
 
-from .conftest import _TestAgentAPI
 from .conftest import APMLibrary
 
 
@@ -16,9 +16,7 @@ parametrize = pytest.mark.parametrize
 @scenarios.parametric
 @features.trace_annotation
 class Test_Tracer:
-    @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
-    @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
-    def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_tracer_span_top_level_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""
         with (
             test_library,
@@ -51,7 +49,7 @@ class Test_Tracer:
 class Test_TracerSCITagging:
     @parametrize("library_env", [{"DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/dd-trace-go"}])
     def test_tracer_repository_url_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_GIT_REPOSITORY_URL is specified
         When a trace chunk is emitted
@@ -78,7 +76,7 @@ class Test_TracerSCITagging:
 
     @parametrize("library_env", [{"DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}])
     def test_tracer_commit_sha_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_GIT_COMMIT_SHA is specified
         When a trace chunk is emitted
@@ -137,9 +135,8 @@ class Test_TracerSCITagging:
             },
         ],
     )
-    @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_GIT_REPOSITORY_URL is specified
         When a trace chunk is emitted
@@ -166,7 +163,7 @@ class Test_TracerUniversalServiceTagging:
     @missing_feature(reason="FIXME: library test client sets empty string as the service name")
     @parametrize("library_env", [{"DD_SERVICE": "service1"}])
     def test_tracer_service_name_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_SERVICE is specified
         When a span is created
@@ -184,7 +181,7 @@ class Test_TracerUniversalServiceTagging:
 
     @parametrize("library_env", [{"DD_ENV": "prod"}])
     def test_tracer_env_environment_variable(
-        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         """When DD_ENV is specified
         When a span is created

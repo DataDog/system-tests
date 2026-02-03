@@ -4,10 +4,11 @@
 
 """Validate data flow between agent and backend"""
 
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Generator, Iterable
 import copy
 import threading
 
+from utils.dd_constants import TraceAgentPayloadFormat
 from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -47,7 +48,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data
                         elif get_rid_from_span(span) == rid:
-                            logger.debug(f'Found span with rid={rid} in {data["log_filename"]}')
+                            logger.debug(f"Found span with rid={rid} in {data['log_filename']}")
                             yield data, payload, chunk, span, appsec_data
 
     def get_profiling_data(self):
@@ -78,7 +79,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     yield data
 
     def assert_trace_exists(self, request: HttpResponse):
-        for _, _ in self.get_spans(request=request):
+        for _, _, _ in self.get_traces(request=request):
             return
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
@@ -94,11 +95,13 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
         self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
-    def get_spans(self, request: HttpResponse | None = None):
-        """Attempts to fetch the spans the agent will submit to the backend.
+    def get_traces(self, request: HttpResponse | None = None) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat]]:
+        """Attempts to fetch the traces the agent will submit to the backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
+
+        Returns data, trace and trace_format
         """
 
         rid = request.get_rid() if request else None
@@ -106,16 +109,86 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                raise ValueError("Trace property is missing in agent payload")
+            logger.debug(f"Looking at agent data {data['log_filename']}")
+            if "tracerPayloads" in data["request"]["content"]:
+                content = data["request"]["content"]["tracerPayloads"]
 
-            content = data["request"]["content"]["tracerPayloads"]
+                for payload in content:
+                    for trace in payload["chunks"]:
+                        for span in trace["spans"]:
+                            if rid is None or get_rid_from_span(span) == rid:
+                                logger.info(f"Found a trace in {data['log_filename']}")
+                                yield data, trace, TraceAgentPayloadFormat.legacy
+                                break
 
-            for payload in content:
-                for chunk in payload["chunks"]:
-                    for span in chunk["spans"]:
-                        if rid is None or get_rid_from_span(span) == rid:
-                            yield data, span
+            if "idxTracerPayloads" in data["request"]["content"]:
+                content: list[dict] = data["request"]["content"]["idxTracerPayloads"]
+
+                for payload in content:
+                    for trace in payload.get("chunks", []):
+                        for span in trace["spans"]:
+                            if rid is None or get_rid_from_span(span) == rid:
+                                logger.info(f"Found a trace in {data['log_filename']}")
+                                yield data, trace, TraceAgentPayloadFormat.efficient_trace_payload_format
+                                break
+
+    def get_spans(
+        self, request: HttpResponse | None = None
+    ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat], None, None]:
+        """Attempts to fetch the spans the agent will submit to the backend.
+
+        When a valid request is given, then we filter the spans to the ones sampled
+        during that request's execution, and only return those.
+
+        Returns data, span and trace_format
+        """
+
+        rid = request.get_rid() if request else None
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data, trace, trace_format in self.get_traces(request=request):
+            for span in trace["spans"]:
+                if rid is None or get_rid_from_span(span) == rid:
+                    yield data, span, trace_format
+
+    @staticmethod
+    def get_span_meta(span: dict, span_format: TraceAgentPayloadFormat) -> dict[str, str]:
+        """Returns the meta dictionary of a span according to its format"""
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["meta"]
+
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            # in the new format, metrics and meta are joined in attributes
+            return span["attributes"]
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def set_span_attrs(span: dict, span_format: TraceAgentPayloadFormat, meta: dict[str, str]) -> None:
+        """Overwrites the span attributes of a span according to its format.
+        For legacy spans this means only the meta dictionary,
+        for efficient spans this means the entire attributes dictionary.
+        """
+        if span_format == TraceAgentPayloadFormat.legacy:
+            span["meta"] = meta
+
+        elif span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            span["attributes"] = meta
+        else:
+            raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_metrics(span: dict, span_format: TraceAgentPayloadFormat) -> dict[str, str]:
+        """Returns the metrics dictionary of a span according to its format"""
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["metrics"]
+
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            # in the new format, metrics and meta are joined in attributes
+            return span["attributes"]
+
+        raise ValueError(f"Unknown span format: {span_format}")
 
     def get_chunks_v1(self, request: HttpResponse | None = None):
         """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
@@ -129,24 +202,22 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             logger.debug(f"Will try to find agent spans related to request {rid}")
 
         for data in self.get_data(path_filters="/api/v0.2/traces"):
+            logger.debug(f"Looking at agent data {data['log_filename']}")
             if "idxTracerPayloads" not in data["request"]["content"]:
                 continue
-
-            # logger.debug(f"Looking at agent data {data}")
             content = data["request"]["content"]["idxTracerPayloads"]
 
             for payload in content:
-                # logger.debug(f"Looking at agent payload {payload}")
-                for chunk in payload["chunks"]:
+                logger.debug(f"Looking at agent payload {payload}")
+                for chunk in payload.get("chunks", []):
                     for span in chunk["spans"]:
-                        logger.debug(f"Looking at agent span {span}")
                         if rid is None or get_rid_from_span(span) == rid:
                             logger.debug(f"Found a span in {data['log_filename']}")
                             yield data, chunk
                             break
 
-    def get_spans_list(self, request: HttpResponse):
-        return [span for _, span in self.get_spans(request)]
+    def get_spans_list(self, request: HttpResponse | None = None) -> list[tuple[dict, TraceAgentPayloadFormat]]:
+        return [(span, span_format) for _, span, span_format in self.get_spans(request)]
 
     def get_metrics(self):
         """Attempts to fetch the metrics the agent will submit to the backend."""
@@ -196,3 +267,54 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     for client_grouped_stat in client_stats_buckets["Stats"]:
                         if resource == "" or client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat
+
+    @staticmethod
+    def get_trace_id(chunk: dict, chunk_format: TraceAgentPayloadFormat) -> str:
+        """Returns the trace ID of a chunk according to its format
+        Returns only the lower 64 bits of the trace ID
+        """
+        if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return str(int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF)
+        if chunk_format == TraceAgentPayloadFormat.legacy:
+            return chunk["spans"][0]["traceID"]
+        raise ValueError(f"Unknown chunk format: {chunk_format}")
+
+    @staticmethod
+    def get_span_type(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span.get("typeRef", "")
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span.get("type", "")
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_name(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["nameRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["name"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_resource(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["resourceRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["resource"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_service(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["serviceRef"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["service"]
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_kind(span: dict, span_format: TraceAgentPayloadFormat) -> str:
+        if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+            return span["kind"]
+        if span_format == TraceAgentPayloadFormat.legacy:
+            return span["meta"]["span.kind"]
+        raise ValueError(f"Unknown span format: {span_format}")

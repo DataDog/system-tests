@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-12 (109 PR merged)
+
+* 2025-12-30 [allows list of weblogs in weblog declaration keys](https://github.com/DataDog/system-tests/pull/5919) by @christophe-papazian
+* 2025-12-18 [Auto sort for manifest files](https://github.com/DataDog/system-tests/pull/5883) by @nccatoni
+* 2025-12-16 [Auto complete based on schema for yaml-language-server](https://github.com/DataDog/system-tests/pull/5880) by @nccatoni
+* 2025-12-04 [Allow parametric test to set agent env](https://github.com/DataDog/system-tests/pull/5820) by @cbeauchesne
+* 2025-12-09 [Manifests migration](https://github.com/DataDog/system-tests/pull/5575) by @nccatoni
+
+
+### 2025-11 (122 PR merged)
+
+* 2025-11-26 [Clean API to control mocked behavior on proxy](https://github.com/DataDog/system-tests/pull/5775) by @cbeauchesne
+* 2025-11-21 [Simplify PARAMETRIC TestClient API](https://github.com/DataDog/system-tests/pull/5753) by @cbeauchesne
+* 2025-11-26 [Add OpenAI LLM Observability Tests](https://github.com/DataDog/system-tests/pull/5727) by @sabrenner
+* 2025-11-05 [Pushing to test optimization](https://github.com/DataDog/system-tests/pull/5663) by @nccatoni
+* 2025-11-04 [Activate ANN001 on all endtoend and parametric scenarios](https://github.com/DataDog/system-tests/pull/5661) by @cbeauchesne
+* 2025-11-13 [expand openai integration frameworks tests](https://github.com/DataDog/system-tests/pull/5632) by @sabrenner
+
+
 ### 2025-10 (207 PR merged)
 
 * 2025-10-24 [Allow running php system tests with self-compiled artifact](https://github.com/DataDog/system-tests/pull/5586) by @bwoebi

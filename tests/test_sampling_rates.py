@@ -9,7 +9,7 @@ from random import randint, seed
 from typing import Any
 from urllib.parse import urlparse
 
-from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger, flaky
+from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
 
 """Those are the constants used by the sampling algorithm in all the tracers
@@ -107,8 +107,6 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
-    @flaky(context.library >= "nodejs@5.55.0", reason="APMAPI-1441")
     def test_sampling_rates(self):
         """Basic test"""
         assert_all_traces_requests_forwarded(self.paths)
@@ -132,7 +130,7 @@ class Test_SamplingRates:
             raise ValueError(
                 f"Sampling rate is set to {context.tracer_sampling_rate}, "
                 f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True]/trace_count}, "
+                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True] / trace_count}, "
                 f"which is outside of the confidence interval of +-{confidence_interval}\n"
                 "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
             )
@@ -259,9 +257,9 @@ class Test_SamplingDeterminism:
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
                 )
 
-                assert (
-                    sampling_priority is not None
-                ), f"Message: {data['log_filename']}: sampling priority should be set"
+                assert sampling_priority is not None, (
+                    f"Message: {data['log_filename']}: sampling priority should be set"
+                )
 
         interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
@@ -311,7 +309,6 @@ class Test_SampleRateFunction:
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))
 
-    @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
 
@@ -325,13 +322,13 @@ class Test_SampleRateFunction:
                 sampling_priority = span["metrics"].get("_sampling_priority_v1")
                 logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
-                assert (
-                    sampling_priority is not None
-                ), f"trace_id={trace_id}: Root span has no sampling priority attached"
+                assert sampling_priority is not None, (
+                    f"trace_id={trace_id}: Root span has no sampling priority attached"
+                )
                 actual_sampling_decision = priority_should_be_kept(sampling_priority)
-                assert (
-                    priority_should_be_kept(sampling_priority) is expected_sampling_decision
-                ), f"trace_id={trace_id}, sampling_priority={sampling_priority}, expected_sampling_decision={expected_sampling_decision}, actual_sampling_decision={actual_sampling_decision}"
+                assert priority_should_be_kept(sampling_priority) is expected_sampling_decision, (
+                    f"trace_id={trace_id}, sampling_priority={sampling_priority}, expected_sampling_decision={expected_sampling_decision}, actual_sampling_decision={actual_sampling_decision}"
+                )
                 break
             else:
                 raise ValueError(f"Did not receive spans for req:{req.request}")

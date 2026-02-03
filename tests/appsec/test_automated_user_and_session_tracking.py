@@ -7,12 +7,10 @@ from typing import Any
 from utils import context
 from utils import features
 from utils import interfaces
-from utils import irrelevant
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-from utils import missing_feature
 
 # User entries in the internal DB:
 # users = [
@@ -74,7 +72,6 @@ class Test_Automated_User_Tracking:
         self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         self.r_users = weblog.get("/users?user=sdkUser", cookies=self.r_login.cookies)
 
-    @missing_feature(context.library == "java")
     def test_user_tracking_sdk_overwrite(self):
         assert self.r_login.status_code == 200
 
@@ -141,21 +138,17 @@ BLOCK_USER_DATA = (
 @scenarios.appsec_api_security_rc
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
-        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER).apply()
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_home_blocked = weblog.get(
             "/",
             cookies=self.r_login.cookies,
         )
 
-    @irrelevant(
-        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
-        reason="no possible auto-instrumentation for python except on Django",
-    )
     def test_user_blocking_auto(self):
         assert self.r_login.status_code == 200
 
@@ -165,12 +158,12 @@ class Test_Automated_User_Blocking:
         assert self.r_home_blocked.status_code == 403
 
     def setup_user_blocking_sdk(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.r_login = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
 
-        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER).apply()
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_USER_DATA).apply()
 
         self.r_not_blocked = weblog.get(
             "/",
@@ -181,7 +174,6 @@ class Test_Automated_User_Blocking:
             cookies=self.r_login.cookies,
         )
 
-    @missing_feature(context.library == "java")
     def test_user_blocking_sdk(self):
         assert self.r_login.status_code == 200
 
@@ -231,20 +223,19 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 @scenarios.appsec_api_security_rc
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
         self.r_create_session = weblog.get("/session/new")
         self.session_id = self.r_create_session.text
 
         BLOCK_SESSION_DATA[1]["rules_data"][0]["data"].append({"value": self.session_id, "expiration": 0})
-        self.config_state_1 = rc.rc_state.set_config(*BLOCK_SESSION).apply()
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_SESSION_DATA).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*BLOCK_SESSION).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_SESSION_DATA).apply()
         self.r_home_blocked = weblog.get(
             "/",
             cookies=self.r_create_session.cookies,
         )
 
-    @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
         assert self.r_create_session.status_code == 200
 

@@ -6,7 +6,6 @@ import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import download_vm_logs
-from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from .core import Scenario
 
@@ -27,7 +26,7 @@ class _VirtualMachineScenario(Scenario):
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
-        self.vm_provider_id = "vagrant"
+        self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
         self.required_vms = []
         # Variables that will populate for the agent installation
@@ -36,7 +35,7 @@ class _VirtualMachineScenario(Scenario):
         self.app_env = app_env
         self.only_default_vms = ""
         # Current selected vm for the scenario (set empty by default)
-        self.virtual_machine = _VirtualMachine(
+        self.virtual_machine: _VirtualMachine = _VirtualMachine(
             name="",
             aws_config=None,
             vagrant_config=None,
@@ -53,12 +52,15 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
         # Check if the datadog-apm-library is installed.
-        if "datadog-apm-library" not in self.components or not self.components["datadog-apm-library"]:
-            logger.stdout("No datadog-apm-library found")
+        apm_library_version = self.components.get("datadog-apm-library", None)
+        if (
+            not apm_library_version or apm_library_version == "0.0.0"
+        ) and self.vm_provider.vm.provision_install_error is None:
+            logger.stdout("❌ No datadog-apm-library found ❌ ")
             logger.stdout("This is not a valid scenario")
             logger.stdout("Please, check the log file for more details")
             logger.stdout(f"Log file: {self.host_log_folder}/tests.log")
-            raise ValueError("No datadog-apm-library found")
+            pytest.exit("No datadog-apm-library found", returncode=3)
 
     def configure(self, config: pytest.Config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
@@ -131,13 +133,20 @@ class _VirtualMachineScenario(Scenario):
         for key in self.virtual_machine.tested_components:
             if key in ("host", "runtime_version"):
                 continue
-            self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
+            try:
+                self.components[key] = ComponentVersion(
+                    key.removeprefix("datadog-apm-library-"),
+                    self.virtual_machine.tested_components[key].lstrip(" ").replace(",", ""),
+                ).version
+            except ValueError:
+                self.components[key] = self.virtual_machine.tested_components[key].lstrip(" ").replace(",", "")
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = ComponentVersion(self._library.name, self.components[key])
+                self._library = ComponentVersion(self._library.name, str(self.components[key]))
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
+                self.components[key.removeprefix("datadog-apm-library-")] = self.components[key]
                 del self.components[key]
             if key.startswith("glibc"):
                 # We will all the glibc versions in the feature parity report, due to each machine can have a
@@ -152,7 +161,7 @@ class _VirtualMachineScenario(Scenario):
             # Extract logs from the VM before destroy
             download_vm_logs(
                 vm=self.virtual_machine,
-                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog"],
+                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"],  # noqa: S108
                 local_base_logs_folder=self.host_log_folder,
             )
             logger.info("Destroying virtual machines")
@@ -181,7 +190,7 @@ class _VirtualMachineScenario(Scenario):
             test["description"] = test["path"][last_index:]
 
         # We are going to split the FPD report in multiple reports, one per VM-runtime
-        vms, vm_ids = get_tested_apps_vms(self.virtual_machine)
+        vms, vm_ids = self.virtual_machine.get_tested_apps_vms()
         for i in range(len(vms)):
             vm = vms[i]
             vm_id = vm_ids[i]

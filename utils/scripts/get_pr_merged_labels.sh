@@ -4,6 +4,7 @@
 #We extract the PR number and using GitHub API we check the PR labels.
 #If the PR contains the label "build-buddies-images" we launch the build and push process
 
+set -euo pipefail
 
 PR_PATTERN='#[0-9]+'
 
@@ -11,8 +12,9 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     PR_NUMBER=${BASH_REMATCH[1]:1}
     echo "Merged the PR number: [$PR_NUMBER]";
     #search for labels
-    PR_DATA=$(curl -L \
+    PR_DATA=$(curl -L --fail \
     -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/DataDog/system-tests/issues/$PR_NUMBER/labels");
 

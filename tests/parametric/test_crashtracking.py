@@ -4,9 +4,8 @@ import base64
 import json
 import pytest
 
-from utils import bug, features, scenarios, logger
-from utils.parametric._library_client import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
+from utils import features, scenarios, logger
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
 
 
 @scenarios.parametric
@@ -35,7 +34,6 @@ class Test_Crashtracking:
                 with pytest.raises(AssertionError):
                     self.assert_crash_report(test_library, event)
 
-    @bug(library="java", reason="APMLP-302")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_telemetry_timeout(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_agent.set_trace_delay(60)
@@ -44,7 +42,7 @@ class Test_Crashtracking:
 
         try:
             # container.wait will throw if the application doesn't exit in time
-            test_library._client.container.wait(timeout=10)  # noqa: SLF001
+            test_library.container.wait(timeout=10)
         finally:
             test_agent.set_trace_delay(0)
 

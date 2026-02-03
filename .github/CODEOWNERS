@@ -11,11 +11,15 @@
 /utils/build/docker/ruby*/ @DataDog/ruby-guild @DataDog/asm-ruby @DataDog/system-tests-core
 /utils/build/docker/rust*/ @DataDog/apm-rust @DataDog/system-tests-core
 
+/utils/docker_fixtures/spec/llm_observability.py @DataDog/ml-observability @DataDog/system-tests-core
 /utils/telemetry/intake/ @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
 /utils/telemetry/intake/static/ @DataDog/apm-sdk
 
+/tests/ffe/ @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /tests/parametric/ @DataDog/system-tests-core @DataDog/apm-sdk-capabilities
 /tests/parametric/test_config_consistency.py @DataDog/apm-sdk-capabilities
+/tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/tests/parametric/test_llm_observability @DataDog/ml-observability @DataDog/system-tests-core
 /tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
@@ -24,6 +28,7 @@
 /tests/serverless @DataDog/serverless @DataDog/system-tests-core
 /tests/external_processing/ @DataDog/asm-libraries @DataDog/system-tests-core
 /tests/stream_processing_offload/ @DataDog/asm-libraries @DataDog/system-tests-core
+/tests/integration_frameworks/llm/ @DataDog/ml-observability
 
 /manifests/cpp.yml @DataDog/dd-trace-cpp
 /manifests/dotnet.yml @DataDog/apm-dotnet @DataDog/asm-dotnet

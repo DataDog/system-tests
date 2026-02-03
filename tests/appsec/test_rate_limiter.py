@@ -37,9 +37,6 @@ class Test_Main:
 
         logger.debug(f"Sent 50 requests in {(datetime.datetime.now(tz=datetime.UTC) - start_time).total_seconds()} s")
 
-    @bug(
-        context.library > "nodejs@3.14.1" and context.library < "nodejs@4.8.0", reason="APMRP-360"
-    )  # _sampling_priority_v1 is missing
     def test_main(self):
         """Send requests for 10 seconds, check that only 10-ish traces are sent, as rate limiter is set to 1/s"""
 
@@ -50,9 +47,9 @@ class Test_Main:
                 # the logic is to set USER_KEEP not on all traces
                 # then the sampling mechism drop, or not the traces
 
-                assert (
-                    "_sampling_priority_v1" in span["metrics"]
-                ), f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
+                assert "_sampling_priority_v1" in span["metrics"], (
+                    f"_sampling_priority_v1 is missing in span {span['span_id']} in {data['log_filename']}"
+                )
 
                 if span["metrics"]["_sampling_priority_v1"] == SamplingPriority.USER_KEEP:
                     trace_count += 1

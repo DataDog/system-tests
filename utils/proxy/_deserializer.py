@@ -6,11 +6,10 @@ import base64
 import gzip
 import io
 import json
-import logging
 from hashlib import md5
 from http import HTTPStatus
 import traceback
-from typing import Any
+from typing import Any, Literal
 
 import msgpack
 from requests_toolbelt.multipart.decoder import MultipartDecoder
@@ -27,11 +26,9 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
-from traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
-
-
-logger = logging.getLogger(__name__)
+from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
+from .utils import logger
 
 
 def get_header_value(name: str, headers: list[tuple[str, str]]):
@@ -101,7 +98,12 @@ def deserialize_dd_appsec_s_meta(payload: str):
 
 
 def deserialize_http_message(
-    path: str, message: dict, content: bytes | None, interface: str, key: str, export_content_files_to: str
+    path: str,
+    message: dict,
+    content: bytes | None,
+    interface: str,
+    key: Literal["request", "response"],
+    export_content_files_to: str,
 ):
     def json_load():
         if not content:
@@ -195,7 +197,10 @@ def deserialize_http_message(
             _uncompress_agent_v1_trace(result, interface)
             return result
         if path == "/api/v2/series":
-            return MessageToDict(MetricPayload.FromString(content))
+            if key == "request":
+                return MessageToDict(MetricPayload.FromString(content))
+
+            return MessageToDict(BackendResponsePayload.FromString(content))
         if path == "/api/beta/sketches":
             return MessageToDict(SketchPayload.FromString(content))
 
@@ -226,8 +231,8 @@ def deserialize_http_message(
                 try:
                     with gzip.GzipFile(fileobj=io.BytesIO(part.content)) as gz_file:
                         content = gz_file.read()
-                except:
-                    item["system-tests-error"] = "Can't decompress gzip data"
+                except Exception as e:  # Many possible errors, catching all
+                    item["system-tests-error"] = f"Can't decompress gzip data: {e}"
                     continue
 
                 _deserialize_file_in_multipart_form_data(path, item, headers, export_content_files_to, content)
@@ -252,7 +257,7 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
 ) -> None:
     content_disposition = headers.get("content-disposition", "<not set>")
 
@@ -350,12 +355,18 @@ def _convert_bytes_values(item: Any, path: str = ""):  # noqa: ANN401
             _convert_bytes_values(value, f"{path}[]")
 
 
-def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface: str, export_content_files_to: str):
+def deserialize(
+    data: dict[str, Any],
+    key: Literal["request", "response"],
+    content: bytes | None,
+    interface: str,
+    export_content_files_to: str,
+):
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
-    except:
+    except Exception:  # Many possible errors, catching all
         status_code: int = data[key]["status_code"]
         if key == "response" and status_code in (
             HTTPStatus.INTERNAL_SERVER_ERROR,

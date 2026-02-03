@@ -12,7 +12,10 @@ def is_ip(value: str):
     try:
         socket.inet_aton(value)
         return True
-    except:
+    except OSError:
+        # Possible exceptions:
+        # - OSError: Raised when the string is not a valid IPv4 address format
+        # - TypeError: Raised if the input is not a string (despite type hint)
         return False
 
 
@@ -29,7 +32,7 @@ class Test_NoIpIsReported:
             "request.tracerPayloads[].tracerVersion",
         }
 
-        def assert_no_ip(data: dict | list | bytes | str | float | bool, root: str):
+        def assert_no_ip(data: dict | list | bytes | str | float | bool, root: str):  # noqa: FBT001
             if data is None or isinstance(data, (bool, int, float, bytes)):
                 pass  # nothing interesting here
             elif isinstance(data, bytes):

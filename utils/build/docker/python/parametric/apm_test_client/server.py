@@ -10,11 +10,14 @@ import logging
 import os
 import enum
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import JSONResponse
 import opentelemetry.trace
 from pydantic import BaseModel
 from urllib.parse import urlparse
 
 import opentelemetry
+from openfeature.evaluation_context import EvaluationContext
 from opentelemetry.metrics import CallbackOptions
 from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
@@ -39,6 +42,8 @@ from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
 
@@ -58,13 +63,28 @@ except ImportError:
 
 from opentelemetry._logs import get_logger_provider
 
+from .llmobs import router as llmobs_router
+
 log = logging.getLogger(__name__)
+
+# OpenFeature client initialization
+openfeature_client = None
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+    except ImportError:
+        pass
 
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
 otel_meters: Dict[str, Meter] = {}
 otel_meter_instruments: Dict[str, Instrument] = {}
+logger_dict: Dict[str, Any] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
 active_ddspan = [None]
@@ -311,6 +331,28 @@ def trace_span_set_metric(args: SpanSetMetricArgs) -> SpanSetMetricReturn:
     span = spans[args.span_id]
     span.set_metric(args.key, args.value)
     return SpanSetMetricReturn()
+
+
+class SpanIDArgs(BaseModel):
+    span_id: int
+
+
+class EmptyReturn(BaseModel):
+    pass
+
+
+@app.post("/trace/span/manual_keep")
+def trace_span_manual_keep(args: SpanIDArgs) -> EmptyReturn:
+    span = spans[args.span_id]
+    span.set_tag(MANUAL_KEEP_KEY)
+    return EmptyReturn()
+
+
+@app.post("/trace/span/manual_drop")
+def trace_span_manual_drop(args: SpanIDArgs) -> EmptyReturn:
+    span = spans[args.span_id]
+    span.set_tag(MANUAL_DROP_KEY)
+    return EmptyReturn()
 
 
 class SpanInjectArgs(BaseModel):
@@ -1118,6 +1160,36 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     return OtelMetricsForceFlushReturn(success=True)
 
 
+class LogCreateLoggerArgs(BaseModel):
+    name: str
+    level: str
+    version: Optional[str] = None
+    schema_url: Optional[str] = None
+    attributes: Optional[dict] = None
+
+
+class LogCreateLoggerReturn(BaseModel):
+    success: bool
+
+
+def _create_logger(name: str, level: str) -> logging.Logger:
+    """Create and configure a logger with the specified name and level."""
+    logger = logging.getLogger(name)
+    log_level = getattr(logging, level.upper())
+    logger.setLevel(log_level)
+    logger_dict[name] = logger
+    return logger
+
+
+@app.post("/otel/logger/create")
+def create_logger(args: LogCreateLoggerArgs) -> LogCreateLoggerReturn:
+    """Create an OpenTelemetry logger with the specified name and level."""
+    if args.name in logger_dict:
+        return LogCreateLoggerReturn(success=False)
+    _create_logger(args.name, args.level)
+    return LogCreateLoggerReturn(success=True)
+
+
 class LogGenerateArgs(BaseModel):
     message: str
     level: str
@@ -1129,34 +1201,25 @@ class LogGenerateReturn(BaseModel):
     success: bool
 
 
-@app.post("/log/write")
-def write_log(args: LogGenerateArgs):
-    # Create a logger with the specified name
-    logger = logging.getLogger(args.logger_name)
+@app.post("/otel/logger/write")
+def write_log(args: LogGenerateArgs) -> LogGenerateReturn:
+    """Write a log message using the specified logger."""
+    if args.logger_name not in logger_dict:
+        raise ValueError(f"Logger {args.logger_name} not found in registered loggers {list(logger_dict.keys())}")
 
-    # Set the log level based on the provided level
-    level_mapping = {
-        "DEBUG": logging.DEBUG,
-        "INFO": logging.INFO,
-        "WARNING": logging.WARNING,
-        "ERROR": logging.ERROR,
-    }
-    log_level = level_mapping.get(args.level.upper(), logging.INFO)
-    logger.setLevel(log_level)
+    logger = logger_dict[args.logger_name]
+    log_level = getattr(logging, args.level.upper())
 
     if args.span_id:
         span = spans.get(args.span_id, otel_spans.get(args.span_id))
-
         if not span:
             raise ValueError(f"Span not found for span_id: {args.span_id}")
-
-        if isinstance(span, OtelSpan):
+        elif isinstance(span, OtelSpan):
             with opentelemetry.trace.use_span(span):
                 logger.log(log_level, args.message)
         else:
             with ddtrace.tracer._activate_context(span.context):
                 logger.log(log_level, args.message)
-
     else:
         logger.log(log_level, args.message)
 
@@ -1180,6 +1243,125 @@ def _global_sampling_rate():
         ):
             return rule.sample_rate
     return 1.0
+
+
+# OpenFeature endpoints
+@app.post("/ffe", response_class=JSONResponse)
+async def ffe(request: Request) -> JSONResponse:
+    """OpenFeature evaluation endpoint."""
+    if not openfeature_client:
+        return JSONResponse({"error": "FFE provider not initialized"}, status_code=500)
+
+    try:
+        body = await request.json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+
+        # Build context
+        context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+        # Evaluate based on variation type
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+        return JSONResponse({"value": value}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/ffe/start", response_class=JSONResponse)
+async def ffe_start() -> JSONResponse:
+    """Initialize OpenFeature provider."""
+    global openfeature_client
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error starting provider: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/ffe/evaluate", response_class=JSONResponse)
+async def ffe_evaluate(request: Request) -> JSONResponse:
+    """Evaluate feature flag."""
+    if not openfeature_client:
+        return JSONResponse({"error": "FFE provider not initialized"}, status_code=500)
+
+    try:
+        body = await request.json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+        # Build context
+        context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+
+        # Evaluate based on variation type
+        value = default_value
+        reason = "DEFAULT"
+
+        try:
+            if variation_type == "BOOLEAN":
+                value = openfeature_client.get_boolean_value(flag, default_value, context)
+            elif variation_type == "STRING":
+                value = openfeature_client.get_string_value(flag, default_value, context)
+            elif variation_type == "INTEGER":
+                value = openfeature_client.get_integer_value(flag, default_value, context)
+            elif variation_type == "NUMERIC":
+                value = openfeature_client.get_float_value(flag, default_value, context)
+            elif variation_type == "JSON":
+                value = openfeature_client.get_object_value(flag, default_value, context)
+            else:
+                value = default_value
+        except Exception:
+            value = default_value
+            reason = "ERROR"
+
+        return JSONResponse({"value": value, "reason": reason}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error evaluating flag: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/rc/stop", response_class=JSONResponse)
+async def rc_stop() -> JSONResponse:
+    try:
+        from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+        remoteconfig_poller.stop()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/rc/start", response_class=JSONResponse)
+async def rc_start() -> JSONResponse:
+    try:
+        from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+        remoteconfig_poller.enable()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+app.include_router(llmobs_router)
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

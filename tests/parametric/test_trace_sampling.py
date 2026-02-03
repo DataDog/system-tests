@@ -3,10 +3,10 @@ import json
 import pytest
 import random
 
-from utils.parametric.spec.trace import find_only_span, find_span_in_traces
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
-from utils.parametric.spec.trace import MANUAL_KEEP_KEY
-from utils import rfc, scenarios, missing_feature, flaky, features, bug, context
+from utils.docker_fixtures.spec.trace import find_only_span, find_span_in_traces
+from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
+from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY
+from utils import rfc, scenarios, features, bug, context
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -163,8 +163,6 @@ class Test_Trace_Sampling_Globs:
             },
         ],
     )
-    @bug(library="cpp", reason="APMAPI-908")
-    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_field_case_insensitivity(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that sampling rule field values are case insensitive"""
         with (
@@ -502,7 +500,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         "library_env",
         [tag_sampling_env("Foo"), tag_sampling_env("Fo*"), tag_sampling_env("F??"), tag_sampling_env("?O*")],
     )
-    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_globs_different_casing(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test tag matching with string of matching case"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
@@ -544,9 +541,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("*"), tag_sampling_env("**"), tag_sampling_env("***")])
     @pytest.mark.parametrize("tag_value", [-100, -0.5, 0, 5, 1000])
-    @missing_feature(library="cpp", reason="No metric interface")
-    @flaky(library="golang", reason="APMAPI-932")
-    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_metric_existence(self, test_agent: TestAgentAPI, test_library: APMLibrary, tag_value: float):
         """Tests that any patterns are equivalent to an existence check for metrics"""
 
@@ -558,8 +552,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
     @pytest.mark.parametrize(
         "library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?"), tag_sampling_env("*")]
     )
-    @missing_feature(library="cpp", reason="No metric interface")
-    @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     def test_metric_matching(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any patterns are equivalent to an existence check for metrics"""
         with test_library, test_library.dd_start_span(name="matching-span", service="test") as span:
@@ -568,7 +560,6 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?")])
-    @bug(context.library == "python", reason="APMAPI-1689")
     def test_metric_mismatch_non_integer(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests that any non-integer metrics mismatch patterns -- other than any patterns"""
         with test_library, test_library.dd_start_span(name="mismatching-span", service="test") as span:

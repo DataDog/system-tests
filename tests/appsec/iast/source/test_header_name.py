@@ -17,7 +17,6 @@ class TestHeaderName(BaseSourceTest):
     source_type = "http.request.header.name"
     source_value = None
 
-    @missing_feature(context.library < "java@1.16.0", reason="Not working as expected")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
@@ -26,7 +25,6 @@ class TestHeaderName(BaseSourceTest):
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.16.0", reason="Not working as expected")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",

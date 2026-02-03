@@ -1,16 +1,36 @@
 'use strict'
 
-const tracer = require('dd-trace').init({
-  debug: true,
-  flushInterval: 5000
-})
+const tracer = require('dd-trace').init()
 
 const { promisify } = require('util')
-const fastify = require('fastify')({ logger: true })
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
 const winston = require('winston')
+
+let fastifyHandler = null
+
+const server = http.createServer((req, res) => {
+  if (req.url.startsWith('/resource_renaming')) {
+    // Handle resource renaming with HTTP server directly
+    res.writeHead(200)
+    res.end('OK')
+  } else if (fastifyHandler) {
+    // Everything else goes to Fastify
+    fastifyHandler(req, res)
+  } else {
+    res.writeHead(503)
+    res.end('Server not ready')
+  }
+})
+
+const fastify = require('fastify')({
+  logger: true,
+  serverFactory: (handler) => {
+    fastifyHandler = handler
+    return server
+  }
+})
 
 const iast = require('./iast')
 const dsm = require('./dsm')

@@ -4,16 +4,31 @@
 
 from google.protobuf.descriptor_pb2 import FileDescriptorSet
 from google.protobuf.message_factory import GetMessages
+from google.protobuf import message
 
 from pathlib import Path
 
 
-with open(Path(__file__).parent / "agent.descriptor", "rb") as f:
-    _fds = FileDescriptorSet.FromString(f.read())
-_messages = GetMessages(list(_fds.file))
+def _get_mesages(filename: str) -> dict[str, type[message.Message]]:
+    with open(Path(__file__).parent / filename, "rb") as f:
+        _fds = FileDescriptorSet.FromString(f.read())
 
-print(f"Message types present in protobuf descriptors: {_messages.keys()}")  # noqa: T201
+    return GetMessages(list(_fds.file))
 
+
+_messages = _get_mesages("agent.descriptor")
 TracePayload = _messages["datadog.trace.AgentPayload"]
 MetricPayload = _messages["datadog.agentpayload.MetricPayload"]
 SketchPayload = _messages["datadog.agentpayload.SketchPayload"]
+
+_backend_messages = _get_mesages("backend.descriptor")
+BackendResponsePayload = _backend_messages["datadoghq.api.series.v2.Response"]
+
+_remoteconfig_messages = _get_mesages("remoteconfig.descriptor")
+LatestConfigsResponse = _remoteconfig_messages["datadog.config.LatestConfigsResponse"]
+ConfigMetas = _remoteconfig_messages["datadog.config.ConfigMetas"]
+DirectorMetas = _remoteconfig_messages["datadog.config.DirectorMetas"]
+TopMeta = _remoteconfig_messages["datadog.config.TopMeta"]
+File = _remoteconfig_messages["datadog.config.File"]
+OrgDataResponse = _remoteconfig_messages["datadog.config.OrgDataResponse"]
+OrgStatusResponse = _remoteconfig_messages["datadog.config.OrgStatusResponse"]

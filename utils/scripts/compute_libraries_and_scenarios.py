@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+from pathlib import Path
 import re
 import sys
 from collections import OrderedDict, defaultdict
@@ -12,11 +13,12 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
-from manifests.parser.core import load as load_manifests
-from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios
+from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
+from utils.manifest import Manifest
 
 if TYPE_CHECKING:
+    from utils.manifest import ManifestData
     from collections.abc import Iterable
 
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
@@ -37,6 +39,8 @@ LIBRARIES = {
     "ruby",
     "python_lambda",
     "rust",
+    "envoy",
+    "haproxy",
 }
 
 LAMBDA_LIBRARIES = {"python_lambda"}
@@ -80,12 +84,12 @@ class Param:
     ):
         self.libraries = _setify(parameters.get("libraries", LIBRARIES))
 
-        if "scenario_groups" not in parameters and "scenario" not in parameters:  # no instruction -> run all
+        if "scenario_groups" not in parameters and "scenarios" not in parameters:  # no instruction -> run all
             self.scenario_groups = {all_scenario_groups.all.name}
-            self.scenarios = set()
+            self.scenarios: set[str] = set()
         else:
             self.scenario_groups = _setify(parameters.get("scenario_groups"))
-            self.scenarios = _setify(parameters.get("scenario"))
+            self.scenarios = _setify(parameters.get("scenarios"))
 
         if not check_libraries(self.libraries):
             raise ValueError(f"One or more of the libraries for {pattern} does not exist: {self.libraries}")
@@ -153,26 +157,9 @@ class LibraryProcessor:
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file: str) -> bool:
-        if not self.user_choice:
-            return False
-
-        if self.branch_selector or len(self.impacted) == 0:
-            return True
-        # user specified a library in the PR title
-        # and there are some impacted libraries
-        if file.startswith("tests/") or self.impacted == {self.user_choice}:
-            # modification in tests files are complex, trust user
-            return True
-        # only acceptable use case : impacted library exactly matches user choice
-        raise ValueError(
-            f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
-                    Please remove the PR title prefix [{self.user_choice}]"""
-        )
-
     def add(self, file: str, param: Param | None) -> None:
         self.compute_impacted(file, param)
-        if not self.is_manual(file):
+        if not (self.user_choice and self.branch_selector):
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
@@ -182,13 +169,14 @@ class LibraryProcessor:
                 "version": "prod",
             }
             for library in sorted(self.selected)
+            if library not in ("rust",)
         ] + [
             {
                 "library": library,
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector", "python_lambda")
+            if "otel" not in library and library not in ("otel_collector",)
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
@@ -204,6 +192,8 @@ class ScenarioProcessor:
         self.scenario_groups = scenario_groups if scenario_groups else set()
         self.scenarios = {scenarios.default.name}
         self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
+        self.impacted_libraries: set[str] = set()
+        """ libraries impacted by modified tests files """
 
     def process_manifests(self, inputs: Inputs) -> None:
         modified_nodeids = set()
@@ -222,7 +212,8 @@ class ScenarioProcessor:
         for nodeid, scenario_names in inputs.scenario_map.items():
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    self.scenarios |= set(scenario_names)
+                    logger.debug(f"Manifest nodeid {modified_nodeid} impacts scenario(s) {scenario_names}")
+                    self._append_scenarios_from_test_files(set(scenario_names))
                     break
 
     def compute_scenarios_by_files(self, inputs: Inputs) -> None:
@@ -245,19 +236,37 @@ class ScenarioProcessor:
 
                 for sub_file, scenario_names in self.scenarios_by_files.items():
                     if sub_file.startswith(folder):
-                        self.scenarios |= scenario_names
+                        self._append_scenarios_from_test_files(scenario_names)
 
-            elif file.endswith(("/utils.py", "/conftest.py", ".json")):
+            elif file.endswith(("/utils.py", "/conftest.py", ".json", ".yml")):
                 # particular use case for modification in tests/ of a file utils.py or conftest.py:
                 # in that situation, takes all scenarios executed in tests/<path>/
 
-                # same for any json file
+                # same for any json or yml file
 
                 folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
 
                 for sub_file, scenario_names in self.scenarios_by_files.items():
                     if sub_file.startswith(folder):
-                        self.scenarios |= scenario_names
+                        self._append_scenarios_from_test_files(scenario_names)
+
+    def _append_scenarios_from_test_files(self, scenarios: set[str]) -> None:
+        """When a test file is modified, we want to add all scenarios executed in this file
+        But some libraries are not activated by default. If ever we modify such a test file, we store the corresponding
+        libraries to ensure they are activated later.
+        """
+
+        self.scenarios |= scenarios
+
+        # some libraries are not activated by default. If ever we modify a file that explicitly
+        # mention a scenario, we want to activate the corresponding libraries too
+        for scenario_name in scenarios:
+            scenario: Scenario = next(s for s in get_all_scenarios() if s.name == scenario_name)
+            libraries = scenario.get_libraries()
+
+            if libraries is not None:
+                logger.debug(f"Scenario {scenario_name}, activating libraries {libraries}")
+                self.impacted_libraries |= libraries
 
     def process_regular_file(self, file: str, param: Param | None) -> None:
         if param is not None:
@@ -270,7 +279,8 @@ class ScenarioProcessor:
 
         # now get known scenarios executed in this file
         if file in self.scenarios_by_files:
-            self.scenarios |= self.scenarios_by_files[file]
+            logger.debug(f"File {file} is modified, adding scenarios {self.scenarios_by_files[file]}")
+            self._append_scenarios_from_test_files(self.scenarios_by_files[file])
 
     def add(self, file: str, param: Param | None) -> None:
         self.process_test_files(file)
@@ -291,16 +301,16 @@ class Inputs:
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
-        new_manifests: str = "manifests/",
-        old_manifests: str = "original/manifests/",
+        new_manifests: Path = Path("manifests/"),
+        old_manifests: Path = Path("original/manifests/"),
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
-        self.new_manifests = load_manifests(new_manifests)
-        self.old_manifests = load_manifests(old_manifests)
+        self.new_manifests: ManifestData = Manifest.parse(new_manifests)
+        self.old_manifests: ManifestData = Manifest.parse(old_manifests)
 
         if not self.new_manifests:
             raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
@@ -339,9 +349,10 @@ class Inputs:
                 self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
     def load_modified_files(self) -> None:
-        # Gets the modified files. Computed with gh in a previous ci step.
-        with open("modified_files.txt", "r", encoding="utf-8") as f:
-            self.modified_files = [line.strip() for line in f]
+        if self.ref != "refs/heads/main":
+            # Gets the modified files. Computed with gh in a previous ci step.
+            with open("modified_files.txt", "r", encoding="utf-8") as f:
+                self.modified_files = [line.strip() for line in f]
 
     def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):
@@ -408,6 +419,9 @@ def process(inputs: Inputs) -> list[str]:
                 "utils/build/docker/lambda-proxy.Dockerfile",
             ):
                 rebuild_lambda_proxy = True
+
+        # ensure that libraries impacted by modification on test files are also activated
+        library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
         outputs |= scenario_processor.get_outputs()

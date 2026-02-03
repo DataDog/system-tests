@@ -3,7 +3,6 @@ import contextlib
 import glob
 import json
 import os
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -15,10 +14,9 @@ from utils.docker_fixtures import (
     TestAgentAPI,
     compute_volumes,
     ParametricTestClientFactory,
+    ParametricTestClientApi,
 )
-from utils.parametric._library_client import APMLibrary
 
-from .core import scenario_groups
 from ._docker_fixtures import DockerFixturesScenario
 
 
@@ -65,8 +63,7 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=(scenario_groups.parametric,),
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.39.0",
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -82,10 +79,17 @@ class ParametricScenario(DockerFixturesScenario):
 
         volumes = {
             "golang": {"./utils/build/docker/golang/parametric": "/client"},
-            "nodejs": get_node_volumes(),
+            "nodejs": self.get_node_volumes(),
             "php": {"./utils/build/docker/php/parametric/server.php": "/client/server.php"},
             "python": {"./utils/build/docker/python/parametric/apm_test_client": "/app/apm_test_client"},
         }
+
+        env = {}
+
+        if library == "python":
+            python_env, python_volumes = self.get_python_env_and_volumes()
+            env.update(python_env)
+            volumes["python"].update(python_volumes)
 
         # get tracer version info building and executing the ddtracer-version.docker file
         self._test_client_factory = ParametricTestClientFactory(
@@ -94,7 +98,7 @@ class ParametricScenario(DockerFixturesScenario):
             tag=f"{library}-test-client",
             container_name=f"{library}-test-client",
             container_volumes=volumes.get(library, {}),
-            container_env={},
+            container_env=env,
         )
 
         self._test_client_factory.configure(self.host_log_folder)
@@ -115,6 +119,7 @@ class ParametricScenario(DockerFixturesScenario):
                 remove=True,
                 command=["./system_tests_library_version.sh"],
                 volumes=compute_volumes(self._test_client_factory.container_volumes),
+                environment=self._test_client_factory.container_env,
             )
         else:
             output = get_docker_client().containers.run(
@@ -128,10 +133,11 @@ class ParametricScenario(DockerFixturesScenario):
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
-            self.warmups.append(self._set_components)
+        self.warmups.append(self._set_components)
 
     def _set_components(self):
         self.components["library"] = self.library.version
+        self.components[self.library.name] = self.library.version
 
     @property
     def library(self):
@@ -159,41 +165,13 @@ class ParametricScenario(DockerFixturesScenario):
         test_agent: TestAgentAPI,
         library_env: dict,
         library_extra_command_arguments: list[str],
-    ) -> Generator[APMLibrary, None, None]:
-        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
-        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
-
-        with (
-            open(log_path, "w+", encoding="utf-8") as log_file,
-            self._test_client_factory.get_apm_library(
-                worker_id=worker_id,
-                test_id=test_id,
-                test_agent=test_agent,
-                library_env=library_env,
-                library_extra_command_arguments=library_extra_command_arguments,
-                test_server_log_file=log_file,
-            ) as result,
-        ):
+    ) -> Generator[ParametricTestClientApi, None, None]:
+        with self._test_client_factory.get_apm_library(
+            request=request,
+            worker_id=worker_id,
+            test_id=test_id,
+            test_agent=test_agent,
+            library_env=library_env,
+            library_extra_command_arguments=library_extra_command_arguments,
+        ) as result:
             yield result
-
-        request.node.add_report_section(
-            "teardown", f"{self.library.name.capitalize()} Library Output", f"Log file:\n./{log_path}"
-        )
-
-
-def _get_base_directory() -> str:
-    return str(Path.cwd())
-
-
-def get_node_volumes() -> dict[str, str]:
-    volumes = {}
-
-    try:
-        with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
-            path = f.read().strip(" \r\n")
-            source = os.path.join(_get_base_directory(), path)
-            volumes[str(Path(source).resolve())] = "/volumes/dd-trace-js"
-    except FileNotFoundError:
-        logger.info("No local dd-trace-js found, do not mount any volume")
-
-    return volumes

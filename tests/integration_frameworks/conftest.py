@@ -10,6 +10,18 @@ from utils.docker_fixtures import (
 from utils import context, scenarios, logger
 
 
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Mark all integration_frameworks tests as xfail when generating cassettes."""
+    if config.option.generate_cassettes:
+        for item in items:
+            item.add_marker(
+                pytest.mark.xfail(
+                    reason="Generating cassettes - test assertions are not evaluated",
+                    strict=False,
+                )
+            )
+
+
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
     result = str(uuid.uuid4())[0:6]
@@ -28,10 +40,15 @@ def test_agent(
     worker_id: str,
     request: pytest.FixtureRequest,
 ) -> Generator[TestAgentAPI, None, None]:
+    agent_env = {}
+    if not request.config.option.generate_cassettes:
+        agent_env["VCR_CI_MODE"] = "1"
+
     with scenarios.integration_frameworks.get_test_agent_api(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
+        agent_env=agent_env,
     ) as result:
         yield result
 

@@ -5,7 +5,6 @@
     "error_pulumi_plugin": "error: could not read plugin",
     "docker_build_error_ecr": "net/http: TLS handshake timeout",
     "error_ecr": "error: could not create ECR",
-    "pulumi_ghcr_rate_limmit": "GitHub rate limit exceeded for https://api.github.com/repos/pulumi",
     "microsoft_connection_lost": "Get \"https://mcr.microsoft.com/v2/\": read tcp",
     "public.ecr.aws_no_such_host": "dial tcp: lookup public.ecr.aws: no such host",
     "pulumi_exited_prematurely": "pulumi-resource-aws exited prematurely",
@@ -35,5 +34,10 @@
     "jdk11_build_error":"#6 ERROR: process \"/bin/sh -c apk --no-cache add openjdk11\" did not complete successfully: exit code: 1",
     "timeout_while_waiting_for_state":"timeout while waiting for state to become 'running' (last state: 'pending', timeout: 10m0s)",
     "fatal_expected_flush_after_ref_listing":"fatal: expected flush after ref listing",
-    "error_creating_lease":"error creating lease: grpc: the client connection is closing: context canceled"
+    "error_creating_lease":"error creating lease: grpc: the client connection is closing: context canceled",
+    "could_not_automatically_download_and_install_resource_plugin":"Could not automatically download and install resource plugin",
+    "error_dotnet_loading_service_index":"Unable to load the service index for source https://api.nuget.org/v3/index.json",
+    "s3_503_Slow_Down":"503 Slow Down",
+    "openssl_ssl_connect_connection_reset_by_peer": "OpenSSL SSL_connect: Connection reset by peer in connection to keys.datadoghq.com:443",
+    "Failed_get_info_Microsoft.AspNetCore'":"Failed to retrieve information about 'Microsoft.AspNetCore'"
 }

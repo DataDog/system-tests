@@ -6,7 +6,7 @@
 import json
 import re
 
-from utils import weblog, interfaces, context, scenarios, features, irrelevant, flaky, bug, logger
+from utils import weblog, interfaces, context, scenarios, features, irrelevant, bug, logger
 from utils._weblog import HttpResponse
 
 
@@ -185,7 +185,6 @@ class Test_Dbm_Comment_Batch_Python_Psycopg(_BaseDbmComment):
     dddbs = "system_tests_dbname"  # db name
     ddh = "postgres"  # container name
 
-    @flaky(library="python", reason="APMAPI-724")
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
@@ -264,7 +263,6 @@ class Test_Dbm_Comment_Python_Mysqldb(_BaseDbmComment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
-    @flaky(library="python", reason="APMAPI-724")
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
@@ -280,7 +278,6 @@ class Test_Dbm_Comment_Batch_Python_Mysqldb(_BaseDbmComment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
-    @flaky(library="python", reason="APMAPI-724")
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
@@ -296,7 +293,6 @@ class Test_Dbm_Comment_Python_Pymysql(_BaseDbmComment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
-    @flaky(library="python", reason="APMAPI-724")
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
@@ -312,7 +308,6 @@ class Test_Dbm_Comment_Batch_Python_Pymysql(_BaseDbmComment):
     dddbs = "mysql_dbname"  # db name
     ddh = "mysqldb"  # container name
 
-    @flaky(library="python", reason="APMAPI-724")
     def test_dbm_comment(self):
         return super().test_dbm_comment()
 
