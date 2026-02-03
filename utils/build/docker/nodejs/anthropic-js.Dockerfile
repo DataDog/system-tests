@@ -1,4 +1,5 @@
 FROM node:22-alpine
+ARG FRAMEWORK_VERSION
 
 RUN apk add --no-cache bash curl git jq
 
