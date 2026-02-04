@@ -89,6 +89,7 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
             tests=[
                 {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param1]", "outcome": "xpassed"},
                 {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param3]", "outcome": "xpassed"},
                 {"nodeid": "tests/test_module.py::Test_Class::test_pass[param]", "outcome": "xpassed"},
             ],
         )
@@ -338,10 +339,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
         # Class level should be NONE because it contains tests that should not be activated
         assert trie.get("tests/parametric/test_params.py/Test_Params") == ActivationStatus.NONE
 
-        # Verify xpass_nodes contain the full nodeid WITH parameters (for tracking)
-        # but trie keys are WITHOUT parameters (for manifest rules)
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
+        assert "tests/parametric/test_params.py::Test_Params::test_mixed" not in test_data[context].xpass_nodes
         assert "tests/parametric/test_params.py::Test_Params::test_all_pass" in test_data[context].xpass_nodes
 
 

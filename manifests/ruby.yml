@@ -842,9 +842,9 @@ manifest:
         uds-sinatra: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScript::test_install: 'missing_feature (Missing TCP cgroup2 support.\n        See: https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3189670032/Traces+missing+container+tags+with+cgroup+V2#Tracer-Side\n        )'
-  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
-  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
-  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.19.0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.19.0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.19.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
@@ -1483,6 +1483,14 @@ manifest:
         sinatra14: missing_feature
         rails52: missing_feature
         sinatra22: missing_feature
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
+    - weblog_declaration:
+        "*": incomplete_test_app (endpoint not implemented)
+        rails72: missing_feature (FrozenError (can't modify frozen Hash) from baggage headers)
+  tests/test_baggage.py::Test_Baggage_Headers_Api_OTel:
+    - weblog_declaration:
+        "*": incomplete_test_app (endpoint not implemented)
+        rails72: missing_feature (FrozenError (can't modify frozen Hash) from baggage headers)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v2.13.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v2.13.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v2.13.0
