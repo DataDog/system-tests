@@ -15,7 +15,7 @@
     "DD_AI_GUARD_MAX_CONTENT_SIZE": "experimental_ai_guard_max_content_size",
     "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "experimental_ai_guard_max_messages_length",
     "DD_AI_GUARD_TIMEOUT": "experimental_ai_guard_timeout",
-    "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "api_security_downstream_request_body_analysis_sample_rate",
+    "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "api_security_downstream_request_body_analysis_sample_rate",
     "DD_API_SECURITY_ENABLED": "api_security_enabled",
     "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "api_security_endpoint_collection_enabled",
     "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "api_security_endpoint_collection_message_limit",
