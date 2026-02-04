@@ -261,8 +261,6 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
-    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)

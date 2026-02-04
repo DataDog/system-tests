@@ -668,6 +668,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
+            "DD_TRACE_OTEL_ENABLED": "true",
         },
         doc="",
         rc_api_enabled=True,
@@ -1163,7 +1164,7 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.ai_guard],
     )
 
 
