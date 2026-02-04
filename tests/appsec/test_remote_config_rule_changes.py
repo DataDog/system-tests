@@ -6,8 +6,6 @@ import re
 
 from utils.dd_constants import Capabilities
 from tests.appsec.utils import find_series
-from utils import context, missing_feature
-from utils import bug
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
@@ -160,9 +158,6 @@ class Test_UpdateRuleFileWithRemoteConfig:
 
         self.config_state_5 = rc.tracer_rc_state.reset().apply()
 
-    @bug(
-        context.library < "nodejs@5.25.0", reason="APMRP-360"
-    )  # rules version was not correctly reported after an RC update
     def test_update_rules(self):
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
@@ -327,7 +322,6 @@ class Test_AsmDdMultiConfiguration:
     and provide the ASM_DD_MULTICONFIG(42) capability
     """
 
-    @missing_feature(context.library == "java")
     def test_asm_dd_multiconfig_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
 
@@ -526,8 +520,6 @@ EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
-# Empty RC updates were incorrectly sent to waf
-@bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")
 class Test_Empty_Config:
     def setup_empty_config(self):
         self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()

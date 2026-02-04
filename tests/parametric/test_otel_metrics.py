@@ -335,7 +335,7 @@ class Test_Otel_Metrics_Api_MeterProvider:
         distinct_meter_names = sorted(set(meter_names))
         for scope_metric, meter_name in zip(metrics, distinct_meter_names, strict=True):
             assert scope_metric["scope"]["name"] == meter_name
-            assert scope_metric["scope"]["schema_url"] == DEFAULT_SCHEMA_URL
+            assert scope_metric["schema_url"] == DEFAULT_SCHEMA_URL
             assert len(scope_metric["metrics"]) == 1
 
 

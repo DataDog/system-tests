@@ -29,7 +29,7 @@ readonly DEFAULT_python=flask-poc
 readonly DEFAULT_ruby=rails72
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
-readonly DEFAULT_java_otel=spring-boot-native
+readonly DEFAULT_java_otel=spring-boot-otel
 readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
@@ -229,11 +229,14 @@ build() {
                         flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
                             PYTHON_VERSION="3.11"
                             ;;
+                        python3.12)
+                            PYTHON_VERSION="3.12"
+                            ;;
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        python3.12)
-                            PYTHON_VERSION="3.12"
+                        tornado)
+                            PYTHON_VERSION="3.14"
                             ;;
                         *)
                             echo "Error: Unknown weblog variant, python version could not be determined" >&2

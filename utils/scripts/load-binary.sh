@@ -280,14 +280,18 @@ elif [ "$TARGET" = "golang" ]; then
     echo "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2@$COMMIT_ID" >> golang-load-from-go-get
 
+    echo "Using github.com/DataDog/orchestrion@latest"
+    echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
+
+elif [ "$TARGET" = "envoy" ]; then
+    assert_version_is_dev
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
+elif [ "$TARGET" = "haproxy" ]; then
+    assert_version_is_dev
     echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
     echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
-
-    echo "Using github.com/DataDog/orchestrion@latest"
-    echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
@@ -305,7 +309,7 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
     ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)
-    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.28.0 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
+    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.28.1 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev

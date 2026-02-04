@@ -1,7 +1,7 @@
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, features, scenarios
 
 
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @features.go_proxies
 class Test_GoProxies_Tracing:
     def setup_correct_span_structure(self):

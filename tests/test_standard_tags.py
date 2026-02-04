@@ -2,12 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
+from utils import context, interfaces, missing_feature, rfc, weblog, features, scenarios
 from utils._weblog import HttpResponse
 
 
 @features.security_events_metadata
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -27,7 +27,6 @@ class Test_StandardTagsMethod:
     def setup_method_trace(self):
         self.trace_request = weblog.trace("/waf", data=None)
 
-    @irrelevant(library="php", reason="Trace method does not reach php-land")
     @missing_feature(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
@@ -35,7 +34,7 @@ class Test_StandardTagsMethod:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
@@ -83,7 +82,6 @@ class Test_StandardTagsUrl:
         ]
 
     # when tracer is updated, add (for example)
-    @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string_legacy(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -118,7 +116,6 @@ class Test_StandardTagsUrl:
         context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -131,7 +128,6 @@ class Test_StandardTagsUrl:
         )
 
     # when tracer is updated, add (for example)
-    @irrelevant(context.library >= "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring_legacy(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&json=%7B%20%22<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -147,7 +143,6 @@ class Test_StandardTagsUrl:
         context.library in ["golang", "nodejs", "ruby"],
         reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
     )
-    @irrelevant(context.library < "php@0.93.0", reason="php released the new version at 0.93.0")
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -156,7 +151,7 @@ class Test_StandardTagsUrl:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -220,7 +215,7 @@ class Test_StandardTagsRoute:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @features.security_events_metadata
-@scenarios.go_proxies
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
@@ -273,9 +268,6 @@ class Test_StandardTagsClientIp:
         self._setup_without_attack()
         self._setup_with_attack()
 
-    @bug(
-        context.library < "java@1.11.0", reason="APMRP-360"
-    )  # X-Client-Ip not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled"""
         meta = self._get_root_span_meta(self.request_with_attack)
@@ -287,10 +279,6 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_vendor(self):
         self._setup_without_attack()
 
-    @bug(context.library < "golang@1.69.0", reason="APMRP-360")
-    @bug(
-        context.library < "java@1.11.0", reason="APMRP-360"
-    )  # not supported, see https://github.com/DataDog/dd-trace-java/pull/4878
     def test_client_ip_vendor(self):
         """Test http.client_ip is always reported in the default scenario which has ASM enabled when using vendor headers"""
         self._test_client_ip(self.FORWARD_HEADERS_VENDOR)
@@ -311,15 +299,6 @@ class Test_StandardTagsClientIp:
     def setup_client_ip_with_appsec_event_and_vendor_headers(self):
         self._setup_with_attack()
 
-    @missing_feature(
-        context.library < "java@1.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
-    )
-    @missing_feature(
-        context.library < "golang@1.69.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
-    )
-    @missing_feature(
-        context.library < "nodejs@4.19.0", reason="missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6"
-    )
     def test_client_ip_with_appsec_event_and_vendor_headers(self):
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)

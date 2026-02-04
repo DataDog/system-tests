@@ -32,6 +32,7 @@ markers =[
     "features: declare the feature id",
     "owners: declare the owner of the test",
     "declaration: declare the expected outcome of a test",
+    "skip_if_xfail: skip the test if it is marked as xfail"
 ]
 
 python_files = "test_*.py *utils.py"

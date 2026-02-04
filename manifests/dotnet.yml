@@ -1,6 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
@@ -129,7 +130,9 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher: v2.24.0
-  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher::test_secure: flaky (APMRP-360)
+  tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher::test_secure:
+    - declaration: flaky (APMRP-360)
+      component_version: 3.3.1
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher::test_telemetry_metric_instrumented_sink: missing_feature (Not implemented yet)
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace: missing_feature (APPSEC-56196)
@@ -313,6 +316,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: v3.10.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: v3.10.0
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v3.10.0
+  tests/appsec/test_automated_payment_events.py: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: v3.11.0
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking::test_session_blocking: missing_feature (Session ids can't be set.)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: v3.10.0
@@ -436,7 +440,6 @@ manifest:
   tests/appsec/test_traces.py::Test_RetainTraces: v1.29.0
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v2.30.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v2.8.0
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v2.7.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml: v2.8.0
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_spaces_custom_rules: irrelevant (One space in the whole value cause kestrel to erase the whole value)
@@ -483,18 +486,22 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_Scanners: v1.28.6
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: missing_feature
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
-  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
-  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: bug (PROF-12209)
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: bug (PROF-12209)
-  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: bug (PROF-12209)
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins::test_code_origin_entry_present: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: v2.50.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
+    - weblog_declaration:
+        "*": v2.50.0
+    - declaration: irrelevant (DEBUG-4582)
+      component_version: '<=3.28.0'
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_async: flaky (DEBUG-3281)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
     - declaration: bug (DEBUG-2799)
@@ -526,17 +533,14 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: bug (DEBUG-2602)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of: bug (DEBUG-2530)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_logical_operators
-  : bug (DEBUG-3115)
+  : - declaration: bug (DEBUG-3115)
+      component_version: 3.5.0
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_false: bug (DEBUG-2618)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_true: bug (DEBUG-2618)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_string_operations
   : bug (DEBUG-2560)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: v3.29.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin::test_inproduct_enablement_code_origin
-  : bug (DEBUG-4637)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v3.29.0
-  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_di
-  : bug (DEBUG-4637)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : bug (DEBUG-4637)
@@ -548,9 +552,14 @@ manifest:
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.53.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: bug (DEBUG-4746)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: v2.53.0
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_length: bug (DEBUG-4669)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
+    - declaration: missing_feature (Not implemented in older versions)
+      component_version: '<3.32.0'
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.53.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.53.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: v2.53.0
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload: bug (DEBUG-3298)
@@ -563,8 +572,9 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
-  tests/ffe/test_dynamic_evaluation.py: missing_feature
-  tests/ffe/test_exposures.py: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/ffe/test_dynamic_evaluation.py: v3.36.0
+  tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: v2.0.0-prerelease
@@ -616,9 +626,6 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <=2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v2.49.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness:
-    - declaration: missing_feature (Added new capabilities)
-      component_version: <3.29.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (dotnet tracer supports re-enabling over RC)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v2.33.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:
@@ -686,7 +693,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005:
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
-  tests/parametric/test_llm_observability.py: irrelevant (library does not implement LLM Observability)
+  tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
@@ -803,6 +810,8 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: missing_feature
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: v3.6.0
+  tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: bug (APMAPI-1849)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v3.6.0
@@ -869,6 +878,7 @@ manifest:
     - weblog_declaration:
         "*": v1.0  # real version not known
         uds: missing_feature (to be confirmed)
+  tests/test_profiling.py::Test_Profile::test_process_tags: v3.35.0
   tests/test_protobuf.py::Test_Protobuf: v3.15.0
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)

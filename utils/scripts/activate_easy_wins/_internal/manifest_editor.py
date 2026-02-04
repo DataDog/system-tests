@@ -298,7 +298,7 @@ class ManifestEditor:
                 ret[rule] = []
             for condition_key, weblogs in weblog_conditions.items():
                 condition = non_var_conditions[condition_key].copy()
-                if set(weblogs) != self.weblogs[condition["component"]]:
+                if set(weblogs) != self.weblogs[condition["component"]] and "parametric-" not in next(iter(weblogs)):
                     condition["weblog"] = list(weblogs)
                 ret[rule].append(condition)
         return ret
@@ -360,6 +360,13 @@ class ManifestEditor:
                     manifest[rule] = []
                     self.write_comment(manifest, rule, "Created by easy win activation script", "inline")
                 condition_dict = self.serialize_condition(condition)
+                if isinstance(manifest[rule], str):
+                    if "excluded_component_version" in self.manifest.data:
+                        manifest[rule] = [
+                            {"weblog_declaration": {"*": manifest.rules[rule]["excluded_component_version"]}}
+                        ]
+                    else:
+                        manifest[rule] = [ManifestEditor.serialize_condition(self.manifest.data[rule][0])]
                 manifest[rule].append(condition_dict)
                 if isinstance(manifest[rule], CommentedSeq) and len(manifest[rule]) > 0:
                     last_index = len(manifest[rule]) - 1
@@ -369,7 +376,9 @@ class ManifestEditor:
         for view, contexts in self.poked_views.items():
             raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
-            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]]
+            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]] or "parametric-" in next(
+                iter(weblogs)
+            )
 
             if "excluded_component_version" in view.condition:
                 # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
@@ -440,6 +449,15 @@ class ManifestEditor:
                         )
 
             else:
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
+                manifest_map = self.raw_data[view.condition["component"]]["manifest"]
+                self.write_comment(manifest_map, view.rule, comment_text, "inline")
+                continue
+
+                # Not currently supported because it would require complicated handling
+                # of version ranges
                 raw_data[view.condition_index]["excluded_weblog"] = CommentedSeq(
                     view.condition.get("excluded_weblog", []) + weblogs
                 )

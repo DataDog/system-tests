@@ -12,7 +12,7 @@ import time
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 
-from utils import irrelevant, incomplete_test_app, scenarios, features, context
+from utils import incomplete_test_app, scenarios, features, context
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_span_in_traces
@@ -641,7 +641,6 @@ class Test_Parametric_OtelSpan_Events:
         assert events[0]["time_unix_nano"] == 1730393556000000000
         assert events[0]["attributes"]["key"] == "value"
 
-    @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
     def test_record_exception(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Validates that /trace/otel/record_exception adds an exception event to a span.
 
@@ -756,47 +755,48 @@ class Test_Parametric_Write_Log:
         reason="Logs endpoint is only implemented in python and node.js app",
     )
     def test_write_log(self, test_library: APMLibrary):
-        """Validates that /log/write creates a log message with the specified parameters.
+        """Validates that /otel/logger/write creates a log message with the specified parameters.
 
         Supported Parameters:
-        - message: str
-        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         - logger_name: str
-        - span_id: Union[int, str]  (optional)
+        - level: LogLevel enum (DEBUG, INFO, WARN, ERROR)
+        - message: str
+        - span_id: int (optional)
 
         Supported Return Values:
         - success: bool
         """
-        # Test with different log levels
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger")
-        assert result is True
+        # Test with all parameters including span_id
+        with test_library.otel_start_span("test_span") as span:
+            test_library.create_logger("test_logger", LogLevel.INFO)
+            result = test_library.write_log("test_logger", LogLevel.INFO, "Test message", span_id=span.span_id)
+            assert result is True
 
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger")
-        assert result is True
-
-        # Test with custom logger name
-        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
-        assert result is True
-
-    def test_write_log_with_span_id(self, test_library: APMLibrary):
-        """Validates that /log/write creates a log message with the specified parameters.
+    @incomplete_test_app(
+        context.library not in ["python", "nodejs"],
+        reason="Logs endpoint is only implemented in python and node.js app",
+    )
+    def test_create_logger(self, test_library: APMLibrary):
+        """Validates that /otel/logger/create creates a logger with the specified parameters.
 
         Supported Parameters:
-        - message: str
-        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        - logger_name: str
-        - span_id: Union[int, str]  (optional)
+        - name: str
+        - level: LogLevel enum (DEBUG, INFO, WARN, ERROR)
+        - version: str (optional)
+        - schema_url: str (optional)
+        - attributes: dict (optional)
+
+        Supported Return Values:
+        - success: bool
         """
-        with test_library.otel_start_span("otel_span") as s1:
-            pass
-
-        with test_library.dd_start_span("dd_span") as s2:
-            pass
-
-        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", span_id=s1.span_id)
-        assert result is True
-
-        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", span_id=s2.span_id)
+        # Test with all parameters
+        result = test_library.create_logger(
+            "test_logger",
+            LogLevel.INFO,
+            version="1.0.0",
+            schema_url="https://opentelemetry.io/schemas/1.21.0",
+            attributes={"app.name": "test_app", "app.version": "1.0"},
+        )
         assert result is True
 
 

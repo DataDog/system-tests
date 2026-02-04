@@ -31,6 +31,7 @@ class ScenarioGroup:
 
 class _ScenarioGroups:
     all = ScenarioGroup()
+    ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
     appsec_rasp_scenario = ScenarioGroup()
@@ -63,7 +64,6 @@ class _ScenarioGroups:
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     ffe = ScenarioGroup()
-    default = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()

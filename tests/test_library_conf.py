@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import pytest
 from utils import weblog, interfaces, scenarios, features, missing_feature
+from utils.dd_constants import TraceAgentPayloadFormat
 from utils._context.header_tag_vars import (
     CONFIG_COLON_LEADING,
     CONFIG_COLON_TRAILING,
@@ -401,9 +402,9 @@ class Test_HeaderTags_Wildcard_Request_Headers:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1
 
-        span = spans[0]
+        span, span_format = spans[0]
         for tag in tags:
-            assert tag in span["meta"]
+            assert tag in interfaces.agent.get_span_meta(span, span_format)
 
 
 @scenarios.tracing_config_nondefault
@@ -419,25 +420,36 @@ class Test_HeaderTags_Wildcard_Response_Headers:
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1
 
-        span = spans[0]
+        span, span_format = spans[0]
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
         for key in response_headers:
-            assert RESPONSE_PREFIX + key.lower() in span["meta"]
-            assert span["meta"][RESPONSE_PREFIX + key.lower()] == response_headers[key]
+            assert RESPONSE_PREFIX + key.lower() in span_meta
+            assert span_meta[RESPONSE_PREFIX + key.lower()] == response_headers[key]
 
 
 # The Datadog specific tracecontext flags to mark flags are set
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
-def retrieve_span_links(span: dict):
+def retrieve_span_links(
+    span: dict, span_format: TraceAgentPayloadFormat
+) -> tuple[list[dict] | None, TraceAgentPayloadFormat]:
+    """Retrieves span links from a span.
+    Returns the format of the span links as it may differ from the trace format emitted by the agent
+    """
     if span.get("spanLinks") is not None:
-        return span["spanLinks"]
+        return span["spanLinks"], span_format
 
-    if span["meta"].get("_dd.span_links") is None:
-        return None
+    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format and span.get("links") is not None:
+        return span["links"], span_format
+
+    span_meta = interfaces.agent.get_span_meta(span, span_format)
+
+    if span_meta.get("_dd.span_links") is None:
+        return None, span_format
 
     # Convert span_links tags into msgpack v0.4 format
-    json_links = json.loads(span["meta"].get("_dd.span_links"))
+    json_links = json.loads(span_meta["_dd.span_links"])
     links = []
     for json_link in json_links:
         link = {}
@@ -456,7 +468,7 @@ def retrieve_span_links(span: dict):
         else:
             link["flags"] = 0
         links.append(link)
-    return links
+    return links, TraceAgentPayloadFormat.legacy  # Legacy format is used for span links that arrived in the meta
 
 
 @scenarios.default
@@ -477,20 +489,19 @@ class Test_ExtractBehavior_Default:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
+        traces = [(trace, trace_format) for _, trace, trace_format in interfaces.agent.get_traces(self.r)]
+        trace_id = interfaces.agent.get_trace_id(traces[0][0], traces[0][1])
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
-        assert span.get("traceID") == "1"
+        span, span_format = spans[0]
+        assert trace_id == "1"
         assert span.get("parentID") == "1"
-        assert retrieve_span_links(span) is None
+        span_links, _ = retrieve_span_links(span, span_format)
+        assert span_links is None
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -515,29 +526,30 @@ class Test_ExtractBehavior_Default:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
+        traces = [(trace, trace_format) for _, trace, trace_format in interfaces.agent.get_traces(self.r)]
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        assert len(traces) > 0, "Agent received the incorrect amount of traces"
 
         # Test the extracted span context
-        span = spans[0]
-        assert span.get("traceID") == "2"
+        span, span_format = spans[0]
+        trace_id = interfaces.agent.get_trace_id(traces[0][0], traces[0][1])
+        assert trace_id == "2"
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context
-        span_links = retrieve_span_links(span)
+        span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
-        # Assert the W3C Trace Context (conflicting trace context) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 8687463697196027922  # int(0x7890123456789012)
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_links_format)
+        # Assert the W3C Trace Context (conflicting trace context) span link according to the format
+        assert trace_id_low == 8687463697196027922  # int(0x7890123456789012)
+        assert trace_id_high == 1311768467284833366  # int(0x1234567890123456)
         assert int(link["spanID"]) == 1311768467284833366  # int (0x1234567890123456)
-        assert int(link["traceIDHigh"]) == 1311768467284833366  # int(0x1234567890123456)
         assert link["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
 
         # Test the next outbound span context
@@ -568,31 +580,29 @@ class Test_ExtractBehavior_Restart:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_links_format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1
-        assert int(link["traceIDHigh"]) == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -618,17 +628,13 @@ class Test_ExtractBehavior_Restart:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -640,14 +646,16 @@ class Test_ExtractBehavior_Restart:
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_links_format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1
-        assert int(link["traceIDHigh"]) == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -673,17 +681,13 @@ class Test_ExtractBehavior_Restart:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_multiple_tracecontexts_with_overrides(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -694,14 +698,17 @@ class Test_ExtractBehavior_Restart:
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_links_format)
+
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1311768467284833366
-        assert int(link["traceIDHigh"]) == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -712,6 +719,17 @@ class Test_ExtractBehavior_Restart:
         assert data["request_headers"]["x-datadog-trace-id"] != "1"
         assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"]
         assert "key1=value1" in data["request_headers"]["baggage"]
+
+
+def _get_span_link_trace_id(link: dict, span_format: TraceAgentPayloadFormat) -> tuple[int, int]:
+    """Returns the trace ID of a span link according to its format split into high and low 64 bits"""
+    if span_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        trace_id_low = int(link["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+        trace_id_high = (int(link["traceID"], 16) >> 64) & 0xFFFFFFFFFFFFFFFF
+    else:
+        trace_id_low = int(link["traceID"])
+        trace_id_high = int(link["traceIDHigh"])
+    return trace_id_high, trace_id_low
 
 
 @scenarios.tracing_config_nondefault_2
@@ -732,20 +750,17 @@ class Test_ExtractBehavior_Ignore:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the local span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
-        assert retrieve_span_links(span) is None
+        span_links, _ = retrieve_span_links(span, span_format)
+        assert span_links is None
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -770,17 +785,13 @@ class Test_ExtractBehavior_Ignore:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the local span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -788,7 +799,8 @@ class Test_ExtractBehavior_Ignore:
             span.get("traceID") != "8687463697196027922"  # Lower 64-bits of traceparent
         )
         assert span.get("parentID") is None
-        assert retrieve_span_links(span) is None
+        span_links, _ = retrieve_span_links(span, span_format)
+        assert span_links is None
 
         # Test the next outbound span context
         assert self.r.status_code == 200
@@ -818,31 +830,29 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert span.get("traceID") != "1"
         assert span.get("parentID") is None
 
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_links_format)
+        assert trace_id_low == 1
         assert int(link["spanID"]) == 1
-        assert int(link["traceIDHigh"]) == 1229782938247303441
+        assert trace_id_high == 1229782938247303441
         assert link["attributes"] == {"reason": "propagation_behavior_extract", "context_headers": "datadog"}
 
         # Test the next outbound span context
@@ -868,17 +878,13 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
             },
         )
 
-    @missing_feature(
-        library="cpp",
-        reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
-    )
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
-        span = spans[0]
+        span, span_format = spans[0]
         assert (
             span.get("traceID") != "1"  # Lower 64-bits of traceparent
         )
@@ -890,14 +896,16 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         # Test the extracted span links: One span link for the incoming (Datadog trace context).
         # In the case that span links are generated for conflicting trace contexts, those span links
         # are not included in the new trace context
-        span_links = retrieve_span_links(span)
+        span_links, span_links_format = retrieve_span_links(span, span_format)
+        assert span_links is not None, "Expected span links to be present"
         assert len(span_links) == 1
 
         # Assert the Datadog (restarted) span link
         link = span_links[0]
-        assert int(link["traceID"]) == 1
+        trace_id_high, trace_id_low = _get_span_link_trace_id(link, span_links_format)
+        assert trace_id_low == 1
+        assert trace_id_high == 1229782938247303441
         assert int(link["spanID"]) == 1
-        assert int(link["traceIDHigh"]) == 1229782938247303441
 
         # Test the next outbound span context
         assert self.r.status_code == 200
