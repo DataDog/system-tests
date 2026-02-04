@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import re
-from utils import weblog, interfaces, scenarios, features, logger
+from utils import context, weblog, interfaces, scenarios, features, logger
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -65,7 +65,7 @@ class Test_Profile:
                 #
                 # -> we use the content-type header of the part to skip the last two items
                 if "content" in part and content_type.endswith("application/json"):
-                    validate_process_tags(part["content"]["process_tags"])
+                    validate_process_tags(part["content"]["process_tags"], context.library)
 
     @staticmethod
     def _validate_data(data: dict) -> None:

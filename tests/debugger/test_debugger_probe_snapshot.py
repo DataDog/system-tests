@@ -434,7 +434,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
                 current_process_tags = snapshot["process_tags"]
                 if process_tags is None:
                     process_tags = current_process_tags
-                    validate_process_tags(process_tags)
+                    validate_process_tags(process_tags, context.library)
                 elif process_tags != current_process_tags:
                     raise ValueError(
                         f"Process tags are not matching. Expected ({process_tags}) vs found({current_process_tags})"

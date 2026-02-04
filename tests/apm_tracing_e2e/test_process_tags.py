@@ -23,12 +23,12 @@ class Test_Process_Tags:
             if "idxTracerPayloads" in data["request"]["content"]:
                 for payload in data["request"]["content"]["idxTracerPayloads"]:
                     process_tags = payload["attributes"]["_dd.tags.process"]
-                    validate_process_tags(process_tags)
+                    validate_process_tags(process_tags, context.library)
                     found = True
             elif "tracerPayloads" in data["request"]["content"]:
                 for payload in data["request"]["content"]["tracerPayloads"]:
                     process_tags = payload["tags"]["_dd.tags.process"]
-                    validate_process_tags(process_tags)
+                    validate_process_tags(process_tags, context.library)
                     found = True
         assert found, "Process tags are missing"
 
@@ -43,7 +43,7 @@ class Test_Process_Tags:
         for data in interfaces.library.get_data(path_filters="/v0.7/config"):
             process_tags_list = data["request"]["content"]["client"]["client_tracer"]["process_tags"]
             assert isinstance(process_tags_list, list)
-            validate_process_tags(",".join(process_tags_list))
+            validate_process_tags(",".join(process_tags_list), context.library)
             found = True
         assert found, "Process tags are missing"
 
@@ -63,7 +63,7 @@ class Test_Process_Tags:
                 if any("src_library:libdatadog" in series.get("tags", []) for series in payload["series"]):
                     continue
 
-            validate_process_tags(data["request"]["content"]["application"]["process_tags"])
+            validate_process_tags(data["request"]["content"]["application"]["process_tags"], context.library)
             found = True
 
         assert found, "Process tags are missing"
