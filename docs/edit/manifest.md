@@ -1,4 +1,6 @@
-Use the manifest files under the [manifests](../../manifests/) folder to declare what will be tested vs skipped, and under what conditions. Tests are identified by `file path` + `Test_Class_Name` +`Test_Name` (All optional, where `Test_Name` is used to differentiate between multiple test functions within a class).
+Use the manifest files under the [manifests](../../manifests/) folder to declare what will be tested vs skipped, and under what conditions. See [glossary](../glossary.md) for terminology definitions (enabled, disabled, xfail, xpass, skipped).
+
+Tests are identified by `file path` + `Test_Class_Name` +`Test_Name` (All optional, where `Test_Name` is used to differentiate between multiple test functions within a class).
 Example weblog test:
 ```yaml
 tests/specific.py: v1.40.0
