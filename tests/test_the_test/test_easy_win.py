@@ -75,6 +75,34 @@ def test_parse_artifact_data_xpassed_tests():
         assert weblogs["python"] == {"flask"}
 
 
+def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes():
+    """Test for parametric tests with mixed outcomes"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir)
+        scenario_dir = data_dir / "test_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+
+        report = create_report_json(
+            library_name="python",
+            library_version="2.0.0",
+            weblog_variant="flask",
+            tests=[
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param1]", "outcome": "xpassed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param3]", "outcome": "xpassed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_pass[param]", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        test_data, _ = parse_artifact_data(data_dir, ["python"])
+
+        context = next(iter(test_data.keys()))
+        assert "tests/test_module.py::Test_Class::test_mixed" not in test_data[context].xpass_nodes
+        assert "tests/test_module.py::Test_Class::test_pass" in test_data[context].xpass_nodes
+
+
 def test_parse_artifact_data_xfailed_tests():
     """Test that xfailed tests result in XFAIL status in trie."""
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -311,10 +339,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
         # Class level should be NONE because it contains tests that should not be activated
         assert trie.get("tests/parametric/test_params.py/Test_Params") == ActivationStatus.NONE
 
-        # Verify xpass_nodes contain the full nodeid WITH parameters (for tracking)
-        # but trie keys are WITHOUT parameters (for manifest rules)
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
+        assert "tests/parametric/test_params.py::Test_Params::test_mixed" not in test_data[context].xpass_nodes
         assert "tests/parametric/test_params.py::Test_Params::test_all_pass" in test_data[context].xpass_nodes
 
 

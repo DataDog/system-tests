@@ -1455,8 +1455,8 @@ manifest:
         "*": incomplete_test_app
         express4: *ref_5_77_0
   tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1730)
-  tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: flaky (MLOB-5361)
-  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: flaky (MLOB-5361)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: *ref_5_71_0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: *ref_5_71_0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_with_tools: missing_feature (Node.js LLM Observability Anthropic integration does not submit tool definitions)
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
@@ -1954,6 +1954,11 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: missing_feature
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
+    - weblog_declaration:
+        "*": incomplete_test_app (endpoint not implemented)
+        fastify: *ref_5_56_0
+  tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: missing_feature (OTel baggage not unified with Datadog baggage)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: *ref_5_56_0

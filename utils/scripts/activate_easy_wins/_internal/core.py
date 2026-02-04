@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-
+import contextlib
 from functools import reduce
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -106,9 +106,11 @@ def update_manifest(
                         level = _get_rule_level(rule_str)
                         modified_rules_by_level[level] += 1
                     manifest_editor.poke(view)
-                    manifest_editor.add_rules(
-                        tups_to_rule(trie.traverse(get_deactivation, view.rule.replace("::", "/"))), view
-                    )
+                    # Prefix may not exist in trie when view rule doesn't match any test paths in artifact data
+                    with contextlib.suppress(KeyError):
+                        manifest_editor.add_rules(
+                            tups_to_rule(trie.traverse(get_deactivation, view.rule.replace("::", "/"))), view
+                        )
             else:
                 tests_without_rules += 1
 

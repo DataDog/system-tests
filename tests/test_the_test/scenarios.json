@@ -4188,7 +4188,7 @@
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags[library_env1]": [
     "PARAMETRIC"
   ],
-  "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_sample_rate[library_env0]": [
+  "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_sampling_rate[library_env0]": [
     "PARAMETRIC"
   ],
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection[library_env0]": [
