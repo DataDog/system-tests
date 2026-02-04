@@ -17,6 +17,7 @@ RUN \
 FROM debian:bookworm-slim AS final
 COPY --from=builder /usr/app/ddtrace-rs-client /usr/app/ddtrace-rs-client
 COPY --from=builder /usr/app/Cargo.lock /usr/app/Cargo.lock
+COPY --from=builder /usr/app/SYSTEM_TESTS_LIBRARY_VERSION_MODE /usr/app/SYSTEM_TESTS_LIBRARY_VERSION_MODE
 COPY utils/build/docker/rust/parametric/system_tests_library_version.sh /usr/app/system_tests_library_version.sh
 RUN mkdir /parametric-tracer-logs
 WORKDIR /usr/app

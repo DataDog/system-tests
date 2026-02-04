@@ -18,10 +18,12 @@ if [ -e /binaries/dd-trace-rs ]; then
     cargo add --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc
 
     echo "install from /binaries/datadog-opentelemetry with metrics-http and metrics-grpc features"
+    echo "dev" > SYSTEM_TESTS_LIBRARY_VERSION_MODE
 else
     # TODO: add lastest release from crates.io
     cargo add --git "$REPO_URL" --tag "$PROD_TAG" datadog-opentelemetry --features metrics-http,metrics-grpc
 
     echo "install from --git $REPO_URL --tag $PROD_TAG with metrics-http and metrics-grpc features"
+    echo "release" > SYSTEM_TESTS_LIBRARY_VERSION_MODE
 fi
 
