@@ -122,7 +122,7 @@ Apply rules to entire directories:
 manifest:
   # All tests in the sink subdirectory
   tests/appsec/iast/sink: "missing_feature"
-  
+
   # More specific rules override directory rules
   tests/appsec/iast/sink/test_specific.py: "v2.0.0"
 ```
