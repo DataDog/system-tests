@@ -1,6 +1,7 @@
+from collections.abc import Callable
 from utils import weblog, interfaces, scenarios, features, context
 from utils import missing_feature, irrelevant
-from utils.interfaces._library.miscs import validate_process_tags
+from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
 @scenarios.tracing_config_nondefault
@@ -15,7 +16,7 @@ class Test_Process_Tags:
     def setup_tracing_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
-    def test_tracing_process_tags(self):
+    def check_tracing_process_tags(self, validate_process_tags_func: Callable):
         # Get all the spans from the agent
         found = False
         for data, _, _ in interfaces.agent.get_traces(self.req):
@@ -23,37 +24,49 @@ class Test_Process_Tags:
             if "idxTracerPayloads" in data["request"]["content"]:
                 for payload in data["request"]["content"]["idxTracerPayloads"]:
                     process_tags = payload["attributes"]["_dd.tags.process"]
-                    validate_process_tags(process_tags, context.library)
+                    validate_process_tags_func(process_tags)
                     found = True
             elif "tracerPayloads" in data["request"]["content"]:
                 for payload in data["request"]["content"]["tracerPayloads"]:
                     process_tags = payload["tags"]["_dd.tags.process"]
-                    validate_process_tags(process_tags, context.library)
+                    validate_process_tags_func(process_tags)
                     found = True
         assert found, "Process tags are missing"
 
+    def test_tracing_process_tags_svc(self):
+        self.check_tracing_process_tags(validate_process_tags_svc)
+
+    def test_tracing_process_tags(self):
+        self.check_tracing_process_tags(validate_process_tags)
+
     def setup_remote_config_process_tags(self):
         self.req = weblog.get("/status?code=200")
+
+    def check_remote_config_process_tags(self, validate_process_tags_func: Callable):
+        found = False
+        for data in interfaces.library.get_data(path_filters="/v0.7/config"):
+            process_tags_list = data["request"]["content"]["client"]["client_tracer"]["process_tags"]
+            assert isinstance(process_tags_list, list)
+            validate_process_tags_func(",".join(process_tags_list))
+            found = True
+        assert found, "Process tags are missing"
+
+    @irrelevant(
+        condition=context.weblog_variant == "spring-boot-3-native",
+    )
+    def test_remote_config_process_tags_svc(self):
+        self.check_remote_config_process_tags(validate_process_tags_svc)
 
     @irrelevant(
         condition=context.weblog_variant == "spring-boot-3-native",
     )
     def test_remote_config_process_tags(self):
-        found = False
-        for data in interfaces.library.get_data(path_filters="/v0.7/config"):
-            process_tags_list = data["request"]["content"]["client"]["client_tracer"]["process_tags"]
-            assert isinstance(process_tags_list, list)
-            validate_process_tags(",".join(process_tags_list), context.library)
-            found = True
-        assert found, "Process tags are missing"
+        self.check_remote_config_process_tags(validate_process_tags)
 
     def setup_telemetry_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
-    @irrelevant(
-        condition=context.weblog_variant == "spring-boot-3-native",
-    )
-    def test_telemetry_process_tags(self):
+    def check_telemetry_process_tags(self, validate_process_tags_func: Callable):
         found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())
         for data in telemetry_data:
@@ -63,7 +76,19 @@ class Test_Process_Tags:
                 if any("src_library:libdatadog" in series.get("tags", []) for series in payload["series"]):
                     continue
 
-            validate_process_tags(data["request"]["content"]["application"]["process_tags"], context.library)
+            validate_process_tags_func(data["request"]["content"]["application"]["process_tags"])
             found = True
 
         assert found, "Process tags are missing"
+
+    @irrelevant(
+        condition=context.weblog_variant == "spring-boot-3-native",
+    )
+    def test_telemetry_process_tags_svc(self):
+        self.check_telemetry_process_tags(validate_process_tags_svc)
+
+    @irrelevant(
+        condition=context.weblog_variant == "spring-boot-3-native",
+    )
+    def test_telemetry_process_tags(self):
+        self.check_telemetry_process_tags(validate_process_tags)

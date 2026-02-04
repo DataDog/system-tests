@@ -6,8 +6,6 @@
 
 import re
 
-from utils._context.component_version import ComponentVersion
-
 
 class _SpanTagValidator:
     """will run an arbitrary check on spans. If a request is provided, only span"""
@@ -37,15 +35,16 @@ class _SpanTagValidator:
         return True
 
 
-def validate_process_tags(process_tags: str, library: ComponentVersion):
+def validate_process_tags(process_tags: str):
     # entrypoint name and workdir can always be defined.
     if "entrypoint.name:" not in process_tags:
         raise ValueError(f"No entrypoint.name defined in process tags. Current: {process_tags}")
     if "entrypoint.workdir:" not in process_tags:
         raise ValueError(f"No entrypoint.workdir defined in process tags. Current: {process_tags}")
-    # this is a centralised check so when all the tracers will have implemented that correctly,
-    # this conditional can be removed
-    if library.name == "java":
-        if not ("svc.auto:" in process_tags or "svc.user" in process_tags):
-            raise ValueError(f"""No default service name indication in process tags.
-                Expected either svc.auto or svc.user. Current: {process_tags}""")
+
+
+def validate_process_tags_svc(process_tags: str):
+    validate_process_tags(process_tags)
+    if not ("svc.auto:" in process_tags or "svc.user" in process_tags):
+        raise ValueError(f"""No default service name indication in process tags.
+            Expected either svc.auto or svc.user. Current: {process_tags}""")
