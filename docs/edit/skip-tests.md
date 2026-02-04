@@ -4,7 +4,7 @@
 
 Use decorators **only** when the condition cannot be expressed in manifests:
 - `context.scenario` - Scenario-specific conditions
-- `context.agent_version` - Agent version conditions
+- `context.agent_version` - Agent version conditions alongside other conditions (conditions on the agent version alone can be expressed in the agent manifest)
 - `context.vm_name` - VM-specific conditions
 - `context.installed_language_runtime` - Runtime version conditions
 - Complex boolean logic combining non-library attributes
