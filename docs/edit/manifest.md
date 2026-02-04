@@ -3,11 +3,7 @@ Use the manifest files under the [manifests](../../manifests/) folder to declare
 Tests are identified by `file path` + `Test_Class_Name` +`Test_Name` (All optional, where `Test_Name` is used to differentiate between multiple test functions within a class).
 Example weblog test:
 ```yaml
-tests/specific.py: v1.40.0
-```
-Example Parametric test:
-```yaml
-tests/parametric/specific_parametric.py: v1.40.0
+tests/dir/file.py::Class::function: v1.40.0
 ```
 
 A test is **enabled** if:
