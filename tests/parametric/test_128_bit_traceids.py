@@ -131,6 +131,7 @@ class Test_128_Bit_Traceids:
         assert "x-datadog-tags" not in headers or "_dd.p.tid=" not in headers["x-datadog-tags"]
 
     @missing_feature(context.library == "rust", reason="128 bit traceid is always enabled")
+    @irrelevant(context.library >= "python@4.4.0.dev", reason="128 bit traceid is always enabled starting v4.4.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -245,6 +246,7 @@ class Test_128_Bit_Traceids:
         context.library in ("ruby", "python"),
         reason="Supports the value `b3` instead of the deprecated `B3 single header`",
     )
+    @irrelevant(context.library >= "python@4.4.0.dev", reason="128 bit traceid is always enabled starting v4.4.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -322,6 +324,7 @@ class Test_128_Bit_Traceids:
         check_64_bit_trace_id(headers["x-b3-traceid"], trace_id, dd_p_tid)
 
     @missing_feature(context.library == "rust", reason="propagation style not supported")
+    @irrelevant(context.library >= "python@4.4.0.dev", reason="128 bit traceid is always enabled starting v4.4.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "b3multi", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -510,6 +513,7 @@ class Test_128_Bit_Traceids:
         check_64_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
     @missing_feature(context.library == "rust", reason="128 bit traceid is always enabled")
+    @irrelevant(context.library >= "python@4.4.0.dev", reason="128 bit traceid is always enabled starting v4.4.0")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
