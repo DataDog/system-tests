@@ -1029,7 +1029,7 @@ class _Scenarios:
     appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
         "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
         weblog_env={
-            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+            "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "0",
         },
     )
 
