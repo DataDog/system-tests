@@ -162,7 +162,10 @@ build() {
                 source venv/bin/activate
                 python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            python -m pip install -e .
+            # Install requirements only if not already satisfied (for GitLab CI cache)
+            python -m pip install -r requirements.txt
+            # Install system-tests in editable mode (fast, just creates symlink)
+            python -m pip install -e . --no-deps
             cp requirements.txt venv/requirements.txt
 
 
