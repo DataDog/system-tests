@@ -4,9 +4,16 @@
 
 """Validate data flow between agent and backend"""
 
+from typing import Any
+
+import base64
+import binascii
 from collections.abc import Callable, Generator, Iterable
 import copy
+import json
 import threading
+
+import msgpack
 
 from utils.dd_constants import TraceAgentPayloadFormat
 from utils.tools import get_rid_from_span
@@ -50,6 +57,107 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         elif get_rid_from_span(span) == rid:
                             logger.debug(f"Found span with rid={rid} in {data['log_filename']}")
                             yield data, payload, chunk, span, appsec_data
+
+    def get_appsec_events(
+        self, request: HttpResponse | None = None
+    ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat, dict[str, Any]], None, None]:
+        for data, span, span_format in self.get_spans(request=request):
+            meta = self.get_span_meta(span, span_format)
+            appsec_json = meta.get("_dd.appsec.json")
+
+            appsec_data: dict[str, object] | None = None
+            if isinstance(appsec_json, dict):
+                appsec_data = appsec_json
+            elif isinstance(appsec_json, str):
+                try:
+                    decoded = json.loads(appsec_json)
+                except json.JSONDecodeError:
+                    decoded = None
+                if isinstance(decoded, dict):
+                    appsec_data = decoded
+
+            if appsec_data is None:
+                meta_struct = span.get("meta_struct") or span.get("metaStruct") or {}
+                if isinstance(meta_struct, dict):
+                    appsec_payload = meta_struct.get("appsec")
+                    if isinstance(appsec_payload, dict):
+                        appsec_data = appsec_payload
+                    elif isinstance(appsec_payload, bytes):
+                        appsec_data = msgpack.loads(
+                            appsec_payload, raw=False, strict_map_key=False, unicode_errors="replace"
+                        )
+                    elif isinstance(appsec_payload, str):
+                        try:
+                            payload = base64.b64decode(appsec_payload)
+                        except (ValueError, binascii.Error):
+                            payload = appsec_payload.encode("utf-8")
+                        appsec_data = msgpack.loads(payload, raw=False, strict_map_key=False, unicode_errors="replace")
+                    elif appsec_payload is not None:
+                        raise TypeError(f"Unsupported meta_struct payload type: {type(appsec_payload)}")
+
+            if not isinstance(appsec_data, dict):
+                continue
+
+            yield data, span, span_format, appsec_data
+
+    def assert_rasp_attack(
+        self,
+        request: HttpResponse,
+        rule: str,
+        parameters: dict | None = None,
+    ) -> None:
+        def validator(_: dict, appsec_data: dict[str, Any]) -> bool:
+            triggers = appsec_data.get("triggers")
+            assert isinstance(triggers, list), "'triggers' is not a list"
+            assert triggers, "no appsec triggers found"
+
+            for trigger in triggers:
+                obtained_rule_id = trigger.get("rule", {}).get("id")
+                if obtained_rule_id != rule:
+                    continue
+
+                if parameters is None:
+                    return True
+
+                for match in trigger.get("rule_matches", []):
+                    for obtained_parameters in match.get("parameters", []):
+                        if not isinstance(obtained_parameters, dict):
+                            continue
+
+                        ok = True
+                        for name, fields in parameters.items():
+                            if name not in obtained_parameters:
+                                ok = False
+                                break
+
+                            obtained_param = obtained_parameters[name]
+                            if not isinstance(obtained_param, dict):
+                                ok = False
+                                break
+
+                            address = fields.get("address")
+                            if obtained_param.get("address") != address:
+                                ok = False
+                                break
+
+                            if "value" in fields and obtained_param.get("value") != fields["value"]:
+                                ok = False
+                                break
+
+                            if "key_path" in fields and obtained_param.get("key_path") != fields["key_path"]:
+                                ok = False
+                                break
+
+                        if ok:
+                            return True
+
+            return False
+
+        for data, _, _, appsec_data in self.get_appsec_events(request=request):
+            if validator(data, appsec_data):
+                return
+
+        raise AssertionError("No AppSec payload found for the request")
 
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
