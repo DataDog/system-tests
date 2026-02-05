@@ -99,7 +99,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract_and_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <0.2.0
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract_datadog_w3c:  '>=2.0.0' # Modified by easy win activation script
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract_datadog_w3c: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <0.2.0
