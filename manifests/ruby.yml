@@ -676,7 +676,7 @@ manifest:
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: missing_feature
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v2.22.0
-  tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: missing_feature
+  tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: v2.22.0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
