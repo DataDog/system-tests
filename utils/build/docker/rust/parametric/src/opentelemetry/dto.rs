@@ -435,3 +435,32 @@ pub struct OtelMetricsForceFlushArgs {}
 pub struct OtelMetricsForceFlushReturn {
     pub success: bool,
 }
+
+// --- Logs DTOs ---
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateLoggerArgs {
+    pub name: String,
+    pub level: String,
+    pub version: Option<String>,
+    pub schema_url: Option<String>,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateLoggerReturn {
+    pub success: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelWriteLogArgs {
+    pub logger_name: String,
+    pub level: String,
+    pub message: String,
+    pub span_id: Option<u64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelWriteLogReturn {
+    pub success: bool,
+}
