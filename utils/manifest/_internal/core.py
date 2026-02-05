@@ -11,6 +11,7 @@ from .format import yml_sort
 class Manifest:
     """Provides a simple way to get information from the manifests"""
 
+    data: ManifestData
     rules: dict[str, list[SkipDeclaration]] | None
     condition_tracker: dict[str, list[tuple[int, int]]]
 

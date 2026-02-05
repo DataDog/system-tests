@@ -118,7 +118,9 @@ class VmProvider:
             ci_commit_branch = os.getenv("GITLAB_CI")
             if ci_commit_branch:
                 ci_commit_branch = (
-                    os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
+                    os.getenv("CI_COMMIT_BRANCH", "main")
+                    if os.getenv("CI_PROJECT_NAME", "") == "system-tests"
+                    else "main"
                 )
                 logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
                 last_task = self.commander.remote_command(

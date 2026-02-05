@@ -80,6 +80,9 @@ capabilities:
       - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
       - APM_TRACING_MULTICONFIG
 
+    '>=5.84.0':
+      - APM_TRACING_ENABLE_LIVE_DEBUGGING
+
   python:
     base:
       - APM_TRACING_ENABLED

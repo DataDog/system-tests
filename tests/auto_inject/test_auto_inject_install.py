@@ -217,10 +217,8 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
-        reason="python 3.8 is not supported on ddtrace >= 3.x",
-    )
+    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(
@@ -247,10 +245,8 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
         condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,
         reason="Origin detection is not supported on host environments",
     )
-    @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
-        reason="python 3.8 is not supported on ddtrace >= 3.x",
-    )
+    @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
         logger.info(
@@ -265,10 +261,6 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
-    @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.9.0",
-        reason="python 3.8 is not supported on ddtrace >= 3.x",
-    )
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)

@@ -8,6 +8,7 @@ group "default" {
     "django-poc",
     "flask-poc",
     "uwsgi-poc",
+    "tornado",
   ]
 }
 
@@ -45,4 +46,10 @@ target "uwsgi-poc" {
   context    = "."
   dockerfile = "utils/build/docker/python/uwsgi-poc.base.Dockerfile"
   tags       = ["datadog/system-tests:uwsgi-poc.base-v9"]
+}
+
+target "tornado" {
+  context    = "."
+  dockerfile = "utils/build/docker/python/tornado.base.Dockerfile"
+  tags       = ["datadog/system-tests:tornado.base-v2"]
 }

@@ -1144,7 +1144,11 @@ manifest:
         nextjs: missing_feature
   tests/appsec/test_identify.py::Test_Basic: v2.4.0
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: *ref_3_11_0
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
+    - weblog_declaration:
+        "*": *ref_3_11_0
+    - declaration: bug (APMRP-360)
+      component_version: '>3.16.0 <3.18.0'
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: v2.2.0
@@ -1157,7 +1161,11 @@ manifest:
       component_version: '>3.14.1'
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: *ref_5_59_0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
-  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: *ref_3_19_0
+  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
+    - weblog_declaration:
+        "*": *ref_3_19_0
+    - declaration: bug (APMRP-360)
+      component_version: '>=5.58.0 <5.63.0'
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: *ref_5_66_0
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config::test_invalid_config:
     - declaration: bug (APPSEC-59077)
@@ -1212,16 +1220,22 @@ manifest:
         "*": v2.2.0
         fastify: *ref_5_57_0
         nextjs: *ref_4_17_0
+    - declaration: bug (APMRP-360)
+      component_version: 2.8.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
     - weblog_declaration:
         "*": v2.2.0
         fastify: *ref_5_57_0
         nextjs: *ref_5_3_0
+    - declaration: bug (APMRP-360)
+      component_version: 2.8.0
   tests/appsec/waf/test_addresses.py::Test_BodyXml:
     - weblog_declaration:
         "*": v2.2.0
         fastify: *ref_5_57_0
         nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
+    - declaration: bug (APMRP-360)
+      component_version: 2.8.0
   tests/appsec/waf/test_addresses.py::Test_Cookies:
     - weblog_declaration:
         "*": v2.0.0
@@ -1354,6 +1368,9 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_43_0
         fastify: *ref_5_57_0
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: *ref_5_43_0
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: *ref_5_43_0
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: *ref_5_43_0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": irrelevant
@@ -1375,8 +1392,14 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:
     - weblog_declaration:
         express4-typescript: bug (DEBUG-3715)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
@@ -1422,6 +1445,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <5.66.0
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -1930,6 +1954,11 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: missing_feature
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
+    - weblog_declaration:
+        "*": incomplete_test_app (endpoint not implemented)
+        fastify: *ref_5_56_0
+  tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: missing_feature (OTel baggage not unified with Datadog baggage)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: *ref_5_56_0
