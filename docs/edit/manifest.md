@@ -1,28 +1,144 @@
 Use the manifest files under the [manifests](../../manifests/) folder to declare what will be tested vs skipped, and under what conditions. See [glossary](../glossary.md) for terminology definitions (enabled, disabled, xfail, xpass, skipped).
 
-Tests are identified by `file path` + `Test_Class_Name` +`Test_Name` (All optional, where `Test_Name` is used to differentiate between multiple test functions within a class).
-Example weblog test:
-```yaml
-tests/dir/file.py::Class::function: v1.40.0
-```
-
 A test is **enabled** if:
 - Nothing is specified in the manifest file and there aren't conflicting in-line decorators (e.g, @bug, see [skip-tests.md](./skip-tests.md)) on the test
 - `label` contains a valid [https://semver.org/] version number.
 See [enable-test.md](./enable-test.md) to enable a test.
 
-A test is **disabled** if `label` contains some other marker.
+A test is **disabled** if `label` contains one of these markers: `bug`, `missing_feature`, `flaky`, `irrelevant`, or `incomplete_test_app`.
 See [skip-tests.md](./skip-tests.md) to disable a test.
 
 When executed locally, tests run against the latest version of dd-trace by default. In CI, the tests run against the main branch and the latest version.
 
 #### Notes
-- Entries in the manifest file must be sorted in alphabetical order. This is validated by the TEST_THE_TESTS scenario/linter.
+- Entries in the manifest file must be sorted in alphabetically. This is validated by the TEST_THE_TESTS scenario/linter.
 - Manifest files are validated using JSON schema in system tests CI
-- An error will occur if a manifest file refers to a directory/file/class/function that does not exists
+- An error will occur if a manifest file refers to a directory/file/class/function that does not exist
 - **After modifying any manifest file, always run `./format.sh`** to validate syntax and sort entries alphabetically.
 
-The example below shows a combination of options that can be deployed in manifest files.
+## Manifest Files
+
+Each library has its own manifest file at `manifests/{library}.yml`:
+
+```
+cpp, cpp_httpd, cpp_nginx, dotnet, golang, java, java_otel,
+nodejs, nodejs_otel, php, python, python_lambda, python_otel, ruby, rust
+```
+
+There is also `manifests/agent.yml` for agent version conditions.
+
+## Test Node ID Format
+
+Tests are identified by a node ID with three optional components:
+
+```
+tests/path/to/file.py                              # Entire file
+tests/path/to/file.py::TestClassName               # Entire class
+tests/path/to/file.py::TestClassName::test_method  # Specific method
+```
+
+## Entry Formats
+
+### Simple Version
+
+Enable a test from a specific version:
+
+```yaml
+tests/path/test.py::TestClass: v1.2.0
+tests/path/test.py::TestClass::test_method: v2.0.0
+```
+
+### Simple Marker
+
+Disable a test with a marker (applies to all versions):
+
+```yaml
+tests/path/test.py::TestClass: irrelevant
+tests/path/test.py::TestClass: missing_feature
+tests/path/test.py::TestClass: bug (JIRA-123)
+tests/path/test.py::TestClass: flaky (JIRA-123)
+tests/path/test.py::TestClass: incomplete_test_app (reason)
+```
+
+### Marker with Reason
+
+Include an explanation in parentheses:
+
+```yaml
+tests/path/test.py::TestClass: irrelevant (Not applicable to this library)
+tests/path/test.py::TestClass: missing_feature (Feature not implemented yet)
+```
+
+### Explicit Declaration with Version Constraint
+
+Use when you need both a marker AND a version constraint:
+
+```yaml
+tests/path/test.py::TestClass::test_method:
+  - declaration: bug (JIRA-123)
+    component_version: '>=5.0.0'
+
+tests/path/test.py::TestClass::test_method:
+  - declaration: missing_feature (Feature description)
+    component_version: '<2.5.0'
+```
+
+The `component_version` field supports the full [npm semver range syntax](https://github.com/npm/node-semver#ranges):
+
+```yaml
+component_version: '>=1.0.0'           # Greater than or equal
+component_version: '<2.0.0'            # Less than
+component_version: '>=1.0.0 <2.0.0'    # Range (AND)
+component_version: '^1.3.0 || >=2.3.0' # Multiple ranges (OR)
+component_version: '^1.3.0'            # Caret: >=1.3.0 <2.0.0
+```
+
+### Weblog-Specific Declaration
+
+Use when different weblogs have different behavior:
+
+```yaml
+tests/path/test.py::TestClass:
+  - weblog_declaration:
+      "*": v1.0.0              # Default for all weblogs
+      flask-poc: v2.0.0        # Different version for flask
+      fastapi: missing_feature # Not available for fastapi
+      express4: bug (JIRA-123) # Bug on express4
+```
+
+## YAML Syntax Rules
+
+### Quoting Special Characters
+
+Values containing YAML special characters MUST be quoted:
+
+| Character | Meaning in YAML |
+|-----------|-----------------|
+| `>` `<` | Folded/literal block indicators |
+| `:` | Key-value separator |
+| `#` | Comment |
+| `@` `!` `*` `&` `\|` `{` `}` `[` `]` | Reserved characters |
+
+**Examples:**
+
+```yaml
+# WRONG - will cause YAML parsing errors
+component_version: >=5.0.0
+test: irrelevant (Issue: something with colon)
+
+# CORRECT - properly quoted
+component_version: '>=5.0.0'
+test: 'irrelevant (Issue: something with colon)'
+test: "bug (See ticket #123)"
+```
+
+**Tip:** When in doubt, quote the value. Single quotes (`'`) are preferred for version ranges.
+
+### Valid Markers
+
+Use only these markers: `irrelevant`, `bug`, `flaky`, `missing_feature`, `incomplete_test_app`
+
+Always include a JIRA ticket reference for `bug` and `flaky` markers.
 
 ## Example
 
