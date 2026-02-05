@@ -173,8 +173,9 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def _check_code_origin(self):
         """Send a request and check if code origin spans are present."""
+        threshold = self._get_max_trace_file_number()
         self.send_weblog_request("/")
-        return self.wait_for_code_origin_span(TIMEOUT)
+        return self.wait_for_code_origin_span(TIMEOUT, threshold=threshold)
 
     def _set_code_origin_and_check(self, *, enabled: bool | None):
         """Set code origin via remote config and check if spans are present."""
