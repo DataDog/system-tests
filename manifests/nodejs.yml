@@ -2373,11 +2373,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.11.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: *ref_3_0_0
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.9.0
-  tests/test_telemetry.py::Test_DependencyEnable:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        express4: '>=5.84.0'
-        uds-express4: '>=5.84.0'
+  tests/test_telemetry.py::Test_DependencyEnable: missing_feature
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
