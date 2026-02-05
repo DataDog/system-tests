@@ -1580,9 +1580,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_finished_end_options:  # Modified by easy win activation script
     - declaration: missing_feature (New operation name mapping not yet implemented)
       component_version: <4.3.1
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_operation_name:  # Modified by easy win activation script
-    - declaration: missing_feature (Not implemented)
-      component_version: <4.3.1
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_operation_name: missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_reserved_attributes_overrides: missing_feature (Not implemented)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
@@ -1882,7 +1880,7 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates:
     - weblog_declaration:
         "*": v2.8.0
-        tornado: v4.3.1  # Modified by easy win activation script
+        tornado: missing_feature
   tests/test_scrubbing.py::Test_UrlField:
     - weblog_declaration:
         "*": v1.7.1
