@@ -81,3 +81,8 @@ class DefaultScenario(EndToEndScenario):
         library = self.weblog_container.image.labels["system-tests-library"]
         value = _iast_security_controls_map[library]
         self.weblog_container.environment["DD_IAST_SECURITY_CONTROLS_CONFIGURATION"] = value
+
+        # Set cgroupns to host mode to ensure container ID is visible in /proc/self/cgroup
+        # This is particularly important for Docker Desktop on macOS where the default
+        # private cgroup namespace shows "/" as the cgroup path
+        self.weblog_container.cgroupns_mode = "host"
