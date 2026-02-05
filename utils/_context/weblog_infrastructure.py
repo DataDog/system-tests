@@ -81,15 +81,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             self.http_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
     def stop(self) -> None:
-        for container in self._other_containers:
-            container.stop()
-
-        if self.library_name in (
-            "nodejs",
-            "ruby",
-        ):
-            self.http_container.flush()
-
+        self.http_container.flush()
         self.http_container.stop()
 
     @property
