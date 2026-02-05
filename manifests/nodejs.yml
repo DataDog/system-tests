@@ -1425,12 +1425,7 @@ manifest:
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_access_exception
   : missing_feature (Not yet implemented)
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_contextual_variables
-  :  # Modified by easy win activation script
-    - declaration: missing_feature (Not yet implemented)
-      component_version: <5.84.0
-      weblog: [uds-express4, fastify, express5, express4-typescript, express4]
-    - declaration: missing_feature (Not yet implemented)
-      excluded_weblog: [uds-express4, fastify, express5, express4-typescript, express4]
+  : missing_feature (Not yet implemented)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:
     - weblog_declaration:
         express4-typescript: bug (DEBUG-3715)
