@@ -48,6 +48,8 @@ manifest:
         spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        ? "spring-boot, spring-boot-jetty, spring-boot-payara, spring-boot-openliberty, spring-boot-undertow, uds-spring-boot, spring-boot-wildfly"
+        : missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:
     - weblog_declaration:
         "*": v1.38.0
