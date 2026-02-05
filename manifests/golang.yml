@@ -1393,3 +1393,4 @@ manifest:
         '*': missing_feature
         net-http: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
+  tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)

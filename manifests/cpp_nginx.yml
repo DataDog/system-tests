@@ -9,6 +9,7 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (Not yet implemented)
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature

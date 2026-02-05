@@ -28,6 +28,7 @@ manifest:
         spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+    - declaration: "missing_feature (todo: review the tests for java and golang)"
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: bug (APMAPI-912)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags:
