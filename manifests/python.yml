@@ -1043,6 +1043,8 @@ manifest:
       component_version: '>=3.0.0-dev'
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: bug (APPSEC-61117)
+      component_version: '>=4.4.0-dev'
     - declaration: missing_feature (No implemented)
       component_version: <3.15.0
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
