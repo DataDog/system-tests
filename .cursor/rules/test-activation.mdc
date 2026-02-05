@@ -49,6 +49,8 @@ The existing manifests cover all supported libraries. If creating a new manifest
 
 ### Using YAML References (Anchors)
 
+is a repeating pattern in your modifications.
+
 References are defined in the `refs:` section at the top of manifests:
 
 ```yaml
@@ -62,6 +64,9 @@ refs:
 1. Check for existing references before adding a version
 2. Verify what a reference contains before using it
 3. Don't mix reference types (version refs vs declaration refs)
+4. You should not change existing references without explicit approval from the user.
+5. You can create new references only in manifests that already have references and 
+   with approval from the user. You should propose creating new references when there 
 
 **Mistake to avoid:**
 ```yaml
@@ -97,6 +102,10 @@ tests/path/test.py::TestClass:
 ```
 
 ### Always Include Reason
+
+** Rules **
+1. When you don't know the reason you should ask the user
+2. Bugs must reference a valid JIRA ticket, you must ask the user for one
 
 ```python
 # CORRECT
