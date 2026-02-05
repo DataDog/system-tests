@@ -18,13 +18,7 @@ When executed locally, tests run against the latest version of dd-trace by defau
 
 ## Manifest Files
 
-Each library has its own manifest file at `manifests/{library}.yml`:
-
-```
-cpp, cpp_httpd, cpp_nginx, dotnet, golang, java, java_otel,
-nodejs, nodejs_otel, php, python, python_lambda, python_otel, ruby, rust
-```
-
+Each library has its own manifest file at `manifests/{library}.yml`.
 There is also `manifests/agent.yml` for agent version conditions.
 
 ## Test Node ID Format
