@@ -2,13 +2,14 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "DOCKER_SSI", "DOCKER_SSI_APPSEC"
+                "DOCKER_SSI", "DOCKER_SSI_APPSEC", "DOCKER_SSI_PROFILING"
             ],
             "weblogs": [
                 {
                     "java": [
                         "jetty-app",
-                        "java7-app"
+                        "java7-app",
+                        "spring-boot"
                     ],
                     "nodejs": [
                         "js-app"
@@ -184,6 +185,17 @@
                 "supported_images": [
                     {
                         "name": "Wildfly_amd64"
+                    }
+                ]
+            },
+            {
+                "name": "spring-boot",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
                     }
                 ]
             }

@@ -166,6 +166,8 @@ def get_docker_ssi_matrix(
                                         runtime["version"]
                                         for runtime in runtimes["docker_ssi_runtimes"].get(language, [])
                                     )
+                                    # Add an allowed_runtimes that is all the supported versions for the language separated by commas
+                                    allowed_runtimes.append(",".join(allowed_runtimes))
                                 else:
                                     runtime_map = {
                                         rt["version_id"]: rt["version"]

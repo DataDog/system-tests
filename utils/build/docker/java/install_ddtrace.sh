@@ -54,4 +54,3 @@ echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
 
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
-
