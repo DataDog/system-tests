@@ -1,7 +1,6 @@
 {
-
     "cluster_agent": {
-        "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+        "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.75.1",
         "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master",
         "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest"
     },
@@ -36,7 +35,7 @@
         }
     },
     "helm_chart": {
-        "pinned": "3.161.1"
+        "pinned": "3.164.1"
     },
     "helm_chart_operator": {
         "pinned": "2.17.0"
