@@ -35,12 +35,14 @@ tests/path/to/file.py::TestClassName::test_method  # Specific method
 
 ### Simple Version
 
-Enable a test from a specific version:
+Enable a test from a specific version. The `vX.Y.Z` syntax is equivalent to `>=X.Y.Z`:
 
 ```yaml
-tests/path/test.py::TestClass: v1.2.0
+tests/path/test.py::TestClass: v1.2.0          # Enabled for versions >= 1.2.0
 tests/path/test.py::TestClass::test_method: v2.0.0
 ```
+
+**Note:** Using `X.Y.Z` without the `v` prefix (e.g., `1.2.0`) targets only that exact version. This is rarely intended - use `vX.Y.Z` to enable for that version and all future versions.
 
 ### Simple Marker
 
