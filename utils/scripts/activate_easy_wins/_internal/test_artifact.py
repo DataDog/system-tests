@@ -90,13 +90,14 @@ class TestData:
 
 
 def parse_artifact_data(
-    data_dir: Path, libraries: list[str], excluded_owners: set[str] | None = None
+    data_dir: Path, libraries: list[str], *, excluded_owners: set[str] | None = None, use_dev: bool = False
 ) -> tuple[dict[Context, TestData], dict[str, set[str]]]:
     test_data: dict[Context, TestData] = {}
     weblogs: dict[str, set[str]] = {}
 
     for directory in data_dir.iterdir():
-        if "_dev_" in directory.name in directory.name:
+        is_dev = "_dev_" in directory.name
+        if is_dev != use_dev:
             continue
 
         for scenario_dir in directory.iterdir():
