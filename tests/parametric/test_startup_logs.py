@@ -23,7 +23,6 @@ class Test_Startup_Logs:
     def test_startup_logs_enabled(self, test_library: APMLibrary):
         """Verify startup logs are emitted when DD_TRACE_STARTUP_LOGS=true."""
         with test_library:
-
             # For Node.js, startup logs are emitted when the tracer tries to send its first trace
             if context.library == "nodejs":
                 with test_library.dd_start_span("test_operation", service="test_service"):
@@ -57,7 +56,6 @@ class Test_Startup_Logs:
     def test_startup_logs_disabled(self, test_library: APMLibrary):
         """Verify startup logs are suppressed when DD_TRACE_STARTUP_LOGS=false."""
         with test_library:
-
             # For Node.js, trigger a trace to ensure startup logs would be emitted if enabled
             if context.library == "nodejs":
                 with test_library.dd_start_span("test_operation", service="test_service"):
@@ -108,7 +106,6 @@ class Test_Startup_Logs:
     def test_startup_logs_diagnostic_agent_unreachable(self, test_library: APMLibrary):
         """Verify diagnostic messages appear when agent is unreachable."""
         with test_library:
-
             with test_library.dd_start_span("test_operation", service="test_service") as span:
                 span.set_meta("test_key", "test_value")
             test_library.dd_flush()
@@ -147,4 +144,3 @@ class Test_Startup_Logs:
             )
 
             logger.info(f"Found diagnostic message with pattern: {matched_pattern}")
-
