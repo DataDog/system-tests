@@ -990,6 +990,17 @@ class _Scenarios:
         },
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
+    k8s_lib_injection_appsec_disabled = K8sScenario(
+        "K8S_LIB_INJECTION_APPSEC_DISABLED",
+        doc="Kubernetes lib injection with admission controller and appsec disabled by default",
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+    )
+    k8s_lib_injection_appsec_enabled = K8sScenario(
+        "K8S_LIB_INJECTION_APPSEC_ENABLED",
+        doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
+        dd_cluster_feature={"datadog.appsec.enabled": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+    )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     # K8s Injector dev scenarios
