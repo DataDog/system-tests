@@ -6,7 +6,7 @@
 
 import re
 from collections.abc import Callable
-from utils import context, weblog, interfaces, scenarios, features, logger
+from utils import weblog, interfaces, scenarios, features, logger
 from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
@@ -48,6 +48,9 @@ class Test_Profile:
     def setup_process_tags(self):
         self._common_setup()
 
+    def setup_process_tags_svc(self):
+        self.setup_process_tags()
+
     def check_process_tags(self, validate_process_tags_func: Callable):
         """All profiling libraries payload have process tags field"""
         profiling_data_list = list(interfaces.agent.get_profiling_data())
@@ -65,7 +68,7 @@ class Test_Profile:
                 #
                 # -> we use the content-type header of the part to skip the last two items
                 if "content" in part and content_type.endswith("application/json"):
-                    validate_process_tags_func(part["content"]["process_tags"], context.library)
+                    validate_process_tags_func(part["content"]["process_tags"])
 
     @features.process_tags
     def test_process_tags_svc(self):

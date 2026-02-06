@@ -16,6 +16,9 @@ class Test_Process_Tags:
     def setup_tracing_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
+    def setup_tracing_process_tags_svc(self):
+        self.setup_tracing_process_tags()
+
     def check_tracing_process_tags(self, validate_process_tags_func: Callable):
         # Get all the spans from the agent
         found = False
@@ -42,6 +45,9 @@ class Test_Process_Tags:
     def setup_remote_config_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
+    def setup_remote_config_process_tags_svc(self):
+        self.setup_remote_config_process_tags()
+
     def check_remote_config_process_tags(self, validate_process_tags_func: Callable):
         found = False
         for data in interfaces.library.get_data(path_filters="/v0.7/config"):
@@ -65,6 +71,9 @@ class Test_Process_Tags:
 
     def setup_telemetry_process_tags(self):
         self.req = weblog.get("/status?code=200")
+
+    def setup_telemetry_process_tags_svc(self):
+        self.setup_telemetry_process_tags()
 
     def check_telemetry_process_tags(self, validate_process_tags_func: Callable):
         found = False

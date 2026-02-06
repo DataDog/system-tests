@@ -417,6 +417,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_process_tags_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
+    def setup_process_tags_snapshot_svc(self):
+        self.setup_process_tags_snapshot()
+
     def check_process_tags_snapshot(self, validate_process_tags_func: Callable):
         self._assert()
         self._validate_snapshots()
