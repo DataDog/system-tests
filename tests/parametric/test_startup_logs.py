@@ -31,7 +31,13 @@ class Test_Startup_Logs:
 
             # For .NET, startup logs are written to a file instead of stdout/stderr
             if context.library == "dotnet":
-                log_file = "/dotnet-tracer-managed-ApmTestApi-1.log"
+                # Find any file starting with dotnet-tracer-managed
+                success, log_files = test_library.container_exec_run(
+                    "sh -c 'find / -name \"dotnet-tracer-managed*\" -type f 2>/dev/null | head -1'"
+                )
+                if not success or not log_files or not log_files.strip():
+                    pytest.fail("Failed to find .NET startup log file: no file matching 'dotnet-tracer-managed*' found")
+                log_file = log_files.strip()
                 success, logs = test_library.container_exec_run(f"sh -c 'cat {log_file} 2>/dev/null || true'")
                 if not success or not logs:
                     pytest.fail(f"Failed to read .NET startup log file: {log_file}")
@@ -64,16 +70,21 @@ class Test_Startup_Logs:
 
             # For .NET, startup logs are written to a file instead of stdout/stderr
             if context.library == "dotnet":
-                log_file = "/dotnet-tracer-managed-ApmTestApi-1.log"
-                success, logs = test_library.container_exec_run(f"sh -c 'cat {log_file} 2>/dev/null || true'")
+                # Find any file starting with dotnet-tracer-managed
+                success, log_files = test_library.container_exec_run(
+                    "sh -c 'find / -name \"dotnet-tracer-managed*\" -type f 2>/dev/null | head -1'"
+                )
                 # File may not exist or be empty when startup logs are disabled
-                if success and logs:
-                    startup_log_pattern = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
-                    if re.search(startup_log_pattern, logs, re.IGNORECASE):
-                        pytest.fail(
-                            f"Startup log found in .NET log file when DD_TRACE_STARTUP_LOGS=false. "
-                            f"File: {log_file}. Content (first 1000 chars): {logs[:1000]}"
-                        )
+                if success and log_files and log_files.strip():
+                    log_file = log_files.strip()
+                    success, logs = test_library.container_exec_run(f"sh -c 'cat {log_file} 2>/dev/null || true'")
+                    if success and logs:
+                        startup_log_pattern = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
+                        if re.search(startup_log_pattern, logs, re.IGNORECASE):
+                            pytest.fail(
+                                f"Startup log found in .NET log file when DD_TRACE_STARTUP_LOGS=false. "
+                                f"File: {log_file}. Content (first 1000 chars): {logs[:1000]}"
+                            )
                 # If file doesn't exist or is empty, that's expected when startup logs are disabled
             else:
                 try:
