@@ -153,6 +153,7 @@ patterns:
         libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
+        libraries: null
     .github/workflows/changelog.yml:
         scenario_groups: null
         libraries: null
@@ -313,6 +314,8 @@ patterns:
         scenario_groups: open_telemetry
     utils/build/docker/*/parametric/*:
         scenarios: PARAMETRIC
+    utils/build/docker/vcr/cassettes/aiguard/*:
+      scenario_groups: ai_guard
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the

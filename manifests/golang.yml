@@ -11,6 +11,9 @@ manifest:
         net-http: v0.1  # real version not known
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: flaky (APMAPI-178)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
     - weblog_declaration:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -51,7 +54,12 @@ manifest:
         echo: v2.1.0-dev  # Fully transparent
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature
+        uds-echo: v2.5.0  # Modified by easy win activation script
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        chi: '>=2.5.0'
+        net-http-orchestrion: '>=2.5.0'
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: v1.60.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
     - weblog_declaration:
@@ -59,6 +67,7 @@ manifest:
         echo: v2.1.0-dev  # Fully transparent
         gin: v2.1.0-dev  # Using response helper functions
         net-http: v2.1.0-dev  # Using SDK-style
+        uds-echo: v2.5.0  # Modified by easy win activation script
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: missing_feature
@@ -289,7 +298,84 @@ manifest:
         echo: v1.36.0
         gin: v1.37.0
   tests/appsec/test_asm_standalone.py::BaseSCAStandaloneTelemetry::test_app_dependencies_loaded: irrelevant (Go does not support dynamic dependency loading)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        chi: '>=2.5.0'
+        echo: '>=2.5.0'
+        uds-echo: '>=2.5.0'
+        gin: '>=2.5.0'
+        net-http-orchestrion: '>=2.5.0'
+        net-http: '>=2.5.0'
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_different_endpoints:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
+  :  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
+  :  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
+  :  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  :  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_sampling_window_renewal:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0
+  :  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0
@@ -350,12 +436,32 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: missing_feature
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_not_found: "missing_feature (\"No blocking on server.response.*\")"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        gin: '>=2.5.0'
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_blocking:  # Created by easy win activation script
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_non_blocking:  # Created by easy win activation script
+    - weblog_declaration:
+        gin: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status::test_not_found:  # Modified by easy win activation script
+    - declaration: missing_feature ("No blocking on server.response.*")
+      component_version: <2.5.0
+      weblog: [gin]
+    - declaration: missing_feature ("No blocking on server.response.*")
+      excluded_weblog: [gin]
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: v1.51.0
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.3.0-dev
+        net-http-orchestrion: v2.5.0  # Modified by easy win activation script
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking:  # Created by easy win activation script
+    - weblog_declaration:
+        net-http-orchestrion: missing_feature (path params are not supported)
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before:  # Created by easy win activation script
+    - weblog_declaration:
         net-http-orchestrion: missing_feature (path params are not supported)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.44.1
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.0.0
@@ -398,7 +504,32 @@ manifest:
   ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata
   : irrelevant (dd-trace-go only accepts string metadata values)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
-  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        chi: '>=2.5.0'
+        echo: '>=2.5.0'
+        uds-echo: '>=2.5.0'
+        gin: '>=2.5.0'
+        net-http-orchestrion: '>=2.5.0'
+        net-http: '>=2.5.0'
+  tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
+  ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
+  :  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature
+        gin: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        chi: missing_feature
+        net-http-orchestrion: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
@@ -566,7 +697,7 @@ manifest:
         "*": v1.36.0
         gin: v1.37.0
   tests/appsec/waf/test_reports.py::Test_Monitoring: v1.38.0
-  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: bug (LANGPLAT-584)
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: irrelevant (expected tags were deprecated by rfc1025)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once:
     - declaration: irrelevant (replaced by test_waf_monitoring_once_rfc1025)
       component_version: '>=2.1.0-dev'
@@ -638,6 +769,7 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.2.3
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.2.3
@@ -648,7 +780,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
-  tests/ffe/test_exposures.py: v2.6.0-dev
+  tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -804,18 +936,41 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v1.59.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v1.73.0-dev
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: v1.59.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_match_service_target_case_insensitively: missing_feature (Tracer does case-sensitive checks for service and env)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_match_service_target_case_insensitively:  # Modified by easy win activation script
+    - declaration: missing_feature (Tracer does case-sensitive checks for service and env)
+      component_version: <2.5.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.59.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
-  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid: missing_feature (Need to remove b3=b3multi alias)
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid:  # Modified by easy win activation script
+    - declaration: missing_feature (Need to remove b3=b3multi alias)
+      component_version: <2.5.0
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_inject_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_invalid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_single_key_propagate_valid: missing_feature (Need to remove b3=b3multi alias)
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: missing_feature
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: '>=2.5.0'  # Modified by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_extract_header_D005: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_D008: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_all_D009: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_inject_header_D004: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D015: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_D010: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_all_D011: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_D006: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: '>=2.5.0'  # Modified by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_all: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_config_with_empty_keys: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_key_with_asterisk: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
   ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_datadog_tracecontext
   : - declaration: missing_feature (Default value was updated in v1.62.0 (w3c phase 2))
       component_version: <1.62.0
@@ -829,7 +984,9 @@ manifest:
   : - declaration: bug (APMRP-360)
       component_version: <1.57.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (golang does not reconcile duplicate http headers, if duplicate headers received the propagator will not be used)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header:  # Modified by easy win activation script
+    - declaration: missing_feature (golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
+      component_version: <2.5.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_extract:
     - declaration: missing_feature (Not implemented)
@@ -855,8 +1012,12 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error: missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags: missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_does_not_set_error:  # Modified by easy win activation script
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.5.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:  # Modified by easy win activation script
+    - declaration: missing_feature (Not implemented)
+      component_version: <2.5.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 1.65.0)
       component_version: <1.65.0
@@ -891,7 +1052,8 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature (partial flushing not enabled by default)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v2.2.3
-  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=2.5.0'  # Modified by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_kept_sst007: bug (APMAPI-737)
@@ -908,12 +1070,15 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_always_keep_span_sampling_sss011: missing_feature (The Go tracer does not have a way to modulate trace sampling once started)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: bug (APMAPI-1545)
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: bug (APMAPI-1545)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-1545)
+      component_version: <2.5.0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature (APMAPI-745)
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v2.1.0-dev.2
-  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=2.5.0'  # Modified by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.63.0-rc.1
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
@@ -924,7 +1089,14 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: v1.64.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_existence: flaky (APMAPI-932)
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.48.0
-  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.5.0'  # Modified by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.7.0-dev
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
@@ -936,6 +1108,8 @@ manifest:
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
   tests/stats/test_stats.py: v1.54.0
   tests/stats/test_stats.py::Test_Client_Drop_P0s::test_client_drop_p0s_false: v2.6.0
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
+  tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v2.2.3
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v2.2.3
@@ -957,19 +1131,43 @@ manifest:
     - weblog_declaration:
         "*": v2.1.0-dev
         net-http-orchestrion: bug (APMLP-659)
-  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: bug (APMLP-659)
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured: incomplete_test_app (weblog endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:  # Modified by easy win activation script
+    - declaration: bug (APMLP-659)
+      component_version: <2.5.0
+      weblog: [chi, echo, uds-echo, gin, net-http]
+    - declaration: bug (APMLP-659)
+      excluded_weblog: [chi, echo, uds-echo, gin, net-http]
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled::test_incoming_64bit_traceid:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: bug (APMLP-659)
+        gin: bug (APMLP-659)
+        net-http: bug (APMLP-659)
+        uds-echo: bug (APMLP-659)
+        chi: bug (APMLP-659)
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:  # Modified by easy win activation script
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      component_version: <2.5.0
+      weblog: [chi, echo, uds-echo, gin, net-http]
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      excluded_weblog: [chi, echo, uds-echo, gin, net-http]
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:  # Modified by easy win activation script
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      component_version: <2.5.0
+      weblog: [chi, echo, uds-echo, gin, net-http]
+    - declaration: incomplete_test_app (weblog endpoint not implemented)
+      excluded_weblog: [chi, echo, uds-echo, gin, net-http]
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
   ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_client
-  : - declaration: bug (APMAPI-1196)
+  :  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
+    - declaration: bug (APMAPI-1196)
       component_version: '>=1.72.0'
     - declaration: missing_feature (Client query string collection disabled by default; obfuscation only occurs on server side)
       component_version: <2.1.0-dev
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
   ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default::test_query_string_obfuscation_configured_client
-  : - declaration: bug (APMAPI-1196)
+  :  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
+    - declaration: bug (APMAPI-1196)
       component_version: '>=1.72.0'
     - declaration: missing_feature (Client query string collection disabled by default; obfuscation only occurs on server side)
       component_version: <2.1.0-dev
@@ -995,7 +1193,20 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-901)
+      component_version: <2.5.0
+      weblog: [chi, echo, uds-echo, gin, net-http-orchestrion, net-http]
+    - declaration: bug (APMAPI-901)
+      excluded_weblog: [chi, echo, uds-echo, gin, net-http-orchestrion, net-http]
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog::test_synthetics_browser:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: bug (APMAPI-901)
+        gin: bug (APMAPI-901)
+        net-http: bug (APMAPI-901)
+        uds-echo: bug (APMAPI-901)
+        chi: bug (APMAPI-901)
+        net-http-orchestrion: bug (APMAPI-901)
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": irrelevant
@@ -1030,6 +1241,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py:
     - weblog_declaration:
@@ -1072,7 +1284,92 @@ manifest:
   tests/test_telemetry.py::Test_Log_Generation: v1.73.0-dev
   tests/test_telemetry.py::Test_MessageBatch: v1.73.0-dev
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: v1.73.0-dev
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled:  # Modified by easy win activation script
+    - declaration: missing_feature (checks for metrics from the tracer)
+      component_version: <2.5.0
+      weblog: [chi, echo, uds-echo, gin, net-http-orchestrion, net-http]
+    - declaration: missing_feature (checks for metrics from the tracer)
+      excluded_weblog: [chi, echo, uds-echo, gin, net-http-orchestrion, net-http]
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_created:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created:  # Created by easy win activation script
+    - weblog_declaration:
+        echo: missing_feature (checks for metrics from the tracer)
+        gin: missing_feature (checks for metrics from the tracer)
+        net-http: missing_feature (checks for metrics from the tracer)
+        uds-echo: missing_feature (checks for metrics from the tracer)
+        chi: missing_feature (checks for metrics from the tracer)
+        net-http-orchestrion: missing_feature (checks for metrics from the tracer)
   tests/test_telemetry.py::Test_ProductsDisabled: v1.53
   tests/test_telemetry.py::Test_ProductsDisabled::test_debugger_products_disabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry: v1.49.0
@@ -1081,4 +1378,8 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        net-http: '>=2.5.0'
+        net-http-orchestrion: '>=2.5.0'
