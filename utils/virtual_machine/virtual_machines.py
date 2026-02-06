@@ -37,6 +37,8 @@ class _VagrantConfig:
 
 
 class _KrunVmConfig:
+    stdin: str | None
+
     def __init__(self, oci_image_name: str) -> None:
         self.oci_image_name = oci_image_name
         # KrunVm doesn't contain a good network capabilities. We use a std.in file to input parameters
