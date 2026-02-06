@@ -15,6 +15,9 @@ class TestDockerSSIAppsecFeatures:
         parsed_url = urlparse(scenarios.docker_ssi_appsec.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0", reason="Ruby 2.6+ required")
@@ -35,4 +38,4 @@ class TestDockerSSIAppsecFeatures:
         # Check that instrumentation source is ssi
         injection_source = configurations.get("DD_APPSEC_ENABLED") or configurations.get("appsec.enabled")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
-        assert injection_source["value"] in ["1", 1, True]
+        assert injection_source["value"] in ["1", 1, True, "true"]
