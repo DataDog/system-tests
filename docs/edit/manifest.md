@@ -11,7 +11,7 @@ See [skip-tests.md](./skip-tests.md) to disable a test.
 When executed locally, tests run against the latest version of dd-trace by default. In CI, the tests run against the main branch and the latest version.
 
 #### Notes
-- Entries in the manifest file must be sorted in alphabetically. This is validated by the TEST_THE_TESTS scenario/linter.
+- Entries in the manifest file must be sorted in alphabetically. This is done/validated by `./format.sh`.
 - Manifest files are validated using JSON schema in system tests CI
 - An error will occur if a manifest file refers to a directory/file/class/function that does not exist
 - **After modifying any manifest file, always run `./format.sh`** to validate syntax and sort entries alphabetically.
