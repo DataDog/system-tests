@@ -179,8 +179,28 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
 
     def _set_code_origin_and_check(self, *, enabled: bool | None):
         """Set code origin via remote config and check if spans are present."""
+        # Send remote config and wait for acknowledgment. The send_rc_apm_tracing call
+        # internally waits for acknowledgment and sleeps 2 seconds via send_state.
+        #
+        # Root cause of flakiness: There's a race condition where the remote config is
+        # acknowledged but not yet fully applied to the tracer's internal state when we
+        # send the weblog request. This is especially problematic in CI environments with
+        # higher latency. The trace is generated without code origin, causing wait_for_code_origin_span
+        # to timeout.
+        #
+        # Solution: The threshold calculation happens in _check_code_origin, which is called
+        # after send_rc_apm_tracing returns. However, the real issue is that we need to ensure
+        # the config is fully applied, not just acknowledged. The key insight is that we should
+        # calculate the threshold as late as possible - right before sending the request - to
+        # ensure we only look for traces generated after the config is applied. By inlining
+        # the threshold calculation here (instead of in _check_code_origin), we ensure it happens
+        # after the remote config is sent and right before the request, minimizing the race window.
         self.send_rc_apm_tracing(code_origin_enabled=enabled)
-        return self._check_code_origin()
+        # Calculate threshold right before sending request to minimize race condition window.
+        # This ensures we only check traces generated after the config change.
+        threshold = self._get_max_trace_file_number()
+        self.send_weblog_request("/")
+        return self.wait_for_code_origin_span(TIMEOUT, threshold=threshold)
 
     def setup_inproduct_enablement_code_origin(self):
         self.initialize_weblog_remote_config()
