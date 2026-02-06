@@ -62,6 +62,8 @@ Rails.application.routes.draw do
 
   get '/otel_drop_in_default_propagator_extract' => 'system_test#otel_drop_in_default_propagator_extract'
   get '/otel_drop_in_default_propagator_inject' => 'system_test#otel_drop_in_default_propagator_inject'
+  get '/otel_drop_in_baggage_api_otel' => 'system_test#otel_drop_in_baggage_api_otel'
+  get '/otel_drop_in_baggage_api_datadog' => 'system_test#otel_drop_in_baggage_api_datadog'
 
   get '/debugger/init' => 'debugger#init'
   get '/debugger/pii' => 'debugger#pii'

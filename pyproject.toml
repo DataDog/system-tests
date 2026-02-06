@@ -277,7 +277,6 @@ ignore = [
     "INP001",  # implicit-namespace-package: this is not a package
 ]
 "utils/onboarding/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
     "DTZ006",  # call-datetime-fromtimestamp: TODO

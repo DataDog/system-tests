@@ -31,6 +31,7 @@ class ScenarioGroup:
 
 class _ScenarioGroups:
     all = ScenarioGroup()
+    ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
     appsec_rasp_scenario = ScenarioGroup()
