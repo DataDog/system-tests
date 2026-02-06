@@ -4,6 +4,7 @@
 
 import re
 import json
+import time
 from utils import (
     weblog,
     interfaces,
@@ -749,18 +750,26 @@ class Test_Config_RuntimeMetrics_Default:
         assert len(runtime_metrics_sketches) == 0
 
 
-def get_runtime_metrics():
-    runtime_metrics_gauges = [
-        metric
-        for _, metric in interfaces.agent.get_metrics()
-        if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-    ]
+def get_runtime_metrics(retry: int = 10):
+    runtime_metrics_gauges = []
+    runtime_metrics_sketches = []
 
-    runtime_metrics_sketches = [
-        metric
-        for _, metric in interfaces.agent.get_sketches()
-        if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
-    ]
+    for _ in range(retry):
+        runtime_metrics_gauges = [
+            metric
+            for _, metric in interfaces.agent.get_metrics()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+
+        runtime_metrics_sketches = [
+            metric
+            for _, metric in interfaces.agent.get_sketches()
+            if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
+        ]
+
+        if runtime_metrics_gauges and runtime_metrics_sketches:
+            break
+        time.sleep(1)
 
     return runtime_metrics_gauges, runtime_metrics_sketches
 
