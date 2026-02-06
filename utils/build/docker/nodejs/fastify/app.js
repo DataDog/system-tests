@@ -609,6 +609,7 @@ fastify.get('/otel_drop_in_default_propagator_inject', async (request, reply) =>
 
 fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
   const api = require('@opentelemetry/api')
+  const ContextManager = require('dd-trace/packages/dd-trace/src/opentelemetry/context_manager')
 
   const url = request.query.url
   console.log(url)
@@ -626,6 +627,9 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
   const baggageSet = request.query.baggage_set
   const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
   const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
+
+  const contextManager = new ContextManager()
+  api.context.setGlobalContextManager(contextManager)
 
   let baggage = api.propagation.getActiveBaggage() || api.propagation.createBaggage()
   for (const key of baggageToRemove) {
