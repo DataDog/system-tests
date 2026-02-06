@@ -30,10 +30,17 @@ class TestDockerSSIAppsecFeatures:
         telemetry_names: list[str] = _mapped_telemetry_name("instrumentation_source")
         configurations = interfaces.test_agent.get_telemetry_configurations()
 
+        found_instrumentation_source = False
         for name in telemetry_names:
             if name in configurations:
+                found_instrumentation_source = True
                 instrumentation_source: dict = configurations[name]
                 assert instrumentation_source.get("value") == "ssi", f"{name}=ssi not found in {configurations}"
+
+        assert found_instrumentation_source, (
+            f"No instrumentation_source config found in telemetry. "
+            f"Looked for {telemetry_names} in {list(configurations.keys())}"
+        )
 
         # Check that instrumentation source is ssi
         injection_source = (
