@@ -189,6 +189,41 @@ function run_scenario() {
                 -e DD_API_KEY="${DD_API_KEY}"
               )
             fi
+            if [[ -n "${DD_API_KEY_2:-}" ]]; then
+              cmd+=(
+                -e DD_API_KEY_2="${DD_API_KEY_2}"
+              )
+            fi
+            if [[ -n "${DD_API_KEY_3:-}" ]]; then
+              cmd+=(
+                -e DD_API_KEY_3="${DD_API_KEY_3}"
+              )
+            fi
+            if [[ -n "${DD_APP_KEY:-}" ]]; then
+              cmd+=(
+                -e DD_APP_KEY="${DD_APP_KEY}"
+              )
+            fi
+            if [[ -n "${DD_APP_KEY_2:-}" ]]; then
+              cmd+=(
+                -e DD_APP_KEY_2="${DD_APP_KEY_2}"
+              )
+            fi
+            if [[ -n "${DD_APP_KEY_3:-}" ]]; then
+              cmd+=(
+                -e DD_APP_KEY_3="${DD_APP_KEY_3}"
+              )
+            fi
+            if [[ -n "${SYSTEM_TESTS_AWS_ACCESS_KEY_ID:-}" ]]; then
+              cmd+=(
+                -e SYSTEM_TESTS_AWS_ACCESS_KEY_ID="${SYSTEM_TESTS_AWS_ACCESS_KEY_ID}"
+              )
+            fi
+            if [[ -n "${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY_ID:-}" ]]; then
+              cmd+=(
+                -e SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY_ID="${SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY_ID}"
+              )
+            fi
             if [[ -f .env ]]; then
               cmd+=(
                 -v "${PWD}"/.env:/app/.env
