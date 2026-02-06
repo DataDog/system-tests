@@ -668,7 +668,7 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_insecure:
     - weblog_declaration:
         vertx3: irrelevant (vertx3 redirects using location header)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # Easy win for spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx4 and version 1.58.2+06122213c8
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # Easy win for spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx4 and version 1.59.0+7e1bb03bc3
     - declaration: missing_feature (weblog does not respond)
     - weblog_declaration:
         vertx3: irrelevant (vertx3 redirects using location header)
@@ -1029,7 +1029,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: bug (APPSEC-60508)
+        vertx3: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": missing_feature
@@ -1047,7 +1047,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: bug (APPSEC-60508)
+        vertx3: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": missing_feature
@@ -2049,7 +2049,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: v0.115.0
         vertx3: v1.7.0
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist::test_blocked_ips:  # Easy win for akka-http, jersey-grizzly2, play, ratpack, resteasy-netty3, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.58.2+06122213c8
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist::test_blocked_ips:  # Easy win for akka-http, jersey-grizzly2, play, ratpack, resteasy-netty3, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.59.0+7e1bb03bc3
     - declaration: bug (APMRP-360)
       component_version: '>=1.22.0'
   tests/appsec/test_logs.py::Test_Standardization:
@@ -2078,7 +2078,7 @@ manifest:
     - weblog_declaration:
         "*": v1.51.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability:
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_asm_dd_multiconfig_capability:  # Easy win for akka-http, jersey-grizzly2, play, ratpack, resteasy-netty3, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.59.0+7e1bb03bc3
     - weblog_declaration:
         '*': 1.58.2
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
@@ -2176,7 +2176,7 @@ manifest:
     - weblog_declaration:
         "*": v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:  # Easy win for akka-http, jersey-grizzly2, play, ratpack, resteasy-netty3, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.59.0+7e1bb03bc3
     - weblog_declaration:
         '*': 1.58.2
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
@@ -2185,7 +2185,7 @@ manifest:
         akka-http: missing_feature
         play: missing_feature
         jersey-grizzly2: missing_feature
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability:
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability:  # Easy win for akka-http, jersey-grizzly2, play, ratpack, resteasy-netty3, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.59.0+7e1bb03bc3
     - weblog_declaration:
         '*': 1.58.2
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
@@ -2566,8 +2566,8 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-jetty: missing_feature
@@ -2575,8 +2575,8 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
@@ -2584,8 +2584,8 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
     - declaration: bug (DEBUG-3390)
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-jetty: missing_feature
@@ -2593,32 +2593,32 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_rockpaperscissors:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_simple:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
-    - # Added by easy win activation script
-      weblog_declaration:
+      # Added by easy win activation script
+    - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
         spring-boot-payara: missing_feature
@@ -3488,6 +3488,12 @@ manifest:
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot: v1.56.0
         spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-jetty: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
+        spring-boot-wildfly: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
+        spring-boot-openliberty: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
+        spring-boot-payara: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
+        uds-spring-boot: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
+        spring-boot-undertow: v1.59.0+7e1bb03bc3  # Modified by easy win activation script
   tests/test_baggage.py::Test_Baggage_Headers_Basic:
     - weblog_declaration:
         "*": v1.53.0
