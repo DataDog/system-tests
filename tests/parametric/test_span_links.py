@@ -83,7 +83,7 @@ class Test_Span_Links:
         assert link["attributes"].get("array.0") == "a"
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
-    
+
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v1.0"}])
     def test_span_started_with_link_v1(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span and serialized in the expected v1.0 format.
