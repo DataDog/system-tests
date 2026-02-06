@@ -26,6 +26,16 @@ from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
+from utils._context.containers import (
+    CassandraContainer,
+    KafkaContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+    PostgresContainer,
+    RabbitMqContainer,
+    VCRCassettesContainer,
+)
 
 update_environ_with_local_env()
 
@@ -56,13 +66,15 @@ class _Scenarios:
         },
         include_intake=False,
         include_collector=False,
-        include_postgres_db=True,
-        include_cassandra_db=True,
-        include_mongo_db=True,
-        include_kafka=True,
-        include_rabbitmq=True,
-        include_mysql_db=True,
-        include_sqlserver=True,
+        extra_containers=(
+            MsSqlServerContainer,
+            MySqlContainer,
+            RabbitMqContainer,
+            KafkaContainer,
+            MongoContainer,
+            CassandraContainer,
+            PostgresContainer,
+        ),
         doc=(
             "We use the open telemetry library to automatically instrument the weblogs instead of using the DD library."
             "This scenario represents this case in the integration with different external systems, for example the "
@@ -244,7 +256,7 @@ class _Scenarios:
         "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
-        include_postgres_db=True,
+        other_weblog_containers=(PostgresContainer,),
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
     )
@@ -614,8 +626,7 @@ class _Scenarios:
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
-        include_kafka=True,
-        include_postgres_db=True,
+        other_weblog_containers=(PostgresContainer, KafkaContainer),
         rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
@@ -633,8 +644,7 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
         },
-        include_kafka=True,
-        include_postgres_db=True,
+        other_weblog_containers=(PostgresContainer, KafkaContainer),
         doc="Test tracer configuration when a collection of non-default settings are applied",
         scenario_groups=[scenario_groups.tracing_config],
     )
@@ -1156,7 +1166,7 @@ class _Scenarios:
 
     ai_guard = EndToEndScenario(
         "AI_GUARD",
-        include_vcr_cassettes=True,
+        other_weblog_containers=(VCRCassettesContainer,),
         weblog_env={
             "DD_AI_GUARD_ENABLED": "true",
             "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
