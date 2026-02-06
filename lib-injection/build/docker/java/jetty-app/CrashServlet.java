@@ -1,5 +1,6 @@
 import java.io.*;
 import java.lang.management.ManagementFactory;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,6 +14,7 @@ import javax.servlet.ServletException;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.webapp.WebAppContext;
+import sun.misc.Unsafe;
 
 
 
@@ -30,6 +32,8 @@ public class CrashServlet extends HttpServlet {
             handleChildPids(req, resp);
         } else if (requestURI.equals("/zombies")) {
             handleZombies(req, resp);
+        } else if (requestURI.equals("/crashme")) {
+            handleCrashMe(req, resp);
         } else {
             // Return 404 if the endpoint is not recognized
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -202,6 +206,31 @@ public class CrashServlet extends HttpServlet {
         }
 
         return zombieProcesses;
+    }
+
+    private void handleCrashMe(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+        try {
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().println("Triggering JVM crash using Unsafe...");
+            resp.getWriter().flush();
+
+            // Access the Unsafe instance via reflection
+            Field f = Unsafe.class.getDeclaredField("theUnsafe");
+            f.setAccessible(true);
+            Unsafe unsafe = (Unsafe) f.get(null);
+
+            // This will cause a segmentation fault and crash the JVM
+            unsafe.putAddress(0, 0);
+
+            // This line will never be reached
+            resp.getWriter().println("This should not print");
+        } catch (Exception e) {
+            resp.setContentType("text/plain");
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            resp.getWriter().println("Error triggering crash: " + e.getMessage());
+        }
     }
 
     private static String forkAndCrash()
