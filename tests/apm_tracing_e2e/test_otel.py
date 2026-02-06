@@ -1,4 +1,4 @@
-from utils import context, weblog, scenarios, interfaces, irrelevant, features
+from utils import weblog, scenarios, interfaces, features
 from utils.dd_constants import TraceAgentPayloadFormat
 
 
@@ -54,7 +54,6 @@ class Test_Otel_Span:
             "/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"}
         )
 
-    @irrelevant(condition=context.library != "golang", reason="Golang specific test with OTel Go contrib package")
     def test_distributed_otel_trace(self):
         spans = interfaces.agent.get_spans_list(self.req)
         assert len(spans) >= 3, "Agent did not submit the spans we want!"

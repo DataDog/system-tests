@@ -5,7 +5,7 @@ from collections.abc import Callable
 from datetime import timedelta
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, bug, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 
@@ -234,8 +234,6 @@ class Test_Telemetry:
                 return
         raise ValueError("app-started message not found")
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
-    @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
     @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
@@ -441,7 +439,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
-    @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
 
@@ -522,10 +519,6 @@ class Test_Telemetry:
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
-        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
-    )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
@@ -705,10 +698,6 @@ class Test_TelemetryV2:
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
 
-    @irrelevant(
-        condition=context.library not in ("python",),
-        reason="This test causes to many friction. It has been replaced by alerts on slack channels",
-    )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
