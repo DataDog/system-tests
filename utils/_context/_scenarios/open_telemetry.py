@@ -48,7 +48,7 @@ class OpenTelemetryScenario(DockerScenario):
             name,
             doc=doc,
             github_workflow="endtoend",
-            scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
+            scenario_groups=(scenario_groups.all, scenario_groups.open_telemetry),
             use_proxy=True,
             mocked_backend=mocked_backend,
             include_postgres_db=include_postgres_db,

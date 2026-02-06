@@ -20,7 +20,7 @@ class OtelCollectorScenario(DockerScenario):
             name,
             github_workflow="endtoend",
             doc="TODO",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.all],
+            scenario_groups=(scenario_groups.end_to_end, scenario_groups.all),
             include_postgres_db=True,
             use_proxy=use_proxy,
             mocked_backend=mocked_backend,

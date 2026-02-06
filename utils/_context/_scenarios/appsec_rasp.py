@@ -36,7 +36,7 @@ class AppsecRaspScenario(EndToEndScenario):
             | weblog_volumes,
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
-            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario],
+            scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario),
         )
         self._internal_server = InternalServerContainer()
         self.weblog_container.depends_on.append(self._internal_server)
@@ -66,11 +66,11 @@ class AppSecLambdaRaspScenario(LambdaScenario):
             },
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
-            scenario_groups=[
+            scenario_groups=(
                 scenario_groups.appsec_rasp,
                 scenario_groups.appsec_rasp_scenario,
                 scenario_groups.appsec_lambda,
-            ],
+            ),
         )
         self._internal_server = InternalServerContainer()
         self.lambda_weblog.depends_on.append(self._internal_server)

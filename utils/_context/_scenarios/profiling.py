@@ -20,7 +20,7 @@ class ProfilingScenario(EndToEndScenario):
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
             },
             doc="Test profiling feature. Not included in default scenario because is quite slow",
-            scenario_groups=[scenario_groups.profiling],
+            scenario_groups=(scenario_groups.profiling,),
         )
 
     def configure(self, config: pytest.Config):

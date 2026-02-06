@@ -28,7 +28,7 @@ class DockerFixturesScenario(Scenario):
             name=name,
             doc=doc,
             github_workflow=github_workflow,
-            scenario_groups=[*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures],
+            scenario_groups=(*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures),
         )
 
         self._test_agent_factory = TestAgentFactory(agent_image)

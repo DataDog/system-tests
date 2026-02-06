@@ -37,7 +37,7 @@ class DockerSSIScenario(Scenario):
     _network: Network = None
 
     def __init__(
-        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None, appsec_enabled=None
+        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=(), appsec_enabled=None
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 

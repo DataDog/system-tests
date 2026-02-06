@@ -44,17 +44,17 @@ class GoProxiesScenario(DockerScenario):
         *,
         processor_env: dict[str, str | None] | None = None,
         processor_volumes: dict[str, dict[str, str]] | None = None,
-        scenario_groups: list[ScenarioGroup] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
         rc_api_enabled: bool = False,
     ) -> None:
         self._processor_env = processor_env
         self._processor_volumes = processor_volumes
-        scenario_groups = (scenario_groups or []) + [
+        scenario_groups += (
             all_scenario_groups.go_proxies,
             all_scenario_groups.appsec,
             all_scenario_groups.end_to_end,
             all_scenario_groups.all,
-        ]
+        )
 
         super().__init__(
             name,
