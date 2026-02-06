@@ -6,6 +6,7 @@ import tests.debugger.utils as debugger
 from utils import features, scenarios, context, logger, bug, missing_feature
 import json
 import time
+import time as time_module
 
 TIMEOUT = 5
 
@@ -173,9 +174,32 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def _check_code_origin(self):
         """Send a request and check if code origin spans are present."""
+        # Calculate threshold right before sending request to minimize race condition window.
+        # This ensures we only check traces generated after this point, avoiding issues where
+        # trace files might be ingested between threshold calculation and wait_for setup.
+        # If the threshold is calculated too early, a trace file might be written and ingested
+        # before wait_for is called. If that file doesn't have code origin (due to timing),
+        # it will be in the existing data when wait_for checks, will be skipped, and then
+        # wait_for will wait for new data that never comes (since the file is already ingested).
+        threshold_start = time_module.time()
         threshold = self._get_max_trace_file_number()
+        threshold_elapsed = time_module.time() - threshold_start
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] _check_code_origin: calculated threshold={threshold} in {threshold_elapsed:.3f}s"
+        )
+
+        request_start = time_module.time()
         self.send_weblog_request("/")
-        return self.wait_for_code_origin_span(TIMEOUT, threshold=threshold)
+        request_elapsed = time_module.time() - request_start
+        logger.debug(f"[CODE_ORIGIN_DEBUG] _check_code_origin: sent request in {request_elapsed:.3f}s")
+
+        wait_start = time_module.time()
+        result = self.wait_for_code_origin_span(TIMEOUT, threshold=threshold)
+        wait_elapsed = time_module.time() - wait_start
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] _check_code_origin: wait_for_code_origin_span returned {result} after {wait_elapsed:.3f}s"
+        )
+        return result
 
     def _set_code_origin_and_check(self, *, enabled: bool | None):
         """Set code origin via remote config and check if spans are present."""
@@ -195,12 +219,34 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         # ensure we only look for traces generated after the config is applied. By inlining
         # the threshold calculation here (instead of in _check_code_origin), we ensure it happens
         # after the remote config is sent and right before the request, minimizing the race window.
+        rc_start = time_module.time()
         self.send_rc_apm_tracing(code_origin_enabled=enabled)
+        rc_elapsed = time_module.time() - rc_start
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] _set_code_origin_and_check: send_rc_apm_tracing(enabled={enabled}) completed in {rc_elapsed:.3f}s"
+        )
+
         # Calculate threshold right before sending request to minimize race condition window.
         # This ensures we only check traces generated after the config change.
+        threshold_start = time_module.time()
         threshold = self._get_max_trace_file_number()
+        threshold_elapsed = time_module.time() - threshold_start
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] _set_code_origin_and_check: calculated threshold={threshold} in {threshold_elapsed:.3f}s"
+        )
+
+        request_start = time_module.time()
         self.send_weblog_request("/")
-        return self.wait_for_code_origin_span(TIMEOUT, threshold=threshold)
+        request_elapsed = time_module.time() - request_start
+        logger.debug(f"[CODE_ORIGIN_DEBUG] _set_code_origin_and_check: sent request in {request_elapsed:.3f}s")
+
+        wait_start = time_module.time()
+        result = self.wait_for_code_origin_span(TIMEOUT, threshold=threshold)
+        wait_elapsed = time_module.time() - wait_start
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] _set_code_origin_and_check: wait_for_code_origin_span returned {result} after {wait_elapsed:.3f}s"
+        )
+        return result
 
     def setup_inproduct_enablement_code_origin(self):
         self.initialize_weblog_remote_config()

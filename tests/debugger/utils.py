@@ -7,6 +7,7 @@ import re
 import os
 import os.path
 from pathlib import Path
+import time
 import uuid
 from urllib.parse import parse_qs
 from typing import TypedDict, Literal, Any
@@ -473,46 +474,134 @@ class BaseDebuggerTest:
 
     def wait_for_code_origin_span(self, timeout: int = 5, threshold: int | None = None) -> bool:
         self._span_found = False
+        start_time = time.time()
+
+        # Root cause of flakiness: There's a race condition where a trace file might be written
+        # and ingested between threshold calculation and wait_for setup. When wait_for checks
+        # existing data first, if that file doesn't have code origin yet (due to tracer timing),
+        # it gets skipped. Then wait_for waits for new data, but since the file is already
+        # ingested, no new data event fires, causing a timeout.
+        #
+        # Solution: Preserve the original threshold (max file number BEFORE the request) to ensure
+        # we only check files written after the request. However, we also need to account for the
+        # fact that files might be written and ingested very quickly. The key insight is that we
+        # should use the original threshold as-is - it represents the boundary between "before
+        # request" and "after request". Any file with number > threshold was written after the
+        # request, regardless of when it was ingested.
+        #
+        # The race condition is mitigated by calculating threshold right before sending the request
+        # (already done in calling code), minimizing the window where files can be written.
         if threshold is None:
             threshold = self._get_max_trace_file_number()
+            logger.debug(
+                f"[CODE_ORIGIN_DEBUG] wait_for_code_origin_span: threshold was None, calculated new threshold={threshold}"
+            )
+        else:
+            logger.debug(f"[CODE_ORIGIN_DEBUG] wait_for_code_origin_span: using provided threshold={threshold}")
 
-        interfaces.agent.wait_for(
-            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
-            timeout=timeout,
+        # Check current max file number right before wait_for to see if any files were written
+        # between threshold calculation and wait_for call
+        current_max_before_wait = self._get_max_trace_file_number()
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] wait_for_code_origin_span: threshold={threshold}, current_max_before_wait={current_max_before_wait}, diff={current_max_before_wait - threshold}"
+        )
+
+        # Check what files exist in existing data that match our criteria
+        existing_files_above_threshold = []
+        for data in interfaces.agent.get_data(_TRACES_PATH):
+            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+            if log_filename_found:
+                file_number = int(log_filename_found.group(1))
+                if file_number > threshold:
+                    existing_files_above_threshold.append((file_number, data["log_filename"]))
+
+        if existing_files_above_threshold:
+            logger.debug(
+                f"[CODE_ORIGIN_DEBUG] wait_for_code_origin_span: Found {len(existing_files_above_threshold)} existing files above threshold: {existing_files_above_threshold}"
+            )
+        else:
+            logger.debug("[CODE_ORIGIN_DEBUG] wait_for_code_origin_span: No existing files above threshold found")
+
+        # Create a closure to capture start_time
+        def wait_function(data: dict) -> bool:
+            return self._wait_for_code_origin_span(data, threshold=threshold, start_time=start_time)
+
+        interfaces.agent.wait_for(wait_function, timeout=timeout)
+
+        elapsed = time.time() - start_time
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] wait_for_code_origin_span: finished after {elapsed:.3f}s, span_found={self._span_found}"
         )
         return self._span_found
 
     def _get_max_trace_file_number(self) -> int:
         """Get the maximum trace file number currently in the agent interface."""
         max_number = 0
+        file_numbers = []
         for data in interfaces.agent.get_data(_TRACES_PATH):
             log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
             if log_filename_found:
                 file_number = int(log_filename_found.group(1))
+                file_numbers.append(file_number)
                 max_number = max(max_number, file_number)
+        logger.debug(
+            f"[CODE_ORIGIN_DEBUG] _get_max_trace_file_number: max={max_number}, all_files={sorted(file_numbers)[-10:] if len(file_numbers) > 10 else sorted(file_numbers)}"
+        )
         return max_number
 
-    def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
+    def _wait_for_code_origin_span(self, data: dict, *, threshold: int, start_time: float | None = None) -> bool:
         if data["path"] == _TRACES_PATH:
             log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
             if not log_filename_found:
                 return False
 
             log_number = int(log_filename_found.group(1))
+            elapsed = (time.time() - start_time) if start_time else None
+            logger.debug(
+                f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: checking file {log_number}, threshold={threshold}, elapsed={elapsed:.3f}s"
+                if elapsed
+                else f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: checking file {log_number}, threshold={threshold}"
+            )
+
             if log_number > threshold:
+                logger.debug(
+                    f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number} > threshold {threshold}, checking content"
+                )
                 content = data["request"]["content"]
                 if content:
+                    web_spans_found = 0
+                    code_origin_found_count = 0
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
                                 resource, resource_type = span.get("resource", ""), span.get("type")
 
                                 if resource.startswith("GET") and resource_type == "web":
+                                    web_spans_found += 1
                                     code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+                                    logger.debug(
+                                        f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, span resource={resource}, code_origin_type={code_origin_type}"
+                                    )
 
                                     if code_origin_type == "entry":
+                                        code_origin_found_count += 1
+                                        logger.debug(
+                                            f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, FOUND code origin 'entry' in span {resource}"
+                                        )
                                         self._span_found = True
                                         return True
+
+                    logger.debug(
+                        f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, checked {web_spans_found} web spans, found {code_origin_found_count} with code origin"
+                    )
+                else:
+                    logger.debug(
+                        f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, no content in request"
+                    )
+            else:
+                logger.debug(
+                    f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number} <= threshold {threshold}, skipping"
+                )
 
         return False
 
