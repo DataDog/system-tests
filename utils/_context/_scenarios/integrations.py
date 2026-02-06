@@ -67,7 +67,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "Spawns tracer, agent, and a full set of database. "
                 "Test the integrations of those databases with tracers"
             ),
-            scenario_groups=[scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials],
+            scenario_groups=(scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials),
         )
 
     def configure(self, config: pytest.Config):
@@ -94,8 +94,8 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
             },
             doc=doc,
+            scenario_groups=(scenario_groups.integrations, scenario_groups.essentials),
             other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
-            scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
         )
 
     def configure(self, config: pytest.Config):
@@ -115,13 +115,13 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
+            scenario_groups=(scenario_groups.integrations, scenario_groups.essentials),
             other_weblog_containers=(
                 ElasticMQContainer,
                 LocalstackContainer,
                 RabbitMqContainer,
                 KafkaContainer,
             ),
-            scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
         )
 
     def configure(self, config: pytest.Config):

@@ -22,7 +22,7 @@ class _VirtualMachineScenario(Scenario):
         vm_provision=None,
         agent_env=None,
         app_env=None,
-        scenario_groups=None,
+        scenario_groups=(),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
@@ -232,7 +232,7 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         vm_provision="installer-auto-inject",
         agent_env=None,
         app_env=None,
-        scenario_groups=None,
+        scenario_groups=(),
         github_workflow=None,
     ) -> None:
         # Force full tracing without limits

@@ -9,7 +9,7 @@ class IPV6Scenario(EndToEndScenario):
         super().__init__(
             name,
             enable_ipv6=True,
-            scenario_groups=[scenario_groups.ipv6],
+            scenario_groups=(scenario_groups.ipv6,),
             use_proxy_for_agent=True,
             use_proxy_for_weblog=False,
             doc=(

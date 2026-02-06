@@ -24,16 +24,16 @@ class LambdaScenario(DockerScenario):
         *,
         github_workflow: str = "endtoend",
         doc: str,
-        scenario_groups: list[ScenarioGroup] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict[str, dict[str, str]] | None = None,
         trace_managed_services: bool = False,
     ):
-        scenario_groups = [
+        scenario_groups += (
             all_scenario_groups.tracer_release,
             all_scenario_groups.end_to_end,
             all_scenario_groups.lambda_end_to_end,
-        ] + (scenario_groups or [])
+        )
 
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 

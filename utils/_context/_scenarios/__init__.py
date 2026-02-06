@@ -97,7 +97,7 @@ class _Scenarios:
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
             "may drop some of them"
         ),
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     trace_stats_computation_client_drop_p0s_false = EndToEndScenario(
@@ -115,7 +115,7 @@ class _Scenarios:
             "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
             "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
         ),
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     sampling = EndToEndScenario(
@@ -123,7 +123,7 @@ class _Scenarios:
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
-        scenario_groups=[scenario_groups.sampling],
+        scenario_groups=(scenario_groups.sampling,),
     )
 
     trace_propagation_style_w3c = EndToEndScenario(
@@ -140,7 +140,7 @@ class _Scenarios:
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
         weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
         doc="Test DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=false effect on tracers",
-        scenario_groups=[scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.telemetry,),
     )
 
     telemetry_app_started_products_disabled = EndToEndScenario(
@@ -152,7 +152,7 @@ class _Scenarios:
         },
         appsec_enabled=False,
         doc="Disable all tracers products",
-        scenario_groups=[scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.telemetry,),
     )
 
     telemetry_enhanced_config_reporting = EndToEndScenario(
@@ -163,20 +163,20 @@ class _Scenarios:
             "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
         },
         doc="Test telemetry for environment variable configurations",
-        scenario_groups=[scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.telemetry,),
     )
 
     telemetry_log_generation_disabled = EndToEndScenario(
         "TELEMETRY_LOG_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_LOG_COLLECTION_ENABLED=false`",
-        scenario_groups=[scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.telemetry,),
     )
     telemetry_metric_generation_disabled = EndToEndScenario(
         "TELEMETRY_METRIC_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
-        scenario_groups=[scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.telemetry,),
     )
 
     # ASM scenarios
@@ -184,7 +184,7 @@ class _Scenarios:
         "APPSEC_MISSING_RULES",
         weblog_env={"DD_APPSEC_RULES": "/donotexists"},
         doc="Test missing appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     appsec_corrupted_rules = EndToEndScenario(
         "APPSEC_CORRUPTED_RULES",
@@ -193,14 +193,14 @@ class _Scenarios:
             "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
         },
         doc="Test corrupted appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     appsec_custom_rules = EndToEndScenario(
         "APPSEC_CUSTOM_RULES",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
         weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
         doc="Test custom appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
@@ -213,7 +213,7 @@ class _Scenarios:
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.essentials),
     )
 
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
@@ -226,7 +226,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="AppSec tests for GraphQL integrations",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_error_tracking = EndToEndScenario(
@@ -238,7 +238,7 @@ class _Scenarios:
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="GraphQL error tracking tests with OpenTelemetry semantics",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
@@ -250,7 +250,7 @@ class _Scenarios:
             }
         },
         doc="Appsec rule file with some errors",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     everything_disabled = EndToEndScenario(
         "EVERYTHING_DISABLED",
@@ -258,7 +258,7 @@ class _Scenarios:
         appsec_enabled=False,
         other_weblog_containers=(PostgresContainer,),
         doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release),
     )
 
     appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
@@ -270,13 +270,13 @@ class _Scenarios:
             "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
         },
         doc="Test custom appsec obfuscation parameters",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     appsec_rate_limiter = EndToEndScenario(
         "APPSEC_RATE_LIMITER",
         weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
         doc="Tests with a low rate trace limit for Appsec",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
     appsec_waf_telemetry = EndToEndScenario(
         "APPSEC_WAF_TELEMETRY",
@@ -286,7 +286,7 @@ class _Scenarios:
             "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
         },
         doc="Enable Telemetry feature for WAF",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_blocking_full_denylist = EndToEndScenario(
@@ -301,7 +301,7 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_runtime_activation = EndToEndScenario(
@@ -311,7 +311,7 @@ class _Scenarios:
         iast_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_rasp),
     )
 
     appsec_api_security = EndToEndScenario(
@@ -330,7 +330,7 @@ class _Scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_api_security_rc = EndToEndScenario(
@@ -347,7 +347,7 @@ class _Scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials),
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -364,7 +364,7 @@ class _Scenarios:
         Scenario for API Security feature, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_api_security_with_sampling = EndToEndScenario(
@@ -379,7 +379,7 @@ class _Scenarios:
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.essentials),
     )
 
     appsec_auto_events_extended = EndToEndScenario(
@@ -391,7 +391,7 @@ class _Scenarios:
         },
         appsec_enabled=True,
         doc="Scenario for checking extended mode in automatic user events",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_auto_events_rc = EndToEndScenario(
@@ -401,7 +401,7 @@ class _Scenarios:
         doc="""
             Scenario to test User ID collection config change via Remote config
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_standalone = EndToEndScenario(
@@ -417,7 +417,7 @@ class _Scenarios:
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     # Combined scenario for API Security in standalone mode
@@ -433,7 +433,7 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
         },
         doc="Scenario to test API Security in AppSec standalone mode",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.essentials),
     )
 
     iast_standalone = EndToEndScenario(
@@ -449,7 +449,7 @@ class _Scenarios:
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     sca_standalone = EndToEndScenario(
@@ -463,7 +463,7 @@ class _Scenarios:
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     iast_deduplication = EndToEndScenario(
@@ -476,7 +476,7 @@ class _Scenarios:
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Iast scenario with deduplication enabled",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     appsec_meta_struct_disabled = EndToEndScenario(
@@ -484,7 +484,7 @@ class _Scenarios:
         weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
         meta_structs_disabled=True,
         doc="Appsec tests with support for meta struct disabled in the agent configuration",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     remote_config_mocked_backend_asm_features = EndToEndScenario(
@@ -493,7 +493,7 @@ class _Scenarios:
         appsec_enabled=False,
         weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials),
     )
 
     remote_config_mocked_backend_live_debugging = EndToEndScenario(
@@ -506,7 +506,7 @@ class _Scenarios:
             "DD_INTERNAL_RCM_POLL_INTERVAL": "1000",
         },
         doc="",
-        scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.remote_config, scenario_groups.essentials),
     )
 
     remote_config_mocked_backend_asm_dd = EndToEndScenario(
@@ -521,12 +521,12 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[
+        scenario_groups=(
             scenario_groups.appsec,
             scenario_groups.appsec_rasp,
             scenario_groups.remote_config,
             scenario_groups.essentials,
-        ],
+        ),
     )
 
     feature_flagging_and_experimentation = EndToEndScenario(
@@ -537,7 +537,7 @@ class _Scenarios:
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
         },
         doc="",
-        scenario_groups=[scenario_groups.ffe],
+        scenario_groups=(scenario_groups.ffe,),
     )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
@@ -545,7 +545,7 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.remote_config),
     )
 
     # APM tracing end-to-end scenarios
@@ -629,7 +629,7 @@ class _Scenarios:
         other_weblog_containers=(PostgresContainer, KafkaContainer),
         rc_api_enabled=True,
         doc="",
-        scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
+        scenario_groups=(scenario_groups.tracing_config, scenario_groups.essentials),
     )
 
     tracing_config_nondefault_2 = EndToEndScenario(
@@ -646,7 +646,7 @@ class _Scenarios:
         },
         other_weblog_containers=(PostgresContainer, KafkaContainer),
         doc="Test tracer configuration when a collection of non-default settings are applied",
-        scenario_groups=[scenario_groups.tracing_config],
+        scenario_groups=(scenario_groups.tracing_config,),
     )
     tracing_config_nondefault_3 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_3",
@@ -664,7 +664,7 @@ class _Scenarios:
         },
         appsec_enabled=False,
         doc="",
-        scenario_groups=[scenario_groups.tracing_config],
+        scenario_groups=(scenario_groups.tracing_config,),
     )
 
     tracing_config_nondefault_4 = EndToEndScenario(
@@ -765,7 +765,7 @@ class _Scenarios:
         },
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",
-        scenario_groups=[scenario_groups.debugger],
+        scenario_groups=(scenario_groups.debugger,),
     )
 
     debugger_telemetry = EndToEndScenario(
@@ -781,14 +781,14 @@ class _Scenarios:
         },
         library_interface_timeout=5,
         doc="Test scenario for checking debugger telemetry.",
-        scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.debugger, scenario_groups.telemetry),
     )
 
     fuzzer = DockerScenario(
         "FUZZER",
         doc="Fake scenario for fuzzing (launch without pytest)",
         github_workflow=None,
-        scenario_groups=[scenario_groups.exotics],
+        scenario_groups=(scenario_groups.exotics,),
     )
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
@@ -796,26 +796,26 @@ class _Scenarios:
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[scenario_groups.simple_onboarding],
+        scenario_groups=(scenario_groups.simple_onboarding,),
         github_workflow="aws_ssi",
     )
     multi_installer_auto_injection = InstallerAutoInjectionScenario(
         "MULTI_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        scenario_groups=(scenario_groups.all, scenario_groups.onboarding),
         github_workflow="aws_ssi",
     )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        scenario_groups=(scenario_groups.all, scenario_groups.onboarding),
         github_workflow="aws_ssi",
     )
 
     installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        scenario_groups=(scenario_groups.all, scenario_groups.onboarding),
         github_workflow="aws_ssi",
     )
 
@@ -826,7 +826,7 @@ class _Scenarios:
             "Machines with previous ld.so.preload entries. Perform chaos testing"
         ),
         vm_provision="auto-inject-ld-preload",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        scenario_groups=(scenario_groups.all, scenario_groups.onboarding),
         github_workflow="aws_ssi",
     )
 
@@ -840,7 +840,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
+        scenario_groups=(scenario_groups.all, scenario_groups.simple_onboarding_profiling),
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -856,7 +856,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=(scenario_groups.all,),
         github_workflow="aws_ssi",
     )
 
@@ -870,7 +870,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=(scenario_groups.all,),
         github_workflow="aws_ssi",
     )
 
@@ -879,7 +879,7 @@ class _Scenarios:
         "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        scenario_groups=(scenario_groups.all, scenario_groups.simple_onboarding_appsec),
         github_workflow="aws_ssi",
     )
 
@@ -891,7 +891,7 @@ class _Scenarios:
         ),
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=(scenario_groups.all,),
         github_workflow="aws_ssi",
     )
 
@@ -900,7 +900,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=(scenario_groups.all,),
         github_workflow="aws_ssi",
     )
 
@@ -908,7 +908,7 @@ class _Scenarios:
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=(scenario_groups.all,),
         github_workflow="aws_ssi",
     )
 
@@ -916,7 +916,7 @@ class _Scenarios:
         "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
-        scenario_groups=[scenario_groups.all],
+        scenario_groups=(scenario_groups.all,),
         github_workflow="aws_ssi",
     )
 
@@ -927,7 +927,6 @@ class _Scenarios:
             "and the replace the apm-library with the uploaded tar file from binaries"
         ),
         vm_provision="local-auto-inject-install-script",
-        scenario_groups=[],
         github_workflow="aws_ssi",
     )
 
@@ -963,7 +962,7 @@ class _Scenarios:
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        scenario_groups=(scenario_groups.all, scenario_groups.lib_injection_profiling),
     )
     k8s_lib_injection_profiling_enabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_ENABLED",
@@ -974,7 +973,7 @@ class _Scenarios:
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         dd_cluster_feature={"datadog.profiling.enabled": "auto"},
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        scenario_groups=(scenario_groups.all, scenario_groups.lib_injection_profiling),
     )
     k8s_lib_injection_profiling_override = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
@@ -988,7 +987,7 @@ class _Scenarios:
             "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
             "clusterAgent.env[0].value": "auto",
         },
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        scenario_groups=(scenario_groups.all, scenario_groups.lib_injection_profiling),
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
@@ -997,31 +996,31 @@ class _Scenarios:
         "K8S_INJECTOR_DEV_SINGLE_SERVICE",
         doc="Kubernetes Injector Dev Scenario",
         scenario_provision="single-service.yaml",
-        scenario_groups=[scenario_groups.k8s_injector_dev],
+        scenario_groups=(scenario_groups.k8s_injector_dev,),
     )
 
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=(scenario_groups.all, scenario_groups.docker_ssi),
     )
     docker_ssi_servicenaming = DockerSSIScenario(
         "DOCKER_SSI_SERVICENAMING",
         doc="Validates the installer and the ssi service naming features on a docker environment",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=(scenario_groups.all, scenario_groups.docker_ssi),
     )
     docker_ssi_appsec = DockerSSIScenario(
         "DOCKER_SSI_APPSEC",
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
         appsec_enabled="true",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=(scenario_groups.all, scenario_groups.docker_ssi),
     )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        scenario_groups=(scenario_groups.all, scenario_groups.docker_ssi),
     )
 
     appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
@@ -1069,7 +1068,7 @@ class _Scenarios:
         },
         doc="Rules file with unsafe login and user id",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=(scenario_groups.appsec,),
     )
 
     agent_supporting_span_events = EndToEndScenario(
@@ -1077,7 +1076,7 @@ class _Scenarios:
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
-        scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
+        scenario_groups=(scenario_groups.integrations, scenario_groups.telemetry),
     )
 
     agent_not_supporting_span_events = EndToEndScenario(
@@ -1085,14 +1084,13 @@ class _Scenarios:
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
         span_events=False,
         doc="The trace agent does not support Span Events as a top-level span field",
-        scenario_groups=[scenario_groups.integrations],
+        scenario_groups=(scenario_groups.integrations,),
     )
 
     go_proxies_default = GoProxiesScenario(
         name="GO_PROXIES_DEFAULT",
         doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
-        scenario_groups=[],
     )
 
     go_proxies_appsec_blocking = GoProxiesScenario(
@@ -1100,7 +1098,6 @@ class _Scenarios:
         doc="Default tests for proxies using the security processor with appsec blocking rule file",
         processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")
@@ -1124,14 +1121,14 @@ class _Scenarios:
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
         doc="Default Lambda scenario",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_lambda),
     )
     appsec_lambda_blocking = LambdaScenario(
         "APPSEC_LAMBDA_BLOCKING",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking in Lambda",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_lambda),
     )
     appsec_lambda_api_security = LambdaScenario(
         "APPSEC_LAMBDA_API_SECURITY",
@@ -1147,13 +1144,13 @@ class _Scenarios:
         Scenario for API Security feature in lambda, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_lambda),
     )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
     appsec_lambda_inferred_spans = LambdaScenario(
         "APPSEC_LAMBDA_INFERRED_SPANS",
         doc="Lambda scenario with managed services tracing enabled",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_lambda),
         trace_managed_services=True,
     )
 
@@ -1174,7 +1171,7 @@ class _Scenarios:
             "DD_APP_KEY": "mock_app_key",
         },
         doc="AI Guard SDK tests",
-        scenario_groups=[scenario_groups.ai_guard],
+        scenario_groups=(scenario_groups.ai_guard,),
     )
 
 

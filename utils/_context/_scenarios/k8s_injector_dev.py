@@ -16,7 +16,7 @@ from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 from .core import Scenario, scenario_groups, ScenarioGroup
 
 # Default scenario groups for K8sInjectorDevScenario
-DEFAULT_SCENARIO_GROUPS: list[ScenarioGroup] = [scenario_groups.all, scenario_groups.lib_injection]
+DEFAULT_SCENARIO_GROUPS: tuple[ScenarioGroup, ...] = (scenario_groups.all, scenario_groups.lib_injection)
 
 
 class K8sInjectorDevScenario(Scenario):
@@ -27,10 +27,8 @@ class K8sInjectorDevScenario(Scenario):
         name: str,
         doc: str,
         scenario_provision: str,
-        scenario_groups: list[ScenarioGroup] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = DEFAULT_SCENARIO_GROUPS,
     ) -> None:
-        if scenario_groups is None:
-            scenario_groups = DEFAULT_SCENARIO_GROUPS
         super().__init__(name, doc=doc, github_workflow="k8s_injector_dev", scenario_groups=scenario_groups)
         # provision template
         self.scenario_provision = scenario_provision

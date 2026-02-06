@@ -22,7 +22,7 @@ class DebuggerScenario(EndToEndScenario):
             rc_backend_enabled=True,
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
-            scenario_groups=[scenario_groups.debugger],
+            scenario_groups=(scenario_groups.debugger,),
         )
 
     def configure(self, config: pytest.Config):

@@ -47,7 +47,7 @@ class DockerScenario(Scenario):
         *,
         github_workflow: str | None,
         doc: str,
-        scenario_groups: list[ScenarioGroup] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
         enable_ipv6: bool = False,
         use_proxy: bool = True,
         mocked_backend: bool = True,
@@ -223,7 +223,7 @@ class EndToEndScenario(DockerScenario):
         *,
         doc: str,
         github_workflow: str = "endtoend",
-        scenario_groups: list[ScenarioGroup] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
         agent_env: dict[str, str | None] | None = None,
@@ -247,11 +247,11 @@ class EndToEndScenario(DockerScenario):
         require_api_key: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
-        scenario_groups = [
+        scenario_groups += (
             all_scenario_groups.all,
             all_scenario_groups.end_to_end,
             all_scenario_groups.tracer_release,
-        ] + (scenario_groups or [])
+        )
 
         super().__init__(
             name,

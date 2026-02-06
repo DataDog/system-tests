@@ -34,7 +34,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         dd_cluster_feature={},
         with_datadog_operator=False,
         with_cluster_agent=True,
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
+        scenario_groups=(scenario_groups.all, scenario_groups.lib_injection),
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds

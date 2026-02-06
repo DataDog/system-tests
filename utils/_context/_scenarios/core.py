@@ -100,7 +100,7 @@ VALID_CI_WORKFLOWS = {
 
 class Scenario:
     def __init__(
-        self, name: str, github_workflow: str | None, doc: str, scenario_groups: list[ScenarioGroup] | None = None
+        self, name: str, github_workflow: str | None, doc: str, scenario_groups: tuple[ScenarioGroup, ...] = ()
     ) -> None:
         self.name = name
         self.replay = False
@@ -108,9 +108,9 @@ class Scenario:
         self.rc_api_enabled = False
         self.rc_backend_enabled = False
         self.github_workflow = github_workflow  # TODO: rename this to workflow, as it may not be a github workflow
-        self.scenario_groups = scenario_groups or []
+        self.scenario_groups = scenario_groups
 
-        self.scenario_groups = list(set(self.scenario_groups))  # removes duplicates
+        self.scenario_groups = tuple(set(self.scenario_groups))  # removes duplicates
 
         # key value pair of what is actually tested
         self.components: dict[str, Version | str] = {}
