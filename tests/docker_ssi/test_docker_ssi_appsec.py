@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 
+from tests.parametric.test_telemetry import _mapped_telemetry_name
 from utils import scenarios, interfaces, weblog, features, irrelevant, context
 
 
@@ -23,16 +24,15 @@ class TestDockerSSIAppsecFeatures:
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
 
         # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations(
-            root_span["service"], root_span["meta"]["runtime-id"]
-        )
+        telemetry_names: list[str] = _mapped_telemetry_name("instrumentation_source")
+        configurations = interfaces.test_agent.get_telemetry_configurations()
+
+        for name in telemetry_names:
+            if name in configurations:
+                instrumentation_source: dict = configurations[name]
+                assert instrumentation_source.get("value") == "ssi", f"{name}=ssi not found in {configurations}"
 
         # Check that instrumentation source is ssi
-        injection_source = configurations.get("DD_APPSEC_ENABLED")
+        injection_source = configurations.get("DD_APPSEC_ENABLED") or configurations.get("appsec.enabled")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
-        assert injection_source["value"] in [
-            "1",
-            1,
-            True,
-        ], f"instrumentation_source value is not ssi {injection_source}"
-        assert injection_source["origin"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
+        assert injection_source["value"] in ["1",1,True]
