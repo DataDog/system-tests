@@ -1343,6 +1343,7 @@ manifest:
   tests/parametric/test_span_links.py::Test_Span_Links: v2.0.0
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (links do not influence the sampling decision of spans)
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature (v0.5 is not supported in Ruby)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v1: missing_feature (v1.0 trace protocol not implemented)
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : "missing_feature (\"Issue: sending the complete trace when only the root span is expected\")"
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_entire_trace_dropped_when_dropping_policy_is_active018: "missing_feature (\"Issue: sending the complete trace when only the root span is expected\")"

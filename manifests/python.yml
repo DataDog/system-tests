@@ -1624,6 +1624,7 @@ manifest:
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_invalid_event_attributes: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_links.py::Test_Span_Links: v2.3.0
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (links do not influence the sampling decision of spans)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v1: missing_feature (v1.0 trace protocol not implemented)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling: v2.8.0
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : missing_feature (RPC issue causing test to hang)
