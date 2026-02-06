@@ -1,10 +1,12 @@
-import contextlib
+import logging
 import time
 
 import requests
 
 from utils import scenarios, features
 from tests.k8s_lib_injection.utils import get_cluster_info, K8sClusterInfo
+
+logger = logging.getLogger(__name__)
 
 
 class _TestK8sLibInjectionAppsec:
@@ -16,22 +18,58 @@ class _TestK8sLibInjectionAppsec:
         for _dd.appsec.enabled metric and appsec.event meta tag.
         """
         weblog_url = f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_weblog_port()}/"
-        with contextlib.suppress(Exception):
-            requests.get(weblog_url, headers={"user-agent": "dd-test-scanner-log"}, timeout=10)
+        logger.info(f"Sending attack request to weblog: {weblog_url}")
+
+        try:
+            weblog_response = requests.get(weblog_url, headers={"user-agent": "dd-test-scanner-log"}, timeout=10)
+            logger.info(f"Weblog response status: {weblog_response.status_code}")
+        except Exception as e:
+            logger.warning(f"Weblog request failed with exception: {e}")
+
+        agent_url = f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/traces"
+        logger.info(f"Starting to poll agent traces endpoint: {agent_url} (timeout: {timeout}s)")
 
         mustend = time.time() + timeout
+        iteration = 0
         while time.time() < mustend:
-            response = requests.get(
-                f"http://{k8s_cluster_info.cluster_host_name}:{k8s_cluster_info.get_agent_port()}/test/traces",
-                timeout=60,
-            )
-            for trace in response.json():
-                for span in trace:
-                    meta = span.get("meta", {})
-                    metrics = span.get("metrics", {})
-                    if metrics.get("_dd.appsec.enabled") == 1 and meta.get("appsec.event") == "true":
-                        return True
+            iteration += 1
+            logger.info(f"Polling iteration {iteration}, time remaining: {int(mustend - time.time())}s")
+
+            try:
+                response = requests.get(agent_url, timeout=60)
+                logger.info(f"Agent response status: {response.status_code}")
+
+                traces = response.json()
+                logger.info(f"Received {len(traces)} traces")
+
+                for trace_idx, trace in enumerate(traces):
+                    logger.debug(f"  Trace {trace_idx}: {len(trace)} spans")
+                    for span_idx, span in enumerate(trace):
+                        meta = span.get("meta", {})
+                        metrics = span.get("metrics", {})
+
+                        has_appsec_enabled_metric = "_dd.appsec.enabled" in metrics
+                        appsec_enabled_value = metrics.get("_dd.appsec.enabled")
+                        has_appsec_event = "appsec.event" in meta
+                        appsec_event_value = meta.get("appsec.event")
+
+                        if has_appsec_enabled_metric or has_appsec_event:
+                            logger.info(
+                                f"  Span {span_idx} - "
+                                f"_dd.appsec.enabled present: {has_appsec_enabled_metric} (value: {appsec_enabled_value}), "
+                                f"appsec.event present: {has_appsec_event} (value: {appsec_event_value})"
+                            )
+
+                        if metrics.get("_dd.appsec.enabled") == 1 and meta.get("appsec.event") == "true":
+                            logger.info("✓ Found AppSec trace with correct values!")
+                            return True
+
+            except Exception as e:
+                logger.warning(f"Error during iteration {iteration}: {e}")
+
             time.sleep(1)
+
+        logger.warning(f"No AppSec traces found after {iteration} iterations ({timeout}s)")
         return False
 
 
