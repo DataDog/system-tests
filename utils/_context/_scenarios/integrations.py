@@ -3,6 +3,18 @@ import string
 
 import pytest
 
+from utils._context.containers import (
+    ElasticMQContainer,
+    LocalstackContainer,
+    KafkaContainer,
+    RabbitMqContainer,
+    PostgresContainer,
+    CassandraContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+)
+
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
@@ -38,17 +50,19 @@ class IntegrationsScenario(EndToEndScenario):
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_IAST_CONTEXT_MODE": "GLOBAL",
+                "INCLUDE_OTEL_DROP_IN": "true",
             },
-            include_postgres_db=True,
-            include_cassandra_db=True,
-            include_mongo_db=True,
-            include_kafka=True,
-            include_rabbitmq=True,
-            include_mysql_db=True,
-            include_sqlserver=True,
-            include_localstack=True,
-            include_elasticmq=True,
-            include_otel_drop_in=True,
+            other_weblog_containers=(
+                ElasticMQContainer,
+                LocalstackContainer,
+                PostgresContainer,
+                CassandraContainer,
+                MongoContainer,
+                KafkaContainer,
+                RabbitMqContainer,
+                MsSqlServerContainer,
+                MySqlContainer,
+            ),
             doc=(
                 "Spawns tracer, agent, and a full set of database. "
                 "Test the integrations of those databases with tracers"
@@ -69,11 +83,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
         name: str,
         *,
         doc: str = "Spawns tracer, and agent. Test AWS integrations.",
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_buddies: bool = False,
-        include_localstack: bool = True,
-        include_elasticmq: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -85,12 +94,8 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
             },
             doc=doc,
-            include_kafka=include_kafka,
-            include_rabbitmq=include_rabbitmq,
-            include_buddies=include_buddies,
-            include_localstack=include_localstack,
-            include_elasticmq=include_elasticmq,
             scenario_groups=(scenario_groups.integrations, scenario_groups.essentials),
+            other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
         )
 
     def configure(self, config: pytest.Config):
@@ -104,17 +109,19 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "CROSSED_TRACING_LIBRARIES",
-            include_kafka=True,
             include_buddies=True,
-            include_rabbitmq=True,
-            include_localstack=True,
-            include_elasticmq=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
             weblog_env={
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
             scenario_groups=(scenario_groups.integrations, scenario_groups.essentials),
+            other_weblog_containers=(
+                ElasticMQContainer,
+                LocalstackContainer,
+                RabbitMqContainer,
+                KafkaContainer,
+            ),
         )
 
     def configure(self, config: pytest.Config):

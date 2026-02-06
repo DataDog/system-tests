@@ -84,8 +84,7 @@ def test_minimal_number_of_scenarios():
             ".name",
             ".scenario_groups",
             # duplicated values
-            "._required_containers",
-            "._supporting_containers",
+            "._containers",
             ".weblog_container.depends_on",
             # will use a dedicated logic
             ".weblog_container.environment",

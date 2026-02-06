@@ -37,13 +37,8 @@ class AppsecRaspScenario(EndToEndScenario):
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=(scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario),
+            other_weblog_containers=(InternalServerContainer,),
         )
-        self._internal_server = InternalServerContainer()
-        self.weblog_container.depends_on.append(self._internal_server)
-        self._required_containers.append(self._internal_server)
-
-    def configure(self, config: pytest.Config):
-        super().configure(config)
 
 
 class AppSecLambdaRaspScenario(LambdaScenario):
@@ -72,9 +67,10 @@ class AppSecLambdaRaspScenario(LambdaScenario):
                 scenario_groups.appsec_lambda,
             ),
         )
-        self._internal_server = InternalServerContainer()
-        self.lambda_weblog.depends_on.append(self._internal_server)
-        self._required_containers.append(self._internal_server)
 
     def configure(self, config: pytest.Config):
+        self._internal_server = InternalServerContainer()
+        self.lambda_weblog.depends_on.append(self._internal_server)
+        self._containers.append(self._internal_server)
+
         super().configure(config)

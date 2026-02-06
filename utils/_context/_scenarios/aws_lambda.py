@@ -56,7 +56,7 @@ class LambdaScenario(DockerScenario):
             }
         )
 
-        self._required_containers.extend((self.lambda_weblog, self.lambda_proxy_container))
+        self._containers.extend((self.lambda_weblog, self.lambda_proxy_container))
 
     def configure(self, config: pytest.Config):
         super().configure(config)
