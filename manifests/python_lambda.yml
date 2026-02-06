@@ -62,13 +62,17 @@ manifest:
         alb: v8.121.0  # Modified by easy win activation script
         alb-multi: v8.121.0  # Modified by easy win activation script
         function-url: v8.121.0  # Modified by easy win activation script
-  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
+  tests/appsec/rasp/test_api10.py::Test_API10_all:  # Modified by easy win activation script
+    - declaration: bug (APPSEC-60508)
+      component_version: <8.122.0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers:  # Modified by easy win activation script
+    - declaration: bug (APPSEC-60508)
+      component_version: <8.122.0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v8.117.0.dev
