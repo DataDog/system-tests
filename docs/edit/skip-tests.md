@@ -1,12 +1,26 @@
-Three decorators allow you to skip test functions or classes for a library:
+## When to Use Decorators vs Manifests
 
-* `@irrelevant`: The tested feature/behavior is irrelevant to the library, meaning the feature is either purposefully not supported by the lib or cannot reasonably be implemented
-* `@missing_feature`: The tested feature/behavior does not exist in the library or there is a deficit in the test library that blocks this test from executing for the lib. **The test will be executed** and being ignored if it fails. If it passes, a warning will be added in thee output (`XPASS`)
-* `@incomplete_test_app` (sublass of `missing feature`): There is a deficit in the weblog/parametric apps or testing interface that prevents us from validating a feature across different applications.
-* `@bug`: The lib does not implement the feature correctly/up to spec. **The test will be executed** and being ignored if it fails. If it passes, a warning will be added in thee output (`XPASS`)
-* `@flaky` (subclass of `bug`): The feature sometimes fails, sometimes passes. It's not reliable, so don't run it.
+**Always prefer [manifest files](./manifest.md) over decorators.** Manifests can handle test files, classes, AND individual methods.
 
-To skip test classes, test files or test functions, use the library's [manifest file](./manifest.md).
+Use decorators **only** when the condition cannot be expressed in manifests:
+- `context.scenario` - Scenario-specific conditions
+- `context.agent_version` - Agent version conditions
+- `context.vm_name` - VM-specific conditions
+- `context.installed_language_runtime` - Runtime version conditions
+- Complex boolean logic combining non-library attributes
+- `force_skip=True` requirement
+
+If your condition depends only on library name, library version, or weblog variant, use the manifest file instead.
+
+**After modifying any manifest file, always run `./format.sh`** to validate syntax and sort entries alphabetically.
+
+## Decorator Types
+
+* `@irrelevant`: The tested feature/behavior is irrelevant to the context. **Test is SKIPPED completely.**
+* `@missing_feature`: The tested feature/behavior does not exist. **The test will be executed** and ignored if it fails. If it passes, a warning will be added in the output (`XPASS`).
+* `@incomplete_test_app` (subclass of `missing_feature`): There is a deficit in the weblog/parametric apps that prevents validation.
+* `@bug`: The lib does not implement the feature correctly. **The test will be executed** and ignored if it fails. If it passes, a warning will be added in the output (`XPASS`).
+* `@flaky` (subclass of `bug`): The feature sometimes fails, sometimes passes. **Test is NOT executed by default.**
 
 The decorators take several arguments:
 

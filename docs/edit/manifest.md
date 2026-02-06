@@ -22,6 +22,7 @@ When executed locally, tests run against the latest version of dd-trace by defau
 - Entries in the manifest file must be sorted in alphabetical order. This is validated by the TEST_THE_TESTS scenario/linter.
 - Manifest files are validated using JSON schema in system tests CI
 - An error will occur if a manifest file refers to a directory/file/class/function that does not exists
+- **After modifying any manifest file, always run `./format.sh`** to validate syntax and sort entries alphabetically.
 
 The example below shows a combination of options that can be deployed in manifest files.
 
@@ -50,9 +51,264 @@ manifest:
     tests/appsec/test_distributed.py::Test_FeatureE: *5_6_and_someid_backports
 ```
 
+## Advanced Syntax Examples
+
+The following examples demonstrate more complex manifest patterns. For reference test manifests, see `tests/test_the_test/manifests/`.
+
+### YAML References for Weblog Groups
+
+Define reusable weblog lists to avoid repetition:
+
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+  - &legacy_weblogs "flask-poc, uwsgi-poc"
+
+manifest:
+  tests/appsec/test_feature.py::Test_Feature:
+    - weblog_declaration:
+        "*": missing_feature
+        *django_weblogs: "v3.12.0.dev"  # All Django variants enabled at this version
+```
+
+### Explicit Format with Weblog Filtering
+
+Use `weblog` or `excluded_weblog` to target specific weblogs with version conditions:
+
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+
+manifest:
+  # Apply to specific weblogs only
+  tests/appsec/iast:
+    - component_version: "<3.11.0"
+      declaration: missing_feature (JIRA-12345 description of the issue)
+      weblog: *django_weblogs
+
+  # Exclude specific weblogs (apply to all others)
+  tests/appsec/api_security/test_endpoint_discovery.py:
+    - excluded_weblog: [django-py3.13, django-poc, python3.12]
+      component_version: "<3.13.0-dev"
+      declaration: missing_feature
+
+  # Target a single weblog
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Discovery:
+    - weblog: django-poc
+      component_version: "<3.12.0-dev"
+      declaration: missing_feature
+```
+
+### Weblog Lists in Explicit Format
+
+Combine YAML references with arrays:
+
+```yaml
+refs:
+  - &django_weblogs "django-poc, django-py3.13, python3.12"
+
+manifest:
+  tests/appsec/iast/test:
+    - component_version: "<3.11.0"
+      declaration: irrelevant
+      weblog: [*django_weblogs, fastapi]  # Combines reference with additional weblog
+```
+
+### Directory-Level Rules
+
+Apply rules to entire directories:
+
+```yaml
+manifest:
+  # All tests in the sink subdirectory
+  tests/appsec/iast/sink: "missing_feature"
+  
+  # More specific rules override directory rules
+  tests/appsec/iast/sink/test_specific.py: "v2.0.0"
+```
+
+### Combining Weblog Declaration with Wildcard Override
+
+```yaml
+manifest:
+  tests/appsec/api_security/test_schemas.py::Test_Scanners:
+    - weblog_declaration:
+        "*": "v2.4.0"        # Default: enabled from v2.4.0
+        fastapi: missing_feature  # Override: not yet implemented for fastapi
+
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
+    - weblog_declaration:
+        "*": "v2.1.0"        # Default version
+        fastapi: "v2.5.0"    # Fastapi needs a later version
+```
+
+### Agent Manifest Examples
+
+The `agent.yml` manifest uses the same syntax for agent version conditions:
+
+```yaml
+manifest:
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: "v7.48.0"
+  tests/test_sampling_rates.py::Test_SamplingRates: "v7.33.0"
+  tests/test_telemetry.py::Test_APMOnboardingInstallID: "v7.50.0"
+```
+
 #### Notes
 - The wildcard `*` is supported for weblog declarations. This will associate missing_feature/bug/flaky/etc. marking to all unspecified weblog variables.
 - Manifests support the full npm syntax for SemVer specification. See more at: https://github.com/npm/node-semver#ranges
+
+## Advanced Syntax
+
+Beyond simple version declarations and weblog_declaration, manifests support more complex patterns for fine-grained control. These examples are inspired by real-world usage in `tests/test_the_test/manifests/`.
+
+### YAML Anchors for Weblog Lists
+
+Define reusable weblog lists at the top of your manifest:
+
+```yaml
+refs:
+  - &django "django-poc, django-py3.13, python3.12"
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+
+manifest:
+  tests/appsec/test_endpoint.py::Test_Endpoint:
+    - weblog_declaration:
+        "*": missing_feature
+        *django: v3.12.0.dev  # Apply to all django weblogs
+```
+
+### Explicit Declaration with Version Constraint
+
+Use `declaration` with `component_version` for version-specific markers:
+
+```yaml
+manifest:
+  # Missing feature only for versions below 3.11.0
+  tests/appsec/iast:
+    - component_version: "<3.11.0"
+      declaration: missing_feature (APPSEC-57830 reason here)
+
+  # Bug in a specific version range
+  tests/appsec/test_example.py::TestClass::test_method:
+    - declaration: bug (JIRA-123)
+      component_version: '>=1.9.0'
+```
+
+### Weblog Inclusion with `weblog` Field
+
+Apply a declaration only to specific weblogs using a list:
+
+```yaml
+manifest:
+  # Missing feature only for specific weblogs
+  tests/appsec/test_feature.py::TestFeature:
+    - declaration: missing_feature
+      weblog: [sinatra14, sinatra22, sinatra32]
+
+  # Bug specific to one weblog with version constraint
+  tests/appsec/test_other.py:
+    - declaration: bug (TICKET-456)
+      component_version: "<3.13.0-dev"
+      weblog: django-poc
+```
+
+### Weblog Exclusion with `excluded_weblog` Field
+
+Apply a declaration to all weblogs except those listed:
+
+```yaml
+manifest:
+  # Missing feature for all weblogs EXCEPT rack
+  tests/appsec/api_security/test_schemas.py::Test_Scanners:
+    - declaration: missing_feature (performance impact)
+      excluded_weblog: [rack]
+```
+
+### Combining Weblog and Excluded Weblog
+
+Apply different declarations to different weblog groups:
+
+```yaml
+manifest:
+  tests/appsec/test_event.py::Test_Event:
+    # First: specific declaration for certain weblogs
+    - declaration: irrelevant
+      weblog: [rack, rails42]
+    # Second: different declaration for remaining weblogs
+    - declaration: missing_feature
+      excluded_weblog: [rack, rails42]
+```
+
+### Multiple Declarations per Test Node
+
+Apply multiple independent conditions to the same test:
+
+```yaml
+manifest:
+  tests/appsec/iast/test_example.py:
+    # Condition 1: version constraint with weblog filter
+    - component_version: "<3.11.0"
+      declaration: missing_feature (reason 1)
+      weblog: *django
+    # Condition 2: different version constraint with multiple weblogs
+    - component_version: "<3.11.0"
+      declaration: irrelevant
+      weblog: [*django, fastapi]
+```
+
+### Complete Complex Example
+
+Here's a comprehensive example combining multiple advanced features:
+
+```yaml
+refs:
+  - &django "django-poc, django-py3.13, python3.12"
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+  - &v2_backports '>=2.6.0 || ^1.5.0'
+
+manifest:
+  # Simple version declaration
+  tests/appsec/test_simple.py::TestSimple: v2.6.0
+
+  # Weblog-specific versions using anchors
+  tests/appsec/test_endpoint.py::Test_Endpoint:
+    - weblog_declaration:
+        "*": missing_feature
+        *django: v3.12.0.dev
+
+  # Version constraint with declaration
+  tests/appsec/iast/sink:
+    - component_version: "<3.11.0"
+      declaration: missing_feature (APPSEC-57830)
+      weblog: *django
+
+  # Exclusion pattern
+  tests/appsec/test_schemas.py::Test_Scanners:
+    - declaration: missing_feature (performance impact)
+      excluded_weblog: [rack]
+
+  # Multiple conditions for the same test
+  tests/test_config.py::Test_Config:
+    - declaration: bug (APMAPI-1702)
+      weblog: [rails52, rails80, rails61]
+    - declaration: missing_feature (unknown version)
+      excluded_weblog: [rails52, rails80, rails61, rack]
+
+  # Backport version reference
+  tests/appsec/test_backport.py::TestBackport: *v2_backports
+```
+
+#### Field Reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `declaration` | string | Marker with optional reason: `bug (JIRA-123)`, `missing_feature`, `irrelevant`, `flaky` |
+| `component_version` | string | SemVer range: `<1.0.0`, `>=2.0.0`, `^1.3.0 \|\| >=2.0.0` |
+| `weblog` | string or list | Include only these weblogs |
+| `excluded_weblog` | list | Exclude these weblogs (applies to all others) |
+| `weblog_declaration` | map | Per-weblog declarations with `*` as default |
+
+**Note:** You cannot use both `weblog` and `excluded_weblog` in the same declaration block. Use multiple declaration blocks instead.
 
 ## Why Manifest Files?
 
