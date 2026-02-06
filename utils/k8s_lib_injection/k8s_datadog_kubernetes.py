@@ -1,7 +1,6 @@
 import os
 import time
 import yaml
-from typing import TYPE_CHECKING
 from http import HTTPStatus
 from pathlib import Path
 from kubernetes import client, watch
@@ -14,10 +13,7 @@ from utils.k8s_lib_injection.k8s_command_utils import (
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
-from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
-
-if TYPE_CHECKING:
-    from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
+from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig, K8sClusterInfo
 
 # Constant for the private registry secret name used across namespaces
 # This is the name of a Kubernetes secret resource, not a password
@@ -30,7 +26,7 @@ class K8sDatadog:
 
     def configure(
         self,
-        k8s_cluster_info: "K8sClusterInfo",
+        k8s_cluster_info: K8sClusterInfo,
         dd_cluster_feature: dict[str, str] = {},
         *,
         dd_cluster_uds: bool | None = None,

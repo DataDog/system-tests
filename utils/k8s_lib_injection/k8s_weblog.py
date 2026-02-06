@@ -1,11 +1,8 @@
-from typing import TYPE_CHECKING
 from kubernetes import client, watch
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
+from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
 from retry import retry
-
-if TYPE_CHECKING:
-    from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
 
 
 class K8sWeblog:
@@ -41,7 +38,7 @@ class K8sWeblog:
 
     def configure(
         self,
-        k8s_cluster_info: "K8sClusterInfo",
+        k8s_cluster_info: K8sClusterInfo,
         weblog_env: dict[str, str] | None = None,
         *,
         dd_cluster_uds: bool | None = None,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import tempfile
@@ -42,7 +44,7 @@ class PrivateRegistryConfig:
 class K8sProviderFactory:
     """Use the correct provider specified by Id"""
 
-    def get_provider(self, provider_id: str) -> "K8sClusterProvider":
+    def get_provider(self, provider_id: str) -> K8sClusterProvider:
         logger.info(f"Using {provider_id} provider")
         if provider_id == "kind":
             return K8sKindClusterProvider()
