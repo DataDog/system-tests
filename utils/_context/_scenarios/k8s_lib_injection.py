@@ -1,5 +1,4 @@
 import os
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -9,10 +8,6 @@ from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory, K8sClusterProvider
 
-if TYPE_CHECKING:
-    from _pytest.config import Config as PytestConfig
-    from utils._context._scenarios.core import ScenarioGroup
-
 from utils.k8s.k8s_component_image import (
     K8sComponentImage,
     extract_library_version,
@@ -20,7 +15,7 @@ from utils.k8s.k8s_component_image import (
     extract_cluster_agent_version,
 )
 from utils._logger import logger
-from .core import Scenario, scenario_groups
+from .core import Scenario, scenario_groups, ScenarioGroup
 
 
 class K8sScenarioWithClusterProvider:
@@ -40,7 +35,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         dd_cluster_feature: dict[str, str] = {},
         with_datadog_operator: bool = False,
         with_cluster_agent: bool = True,
-        scenario_groups: list["ScenarioGroup"] = [scenario_groups.all, scenario_groups.lib_injection],
+        scenario_groups: list[ScenarioGroup] = [scenario_groups.all, scenario_groups.lib_injection],
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
@@ -183,7 +178,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         elif self.with_cluster_agent and self.k8s_helm_chart_version:
             logger.stdout(f"Helm chart version: {self.k8s_helm_chart_version}")
 
-    def pytest_sessionfinish(self, session: "PytestConfig", exitstatus: int) -> None:  # noqa: ARG002
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:  # noqa: ARG002
         self.close_targets()
 
     def close_targets(self) -> None:
