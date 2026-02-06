@@ -43,3 +43,6 @@
 /manifests/rust.yml @DataDog/apm-rust
 
 /.github/chainguard/** @DataDog/system-tests-core # Security sensitive
+
+/*.nix @DataDog/nix-guild @DataDog/system-tests-core
+/flake.lock @DataDog/nix-guild @DataDog/system-tests-core
