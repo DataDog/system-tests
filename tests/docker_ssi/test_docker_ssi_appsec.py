@@ -28,7 +28,9 @@ class TestDockerSSIAppsecFeatures:
 
         # Get all captured telemetry configuration data
         telemetry_names: list[str] = _mapped_telemetry_name("instrumentation_source")
-        configurations = interfaces.test_agent.get_telemetry_configurations()
+        configurations = interfaces.test_agent.get_telemetry_configurations(
+            root_span["service"], root_span["meta"]["runtime-id"]
+        )
 
         found_instrumentation_source = False
         for name in telemetry_names:
