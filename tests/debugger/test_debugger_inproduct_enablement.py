@@ -189,7 +189,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         )
 
         request_start = time_module.time()
-        self.send_weblog_request("/")
+        self.send_weblog_request("/headers")
         request_elapsed = time_module.time() - request_start
         logger.debug(f"[CODE_ORIGIN_DEBUG] _check_code_origin: sent request in {request_elapsed:.3f}s")
 
@@ -236,7 +236,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         )
 
         request_start = time_module.time()
-        self.send_weblog_request("/")
+        self.send_weblog_request("/headers")
         request_elapsed = time_module.time() - request_start
         logger.debug(f"[CODE_ORIGIN_DEBUG] _set_code_origin_and_check: sent request in {request_elapsed:.3f}s")
 

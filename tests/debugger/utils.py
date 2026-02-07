@@ -576,9 +576,10 @@ class BaseDebuggerTest:
                             for span in chunk["spans"]:
                                 resource, resource_type = span.get("resource", ""), span.get("type")
 
-                                # Only check traces with resource "GET /" (root route), not "GET /*" (catch-all/404 routes)
+                                # Only check traces with resource "GET /headers" (the test endpoint), not "GET /*" (catch-all/404 routes)
                                 # This ensures we only validate traces from the actual test request, not other concurrent requests
-                                if resource == "GET /" and resource_type == "web":
+                                # Using /headers instead of / avoids Docker healthcheck interference and framework-specific root route representation
+                                if resource == "GET /headers" and resource_type == "web":
                                     web_spans_found += 1
                                     code_origin_type = span["meta"].get("_dd.code_origin.type", "")
                                     logger.debug(
@@ -593,9 +594,9 @@ class BaseDebuggerTest:
                                         self._span_found = True
                                         return True
                                 elif resource.startswith("GET") and resource_type == "web":
-                                    # Log but skip other GET routes (like "GET /*" for 404s)
+                                    # Log but skip other GET routes (like "GET /*" for 404s, "GET /" for root, etc.)
                                     logger.debug(
-                                        f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, skipping span resource={resource} (not 'GET /')"
+                                        f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, skipping span resource={resource} (not 'GET /headers')"
                                     )
 
                     logger.debug(
