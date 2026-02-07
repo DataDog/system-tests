@@ -546,6 +546,51 @@ $router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Req
     return jsonResponse([]);
 }));
 
+// FFE (Feature Flags & Experimentation) endpoints
+$openFeatureClient = null;
+
+$router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$openFeatureClient) {
+    try {
+        $provider = new \DDTrace\OpenFeature\DataDogProvider();
+        \OpenFeature\API::setProvider($provider);
+        $openFeatureClient = \OpenFeature\API::getClient();
+        return jsonResponse([]);
+    } catch (\Throwable $e) {
+        return new Response(status: 500, body: json_encode(['error' => $e->getMessage()]));
+    }
+}));
+
+$router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (Request $req) use (&$openFeatureClient) {
+    try {
+        if ($openFeatureClient === null) {
+            $provider = new \DDTrace\OpenFeature\DataDogProvider();
+            \OpenFeature\API::setProvider($provider);
+            $openFeatureClient = \OpenFeature\API::getClient();
+        }
+
+        $flag = arg($req, 'flag');
+        $variationType = arg($req, 'variationType');
+        $defaultValue = arg($req, 'defaultValue');
+        $targetingKey = arg($req, 'targetingKey');
+        $attributes = arg($req, 'attributes') ?? [];
+
+        $context = new \OpenFeature\implementation\flags\EvaluationContext($targetingKey, new \OpenFeature\implementation\flags\Attributes($attributes));
+
+        $value = match ($variationType) {
+            'BOOLEAN' => $openFeatureClient->getBooleanValue($flag, (bool) $defaultValue, $context),
+            'STRING' => $openFeatureClient->getStringValue($flag, (string) $defaultValue, $context),
+            'INTEGER' => $openFeatureClient->getIntegerValue($flag, (int) $defaultValue, $context),
+            'NUMERIC' => $openFeatureClient->getFloatValue($flag, (float) $defaultValue, $context),
+            'JSON' => $openFeatureClient->getObjectValue($flag, is_array($defaultValue) ? $defaultValue : [], $context),
+            default => $defaultValue,
+        };
+
+        return jsonResponse(['value' => $value]);
+    } catch (\Throwable $e) {
+        return new Response(status: 500, body: json_encode(['error' => $e->getMessage()]));
+    }
+}));
+
 $middleware = new class implements Middleware {
     public function handleRequest(Request $request, RequestHandler $next): Response {
         $response = $next->handleRequest($request);
