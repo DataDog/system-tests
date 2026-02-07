@@ -4,7 +4,7 @@ import re
 
 import pytest
 
-from utils import incomplete_test_app, scenarios, features, context, bug, logger
+from utils import incomplete_test_app, scenarios, features, context, logger
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -58,8 +58,9 @@ class Test_Startup_Logs:
         "library_env",
         [{"DD_TRACE_STARTUP_LOGS": "false"}],
     )
-    @incomplete_test_app(context.library in ("php", "cpp", "rust"), reason="Need to figure out how to test this")
-    @bug(context.library in ("java", "python"), reason="Need to figure out how to test this")
+    @incomplete_test_app(
+        context.library in ("php", "cpp", "rust", "java", "python"), reason="Need to figure out how to test this"
+    )
     def test_startup_logs_disabled(self, test_library: APMLibrary):
         """Verify startup logs are suppressed when DD_TRACE_STARTUP_LOGS=false."""
         with test_library:
