@@ -1,0 +1,489 @@
+#!/usr/bin/env bash
+
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2024 Datadog, Inc.
+
+# test-local-tracer — single command to load a custom tracer, build, test, and collect results.
+#
+# Usage:
+#   ./tools/test-local-tracer --lang <lang> [options] [-- pytest args...]
+#
+# Examples:
+#   # Test a local Go tracer checkout against the DEFAULT scenario
+#   ./tools/test-local-tracer --lang golang --tracer-path ~/dd-trace-go
+#
+#   # Test a Python tracer from an S3 ref, specific scenario, specific test
+#   ./tools/test-local-tracer --lang python --tracer-ref abc123 --scenario TRACE_PROPAGATION_STYLE_W3C \
+#       -- tests/test_the_test.py -k test_something
+#
+#   # Re-run tests without rebuilding (reuse existing weblog image)
+#   ./tools/test-local-tracer --lang java --skip-build --scenario DEFAULT -- tests/test_healthcheck.py
+
+set -euo pipefail
+
+# ──────────────────────────────────────────────────────────────────────
+# Helpers
+# ──────────────────────────────────────────────────────────────────────
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+info()  { printf '==> %s\n' "$*"; }
+warn()  { printf 'WARN: %s\n' "$*" >&2; }
+error() { printf 'ERROR: %s\n' "$*" >&2; }
+die()   { error "$@"; exit 1; }
+
+downcase() { tr '[:upper:]' '[:lower:]'; }
+
+usage() {
+    cat <<'EOF'
+Usage: tools/test-local-tracer --lang <lang> [options] [-- pytest args...]
+
+Required:
+  --lang <lang>           Language: golang, python, java, php, nodejs, ruby, dotnet
+
+Optional:
+  --variant <variant>     Weblog variant (default: per-language default from build.sh)
+  --tracer-path <path>    Local path to tracer checkout or build artifacts
+  --tracer-ref <ref>      Remote ref (commit SHA, branch) for go-get / s3 / npm
+  --scenario <name>       Scenario name (default: DEFAULT)
+  --skip-build            Skip the build phase; reuse existing weblog image
+  --help                  Show this help
+
+Everything after '--' is forwarded to pytest via run.sh.
+
+Examples:
+  ./tools/test-local-tracer --lang golang --tracer-path ~/dd-trace-go
+  ./tools/test-local-tracer --lang python --tracer-ref abc123 -- tests/test_healthcheck.py
+  ./tools/test-local-tracer --lang java --tracer-path ~/dd-trace-java --skip-build
+EOF
+}
+
+# ──────────────────────────────────────────────────────────────────────
+# Argument parsing  (Bash 3.x safe — no associative arrays, no ${var,,})
+# ──────────────────────────────────────────────────────────────────────
+
+LANG_ARG=""
+VARIANT=""
+TRACER_PATH=""
+TRACER_REF=""
+SCENARIO="DEFAULT"
+SKIP_BUILD=0
+PYTEST_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --lang)
+            [[ $# -lt 2 ]] && die "missing value for --lang"
+            LANG_ARG="$2"; shift 2 ;;
+        --variant)
+            [[ $# -lt 2 ]] && die "missing value for --variant"
+            VARIANT="$2"; shift 2 ;;
+        --tracer-path)
+            [[ $# -lt 2 ]] && die "missing value for --tracer-path"
+            TRACER_PATH="$2"; shift 2 ;;
+        --tracer-ref)
+            [[ $# -lt 2 ]] && die "missing value for --tracer-ref"
+            TRACER_REF="$2"; shift 2 ;;
+        --scenario)
+            [[ $# -lt 2 ]] && die "missing value for --scenario"
+            SCENARIO="$2"; shift 2 ;;
+        --skip-build)
+            SKIP_BUILD=1; shift ;;
+        --help|-h)
+            usage; exit 0 ;;
+        --)
+            shift; PYTEST_ARGS=("$@"); break ;;
+        *)
+            die "unknown option: $1 (use -- to pass args to pytest)" ;;
+    esac
+done
+
+# Validate --lang
+[[ -z "$LANG_ARG" ]] && { usage >&2; die "--lang is required"; }
+LANG_ARG="$(echo "$LANG_ARG" | downcase)"
+
+case "$LANG_ARG" in
+    golang|python|java|php|nodejs|ruby|dotnet) ;;
+    *) die "unsupported language: $LANG_ARG (must be one of: golang python java php nodejs ruby dotnet)" ;;
+esac
+
+# Exactly one of --tracer-path / --tracer-ref is required (unless --skip-build)
+if [[ "$SKIP_BUILD" -eq 0 ]]; then
+    if [[ -n "$TRACER_PATH" && -n "$TRACER_REF" ]]; then
+        die "specify only one of --tracer-path or --tracer-ref, not both"
+    fi
+fi
+
+# Resolve tracer-path to absolute
+if [[ -n "$TRACER_PATH" ]]; then
+    TRACER_PATH="$(cd "$TRACER_PATH" && pwd)" || die "tracer-path does not exist: $TRACER_PATH"
+fi
+
+# Resolve variant default (mirrors utils/build/build.sh DEFAULT_* vars)
+if [[ -z "$VARIANT" ]]; then
+    case "$LANG_ARG" in
+        golang)  VARIANT="net-http" ;;
+        python)  VARIANT="flask-poc" ;;
+        java)    VARIANT="spring-boot" ;;
+        php)     VARIANT="apache-mod-8.0" ;;
+        nodejs)  VARIANT="express4" ;;
+        ruby)    VARIANT="rails72" ;;
+        dotnet)  VARIANT="poc" ;;
+    esac
+fi
+
+# ──────────────────────────────────────────────────────────────────────
+# Run ID & result directory
+# ──────────────────────────────────────────────────────────────────────
+
+RUN_ID="$(date '+%Y%m%d-%H%M%S')-${LANG_ARG}-${VARIANT}"
+RESULT_DIR="${REPO_ROOT}/results/${RUN_ID}"
+mkdir -p "$RESULT_DIR"
+
+info "Run ID   : $RUN_ID"
+info "Results  : $RESULT_DIR"
+info "Language : $LANG_ARG"
+info "Variant  : $VARIANT"
+info "Scenario : $SCENARIO"
+if [[ -n "$TRACER_PATH" ]]; then
+    info "Tracer   : local path — $TRACER_PATH"
+elif [[ -n "$TRACER_REF" ]]; then
+    info "Tracer   : remote ref — $TRACER_REF"
+else
+    info "Tracer   : (default / existing binaries)"
+fi
+echo
+
+# ──────────────────────────────────────────────────────────────────────
+# Phase 1 — Clean binaries/
+# ──────────────────────────────────────────────────────────────────────
+
+phase1_clean_binaries() {
+    info "Phase 1: Cleaning binaries/"
+    cd "$REPO_ROOT"
+    find binaries/ -mindepth 1 ! -name 'README.md' -delete 2>/dev/null || true
+}
+
+# ──────────────────────────────────────────────────────────────────────
+# Phase 2 — Load tracer into binaries/
+# ──────────────────────────────────────────────────────────────────────
+
+phase2_load_tracer() {
+    info "Phase 2: Loading tracer for $LANG_ARG"
+    cd "$REPO_ROOT"
+
+    # If neither flag provided, skip (use whatever build.sh downloads)
+    if [[ -z "$TRACER_PATH" && -z "$TRACER_REF" ]]; then
+        info "  No --tracer-path or --tracer-ref; build will use default tracer"
+        return
+    fi
+
+    case "$LANG_ARG" in
+        golang)  _load_golang ;;
+        python)  _load_python ;;
+        java)    _load_java ;;
+        php)     _load_php ;;
+        nodejs)  _load_nodejs ;;
+        ruby)    _load_ruby ;;
+        dotnet)  _load_dotnet ;;
+    esac
+}
+
+# --- language-specific loaders ---
+
+_load_golang() {
+    if [[ -n "$TRACER_PATH" ]]; then
+        info "  Copying $TRACER_PATH -> binaries/dd-trace-go"
+        cp -r "$TRACER_PATH" binaries/dd-trace-go
+    else
+        info "  Writing go-get ref: $TRACER_REF"
+        printf '%s' "github.com/DataDog/dd-trace-go/v2@${TRACER_REF}" > binaries/golang-load-from-go-get
+    fi
+}
+
+_load_python() {
+    if [[ -n "$TRACER_PATH" ]]; then
+        info "  Writing python-load-from-local marker (path: $TRACER_PATH)"
+        printf '%s' "$TRACER_PATH" > binaries/python-load-from-local
+    else
+        info "  Writing python-load-from-s3 ref: $TRACER_REF"
+        printf '%s' "$TRACER_REF" > binaries/python-load-from-s3
+    fi
+}
+
+_load_java() {
+    if [[ -n "$TRACER_REF" ]]; then
+        die "Java does not support --tracer-ref. Build the jars locally and use --tracer-path."
+    fi
+    local src="$TRACER_PATH"
+    local count=0
+
+    # Copy dd-java-agent jar
+    for jar in "$src"/dd-java-agent/build/libs/dd-java-agent-*-SNAPSHOT.jar; do
+        if [[ -f "$jar" ]]; then
+            info "  Copying $(basename "$jar")"
+            cp "$jar" binaries/
+            count=$((count + 1))
+        fi
+    done
+
+    # Copy dd-trace-api jar
+    for jar in "$src"/dd-trace-api/build/libs/dd-trace-api-*-SNAPSHOT.jar; do
+        if [[ -f "$jar" ]]; then
+            info "  Copying $(basename "$jar")"
+            cp "$jar" binaries/
+            count=$((count + 1))
+        fi
+    done
+
+    [[ $count -eq 0 ]] && die "No jars found in $src. Expected dd-java-agent/build/libs/ and dd-trace-api/build/libs/"
+    info "  Copied $count jar(s) into binaries/"
+}
+
+_load_php() {
+    if [[ -n "$TRACER_REF" ]]; then
+        die "PHP does not support --tracer-ref. Build the artifacts locally and use --tracer-path."
+    fi
+    local src="$TRACER_PATH"
+    local count=0
+
+    # datadog-setup.php
+    if [[ -f "$src/datadog-setup.php" ]]; then
+        cp "$src/datadog-setup.php" binaries/
+        info "  Copied datadog-setup.php"
+        count=$((count + 1))
+    fi
+
+    # dd-library-php tarball
+    for f in "$src"/dd-library-php-*.tar.gz; do
+        if [[ -f "$f" ]]; then
+            cp "$f" binaries/
+            info "  Copied $(basename "$f")"
+            count=$((count + 1))
+        fi
+    done
+
+    # optional .so overrides
+    for so in ddtrace.so ddappsec.so libddappsec-helper.so libddwaf.so; do
+        if [[ -f "$src/$so" ]]; then
+            cp "$src/$so" binaries/
+            info "  Copied $so"
+            count=$((count + 1))
+        fi
+    done
+
+    [[ $count -eq 0 ]] && die "No PHP tracer artifacts found in $src"
+    info "  Copied $count file(s) into binaries/"
+}
+
+_load_nodejs() {
+    if [[ -n "$TRACER_PATH" ]]; then
+        info "  Writing nodejs-load-from-local marker (path: $TRACER_PATH)"
+        printf '%s' "$TRACER_PATH" > binaries/nodejs-load-from-local
+    else
+        info "  Writing nodejs-load-from-npm ref: $TRACER_REF"
+        printf '%s' "DataDog/dd-trace-js#${TRACER_REF}" > binaries/nodejs-load-from-npm
+    fi
+}
+
+_load_ruby() {
+    if [[ -n "$TRACER_PATH" ]]; then
+        info "  Copying $TRACER_PATH -> binaries/dd-trace-rb"
+        cp -r "$TRACER_PATH" binaries/dd-trace-rb
+    else
+        info "  Writing ruby-load-from-bundle-add spec for ref: $TRACER_REF"
+        printf "gem 'datadog', git: \"https://github.com/DataDog/dd-trace-rb\", ref: \"%s\", require: 'datadog/auto_instrument'" "$TRACER_REF" \
+            > binaries/ruby-load-from-bundle-add
+    fi
+}
+
+_load_dotnet() {
+    if [[ -n "$TRACER_REF" ]]; then
+        die ".NET does not support --tracer-ref. Build the artifacts locally and use --tracer-path."
+    fi
+    local src="$TRACER_PATH"
+    local count=0
+
+    # Prefer tar.gz if present
+    for f in "$src"/datadog-dotnet-apm-*.tar.gz; do
+        if [[ -f "$f" ]]; then
+            cp "$f" binaries/
+            info "  Copied $(basename "$f")"
+            count=$((count + 1))
+        fi
+    done
+
+    # Fallback: copy all files (e.g. pre-extracted build output)
+    if [[ $count -eq 0 ]]; then
+        info "  No tar.gz found; copying all files from $src"
+        cp -r "$src"/* binaries/
+        # Verify the key file landed
+        if [[ -f binaries/Datadog.Trace.ClrProfiler.Native.so ]]; then
+            info "  Copied pre-extracted .NET tracer files"
+        else
+            die "No datadog-dotnet-apm-*.tar.gz or Datadog.Trace.ClrProfiler.Native.so found in $src"
+        fi
+    fi
+}
+
+# ──────────────────────────────────────────────────────────────────────
+# Phase 3 — Build
+# ──────────────────────────────────────────────────────────────────────
+
+phase3_build() {
+    if [[ "$SKIP_BUILD" -eq 1 ]]; then
+        info "Phase 3: Build SKIPPED (--skip-build)"
+        return
+    fi
+    info "Phase 3: Building weblog ($LANG_ARG / $VARIANT)"
+    cd "$REPO_ROOT"
+
+    local build_cmd=("./build.sh" "$LANG_ARG" "-w" "$VARIANT")
+    info "  ${build_cmd[*]}"
+
+    if "${build_cmd[@]}" 2>&1 | tee "$RESULT_DIR/build.log"; then
+        info "  Build succeeded"
+    else
+        local rc=$?
+        error "Build failed (exit $rc). See $RESULT_DIR/build.log"
+        exit $rc
+    fi
+}
+
+# ──────────────────────────────────────────────────────────────────────
+# Phase 4 — Test
+# ──────────────────────────────────────────────────────────────────────
+
+phase4_test() {
+    info "Phase 4: Running tests (scenario=$SCENARIO)"
+    cd "$REPO_ROOT"
+
+    local run_cmd=("./run.sh" "$SCENARIO")
+    if [[ ${#PYTEST_ARGS[@]} -gt 0 ]]; then
+        run_cmd+=("${PYTEST_ARGS[@]}")
+    fi
+    info "  ${run_cmd[*]}"
+
+    local test_rc=0
+    "${run_cmd[@]}" 2>&1 | tee "$RESULT_DIR/test.log" || test_rc=$?
+
+    echo "$test_rc" > "$RESULT_DIR/test_exit_code"
+    return "$test_rc"
+}
+
+# ──────────────────────────────────────────────────────────────────────
+# Phase 5 — Collect & Verdict
+# ──────────────────────────────────────────────────────────────────────
+
+phase5_collect() {
+    local test_rc="$1"
+    info "Phase 5: Collecting results"
+    cd "$REPO_ROOT"
+
+    # Move logs
+    for d in logs logs_*; do
+        if [[ -d "$d" ]]; then
+            mv "$d" "$RESULT_DIR/" 2>/dev/null || true
+        fi
+    done
+
+    # Move report
+    if [[ -f ".report.json" ]]; then
+        mv .report.json "$RESULT_DIR/report.json"
+    fi
+
+    # Parse report and build verdict
+    if [[ -f "$RESULT_DIR/report.json" ]]; then
+        python3 - "$RESULT_DIR/report.json" "$RESULT_DIR/verdict.json" "$test_rc" <<'PYEOF'
+import json, sys
+
+report_path, verdict_path, exit_code = sys.argv[1], sys.argv[2], int(sys.argv[3])
+
+with open(report_path) as f:
+    report = json.load(f)
+
+summary = report.get("summary", {})
+passed  = summary.get("passed", 0)
+failed  = summary.get("failed", 0)
+skipped = summary.get("skipped", 0)
+errored = summary.get("error", 0)
+total   = summary.get("total", 0)
+
+failed_tests = []
+for key in ("tests", "collectors"):
+    for t in report.get(key, []):
+        if t.get("outcome") == "failed":
+            failed_tests.append(t.get("nodeid", "<unknown>"))
+
+verdict = {
+    "passed":  passed,
+    "failed":  failed,
+    "skipped": skipped,
+    "error":   errored,
+    "total":   total,
+    "exit_code": exit_code,
+    "failed_tests": failed_tests,
+}
+
+with open(verdict_path, "w") as f:
+    json.dump(verdict, f, indent=2)
+    f.write("\n")
+
+# Print summary
+print()
+print("=" * 60)
+print(f"  VERDICT  —  {'PASS' if (failed + errored) == 0 and exit_code == 0 else 'FAIL'}")
+print("=" * 60)
+print(f"  passed:  {passed}")
+print(f"  failed:  {failed}")
+print(f"  skipped: {skipped}")
+print(f"  error:   {errored}")
+print(f"  total:   {total}")
+if failed_tests:
+    print()
+    print("  Failed tests:")
+    for t in failed_tests:
+        print(f"    - {t}")
+print("=" * 60)
+print()
+PYEOF
+    else
+        warn "No .report.json found — cannot produce verdict"
+        cat > "$RESULT_DIR/verdict.json" <<VJSON
+{
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "error": 0,
+  "total": 0,
+  "exit_code": $test_rc,
+  "failed_tests": [],
+  "note": "no report.json produced by pytest"
+}
+VJSON
+    fi
+
+    info "Results saved to: $RESULT_DIR/"
+}
+
+# ──────────────────────────────────────────────────────────────────────
+# Main
+# ──────────────────────────────────────────────────────────────────────
+
+main() {
+    cd "$REPO_ROOT"
+
+    phase1_clean_binaries
+    phase2_load_tracer
+    phase3_build
+
+    local test_rc=0
+    phase4_test || test_rc=$?
+
+    phase5_collect "$test_rc"
+
+    exit "$test_rc"
+}
+
+main
