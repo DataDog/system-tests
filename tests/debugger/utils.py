@@ -471,10 +471,9 @@ class BaseDebuggerTest:
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
 
-    def wait_for_code_origin_span(self, timeout: int = 5, threshold: int | None = None) -> bool:
+    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
         self._span_found = False
-        if threshold is None:
-            threshold = self._get_max_trace_file_number()
+        threshold = self._get_max_trace_file_number()
 
         interfaces.agent.wait_for(
             lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
