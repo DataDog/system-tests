@@ -513,11 +513,6 @@ class BaseDebuggerTest:
                                     if code_origin_type == "entry":
                                         self._span_found = True
                                         return True
-                                elif resource.startswith("GET") and resource_type == "web":
-                                    # Log but skip other GET routes (like "GET /*" for 404s, "GET /" for root, etc.)
-                                    logger.debug(
-                                        f"[CODE_ORIGIN_DEBUG] _wait_for_code_origin_span: file {log_number}, skipping span resource={resource} (not 'GET /headers')"
-                                    )
 
         return False
 
