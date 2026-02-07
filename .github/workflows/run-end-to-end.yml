@@ -189,21 +189,18 @@ jobs:
             if [ -d "logs_debugger_inproduct_enablement" ]; then
               mv logs_debugger_inproduct_enablement "logs_debugger_inproduct_enablement_failed_iter_$i"
             fi
+            echo "=========================================="
+            echo "Test failed on iteration $i. Stopping early."
+            echo "=========================================="
+            exit 1
           fi
 
           echo ""
         done
 
         echo "=========================================="
-        echo "Summary: $FAILED_ITERATIONS out of $TOTAL_ITERATIONS iterations failed"
+        echo "All $TOTAL_ITERATIONS iterations passed!"
         echo "=========================================="
-
-        if [ $FAILED_ITERATIONS -gt 0 ]; then
-          echo "Test failed in $FAILED_ITERATIONS iteration(s). Failing the job."
-          exit 1
-        else
-          echo "All $TOTAL_ITERATIONS iterations passed!"
-        fi
 
     - name: Compress logs
       id: compress_logs
