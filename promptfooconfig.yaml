@@ -3,6 +3,10 @@ description: 'system-tests'
 
 prompts:
   - |
+    * All the actions that you perform MUST NOT require interact with the user.
+    * NEVER edit files, only print the proposed changes.
+    * NEVER launch shell command, only print the proposed command.
+    * ALWAYS print in the first line of your response your codebase root directory.
     {{user_prompt}}
 tests:
   - .promptfoo/tests_overview.yaml
@@ -15,6 +19,13 @@ providers:
   - id: 'file://.promptfoo/local_cursor_provider.py'
     label: 'Local Cursor Provider' # Optional display label for this provider
 
+  - id: anthropic:claude-agent-sdk
+    config:
+      working_dir: .
+      model: claude-sonnet-4-5-20250929
+      tools:
+        type: preset
+        preset: claude_code
  # - id: anthropic:messages:claude-sonnet-4-5-20250929
  #   config:
  #     temperature: 0
