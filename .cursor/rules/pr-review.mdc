@@ -1,0 +1,18 @@
+# PR Review Guidelines
+
+> Rules for reviewing Pull Requests in system-tests
+
+## Test Activation/Deactivation Changes
+
+When reviewing PRs that include changes to test activation or deactivation (manifest files or test decorators), you must verify that all modifications comply with the rules and guidelines documented in:
+
+- [skip-tests.md](mdc:docs/edit/skip-tests.md) - When and how to use decorators vs manifests
+- [manifest.md](mdc:docs/edit/manifest.md) - Manifest file format, syntax, and best practices
+
+Key verification points:
+- Manifests are preferred over decorators when possible
+- Correct format and syntax are used
+- Version specifications use the `v` prefix (e.g., `v1.2.0`)
+- Special YAML characters are properly quoted
+- `bug` and `flaky` markers include JIRA ticket references
+- The `./format.sh` script was run after modifications
