@@ -1,3 +1,7 @@
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/75745fafbee537a84b24d8d5fe735299438cbe46d6949d686cd73818296c5f44/single-step-instrumentation-tests.yml
 stages:
@@ -10,6 +14,10 @@ stages:
   - ruby
   - pipeline-status
   - system-tests-utils
+
+default:
+  interruptible: false
+  #dummy commit 2
 
 variables:
     TEST: 1
