@@ -2655,13 +2655,13 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
-        spring-boot: v1.48.0
-        spring-boot-jetty: v1.48.0
-        spring-boot-openliberty: v1.48.0
-        spring-boot-payara: v1.48.0
-        spring-boot-undertow: v1.48.0
-        spring-boot-wildfly: v1.48.0
-        uds-spring-boot: v1.48.0
+        spring-boot: bug (DEBUG-5131)
+        spring-boot-jetty: bug (DEBUG-5131)
+        spring-boot-openliberty: bug (DEBUG-5131)
+        spring-boot-payara: bug (DEBUG-5131)
+        spring-boot-undertow: bug (DEBUG-5131)
+        spring-boot-wildfly: bug (DEBUG-5131)
+        uds-spring-boot: bug (DEBUG-5131)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
