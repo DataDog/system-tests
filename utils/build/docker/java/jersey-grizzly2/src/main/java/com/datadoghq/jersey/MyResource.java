@@ -196,6 +196,12 @@ public class MyResource {
         return "Hello world!";
     }
 
+    @GET
+    @Path("/resource_renaming/{path: .*}")
+    public String resourceRenaming(@PathParam("path") String path) {
+        return "ok";
+    }
+
     @POST
     @Path("/waf")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

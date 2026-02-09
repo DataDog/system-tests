@@ -2,6 +2,7 @@ import time
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context, logger
 from threading import Timer
@@ -30,7 +31,7 @@ class AutoInjectBaseTest:
 
     def _check_install(
         self,
-        virtual_machine,
+        virtual_machine: _VirtualMachine,
         vm_context_url,
         *,
         profile: bool = False,

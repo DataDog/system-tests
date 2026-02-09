@@ -65,7 +65,7 @@ class GoProxiesScenario(DockerScenario):
             rc_api_enabled=rc_api_enabled,
         )
 
-        self._base_required_containers = list(self._required_containers)
+        self._base_required_containers = list(self._containers)
 
     def _build_processor_container(self) -> ProcessorContainer:
         if self.proxy_component == "envoy":
@@ -158,7 +158,7 @@ class GoProxiesScenario(DockerScenario):
         self._processor_container.depends_on = [self.proxy_container]
         self._proxy_runtime_container.depends_on = [self._processor_container, self._http_app_container]
 
-        self._required_containers = [
+        self._containers = [
             *self._base_required_containers,
             self._agent_container,
             self._processor_container,

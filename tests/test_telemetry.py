@@ -731,6 +731,8 @@ class Test_TelemetryV2:
 
                 norm_rules = lang_config.get("normalization_rules", {})
                 exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
+                # backend side normalizes keys to lowercase, we need to mimic this behavior
+                exact_keys = [key.lower() for key in exact_keys]
 
                 prefix_keys = get_all_keys_and_values(
                     config_prefix_block_list,

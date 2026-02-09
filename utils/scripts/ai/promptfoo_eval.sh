@@ -123,16 +123,23 @@ echo ""
 echo -e "${MAGENTA}━━━ Step 3: Running Evaluation ━━━${NC}"
 echo ""
 
+# Prepare the prompt based on selected config
+if [[ -n "$SELECTED_CONFIG" ]]; then
+    AI_PROMPT="@promptfoo-llm.mdc test the file $SELECTED_CONFIG"
+else
+    AI_PROMPT="@promptfoo-llm.mdc Run the complete test suite."
+fi
+
 # Run the selected agent
 if [[ "$AGENT" == "cursor-agent" ]]; then
     echo -e "${BLUE}🔑 Logging in to cursor-agent...${NC}"
     cursor-agent login
     echo ""
     echo -e "${BLUE}🚀 Running evaluation with cursor-agent...${NC}"
-    cursor-agent -p "@promptfoo-llm.mdc Run the complete test suite."
+    cursor-agent -p "$AI_PROMPT"
 else
     echo -e "${BLUE}🚀 Running evaluation with claude...${NC}"
-    claude --permission-mode acceptEdits -p "@promptfoo-llm.mdc Run the complete test suite."
+    claude --permission-mode acceptEdits -p "$AI_PROMPT"
 fi
 
 echo ""

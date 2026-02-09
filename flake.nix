@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/master";
+    nixpkgs.url = "github:nixos/nixpkgs/release-25.11";
 
     # cross-platform convenience
     flake-utils.url = "github:numtide/flake-utils";
@@ -23,7 +23,7 @@
           python-packages.pip
         ];
 
-        # use this pyton version, and include the abvoe packages
+        # use this pyton version, and include the above packages
         python = pkgs.python312.withPackages python_packages;
       in {
         devShell = pkgs.stdenv.mkDerivation {
@@ -32,7 +32,6 @@
           buildInputs = with pkgs; [
             # version to use + default packages are declared above
             python
-
 
             # linters
             shellcheck
@@ -43,7 +42,7 @@
             rsync
           ] ++ lib.optionals (pkgs.stdenv.isDarwin) [
             # for python watchdog package
-            darwin.apple_sdk.frameworks.CoreServices
+            apple-sdk
           ];
 
 
