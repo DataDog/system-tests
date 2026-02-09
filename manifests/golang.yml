@@ -11,6 +11,9 @@ manifest:
         net-http: v0.1  # real version not known
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: flaky (APMAPI-178)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
     - weblog_declaration:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -766,6 +769,7 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.2.3
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.2.3
@@ -1250,6 +1254,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py:
     - weblog_declaration:

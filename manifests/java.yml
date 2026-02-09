@@ -3766,7 +3766,10 @@ manifest:
         spring-boot-openliberty: v1.58.2+06122213c8  # Modified by easy win activation script
         uds-spring-boot: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
-  tests/test_resource_renaming.py: missing_feature
+  tests/test_resource_renaming.py:
+    - weblog_declaration:
+        "*": v1.60.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_rum_injection.py:
     - weblog_declaration:
         "*": irrelevant (RUM injection only supported for spring-boot)

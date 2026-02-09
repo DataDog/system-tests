@@ -1434,6 +1434,11 @@ public class App {
         return ResponseEntity.ok("ok");
     }
 
+    @GetMapping("/resource_renaming/{*path}")
+    public String resourceRenaming(@PathVariable(required = false) String path) {
+        return "ok";
+    }
+
     @Bean
     @ConditionalOnProperty(
         value="spring.native",

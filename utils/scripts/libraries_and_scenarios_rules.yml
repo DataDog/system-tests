@@ -153,6 +153,7 @@ patterns:
         libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
+        libraries: null
     .github/workflows/changelog.yml:
         scenario_groups: null
         libraries: null

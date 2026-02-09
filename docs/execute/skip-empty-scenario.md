@@ -1,3 +1,3 @@
-The `--skip-empty-scenario` option will deselected all tests if the current scenario contains only tests marked as xfail or skipped (`bug`, `flaky`, `missing_feature`, `irrelevant`).
+The `--skip-empty-scenario` option will deselect all tests if the current scenario contains only disabled tests (see [glossary](../glossary.md) for terminology):
 
-This option can also be activated with then environment variable `SYSTEM_TESTS_SKIP_EMPTY_SCENARIO=True`
+This option can also be activated with the environment variable `SYSTEM_TESTS_SKIP_EMPTY_SCENARIO=True`

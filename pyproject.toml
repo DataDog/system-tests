@@ -248,7 +248,6 @@ ignore = [
 ]
 
 "utils/{k8s_lib_injection/*,_context/_scenarios/k8s_lib_injection.py}" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "B006",     # mutable-argument-default: TODO
@@ -277,7 +276,6 @@ ignore = [
     "INP001",  # implicit-namespace-package: this is not a package
 ]
 "utils/onboarding/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
     "DTZ006",  # call-datetime-fromtimestamp: TODO
