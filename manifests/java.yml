@@ -144,7 +144,22 @@ manifest:
         spring-boot-wildfly: irrelevant (Not applicable to weblog variant)
         uds-spring-boot: irrelevant (Not applicable to weblog variant)
         spring-boot-jetty: irrelevant (Not applicable to weblog variant)
-  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoint_fallback.py::Test_Endpoint_Fallback_With_Route:
+    - weblog_declaration:
+        "*": v1.60.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/api_security/test_endpoint_fallback.py::Test_Endpoint_Fallback_With_Endpoint:
+    - weblog_declaration:
+        "*": irrelevant (Framework auto-sets http.route)
+        akka-http: v1.60.0-SNAPSHOT
+  tests/appsec/api_security/test_endpoint_fallback.py::Test_Endpoint_Fallback_404:
+    - weblog_declaration:
+        "*": irrelevant (Framework auto-sets http.route)
+        akka-http: v1.60.0-SNAPSHOT
+  tests/appsec/api_security/test_endpoint_fallback.py::Test_Endpoint_Fallback_Computed:
+    - weblog_declaration:
+        "*": irrelevant (Framework auto-sets http.route)
+        akka-http: v1.60.0-SNAPSHOT
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0

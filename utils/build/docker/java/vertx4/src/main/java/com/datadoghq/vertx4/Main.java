@@ -433,6 +433,73 @@ public class Main {
                 });
         router.get("/session/*").subRouter(sessionRouter);
 
+        router.get("/endpoint_fallback")
+                .handler(ctx -> {
+                    String testCase = ctx.request().getParam("case");
+                    if (testCase == null) {
+                        testCase = "unknown";
+                    }
+                    JsonObject responseBody = new JsonObject();
+
+                    switch (testCase) {
+                        case "with_route":
+                            // Test case: http.route is present - should use it for sampling
+                            setRootSpanTag("http.route", "/users/{id}/profile");
+                            setRootSpanTag("http.method", "GET");
+
+                            responseBody.put("status", "ok");
+                            responseBody.put("test_case", "with_route");
+                            responseBody.put("message", "http.route is set");
+                            ctx.response().end(responseBody.encode());
+                            break;
+
+                        case "with_endpoint":
+                            // Test case: http.route is absent, http.endpoint is present - should use http.endpoint for sampling
+                            // Note: Do NOT set http.route
+                            setRootSpanTag("http.endpoint", "/api/products/{param:int}");
+                            setRootSpanTag("http.method", "GET");
+
+                            responseBody.put("status", "ok");
+                            responseBody.put("test_case", "with_endpoint");
+                            responseBody.put("message", "http.endpoint is set, http.route is not");
+                            ctx.response().end(responseBody.encode());
+                            break;
+
+                        case "404":
+                            // Test case: http.route is absent, http.endpoint is present, but status is 404 - should NOT sample
+                            // Note: Do NOT set http.route
+                            setRootSpanTag("http.endpoint", "/api/notfound/{param:int}");
+                            setRootSpanTag("http.method", "GET");
+
+                            responseBody.put("status", "error");
+                            responseBody.put("test_case", "404_with_endpoint");
+                            responseBody.put("message", "Not found - should not sample despite http.endpoint");
+                            ctx.response().setStatusCode(404).end(responseBody.encode());
+                            break;
+
+                        case "computed":
+                            // Test case: Neither http.route nor http.endpoint set - should compute endpoint on-demand
+                            // The endpoint should be computed but NOT added as a tag on the span
+                            // Note: Do NOT set http.route or http.endpoint
+                            // Set http.url so endpoint can be computed
+                            setRootSpanTag("http.url", "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456");
+                            setRootSpanTag("http.method", "GET");
+
+                            responseBody.put("status", "ok");
+                            responseBody.put("test_case", "computed_on_demand");
+                            responseBody.put("message", "Endpoint computed from URL");
+                            ctx.response().end(responseBody.encode());
+                            break;
+
+                        default:
+                            responseBody.put("status", "error");
+                            responseBody.put("test_case", "unknown");
+                            responseBody.put("message", "Invalid case parameter. Valid values: with_route, with_endpoint, 404, computed");
+                            ctx.response().setStatusCode(400).end(responseBody.encode());
+                            break;
+                    }
+                });
+
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));
         server.requestHandler(router).listen(7777);

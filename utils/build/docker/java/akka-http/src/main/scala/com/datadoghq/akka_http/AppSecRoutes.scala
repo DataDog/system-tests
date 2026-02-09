@@ -314,6 +314,76 @@ object AppSecRoutes {
             }
           }
         }
+      } ~
+      path("endpoint_fallback") {
+        get {
+          parameter('case.as[String].?) { caseParam =>
+            val testCase = caseParam.getOrElse("unknown")
+
+            testCase match {
+              case "with_route" =>
+                // Test case: http.route is present - should use it for sampling
+                setRootSpanTag("http.route", "/users/{id}/profile")
+                setRootSpanTag("http.method", "GET")
+
+                val response = Map(
+                  "status" -> "ok",
+                  "test_case" -> "with_route",
+                  "message" -> "http.route is set"
+                )
+                complete(StatusCodes.OK, response)(jsonMarshaller)
+
+              case "with_endpoint" =>
+                // Test case: http.route is absent, http.endpoint is present - should use http.endpoint for sampling
+                // Note: Do NOT set http.route
+                setRootSpanTag("http.endpoint", "/api/products/{param:int}")
+                setRootSpanTag("http.method", "GET")
+
+                val response = Map(
+                  "status" -> "ok",
+                  "test_case" -> "with_endpoint",
+                  "message" -> "http.endpoint is set, http.route is not"
+                )
+                complete(StatusCodes.OK, response)(jsonMarshaller)
+
+              case "404" =>
+                // Test case: http.route is absent, http.endpoint is present, but status is 404 - should NOT sample
+                // Note: Do NOT set http.route
+                setRootSpanTag("http.endpoint", "/api/notfound/{param:int}")
+                setRootSpanTag("http.method", "GET")
+
+                val response = Map(
+                  "status" -> "error",
+                  "test_case" -> "404_with_endpoint",
+                  "message" -> "Not found - should not sample despite http.endpoint"
+                )
+                complete(StatusCodes.NotFound, response)(jsonMarshaller)
+
+              case "computed" =>
+                // Test case: Neither http.route nor http.endpoint set - should compute endpoint on-demand
+                // The endpoint should be computed but NOT added as a tag on the span
+                // Note: Do NOT set http.route or http.endpoint
+                // Set http.url so endpoint can be computed
+                setRootSpanTag("http.url", "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456")
+                setRootSpanTag("http.method", "GET")
+
+                val response = Map(
+                  "status" -> "ok",
+                  "test_case" -> "computed_on_demand",
+                  "message" -> "Endpoint computed from URL"
+                )
+                complete(StatusCodes.OK, response)(jsonMarshaller)
+
+              case _ =>
+                val response = Map(
+                  "status" -> "error",
+                  "test_case" -> "unknown",
+                  "message" -> "Invalid case parameter. Valid values: with_route, with_endpoint, 404, computed"
+                )
+                complete(StatusCodes.BadRequest, response)(jsonMarshaller)
+            }
+          }
+        }
       }
 
 

@@ -312,6 +312,73 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Results.Ok("ok").withCookies(Cookie(cookieName, cookieValue))
   }
 
+  def endpointFallback(caseParam: Option[String]) = Action { request =>
+    val testCase = caseParam.getOrElse("unknown")
+
+    testCase match {
+      case "with_route" =>
+        // Test case: http.route is present - should use it for sampling
+        setRootSpanTag("http.route", "/users/{id}/profile")
+        setRootSpanTag("http.method", "GET")
+
+        val response = Json.obj(
+          "status" -> "ok",
+          "test_case" -> "with_route",
+          "message" -> "http.route is set"
+        )
+        Results.Ok(response)
+
+      case "with_endpoint" =>
+        // Test case: http.route is absent, http.endpoint is present - should use http.endpoint for sampling
+        // Note: Do NOT set http.route
+        setRootSpanTag("http.endpoint", "/api/products/{param:int}")
+        setRootSpanTag("http.method", "GET")
+
+        val response = Json.obj(
+          "status" -> "ok",
+          "test_case" -> "with_endpoint",
+          "message" -> "http.endpoint is set, http.route is not"
+        )
+        Results.Ok(response)
+
+      case "404" =>
+        // Test case: http.route is absent, http.endpoint is present, but status is 404 - should NOT sample
+        // Note: Do NOT set http.route
+        setRootSpanTag("http.endpoint", "/api/notfound/{param:int}")
+        setRootSpanTag("http.method", "GET")
+
+        val response = Json.obj(
+          "status" -> "error",
+          "test_case" -> "404_with_endpoint",
+          "message" -> "Not found - should not sample despite http.endpoint"
+        )
+        Results.NotFound(response)
+
+      case "computed" =>
+        // Test case: Neither http.route nor http.endpoint set - should compute endpoint on-demand
+        // The endpoint should be computed but NOT added as a tag on the span
+        // Note: Do NOT set http.route or http.endpoint
+        // Set http.url so endpoint can be computed
+        setRootSpanTag("http.url", "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456")
+        setRootSpanTag("http.method", "GET")
+
+        val response = Json.obj(
+          "status" -> "ok",
+          "test_case" -> "computed_on_demand",
+          "message" -> "Endpoint computed from URL"
+        )
+        Results.Ok(response)
+
+      case _ =>
+        val response = Json.obj(
+          "status" -> "error",
+          "test_case" -> "unknown",
+          "message" -> "Invalid case parameter. Valid values: with_route, with_endpoint, 404, computed"
+        )
+        Results.BadRequest(response)
+    }
+  }
+
   private def handleTagValue(value: String, statusCode: Int, queryString: Map[String,Seq[String]], body: Option[JsValue]): Result = {
     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
     

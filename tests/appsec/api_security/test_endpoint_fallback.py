@@ -37,8 +37,8 @@ class Test_Endpoint_Fallback_With_Route:
     """Test Requirement 1: If http.route is present, use it for sampling"""
 
     def setup_with_route(self):
-        self.r1 = weblog.get("/endpoint_fallback.php?case=with_route")
-        self.r2 = weblog.get("/endpoint_fallback.php?case=with_route")
+        self.r1 = weblog.get("/endpoint_fallback?case=with_route")
+        self.r2 = weblog.get("/endpoint_fallback?case=with_route")
 
     def test_with_route(self):
         """When http.route is present, it should be used for sampling"""
@@ -64,8 +64,8 @@ class Test_Endpoint_Fallback_With_Endpoint:
     """Test Requirement 2a: If http.route is absent and http.endpoint is present (non-404), use http.endpoint"""
 
     def setup_with_endpoint(self):
-        self.r1 = weblog.get("/endpoint_fallback.php?case=with_endpoint")
-        self.r2 = weblog.get("/endpoint_fallback.php?case=with_endpoint")
+        self.r1 = weblog.get("/endpoint_fallback?case=with_endpoint")
+        self.r2 = weblog.get("/endpoint_fallback?case=with_endpoint")
 
     def test_with_endpoint(self):
         """When http.route is absent but http.endpoint is present, use http.endpoint for sampling"""
@@ -96,7 +96,7 @@ class Test_Endpoint_Fallback_404:
     """Test Requirement 2b: If http.route is absent, http.endpoint is present, but status is 404, should NOT sample"""
 
     def setup_404(self):
-        self.r1 = weblog.get("/endpoint_fallback.php?case=404")
+        self.r1 = weblog.get("/endpoint_fallback?case=404")
 
     def test_404(self):
         """When status is 404, should not sample even if http.endpoint is present (failsafe)"""
@@ -119,7 +119,7 @@ class Test_Endpoint_Fallback_Computed:
     """Test Requirement 3: If neither http.route nor http.endpoint present, compute endpoint on-demand"""
 
     def setup_computed(self):
-        self.r1 = weblog.get("/endpoint_fallback.php?case=computed")
+        self.r1 = weblog.get("/endpoint_fallback?case=computed")
 
     def test_computed(self):
         """When neither http.route nor http.endpoint are set, compute endpoint but don't set it on span"""

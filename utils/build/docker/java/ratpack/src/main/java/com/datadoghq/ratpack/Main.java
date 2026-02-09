@@ -374,6 +374,71 @@ public class Main {
                                 ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
                                 ctx.getResponse().send("text/plain", "ok");
                             })
+                            .get("endpoint_fallback", ctx -> {
+                                MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
+                                String testCase = qp.getOrDefault("case", "unknown");
+                                Map<String, Object> responseBody = new HashMap<>();
+
+                                switch (testCase) {
+                                    case "with_route":
+                                        // Test case: http.route is present - should use it for sampling
+                                        setRootSpanTag("http.route", "/users/{id}/profile");
+                                        setRootSpanTag("http.method", "GET");
+
+                                        responseBody.put("status", "ok");
+                                        responseBody.put("test_case", "with_route");
+                                        responseBody.put("message", "http.route is set");
+                                        ctx.render(json(responseBody));
+                                        break;
+
+                                    case "with_endpoint":
+                                        // Test case: http.route is absent, http.endpoint is present - should use http.endpoint for sampling
+                                        // Note: Do NOT set http.route
+                                        setRootSpanTag("http.endpoint", "/api/products/{param:int}");
+                                        setRootSpanTag("http.method", "GET");
+
+                                        responseBody.put("status", "ok");
+                                        responseBody.put("test_case", "with_endpoint");
+                                        responseBody.put("message", "http.endpoint is set, http.route is not");
+                                        ctx.render(json(responseBody));
+                                        break;
+
+                                    case "404":
+                                        // Test case: http.route is absent, http.endpoint is present, but status is 404 - should NOT sample
+                                        // Note: Do NOT set http.route
+                                        setRootSpanTag("http.endpoint", "/api/notfound/{param:int}");
+                                        setRootSpanTag("http.method", "GET");
+
+                                        responseBody.put("status", "error");
+                                        responseBody.put("test_case", "404_with_endpoint");
+                                        responseBody.put("message", "Not found - should not sample despite http.endpoint");
+                                        ctx.getResponse().status(404);
+                                        ctx.render(json(responseBody));
+                                        break;
+
+                                    case "computed":
+                                        // Test case: Neither http.route nor http.endpoint set - should compute endpoint on-demand
+                                        // The endpoint should be computed but NOT added as a tag on the span
+                                        // Note: Do NOT set http.route or http.endpoint
+                                        // Set http.url so endpoint can be computed
+                                        setRootSpanTag("http.url", "http://localhost:8080/endpoint_fallback_computed/users/123/orders/456");
+                                        setRootSpanTag("http.method", "GET");
+
+                                        responseBody.put("status", "ok");
+                                        responseBody.put("test_case", "computed_on_demand");
+                                        responseBody.put("message", "Endpoint computed from URL");
+                                        ctx.render(json(responseBody));
+                                        break;
+
+                                    default:
+                                        responseBody.put("status", "error");
+                                        responseBody.put("test_case", "unknown");
+                                        responseBody.put("message", "Invalid case parameter. Valid values: with_route, with_endpoint, 404, computed");
+                                        ctx.getResponse().status(400);
+                                        ctx.render(json(responseBody));
+                                        break;
+                                }
+                            })
                             // IAST Sampling endpoints
                             .get("iast/sampling-by-route-method-count-2/:id", IastSamplingHandlers.getSamplingByRouteMethodCount2());
                     chain.path("iast/sampling-by-route-method-count/:id", ctx -> {
