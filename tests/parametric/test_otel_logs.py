@@ -645,14 +645,10 @@ class Test_FR10_Timeout_Configuration:
         assert isinstance(exporter_timeout, dict)
         assert isinstance(exporter_logs_timeout, dict)
 
-        exporter_timeout_value = exporter_timeout.get("value")
-        assert exporter_timeout_value is not None, "OTEL_EXPORTER_OTLP_TIMEOUT value should not be None"
-        assert int(exporter_timeout_value) == 10000, (
+        assert str(exporter_timeout.get("value")) == "10000", (
             f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
         )
-        exporter_logs_timeout_value = exporter_logs_timeout.get("value")
-        assert exporter_logs_timeout_value is not None, "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT value should not be None"
-        assert int(exporter_logs_timeout_value) == 10000, (
+        assert str(exporter_logs_timeout.get("value")) == "10000", (
             f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
         )
 
@@ -756,7 +752,7 @@ class Test_FR11_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
@@ -767,16 +763,9 @@ class Test_FR11_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            value = config.get("value")
-            assert value is not None, f"Configuration value is None for '{expected_env}'"
-            if isinstance(expected_value, int):
-                assert int(value) == expected_value, (
-                    f"Expected {expected_env} to be {expected_value}, configuration: {config}"
-                )
-            else:
-                assert value == expected_value, (
-                    f"Expected {expected_env} to be {expected_value}, configuration: {config}"
-                )
+            assert str(config.get("value")) == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         "library_env",
