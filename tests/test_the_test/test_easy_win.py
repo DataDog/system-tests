@@ -11,6 +11,7 @@ from utils.scripts.activate_easy_wins._internal.test_artifact import (
 )
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.core import update_manifest
+from utils.scripts.activate_easy_wins._internal.types import Context
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -634,3 +635,23 @@ manifest:
 
         rule = result["manifest"].get("tests/appsec/test_feature.py::Test_Feature::test_method2")
         assert rule == [{"declaration": "bug (XXXX)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
+
+
+# =============================================================================
+# Tests for version processing in Context.create
+# =============================================================================
+
+
+def test_context_create_strips_java_build_metadata():
+    """Test that Context.create strips build metadata (commit SHA after +) from Java versions."""
+    context = Context.create("java", "1.44.0+abcdef123", "spring-boot")
+    assert context is not None
+    assert str(context.library_version) == "1.44.0"
+    assert "+" not in str(context.library_version)
+
+
+def test_context_create_preserves_non_java_versions():
+    """Test that Context.create does not alter versions for non-Java libraries."""
+    context = Context.create("python", "2.5.0+azeroiut", "flask")
+    assert context is not None
+    assert str(context.library_version) == "2.5.0+azeroiut"
