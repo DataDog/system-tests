@@ -8,20 +8,9 @@ from utils import scenarios, features, logger, irrelevant, context
 from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
 from .conftest import APMLibrary
-
-
-def _extract_trace_id_from_span(span: dict) -> str:
-    """Extract the full 128-bit trace ID from a span as a hex string.
-
-    Uses otel.trace_id from metadata if available (full 128-bit),
-    otherwise constructs from _dd.p.tid and trace_id (lower 64 bits).
-    """
-    if "otel.trace_id" in span.get("meta", {}):
-        return span["meta"]["otel.trace_id"]
-    root_tid = span["meta"].get("_dd.p.tid", "0" * 16)
-    return f"{root_tid}{span['trace_id']:016x}"
 
 
 def _find_log_components(
@@ -221,7 +210,7 @@ class Test_FR04_Trace_Span_IDs:
         expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
         root = find_only_span(test_agent.wait_for_num_traces(1))
-        trace_id = _extract_trace_id_from_span(root)
+        trace_id = extract_trace_id_from_otel_span(root)
         span_id = f"{root['span_id']:016x}"
 
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
@@ -249,7 +238,7 @@ class Test_FR04_Trace_Span_IDs:
         expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
         root = find_only_span(test_agent.wait_for_num_traces(1))
-        trace_id = _extract_trace_id_from_span(root)
+        trace_id = extract_trace_id_from_otel_span(root)
         span_id = f"{root['span_id']:016x}"
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
         assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
