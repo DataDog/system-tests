@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 import tempfile
 import textwrap
 import pytest
@@ -6,6 +7,7 @@ from utils import scenarios
 from utils._context.component_version import Version
 from utils.manifest import Manifest, SkipDeclaration, TestDeclaration
 from utils.manifest._internal.types import SemverRange as CustomSpec
+from utils.manifest._internal.validate import assert_nodeids_exist
 
 
 def manifest_init(
@@ -218,3 +220,120 @@ class TestManifest:
                     test_a_path.unlink()
                 if test_b_path.exists():
                     test_b_path.unlink()
+
+
+@scenarios.test_the_test
+class Test_NodeidValidation:
+    """Tests for the assert_nodeids_exist function."""
+
+    def test_existing_nodeids_pass_validation(self):
+        """Test that existing nodeids at all levels pass validation."""
+        test_dir_str = "tests/test_the_test/nodeid_test_dir_exist"
+        test_file_str = f"{test_dir_str}/test_nodeid_validation.py"
+
+        # Create test directory and file with inheritance hierarchy
+        test_dir = Path(test_dir_str)
+        test_dir.mkdir(exist_ok=True)
+
+        test_file = Path(test_file_str)
+        test_file.write_text(
+            textwrap.dedent(
+                """\
+                class GrandParentClass:
+                    def grandparent_method(self):
+                        pass
+
+                class ParentClass(GrandParentClass):
+                    def parent_method(self):
+                        pass
+
+                class Test_Child(ParentClass):
+                    def own_method(self):
+                        pass
+                """
+            )
+        )
+
+        manifest = {
+            "manifest": {
+                # Directory level nodeid
+                test_dir_str: "missing_feature",
+                # File level nodeid
+                test_file_str: "missing_feature",
+                # Class level nodeid
+                f"{test_file_str}::Test_Child": "missing_feature",
+                # Function level nodeid (own method)
+                f"{test_file_str}::Test_Child::own_method": "missing_feature",
+                # Function inherited twice (from grandparent)
+                f"{test_file_str}::Test_Child::grandparent_method": "missing_feature",
+            }
+        }
+
+        try:
+            errors = assert_nodeids_exist(manifest)
+            assert errors == [], f"Expected no errors for existing nodeids but got: {errors}"
+        finally:
+            shutil.rmtree(test_dir)
+
+    def test_non_existing_nodeids_fail_validation(self):
+        """Test that non-existing nodeids at all levels fail validation."""
+        test_dir_str = "tests/test_the_test/nodeid_test_dir_nonexist"
+        test_file_str = f"{test_dir_str}/test_nodeid_validation.py"
+
+        # Create test directory and file with inheritance hierarchy
+        test_dir = Path(test_dir_str)
+        test_dir.mkdir(exist_ok=True)
+
+        test_file = Path(test_file_str)
+        test_file.write_text(
+            textwrap.dedent(
+                """\
+                class GrandParentClass:
+                    def grandparent_method(self):
+                        pass
+
+                class ParentClass(GrandParentClass):
+                    def parent_method(self):
+                        pass
+
+                class Test_Child(ParentClass):
+                    def own_method(self):
+                        pass
+                """
+            )
+        )
+
+        manifest = {
+            "manifest": {
+                # Non-existing directory level nodeid
+                "tests/test_the_test/nonexistent_dir": "missing_feature",
+                # Non-existing file level nodeid
+                f"{test_dir_str}/nonexistent_file.py": "missing_feature",
+                # Non-existing class level nodeid
+                f"{test_file_str}::Test_NonExistent": "missing_feature",
+                # Non-existing function level nodeid
+                f"{test_file_str}::Test_Child::nonexistent_method": "missing_feature",
+                # Non-existing function that looks like inherited (but isn't)
+                f"{test_file_str}::Test_Child::fake_grandparent_method": "missing_feature",
+            }
+        }
+
+        try:
+            errors = assert_nodeids_exist(manifest)
+
+            assert len(errors) == 5, f"Expected 5 errors but got {len(errors)}: {errors}"
+
+            # Verify each type of error is present
+            assert any("nonexistent_dir" in e and "does not exist" in e for e in errors), f"Missing dir error: {errors}"
+            assert any("nonexistent_file.py" in e and "does not exist" in e for e in errors), (
+                f"Missing file error: {errors}"
+            )
+            assert any("does not contain class Test_NonExistent" in e for e in errors), f"Missing class error: {errors}"
+            assert any("does not contain function nonexistent_method" in e for e in errors), (
+                f"Missing function error: {errors}"
+            )
+            assert any("does not contain function fake_grandparent_method" in e for e in errors), (
+                f"Missing inherited function error: {errors}"
+            )
+        finally:
+            shutil.rmtree(test_dir)
