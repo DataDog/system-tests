@@ -309,7 +309,7 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
     ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)
-    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.28.1 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
+    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.29.5 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
