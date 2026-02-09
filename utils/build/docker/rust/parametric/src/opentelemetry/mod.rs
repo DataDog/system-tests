@@ -402,6 +402,8 @@ async fn otel_get_meter(
     if !meters.contains_key(&args.name) {
         // Use global meter provider configured by init_metrics(), matching Python's get_meter_provider() behavior
         let meter_provider = global::meter_provider();
+        // NOTE: Box::leak is used here because InstrumentationScope::builder requires &'static str.
+        // This is a bounded leak (once per unique meter name) since meters are stored in a HashMap.
         let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
 
         // Create InstrumentationScope with name, version, and schema_url
@@ -798,17 +800,18 @@ async fn otel_create_logger(
     let logger_provider_guard = state.logger_provider.lock().unwrap();
     let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
     
+    // NOTE: Box::leak is used here because InstrumentationScope::builder requires &'static str.
+    // This is a bounded leak (once per unique logger name) since loggers are stored in a HashMap.
     let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
     let mut scope_builder = InstrumentationScope::builder(name_static);
     
+    // with_version and with_schema_url accept String, so we can use .clone() instead of Box::leak
     if let Some(v) = &args.version {
-        let version_static: &'static str = Box::leak(v.clone().into_boxed_str());
-        scope_builder = scope_builder.with_version(version_static);
+        scope_builder = scope_builder.with_version(v.clone());
     }
     
     if let Some(s) = &args.schema_url {
-        let schema_url_static: &'static str = Box::leak(s.clone().into_boxed_str());
-        scope_builder = scope_builder.with_schema_url(schema_url_static);
+        scope_builder = scope_builder.with_schema_url(s.clone());
     }
     
     if let Some(attrs) = &args.attributes {
@@ -835,21 +838,18 @@ async fn otel_write_log(
     let logger = logger_provider.logger_with_scope(scope.clone());
 
     let level_upper = args.level.to_uppercase();
-    let severity = match level_upper.as_str() {
-        "DEBUG" => Severity::Debug,
-        "INFO" => Severity::Info,
-        "WARN" => Severity::Warn,
-        "ERROR" => Severity::Error,
-        _ => Severity::Info,
+    let (severity, severity_text) = match level_upper.as_str() {
+        "DEBUG" => (Severity::Debug, "DEBUG"),
+        "INFO" => (Severity::Info, "INFO"),
+        "WARN" => (Severity::Warn, "WARN"),
+        "ERROR" => (Severity::Error, "ERROR"),
+        _ => (Severity::Info, "INFO"),
     };
-
-    let severity_text_static: &'static str = Box::leak(level_upper.into_boxed_str());
-    let message_static: &'static str = Box::leak(args.message.clone().into_boxed_str());
 
     let mut log_record = logger.create_log_record();
     log_record.set_severity_number(severity);
-    log_record.set_severity_text(severity_text_static);
-    log_record.set_body(AnyValue::String(message_static.into()));
+    log_record.set_severity_text(severity_text);
+    log_record.set_body(AnyValue::String(args.message.clone().into()));
     
     if let Some(span_id) = args.span_id {
         let contexts = state.contexts.lock().unwrap();
