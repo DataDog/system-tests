@@ -73,6 +73,34 @@ def test_agent_otlp_grpc_port() -> int:
     return 4317
 
 
+@pytest.fixture(scope="session")
+def _library_container_cache_cleanup() -> Generator[None, None, None]:
+    """Clear cached library containers at session end (single-worker reuse)."""
+    yield
+    scenarios.parametric.clear_library_container_cache()
+
+
+@pytest.fixture(scope="session")
+def _session_test_agent(
+    worker_id: str,
+    request: pytest.FixtureRequest,
+    _library_container_cache_cleanup: None,
+) -> Generator[TestAgentAPI | None, None, None]:
+    """Session-scoped test agent when running with a single worker (no xdist)."""
+    if worker_id != "master":
+        yield None
+        return
+    with scenarios.parametric.get_test_agent_api(
+        request=request,
+        worker_id=worker_id,
+        test_id="session",
+        agent_env={},
+        container_otlp_http_port=4318,
+        container_otlp_grpc_port=4317,
+    ) as result:
+        yield result
+
+
 @pytest.fixture
 def test_agent(
     worker_id: str,
@@ -82,6 +110,10 @@ def test_agent(
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
 ) -> Generator[TestAgentAPI, None, None]:
+    session_agent = request.getfixturevalue("_session_test_agent")
+    if worker_id == "master" and not agent_env and session_agent is not None:
+        yield session_agent
+        return
     with scenarios.parametric.get_test_agent_api(
         request=request,
         worker_id=worker_id,
