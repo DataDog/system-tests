@@ -1665,21 +1665,21 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.86.0"
+        express5: ">=5.37.0 <5.86.0"
+        fastify: ">=5.37.0 <5.86.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.86.0"
+        express5: ">=5.37.0 <5.86.0"
+        fastify: ">=5.37.0 <5.86.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.86.0"
+        express5: ">=5.37.0 <5.86.0"
+        fastify: ">=5.37.0 <5.86.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
