@@ -438,6 +438,41 @@ class BaseDebuggerTest:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
+    def wait_for_all_snapshots(self, timeout: int = 30) -> bool:
+        """Wait for snapshots from all expected probe IDs to be received."""
+        logger.debug(f"Waiting for snapshots from all probes: {self.probe_ids}")
+        self._all_snapshots_found = False
+        interfaces.agent.wait_for(self._wait_for_all_snapshots, timeout=timeout)
+        return self._all_snapshots_found
+
+    def _wait_for_all_snapshots(self, data: dict) -> bool:
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+            contents = data["request"].get("content", []) or []
+            found_probe_ids = set()
+
+            for content in contents:
+                # Filter out snapshots from before the test start time for multiple tests using the same file.
+                if "timestamp" in content and self.start_time is not None:
+                    if content["timestamp"] < self.start_time:
+                        continue
+
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+
+                if snapshot and "probe" in snapshot:
+                    probe_id = snapshot["probe"]["id"]
+                    if probe_id in self.probe_ids:
+                        found_probe_ids.add(probe_id)
+                        logger.debug(f"Found snapshot for probe {probe_id}")
+
+            # Check if we have snapshots for all expected probe IDs
+            if set(self.probe_ids).issubset(found_probe_ids):
+                logger.debug(f"All snapshots found for probes: {self.probe_ids}")
+                self._all_snapshots_found = True
+                return True
+
+        logger.debug(f"Still waiting for snapshots. Found: {found_probe_ids}, Expected: {self.probe_ids}")
+        return False
+
     _no_capture_reason_span_found = False
 
     def wait_for_no_capture_reason_span(self, error_message: str, timeout: int) -> bool:
