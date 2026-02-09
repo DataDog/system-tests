@@ -1,6 +1,9 @@
+---
+description: Rules for reviewing Pull Requests in system-tests
+globs: 
+alwaysApply: false
+---
 # PR Review Guidelines
-
-> Rules for reviewing Pull Requests in system-tests
 
 ## Test Activation/Deactivation Changes
 
