@@ -96,7 +96,10 @@ class TestAgentFactory:
         otlp_http_host_port = get_host_port(worker_id, 4701)
         otlp_grpc_host_port = get_host_port(worker_id, 4802)
 
-        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+        # request.cls is not available in session-scoped context
+        log_dir = "session" if getattr(request, "cls", None) is None else request.cls.__name__
+        log_name = getattr(request.node, "name", "session")
+        log_path = f"{self.host_log_folder}/outputs/{log_dir}/{log_name}/agent_log.log"
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
 
         with (
@@ -160,7 +163,8 @@ class TestAgentFactory:
             else:
                 yield client
 
-        request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
+        if hasattr(request.node, "add_report_section"):
+            request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
 
 
 class TestAgentAPI:
@@ -188,9 +192,9 @@ class TestAgentAPI:
 
         self._session = requests.Session()
         self._pytest_request = pytest_request
-        self.log_path = (
-            f"{host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
-        )
+        log_dir = "session" if getattr(pytest_request, "cls", None) is None else pytest_request.cls.__name__
+        log_name = getattr(pytest_request.node, "name", "session")
+        self.log_path = f"{host_log_folder}/outputs/{log_dir}/{log_name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:

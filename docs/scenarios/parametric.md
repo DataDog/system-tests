@@ -133,6 +133,20 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -vv -k test_metrics_
 TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
 ```
 
+### Making parametric runs faster
+
+- **Skip the build when the image already exists:** Use `--skip-parametric-build` (or set `SKIP_PARAMETRIC_BUILD=1`) when you are only changing test code. This avoids rebuilding the parametric library image on every run. When you change the Dockerfile or app code under `utils/build/docker/<lang>/parametric/`, run without this option so the image is rebuilt.
+
+  ```sh
+  TEST_LIBRARY=java ./run.sh PARAMETRIC --skip-parametric-build tests/parametric/test_startup_logs.py
+  ```
+
+- **Single-worker runs reuse the test agent:** When running without pytest-xdist (e.g. a single test or `-n 0`), one test agent and one Docker network are shared for the whole session, so you avoid per-test agent startup.
+
+- **Per-test time is dominated by library process startup:** For Java and other heavy runtimes, most of the time for each test is starting the JVM and the parametric app. Running multiple tests in one invocation amortizes session setup (build, agent, network).
+
+- **Single-worker runs reuse the library container when `library_env` is unchanged:** When running without pytest-xdist, tests that use the same `library_env` (and `library_extra_command_arguments`) share one library container. The container is only restarted when the env changes or at session end. Tests must not rely on a fresh process unless they use a distinct `library_env`.
+
 ### Understanding the test outcomes
 Please refer to this [chart](docs/execute/test-outcomes.md)
 

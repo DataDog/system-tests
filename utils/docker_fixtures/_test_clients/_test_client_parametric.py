@@ -45,6 +45,8 @@ class ParametricTestClientFactory(TestClientFactory):
         test_agent: TestAgentAPI,
         library_env: dict,
         library_extra_command_arguments: list[str],
+        *,
+        leave_running: bool = False,
     ) -> Generator["ParametricTestClientApi", None, None]:
         host_port = get_host_port(worker_id, 4500)
         container_port = 8080
@@ -92,6 +94,7 @@ class ParametricTestClientFactory(TestClientFactory):
                 volumes=self.container_volumes,
                 log_file=log_file,
                 network=test_agent.network,
+                remove_on_exit=not leave_running,
             ) as container,
         ):
             test_server_timeout = 60

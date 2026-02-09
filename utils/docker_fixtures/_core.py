@@ -49,6 +49,8 @@ def docker_run(
     ports: dict[str, int],
     log_file: TextIO,
     command: list[str] | None = None,
+    *,
+    remove_on_exit: bool = True,
 ) -> Generator[Container, None, None]:
     logger.info(f"Run container {name} from image {image} with ports {ports}")
 
@@ -74,9 +76,10 @@ def docker_run(
     try:
         yield container
     finally:
-        logger.info(f"Stopping {name}")
-        container.stop(timeout=1)
-        logs = container.logs()
-        log_file.write(logs.decode("utf-8"))
-        log_file.flush()
-        container.remove(force=True)
+        if remove_on_exit:
+            logger.info(f"Stopping {name}")
+            container.stop(timeout=1)
+            logs = container.logs()
+            log_file.write(logs.decode("utf-8"))
+            log_file.flush()
+            container.remove(force=True)

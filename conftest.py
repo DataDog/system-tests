@@ -127,6 +127,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default="",
         help="An file containing a valid Github token to perform API calls",
     )
+    parser.addoption(
+        "--skip-parametric-build",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip building the parametric library image when it already exists "
+            "(faster re-runs when only test code changes)"
+        ),
+    )
 
     # Integration frameworks scenario options
     parser.addoption(
@@ -457,7 +466,8 @@ def pytest_fixture_setup(
         xfails = [*request.node.iter_markers("xfail")]
         outcome = "xfailed" if len(xfails) != 0 else "error"
 
-        request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+        if hasattr(request.node, "user_properties"):
+            request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
 
 
 @pytest.hookimpl(hookwrapper=True)
