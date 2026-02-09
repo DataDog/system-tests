@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ARG NGINX_VERSION="1.28.1"
+ARG NGINX_VERSION="1.29.5"
 ENV NGINX_VERSION=${NGINX_VERSION}
 
 RUN groupadd --system --gid 101 nginx \
