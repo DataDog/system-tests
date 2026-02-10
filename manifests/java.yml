@@ -2349,12 +2349,16 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: v1.3.0
         vertx3: v1.7.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_blocking_appsec_blocked_tag:
     - declaration: flaky (APPSEC-10798)
       component_version: '>=1.19.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
     - declaration: missing_feature
       component_version: <1.14.0
+    - declaration: bug (APPSEC-61196)
+      component_version: '>=1.14.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:
     - declaration: missing_feature
       component_version: <1.14.0
