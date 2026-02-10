@@ -91,20 +91,12 @@ while true; do
 
     if [[ "$provider_choice" -eq 0 ]]; then
         SELECTED_PROVIDER=""
-        USE_LOCAL_PROVIDER=false
         echo ""
         echo -e "${GREEN}✓ Selected: ${CYAN}ALL providers${NC}"
         break
     elif [[ "$provider_choice" -ge 1 && "$provider_choice" -le $num_providers ]]; then
         SELECTED_PROVIDER="${PROVIDERS[$((provider_choice - 1))]}"
         selected_label="${PROVIDER_LABELS[$((provider_choice - 1))]}"
-
-        # Check if this is the local provider (starts with "file://")
-        if [[ "$SELECTED_PROVIDER" == file://* ]]; then
-            USE_LOCAL_PROVIDER=true
-        else
-            USE_LOCAL_PROVIDER=false
-        fi
 
         echo ""
         if [[ -n "$selected_label" ]]; then
@@ -121,43 +113,9 @@ done
 echo ""
 
 # ============================================================================
-# Step 2: Select AI Agent (only if local provider is selected)
+# Step 2: Select Test Scenarios
 # ============================================================================
-if [[ "$USE_LOCAL_PROVIDER" == true ]]; then
-    echo -e "${MAGENTA}━━━ Step 2: Select AI Agent ━━━${NC}"
-    echo ""
-    echo -e "${BLUE}Which AI agent would you like to use for the evaluation?${NC}"
-    echo ""
-    echo -e "  ${GREEN}1)${NC} cursor-agent  - Use Cursor AI Agent"
-    echo -e "  ${GREEN}2)${NC} claude        - Use Claude CLI"
-    echo ""
-
-    while true; do
-        read -rp "Enter your choice (1 or 2): " choice
-        case $choice in
-            1)
-                AGENT="cursor-agent"
-                break
-                ;;
-            2)
-                AGENT="claude"
-                break
-                ;;
-            *)
-                echo -e "${YELLOW}⚠️  Invalid choice. Please enter 1 or 2.${NC}"
-                ;;
-        esac
-    done
-
-    echo ""
-    echo -e "${GREEN}✓ Selected agent: ${CYAN}${AGENT}${NC}"
-    echo ""
-fi
-
-# ============================================================================
-# Step 3: Select Test Scenarios
-# ============================================================================
-echo -e "${MAGENTA}━━━ Step 3: Select Test Scenarios ━━━${NC}"
+echo -e "${MAGENTA}━━━ Step 2: Select Test Scenarios ━━━${NC}"
 echo ""
 
 # Find all test YAML files (portable approach for macOS/older bash)
@@ -220,33 +178,11 @@ done
 echo ""
 
 # ============================================================================
-# Step 4: Run the evaluation
+# Step 3: Run the evaluation
 # ============================================================================
-echo -e "${MAGENTA}━━━ Step 4: Running Evaluation ━━━${NC}"
+echo -e "${MAGENTA}━━━ Step 3: Running Evaluation ━━━${NC}"
 echo ""
 
-# Run the selected agent only if using local provider
-if [[ "$USE_LOCAL_PROVIDER" == true ]]; then
-    # Prepare the prompt based on selected config
-    if [[ -n "$SELECTED_CONFIG" ]]; then
-        AI_PROMPT="@promptfoo-llm.mdc test the file $SELECTED_CONFIG"
-    else
-        AI_PROMPT="@promptfoo-llm.mdc Run the complete test suite."
-    fi
-
-    # Run the selected agent
-    if [[ "$AGENT" == "cursor-agent" ]]; then
-        echo -e "${BLUE}🔑 Logging in to cursor-agent...${NC}"
-        cursor-agent login
-        echo ""
-        echo -e "${BLUE}🚀 Running evaluation with cursor-agent...${NC}"
-        cursor-agent -p "$AI_PROMPT"
-    else
-        echo -e "${BLUE}🚀 Running evaluation with claude...${NC}"
-        claude --permission-mode acceptEdits -p "$AI_PROMPT"
-    fi
-    echo ""
-fi
 echo -e "${BLUE}📊 Running promptfoo evaluation...${NC}"
 
 # Build the promptfoo command

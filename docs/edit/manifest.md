@@ -18,8 +18,32 @@ When executed locally, tests run against the latest version of dd-trace by defau
 
 ## Manifest Files
 
-Each library has its own manifest file at `manifests/{library}.yml`.
-There is also `manifests/agent.yml` for agent version conditions.
+Each component has its own manifest file in the `manifests/` directory.
+
+### Library Manifests
+- `manifests/cpp.yml` - C++ library
+- `manifests/cpp_httpd.yml` - C++ Apache httpd module
+- `manifests/cpp_nginx.yml` - C++ Nginx module
+- `manifests/dotnet.yml` - .NET library
+- `manifests/golang.yml` - Go library
+- `manifests/java.yml` - Java library
+- `manifests/java_otel.yml` - Java OpenTelemetry
+- `manifests/nodejs.yml` - Node.js library
+- `manifests/nodejs_otel.yml` - Node.js OpenTelemetry
+- `manifests/php.yml` - PHP library
+- `manifests/python.yml` - Python library
+- `manifests/python_lambda.yml` - Python AWS Lambda
+- `manifests/python_otel.yml` - Python OpenTelemetry
+- `manifests/ruby.yml` - Ruby library
+- `manifests/rust.yml` - Rust library
+
+### Infrastructure Manifests
+- `manifests/agent.yml` - Datadog Agent version conditions
+- `manifests/k8s_cluster_agent.yml` - Kubernetes Cluster Agent
+- `manifests/envoy.yml` - Envoy proxy
+- `manifests/haproxy.yml` - HAProxy
+
+**Note:** Do not create new manifest files without consulting the team in **#apm-shared-testing** Slack channel first.
 
 ## Test Node ID Format
 

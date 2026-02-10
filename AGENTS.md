@@ -25,8 +25,7 @@ Read and follow these rules in EVERY interaction:
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 
-10. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
-11. **`.cursor/rules/promptfoo-llm.mdc`** - Promptfoo LLM testing guidelines
+11. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
 
 ---
 
