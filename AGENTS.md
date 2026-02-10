@@ -27,6 +27,10 @@ Read and follow these rules in EVERY interaction:
 
 11. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
 
+## Pull request review guidelines
+
+12. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
+
 ---
 
 ## Quick Reference

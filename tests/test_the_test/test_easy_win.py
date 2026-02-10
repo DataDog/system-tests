@@ -634,3 +634,101 @@ manifest:
 
         rule = result["manifest"].get("tests/appsec/test_feature.py::Test_Feature::test_method2")
         assert rule == [{"declaration": "bug (XXXX)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
+
+
+# =============================================================================
+# Tests for comment preservation
+# =============================================================================
+
+
+def test_easy_win_comment_preserves_existing_comment():
+    """Test that existing YAML comments are not overwritten by the easy win activation script.
+
+    When a manifest entry already has an inline comment and the activation script
+    would try to add an 'Easy win for ...' comment, the pre-existing comment must
+    be preserved.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        # Create manifest with a pre-existing inline comment on a list-style rule.
+        # The list-style bug declaration without weblog_declaration triggers the
+        # else branch in write_poke, which attempts to write an "Easy win for ..." comment.
+        manifest_content = """---
+manifest:
+  tests/appsec/test_feature.py::Test_Feature: # Important: tracked in TICKET-456
+    - declaration: bug (TICKET-123)
+      component_version: '>=1.0.0'
+"""
+        (manifest_dir / "ruby.yml").write_text(manifest_content)
+
+        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+        update_manifest(manifest_editor, test_data)
+        manifest_editor.write(manifest_dir)
+
+        output_content = (manifest_dir / "ruby.yml").read_text()
+        # The pre-existing comment must still be there
+        assert "Important: tracked in TICKET-456" in output_content
+        # The easy win comment must NOT have overwritten it
+        assert "Easy win for" not in output_content
+
+
+def test_easy_win_comment_added_when_no_existing_comment():
+    """Test that the easy win comment IS added when there is no pre-existing comment.
+
+    This ensures the comment-preservation guard does not prevent comments from
+    being added to entries that have no comment yet.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        # Same manifest structure but WITHOUT a pre-existing comment
+        manifest_content = """---
+manifest:
+  tests/appsec/test_feature.py::Test_Feature:
+    - declaration: bug (TICKET-123)
+      component_version: '>=1.0.0'
+"""
+        (manifest_dir / "ruby.yml").write_text(manifest_content)
+
+        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+        update_manifest(manifest_editor, test_data)
+        manifest_editor.write(manifest_dir)
+
+        output_content = (manifest_dir / "ruby.yml").read_text()
+        # The easy win comment should have been added since there was no pre-existing comment
+        assert "Easy win for" in output_content
