@@ -24,8 +24,8 @@ def _setup_baggage_api_request(endpoint: str):
         endpoint,
         params={
             "url": "http://weblog:7777",
-            "baggage_set": "foo_case_sensitive_key=overwrite_value,new_foo=new_value",
             "baggage_remove": "remove_me_key",
+            "baggage_set": "foo_case_sensitive_key=overwrite_value,new_foo=new_value",
         },
         headers={
             "x-datadog-parent-id": "10",

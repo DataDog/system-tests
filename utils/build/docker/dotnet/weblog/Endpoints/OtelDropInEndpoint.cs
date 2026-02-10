@@ -110,7 +110,7 @@ namespace weblog
                 var parameters = BaggageApiEndpointParameters.Bind(context);
                 if (parameters.Url == null)
                 {
-                    var example = "http://localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777";
+                    var example = "http://localhost:7777/otel_drop_in_baggage_api_otel?url=http%3A%2F%2Fweblog%3A7777";
                     throw new System.Exception($"Specify the url to call in the query string: {example}");
                 }
 
@@ -148,7 +148,7 @@ namespace weblog
                 var parameters = BaggageApiEndpointParameters.Bind(context);
                 if (parameters.Url == null)
                 {
-                    var example = "http://localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777";
+                    var example = "http://localhost:7777/otel_drop_in_baggage_api_datadog?url=http%3A%2F%2Fweblog%3A7777";
                     throw new System.Exception($"Specify the url to call in the query string: {example}");
                 }
 

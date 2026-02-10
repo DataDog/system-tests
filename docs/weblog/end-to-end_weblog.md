@@ -511,6 +511,42 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
 }
 ```
 
+### GET /otel_drop_in_baggage_api_otel
+This endpoint accepts the following mandatory parameters:
+- `url`: A URL to issue a downstream request to
+- `baggage_remove`: A list of keys to remove from the current baggage (e.g. `key1,key2`)
+- `baggage_set`: A list of keys to set on the current baggage (e.g. `key1=value2,key2=value2`)
+
+Using the **OpenTelemetry Baggage API**, this endpoint updates the current baggage by first removing baggage items with the keys specified by the `baggage_remove` parameter then adding baggage items specified by the `baggage_set` parameter. Each modification must immediately update the current baggage, which can be done either by invoking static OpenTelemetry Baggage APIs (in some languages) or manually updating the current baggage after each modification.
+
+Once the baggage modifications are made, an HTTP request is sent to the URL specified by the `url` parameter and the response should be returned in the same manner as the `GET /make_distant_call` endpoint.
+
+### GET /otel_drop_in_baggage_api_datadog
+This endpoint accepts the following mandatory parameters:
+- `url`: A URL to issue a downstream request to
+- `baggage_remove`: A list of keys to remove from the current baggage (e.g. `key1,key2`)
+- `baggage_set`: A list of keys to set on the current baggage (e.g. `key1=value2,key2=value2`)
+
+Using the **Datadog Baggage API**, this endpoint updates the current baggage by first removing baggage items with the keys specified by the `baggage_remove` parameter then adding baggage items specified by the `baggage_set` parameter. Each modification must immediately update the current baggage.
+
+Once the baggage modifications are made, an HTTP request is sent to the URL specified by the `url` parameter and the response should be returned in the same manner as the `GET /make_distant_call` endpoint.
+
+### GET /otel_drop_in_baggage_api_combined
+This endpoint accepts the following mandatory parameters:
+- `url`: A URL to issue a downstream request to
+- `baggage_remove_datadog`: A list of keys to remove from the current baggage (e.g. `key1,key2`) using Datadog Baggage APIs
+- `baggage_remove_otel`: A list of keys to remove from the current baggage (e.g. `key1,key2`) using OpenTelemetry Baggage APIs
+- `baggage_set_datadog`: A list of keys to set on the current baggage (e.g. `key1=value2,key2=value2`) using Datadog Baggage APIs
+- `baggage_set_otel`: A list of keys to set on the current baggage (e.g. `key1=value2,key2=value2`) using OpenTelemetry Baggage APIs
+
+This endpoint modifies baggage by interweaving Baggage API calls in the following manner:
+- Keys specified by `baggage_remove_datadog` are removed from the current Datadog Baggage
+- Keys specified by `baggage_remove_otel` are removed from the current OpenTelemetry Baggage
+- Items specified by `baggage_set_datadog` are added to the current Datadog Baggage
+- Items specified by `baggage_set_otel` are added to the current OpenTelemetry Baggage
+
+Once the baggage modifications are made, an HTTP request is sent to the URL specified by the `url` parameter and the response should be returned in the same manner as the `GET /make_distant_call` endpoint.
+
 ### GET /dbm
 
 This endpoint executes database queries for [DBM supported libraries](https://docs.datadoghq.com/database_monitoring/guide/connect_dbm_and_apm/?tab=go#before-you-begin). A 200 response is returned if the query
