@@ -661,10 +661,13 @@ manifest:
         gin: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_gRPC: v1.36.0
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
     - declaration: missing_feature
       component_version: <1.52.0
+    - declaration: bug (APPSEC-61196)
+      component_version: '>=1.52.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:
     - declaration: missing_feature
       component_version: <1.52.0

@@ -235,6 +235,9 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers:
     - weblog_declaration:
         "*": v8.113.0

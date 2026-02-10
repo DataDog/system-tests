@@ -408,6 +408,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.15.0  # v0.86.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v1.15.0  # v0.86.0

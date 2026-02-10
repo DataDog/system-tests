@@ -814,8 +814,9 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: v2.11.0
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v2.11.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept: v1.16.1
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v2.10.0
