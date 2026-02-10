@@ -18,4 +18,3 @@ Key verification points:
 - Version specifications use the `v` prefix (e.g., `v1.2.0`)
 - Special YAML characters are properly quoted
 - `bug` and `flaky` markers include JIRA ticket references
-- The `./format.sh` script was run after modifications

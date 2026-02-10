@@ -27,7 +27,7 @@ Read and follow these rules in EVERY interaction:
 10. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
 11. **`.cursor/rules/promptfoo-llm.mdc`** - Promptfoo LLM testing guidelines
 
-## Pull request review specific rules
+## Pull request review guidelines
 
 12. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
 
