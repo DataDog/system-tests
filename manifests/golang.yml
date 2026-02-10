@@ -1388,7 +1388,23 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.49.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        uds-echo: '>=2.6.0'
+        chi: '>=2.6.0'
+        net-http: '>=2.6.0'
+        gin: '>=2.6.0'
+        echo: '>=2.6.0'
+        net-http-orchestrion: '>=2.6.0'
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence:  # Created by easy win activation script
+    - weblog_declaration:
+        chi: missing_feature
+        net-http: missing_feature
+        uds-echo: missing_feature
+        gin: missing_feature
+        echo: missing_feature
+        net-http-orchestrion: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
   tests/test_v1_payloads.py:  # Modified by easy win activation script
