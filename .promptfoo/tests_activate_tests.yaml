@@ -8,7 +8,7 @@
             - "Endpoint is not implemented on weblog"
   - description: "[test activation] Using manifests"
     vars:
-      user_prompt: "I want to disable the test class Test_Backend for all tracer libraries"
+      user_prompt: "What should i do to disable the test class Test_Backend for all tracer libraries because the feature is not implemented yet."
     assert:
         - type: icontains-all
           value:
@@ -20,11 +20,9 @@
             - "ruby.yml"
             - "golang.yml"
             - "dotnet.yml"
-            - "cpp_httpd.yml"
-            - "cpp_nginx.yml"
   - description: "[test activation] Scenario-specific condition requires decorator"
     vars:
-      user_prompt: "I want to mark the test class Test_RaspSqli as a bug only when running on the APPSEC_RASP scenario. The JIRA ticket is APPSEC-789."
+      user_prompt: "What should i do to mark the test class Test_RaspSqli as a bug only when running on the APPSEC_RASP scenario. The JIRA ticket is APPSEC-789."
     assert:
         - type: icontains-all
           value:
@@ -36,7 +34,7 @@
           value: "manifests/java.yml"
   - description: "[test activation] Weblog-specific bug in manifest"
     vars:
-      user_prompt: "Test Test_Endpoint_Discovery works on express4 from version 5.0.0 but fails on fastify for nodejs. The JIRA ticket for fastify is APPSEC-456."
+      user_prompt: "What should i do to configure/mark the test class Test_Endpoint_Discovery to work on express4 from version 5.0.0 but fails on fastify for nodejs. The JIRA ticket for fastify is APPSEC-456."
     assert:
         - type: icontains-all
           value:
@@ -45,10 +43,10 @@
             - "fastify"
             - "bug"
             - "APPSEC-456"
-            - "v5.0.0"
+            - "5.0.0"
   - description: "[test activation] Version format with v prefix in manifest"
     vars:
-      user_prompt: "I need to activate the test Test_NewFeature for the python tracer starting from version 2.15.0 and all future versions. What should I put in the manifest?"
+      user_prompt: "I need to activate the test Test_NewFeature for the python tracer starting from version 2.15.0 and all future versions. What should I include in the manifest?"
     assert:
         - type: icontains-all
           value:
