@@ -222,3 +222,40 @@ class Test_Baggage_Headers_Api_Datadog:
     def test_datadog_api_update(self):
         interfaces.library.assert_trace_exists(self.r)
         _assert_baggage_api_response(self.r)
+
+@scenarios.tracing_config_nondefault_4
+@features.datadog_baggage_headers
+class Test_Baggage_Headers_Api_Combined:
+    def setup_api_combined_update(self):
+        self.r = weblog.get("/otel_drop_in_baggage_api_combined",
+            params={
+                "url": "http://weblog:7777",
+                "baggage_remove_datadog": "FOO_CASE_SENSITIVE_KEY",
+                "baggage_remove_otel": "remove_me_key",
+                "baggage_set_datadog": "foo_case_sensitive_key=overwrite_value,new_foo=new_value",
+                "baggage_set_otel": "foo_case_sensitive_key=latest_value",
+            },
+            headers={
+                "x-datadog-parent-id": "10",
+                "x-datadog-trace-id": "2",
+                "baggage": "foo_case_sensitive_key=value_to_be_replaced,unused_key=unused_value,FOO_CASE_SENSITIVE_KEY=UNTOUCHED,remove_me_key=remove_me_value",
+            },
+        )
+
+    def test_api_combined_update(self):
+        interfaces.library.assert_trace_exists(self.r)
+        assert self.r.status_code == 200
+        data = json.loads(self.r.text)
+        baggage_header_value = extract_baggage_value(data["request_headers"])
+        assert baggage_header_value is not None
+        header_str = baggage_header_value[0] if isinstance(baggage_header_value, list) else baggage_header_value
+        items = header_str.split(",")
+
+        # Expect the following baggage items:
+        # - "unused_key=unused_value" (not updated)
+        # - "new_foo=new_value (new pair added)
+        # - "foo_case_sensitive_key=latest_value (new pair with conflicting case-sensitive key replaces old pair)
+        assert len(items) == 3
+        assert "unused_key=unused_value" in items
+        assert "new_foo=new_value" in items
+        assert "foo_case_sensitive_key=latest_value" in items

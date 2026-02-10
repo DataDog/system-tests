@@ -813,6 +813,7 @@ manifest:
   tests/stats/test_stats.py: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: bug (APMAPI-1849)
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Combined: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: v3.6.0
