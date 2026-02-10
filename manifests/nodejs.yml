@@ -1906,6 +1906,8 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
   : missing_feature (Not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: missing_feature (Startup configuration log not emitted by default when DD_TRACE_STARTUP_LOGS is unset)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not emitted when agent is unreachable)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: *ref_5_25_0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings_2: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Defaults: *ref_5_6_0

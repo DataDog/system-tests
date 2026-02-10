@@ -4,7 +4,7 @@ import re
 
 import pytest
 
-from utils import incomplete_test_app, missing_feature, scenarios, features, context, logger
+from utils import scenarios, features, context, logger
 from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
@@ -37,12 +37,6 @@ def _get_dotnet_startup_logs(test_library: APMLibrary, *, required: bool = True)
 class Test_Startup_Logs:
     """Test tracer startup log behavior across all supported languages."""
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="Startup configuration log not emitted by default when DD_TRACE_STARTUP_LOGS is unset",
-    )
-    @missing_feature(context.library == "rust")
-    @incomplete_test_app(context.library in ("php", "cpp"), reason="Not currently testable")
     def test_startup_logs_default(self, test_library: APMLibrary):
         """Verify default startup log behavior when DD_TRACE_STARTUP_LOGS is not set."""
         with test_library:
@@ -78,8 +72,6 @@ class Test_Startup_Logs:
         [{"DD_TRACE_STARTUP_LOGS": "true"}],
         # DD_TRACE_DEBUG and DD_TRACE_LOG_LEVEL defaults are okay here
     )
-    @missing_feature(context.library == "rust")
-    @incomplete_test_app(context.library in ("php", "cpp"), reason="Not currently testable")
     def test_startup_logs_enabled(self, test_library: APMLibrary):
         """Verify startup logs are emitted when DD_TRACE_STARTUP_LOGS=true."""
         with test_library:
@@ -169,10 +161,15 @@ class Test_Startup_Logs:
             }
         ],
     )
-    @missing_feature(context.library in ("rust", "nodejs", "php"))
     def test_startup_logs_diagnostic_agent_unreachable(self, test_library: APMLibrary):
         """Verify diagnostic messages appear when agent is unreachable."""
         with test_library:
+            # Trigger a span to force tracers to attempt connection to the agent
+            # Some tracers only attempt to connect when flushing spans
+            with test_library.dd_start_span("test_operation", service="test_service"):
+                pass
+            test_library.dd_flush()
+
             if context.library == "dotnet":
                 logs = _get_dotnet_startup_logs(test_library, required=True)
             else:

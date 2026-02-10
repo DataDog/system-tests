@@ -217,6 +217,9 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_special_glob_characters_span_sampling_sss002: missing_feature  # Created by easy win activation script
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: missing_feature (Startup logs not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: missing_feature (Startup logs not implemented)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
