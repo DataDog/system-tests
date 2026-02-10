@@ -314,11 +314,6 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
         if meta is None:
             raise ValueError("Inferred API Gateway span should have meta")
 
-        # Skip optional tags assertions for Java - these fields are not yet implemented
-        is_java = meta.get("language") == "jvm" or meta.get("language") == "java"
-        if is_java:
-            return True
-
         account_id = meta.get("account_id")
         if account_id != "123456789123":
             raise ValueError(f"Expected 'account_id' tag to be '123456789123', found '{account_id}'")
@@ -331,9 +326,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
         if region != "eu-west-3":
             raise ValueError(f"Expected 'region' tag to be 'eu-west-3', found '{region}'")
 
-        user = meta.get("aws_user")
-        if user != "aws-user":
-            raise ValueError(f"Expected 'aws_user' tag to be 'aws-user', found '{user}'")
+        # Note: aws_user is NOT validated - RFC states it should not be implemented without explicit approval (PII concerns)
 
         dd_resource_key = meta.get("dd_resource_key")
         if dd_resource_key != expected_arn:
