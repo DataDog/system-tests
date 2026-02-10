@@ -3143,16 +3143,19 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.56.0-SNAPSHOT
+        spring-boot: ">=1.56.0 <1.60.0-SNAPSHOT"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.56.0-SNAPSHOT
+        spring-boot: ">=1.56.0 <1.60.0-SNAPSHOT"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.56.0-SNAPSHOT
-  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
+        spring-boot: ">=1.56.0 <1.60.0-SNAPSHOT"
+  tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.60.0-SNAPSHOT
   tests/integrations/test_mongo.py::Test_Mongo: bug (APMAPI-729)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - weblog_declaration:
