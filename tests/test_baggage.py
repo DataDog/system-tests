@@ -30,7 +30,7 @@ def _setup_baggage_api_request(endpoint: str):
         headers={
             "x-datadog-parent-id": "10",
             "x-datadog-trace-id": "2",
-            "baggage": "foo_case_sensitive_key=value_to_be_replaced,FOO_CASE_SENSITIVE_KEY=UNTOUCHED,remove_me_key=remove_me_value",
+            "baggage": "foo_case_sensitive_key=value_to_be_replaced,unused_key=unused_value,FOO_CASE_SENSITIVE_KEY=UNTOUCHED,remove_me_key=remove_me_value",
         },
     )
 
@@ -44,10 +44,12 @@ def _assert_baggage_api_response(response: requests.Response):
     items = header_str.split(",")
 
     # Expect the following baggage items:
+    # - "unused_key=unused_value" (not updated)
     # - "foo_case_sensitive_key=overwrite_value (new pair with conflicting case-sensitive key replaces old pair)
     # - "FOO_CASE_SENSITIVE_KEY=UNTOUCHED (keys are case-sensitive, so it does not get replaced)
     # - "new_foo=new_value (new pair added)
-    assert len(items) == 3
+    assert len(items) == 4
+    assert "unused_key=unused_value" in items
     assert "foo_case_sensitive_key=overwrite_value" in items
     assert "FOO_CASE_SENSITIVE_KEY=UNTOUCHED" in items
     assert "new_foo=new_value" in items
