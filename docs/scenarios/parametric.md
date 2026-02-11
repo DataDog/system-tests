@@ -147,6 +147,8 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
 
 - **Single-worker runs reuse the library container when `library_env` is unchanged:** When running without pytest-xdist, tests that use the same `library_env` (and `library_extra_command_arguments`) share one library container. The container is only restarted when the env changes or at session end. Tests must not rely on a fresh process unless they use a distinct `library_env`.
 
+- **Single-worker runs may cause failures:** Running multiple parametric tests against the same container may lead to weird failure modes due to tests polluting each other and relying on shared state. If that occurs, remove this option to use a new container per-run.
+
 ### Understanding the test outcomes
 Please refer to this [chart](docs/execute/test-outcomes.md)
 
