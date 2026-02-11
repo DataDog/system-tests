@@ -99,6 +99,19 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         raise ValueError(f"Unknown span format: {span_format}")
 
     @staticmethod
+    def _is_numeric_value(value: float | str) -> bool:
+        """Check if a value is numeric (int, float, or string that can be converted to number)."""
+        if isinstance(value, (int, float)):
+            return True
+        if isinstance(value, str):
+            try:
+                float(value)
+                return True
+            except (ValueError, TypeError):
+                return False
+        return False
+
+    @staticmethod
     def get_span_metrics(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> dict:
         """Returns the metrics dictionary of a span according to its format."""
         if span_format is None:
@@ -122,7 +135,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             return {
                 key: value
                 for key, value in attributes.items()
-                if key in metric_keys or (key.startswith("_dd.") and isinstance(value, (int, float)))
+                if key in metric_keys or (key.startswith("_dd.") and LibraryInterfaceValidator._is_numeric_value(value))
             }
 
         raise ValueError(f"Unknown span format: {span_format}")
