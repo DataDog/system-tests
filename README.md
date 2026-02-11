@@ -134,7 +134,7 @@ Running system-tests involves a few key steps:
 > ```bash
 > brew install coreutils
 > ```
-> Update your command-line settings with::
+> Update your command-line settings with:
 > ```bash
 > # Prefer GNU binaries to Macintosh binaries.
 > export PATH="{{ homebrew_dir }}/opt/coreutils/libexec/gnubin:$PATH"
