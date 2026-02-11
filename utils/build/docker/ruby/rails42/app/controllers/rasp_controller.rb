@@ -46,4 +46,27 @@ class RaspController < ApplicationController
   rescue => e
     render json: {status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})"}
   end
+
+  def external_request_redirect
+    total_redirects = params.fetch(:totalRedirects, "0")
+
+    headers = {}
+    params.except(:controller, :action).each do |key, value|
+      headers[key.to_s] = value.to_s
+    end
+
+    url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+    conn = Faraday.new do |f|
+      f.use FaradayMiddleware::FollowRedirects, limit: 10
+      f.adapter Faraday.default_adapter
+    end
+    downstream_response = conn.get(url, nil, headers)
+
+    render json: {
+      status: downstream_response.status,
+      headers: downstream_response.headers.to_h
+    }
+  rescue => e
+    render json: {status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})"}
+  end
 end

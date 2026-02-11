@@ -215,8 +215,14 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect:
+    - weblog_declaration:
+        "*": v2.27.0-dev
+        "graphql23": irrelevant
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
+    - weblog_declaration:
+        "*": v2.27.0-dev
+        "graphql23": irrelevant
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
