@@ -184,19 +184,19 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v2.7.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-61152)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v2.5.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.4.0
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: bug (APPSEC-61152)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.4.0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: bug (APPSEC-61152)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v2.4.0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: bug (APPSEC-61152)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: missing_feature
