@@ -1391,6 +1391,8 @@ manifest:
         uwsgi-poc: v4.2.0
         uds-flask: v4.2.0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.15.0
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.15.0
   ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
   : - declaration: bug (APMON-1496)
       component_version: '>2.12.2'

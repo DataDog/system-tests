@@ -1126,6 +1126,8 @@ manifest:
         rails72: missing_feature (Endpoint not implemented)
   tests/integrations/test_inferred_proxy.py: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v2.0.0
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v2.0.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: missing_feature
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: missing_feature
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault: missing_feature

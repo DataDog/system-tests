@@ -47,6 +47,7 @@ class _ScenarioGroups:
     lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
+    lib_injection_appsec = ScenarioGroup()
     k8s_injector_dev = ScenarioGroup()
     open_telemetry = ScenarioGroup()
     profiling = ScenarioGroup()

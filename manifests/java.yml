@@ -3230,6 +3230,8 @@ manifest:
         "*": missing_feature
         spring-boot: v1.39.0
   tests/integrations/test_sql.py::Test_Sql: bug (APMAPI-729)
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.59.0
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.59.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
