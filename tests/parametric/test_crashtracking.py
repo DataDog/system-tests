@@ -19,11 +19,11 @@ class Test_Crashtracking:
             event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
             # Handling both v1 and v2 of the crashtracking payload so that we can
             # update to v2 without breaking the test.
-            if event is None or not hasattr(event["payload"], "logs"):
+            if event is None or isinstance(event.get("payload"), list):
                 version = "v1"
                 if "is_crash_ping:true" not in event["payload"][0]["tags"]:
                     break
-            else:
+            else:  # If payload is a dict
                 version = "v2"
                 if "is_crash_ping:true" not in event["payload"]["logs"][0]["tags"]:
                     break
@@ -39,9 +39,9 @@ class Test_Crashtracking:
             event = json.loads(base64.b64decode(req["body"]))
 
             if event["request_type"] == "logs":
-                if not hasattr(event["payload"], "logs"):
+                if isinstance(event.get("payload"), list):
                     version = "v1"
-                else:
+                else:  # If payload is a dict
                     version = "v2"
                 with pytest.raises(AssertionError):
                     self.assert_crash_report(test_library, event, version)
@@ -68,7 +68,7 @@ class Test_Crashtracking:
             assert "tags" in event["payload"][0]
             tags = event["payload"][0]["tags"]
 
-        else:
+        else:  # If v2 payload
             assert isinstance(event.get("payload"), dict), event.get("payload")
             assert isinstance(event["payload"].get("logs"), list), event["payload"].get("logs")
             assert event["payload"]["logs"], event["payload"]["logs"]
