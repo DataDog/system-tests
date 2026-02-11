@@ -17,7 +17,7 @@ class Test_Crashtracking:
 
         while True:
             event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-            if event is None or "is_crash_ping:true" not in event["payload"][0]["tags"]:
+            if event is None or "is_crash_ping:true" not in event["payload"]["logs"][0]["tags"]:
                 break
         self.assert_crash_report(test_library, event)
 
@@ -49,12 +49,13 @@ class Test_Crashtracking:
     def assert_crash_report(self, test_library: APMLibrary, event: dict):
         logger.debug(f"event: {json.dumps(event, indent=2)}")
 
-        assert isinstance(event.get("payload"), list), event.get("payload")
-        assert event["payload"], event["payload"]
-        assert isinstance(event["payload"][0], dict), event["payload"][0]
-        assert "tags" in event["payload"][0]
+        assert isinstance(event.get("payload"), dict), event.get("payload")
+        assert isinstance(event["payload"].get("logs"), list), event["payload"].get("logs")
+        assert event["payload"]["logs"], event["payload"]["logs"]
+        assert isinstance(event["payload"]["logs"][0], dict), event["payload"]["logs"][0]
+        assert "tags" in event["payload"]["logs"][0]
 
-        tags = event["payload"][0]["tags"]
+        tags = event["payload"]["logs"][0]["tags"]
         tags_dict = dict(item.split(":") for item in tags.split(","))
         logger.debug(f"tags_dict: {json.dumps(tags_dict, indent=2)}")
 
