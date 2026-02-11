@@ -39,11 +39,11 @@ class Test_Crashtracking:
             event = json.loads(base64.b64decode(req["body"]))
 
             if event["request_type"] == "logs":
+                if event["payload"].get("logs") is None:
+                    version = "v1"
+                else:
+                    version = "v2"
                 with pytest.raises(AssertionError):
-                    if event["payload"].get("logs") is None:
-                        version = "v1"
-                    else:
-                        version = "v2"
                     self.assert_crash_report(test_library, event, version)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
