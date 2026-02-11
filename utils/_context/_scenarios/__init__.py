@@ -998,7 +998,7 @@ class _Scenarios:
     k8s_lib_injection_appsec_enabled = K8sScenario(
         "K8S_LIB_INJECTION_APPSEC_ENABLED",
         doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
-        dd_cluster_feature={"asm.threats.enabled": "auto"},
+        dd_cluster_feature={"asm.threats.enabled": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
@@ -1040,7 +1040,7 @@ class _Scenarios:
     appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
         "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
         weblog_env={
-            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+            "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "0",
         },
     )
 

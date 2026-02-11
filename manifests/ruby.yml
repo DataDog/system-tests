@@ -235,8 +235,36 @@ manifest:
     - weblog_declaration:
         "*": v2.27.0-dev
         "graphql23": irrelevant
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails52: '>=2.28.0'
+        rails61: '>=2.28.0'
+        sinatra41: '>=2.28.0'
+        uds-rails: '>=2.28.0'
+        rails72: '>=2.28.0'
+        sinatra32: '>=2.28.0'
+        rails80: '>=2.28.0'
+        rails42: '>=2.28.0'
+        uds-sinatra: '>=2.28.0'
+        rack: '>=2.28.0'
+        sinatra14: '>=2.28.0'
+        sinatra22: '>=2.28.0'
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails52: '>=2.28.0'
+        rails61: '>=2.28.0'
+        sinatra41: '>=2.28.0'
+        uds-rails: '>=2.28.0'
+        rails72: '>=2.28.0'
+        sinatra32: '>=2.28.0'
+        rails80: '>=2.28.0'
+        rails42: '>=2.28.0'
+        uds-sinatra: '>=2.28.0'
+        rack: '>=2.28.0'
+        sinatra14: '>=2.28.0'
+        sinatra22: '>=2.28.0'
   tests/appsec/rasp/test_cmdi.py: missing_feature
   tests/appsec/rasp/test_lfi.py: missing_feature
   tests/appsec/rasp/test_shi.py: missing_feature
@@ -877,8 +905,18 @@ manifest:
         rails80: v2.8.0
         uds-rails: v2.12.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full: missing_feature (Local variable capture not implemented for method probes)
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_excluded_identifiers: bug (DEBUG-3747)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.28.0'
+        uds-rails: '>=2.28.0'
+        rails80: '>=2.28.0'
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_excluded_identifiers:  # Modified by easy win activation script
+    - declaration: bug (DEBUG-3747)
+      component_version: <2.28.0
+      weblog: [rails72, uds-rails, rails80]
+    - declaration: bug (DEBUG-3747)
+      excluded_weblog: [rails72, uds-rails, rails80]
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": irrelevant

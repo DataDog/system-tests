@@ -1029,7 +1029,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: bug (APPSEC-60508)
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": missing_feature
@@ -1043,7 +1043,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1055,7 +1055,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1071,7 +1071,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'  # Needs to be checked
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -2349,12 +2349,16 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: v1.3.0
         vertx3: v1.7.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_blocking_appsec_blocked_tag:
     - declaration: flaky (APPSEC-10798)
       component_version: '>=1.19.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
     - declaration: missing_feature
       component_version: <1.14.0
+    - declaration: bug (APPSEC-61196)
+      component_version: '>=1.14.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:
     - declaration: missing_feature
       component_version: <1.14.0
@@ -2655,13 +2659,13 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
-        spring-boot: v1.48.0
-        spring-boot-jetty: v1.48.0
-        spring-boot-openliberty: v1.48.0
-        spring-boot-payara: v1.48.0
-        spring-boot-undertow: v1.48.0
-        spring-boot-wildfly: v1.48.0
-        uds-spring-boot: v1.48.0
+        spring-boot: bug (DEBUG-5131)
+        spring-boot-jetty: bug (DEBUG-5131)
+        spring-boot-openliberty: bug (DEBUG-5131)
+        spring-boot-payara: bug (DEBUG-5131)
+        spring-boot-undertow: bug (DEBUG-5131)
+        spring-boot-wildfly: bug (DEBUG-5131)
+        uds-spring-boot: bug (DEBUG-5131)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
