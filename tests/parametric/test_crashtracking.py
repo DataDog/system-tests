@@ -17,9 +17,17 @@ class Test_Crashtracking:
 
         while True:
             event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-            if event is None or "is_crash_ping:true" not in event["payload"]["logs"][0]["tags"]:
-                break
-        self.assert_crash_report(test_library, event)
+            # Handling both v1 and v2 of the crashtracking payload so that we can
+            # update to v2 without breaking the test.
+            if event is None or event["payload"].get("logs") is None:
+                version = "v1"
+                if "is_crash_ping:true" not in event["payload"][0]["tags"]:
+                    break
+            else:
+                version = "v2"
+                if "is_crash_ping:true" not in event["payload"]["logs"][0]["tags"]:
+                    break
+        self.assert_crash_report(test_library, event, version)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -32,7 +40,11 @@ class Test_Crashtracking:
 
             if event["request_type"] == "logs":
                 with pytest.raises(AssertionError):
-                    self.assert_crash_report(test_library, event)
+                    if event["payload"].get("logs") is None:
+                        version = "v1"
+                    else:
+                        version = "v2"
+                    self.assert_crash_report(test_library, event, version)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_telemetry_timeout(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -46,16 +58,24 @@ class Test_Crashtracking:
         finally:
             test_agent.set_trace_delay(0)
 
-    def assert_crash_report(self, test_library: APMLibrary, event: dict):
+    def assert_crash_report(self, test_library: APMLibrary, event: dict, version: str):
         logger.debug(f"event: {json.dumps(event, indent=2)}")
 
-        assert isinstance(event.get("payload"), dict), event.get("payload")
-        assert isinstance(event["payload"].get("logs"), list), event["payload"].get("logs")
-        assert event["payload"]["logs"], event["payload"]["logs"]
-        assert isinstance(event["payload"]["logs"][0], dict), event["payload"]["logs"][0]
-        assert "tags" in event["payload"]["logs"][0]
+        if version == "v1":
+            assert isinstance(event.get("payload"), list), event.get("payload")
+            assert event["payload"], event["payload"]
+            assert isinstance(event["payload"][0], dict), event["payload"][0]
+            assert "tags" in event["payload"][0]
+            tags = event["payload"][0]["tags"]
 
-        tags = event["payload"]["logs"][0]["tags"]
+        else:
+            assert isinstance(event.get("payload"), dict), event.get("payload")
+            assert isinstance(event["payload"].get("logs"), list), event["payload"].get("logs")
+            assert event["payload"]["logs"], event["payload"]["logs"]
+            assert isinstance(event["payload"]["logs"][0], dict), event["payload"]["logs"][0]
+            assert "tags" in event["payload"]["logs"][0]
+            tags = event["payload"]["logs"][0]["tags"]
+
         tags_dict = dict(item.split(":") for item in tags.split(","))
         logger.debug(f"tags_dict: {json.dumps(tags_dict, indent=2)}")
 
