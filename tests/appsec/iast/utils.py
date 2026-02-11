@@ -368,16 +368,19 @@ def validate_extended_location_data(
 
 
 def get_hardcoded_vulnerabilities(vulnerability_type: str, request: HttpResponse | None = None) -> list:
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No spans found"
-    spans_meta = [span.get("meta") for span in spans]
+    spans_with_format = [
+        (span, span_format) for _, span, span_format in interfaces.library.get_root_spans(request=request)
+    ]
+    assert spans_with_format, "No spans found"
+    spans_meta = [interfaces.library.get_span_meta(span, span_format) for span, span_format in spans_with_format]
     assert spans_meta, "No spans meta found"
-    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta and meta.get("_dd.iast.json")]
     assert iast_events, "No iast events found"
 
     vulnerabilities: list = []
     for event in iast_events:
-        vulnerabilities.extend(event.get("vulnerabilities", []))
+        if event:
+            vulnerabilities.extend(event.get("vulnerabilities", []))
 
     assert vulnerabilities, "No vulnerabilities found"
 
