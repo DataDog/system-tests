@@ -102,6 +102,12 @@ For Homebrew users:
 brew install python@3.12
 ```
 
+If you run `./build.sh` on macOS, install GNU coreutils to provide `gtimeout`:
+
+```bash
+brew install coreutils
+```
+
 #### Windows
 
 Support coming soon.
