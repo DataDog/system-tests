@@ -123,10 +123,10 @@ manifest:
   tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays:  # Modified by easy win activation script
     - declaration: missing_feature (DD_TELEMETRY_HEARTBEAT_INTERVAL not supported)
       component_version: <1.0.3
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: '>=1.0.3'  # Modified by easy win activation script
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting::test_telemetry_enhanced_config_reporting_precedence: missing_feature  # Created by easy win activation script
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
