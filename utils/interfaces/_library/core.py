@@ -182,6 +182,43 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         raise ValueError(f"Unknown span format: {span_format}")
 
     @staticmethod
+    def get_trace_id(trace: dict | list[dict], span_format: TraceLibraryPayloadFormat | None = None) -> int:
+        """Returns the trace_id from a trace according to its format.
+
+        For v04 format, trace is a list of spans and trace_id is in the first span.
+        For v1 format, trace is a dict (chunk) with trace_id at the chunk level.
+        """
+        if span_format is None:
+            # Try to detect format from trace structure
+            if isinstance(trace, dict) and "spans" in trace:
+                span_format = TraceLibraryPayloadFormat.v1
+            elif isinstance(trace, list) and len(trace) > 0:
+                span_format = TraceLibraryPayloadFormat.v04
+            else:
+                raise ValueError("Cannot determine span format from trace structure")
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            # For v04, trace is a list of spans, trace_id is in the first span
+            if isinstance(trace, list) and len(trace) > 0:
+                return trace[0].get("trace_id", 0)
+            return 0
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            # For v1, trace is a dict (chunk) with trace_id at the chunk level
+            if isinstance(trace, dict) and "trace_id" in trace:
+                trace_id = trace["trace_id"]
+                # Convert hex string to int (extract lower 64 bits)
+                if isinstance(trace_id, str) and trace_id.startswith("0x"):
+                    try:
+                        return int(trace_id[-16:], 16)
+                    except ValueError:
+                        return int(trace_id, 16) if trace_id.startswith("0x") else 0
+                return trace_id if isinstance(trace_id, int) else 0
+            return 0
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
     def get_span_parent_id(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> int | None:
         """Returns the parent_id of a span according to its format."""
         if span_format is None:

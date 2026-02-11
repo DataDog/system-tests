@@ -151,21 +151,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, span_format, tested_metrics))
 
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -211,21 +198,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, span_format, tested_metrics))
 
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -271,21 +245,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, span_format, tested_metrics))
 
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -331,21 +292,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, span_format, tested_metrics))
 
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -389,21 +337,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -446,21 +381,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -506,21 +428,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -565,21 +474,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -624,21 +520,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -680,21 +563,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -736,21 +606,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -792,21 +649,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
 
             # Some tracers use true while others use yes
             assert any(
@@ -970,11 +814,8 @@ class Test_AppSecStandalone_NotEnabled:
 
     def test_client_computed_stats_header_is_not_present(self):
         spans_checked = 0
-        for data, trace, span, span_format in interfaces.library.get_spans(request=self.r):
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+        for data, trace, _, span_format in interfaces.library.get_spans(request=self.r):
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212122
             assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
             spans_checked += 1
@@ -1050,21 +891,8 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
             SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0
         }
         for data, trace, span, span_format in interfaces.library.get_spans(request=request):
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert trace_id == 1212121212121212121
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == 1212121212121212121
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == 1212121212121212121
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
@@ -1228,21 +1056,8 @@ class Test_UserEventsStandalone_Automated:
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            span_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            span_trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert span_trace_id == trace_id
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == trace_id
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == trace_id
 
             # Some tracers use true while others use yes
             assert any(
@@ -1315,21 +1130,8 @@ class Test_UserEventsStandalone_SDK_V1:
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            span_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            span_trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert span_trace_id == trace_id
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == trace_id
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == trace_id
 
             # Some tracers use true while others use yes
             assert any(
@@ -1393,21 +1195,8 @@ class Test_UserEventsStandalone_SDK_V2:
 
             metrics = interfaces.library.get_span_metrics(span, span_format)
             assert metrics["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            trace_dict: dict | None = (
-                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-            )
-            span_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+            span_trace_id = interfaces.library.get_trace_id(trace, span_format)
             assert span_trace_id == trace_id
-            # For v04 format, trace[0] is the first span; for v1, trace is a chunk
-            if span_format == TraceLibraryPayloadFormat.v04:
-                assert trace[0]["trace_id"] == trace_id
-            else:
-                # For v1, trace_id is at the chunk level
-                trace_dict: dict | None = (
-                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
-                )
-                chunk_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
-                assert chunk_trace_id == trace_id
 
             # Some tracers use true while others use yes
             assert any(
