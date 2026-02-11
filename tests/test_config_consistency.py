@@ -49,7 +49,8 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert interfaces.agent.get_span_type(span, span_format) == "web"
         span_meta = interfaces.agent.get_span_meta(span, span_format)
         assert span_meta["http.status_code"] == "400"
-        assert "error" not in span or span["error"] == 0
+        # Error field is the same in both formats (top-level field)
+        assert "error" not in span or span.get("error") == 0
 
     def setup_status_code_500(self):
         self.r = weblog.get("/status?code=500")
@@ -64,7 +65,8 @@ class Test_Config_HttpServerErrorStatuses_Default:
 
         span_meta = interfaces.agent.get_span_meta(span, span_format)
         assert span_meta["http.status_code"] == "500"
-        assert span["error"]
+        # Error field is the same in both formats (top-level field)
+        assert span.get("error")
 
 
 @scenarios.tracing_config_nondefault
@@ -85,7 +87,8 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert interfaces.agent.get_span_type(span, span_format) == "web"
         span_meta = interfaces.agent.get_span_meta(span, span_format)
         assert span_meta["http.status_code"] == "200"
-        assert span["error"]
+        # Error field is the same in both formats (top-level field)
+        assert span.get("error")
 
     def setup_status_code_202(self):
         self.r = weblog.get("/status?code=202")
@@ -117,19 +120,23 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         reason="APMAPI-770",
     )
     def test_query_string_obfuscation_empty_client(self):
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span_result = _get_span_by_tags(
             spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?key=monkey"}
         )
-        assert client_span, "\n".join([str(s) for s in spans])
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
+        assert client_span, "\n".join([str(s) for s, _ in spans])
 
     def setup_query_string_obfuscation_empty_server(self):
         self.r = weblog.get("/?application_key=value")
 
     def test_query_string_obfuscation_empty_server(self):
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
-        assert server_span, "\n".join([str(s) for s in spans])
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        server_span_result = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
+        # Handle both (span, format) tuple and plain span return values
+        server_span = server_span_result[0] if isinstance(server_span_result, tuple) else server_span_result
+        assert server_span, "\n".join([str(s) for s, _ in spans])
 
 
 @scenarios.tracing_config_nondefault
@@ -143,11 +150,13 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
         reason="Missing endpoint",
     )
     def test_query_string_obfuscation_configured_client(self):
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span_result = _get_span_by_tags(
             spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"}
         )
-        assert client_span, "\n".join([str(s) for s in spans])
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
+        assert client_span, "\n".join([str(s) for s, _ in spans])
 
     def setup_query_string_obfuscation_configured_server(self):
         self.r = weblog.get("/?ssn=123-45-6789")
@@ -168,11 +177,13 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
         reason="Missing endpoint",
     )
     def test_query_string_obfuscation_configured_client(self):
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        client_span = _get_span_by_tags(
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        client_span_result = _get_span_by_tags(
             spans, tags={"span.kind": "client", "http.url": "http://weblog:7777/?<redacted>"}
         )
-        assert client_span, "\n".join([str(s) for s in spans])
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
+        assert client_span, "\n".join([str(s) for s, _ in spans])
 
     def setup_query_string_obfuscation_configured_server(self):
         self.r = weblog.get("/?token=value")
@@ -197,10 +208,13 @@ class Test_Config_HttpClientErrorStatuses_Default:
         assert content["status_code"] == 400
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "400"})
+        client_span_result = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "400"})
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
         assert client_span, spans
+        # Error field is the same in both formats (top-level field)
         assert client_span.get("error") == 1
 
     def setup_status_code_500(self):
@@ -212,10 +226,13 @@ class Test_Config_HttpClientErrorStatuses_Default:
         assert content["status_code"] == 500
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "500"})
+        client_span_result = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "500"})
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
         assert client_span, spans
+        # Error field is the same in both formats (top-level field)
         assert client_span.get("error") is None or client_span.get("error") == 0
 
 
@@ -233,10 +250,13 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         assert content["status_code"] == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "200"})
+        client_span_result = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "200"})
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
         assert client_span, spans
+        # Error field is the same in both formats (top-level field)
         assert client_span.get("error") == 1
 
     def setup_status_code_202(self):
@@ -248,10 +268,13 @@ class Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:
         assert content["status_code"] == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        spans = [(s, f) for _, _, s, f in interfaces.library.get_spans(request=self.r, full_trace=True)]
 
-        client_span = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "202"})
+        client_span_result = _get_span_by_tags(spans, tags={"span.kind": "client", "http.status_code": "202"})
+        # Handle both (span, format) tuple and plain span return values
+        client_span = client_span_result[0] if isinstance(client_span_result, tuple) else client_span_result
         assert client_span, spans
+        # Error field is the same in both formats (top-level field)
         assert client_span.get("error") == 1
 
 
@@ -264,7 +287,7 @@ class Test_Config_ClientTagQueryString_Empty:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
     def test_query_string_redaction_unset(self):
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
+        trace = [(span, f) for _, _, span, f in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/?hi=monkey"}
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
@@ -278,7 +301,7 @@ class Test_Config_ClientTagQueryString_Configured:
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?hi=monkey"})
 
     def test_query_string_redaction(self):
-        trace = [span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)]
+        trace = [(span, f) for _, _, span, f in interfaces.library.get_spans(self.r, full_trace=True)]
         expected_tags = {"http.url": "http://weblog:7777/"}
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
@@ -297,7 +320,7 @@ class Test_Config_ClientIPHeader_Configured:
 
     def test_ip_headers_sent_in_one_request(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
-        trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
+        trace = [(span, f) for _, _, span, f in interfaces.library.get_spans(self.req, full_trace=True)]
         expected_tags = {"http.client_ip": "5.6.7.9"}
         assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
@@ -313,7 +336,7 @@ class Test_Config_ClientIPHeaderEnabled_False:
         )
 
     def test_ip_headers_sent_in_one_request(self):
-        spans = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
+        spans = [(span, f) for _, _, span, f in interfaces.library.get_spans(self.req, full_trace=True)]
         logger.info(spans)
         expected_tags = {"http.client_ip": "5.6.7.9"}
         assert _get_span_by_tags(spans, expected_tags) == {}
@@ -364,29 +387,39 @@ class Test_Config_ClientIPHeader_Precedence:
 
             ip = ip.removeprefix("for=")
 
-            trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
+            trace = [(span, f) for _, _, span, f in interfaces.library.get_spans(req, full_trace=True)]
             expected_tags = {"http.client_ip": ip}
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
 def _get_span_by_tags(spans: list, tags: dict):
+    """Find a span by tags. Accepts either list of spans or list of (span, span_format) tuples."""
     logger.info(f"Try to find span with metag tags {tags}")
 
-    for span in spans:
-        meta = span["meta"]
-        logger.debug(f"Checking span {span['span_id']} meta:\n{'\n'.join(map(str, meta.items()))}")
+    for span_item in spans:
+        # Handle both (span, span_format) tuples and plain spans for backward compatibility
+        if isinstance(span_item, tuple) and len(span_item) == 2:
+            span, span_format = span_item
+        else:
+            span = span_item
+            span_format = None
+
+        meta = interfaces.library.get_span_meta(span, span_format)
+        span_id = span.get("span_id") or span.get("id", "unknown")
+        logger.debug(f"Checking span {span_id} meta:\n{'\n'.join(map(str, meta.items()))}")
         # Avoids retrieving the client span by the operation/resource name, this value varies between languages
         # Use the expected tags to identify the span
         for k, v in tags.items():
             if k not in meta:
-                logger.debug(f"Span {span['span_id']} does not have tag {k}")
+                logger.debug(f"Span {span_id} does not have tag {k}")
                 break
             elif meta[k] != v:
-                logger.debug(f"Span {span['span_id']} has tag {k}={meta[k]} instead of {v}")
+                logger.debug(f"Span {span_id} has tag {k}={meta[k]} instead of {v}")
                 break
         else:
-            logger.info(f"Span found: {span['span_id']}")
-            return span
+            logger.info(f"Span found: {span_id}")
+            # Return (span, span_format) if format was provided, otherwise just span
+            return (span, span_format) if span_format is not None else span
 
     logger.warning("No span with those tags has been found")
     return {}
@@ -448,18 +481,32 @@ class Test_Config_IntegrationEnabled_False:
 
     def test_integration_enabled_false(self):
         assert self.r.status_code == 200
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        assert spans, "No spans found in trace"
+        spans_with_format = [
+            (span, f) for _, _, span, f in interfaces.library.get_spans(request=self.r, full_trace=True)
+        ]
+        assert spans_with_format, "No spans found in trace"
         # Ruby kafka integration generates a span with the name "kafka.producer.*",
         # unlike python/dotnet/etc. which generates a "kafka.produce" span
         if context.library == "php":
-            assert list(filter(lambda span: "pdo" in span.get("service"), spans)) == [], (
-                f"PDO span was found in trace: {spans}"
-            )
+            assert (
+                list(
+                    filter(
+                        lambda item: "pdo" in interfaces.library.get_span_meta(item[0], item[1]).get("service", ""),
+                        spans_with_format,
+                    )
+                )
+                == []
+            ), f"PDO span was found in trace: {spans_with_format}"
         else:
-            assert list(filter(lambda span: "kafka.produce" in span.get("name"), spans)) == [], (
-                f"kafka.produce span was found in trace: {spans}"
-            )
+            assert (
+                list(
+                    filter(
+                        lambda item: "kafka.produce" in interfaces.library.get_span_name(item[0], item[1]),
+                        spans_with_format,
+                    )
+                )
+                == []
+            ), f"kafka.produce span was found in trace: {spans_with_format}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -477,19 +524,27 @@ class Test_Config_IntegrationEnabled_True:
 
     def test_integration_enabled_true(self):
         assert self.r.status_code == 200
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
-        assert spans, "No spans found in trace"
+        spans_with_format = [
+            (span, f) for _, _, span, f in interfaces.library.get_spans(request=self.r, full_trace=True)
+        ]
+        assert spans_with_format, "No spans found in trace"
         # PHP uses the pdo integration
         if context.library == "php":
-            assert list(filter(lambda span: "pdo" in span.get("service"), spans)), (
-                f"No PDO span found in trace: {spans}"
-            )
+            assert list(
+                filter(
+                    lambda item: "pdo" in interfaces.library.get_span_meta(item[0], item[1]).get("service", ""),
+                    spans_with_format,
+                )
+            ), f"No PDO span found in trace: {spans_with_format}"
         else:
             # Ruby kafka integration generates a span with the name "kafka.producer.*",
             # unlike python/dotnet/etc. which generates a "kafka.produce" span
-            assert list(filter(lambda span: "kafka.produce" in span.get("name"), spans)), (
-                f"No kafka.produce span found in trace: {spans}"
-            )
+            assert list(
+                filter(
+                    lambda item: "kafka.produce" in interfaces.library.get_span_name(item[0], item[1]),
+                    spans_with_format,
+                )
+            ), f"No kafka.produce span found in trace: {spans_with_format}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")

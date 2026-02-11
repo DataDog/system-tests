@@ -6,8 +6,10 @@
 
 from collections import Counter
 from collections.abc import Callable
+
 from utils.interfaces._library.appsec_data import rule_id_to_type
 from utils._logger import logger
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 class _WafAttack:
@@ -172,8 +174,16 @@ class _ReportedHeader:
 
         return True
 
-    def validate(self, span: dict, appsec_data: dict):  # noqa: ARG002
-        headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
+    def validate(self, span: dict, appsec_data: dict, span_format: TraceLibraryPayloadFormat | None = None):  # noqa: ARG002
+        # Use helper method to get meta for both v04 and v1 formats
+        # Import here to avoid circular import
+        from utils.interfaces._library.core import LibraryInterfaceValidator  # noqa: PLC0415
+
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)  # noqa: SLF001
+        meta = LibraryInterfaceValidator.get_span_meta(span, span_format)
+
+        headers = [n.lower() for n in meta if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 
         return True

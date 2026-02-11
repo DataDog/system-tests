@@ -59,8 +59,12 @@ class Test_Dbm:
 
         spans = []
         # we do not use get_spans: the span we look for is not directly the span that carry the request information
-        for data, trace in interfaces.library.get_traces(request=response):
-            spans += [(data, span) for span in trace if span.get("type") == "sql"]
+        for data, trace, _trace_format in interfaces.library.get_traces(request=response):
+            # Handle both v04 (list) and v1 (dict) formats
+            if isinstance(trace, list):
+                spans += [(data, span) for span in trace if span.get("type") == "sql"]
+            else:
+                spans += [(data, span) for span in trace.get("spans", []) if span.get("type") == "sql"]
 
         if len(spans) == 0:
             raise ValueError("No span found with meta.type == 'sql'")

@@ -25,7 +25,7 @@ class Test_Exclusions:
 
     def test_input_exclusion_positive_test(self):
         assert self.r_iexpt.status_code == 200, "Request failed"
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r_iexpt)]
+        spans = [span for _, _, span, _ in interfaces.library.get_spans(request=self.r_iexpt)]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         interfaces.library.assert_no_appsec_event(self.r_iexpt)
@@ -49,7 +49,7 @@ class Test_Exclusions:
 
     def test_rule_exclusion_positive_test(self):
         assert self.r_rept.status_code == 200, "Request failed"
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r_rept)]
+        spans = [span for _, _, span, _ in interfaces.library.get_spans(request=self.r_rept)]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
         interfaces.library.assert_no_appsec_event(self.r_rept)

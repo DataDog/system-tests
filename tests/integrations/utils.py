@@ -85,11 +85,11 @@ class BaseDbIntegrationsTestClass:
 
     @staticmethod
     def get_span_from_tracer(weblog_request: HttpResponse) -> dict:
-        for _, _, span in interfaces.library.get_spans(weblog_request):
+        for _, _, span, _ in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
 
             # iterate over all trace to be sure to miss nothing
-            for _, _, span_child in interfaces.library.get_spans():
+            for _, _, span_child, _ in interfaces.library.get_spans():
                 if span_child["trace_id"] != span["trace_id"]:
                     continue
 

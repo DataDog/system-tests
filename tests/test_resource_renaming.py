@@ -4,7 +4,7 @@ from utils._weblog import HttpResponse
 
 def get_endpoint_tag(response: HttpResponse) -> str | None:
     spans = interfaces.library.get_spans(response)
-    for _, _, span in spans:
+    for _, _, span, _ in spans:
         if "http.endpoint" in span.get("meta", {}):
             return span["meta"]["http.endpoint"]
     return None

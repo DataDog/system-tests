@@ -6,7 +6,7 @@
 
 import string
 from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
+from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat, TraceLibraryPayloadFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -208,13 +208,35 @@ class Test_LibraryHeaders:
     def test_traces_coherence(self):
         """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
 
-        for data, trace in interfaces.library.get_traces():
+        for data, trace, trace_format in interfaces.library.get_traces():
             assert data["response"]["status_code"] == 200
-            trace_id = trace[0]["trace_id"]
+            # Handle both v04 (list of spans) and v1 (trace chunk) formats
+            if trace_format == TraceLibraryPayloadFormat.v1:
+                # v1 format: trace is a chunk dict with spans array
+                assert isinstance(trace, dict), "v1 format trace must be a dict"
+                spans = trace.get("spans", [])
+                if not spans:
+                    continue
+                trace_id = interfaces.library.get_span_trace_id(spans[0], trace, trace_format)
+            else:
+                # v04 format: trace is a list of spans
+                assert isinstance(trace, list), "v04 format trace must be a list"
+                if not trace:
+                    continue
+                trace_id = interfaces.library.get_span_trace_id(trace[0], None, trace_format)
             assert isinstance(trace_id, int)
             assert trace_id > 0
-            for span in trace:
-                assert span["trace_id"] == trace_id
+            spans_to_check = (
+                trace.get("spans", [])
+                if trace_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict)
+                else trace
+            )
+            for span in spans_to_check:
+                trace_dict: dict | None = (
+                    trace if trace_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
+                )
+                span_trace_id = interfaces.library.get_span_trace_id(span, trace_dict, trace_format)
+                assert span_trace_id == trace_id
 
 
 @features.agent_data_integrity
@@ -238,37 +260,50 @@ class Test_Agent:
                     trace_ids_reported_by_agent.add(int(span["traceID"]))
                     break
 
-        def get_span_with_sampling_data(trace: list):
+        def get_span_with_sampling_data(trace: dict | list[dict], trace_format: TraceLibraryPayloadFormat):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.
+            if trace_format == TraceLibraryPayloadFormat.v1:
+                assert isinstance(trace, dict), "v1 format trace must be a dict"
+                spans_to_check = trace.get("spans", [])
+            else:
+                assert isinstance(trace, list), "v04 format trace must be a list"
+                spans_to_check = trace
             span_with_sampling_data = None
-            for span in trace:
-                if span.get("metrics", {}).get("_sampling_priority_v1", None) is not None:
-                    if span.get("parent_id") in (0, None):
-                        return span
+            for span in spans_to_check:
+                metrics = interfaces.library.get_span_metrics(span, trace_format)
+                if metrics.get("_sampling_priority_v1", None) is not None:
+                    parent_id = interfaces.library.get_span_parent_id(span, trace_format)
+                    if parent_id in (0, None):
+                        return span, trace_format
                     elif span_with_sampling_data is None:
-                        span_with_sampling_data = span
+                        span_with_sampling_data = (span, trace_format)
 
             return span_with_sampling_data
 
         all_traces_are_reported = True
         trace_ids_reported_by_tracer = set()
         # check that all traces reported by the tracer are also reported by the agent
-        for data, trace in interfaces.library.get_traces():
-            span = get_span_with_sampling_data(trace)
-            if not span:
+        for data, trace, trace_format in interfaces.library.get_traces():
+            span_result = get_span_with_sampling_data(trace, trace_format)
+            if not span_result:
                 continue
 
-            metrics = span["metrics"]
+            span, span_format = span_result
+            metrics = interfaces.library.get_span_metrics(span, span_format)
             sampling_priority = metrics.get("_sampling_priority_v1")
             if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
-                trace_ids_reported_by_tracer.add(span["trace_id"])
-                if span["trace_id"] not in trace_ids_reported_by_agent:
-                    logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
+                trace_dict: dict | None = (
+                    trace if trace_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
+                )
+                trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+                trace_ids_reported_by_tracer.add(trace_id)
+                if trace_id not in trace_ids_reported_by_agent:
+                    logger.error(f"Trace {trace_id} has not been reported ({data['log_filename']})")
                     all_traces_are_reported = False
                 else:
-                    logger.debug(f"Trace {span['trace_id']} has been reported ({data['log_filename']})")
+                    logger.debug(f"Trace {trace_id} has been reported ({data['log_filename']})")
 
         if not all_traces_are_reported:
             logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")

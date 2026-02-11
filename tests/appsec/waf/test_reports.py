@@ -5,6 +5,7 @@ import re
 import json
 
 from utils import weblog, context, interfaces, irrelevant, scenarios, features
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 @features.support_in_app_waf_metrics_report
@@ -26,14 +27,21 @@ class Test_Monitoring:
 
         # Tags that are expected to be reported at least once at some point
 
-        def validate_waf_monitoring_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_waf_monitoring_span_tags(
+            span: dict,
+            appsec_data: dict,  # noqa: ARG001
+            span_format: TraceLibraryPayloadFormat | None = None,
+        ):
             """Validate the mandatory waf monitoring span tags are added to the request span having an attack"""
+            # Use helper methods to get meta and metrics for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+            metrics = interfaces.library.get_span_metrics(span, span_format)
 
-            meta = span["meta"]
             for m in expected_waf_monitoring_meta_tags:
                 assert m in meta, f"missing span meta tag `{m}` in meta"
 
-            metrics = span["metrics"]
             for m in expected_waf_monitoring_metrics_tags:
                 assert m in metrics, f"missing span metric tag `{m}` in metrics"
 
@@ -68,16 +76,19 @@ class Test_Monitoring:
             expected_rules_monitoring_nb_errors_tag,
         ]
 
-        def validate_rules_monitoring_span_tags(span: dict):
+        def validate_rules_monitoring_span_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
+            # Use helper methods to get meta and metrics for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+            metrics = interfaces.library.get_span_metrics(span, span_format)
 
-            meta = span["meta"]
             if expected_waf_version_tag not in meta:
                 return None  # Skip this span
 
-            metrics = span["metrics"]
             for m in expected_rules_monitoring_metrics_tags:
                 if m not in metrics:
                     return None  # Skip this span
@@ -134,12 +145,15 @@ class Test_Monitoring:
         # Tags that are expected to be reported at least once at some point
         expected_waf_version_tag = "_dd.appsec.waf.version"
 
-        def validate_rules_monitoring_span_tags(span: dict):
+        def validate_rules_monitoring_span_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
+            # Use helper methods to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
 
-            meta = span["meta"]
             if expected_waf_version_tag not in meta:
                 return None  # Skip this span
 
@@ -165,8 +179,12 @@ class Test_Monitoring:
         expected_bindings_duration_metric = "_dd.appsec.waf.duration_ext"
         expected_metrics_tags = [expected_waf_duration_metric, expected_bindings_duration_metric]
 
-        def validate_waf_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
-            metrics = span["metrics"]
+        def validate_waf_span_tags(span: dict, appsec_data: dict, span_format: TraceLibraryPayloadFormat | None = None):  # noqa: ARG001
+            # Use helper method to get metrics for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            metrics = interfaces.library.get_span_metrics(span, span_format)
+
             for m in expected_metrics_tags:
                 if m not in metrics:
                     raise Exception(f"missing span metric tag `{m}` in {metrics}")
@@ -208,17 +226,20 @@ class Test_Monitoring:
         expected_nb_errors = 2
         expected_error_details = {"missing key 'name'": ["missing-name"], "missing key 'tags'": ["missing-tags"]}
 
-        def validate_rules_monitoring_span_tags(span: dict):
+        def validate_rules_monitoring_span_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
             first request or first attack.
             """
+            # Use helper methods to get meta and metrics for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+            metrics = interfaces.library.get_span_metrics(span, span_format)
 
-            meta = span["meta"]
             for m in expected_rules_monitoring_meta_tags:
                 if m not in meta:
                     return None  # Skip this span
 
-            metrics = span["metrics"]
             for m in expected_rules_monitoring_metrics_tags:
                 if m not in metrics:
                     return None  # Skip this span

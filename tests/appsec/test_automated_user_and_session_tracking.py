@@ -57,7 +57,7 @@ class Test_Automated_User_Tracking:
         assert self.r_login.status_code == 200
 
         assert self.r_home.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_home):
+        for _, _, span, _ in interfaces.library.get_spans(request=self.r_home):
             meta = span.get("meta", {})
             if context.library in libs_without_user_id:
                 assert meta["usr.id"] == USER
@@ -76,7 +76,7 @@ class Test_Automated_User_Tracking:
         assert self.r_login.status_code == 200
 
         assert self.r_users.status_code == 200
-        for _, _, span in interfaces.library.get_spans(request=self.r_users):
+        for _, _, span, _ in interfaces.library.get_spans(request=self.r_users):
             meta = span.get("meta", {})
             assert meta["usr.id"] == "sdkUser"
             if context.library in libs_without_user_id:

@@ -814,8 +814,8 @@ class Test_BlockingGraphqlResolvers:
 
     def test_request_block_attack(self):
         assert self.r_attack.status_code == 403
-        span = interfaces.library.get_root_span(request=self.r_attack)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r_attack)
+        meta = interfaces.library.get_span_meta(span, span_format)
         meta_struct = span.get("meta_struct", {})
         assert meta["appsec.event"] == "true"
         assert ("_dd.appsec.json" in meta) ^ ("appsec" in meta_struct)
@@ -851,8 +851,8 @@ class Test_BlockingGraphqlResolvers:
 
     def test_request_block_attack_directive(self):
         assert self.r_attack.status_code == 403
-        span = interfaces.library.get_root_span(request=self.r_attack)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r_attack)
+        meta = interfaces.library.get_span_meta(span, span_format)
         meta_struct = span.get("meta_struct", {})
         assert meta["appsec.event"] == "true"
         assert ("_dd.appsec.json" in meta) ^ ("appsec" in meta_struct)

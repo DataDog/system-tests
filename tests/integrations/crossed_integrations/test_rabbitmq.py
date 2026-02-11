@@ -29,8 +29,13 @@ class _BaseRabbitMQ:
     ) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
-        for data, trace in interface.get_traces():
-            for span in trace:
+        for data, trace, _trace_format in interface.get_traces():
+            # Handle both v04 (list) and v1 (dict) formats
+            if isinstance(trace, list):
+                spans = trace
+            else:
+                spans = trace.get("spans", [])
+            for span in spans:
                 if not span.get("meta"):
                     continue
 

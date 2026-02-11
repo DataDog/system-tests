@@ -17,6 +17,7 @@ from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils._weblog import HttpResponse
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
@@ -68,13 +69,26 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def _init_rid_to_library_trace_ids(self):
         # Map each request ID to the spans created and submitted during that request call.
-        for _, span in self.library_interface.get_root_spans():
+        # Use get_spans to get trace chunks for v1 format
+        for _, trace, span, span_format in self.library_interface.get_spans():
+            parent_id = span.get("parent_id")
+            if parent_id not in (0, None):
+                continue  # Only process root spans
+
             rid = get_rid_from_span(span)
 
+            # Get trace_id using helper method (pass trace chunk for v1 format)
+            trace_chunk: dict | None = (
+                trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
+            )
+            trace_id = self.library_interface.get_span_trace_id(span, trace_chunk, span_format)
+            if trace_id == 0:
+                continue  # Skip spans without trace_id
+
             if not self.rid_to_library_trace_ids.get(rid):
-                self.rid_to_library_trace_ids[rid] = [span["trace_id"]]
+                self.rid_to_library_trace_ids[rid] = [trace_id]
             else:
-                self.rid_to_library_trace_ids[rid].append(span["trace_id"])
+                self.rid_to_library_trace_ids[rid].append(trace_id)
 
     #################################
     ######### API for tests #########

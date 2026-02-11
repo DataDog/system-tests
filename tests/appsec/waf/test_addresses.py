@@ -121,9 +121,13 @@ class Test_Headers:
         for r in [self.r_wk_1, self.r_wk_2]:
             logger.debug(f"Testing {r.request.headers}")
             assert r.status_code == 200
-            spans = [span for _, span in interfaces.library.get_root_spans(request=r)]
-            assert spans, "No spans to validate"
-            assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
+            spans_with_format = list(interfaces.library.get_root_spans(request=r))
+            assert spans_with_format, "No spans to validate"
+            # Use helper method to get metrics for both v04 and v1 formats
+            assert any(
+                "_dd.appsec.enabled" in interfaces.library.get_span_metrics(span, span_format)
+                for _, span, span_format in spans_with_format
+            ), "No appsec-enabled spans found"
         interfaces.library.assert_no_appsec_event(self.r_wk_1)
         interfaces.library.assert_no_appsec_event(self.r_wk_2)
 
@@ -399,11 +403,15 @@ class Test_GrpcServerMethod:
 
     def validate_span(self, span: dict, appsec_data: dict):
         tag = "rpc.grpc.full_method"
-        if tag not in span["meta"]:
+        # Use helper method to get meta for both v04 and v1 formats
+        # Note: span_validator receives the span and span_format is detected internally
+        span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+        meta = interfaces.library.get_span_meta(span, span_format)
+        if tag not in meta:
             logger.info(f"Can't find '{tag}' in span's meta")
             return False
 
-        expected = span["meta"][tag]
+        expected = meta[tag]
         value = appsec_data["triggers"][0]["rule_matches"][0]["parameters"][0]["value"]
         if value != expected:
             logger.info(

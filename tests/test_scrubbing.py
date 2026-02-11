@@ -6,6 +6,7 @@ from collections.abc import Callable
 import re
 
 from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
@@ -81,10 +82,22 @@ class Test_UrlField:
         assert self.r.status_code == 200
 
         def validate_report(trace: list):
+            # For v1 format, trace is a list of spans from a chunk
+            # For v04 format, trace is a list of spans
+            # We need to detect format and use appropriate helper methods
             for span in trace:
-                if span.get("type") == "http":
-                    logger.info(f"span found: {span}")
-                    return "agent:8127" in span["meta"]["http.url"]
+                if isinstance(span, dict):
+                    # Detect format: v1 spans have "attributes" at top level, v04 have "meta"
+                    if "attributes" in span and "meta" not in span:
+                        span_format = TraceLibraryPayloadFormat.v1
+                    else:
+                        span_format = TraceLibraryPayloadFormat.v04
+
+                    span_type = interfaces.library.get_span_type(span, span_format)
+                    if span_type == "http":
+                        logger.info(f"span found: {span}")
+                        meta = interfaces.library.get_span_meta(span, span_format)
+                        return "agent:8127" in meta.get("http.url", "")
 
             return False
 

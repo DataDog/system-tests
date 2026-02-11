@@ -40,9 +40,11 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """Test that http.request.headers.user-agent is in all web spans"""
 
-        for _, span in interfaces.library.get_root_spans():
-            if span.get("type") == "web":
-                assert "http.request.headers.user-agent" in span.get("meta", {})
+        for _, span, span_format in interfaces.library.get_root_spans():
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type == "web":
+                meta = interfaces.library.get_span_meta(span, span_format)
+                assert "http.request.headers.user-agent" in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -57,9 +59,10 @@ class Test_HeaderTags_Short:
     def test_trace_header_tags(self):
         tags = {TAG_SHORT: HEADER_VAL_BASIC}
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in tags:
-                assert tag in span["meta"]
+                assert tag in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -74,9 +77,10 @@ class Test_HeaderTags_Long:
     def test_trace_header_tags(self):
         tags = {TAG_LONG: HEADER_VAL_BASIC}
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in tags:
-                assert tag in span["meta"]
+                assert tag in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -93,9 +97,10 @@ class Test_HeaderTags_Whitespace_Header:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_HEADER: HEADER_VAL_BASIC}
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in tags:
-                assert tag in span["meta"]
+                assert tag in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -112,9 +117,10 @@ class Test_HeaderTags_Whitespace_Tag:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_TAG: HEADER_VAL_BASIC}
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in tags:
-                assert tag in span["meta"]
+                assert tag in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -131,9 +137,10 @@ class Test_HeaderTags_Whitespace_Val_Short:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_VAL_SHORT: HEADER_VAL_WHITESPACE_VAL_SHORT.strip()}
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in tags:
-                assert tag in span["meta"]
+                assert tag in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -150,9 +157,10 @@ class Test_HeaderTags_Whitespace_Val_Long:
     def test_trace_header_tags(self):
         tags = {TAG_WHITESPACE_VAL_LONG: HEADER_VAL_WHITESPACE_VAL_LONG.strip()}
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in tags:
-                assert tag in span["meta"]
+                assert tag in meta
 
 
 @scenarios.library_conf_custom_header_tags_invalid
@@ -172,9 +180,10 @@ class Test_HeaderTags_Colon_Leading:
             CONFIG_COLON_LEADING.split(":")[1],
         ]
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in nottags:
-                assert tag not in span["meta"]
+                assert tag not in meta
 
 
 @scenarios.library_conf_custom_header_tags_invalid
@@ -194,9 +203,10 @@ class Test_HeaderTags_Colon_Trailing:
             CONFIG_COLON_TRAILING.split(":")[1],
         ]
 
-        for _, _, span in interfaces.library.get_spans(request=self.r):
+        for _, _, span, span_format in interfaces.library.get_spans(request=self.r):
+            meta = interfaces.library.get_span_meta(span, span_format)
             for tag in nottags:
-                assert tag not in span["meta"]
+                assert tag not in meta
 
 
 @scenarios.library_conf_custom_header_tags
@@ -243,29 +253,41 @@ class Test_HeaderTags_DynamicConfig:
         Requests are made to the test agent.
         """
         # Validate the spans generated by the first request
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.req1, full_trace=True)]
-        for s in spans:
-            if "/status" in s["resource"]:
+        spans = [
+            (span, span_format)
+            for _, _, span, span_format in interfaces.library.get_spans(request=self.req1, full_trace=True)
+        ]
+        for s, span_format in spans:
+            # resource is a top-level field in both formats
+            resource = s.get("resource", "")
+            if "/status" in resource:
+                meta = interfaces.library.get_span_meta(s, span_format)
                 # Header tags set via remote config
-                assert s["meta"].get("test_header_rc")
-                assert s["meta"].get("test_header_rc2")
-                assert s["meta"].get("http.request.headers.content-length")
+                assert meta.get("test_header_rc")
+                assert meta.get("test_header_rc2")
+                assert meta.get("http.request.headers.content-length")
                 # Does not have headers set via Enviorment variables
-                assert TAG_SHORT not in s["meta"]
+                assert TAG_SHORT not in meta
                 break
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")
 
         # Validate the spans generated by the second request
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.req2, full_trace=True)]
-        for s in spans:
-            if "/status" in s["resource"]:
+        spans = [
+            (span, span_format)
+            for _, _, span, span_format in interfaces.library.get_spans(request=self.req2, full_trace=True)
+        ]
+        for s, span_format in spans:
+            # resource is a top-level field in both formats
+            resource = s.get("resource", "")
+            if "/status" in resource:
+                meta = interfaces.library.get_span_meta(s, span_format)
                 # Headers tags set via remote config
-                assert s["meta"].get(TAG_SHORT) == HEADER_VAL_BASIC
+                assert meta.get(TAG_SHORT) == HEADER_VAL_BASIC
                 # Does not have headers set via remote config
-                assert "test_header_rc" not in s["meta"], s["meta"]
-                assert "test_header_rc2" not in s["meta"], s["meta"]
-                assert "http.request.headers.content-length" in s["meta"], s["meta"]
+                assert "test_header_rc" not in meta, meta
+                assert "test_header_rc2" not in meta, meta
+                assert "http.request.headers.content-length" in meta, meta
                 break
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")
@@ -336,44 +358,62 @@ class Test_HeaderTags_DynamicConfig:
     def test_tracing_client_http_header_tags_apm_multiconfig(self):
         """Ensure the tracing http header tags can be set via RC with the APM_TRACING_MULTICONFIG capability."""
         # Validate the spans generated by the first request
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.req1, full_trace=True)]
-        for s in spans:
-            if "/status" in s["resource"]:
+        spans = [
+            (span, span_format)
+            for _, _, span, span_format in interfaces.library.get_spans(request=self.req1, full_trace=True)
+        ]
+        for s, span_format in spans:
+            # resource is a top-level field in both formats
+            resource = s.get("resource", "")
+            if "/status" in resource:
+                meta = interfaces.library.get_span_meta(s, span_format)
                 # Header tags set via remote config
-                assert s["meta"].get("test_header_rc")
-                assert s["meta"].get("test_header_rc2")
-                assert s["meta"].get("http.request.headers.content-length")
+                assert meta.get("test_header_rc")
+                assert meta.get("test_header_rc2")
+                assert meta.get("http.request.headers.content-length")
                 # Does not have headers set via Enviorment variables
-                assert TAG_SHORT not in s["meta"]
+                assert TAG_SHORT not in meta
                 break
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")
 
         # Validate the spans generated by the second request
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.req2, full_trace=True)]
-        for s in spans:
-            if "/status" in s["resource"]:
+        spans = [
+            (span, span_format)
+            for _, _, span, span_format in interfaces.library.get_spans(request=self.req2, full_trace=True)
+        ]
+        for s, span_format in spans:
+            # resource is a top-level field in both formats
+            resource = s.get("resource", "")
+            if "/status" in resource:
+                meta = interfaces.library.get_span_meta(s, span_format)
                 # Headers tags set via remote config
-                assert s["meta"].get(TAG_SHORT) == HEADER_VAL_BASIC
-                assert s["meta"].get("test_header_rc_override")
+                assert meta.get(TAG_SHORT) == HEADER_VAL_BASIC
+                assert meta.get("test_header_rc_override")
                 # Does not have headers set via remote config
-                assert "test_header_rc2" not in s["meta"], s["meta"]
-                assert "http.request.headers.content-length" in s["meta"], s["meta"]
+                assert "test_header_rc2" not in meta, meta
+                assert "http.request.headers.content-length" in meta, meta
                 break
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")
 
         # Validate the spans generated by the third request. This should be identical to the first request, because
         # we deleted the config with the weblog service and env.
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.req3, full_trace=True)]
-        for s in spans:
-            if "/status" in s["resource"]:
+        spans = [
+            (span, span_format)
+            for _, _, span, span_format in interfaces.library.get_spans(request=self.req3, full_trace=True)
+        ]
+        for s, span_format in spans:
+            # resource is a top-level field in both formats
+            resource = s.get("resource", "")
+            if "/status" in resource:
+                meta = interfaces.library.get_span_meta(s, span_format)
                 # Header tags set via remote config
-                assert s["meta"].get("test_header_rc")
-                assert s["meta"].get("test_header_rc2")
-                assert s["meta"].get("http.request.headers.content-length")
+                assert meta.get("test_header_rc")
+                assert meta.get("test_header_rc2")
+                assert meta.get("http.request.headers.content-length")
                 # Does not have headers set via Enviorment variables
-                assert TAG_SHORT not in s["meta"]
+                assert TAG_SHORT not in meta
                 break
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")

@@ -98,8 +98,8 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_traces(self, request: HttpResponse | None = None) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat]]:
         """Attempts to fetch the traces the agent will submit to the backend.
 
-        When a valid request is given, then we filter the spans to the ones sampled
-        during that request's execution, and only return those.
+        When a valid request is given, then we filter the traces to the ones that contain
+        spans sampled during that request's execution, and only return those.
 
         Returns data, trace and trace_format
         """
@@ -115,22 +115,38 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
                 for payload in content:
                     for trace in payload["chunks"]:
-                        for span in trace["spans"]:
-                            if rid is None or get_rid_from_span(span) == rid:
-                                logger.info(f"Found a trace in {data['log_filename']}")
-                                yield data, trace, TraceAgentPayloadFormat.legacy
-                                break
+                        # Check if any span in the trace matches the RID
+                        trace_has_matching_span = False
+                        if rid is None:
+                            trace_has_matching_span = True
+                        else:
+                            for span in trace["spans"]:
+                                if get_rid_from_span(span) == rid:
+                                    trace_has_matching_span = True
+                                    break
+
+                        if trace_has_matching_span:
+                            logger.info(f"Found a trace in {data['log_filename']}")
+                            yield data, trace, TraceAgentPayloadFormat.legacy
 
             if "idxTracerPayloads" in data["request"]["content"]:
                 content: list[dict] = data["request"]["content"]["idxTracerPayloads"]
 
                 for payload in content:
                     for trace in payload.get("chunks", []):
-                        for span in trace["spans"]:
-                            if rid is None or get_rid_from_span(span) == rid:
-                                logger.info(f"Found a trace in {data['log_filename']}")
-                                yield data, trace, TraceAgentPayloadFormat.efficient_trace_payload_format
-                                break
+                        # Check if any span in the trace matches the RID
+                        trace_has_matching_span = False
+                        if rid is None:
+                            trace_has_matching_span = True
+                        else:
+                            for span in trace["spans"]:
+                                if get_rid_from_span(span) == rid:
+                                    trace_has_matching_span = True
+                                    break
+
+                        if trace_has_matching_span:
+                            logger.info(f"Found a trace in {data['log_filename']}")
+                            yield data, trace, TraceAgentPayloadFormat.efficient_trace_payload_format
 
     def get_spans(
         self, request: HttpResponse | None = None

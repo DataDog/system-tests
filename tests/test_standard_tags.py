@@ -308,8 +308,8 @@ class Test_StandardTagsClientIp:
             assert meta[tag] == value
 
     def _get_root_span_meta(self, request: HttpResponse):
-        span = interfaces.library.get_root_span(request)
-        return span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request)
+        return interfaces.library.get_span_meta(span, span_format)
 
 
 @features.referrer_hostname
@@ -372,5 +372,5 @@ class Test_StandardTagsReferrerHostname:
                 )
 
     def _get_root_span_meta(self, request: HttpResponse):
-        span = interfaces.library.get_root_span(request)
-        return span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request)
+        return interfaces.library.get_span_meta(span, span_format)

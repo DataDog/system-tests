@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, scenarios, rfc, features
 from utils._weblog import HttpResponse
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 @features.security_events_metadata
@@ -22,8 +23,12 @@ class Test_StatusCode:
 
             return True
 
-        def check_http_code(span: dict, appsec_data: dict):  # noqa: ARG001
-            status_code = span["meta"]["http.status_code"]
+        def check_http_code(span: dict, appsec_data: dict, span_format: TraceLibraryPayloadFormat | None = None):  # noqa: ARG001
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+            status_code = meta["http.status_code"]
             assert status_code == "404", f"404 should have been reported, not {status_code}"
 
             return True
@@ -51,9 +56,14 @@ class Test_Info:
 
             return True
 
-        def _check_service(span: dict, appsec_data: dict):  # noqa: ARG001
+        def _check_service(span: dict, appsec_data: dict, span_format: TraceLibraryPayloadFormat | None = None):  # noqa: ARG001
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+            # Service name is at the top level in both formats
             name = span.get("service")
-            environment = span.get("meta", {}).get("env")
+            environment = meta.get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"
             assert environment == "system-tests", f"system-tests should have been reported, not {environment}"
 

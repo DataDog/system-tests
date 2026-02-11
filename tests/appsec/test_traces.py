@@ -14,7 +14,7 @@ from utils import (
     features,
 )
 from utils.tools import nested_lookup
-from utils.dd_constants import SamplingPriority
+from utils.dd_constants import SamplingPriority, TraceLibraryPayloadFormat
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
@@ -40,23 +40,28 @@ class Test_RetainTraces:
         _sampling_priority_v1 tags
         """
 
-        def validate_appsec_event_span_tags(span: dict):
+        def validate_appsec_event_span_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
-            if "appsec.event" not in span["meta"]:
+            # Use helper methods to get meta and metrics for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+            metrics = interfaces.library.get_span_metrics(span, span_format)
+
+            if "appsec.event" not in meta:
                 raise Exception("Can't find appsec.event in span's meta")
 
-            if span["meta"]["appsec.event"] != "true":
-                raise Exception(f'appsec.event in span\'s meta should be "true", not {span["meta"]["appsec.event"]}')
+            if meta["appsec.event"] != "true":
+                raise Exception(f'appsec.event in span\'s meta should be "true", not {meta["appsec.event"]}')
 
-            if "_sampling_priority_v1" not in span["metrics"]:
+            if "_sampling_priority_v1" not in metrics:
                 raise Exception("Metric _sampling_priority_v1 should be set on traces that are manually kept")
 
-            if span["metrics"]["_sampling_priority_v1"] != SamplingPriority.USER_KEEP:
-                raise Exception(
-                    f"Trace id {span['trace_id']} , sampling priority should be {SamplingPriority.USER_KEEP}"
-                )
+            if metrics["_sampling_priority_v1"] != SamplingPriority.USER_KEEP:
+                trace_id = interfaces.library.get_span_trace_id(span, None, span_format)
+                raise Exception(f"Trace id {trace_id} , sampling priority should be {SamplingPriority.USER_KEEP}")
 
             return True
 
@@ -77,23 +82,30 @@ class Test_AppSecEventSpanTags:
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
-        spans = [span for _, span in interfaces.library.get_root_spans()]
-        assert spans, "No root spans to validate"
-        spans = [s for s in spans if s.get("type") in ("web", "serverless")]
-        assert spans, "No spans of type web or serverless to validate"
-        for span in spans:
-            if span.get("type") == "serverless" and "_dd.appsec.unsupported_event_type" in span["metrics"]:
+        spans_with_format = list(interfaces.library.get_root_spans())
+        assert spans_with_format, "No root spans to validate"
+        # Filter spans by type using helper method
+        filtered_spans = []
+        for _, span, span_format in spans_with_format:
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type in ("web", "serverless"):
+                filtered_spans.append((span, span_format))
+        assert filtered_spans, "No spans of type web or serverless to validate"
+        for span, span_format in filtered_spans:
+            span_type = interfaces.library.get_span_type(span, span_format)
+            metrics = interfaces.library.get_span_metrics(span, span_format)
+            meta = interfaces.library.get_span_meta(span, span_format)
+
+            if span_type == "serverless" and "_dd.appsec.unsupported_event_type" in metrics:
                 # For serverless, the `healthcheck` event is not supported
-                assert span["metrics"]["_dd.appsec.unsupported_event_type"] == 1, (
+                assert metrics["_dd.appsec.unsupported_event_type"] == 1, (
                     "_dd.appsec.unsupported_event_type should be 1 or 1.0"
                 )
                 continue
-            assert "_dd.appsec.enabled" in span["metrics"], "Cannot find _dd.appsec.enabled in span metrics"
-            assert span["metrics"]["_dd.appsec.enabled"] == 1, "_dd.appsec.enabled should be 1 or 1.0"
-            assert "_dd.runtime_family" in span["meta"], "Cannot find _dd.runtime_family in span meta"
-            assert span["meta"]["_dd.runtime_family"] in RUNTIME_FAMILIES, (
-                f"_dd.runtime_family should be in {RUNTIME_FAMILIES}"
-            )
+            assert "_dd.appsec.enabled" in metrics, "Cannot find _dd.appsec.enabled in span metrics"
+            assert metrics["_dd.appsec.enabled"] == 1, "_dd.appsec.enabled should be 1 or 1.0"
+            assert "_dd.runtime_family" in meta, "Cannot find _dd.runtime_family in span meta"
+            assert meta["_dd.runtime_family"] in RUNTIME_FAMILIES, f"_dd.runtime_family should be in {RUNTIME_FAMILIES}"
 
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
@@ -108,32 +120,45 @@ class Test_AppSecEventSpanTags:
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.
         """
-        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r)]
-        assert spans, "No spans to validate"
-        for span in spans:
+        spans_with_format = list(interfaces.library.get_spans(request=self.r))
+        assert spans_with_format, "No spans to validate"
+        for _, _, span, span_format in spans_with_format:
+            meta = interfaces.library.get_span_meta(span, span_format)
             required_request_headers = ["user-agent", "host", "content-type"]
             required_request_headers = [f"http.request.headers.{header}" for header in required_request_headers]
-            missing_request_headers = set(required_request_headers) - set(span.get("meta", {}).keys())
+            missing_request_headers = set(required_request_headers) - set(meta.keys())
             assert not missing_request_headers, f"Missing request headers: {missing_request_headers}"
 
             required_response_headers = ["content-type", "content-length", "content-language"]
             required_response_headers = [f"http.response.headers.{header}" for header in required_response_headers]
-            missing_response_headers = set(required_response_headers) - set(span.get("meta", {}).keys())
+            missing_response_headers = set(required_response_headers) - set(meta.keys())
             assert not missing_response_headers, f"Missing response headers: {missing_response_headers}"
 
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
         valid_appsec_span_types = ["web", "http", "rpc", "serverless"]
-        spans = [span for _, _, span in interfaces.library.get_spans()]
-        assert spans, "No spans to validate"
-        assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
-        for span in spans:
-            if span.get("type") in valid_appsec_span_types:
+        spans_with_format = list(interfaces.library.get_spans())
+        assert spans_with_format, "No spans to validate"
+        # Check if any span has appsec enabled
+        has_appsec_enabled = False
+        for _, _, span, span_format in spans_with_format:
+            metrics = interfaces.library.get_span_metrics(span, span_format)
+            if "_dd.appsec.enabled" in metrics:
+                has_appsec_enabled = True
+                break
+        assert has_appsec_enabled, "No appsec-enabled spans found"
+
+        for _, _, span, span_format in spans_with_format:
+            span_type = interfaces.library.get_span_type(span, span_format)
+            metrics = interfaces.library.get_span_metrics(span, span_format)
+            meta = interfaces.library.get_span_meta(span, span_format)
+
+            if span_type in valid_appsec_span_types:
                 continue
-            assert "_dd.appsec.enabled" not in span.get("metrics", {}), (
+            assert "_dd.appsec.enabled" not in metrics, (
                 f"_dd.appsec.enabled should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
             )
-            assert "_dd.runtime_family" not in span.get("meta", {}), (
+            assert "_dd.runtime_family" not in meta, (
                 f"_dd.runtime_family should be present only when span type is any of {', '.join(valid_appsec_span_types)}"
             )
 
@@ -305,13 +330,14 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     def test_header_collection(self):
-        def assert_header_in_span_meta(span: dict, header: str):
-            if header not in span["meta"]:
+        def assert_header_in_span_meta(span: dict, span_format: TraceLibraryPayloadFormat | None, header: str):
+            meta = interfaces.library.get_span_meta(span, span_format)
+            if header not in meta:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_response_headers(span: dict):
+        def validate_response_headers(span: dict, span_format: TraceLibraryPayloadFormat | None):
             for header in ["content-type", "content-length", "content-language"]:
-                assert_header_in_span_meta(span, f"http.response.headers.{header}")
+                assert_header_in_span_meta(span, span_format, f"http.response.headers.{header}")
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validate_response_headers)
@@ -337,9 +363,9 @@ class Test_CollectDefaultRequestHeader:
         if context.library != "golang":
             # TODO(APPSEC-56898): Golang weblogs do not respond to this request.
             assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(self.r)
+        span, span_format = interfaces.library.get_root_span(self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         for key, value in self.HEADERS.items():
-            meta = span.get("meta", {})
             meta_key = f"http.request.headers.{key.lower()}"
             assert meta_key in meta
             if key == "User-Agent":
@@ -374,11 +400,12 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assert_header_in_span_meta(span: dict, header: str):
-            if header not in span["meta"]:
+        def assert_header_in_span_meta(span: dict, span_format: TraceLibraryPayloadFormat | None, header: str):
+            meta = interfaces.library.get_span_meta(span, span_format)
+            if header not in meta:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_request_headers(span: dict):
+        def validate_request_headers(span: dict, span_format: TraceLibraryPayloadFormat | None):
             for header in [
                 "x-amzn-trace-id",
                 "cloudfront-viewer-ja3-fingerprint",
@@ -389,7 +416,7 @@ class Test_ExternalWafRequestsIdentification:
                 "x-sigsci-tags",
                 "akamai-user-risk",
             ]:
-                assert_header_in_span_meta(span, f"http.request.headers.{header}")
+                assert_header_in_span_meta(span, span_format, f"http.request.headers.{header}")
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validate_request_headers)

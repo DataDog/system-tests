@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
-from utils.dd_constants import SamplingPriority
+from utils.dd_constants import SamplingPriority, TraceLibraryPayloadFormat
 
 """Those are the constants used by the sampling algorithm in all the tracers
 
@@ -21,11 +21,20 @@ SAMPLING_KNUTH_FACTOR = 1111111111111111111
 MAX_UINT64 = 2**64 - 1
 
 
-def get_trace_request_path(root_span: dict) -> str | None:
-    if root_span.get("type") != "web":
+def get_trace_request_path(root_span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> str | None:
+    if span_format is None:
+        # Auto-detect format
+        if "attributes" in root_span and "meta" not in root_span:
+            span_format = TraceLibraryPayloadFormat.v1
+        else:
+            span_format = TraceLibraryPayloadFormat.v04
+
+    span_type = interfaces.library.get_span_type(root_span, span_format)
+    if span_type != "web":
         return None
 
-    url = root_span["meta"].get("http.url")
+    meta = interfaces.library.get_span_meta(root_span, span_format)
+    url = meta.get("http.url")
 
     if url is None:
         return None
@@ -36,8 +45,8 @@ def get_trace_request_path(root_span: dict) -> str | None:
 def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
     path_to_logfile = {}
 
-    for data, span in interfaces.library.get_root_spans():
-        path = get_trace_request_path(span)
+    for data, span, span_format in interfaces.library.get_root_spans():
+        path = get_trace_request_path(span, span_format)
         path_to_logfile[path] = data["log_filename"]
 
     has_error = False
@@ -72,14 +81,25 @@ def trace_should_be_kept(sampling_rate: float, trace_id: int):
 
 
 def _spans_with_parent(traces: list, parent_ids: list):
+    """Extract spans with matching parent_ids from traces.
+    Returns (span, span_format) tuples.
+    """
     if not isinstance(traces, list):
         logger.error("Traces should be an array")
         yield from []  # do not fail here, it's schema's job
     else:
         for trace in traces:
             for span in trace:
-                if span.get("parent_id") in parent_ids:
-                    yield span
+                # Detect format: v1 spans have "attributes" at top level, v04 have "meta"
+                if isinstance(span, dict):
+                    if "attributes" in span and "meta" not in span:
+                        span_format = TraceLibraryPayloadFormat.v1
+                    else:
+                        span_format = TraceLibraryPayloadFormat.v04
+
+                    parent_id = interfaces.library.get_span_parent_id(span, span_format)
+                    if parent_id in parent_ids:
+                        yield span, span_format
 
 
 def generate_request_id() -> Generator[int, Any, Any]:
@@ -114,8 +134,8 @@ class Test_SamplingRates:
         # test sampling
         sampled_count = {True: 0, False: 0}
 
-        for data, root_span in interfaces.library.get_root_spans():
-            metrics = root_span["metrics"]
+        for data, root_span, span_format in interfaces.library.get_root_spans():
+            metrics = interfaces.library.get_span_metrics(root_span, span_format)
             assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
             sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
 
@@ -149,8 +169,9 @@ class Test_SamplingDecisions:
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        def validator(datum: dict, root_span: dict):
-            sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
+        def validator(datum: dict, root_span: dict, span_format: TraceLibraryPayloadFormat | None):
+            metrics = interfaces.library.get_span_metrics(root_span, span_format)
+            sampling_priority = metrics.get("_sampling_priority_v1")
             if sampling_priority is None:
                 raise ValueError(
                     f"Message: {datum['log_filename']}:"
@@ -158,21 +179,23 @@ class Test_SamplingDecisions:
                 )
 
             sampling_decision = priority_should_be_kept(sampling_priority)
-            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
+            trace_id = interfaces.library.get_span_trace_id(root_span, None, span_format)
+            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, trace_id)
             if sampling_decision != expected_decision:
-                if sampling_decision and root_span["meta"].get("_dd.p.dm") == "-5":
+                meta = interfaces.library.get_span_meta(root_span, span_format)
+                if sampling_decision and meta.get("_dd.p.dm") == "-5":
                     # If the decision maker is set to -5, it means that the trace has been sampled due
                     # to AppSec, it should not impact this test and should be ignored.
                     # In this case it is most likely the Healthcheck as it is the first request
                     # and AppSec WAF always samples the first request.
                     return
                 raise ValueError(
-                    f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
+                    f"Trace id {trace_id}, sampling priority {sampling_priority}, "
                     f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
                 )
 
-        for data, span in interfaces.library.get_root_spans():
-            validator(data, span)
+        for data, span, span_format in interfaces.library.get_root_spans():
+            validator(data, span, span_format)
 
 
 @scenarios.sampling
@@ -196,20 +219,26 @@ class Test_SamplingDecisionAdded:
         spans = []
 
         def validator(data: dict):
-            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
-                expected_trace_id = traces[span["parent_id"]]["trace_id"]
+            for span, span_format in _spans_with_parent(data["request"]["content"], list(traces.keys())):
+                parent_id = interfaces.library.get_span_parent_id(span, span_format)
+                if parent_id is None or parent_id not in traces:
+                    continue
+                expected_trace_id = traces[parent_id]["trace_id"]
                 spans.append(span)
 
-                assert span["trace_id"] == expected_trace_id, (
+                trace_id = interfaces.library.get_span_trace_id(span, None, span_format)
+                assert trace_id == expected_trace_id, (
                     f"Message: {data['log_filename']}: If parent_id matches, "
                     f"trace_id should match too expected trace_id {expected_trace_id} "
-                    f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
+                    f"span trace_id : {trace_id}, span parent_id : {parent_id}",
                 )
 
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                metrics = interfaces.library.get_span_metrics(span, span_format)
+                sampling_priority = metrics.get("_sampling_priority_v1")
 
+                span_id = interfaces.library.get_span_span_id(span, span_format)
                 assert sampling_priority is not None, (
-                    f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
+                    f"Message: {data['log_filename']}: sampling priority should be set on span {span_id}",
                 )
 
         interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
@@ -246,15 +275,20 @@ class Test_SamplingDeterminism:
         sampling_decisions_per_trace_id = defaultdict(list)
 
         def validator(data: dict):
-            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
-                expected_trace_id = traces[(span["parent_id"])]["trace_id"]
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+            for span, span_format in _spans_with_parent(data["request"]["content"], list(traces.keys())):
+                parent_id = interfaces.library.get_span_parent_id(span, span_format)
+                if parent_id is None or parent_id not in traces:
+                    continue
+                expected_trace_id = traces[parent_id]["trace_id"]
+                trace_id = interfaces.library.get_span_trace_id(span, None, span_format)
+                metrics = interfaces.library.get_span_metrics(span, span_format)
+                sampling_priority = metrics.get("_sampling_priority_v1")
+                sampling_decisions_per_trace_id[trace_id].append(sampling_priority)
 
-                assert span["trace_id"] == expected_trace_id, (
+                assert trace_id == expected_trace_id, (
                     f"Message: {data['log_filename']}: If parent_id matches, "
                     f"trace_id should match too expected trace_id {expected_trace_id} "
-                    f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
+                    f"span trace_id : {trace_id}, span parent_id : {parent_id}",
                 )
 
                 assert sampling_priority is not None, (
@@ -316,10 +350,14 @@ class Test_SampleRateFunction:
             # Ensure the request succeeded, any failure would make the test incorrect.
             assert req.status_code == 200, "Call to /sample_rate_route/:i failed"
 
-            for data, _, span in interfaces.library.get_spans(request=req):
+            for data, trace, span, span_format in interfaces.library.get_spans(request=req):
                 # Validate the sampling decision
-                trace_id = span["trace_id"]
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
+                trace_dict: dict | None = (
+                    trace if span_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
+                )
+                trace_id = interfaces.library.get_span_trace_id(span, trace_dict, span_format)
+                metrics = interfaces.library.get_span_metrics(span, span_format)
+                sampling_priority = metrics.get("_sampling_priority_v1")
                 logger.info(f"Trying to validate trace_id:{trace_id} from {data['log_filename']}")
                 logger.info(f"Sampling priority: {sampling_priority}")
                 assert sampling_priority is not None, (

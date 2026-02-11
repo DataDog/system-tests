@@ -9,8 +9,8 @@ from types import EllipsisType
 
 def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
-    span = interfaces.library.get_root_span(request)
-    meta = span.get("meta", {})
+    span, span_format = interfaces.library.get_root_span(request)
+    meta = interfaces.library.get_span_meta(span, span_format)
     key = "_dd.appsec.s." + address
     if key not in meta:
         logger.info(f"Schema not found in span meta for {key}")

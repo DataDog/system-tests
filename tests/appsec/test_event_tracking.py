@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, features
+from utils.dd_constants import TraceLibraryPayloadFormat
 from tests.appsec.utils import find_series
 
 HEADERS = {
@@ -48,7 +49,7 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_event(self):
         # Call the user login success SDK and validate tags
 
-        def validate_user_login_success_tags(span: dict):
+        def validate_user_login_success_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "usr.id": "system_tests_user",
@@ -57,9 +58,14 @@ class Test_UserLoginSuccessEvent:
                 "appsec.events.users.login.success.metadata1": "value1",
             }
 
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+
             for tag, expected_value in expected_tags.items():
-                assert tag in span["meta"], f"Can't find {tag} in span's meta"
-                value = span["meta"][tag]
+                assert tag in meta, f"Can't find {tag} in span's meta"
+                value = meta[tag]
                 if value != expected_value:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
@@ -73,12 +79,19 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
-        def validate_user_login_success_header_collection(span: dict) -> bool:
+        def validate_user_login_success_header_collection(
+            span: dict, span_format: TraceLibraryPayloadFormat | None = None
+        ) -> bool:
             if span.get("parent_id") not in (0, None):
                 return False
 
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+
             for header in HEADERS:
-                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+                assert f"http.request.headers.{header.lower()}" in meta, f"Can't find {header} in span's meta"
 
             return True
 
@@ -117,7 +130,7 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_user_login_failure_tags(span: dict):
+        def validate_user_login_failure_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.users.login.failure.usr.id": "system_tests_user",
@@ -127,9 +140,14 @@ class Test_UserLoginFailureEvent:
                 "appsec.events.users.login.failure.metadata1": "value1",
             }
 
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+
             for tag, expected_value in expected_tags.items():
-                assert tag in span["meta"], f"Can't find {tag} in span's meta"
-                value = span["meta"][tag]
+                assert tag in meta, f"Can't find {tag} in span's meta"
+                value = meta[tag]
                 if value != expected_value:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 
@@ -143,12 +161,19 @@ class Test_UserLoginFailureEvent:
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
-        def validate_user_login_failure_header_collection(span: dict):
+        def validate_user_login_failure_header_collection(
+            span: dict, span_format: TraceLibraryPayloadFormat | None = None
+        ):
             if span.get("parent_id") not in (0, None):
                 return None
 
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+
             for header in HEADERS:
-                assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+                assert f"http.request.headers.{header.lower()}" in meta, f"Can't find {header} in span's meta"
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
@@ -186,7 +211,7 @@ class Test_CustomEvent:
     def test_custom_event_event(self):
         # Call the user login failure SDK and validate tags
 
-        def validate_custom_event_tags(span: dict):
+        def validate_custom_event_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
             expected_tags = {
                 "http.client_ip": "1.2.3.4",
                 "appsec.events.system_tests_event.track": "true",
@@ -194,9 +219,14 @@ class Test_CustomEvent:
                 "appsec.events.system_tests_event.metadata1": "value1",
             }
 
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+
             for tag, expected_value in expected_tags.items():
-                assert tag in span["meta"], f"Can't find {tag} in span's meta"
-                value = span["meta"][tag]
+                assert tag in meta, f"Can't find {tag} in span's meta"
+                value = meta[tag]
                 if value != expected_value:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
 

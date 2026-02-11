@@ -385,7 +385,7 @@ class Test_API10_redirect_status(API10):
         assert self.r.status_code == 200
         # interfaces.library.validate_one_span(self.r, validator=self.validate)
         interfaces.library.validate_one_span(self.r, validator=self.validate_metric)
-        for _, _trace, span in interfaces.library.get_spans(request=self.r):
+        for _, _trace, span, _ in interfaces.library.get_spans(request=self.r):
             meta = span.get("meta", {})
             assert isinstance(meta.get("appsec.api.redirection.move_target", None), str), f"missing tag in {meta}"
             assert "/redirect?totalRedirects=2" in meta["appsec.api.redirection.move_target"]
