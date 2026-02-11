@@ -446,29 +446,31 @@ class BaseDebuggerTest:
         return self._all_snapshots_found
 
     def _wait_for_all_snapshots(self, data: dict) -> bool:
-        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
-            contents = data["request"].get("content", []) or []
-            found_probe_ids = set()
+        if data["path"] not in [_LOGS_PATH, _DEBUGGER_PATH]:
+            return False
 
-            for content in contents:
-                # Filter out snapshots from before the test start time for multiple tests using the same file.
-                if "timestamp" in content and self.start_time is not None:
-                    if content["timestamp"] < self.start_time:
-                        continue
+        contents = data["request"].get("content", []) or []
+        found_probe_ids = set()
 
-                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+        for content in contents:
+            # Filter out snapshots from before the test start time for multiple tests using the same file.
+            if "timestamp" in content and self.start_time is not None:
+                if content["timestamp"] < self.start_time:
+                    continue
 
-                if snapshot and "probe" in snapshot:
-                    probe_id = snapshot["probe"]["id"]
-                    if probe_id in self.probe_ids:
-                        found_probe_ids.add(probe_id)
-                        logger.debug(f"Found snapshot for probe {probe_id}")
+            snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
-            # Check if we have snapshots for all expected probe IDs
-            if set(self.probe_ids).issubset(found_probe_ids):
-                logger.debug(f"All snapshots found for probes: {self.probe_ids}")
-                self._all_snapshots_found = True
-                return True
+            if snapshot and "probe" in snapshot:
+                probe_id = snapshot["probe"]["id"]
+                if probe_id in self.probe_ids:
+                    found_probe_ids.add(probe_id)
+                    logger.debug(f"Found snapshot for probe {probe_id}")
+
+        # Check if we have snapshots for all expected probe IDs
+        if set(self.probe_ids).issubset(found_probe_ids):
+            logger.debug(f"All snapshots found for probes: {self.probe_ids}")
+            self._all_snapshots_found = True
+            return True
 
         logger.debug(f"Still waiting for snapshots. Found: {found_probe_ids}, Expected: {self.probe_ids}")
         return False
