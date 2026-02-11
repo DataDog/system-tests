@@ -10,15 +10,13 @@ if [ "$(uname -s)" = "Darwin" ]; then
     timeout_command="gtimeout"
 fi
 
-RUN_CMD=("$timeout_command" "$BUILD_TIMEOUT" "./utils/build/build.sh" "$@")
-
 for (( i=1; i<=$ATTEMPT; i++ ))
 do
     echo "== Run build script (attempt $i on $ATTEMPT) with timeout ${BUILD_TIMEOUT}s =="
 
     # Temporarily disable exit on error to capture the exit code
     set +e
-    "${RUN_CMD[@]}"
+    "$timeout_command" "$BUILD_TIMEOUT" "./utils/build/build.sh" "$@"
     exit_code=$?
     set -e
 
