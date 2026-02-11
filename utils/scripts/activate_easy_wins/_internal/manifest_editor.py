@@ -303,6 +303,21 @@ class ManifestEditor:
                 ret[rule].append(condition)
         return ret
 
+    @staticmethod
+    def has_existing_comment(
+        obj: CommentedMap | CommentedSeq,
+        key_or_index: str | int,
+    ) -> bool:
+        try:
+            comment_tokens = obj.ca.items.get(key_or_index)
+            if comment_tokens:
+                for token in comment_tokens:
+                    if token is not None:
+                        return True
+        except (AttributeError, KeyError):
+            pass
+        return False
+
     def write_comment(
         self,
         obj: CommentedMap | CommentedSeq,
@@ -310,7 +325,7 @@ class ManifestEditor:
         comment: str,
         position: str = "inline",
     ) -> None:
-        """Add a comment to a YAML structure.
+        """Add a comment to a YAML structure, only if no comment already exists.
 
         Args:
             obj: The CommentedMap or CommentedSeq to add the comment to
@@ -320,6 +335,10 @@ class ManifestEditor:
 
         """
         if not isinstance(obj, (CommentedMap, CommentedSeq)):
+            return
+
+        # Don't overwrite existing comments
+        if self.has_existing_comment(obj, key_or_index):
             return
 
         # ruamel.yaml adds the # automatically, so we don't include it in the comment text

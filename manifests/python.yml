@@ -327,7 +327,7 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
@@ -341,22 +341,14 @@ manifest:
     - weblog_declaration:
         "*": v4.1.0
         *django: v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
-    - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
-        *django: v4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
-    - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
-        *django: v4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -368,7 +360,7 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v4.5.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: v2.20.0.dev
@@ -814,8 +806,9 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: v2.11.0
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v2.11.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept: v1.16.1
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v2.10.0
@@ -1386,6 +1379,8 @@ manifest:
         uwsgi-poc: v4.2.0
         uds-flask: v4.2.0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.15.0
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.15.0
   ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
   : - declaration: bug (APMON-1496)
       component_version: '>2.12.2'
