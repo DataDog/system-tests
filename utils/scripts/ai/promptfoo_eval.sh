@@ -1,205 +1,287 @@
 #!/bin/bash
 set -euo pipefail
 
-# Get the repository root directory
+# ==============================================================================
+# Promptfoo Evaluation Wizard
+# Interactive script to run promptfoo evaluations with provider and scenario selection
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Configuration
+# ------------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-PROMPTFOO_DIR="$REPO_ROOT/.promptfoo"
+readonly SCRIPT_DIR
 
-# Colors for pretty output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
-NC='\033[0m' # No Color
-
-echo ""
-echo -e "${CYAN}╔═══════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║          ${YELLOW}🤖 Promptfoo Evaluation Wizard 🧙‍♂️${CYAN}               ║${NC}"
-echo -e "${CYAN}╚═══════════════════════════════════════════════════════════╝${NC}"
-echo ""
-
-# ============================================================================
-# Step 1: Select Provider
-# ============================================================================
-echo -e "${MAGENTA}━━━ Step 1: Select Provider ━━━${NC}"
-echo ""
-echo -e "${BLUE}Which provider would you like to use for the evaluation?${NC}"
-echo ""
-
-# Read providers from promptfooconfig.yaml
-PROVIDERS=()
-PROVIDER_LABELS=()
-
-# Parse providers from the YAML config
-while IFS= read -r line; do
-    # Extract provider id
-    if [[ $line =~ ^[[:space:]]*-[[:space:]]*id:[[:space:]]*[\'\"]*([^\'\"]*)[\'\"]* ]]; then
-        provider_id="${BASH_REMATCH[1]}"
-        PROVIDERS+=("$provider_id")
-
-        # Try to get the label from the next line
-        label=""
-    elif [[ $line =~ ^[[:space:]]*label:[[:space:]]*[\'\"]*([^\'\"]*)[\'\"]* ]] && [[ ${#PROVIDERS[@]} -gt ${#PROVIDER_LABELS[@]} ]]; then
-        label="${BASH_REMATCH[1]}"
-        PROVIDER_LABELS+=("$label")
-    elif [[ ${#PROVIDERS[@]} -gt ${#PROVIDER_LABELS[@]} ]]; then
-        # No label found for this provider, use empty string
-        PROVIDER_LABELS+=("")
-    fi
-done < "$REPO_ROOT/promptfooconfig.yaml"
-
-# Ensure we have labels for all providers
-while [[ ${#PROVIDER_LABELS[@]} -lt ${#PROVIDERS[@]} ]]; do
-    PROVIDER_LABELS+=("")
-done
-
-num_providers=${#PROVIDERS[@]}
-
-if [[ $num_providers -eq 0 ]]; then
-    echo -e "${YELLOW}⚠️  No providers found in promptfooconfig.yaml${NC}"
+# Find repo root using git (works regardless of script location)
+REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel 2>/dev/null)"
+if [[ -z "$REPO_ROOT" ]]; then
+    echo "Error: Not inside a git repository" >&2
     exit 1
 fi
+readonly REPO_ROOT
+readonly PROMPTFOO_DIR="$REPO_ROOT/.promptfoo"
+readonly CONFIG_FILE="$REPO_ROOT/promptfooconfig.yaml"
 
-echo -e "  ${GREEN}0)${NC} Use ALL providers"
-echo ""
+# Colors
+readonly C_GREEN='\033[0;32m'
+readonly C_BLUE='\033[0;34m'
+readonly C_YELLOW='\033[1;33m'
+readonly C_CYAN='\033[0;36m'
+readonly C_MAGENTA='\033[0;35m'
+readonly C_RESET='\033[0m'
 
-# Display available providers
-idx=1
-for i in "${!PROVIDERS[@]}"; do
-    provider="${PROVIDERS[$i]}"
-    label="${PROVIDER_LABELS[$i]}"
+# ------------------------------------------------------------------------------
+# Utility Functions
+# ------------------------------------------------------------------------------
 
-    if [[ -n "$label" ]]; then
-        echo -e "  ${GREEN}${idx})${NC} ${label} ${CYAN}(${provider})${NC}"
+# Print colored message
+print() {
+    local color=$1
+    shift
+    echo -e "${color}$*${C_RESET}"
+}
+
+# Print section header
+print_header() {
+    print "$C_MAGENTA" "━━━ $1 ━━━"
+    echo
+}
+
+# Print menu option
+print_option() {
+    local num=$1
+    local text=$2
+    local detail=${3:-}
+
+    if [[ -n $detail ]]; then
+        print "$C_GREEN" "  $num)" "$text ${C_CYAN}($detail)${C_RESET}"
     else
-        echo -e "  ${GREEN}${idx})${NC} ${provider}"
+        print "$C_GREEN" "  $num)" "$text"
     fi
-    idx=$((idx + 1))
-done
-echo ""
+}
 
-while true; do
-    read -rp "Enter your choice (0-${num_providers}): " provider_choice
+# Get validated numeric input
+get_choice() {
+    local prompt=$1
+    local max=$2
+    local choice
 
-    # Validate input is a number
-    if ! [[ "$provider_choice" =~ ^[0-9]+$ ]]; then
-        echo -e "${YELLOW}⚠️  Please enter a number.${NC}"
-        continue
-    fi
+    while true; do
+        read -rp "$prompt" choice
 
-    if [[ "$provider_choice" -eq 0 ]]; then
-        SELECTED_PROVIDER=""
-        echo ""
-        echo -e "${GREEN}✓ Selected: ${CYAN}ALL providers${NC}"
-        break
-    elif [[ "$provider_choice" -ge 1 && "$provider_choice" -le $num_providers ]]; then
-        SELECTED_PROVIDER="${PROVIDERS[$((provider_choice - 1))]}"
-        selected_label="${PROVIDER_LABELS[$((provider_choice - 1))]}"
-
-        echo ""
-        if [[ -n "$selected_label" ]]; then
-            echo -e "${GREEN}✓ Selected provider: ${CYAN}${selected_label} (${SELECTED_PROVIDER})${NC}"
-        else
-            echo -e "${GREEN}✓ Selected provider: ${CYAN}${SELECTED_PROVIDER}${NC}"
+        if [[ ! $choice =~ ^[0-9]+$ ]]; then
+            print "$C_YELLOW" "⚠️  Please enter a number."
+            continue
         fi
-        break
-    else
-        echo -e "${YELLOW}⚠️  Invalid choice. Please enter a number between 0 and ${num_providers}.${NC}"
+
+        if [[ $choice -ge 0 && $choice -le $max ]]; then
+            echo "$choice"
+            return 0
+        fi
+
+        print "$C_YELLOW" "⚠️  Invalid choice. Please enter a number between 0 and $max."
+    done
+}
+
+# ------------------------------------------------------------------------------
+# Provider Functions
+# ------------------------------------------------------------------------------
+
+# Parse providers from promptfooconfig.yaml
+parse_providers() {
+    local providers=()
+    local labels=()
+
+    while IFS= read -r line; do
+        if [[ $line =~ ^[[:space:]]*-[[:space:]]*id:[[:space:]]*[\'\"]*([^\'\"]*)[\'\"]* ]]; then
+            # Found a provider - add it and a placeholder for its label
+            providers+=("${BASH_REMATCH[1]}")
+            labels+=("")  # Will be replaced if we find a label next
+        elif [[ $line =~ ^[[:space:]]*label:[[:space:]]*[\'\"]*([^\'\"]*)[\'\"]* ]] && [[ ${#labels[@]} -gt 0 ]]; then
+            # Found a label - replace the last empty label
+            labels[${#labels[@]}-1]="${BASH_REMATCH[1]}"
+        fi
+    done < "$CONFIG_FILE"
+
+    # Return as array format (bash 3.2 compatible)
+    printf '%s\n' "${providers[@]}"
+    echo '---'
+    printf '%s\n' "${labels[@]}"
+}
+
+# Display and select provider
+select_provider() {
+    print_header "Step 1: Select Provider" >&2
+    print "$C_BLUE" "Which provider would you like to use for the evaluation?" >&2
+    echo >&2
+
+    local providers_data
+    providers_data=$(parse_providers)
+
+    # Parse providers and labels (bash 3.2 compatible)
+    local providers=()
+    local labels=()
+    local in_labels=0
+
+    while IFS= read -r line; do
+        if [[ $line == "---" ]]; then
+            in_labels=1
+            continue
+        fi
+
+        if [[ $in_labels -eq 0 ]]; then
+            providers+=("$line")
+        else
+            labels+=("$line")
+        fi
+    done <<< "$providers_data"
+
+    if [[ ${#providers[@]} -eq 0 ]]; then
+        print "$C_YELLOW" "⚠️  No providers found in $CONFIG_FILE" >&2
+        exit 1
     fi
-done
 
-echo ""
+    print_option "0" "Use ALL providers" >&2
+    echo >&2
 
-# ============================================================================
-# Step 2: Select Test Scenarios
-# ============================================================================
-echo -e "${MAGENTA}━━━ Step 2: Select Test Scenarios ━━━${NC}"
-echo ""
+    for i in "${!providers[@]}"; do
+        local num=$((i + 1))
+        local label="${labels[$i]:-}"
+        if [[ -n $label ]]; then
+            print_option "$num" "$label" "${providers[$i]}" >&2
+        else
+            print_option "$num" "${providers[$i]}" >&2
+        fi
+    done
+    echo >&2
 
-# Find all test YAML files (portable approach for macOS/older bash)
-TEST_FILES=()
+    local choice
+    choice=$(get_choice "Enter your choice (0-${#providers[@]}): " "${#providers[@]}")
+
+    echo >&2
+    if [[ $choice -eq 0 ]]; then
+        print "$C_GREEN" "✓ Selected: ${C_CYAN}ALL providers" >&2
+        echo "" # Return empty string for ALL
+    else
+        local idx=$((choice - 1))
+        local selected="${providers[$idx]}"
+        local selected_label="${labels[$idx]:-}"
+        if [[ -n $selected_label ]]; then
+            print "$C_GREEN" "✓ Selected provider: ${C_CYAN}$selected_label ($selected)" >&2
+        else
+            print "$C_GREEN" "✓ Selected provider: ${C_CYAN}$selected" >&2
+        fi
+        echo "$selected" # Return the provider ID
+    fi
+}
+
+# ------------------------------------------------------------------------------
+# Scenario Functions
+# ------------------------------------------------------------------------------
+
+# Find test scenario files
+find_test_files() {
+    find "$PROMPTFOO_DIR" -maxdepth 1 -name "tests_*.yaml" -type f | sort
+}
+
+# Extract scenario name from filename
+extract_scenario_name() {
+    local filename
+    filename=$(basename "$1")
+    filename="${filename#tests_}"
+    echo "${filename%.yaml}"
+}
+
+# Display and select test scenarios
+select_scenario() {
+    print_header "Step 2: Select Test Scenarios" >&2
+
+    # Find test files (bash 3.2 compatible)
+    local test_files=()
 while IFS= read -r file; do
-    TEST_FILES+=("$file")
-done < <(find "$PROMPTFOO_DIR" -maxdepth 1 -name "tests_*.yaml" -type f | sort)
+        test_files+=("$file")
+    done < <(find_test_files)
 
-num_files=${#TEST_FILES[@]}
-
-if [[ $num_files -eq 0 ]]; then
-    echo -e "${YELLOW}⚠️  No test files found in $PROMPTFOO_DIR${NC}"
+    if [[ ${#test_files[@]} -eq 0 ]]; then
+        print "$C_YELLOW" "⚠️  No test files found in $PROMPTFOO_DIR" >&2
     exit 1
 fi
 
-echo -e "${BLUE}Would you like to run all scenarios or select specific ones?${NC}"
-echo ""
-echo -e "  ${GREEN}0)${NC} Run ALL scenarios"
-echo ""
+    print "$C_BLUE" "Would you like to run all scenarios or select specific ones?" >&2
+    echo >&2
+    print_option "0" "Run ALL scenarios" >&2
+    echo >&2
 
-# Display available test files
-idx=1
-for file in "${TEST_FILES[@]}"; do
-    filename=$(basename "$file")
-    # Remove 'tests_' prefix and '.yaml' suffix for display
-    scenario_name="${filename#tests_}"
-    scenario_name="${scenario_name%.yaml}"
-    echo -e "  ${GREEN}${idx})${NC} ${scenario_name}"
-    idx=$((idx + 1))
-done
-echo ""
+    for i in "${!test_files[@]}"; do
+        local num=$((i + 1))
+        local name
+        name=$(extract_scenario_name "${test_files[$i]}")
+        print_option "$num" "$name" >&2
+    done
+    echo >&2
 
-while true; do
-    read -rp "Enter your choice (0-${num_files}): " scenario_choice
+    local choice
+    choice=$(get_choice "Enter your choice (0-${#test_files[@]}): " "${#test_files[@]}")
 
-    # Validate input is a number
-    if ! [[ "$scenario_choice" =~ ^[0-9]+$ ]]; then
-        echo -e "${YELLOW}⚠️  Please enter a number.${NC}"
-        continue
-    fi
-
-    if [[ "$scenario_choice" -eq 0 ]]; then
-        SELECTED_CONFIG=""
-        echo ""
-        echo -e "${GREEN}✓ Selected: ${CYAN}ALL scenarios${NC}"
-        break
-    elif [[ "$scenario_choice" -ge 1 && "$scenario_choice" -le $num_files ]]; then
-        SELECTED_CONFIG="${TEST_FILES[$((scenario_choice - 1))]}"
-        selected_name=$(basename "$SELECTED_CONFIG")
-        selected_name="${selected_name#tests_}"
-        selected_name="${selected_name%.yaml}"
-        echo ""
-        echo -e "${GREEN}✓ Selected scenario: ${CYAN}${selected_name}${NC}"
-        break
+    echo >&2
+    if [[ $choice -eq 0 ]]; then
+        print "$C_GREEN" "✓ Selected: ${C_CYAN}ALL scenarios" >&2
+        echo "" # Return empty string for ALL
     else
-        echo -e "${YELLOW}⚠️  Invalid choice. Please enter a number between 0 and ${num_files}.${NC}"
+        local idx=$((choice - 1))
+        local selected="${test_files[$idx]}"
+        local name
+        name=$(extract_scenario_name "$selected")
+        print "$C_GREEN" "✓ Selected scenario: ${C_CYAN}$name" >&2
+        echo "$selected" # Return the file path
     fi
-done
+}
 
-echo ""
+# ------------------------------------------------------------------------------
+# Evaluation Execution
+# ------------------------------------------------------------------------------
 
-# ============================================================================
-# Step 3: Run the evaluation
-# ============================================================================
-echo -e "${MAGENTA}━━━ Step 3: Running Evaluation ━━━${NC}"
-echo ""
+# Run promptfoo evaluation
+run_evaluation() {
+    local provider=${1:-}
+    local config=${2:-}
 
-echo -e "${BLUE}📊 Running promptfoo evaluation...${NC}"
+    print_header "Step 3: Running Evaluation" >&2
+    print "$C_BLUE" "📊 Running promptfoo evaluation..." >&2
 
-# Build the promptfoo command
-PROMPTFOO_CMD="promptfoo eval --no-cache"
+    local cmd="promptfoo eval --no-cache"
 
-# Add test file if specific scenario was selected
-if [[ -n "$SELECTED_CONFIG" ]]; then
-    PROMPTFOO_CMD="$PROMPTFOO_CMD -t $SELECTED_CONFIG"
-fi
+    [[ -n $config ]] && cmd="$cmd -t $config"
+    [[ -n $provider ]] && cmd="$cmd --filter-providers $provider"
 
-# Add provider filter if specific provider was selected
-if [[ -n "$SELECTED_PROVIDER" ]]; then
-    PROMPTFOO_CMD="$PROMPTFOO_CMD --filter-providers $SELECTED_PROVIDER"
-fi
+    eval "$cmd"
 
-# Run the command
-eval "$PROMPTFOO_CMD"
+    echo >&2
+    print "$C_GREEN" "✅ Evaluation complete!" >&2
+}
 
-echo ""
-echo -e "${GREEN}✅ Evaluation complete!${NC}"
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
+
+main() {
+    # Print banner
+    echo
+    print "$C_CYAN" "╔═══════════════════════════════════════════════════════════╗"
+    print "$C_CYAN" "║          ${C_YELLOW}🤖 Promptfoo Evaluation Wizard 🧙‍♂️${C_CYAN}               ║"
+    print "$C_CYAN" "╚═══════════════════════════════════════════════════════════╝"
+    echo
+
+    # Step 1: Select provider
+    local selected_provider
+    selected_provider=$(select_provider)
+
+    # Step 2: Select scenario
+    local selected_config
+    selected_config=$(select_scenario)
+
+    # Step 3: Run evaluation
+    run_evaluation "$selected_provider" "$selected_config"
+}
+
+main "$@"
