@@ -277,14 +277,12 @@ else
     run_ruff_check > "$TEMP_DIR/ruff_check.out" 2>&1 || exit 1
   ) & pid_ruff_chain=$!
 
-  # Chain 2: YAML formatting → linting
+  # Chain 2: YAML formatting → linting → manifest formatting
   (
     run_yamlfmt > "$TEMP_DIR/yamlfmt.out" 2>&1 || exit 1
     run_yamllint > "$TEMP_DIR/yamllint.out" 2>&1 || exit 1
+    run_manifest > "$TEMP_DIR/manifest.out" 2>&1 || exit 1
   ) & pid_yaml_chain=$!
-
-  # Chain 3: Manifest formatting → validation
-  run_manifest > "$TEMP_DIR/manifest.out" 2>&1 & pid_manifest=$!
 
   # Independent operations
   run_mypy > "$TEMP_DIR/mypy.out" 2>&1 & pid_mypy=$!
