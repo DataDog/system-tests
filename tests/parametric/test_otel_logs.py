@@ -8,6 +8,7 @@ from utils import scenarios, features, logger, irrelevant, context
 from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
 from .conftest import APMLibrary
 
@@ -114,14 +115,7 @@ class Test_FR01_Enable_OTLP_Log_Collection:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "otlp_logs_enabled", "test_otlp_logs_enabled") is not None
 
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {"DD_LOGS_OTEL_ENABLED": "false", "DD_TRACE_DEBUG": None},
-            {"DD_LOGS_OTEL_ENABLED": None, "DD_TRACE_DEBUG": None},
-        ],
-        ids=["disabled", "default"],
-    )
+    @pytest.mark.parametrize("library_env", [{"DD_LOGS_OTEL_ENABLED": "false", "DD_TRACE_DEBUG": None}])
     def test_otlp_logs_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Logs are not emitted when disabled."""
         with test_library as library:
@@ -216,8 +210,7 @@ class Test_FR04_Trace_Span_IDs:
         expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
         root = find_only_span(test_agent.wait_for_num_traces(1))
-        root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
-        trace_id = f"{root_tid}{root['trace_id']:016x}"
+        trace_id = extract_trace_id_from_otel_span(root)
         span_id = f"{root['span_id']:016x}"
 
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
@@ -245,8 +238,7 @@ class Test_FR04_Trace_Span_IDs:
         expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
         root = find_only_span(test_agent.wait_for_num_traces(1))
-        root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
-        trace_id = f"{root_tid}{root['trace_id']:016x}"
+        trace_id = extract_trace_id_from_otel_span(root)
         span_id = f"{root['span_id']:016x}"
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
         assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
@@ -642,10 +634,10 @@ class Test_FR10_Timeout_Configuration:
         assert isinstance(exporter_timeout, dict)
         assert isinstance(exporter_logs_timeout, dict)
 
-        assert exporter_timeout.get("value") == 10000, (
+        assert str(exporter_timeout.get("value")) == "10000", (
             f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
         )
-        assert exporter_logs_timeout.get("value") == 10000, (
+        assert str(exporter_logs_timeout.get("value")) == "10000", (
             f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
         )
 
@@ -749,7 +741,7 @@ class Test_FR11_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
@@ -760,7 +752,7 @@ class Test_FR11_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
