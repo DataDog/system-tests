@@ -34,7 +34,7 @@
       user_prompt: "what should i do to create a new end-to-end scenario called \"my_new_appsec_scenario\" that populates these env variables into the weblog: \"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP\": \"hide-key\", \"DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP\": \".*hide_value\". Could i use an existing scenario with similar configurations?"
     assert:
         - type: llm-rubric
-          value: "The user can choose to use an existing scenario or create a new one."
+          value: "The user can choose to use an existing scenario or create a new one. Also it's possible not to show the option to cerate a new one, and try to use the existing one."
 
 
   - description: "[End-to-End] Create test case for AppSec scenario with validation"
@@ -43,7 +43,10 @@
     assert:
         - type: icontains-all
           value:
-            - "scenarios.my_new_appsec_scenario"
             - "nested_lookup"
             - "assert_waf_attack"
             - "interfaces.library"
+        - type: icontains-any
+          value:
+            - "scenarios.appsec_custom_obfuscation"
+            - "scenarios.my_new_appsec_scenario"

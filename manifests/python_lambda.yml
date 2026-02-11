@@ -67,10 +67,10 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v8.117.0.dev

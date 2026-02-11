@@ -1029,7 +1029,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: bug (APPSEC-60508)
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": missing_feature
@@ -1043,7 +1043,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1055,7 +1055,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
         "*": missing_feature
-        vertx3: v1.54.0
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": missing_feature
@@ -1071,7 +1071,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: '>=1.58.2+06122213c8'  # Needs to be checked
+        vertx3: bug (APPSEC-61153)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -3163,6 +3163,8 @@ manifest:
         "*": missing_feature
         spring-boot: v1.39.0
   tests/integrations/test_sql.py::Test_Sql: bug (APMAPI-729)
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.59.0
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.59.0
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
