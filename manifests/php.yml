@@ -483,8 +483,7 @@ manifest:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
-  tests/ffe/test_dynamic_evaluation.py: missing_feature
-  tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_exposures.py::Test_FFE_Exposure_Caching_Same_Subject::test_ffe_exposure_caching_same_subject: missing_feature (PHP shared-nothing architecture - exposure cache does not persist across HTTP requests)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: missing_feature
@@ -543,7 +542,6 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v1.4.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature
-  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_invalid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_inject_valid: missing_feature (Need to remove b3=b3multi alias)
