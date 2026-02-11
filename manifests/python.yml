@@ -4,7 +4,7 @@ refs:
   - &django "django-poc, django-py3.13, python3.12"
   - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
-  tests/:
+  tests/:  # Easy win for tornado and version 4.3.1
     - weblog_declaration:
         tornado: v4.4.0-rc2
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
@@ -26,6 +26,9 @@ manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.6.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.6.0
@@ -101,6 +104,9 @@ manifest:
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
   tests/appsec/iast:
+    - weblog_declaration:
+        tornado: v4.3.1  # Modified by easy win activation script
+  tests/appsec/iast/sink:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: v2.20.0
@@ -260,6 +266,9 @@ manifest:
         "*": v3.0.0.dev
   tests/appsec/iast/sink/test_xss.py::TestXSS_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_xss.py::TestXSS_StackTrace: v3.9.0.dev
+  tests/appsec/iast/source:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/source/test_body.py::TestRequestBody:
     - weblog_declaration:
         '*': v1.20.0
@@ -308,7 +317,13 @@ manifest:
         *flask: v2.13.0
   tests/appsec/iast/source/test_sql_row.py::TestSqlRow: missing_feature
   tests/appsec/iast/source/test_uri.py::TestURI: missing_feature
+  tests/appsec/iast/test_sampling_by_route_method_count.py:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: v3.9.0.dev
+  tests/appsec/iast/test_security_controls.py:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls:
     - weblog_declaration:
         "*": missing_feature
@@ -316,7 +331,7 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
@@ -332,9 +347,9 @@ manifest:
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
-        *django: v4.3.0-dev0 (with httpx support)
+        "*": bug (APPSEC-61151)
+        fastapi: bug (APPSEC-61151)
+        *django: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
@@ -343,9 +358,9 @@ manifest:
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
-        *django: v4.3.0-dev0 (with httpx support)
+        "*": bug (APPSEC-61151)
+        fastapi: bug (APPSEC-61151)
+        *django: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -357,7 +372,7 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: bug (APPSEC-61151)
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: v2.20.0.dev
@@ -803,8 +818,9 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: v2.11.0
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v2.11.0
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v2.11.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept: v1.16.1
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v2.10.0
@@ -960,7 +976,12 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.7.0
-  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_excluded_identifiers: bug (DEBUG-3746)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_excluded_identifiers:  # Modified by easy win activation script
+    - declaration: bug (DEBUG-3746)
+      component_version: <4.3.1
+      weblog: [uds-flask, uwsgi-poc, flask-poc]
+    - declaration: bug (DEBUG-3746)
+      excluded_weblog: [uds-flask, uwsgi-poc, flask-poc]
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
@@ -978,6 +999,7 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
     - declaration: missing_feature (Not implemented in older versions)
       component_version: '<4.1.0'
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": missing_feature
@@ -1011,7 +1033,12 @@ manifest:
         "*": missing_feature
         *flask: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co: missing_feature (DEBUG-3550)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:  # Modified by easy win activation script
+    - declaration: missing_feature (DEBUG-3550)
+      component_version: <4.3.1
+      weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
+    - declaration: missing_feature (DEBUG-3550)
+      excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.11.0
@@ -1025,6 +1052,8 @@ manifest:
       component_version: '>=3.0.0-dev'
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
+    - declaration: bug (APPSEC-61117)
+      component_version: '>=4.4.0-dev'
     - declaration: missing_feature (No implemented)
       component_version: <3.15.0
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
@@ -1083,48 +1112,153 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name: missing_feature (Not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_name: bug (APMAPI-741)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system: bug (APMAPI-741)
+        uds-flask: v4.3.1  # Modified by easy win activation script
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_connection_string:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_instance:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
+    - declaration: missing_feature (Not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_name:
+    - declaration: 'irrelevant ("Java is using the correct span: db.instance")'
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_operation:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_row_count:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_sql_table:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_statement_query:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_system:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_user: bug (APMAPI-741)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_user:
+    - declaration: bug (APMAPI-741)
+    - weblog_declaration:
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_runtime_id:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance: missing_feature (not implemented yet)
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_connection_string:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_instance:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_name:
     - declaration: bug (APMRP-360)
       component_version: <2.12.2
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_operation:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_row_count:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_sql_table:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_statement_query:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_user:
     - declaration: bug (APMRP-360)
       component_version: <2.12.2
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_runtime_id:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres:
     - weblog_declaration:
         "*": missing_feature
         flask-poc: v1.18.3
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table: missing_feature (not implemented yet)
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query: missing_feature (not implemented yet)
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_connection_string:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_instance:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_operation:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_row_count:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_sql_table:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_statement_query:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id: missing_feature (not implemented yet)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_runtime_id:
+    - declaration: missing_feature (not implemented yet)
+    - weblog_declaration:
+        uwsgi-poc: missing_feature
+        uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_connection_string: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_instance: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_operation: missing_feature (not implemented yet)
@@ -1267,12 +1401,16 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v2.0.0
-  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6: missing_feature (does not support ipv6 hostname)
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL::test_dd_agent_host_ipv6:  # Modified by easy win activation script
+    - declaration: missing_feature (does not support ipv6 hostname)
+      component_version: <4.3.1
   tests/parametric/test_config_consistency.py::Test_Config_TraceEnabled: v2.12.2
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_UnifiedServiceTagging: v2.12.2
@@ -1280,14 +1418,22 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.11.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.9.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: bug (APMAPI-857)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-857)
+      component_version: <4.3.1
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: flaky (APMAPI-1051)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: missing_feature
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: missing_feature (failure 2.8.0)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
+    - declaration: missing_feature (failure 2.8.0)
+      component_version: <4.3.1
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: irrelevant (DD_TRACE_SAMPLE_RATE was removed in 3.x)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets:  # Modified by easy win activation script
+    - declaration: missing_feature (failure 2.8.0)
+      component_version: <4.3.1
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.0.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags:
     - declaration: flaky (APMAPI-1400)
@@ -1353,11 +1499,38 @@ manifest:
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : "missing_feature (\"Issue: Does not drop dm\")"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature (failure 2.8.0)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:  # Modified by easy win activation script
+    - declaration: missing_feature (failure 2.8.0)
+      component_version: <4.3.1
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature (failure 2.8.0)  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0
-  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: '>=4.3.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_in_order: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_nested_dd_root: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_nested_otel_root: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_datadog_start_after_otel_span: missing_feature  # Created by easy win activation script
+  ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_datadog
+  : missing_feature  # Created by easy win activation script
+  ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_tracecontext
+  : missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_has_ended: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_otel_start_after_datadog_span: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_datadog: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_otel: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_update_remove_meta: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_update_remove_metric: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_creation_using_datadog: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_links_add: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
@@ -1375,7 +1548,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature
   tests/parametric/test_otel_metrics.py: v3.18.0
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
@@ -1401,20 +1574,30 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (New operation name mapping not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_with_array_encoding: "missing_feature (\"New operation name mapping & array encoding not yet implemented\")"
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_separately: missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_service_name: missing_feature (New operation name mapping not yet implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_service_name:  # Modified by easy win activation script
+    - declaration: missing_feature (New operation name mapping not yet implemented)
+      component_version: <4.3.1
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_error:  # Modified by easy win activation script
+    - declaration: missing_feature (New operation name mapping not yet implemented)
+      component_version: <4.3.1
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_span_status_ok: missing_feature (Default state of otel spans is OK, updating the status from OK to ERROR is supported)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_end:  # Modified by easy win activation script
+    - declaration: missing_feature (New operation name mapping not yet implemented)
+      component_version: <4.3.1
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_finished_end_options: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_finished_end_options:  # Modified by easy win activation script
+    - declaration: missing_feature (New operation name mapping not yet implemented)
+      component_version: <4.3.1
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_operation_name: missing_feature (Not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_reserved_attributes_overrides: missing_feature (Not implemented)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span: missing_feature (New operation name mapping not yet implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_start_span:  # Modified by easy win activation script
+    - declaration: missing_feature (New operation name mapping not yet implemented)
+      component_version: <4.3.1
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: v2.18.0
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
@@ -1432,12 +1615,18 @@ manifest:
   ? tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_and_rule_0_sst009
   : bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
-  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-737)
+      component_version: <4.3.1
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_1_sst005: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_sst003: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_tiny_sst004: bug (APMAPI-737)
-  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002: bug (APMAPI-737)
-  tests/parametric/test_span_events.py::Test_Span_Events: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-737)
+      component_version: <4.3.1
+  tests/parametric/test_span_events.py::Test_Span_Events: '>=4.3.1'  # Modified by easy win activation script
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_invalid_event_attributes: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_links.py::Test_Span_Links: v2.3.0
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (links do not influence the sampling decision of spans)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling: v2.8.0
@@ -1447,8 +1636,12 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
   : missing_feature (RPC issue causing test to hang)
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: bug (APMAPI-1545)
-  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: bug (APMAPI-1545)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-1545)
+      component_version: <4.3.1
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-1545)
+      component_version: <4.3.1
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings:
     - declaration: missing_feature (Reports configurations with unexpected names)
@@ -1508,31 +1701,56 @@ manifest:
         django-poc: v2.15.0
         flask-poc: v2.15.0
         python3.12: v2.15.0
+        django-py3.13: v4.3.1  # Modified by easy win activation script
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload:
     - weblog_declaration:
         "*": missing_feature
         django-poc: v2.15.0
         flask-poc: v2.15.0
         python3.12: v2.15.0
+        django-py3.13: v4.3.1  # Modified by easy win activation script
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject:
     - weblog_declaration:
         "*": missing_feature
         django-poc: v2.14.0
         flask-poc: v2.14.0
         python3.12: v2.14.0
+        django-py3.13: v4.3.1  # Modified by easy win activation script
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/stats/test_stats.py:
     - weblog_declaration:
         "*": v2.8.0
-        tornado: missing_feature
+        tornado: v4.3.1  # Modified by easy win activation script
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
         *django: bug (APMSP-1375)
+    - # Added by easy win activation script
+      weblog_declaration:
+        tornado: missing_feature
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
         "*": v2.8.0
         *django: bug (APMSP-1375)
-  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment: missing_feature
+    - # Added by easy win activation script
+      weblog_declaration:
+        tornado: missing_feature
+  tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        tornado: '>=4.3.1'
+        django-py3.13: '>=4.3.1'
+        fastapi: '>=4.3.1'
+        flask-poc: '>=4.3.1'
+        django-poc: '>=4.3.1'
+        python3.12: '>=4.3.1'
+        uds-flask: '>=4.3.1'
+        uwsgi-poc: '>=4.3.1'
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
@@ -1602,7 +1820,12 @@ manifest:
         flask-poc: v3.0.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server: bug (APMAPI-772)
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server:  # Modified by easy win activation script
+    - declaration: bug (APMAPI-772)
+      component_version: <4.3.1
+      weblog: [fastapi]
+    - declaration: bug (APMAPI-772)
+      excluded_weblog: [fastapi]
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
@@ -1616,6 +1839,12 @@ manifest:
         "*": missing_feature (Missing on weblog)
         tornado: v4.4.0-rc2
         flask-poc: v1.5.0-rc2  # actual version unknown
+        django-py3.13: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
+        django-poc: v4.3.1  # Modified by easy win activation script
+        python3.12: v4.3.1  # Modified by easy win activation script
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        fastapi: v4.3.1  # Modified by easy win activation script
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -1652,9 +1881,10 @@ manifest:
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
-        django-py3.13: missing_feature (python 3.13 not supported yet)
+        django-py3.13: v4.3.1  # Modified by easy win activation script
         python3.12: v2.1.0
   tests/test_profiling.py::Test_Profile::test_process_tags: v4.2.0+dev
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
@@ -1693,6 +1923,8 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
         flask-poc: v3.0.0
+        uds-flask: v4.3.1  # Modified by easy win activation script
+        uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
@@ -1712,10 +1944,140 @@ manifest:
       component_version: '>=1.18.0-rc1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
-  tests/test_telemetry.py::Test_MessageBatch: missing_feature
+  tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        tornado: '>=4.3.1'
+        django-py3.13: '>=4.3.1'
+        fastapi: '>=4.3.1'
+        flask-poc: '>=4.3.1'
+        django-poc: '>=4.3.1'
+        python3.12: '>=4.3.1'
+        uds-flask: '>=4.3.1'
+        uwsgi-poc: '>=4.3.1'
+  tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_MessageBatch:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        tornado: '>=4.3.1'
+        django-py3.13: '>=4.3.1'
+        fastapi: '>=4.3.1'
+        flask-poc: '>=4.3.1'
+        django-poc: '>=4.3.1'
+        python3.12: '>=4.3.1'
+        uds-flask: '>=4.3.1'
+        uwsgi-poc: '>=4.3.1'
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled:  # Modified by easy win activation script
+    - weblog_declaration:
+        '*': missing_feature
+        tornado: '>=4.3.1'
+        django-py3.13: '>=4.3.1'
+        fastapi: '>=4.3.1'
+        flask-poc: '>=4.3.1'
+        django-poc: '>=4.3.1'
+        python3.12: '>=4.3.1'
+        uds-flask: '>=4.3.1'
+        uwsgi-poc: '>=4.3.1'
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_created:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created:  # Created by easy win activation script
+    - weblog_declaration:
+        tornado: missing_feature
+        python3.12: missing_feature
+        uds-flask: missing_feature
+        uwsgi-poc: missing_feature
+        django-poc: missing_feature
+        flask-poc: missing_feature
+        fastapi: missing_feature
+        django-py3.13: missing_feature
   tests/test_telemetry.py::Test_ProductsDisabled: v3.4.0
   tests/test_telemetry.py::Test_ProductsDisabled::test_app_started_product_disabled: missing_feature (feature not implemented)
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
@@ -1731,5 +2093,10 @@ manifest:
         flask-poc: v3.13.0rc1
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v3.15.0+dev36.gb57f15308
   tests/test_telemetry.py::Test_TelemetryV2: v1.17.3
-  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing in app-started payload)
+  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info:  # Modified by easy win activation script
+    - declaration: missing_feature (Product started missing in app-started payload)
+      component_version: <4.3.1
+      weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
+    - declaration: missing_feature (Product started missing in app-started payload)
+      excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
   tests/test_v1_payloads.py: missing_feature

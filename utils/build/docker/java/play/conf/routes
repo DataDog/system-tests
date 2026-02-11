@@ -7,6 +7,7 @@ GET  /sample_rate_route/:i     controllers.MainController.sampleRateRoute(i: Int
 GET  /api_security/sampling/:i controllers.AppSecController.apiSecuritySamplingWithStatus(i: Int)
 GET  /api_security_sampling/:i controllers.AppSecController.apiSecuritySampling(i: Int)
 GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
+GET  /resource_renaming/*path  controllers.MainController.resourceRenaming(path: String)
 GET  /waf                      controllers.AppSecController.waf
 GET  /waf/                      controllers.AppSecController.waf
 GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
