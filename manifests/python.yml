@@ -331,7 +331,7 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-61151)
+  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
@@ -345,22 +345,14 @@ manifest:
     - weblog_declaration:
         "*": v4.1.0
         *django: v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
-    - weblog_declaration:
-        "*": bug (APPSEC-61151)
-        fastapi: bug (APPSEC-61151)
-        *django: bug (APPSEC-61151)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
-    - weblog_declaration:
-        "*": bug (APPSEC-61151)
-        fastapi: bug (APPSEC-61151)
-        *django: bug (APPSEC-61151)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -372,7 +364,7 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: bug (APPSEC-61151)
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v4.5.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: v2.20.0.dev
