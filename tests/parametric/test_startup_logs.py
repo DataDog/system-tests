@@ -9,6 +9,9 @@ from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
+# Regex pattern for matching startup log entries across all tracer libraries
+STARTUP_LOG_PATTERN = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
+
 
 def _get_dotnet_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str | None:
     """Get .NET tracer startup logs from the container (dotnet-tracer-managed* file).
@@ -32,6 +35,41 @@ def _get_dotnet_startup_logs(test_library: APMLibrary, *, required: bool = True)
     return logs
 
 
+def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str | None:
+    """Get startup logs from container, handling language-specific differences.
+
+    - .NET: Reads from dotnet-tracer-managed* file
+    - Node.js/Ruby: Reads from stdout
+    - Other libraries: Reads from stderr
+
+    Args:
+        test_library: The APMLibrary test client
+        required: If True, fails test when logs not found. If False, returns None.
+
+    Returns:
+        Log content as string, or None if not found and not required.
+
+    """
+    if context.library == "dotnet":
+        return _get_dotnet_startup_logs(test_library, required=required)
+    elif context.library in ("nodejs", "ruby"):
+        try:
+            logs = test_library.container.logs(stderr=False, stdout=True).decode("utf-8")
+        except Exception as e:
+            if required:
+                pytest.fail(f"Failed to retrieve container logs: {e}")
+            return None
+    else:
+        try:
+            logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
+        except Exception as e:
+            if required:
+                pytest.fail(f"Failed to retrieve container logs: {e}")
+            return None
+
+    return logs
+
+
 @scenarios.parametric
 @features.log_tracer_status_at_startup
 class Test_Startup_Logs:
@@ -46,24 +84,12 @@ class Test_Startup_Logs:
                     pass
                 test_library.dd_flush()
 
-            # For .NET, startup logs are written to a file instead of stdout/stderr
-            if context.library == "dotnet":
-                logs = _get_dotnet_startup_logs(test_library, required=True)
-            else:
-                try:
-                    # Node.js and Ruby log to stdout, other libraries only log stderr
-                    if context.library in ("nodejs", "ruby"):
-                        logs = test_library.container.logs(stderr=False, stdout=True).decode("utf-8")
-                    else:
-                        logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
-                except Exception as e:
-                    pytest.fail(f"Failed to retrieve container logs: {e}")
+            logs = _get_startup_logs(test_library, required=True)
 
             assert logs is not None
-            startup_log_pattern = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
-            match = re.search(startup_log_pattern, logs, re.IGNORECASE)
+            match = re.search(STARTUP_LOG_PATTERN, logs, re.IGNORECASE)
             assert match, (
-                f"Startup log not found (default behavior). Searched for pattern: '{startup_log_pattern}'. "
+                f"Startup log not found (default behavior). Searched for pattern: '{STARTUP_LOG_PATTERN}'. "
                 f"Content (first 2000 chars): {logs[:2000]}"
             )
 
@@ -81,24 +107,12 @@ class Test_Startup_Logs:
                     pass
                 test_library.dd_flush()
 
-            # For .NET, startup logs are written to a file instead of stdout/stderr
-            if context.library == "dotnet":
-                logs = _get_dotnet_startup_logs(test_library, required=True)
-            else:
-                try:
-                    # Node.js and Ruby log to stdout, other libraries only log stderr
-                    if context.library in ("nodejs", "ruby"):
-                        logs = test_library.container.logs(stderr=False, stdout=True).decode("utf-8")
-                    else:
-                        logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
-                except Exception as e:
-                    pytest.fail(f"Failed to retrieve container logs: {e}")
+            logs = _get_startup_logs(test_library, required=True)
 
             assert logs is not None
-            startup_log_pattern = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
-            match = re.search(startup_log_pattern, logs, re.IGNORECASE)
+            match = re.search(STARTUP_LOG_PATTERN, logs, re.IGNORECASE)
             assert match, (
-                f"Startup log not found. Searched for pattern: '{startup_log_pattern}'. "
+                f"Startup log not found. Searched for pattern: '{STARTUP_LOG_PATTERN}'. "
                 f"Content (first 2000 chars): {logs[:2000]}"
             )
 
@@ -121,35 +135,15 @@ class Test_Startup_Logs:
                     pass
                 test_library.dd_flush()
 
-            # For .NET, startup logs are written to a file instead of stdout/stderr
-            if context.library == "dotnet":
-                logs = _get_dotnet_startup_logs(test_library, required=False)
-                if logs is not None:
-                    startup_log_pattern = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
-                    if re.search(startup_log_pattern, logs, re.IGNORECASE):
-                        pytest.fail(
-                            "Startup log found in .NET log file when DD_TRACE_STARTUP_LOGS=false. "
-                            f"Content (first 1000 chars): {logs[:1000]}"
-                        )
-            else:
-                try:
-                    # Node.js and Ruby log to stdout, other libraries only log stderr
-                    if context.library in ("nodejs", "ruby"):
-                        logs = test_library.container.logs(stderr=False, stdout=True).decode("utf-8")
-                    else:
-                        logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
-                except Exception as e:
-                    pytest.fail(f"Failed to retrieve container logs: {e}")
-
-                assert logs is not None
-                startup_log_pattern = r"DATADOG (TRACER )?CONFIGURATION( - (CORE|TRACING|PROFILING|.*))?"
-                match = re.search(startup_log_pattern, logs, re.IGNORECASE)
+            logs = _get_startup_logs(test_library, required=False)
+            if logs is not None:
+                match = re.search(STARTUP_LOG_PATTERN, logs, re.IGNORECASE)
                 if match:
                     logger.error(logs)
                     pytest.fail(
-                        # f"Startup log found when DD_TRACE_STARTUP_LOGS=false. "
-                        # f"Found pattern: '{match.group(0)}'. "
-                        f"Logs (first 1000 chars): {logs[:10000]}"
+                        f"Startup log found when DD_TRACE_STARTUP_LOGS=false. "
+                        f"Found pattern: '{match.group(0)}'. "
+                        f"Logs (first 1000 chars): {logs[:1000]}"
                     )
 
     @parametrize(
@@ -170,17 +164,7 @@ class Test_Startup_Logs:
                 pass
             test_library.dd_flush()
 
-            if context.library == "dotnet":
-                logs = _get_dotnet_startup_logs(test_library, required=True)
-            else:
-                try:
-                    # Ruby logs to stdout, other libraries only log stderr
-                    if context.library == "ruby":
-                        logs = test_library.container.logs(stderr=False, stdout=True).decode("utf-8")
-                    else:
-                        logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
-                except Exception as e:
-                    pytest.fail(f"Failed to retrieve container logs: {e}")
+            logs = _get_startup_logs(test_library, required=True)
 
             assert logs is not None
             diagnostic_patterns = [
