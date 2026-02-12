@@ -320,12 +320,15 @@ def _uncompress_span_links_list(span_links: list | None, strings: list[str]) -> 
                 # Keep non-enum keys as-is (for backward compatibility)
                 uncompressed_link[k] = value
 
-        # Deserialize the base64-encoded trace_id if present
+        # Deserialize trace_id if present (handle both bytes and base64-encoded string)
         if "trace_id" in uncompressed_link:
             trace_id = uncompressed_link["trace_id"]
-            if isinstance(trace_id, str):
+            if isinstance(trace_id, bytes):
+                # Convert bytes to hex string (same as chunk trace IDs)
+                uncompressed_link["trace_id"] = "0x" + trace_id.hex().upper()
+            elif isinstance(trace_id, str):
                 try:
-                    # Decode the base64-encoded trace_id string to bytes
+                    # Decode the base64-encoded trace_id string to bytes, then to hex
                     trace_id_bytes = base64.b64decode(trace_id)
                     uncompressed_link["trace_id"] = "0x" + trace_id_bytes.hex().upper()
                 except Exception:  # noqa: S110
@@ -418,10 +421,13 @@ def _uncompress_span_link(link: dict, strings: list[str]) -> None:
         link.clear()
         link.update(uncompressed_link)
 
-    # Deserialize the base64-encoded traceID
+    # Deserialize traceID (handle both bytes and base64-encoded string)
     if "trace_id" in link:
         trace_id = link["trace_id"]
-        if isinstance(trace_id, str) and not trace_id.startswith("0x"):
+        if isinstance(trace_id, bytes):
+            # Convert bytes to hex string (same as chunk trace IDs)
+            link["trace_id"] = "0x" + trace_id.hex().upper()
+        elif isinstance(trace_id, str) and not trace_id.startswith("0x"):
             try:
                 trace_id_bytes = base64.b64decode(trace_id)
                 link["trace_id"] = "0x" + trace_id_bytes.hex().upper()

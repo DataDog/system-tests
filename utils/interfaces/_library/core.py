@@ -71,6 +71,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
     trace_paths = ["/v0.4/traces", "/v0.5/traces", "/v1.0/traces"]
+    # Number of hex characters needed to represent 64 bits (lower trace ID)
+    _TRACE_ID_HEX_LENGTH = 16
 
     def __init__(self, name: str):
         super().__init__(name)
@@ -239,6 +241,118 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         # parent_id is a top-level field in both formats
         return span.get("parent_id")
+
+    @staticmethod
+    def get_span_links(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> list[dict] | None:
+        """Returns the span links of a span according to its format.
+
+        Returns a normalized list of span links with consistent field names:
+        - trace_id: int (lower 64 bits)
+        - trace_id_high: int | None (upper 64 bits, if present)
+        - span_id: int
+        - attributes: dict | None
+        - tracestate: str | None
+        - flags: int
+        """
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        # Check for span_links at top level (v1 format or v04 with span_links field)
+        # Also check for "links" which is used in v1 format
+        span_links = span.get("span_links") or span.get("links")
+        if span_links is not None:
+            normalized_links = []
+            for link in span_links:
+                normalized_link = {}
+
+                # Handle trace_id - normalize to int (lower 64 bits) and optionally trace_id_high
+                trace_id = link.get("trace_id")
+                if trace_id is not None:
+                    if isinstance(trace_id, str):
+                        # Handle hex string format (e.g., "0x1234..." or "1234...")
+                        trace_id_str = trace_id.removeprefix("0x")
+                        if len(trace_id_str) >= LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                            # Extract lower 64 bits
+                            normalized_link["trace_id"] = int(
+                                trace_id_str[-LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH :], 16
+                            )
+                            # Extract upper 64 bits if present
+                            if len(trace_id_str) > LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                                normalized_link["trace_id_high"] = int(
+                                    trace_id_str[: -LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH], 16
+                                )
+                        else:
+                            normalized_link["trace_id"] = int(trace_id_str, 16)
+                    elif isinstance(trace_id, int):
+                        normalized_link["trace_id"] = trace_id
+                    # Note: bytes should already be converted to hex string by deserializer
+
+                # Handle span_id
+                span_id = link.get("span_id")
+                if span_id is not None:
+                    if isinstance(span_id, str):
+                        # Convert hex string to int if needed
+                        normalized_link["span_id"] = (
+                            int(span_id, 16)
+                            if span_id.startswith("0x") or all(c in "0123456789abcdefABCDEF" for c in span_id)
+                            else int(span_id)
+                        )
+                    else:
+                        normalized_link["span_id"] = span_id
+
+                # Copy other fields
+                if "attributes" in link:
+                    normalized_link["attributes"] = link["attributes"]
+                if "tracestate" in link:
+                    normalized_link["tracestate"] = link["tracestate"]
+                elif "trace_state" in link:
+                    normalized_link["tracestate"] = link["trace_state"]
+                if "flags" in link:
+                    # Ensure flags have the TRACECONTEXT_FLAGS_SET bit
+                    normalized_link["flags"] = link["flags"] | (1 << 31)
+                else:
+                    normalized_link["flags"] = 0
+
+                normalized_links.append(normalized_link)
+            return normalized_links
+
+        # Check meta for _dd.span_links (v04 format stored in meta)
+        meta = LibraryInterfaceValidator.get_span_meta(span, span_format)
+        span_links_value = meta.get("_dd.span_links")
+        if span_links_value is not None:
+            # Convert span_links tags into normalized format
+            json_links = json.loads(span_links_value)
+            normalized_links = []
+            for json_link in json_links:
+                normalized_link = {}
+                # Parse trace_id from hex string
+                trace_id_str = json_link["trace_id"]
+                if len(trace_id_str) >= LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                    normalized_link["trace_id"] = int(
+                        trace_id_str[-LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH :], 16
+                    )
+                    if len(trace_id_str) > LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                        normalized_link["trace_id_high"] = int(
+                            trace_id_str[: -LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH], 16
+                        )
+                else:
+                    normalized_link["trace_id"] = int(trace_id_str, 16)
+                # Parse span_id from hex string
+                normalized_link["span_id"] = int(json_link["span_id"], 16)
+                if "attributes" in json_link:
+                    normalized_link["attributes"] = json_link["attributes"]
+                if "tracestate" in json_link:
+                    normalized_link["tracestate"] = json_link["tracestate"]
+                elif "trace_state" in json_link:
+                    normalized_link["tracestate"] = json_link["trace_state"]
+                if "flags" in json_link:
+                    normalized_link["flags"] = json_link["flags"] | (1 << 31)
+                else:
+                    normalized_link["flags"] = 0
+                normalized_links.append(normalized_link)
+            return normalized_links
+
+        return None
 
     @staticmethod
     def get_span_meta_struct(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> dict:
