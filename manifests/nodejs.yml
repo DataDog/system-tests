@@ -612,12 +612,12 @@ manifest:
   tests/appsec/iast/utils.py::BaseTestCookieNameFilter::test_cookie_name_filter:
     - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
       component_version: '>=5.50.0'
-  tests/appsec/rasp/test_api10.py::Test_API10_all: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_all: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: *ref_5_87_0
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_response_body: *ref_5_87_0
