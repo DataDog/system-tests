@@ -682,6 +682,9 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_rate_limiter_span_sampling_sss008: missing_feature (PHP uses a float to represent the allowance in tokens and thus accepts one more request (given the time elapsed between individual requests))
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: bug (APMAPI-1545)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: bug (APMAPI-1545)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: incomplete_test_app (Not currently testable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not emitted when agent is unreachable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: incomplete_test_app (Not currently testable)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
