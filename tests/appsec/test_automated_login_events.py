@@ -1189,11 +1189,15 @@ def assert_priority(span: dict, trace: list[dict] | dict):
     # Convert trace to list format if it's a dict (v1 format)
     if isinstance(trace, dict):
         trace = trace.get("spans", [])
-    if "_sampling_priority_v1" not in span["metrics"]:
+    # Use get_span_metrics to handle both v04 and v1 formats (pass None to auto-detect)
+    span_metrics = interfaces.library.get_span_metrics(span, None)
+    if "_sampling_priority_v1" not in span_metrics:
         # some tracers like java only send the priority in the first and last span of the trace
-        assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
+        first_span = trace[0]
+        first_span_metrics = interfaces.library.get_span_metrics(first_span, None)
+        assert first_span_metrics.get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
     else:
-        assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
+        assert span_metrics.get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
