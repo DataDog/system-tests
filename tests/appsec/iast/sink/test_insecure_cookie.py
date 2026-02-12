@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features, rfc, scenarios, flaky
+from utils import weblog, features, rfc, scenarios, flaky
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     BaseTestCookieNameFilter,
@@ -25,7 +25,6 @@ class TestInsecureCookie(BaseSinkTest):
         "nodejs": get_nodejs_iast_file_paths(),
     }
 
-    @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
         super().test_secure()
 
@@ -35,13 +34,9 @@ class TestInsecureCookie(BaseSinkTest):
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
-    @missing_feature(context.library < "python@3.1.0", reason="Metrics not implemented")
-    @missing_feature(library="dotnet", reason="Metrics not implemented")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.22.0", reason="Metrics not implemented")
     @flaky(weblog_variant="vertx4", reason="APPSEC-56453")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
@@ -66,7 +61,6 @@ class TestInsecureCookie_StackTrace:
     def setup_stack_trace(self):
         self.r = weblog.get("/iast/insecure-cookie/test_insecure")
 
-    @flaky(context.library >= "java@1.56.0", reason="APPSEC-59975")
     def test_stack_trace(self):
         validate_stack_traces(self.r)
 

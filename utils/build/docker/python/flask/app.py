@@ -8,6 +8,7 @@ if os.environ.get("UWSGI_ENABLED", "false") == "false":
     monkey.patch_all(thread=True)  # noqa: E402
 
 
+import contextlib
 import base64
 import http.client
 import json
@@ -58,6 +59,7 @@ from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
 import requests
+import stripe
 import opentelemetry.baggage
 import opentelemetry.context
 import opentelemetry.propagate
@@ -234,6 +236,10 @@ DB_USER = {
 }
 
 tracer.trace("init.service").finish()
+
+# Configure Stripe client for testing
+stripe.api_key = "sk_FAKE"
+stripe.api_base = "http://internal_server:8089"
 
 
 def reset_dsm_context():
@@ -1884,6 +1890,94 @@ def otel_drop_in_default_propagator_inject():
     return jsonify(result)
 
 
+# From https://github.com/open-telemetry/opentelemetry-python/issues/2432#issuecomment-1742425474
+# This context manager handles correctly managing context with repeated baggage operations
+@contextlib.contextmanager
+def otel_baggage(
+    baggage_to_remove=None,
+    baggage_to_set=None,
+    context=None,
+):
+    attached_context_tokens: list[object] = list()
+
+    if baggage_to_remove:
+        for key in baggage_to_remove:
+            attached_token = opentelemetry.baggage.remove_baggage(key, context)
+            attached_context_tokens.append(opentelemetry.context.attach(attached_token))
+
+    if baggage_to_set:
+        for key, value in baggage_to_set.items():
+            attached_token = opentelemetry.baggage.set_baggage(key, value, context)
+            attached_context_tokens.append(opentelemetry.context.attach(attached_token))
+
+    try:
+        yield
+    finally:
+        for attached_token in attached_context_tokens:
+            opentelemetry.context.detach(attached_token)
+
+
+@app.route("/otel_drop_in_baggage_api_otel", methods=["GET"])
+def otel_drop_in_baggage_api_otel():
+    url = flask_request.args["url"]
+    baggage_remove_header = flask_request.args["baggage_remove"]
+    baggage_set_header = flask_request.args["baggage_set"]
+
+    baggage_to_remove = [key.strip() for key in baggage_remove_header.split(",")] if baggage_remove_header else None
+    baggage_to_set = (
+        {key.strip(): value.strip() for key, value in [item.split("=") for item in baggage_set_header.split(",")]}
+        if baggage_set_header
+        else None
+    )
+
+    with otel_baggage(baggage_to_remove, baggage_to_set):
+        response = requests.get(url)
+
+        result = {
+            "url": url,
+            "status_code": response.status_code,
+            "request_headers": dict(response.request.headers),
+            "response_headers": dict(response.headers),
+        }
+
+        return result
+
+
+@app.route("/otel_drop_in_baggage_api_datadog", methods=["GET"])
+def otel_drop_in_baggage_api_datadog():
+    url = flask_request.args["url"]
+    baggage_remove_header = flask_request.args["baggage_remove"]
+    baggage_set_header = flask_request.args["baggage_set"]
+
+    baggage_to_remove = [key.strip() for key in baggage_remove_header.split(",")] if baggage_remove_header else None
+    baggage_to_set = (
+        {key.strip(): value.strip() for key, value in [item.split("=") for item in baggage_set_header.split(",")]}
+        if baggage_set_header
+        else None
+    )
+
+    span = tracer.current_span()
+    if span:
+        if baggage_to_remove:
+            for key in baggage_to_remove:
+                span.context.remove_baggage_item(key)
+
+        if baggage_to_set:
+            for key, value in baggage_to_set.items():
+                span.context.set_baggage_item(key, value)
+
+    response = requests.get(url)
+
+    result = {
+        "url": url,
+        "status_code": response.status_code,
+        "request_headers": dict(response.request.headers),
+        "response_headers": dict(response.headers),
+    }
+
+    return result
+
+
 @app.route("/inferred-proxy/span-creation", methods=["GET"])
 def inferred_proxy_span_creation():
     headers = flask_request.args.get("headers", {})
@@ -2077,3 +2171,59 @@ def external_request_redirect():
             )
     except urllib.error.HTTPError as e:
         return jsonify({"status": int(e.status), "error": repr(e)})
+
+
+@app.route("/ai_guard/evaluate", methods=["POST"])
+def ai_guard_evaluate():
+    """AI Guard evaluation endpoint."""
+    from ddtrace.internal.settings.asm import ai_guard_config
+
+    if not ai_guard_config._ai_guard_enabled:
+        return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
+
+    try:
+        from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+
+        should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"
+        messages = flask_request.get_json()
+
+        client = new_ai_guard_client(endpoint=os.environ.get("DD_AI_GUARD_ENDPOINT"))
+        evaluation = client.evaluate(messages, Options(block=should_block))
+        return jsonify(evaluation), 200
+
+    except Exception as e:
+        if isinstance(e, AIGuardAbortError):
+            return jsonify(
+                {"action": getattr(e, "action", ""), "reason": getattr(e, "reason", ""), "tags": getattr(e, "tags", [])}
+            ), 403
+        else:
+            return jsonify({"error": str(e), "type": e.__class__.__name__}), 500
+
+
+@app.route("/stripe/create_checkout_session", methods=["POST"])
+def stripe_create_checkout_session():
+    try:
+        result = stripe.checkout.Session.create(**flask_request.get_json())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stripe/create_payment_intent", methods=["POST"])
+def stripe_create_payment_intent():
+    try:
+        result = stripe.PaymentIntent.create(**flask_request.get_json())
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/stripe/webhook", methods=["POST"])
+def stripe_webhook():
+    try:
+        event = stripe.Webhook.construct_event(
+            flask_request.data, flask_request.headers.get("Stripe-Signature"), "whsec_FAKE"
+        )
+        return jsonify(event.data.object)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 403

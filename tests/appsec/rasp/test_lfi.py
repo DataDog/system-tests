@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils import remote_config as rc
@@ -17,13 +16,6 @@ from tests.appsec.rasp.utils import (
     BaseRulesVersion,
     BaseWAFVersion,
 )
-
-
-if context.library > "python_lambda@8.117.0":
-    pytestmark = [
-        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
-        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
-    ]
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3nydvvu7sn93")
@@ -248,20 +240,20 @@ class Test_Lfi_RC_CustomAction:
     """Local file inclusion through query parameters"""
 
     def setup_lfi_get(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*RemoteConfigConstants.CONFIG_ENABLED).apply()
-        self.config_state_1b = rc.rc_state.set_config(*RemoteConfigConstants.RULES).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*RemoteConfigConstants.CONFIG_ENABLED).apply()
+        self.config_state_1b = rc.tracer_rc_state.set_config(*RemoteConfigConstants.RULES).apply()
         self.r1 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-        self.config_state_2 = rc.rc_state.set_config(*RemoteConfigConstants.BLOCK_505).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*RemoteConfigConstants.BLOCK_505).apply()
         self.r2 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-        self.config_state_3 = rc.rc_state.set_config(*RemoteConfigConstants.BLOCK_REDIRECT).apply()
+        self.config_state_3 = rc.tracer_rc_state.set_config(*RemoteConfigConstants.BLOCK_REDIRECT).apply()
         self.r3 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"}, allow_redirects=False)
 
-        self.config_state_4 = rc.rc_state.del_config(RemoteConfigConstants.BLOCK_REDIRECT[0]).apply()
+        self.config_state_4 = rc.tracer_rc_state.del_config(RemoteConfigConstants.BLOCK_REDIRECT[0]).apply()
         self.r4 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
-        self.config_state_5 = rc.rc_state.reset().apply()
+        self.config_state_5 = rc.tracer_rc_state.reset().apply()
         self.r5 = weblog.get("/rasp/lfi", params={"file": "../etc/passwd"})
 
     def test_lfi_get(self):

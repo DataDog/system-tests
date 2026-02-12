@@ -6,7 +6,7 @@ from collections import defaultdict
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, Literal
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
@@ -16,12 +16,17 @@ from mitmproxy.http import HTTPFlow, Request
 
 from ._deserializer import deserialize
 from .ports import ProxyPorts
-from .mocked_response import MOCKED_RESPONSES_PATH, MockedResponse
+from .mocked_response import (
+    MOCKED_TRACER_RESPONSES_PATH,
+    MOCKED_BACKEND_RESPONSES_PATH,
+    MockedTracerResponse,
+    MockedBackendResponse,
+)
+from .utils import logger
 
 # prevent permission issues on file created by the proxy when the host is linux
 os.umask(0)
 
-logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
@@ -51,21 +56,39 @@ class _RequestLogger:
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
-        self.mocked_responses: list[MockedResponse] = []
-        """Mocked responses controlled by setup methods"""
+        # Tracer mocked responses (modify agent responses)
+        self.mocked_tracer_responses: list[MockedTracerResponse] = []
+        """Tracer mocked responses controlled by setup methods"""
 
-        with open("/app/logs/internal_mocked_responses.json", encoding="utf-8", mode="r") as f:
-            data = json.load(f)
+        self.internal_mocked_tracer_responses = MockedTracerResponse.many_from_file()
+        """Tracer mocked responses valid for the entire session, controlled by scenarios"""
 
-        self.internal_mocked_responses: list[MockedResponse] = [
-            MockedResponse.build_from_json(source) for source in data
-        ]
-        """Mocked responses valid for the entire session, controlled by scenarios"""
+        # Backend mocked responses (create responses from scratch)
+        self.mocked_backend_responses: list[MockedBackendResponse] = []
+        """Backend mocked responses controlled by setup methods"""
+
+        self.internal_mocked_backend_responses = MockedBackendResponse.many_from_file()
+        """Backend mocked responses valid for the entire session, controlled by scenarios"""
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
+
+    def _store_mocked_reponses(self, flow: HTTPFlow, target: Literal["tracer", "backend"]) -> None:
+        result: list[MockedTracerResponse] | list[MockedBackendResponse]
+        try:
+            source: list[dict] = json.loads(flow.request.content)
+            if target == "tracer":
+                result = self.mocked_tracer_responses = MockedTracerResponse.from_dicts(source)
+            elif target == "backend":
+                result = self.mocked_backend_responses = MockedBackendResponse.from_dicts(source)
+        except Exception as e:
+            logger.exception(f"Failed to build mocked {target} response from {flow.request.content}")
+            flow.response = self.get_error_response(f"Invalid mocked {target} response definition: {e}".encode())
+        else:
+            logger.info(f"Store mocked {target} responses: {result}")
+            flow.response = http.Response.make(200, b"Ok")
 
     def request(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
@@ -74,16 +97,12 @@ class _RequestLogger:
         logger.info(f"{flow.request.method} {flow.request.pretty_url} using proxy port {port}")
 
         if port == ProxyPorts.proxy_commands:
-            if flow.request.path == MOCKED_RESPONSES_PATH and flow.request.method == "PUT":
-                source: list[dict] = json.loads(flow.request.content)
-                try:
-                    self.mocked_responses = [MockedResponse.build_from_json(item) for item in source]
-                except Exception as e:
-                    logger.exception(f"Failed to build mocked response from {source}")
-                    flow.response = self.get_error_response(f"Invalid mocked response definition: {e}".encode())
-                else:
-                    logger.info(f"Store mocked response :{self.mocked_responses}")
-                    flow.response = http.Response.make(200, b"Ok")
+            if flow.request.path == MOCKED_TRACER_RESPONSES_PATH and flow.request.method == "PUT":
+                self._store_mocked_reponses(flow, target="tracer")
+
+            elif flow.request.path == MOCKED_BACKEND_RESPONSES_PATH and flow.request.method == "PUT":
+                self._store_mocked_reponses(flow, target="backend")
+
             else:
                 flow.response = http.Response.make(404, b"Not found")
 
@@ -136,7 +155,22 @@ class _RequestLogger:
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
         elif port == ProxyPorts.agent and self.mocked_backend:
-            flow.response = http.Response.make(202, b"Ok")
+            # Since we are faking the backend (generating responses from
+            # scratch), the logic is that the first mock satisfying the
+            # condition wins. Consequently, we check runtime mocks (controlled
+            # by the setup method) first, followed by internal mocks (applied on
+            # all scenarios).
+            for mock in self.mocked_backend_responses + self.internal_mocked_backend_responses:
+                if mock.path == flow.request.path:
+                    logger.info(f"    => applying backend mock {mock}")
+                    mock.execute(flow)
+                    return
+
+            # No mock matched - return generic success response
+            if flow.request.path == "/support/flare":
+                flow.response = http.Response.make(200, b"Ok")
+            else:
+                flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
@@ -232,10 +266,10 @@ class _RequestLogger:
 
     def _modify_response(self, flow: HTTPFlow):
         if self.request_is_from_tracer(flow.request):
-            # apply internal mocks before those controlled by setup methods
-            for mocked_response in self.internal_mocked_responses + self.mocked_responses:
+            # Apply tracer mocks (internal first, then runtime-controlled)
+            for mocked_response in self.internal_mocked_tracer_responses + self.mocked_tracer_responses:
                 if mocked_response.path == flow.request.path:
-                    logger.info(f"    => applying {mocked_response}")
+                    logger.info(f"    => applying tracer mock {mocked_response}")
                     mocked_response.execute(flow)
 
 

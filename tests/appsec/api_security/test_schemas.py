@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky, bug
+from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky
 from utils._weblog import HttpResponse
 from types import EllipsisType
 
@@ -78,7 +78,6 @@ class Test_Schema_Request_Cookies:
             "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
-    @missing_feature(context.library < "python@1.19.0.dev")
     @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
@@ -263,7 +262,6 @@ class Test_Schema_Response_on_Block:
             headers={"user-agent": "dd-test-scanner-log-block"},
         )
 
-    @bug(context.library >= "python_lambda@8.117.0", reason="APPSEC-60014")
     def test_request_method(self):
         """Can provide response body schema"""
         assert self.request_noblock.status_code == 200
@@ -319,8 +317,6 @@ class Test_Scanners:
             headers={"authorization": "digest a0b1c2"},
         )
 
-    @missing_feature(context.library < "python@1.19.0.dev")
-    @bug(context.library >= "python_lambda@8.117.0", reason="APPSEC-60014")
     def test_request_method(self):
         """Can provide request header schema"""
         schema_cookies = get_schema(self.request, "req.cookies")

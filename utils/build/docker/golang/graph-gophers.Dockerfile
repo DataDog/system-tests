@@ -1,10 +1,10 @@
-FROM golang:1.24
+FROM golang:1.25
 
 # print important lib versions
 RUN go version && curl --version
 
 # install jq
-RUN apt-get update && apt-get -y install jq
+RUN apt-get update && apt-get -y install jq git
 
 # download go dependencies
 RUN mkdir -p /app

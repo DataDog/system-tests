@@ -2,14 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, scenarios, bug, features
+from utils import weblog, interfaces, scenarios, features
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.threats_alpha_preview
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.appsec_lambda_default
 @scenarios.default
 class Test_Basic:
@@ -27,7 +24,6 @@ class Test_Basic:
         self.r_headers_1 = weblog.get("/waf/", headers={"MyHeader": "../../../secret.txt"})
         self.r_headers_2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library == "python@1.1.0", reason="APMRP-360")
     def test_headers(self):
         """Via server.request.headers.no_cookies"""
         # Note: we do not check the returned key_path nor rule_id for the alpha version

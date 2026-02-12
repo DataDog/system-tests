@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
-from utils import bug, missing_feature, context, irrelevant, scenarios, features
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -88,31 +88,13 @@ def enable_tracecontext_datadog_b3multi_extract_first_true() -> pytest.MarkDecor
 @scenarios.parametric
 @features.datadog_headers_propagation
 class Test_Headers_Precedence:
-    @irrelevant(
-        context.library >= "dotnet@2.22.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
-        context.library >= "golang@1.47.0", reason="Newer versions include tracecontext as a default propagator"
-    )
-    @irrelevant(
-        context.library >= "nodejs@3.14.0",
-        reason="Newer versions include tracecontext as a default propagator (2.27.0 and 3.14.0)",
-    )
-    @irrelevant(context.library >= "php@0.84.0", reason="Newer versions include tracecontext as a default propagator")
-    @irrelevant(context.library >= "python@1.7.0", reason="Newer versions include tracecontext as a default propagator")
-    @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
-    @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
-    @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
-    @irrelevant(context.library == "rust", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
     @enable_datadog()
-    def test_headers_precedence_propagationstyle_datadog(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_datadog(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -218,24 +200,13 @@ class Test_Headers_Precedence:
         assert "traceparent" not in headers6
         assert "tracestate" not in headers6
 
-    @irrelevant(context.library >= "nodejs@4.0.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library >= "php@0.97.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library >= "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library >= "golang@1.61.0.dev", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library > "dotnet@2.47.0", reason="Default value was switched to datadog,tracecontext")
-    @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration")
-    @irrelevant(context.library == "rust", reason="Issue: tracecontext,Datadog was never the default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -380,9 +351,7 @@ class Test_Headers_Precedence:
         assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_tracecontext()
-    def test_headers_precedence_propagationstyle_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -505,23 +474,11 @@ class Test_Headers_Precedence:
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
 
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented from 1.24.0")
-    @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "dotnet@2.48.0", reason="Default value was updated in 2.48.0")
-    @missing_feature(context.library < "python@2.6.0", reason="Default value was switched to datadog,tracecontext")
-    @missing_feature(context.library < "golang@1.62.0", reason="Default value was updated in v1.62.0 (w3c phase 2)")
-    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
-    @missing_feature(context.library < "php@0.98.0", reason="Default value was updated in v0.98.0 (w3c phase 2)")
-    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented from 1.17.0")
-    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_agent, test_library)
+    def test_headers_precedence_propagationstyle_default_datadog_tracecontext(self, test_library: APMLibrary) -> None:
+        self.test_headers_precedence_propagationstyle_datadog_tracecontext(test_library)
 
     @enable_datadog_tracecontext()
-    def test_headers_precedence_propagationstyle_datadog_tracecontext(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_headers_precedence_propagationstyle_datadog_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
@@ -665,13 +622,6 @@ class Test_Headers_Precedence:
         assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
-    @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
-    @missing_feature(context.library < "dotnet@2.42.0", reason="Implemented in 2.42.0")
-    @missing_feature(context.library < "python@2.3.3", reason="Implemented in 2.3.3")
-    @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
-    @missing_feature(context.library < "nodejs@4.20.0", reason="Implemented in 4.20.0 (and 3.41.0)")
-    @missing_feature(context.library < "php@0.94.0", reason="Implemented in 0.94.0")
-    @missing_feature(context.library < "ruby@1.17.0", reason="Implemented in 1.17.0")
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_false_correctly_propagates_tracestate(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -680,11 +630,6 @@ class Test_Headers_Precedence:
         )
 
     @enable_datadog_b3multi_tracecontext_extract_first_true()
-    @missing_feature(context.library == "cpp", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
-    @missing_feature(context.library == "php", reason="DD_TRACE_PROPAGATION_EXTRACT_FIRST is not yet implemented")
-    @bug(
-        context.library < "golang@1.57.0", reason="APMRP-360"
-    )  # Legacy behaviour: tracecontext propagator would always take precedence
     def test_headers_precedence_propagationstyle_tracecontext_last_extract_first_true_correctly_propagates_tracestate(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:

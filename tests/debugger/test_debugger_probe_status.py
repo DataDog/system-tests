@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, bug, missing_feature, context, flaky
+from utils import scenarios, features, missing_feature, context
 
 
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
@@ -78,14 +78,10 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
 @features.debugger_method_probe
 @scenarios.debugger_probes_status
-@bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-@bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-@flaky(context.library > "php@1.8.3", reason="DEBUG-3814")
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
-@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
 
@@ -100,7 +96,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_metric_status(self):
         self._setup("probe_status_metric", probe_type="metric")
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_metric_status(self):
         self._assert()
@@ -109,7 +104,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_method_status(self):
         self._setup("probe_status_span", probe_type="span")
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_method_status(self):
         self._assert()
@@ -118,7 +112,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_method_status(self):
         self._setup("probe_status_spandecoration", probe_type="decor")
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_method_status(self):
         self._assert()
@@ -126,8 +119,6 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
 
 @features.debugger_line_probe
 @scenarios.debugger_probes_status
-@bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-@bug(context.library == "python@2.16.1", reason="DEBUG-3127")
 class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for line-level probe status"""
 
@@ -144,7 +135,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_metric_line_status(self):
         self._setup("probe_status_metric_line", probe_type="metric")
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
@@ -155,7 +145,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     def setup_span_decoration_line_status(self):
         self._setup("probe_status_spandecoration_line", probe_type="decor")
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)

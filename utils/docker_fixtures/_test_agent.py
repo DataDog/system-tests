@@ -74,6 +74,7 @@ class TestAgentFactory:
         worker_id: str,
         container_name: str,
         docker_network: str,
+        agent_env: dict[str, str],
         container_otlp_http_port: int,
         container_otlp_grpc_port: int,
     ) -> Generator["TestAgentAPI", None, None]:
@@ -87,6 +88,8 @@ class TestAgentFactory:
         }
         if os.getenv("DEV_MODE") is not None:
             env["SNAPSHOT_CI"] = "0"
+
+        env |= agent_env
 
         host_port = get_host_port(worker_id, 4600)
         container_port = 8126
@@ -125,6 +128,7 @@ class TestAgentFactory:
                 network=docker_network,
             )
             time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
+            expected_version = agent_env.get("TEST_AGENT_VERSION", "test")
             for _ in range(100):
                 try:
                     resp = client.info()
@@ -132,7 +136,7 @@ class TestAgentFactory:
                     logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
                     time.sleep(0.1)
                 else:
-                    if resp["version"] != "test":
+                    if resp["version"] != expected_version:
                         message = f"""Agent version {resp["version"]} is running instead of the test agent.
                         Stop the agent on port {container_port} and try again."""
                         pytest.fail(message, pytrace=False)
@@ -615,7 +619,7 @@ class TestAgentAPI:
         if configurations:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configurations))
-            if "seq_id" in configurations[sample_key][0]:
+            if "seq_id" in configurations[sample_key][0] and configurations[sample_key][0]["seq_id"] is not None:
                 # Sort seq_id for each config from highest to lowest
                 for payload in configurations.values():
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)

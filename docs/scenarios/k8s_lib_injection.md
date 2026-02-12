@@ -1,45 +1,68 @@
 # Testing K8s library injection feature
 
 1. [Run the tests](#run-the-tests)
-   * [Run K8s library injection tests](#Run-K8s-library-injection-tests)
-     - [Prerequisites](#Prerequisites)
-     - [Configure tested components versions](#Configure-tested-components-versions)
-     - [Execute a test scenario](#Execute-a-test-scenario)
-2. [How to use a MiniKube implementation](#How-to-use-a-MiniKube-implementation)
-3. [How to develop a test case](#How-to-develop-a-test-case)
-   * [Folders and Files structure](#Folders-and-Files-structure)
-   * [Implement a new test case](#Implement-a-new-test-case)
-4. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
-5. [How to debug your kubernetes environment at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
+   * [Run K8s library injection tests using the Wizard (Recommended)](#run-k8s-library-injection-tests-using-the-wizard-recommended)
+   * [Run K8s library injection tests manually](#run-k8s-library-injection-tests-manually)
+     - [Prerequisites](#prerequisites)
+     - [Configure Private ECR Registry](#configure-private-ecr-registry)
+     - [Configure tested components versions](#configure-tested-components-versions)
+     - [Execute a test scenario](#execute-a-test-scenario)
+2. [How to use a MiniKube implementation](#how-to-use-a-minikube-implementation)
+3. [Component Version Matrix Configuration](#component-version-matrix-configuration)
+   * [Matrix Structure](#matrix-structure)
+   * [Modifying Component Versions](#modifying-component-versions)
+   * [CI Pipeline Filtering](#ci-pipeline-filtering)
+4. [How to develop a test case](#how-to-develop-a-test-case)
+   * [Folders and Files structure](#folders-and-files-structure)
+   * [Implement a new test case](#implement-a-new-test-case)
+5. [How to debug your kubernetes environment and tests results](#how-to-debug-your-kubernetes-environment-and-tests-results)
+6. [How to debug your kubernetes environment at runtime](#how-to-debug-your-kubernetes-environment-at-runtime)
 
 ## Run the tests
 
-### Run K8s library injection tests
+### Run K8s library injection tests using the Wizard (Recommended)
 
-These tests can run locally easily. You only have to install the environment and configure it as follow sections detail.
+The easiest way to run K8s library injection tests is using the wizard script. The wizard will guide you through all the configuration steps interactively.
 
-#### Prerequisites:
+```sh
+./utils/scripts/ssi_wizards/k8s_ssi_wizard.sh
+```
+
+The wizard will:
+
+1. Check and install system-tests requirements
+2. Let you choose a Kubernetes provider (Kind or Minikube)
+3. Configure the private ECR registry authentication
+4. Select the test language (Java, Node.js, Python, .NET, Ruby, PHP)
+5. Select the scenario and weblog to test
+6. Configure the weblog image (optionally build and push a custom one)
+7. Select the cluster agent, lib-init, and injector images
+8. Select the Datadog Helm chart version and Datadog Operator Helm chart version
+9. Execute the tests
+
+### Run K8s library injection tests manually
+
+If you prefer to run the tests manually, follow the sections below.
+
+#### Prerequisites
 
 - Docker environment
-- Kubernetes environment
+- Kubernetes environment (Kind or Minikube)
+- AWS CLI and aws-vault (for ECR access)
 
-##### Docker enviroment
+##### Docker environment
 
-You should install the docker desktop on your laptop.
-You need to access to GHCR.
-Usually you only need to access to GHCR to pull the images, but you can also push your custom images to your Docker Hub account. To do that you need login to Docker Hub account:
-
-```cat ~/my_password.txt | docker login --username my_personal_user --password-stdin ```
+You should install Docker Desktop on your laptop.
 
 ##### Kubernetes environment
 
-You should install the kind and Helm Chart tool.
+You should install Kind (or Minikube) and Helm Chart tool.
 Kind is a tool for running local Kubernetes clusters using Docker container.
 Helm uses a packaging format called charts. A chart is a collection of files that describe a related set of Kubernetes resources.
 
-In order to install the kind kubernetes tool you should execute this script:
+In order to install the Kind kubernetes tool you should execute this script:
 
-```
+```sh
 KIND_VERSION='v0.17.0'
 KUBECTL_VERSION='v1.25.3'
 
@@ -47,7 +70,7 @@ KUBECTL_VERSION='v1.25.3'
 echo "[build] Download installable artifacts"
 ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
 if [ "$ARCH" = "arm64" ]; then
-    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-amd64
+    curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/$KIND_VERSION/kind-darwin-arm64
     KUBECTL_DOWNLOAD="darwin/arm64/kubectl"
 else
     curl -Lo ./kind https://kind.sigs.k8s.io/dl/$KIND_VERSION/kind-linux-amd64
@@ -67,136 +90,190 @@ echo "[build] kubectl install complete"
 
 You also need the Helm Chart utility:
 
-```
+```sh
 echo "[build] Installing helm"
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
+#### Configure Private ECR Registry
+
+The K8s library injection tests use images stored in a private AWS ECR registry. You need to authenticate with the registry before running the tests.
+
+##### Authentication with aws-vault
+
+```sh
+# Set the private registry environment variables
+export PRIVATE_DOCKER_REGISTRY="235494822917.dkr.ecr.us-east-1.amazonaws.com"
+export PRIVATE_DOCKER_REGISTRY_USER="AWS"
+
+# Login to ECR
+aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | \
+    docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+
+# Set the registry token for the tests
+export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password --region us-east-1)
+```
+
 #### Configure tested components versions
 
-All the software components to be tested can be configured using environment variables and using command line parameters to run the test scenarios. This is an example of env vars configuration for Java:
+All the software components to be tested can be configured using environment variables and command line parameters. Here's an example configuration for Java:
 
 ```sh
 export TEST_LIBRARY=java
-export WEBLOG_VARIANT=dd-lib-java-init-test-app #Which variant do we want to use?
-export LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest #weblog variant in the registry
-export LIB_INIT_IMAGE=gcr.io/datadoghq/dd-lib-java-init:latest # What is the lib init image that we want to test?
-export CLUSTER_AGENT_VERSION=7.56.2
-export INJECTOR_IMAGE=TODO
+export WEBLOG_VARIANT=dd-lib-java-init-test-app
+export LIBRARY_INJECTION_TEST_APP_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/dd-lib-java-init-test-app:latest
+export LIB_INIT_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest
+export CLUSTER_AGENT_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest
+export INJECTOR_IMAGE=235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest
+export K8S_HELM_CHART=3.156.1
+export K8S_HELM_CHART_OPERATOR=2.16.0
 ```
-
----
-
-**NOTE: Injector image**
-
-Currently the tests do not allow selection of the injector image. The image used will be the one pointed by the cluster agent by default.
-
----
 
 ##### Weblog image
 
-The images of sample applications are automatically uploaded to the GHCR registry by the CI.
+The weblog images are stored in the private ECR registry with the following pattern:
 
-But in case you want to build your own custom version of the application, you can do the following (the weblog images must be allwasys on a docker registry):
-
-```sh
-  export LIBRARY_INJECTION_TEST_APP_IMAGE=ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:my_custom_tag #weblog variant in the registry
-  lib-injection/build/build_lib_injection_weblog.sh -w $WEBLOG_VARIANT -l $TEST_LIBRARY --push-tag $LIBRARY_INJECTION_TEST_APP_IMAGE
+```
+235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/<weblog-name>:latest
 ```
 
-or if you don't have the permission to push the image to GHCR, you can use your docker hub account (after loging into it):
+Available weblogs per language:
+
+| LANG    | WEBLOG NAME                                      |
+| ------- | ------------------------------------------------ |
+| Java    | dd-lib-java-init-test-app                        |
+| Java    | dd-djm-spark-test-app                            |
+| .NET    | dd-lib-dotnet-init-test-app                      |
+| Node.js | sample-app                                       |
+| Python  | dd-lib-python-init-test-django                   |
+| Python  | dd-lib-python-init-test-django-gunicorn          |
+| Python  | dd-lib-python-init-test-django-gunicorn-alpine   |
+| Python  | dd-lib-python-init-test-django-unsupported-package-force |
+| Python  | dd-lib-python-init-test-django-uvicorn           |
+| Ruby    | dd-lib-ruby-init-test-rails                      |
+| Ruby    | dd-lib-ruby-init-test-rails-explicit             |
+| Ruby    | dd-lib-ruby-init-test-rails-gemsrb               |
+| PHP     | dd-lib-php-init-test-app                         |
+
+###### Building a custom weblog image
+
+If you want to build and push your own custom version of the weblog:
 
 ```sh
-  export LIBRARY_INJECTION_TEST_APP_IMAGE=registry.hub.docker.com/<user>/dd-lib-java-init:my_custom_tag #weblog variant in the registry
-  lib-injection/build/build_lib_injection_weblog.sh -w $WEBLOG_VARIANT -l $TEST_LIBRARY --push-tag $LIBRARY_INJECTION_TEST_APP_IMAGE
+./lib-injection/build/build_lib_injection_weblog.sh -w $WEBLOG_VARIANT -l $TEST_LIBRARY \
+    --push-tag $PRIVATE_DOCKER_REGISTRY/system-tests/$WEBLOG_VARIANT:my_custom_tag \
+    --docker-platform linux/arm64,linux/amd64
 ```
 
-The sample applications currently available in GHCR are:
+##### Component Version Configuration
 
-| LANG    | WEBLOG IMAGE                                                                                 |
-| ------- | -------------------------------------------------------------------------------------------- |
-| Java    | ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest                                |
-| Java    | ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest                                    |
-| .NET    | ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest                              |
-| Node.js | ghcr.io/datadog/system-tests/sample-app:latest                                               |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest                           |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest                  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest           |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest              |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest                   |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest                     |
-| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest                              |
-| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit":latest                    |
-| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest                       |
+All K8s component versions (lib-init images, cluster agent, injector, helm charts) are now centrally managed in [`utils/k8s/k8s_components.json`](../../utils/k8s/k8s_components.json).
 
-##### Library init image
+**Available Component Versions:**
 
-The library init images are created by each tracer library and these images will be pushed to the registry using two tags:
+Each component in `k8s_components.json` has multiple versions:
+* **pinned**: Stable, tested version (default for local/manual testing)
+* **prod**: Latest production release
+* **dev**: Development build from main/master branch
 
-* **latest:** The latest release of the image.
-* **latest_snapshot:** The image created when we build the main branch of the tracer library.
+**Component Images:**
 
-The list of available images is:
+```json
+{
+  "lib_init": {
+    "java": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+    },
+    "nodejs": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
+    }
+  },
+  "cluster_agent": {
+    "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest"
+  },
+  "injector": {
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
+    "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot"
+  },
+  "helm_chart": {
+    "pinned": "3.156.1",
+    "prod": "3.161.1"
+  },
+  "helm_chart_operator": {
+    "pinned": "2.16.0",
+    "prod": "2.17.0"
+  }
+}
+```
 
-| LANG    | LIB INIT IMAGE                                                     |
-| ------- | ------------------------------------------------------------------ |
-| Java    | gcr.io/datadoghq/dd-lib-java-init:latest                           |
-| Java    | ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot     |
-| .NET    | gcr.io/datadoghq/dd-lib-dotnet-init:latest                         |
-| .NET    | ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot |
-| Node.js | gcr.io/datadoghq/dd-lib-js-init:latest                             |
-| Node.js | ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot         |
-| Python  | gcr.io/datadoghq/dd-lib-python-init:latest                         |
-| Python  | ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot     |
-| Ruby    | gcr.io/datadoghq/dd-lib-ruby-init:latest                           |
-| Ruby    | ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot       |
+**How to check current versions:**
 
-##### Datadog Cluster Agent
+```bash
+# View the full configuration
+cat utils/k8s/k8s_components.json
 
-The Datadog Cluster Agent versions available for tests are:
+# Or use the parser to get default versions
+python -c "
+from utils.k8s.k8s_components_parser import K8sComponentsParser
+parser = K8sComponentsParser()
+print('Cluster Agent:', parser.get_default_component_version('cluster_agent'))
+print('Java Lib-init:', parser.get_default_component_version('lib_init', 'java'))
+print('Injector:', parser.get_default_component_version('injector'))
+print('Helm Chart:', parser.get_default_component_version('helm_chart'))
+"
+```
 
-- 7.56.2
-- 7.57.0
-- 7.59.0
+**Override component versions:**
 
-##### Injector image
-
-TODO
+You can override any component version using environment variables or command-line parameters. See the [Component Version Matrix Configuration](#component-version-matrix-configuration) section for details.
 
 #### Execute a test scenario
 
-If we have followed the previous steps, we already have the environment configured and we only need to run any of the available scenarios:
+Available scenarios:
 
-- **K8S_LIB_INJECTION:** Minimal test scenario that run a Kubernetes cluster and test that the application is being instrumented automatically.
-- **K8S_LIB_INJECTION_UDS:** Similar to previous scenario, but the comunication between the agent and libraries is configured to use UDS.
+- **K8S_LIB_INJECTION:** Minimal test scenario that runs a Kubernetes cluster and tests that the application is being instrumented automatically.
+- **K8S_LIB_INJECTION_UDS:** Similar to previous scenario, but the communication between the agent and libraries is configured to use UDS.
 - **K8S_LIB_INJECTION_NO_AC:** Configures the auto-injection adding annotations to the weblog pod, without using the admission controller.
-- **K8S_LIB_INJECTION_NO_AC_UDS:** Similar to previous scenario, but the comunication between the agent and libraries is configured to use UDS.
+- **K8S_LIB_INJECTION_NO_AC_UDS:** Similar to previous scenario, but the communication between the agent and libraries is configured to use UDS.
 - **K8S_LIB_INJECTION_PROFILING_DISABLED:** Scenario that validates the profiling is not performing if it's not activated.
 - **K8S_LIB_INJECTION_PROFILING_ENABLED:** Test profiling feature activation inside of Kubernetes cluster.
 - **K8S_LIB_INJECTION_PROFILING_OVERRIDE:** Test profiling feature activation overriding the cluster configuration.
-- **K8S_LIB_INJECTION_DJM:** Allow us to verify the k8s injection works for Data Jobs Monitoring as new Java tracer, new auto_inject, and new cluster_agent are being released
+- **K8S_LIB_INJECTION_APPSEC_DISABLED:** Scenario that validates appsec is not performing if it's not activated.
+- **K8S_LIB_INJECTION_APPSEC_ENABLED:** Test appsec feature activation inside of Kubernetes cluster.
+- **K8S_LIB_INJECTION_SPARK_DJM:** Allow us to verify the k8s injection works for Data Jobs Monitoring as new Java tracer, new auto_inject, and new cluster_agent are being released.
+- **K8S_LIB_INJECTION_OPERATOR:** Tests using the Datadog Operator for library injection.
 
 Run the minimal test scenario:
 
 ```sh
-./run.sh K8S_LIB_INJECTION --k8s-library $TEST_LIBRARY --k8s-weblog $WEBLOG_VARIANT --k8s-weblog-img $LIBRARY_INJECTION_TEST_APP_IMAGE --k8s-lib-init-img $LIB_INIT_IMAGE  --k8s-cluster-version $CLUSTER_AGENT_VERSION
+./run.sh K8S_LIB_INJECTION \
+    --k8s-library $TEST_LIBRARY \
+    --k8s-weblog $WEBLOG_VARIANT \
+    --k8s-weblog-img $LIBRARY_INJECTION_TEST_APP_IMAGE \
+    --k8s-lib-init-img $LIB_INIT_IMAGE \
+    --k8s-cluster-img $CLUSTER_AGENT_IMAGE \
+    --k8s-injector-img $INJECTOR_IMAGE \
+    --k8s-provider kind
 ```
 
-The allowed pameters are:
+The allowed parameters are:
 
-* **k8s-library:** Libray to be tested.
-* **k8s-weblog:** The sample application.
+* **k8s-library:** Library to be tested.
+* **k8s-weblog:** The sample application name.
 * **k8s-weblog-img:** The image of the sample application.
-* **k8s-lib-init-img:** Libray init image to be tested.
-* **k8s-cluster-version:** Datadog cluster version to be tested.
-* **k8s-provider:** K8s cluster provider. This parameter is optional. By default uses the kind k8s cluster.
+* **k8s-lib-init-img:** Library init image to be tested.
+* **k8s-cluster-img:** Datadog cluster agent image to be tested.
+* **k8s-injector-img:** APM injector image to be tested.
+* **k8s-provider:** K8s cluster provider. This parameter is optional. By default uses the Kind k8s cluster.
 
 ##### DJM Scenario
 
-The following image ilustrates the DJM scenario:
+The following image illustrates the DJM scenario:
 
 ![DJM Scenario](../lib-injection/k8s_djm.png "DJM Scenario")
 
@@ -205,11 +282,145 @@ The following image ilustrates the DJM scenario:
 The K8s lib injection tests use the Kind cluster by default, but you can change this behaviour in order to use a MiniKube implementation. To do that you only need:
 
 * Install Minikube locally: [Install MiniKube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)
-* Run the scenario adding the parameter "*--k8s-provider minikube*"
+* Run the scenario adding the parameter `--k8s-provider minikube`
 
 ```sh
-./run.sh K8S_LIB_INJECTION --k8s-library nodejs --k8s-weblog sample-app --k8s-weblog-img ghcr.io/datadog/system-tests/sample-app:latest --k8s-lib-init-img gcr.io/datadoghq/dd-lib-js-init:latest  --k8s-cluster-version 7.57.0 --k8s-provider minikube
+./run.sh K8S_LIB_INJECTION \
+    --k8s-library nodejs \
+    --k8s-weblog sample-app \
+    --k8s-weblog-img 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/sample-app:latest \
+    --k8s-lib-init-img 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest \
+    --k8s-cluster-img 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest \
+    --k8s-injector-img 235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest \
+    --k8s-provider minikube
 ```
+
+## Component Version Matrix Configuration
+
+K8s library injection tests use a two-file configuration system to define what gets tested:
+
+### Configuration Files
+
+| File | Purpose | Location |
+|------|---------|----------|
+| **Scenario-Weblog Matrix** | Maps scenarios to weblogs by language | [`utils/scripts/ci_orchestrators/k8s_ssi.json`](../../utils/scripts/ci_orchestrators/k8s_ssi.json) |
+| **Component Versions** | Defines K8s component images/versions | [`utils/k8s/k8s_components.json`](../../utils/k8s/k8s_components.json) |
+
+### How It Works
+
+```
+┌─────────────────────────────┐
+│  k8s_ssi.json               │  ← Which scenarios test which weblogs?
+│  • Scenarios ↔ Weblogs      │
+│  • Language-specific        │
+└──────────┬──────────────────┘
+           │
+           ↓
+┌─────────────────────────────┐
+│  k8s_components.json        │  ← What component versions to use?
+│  • cluster_agent            │
+│  • injector                 │
+│  • lib_init (per language)  │
+│  • helm_chart               │
+│  • helm_chart_operator      │
+└─────────────────────────────┘
+```
+
+### File Structure Examples
+
+#### `k8s_ssi.json` - Scenario/Weblog Matrix
+
+```json
+{
+  "scenario_matrix": [
+    {
+      "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS"],
+      "weblogs": [
+        {
+          "java": ["dd-lib-java-init-test-app"],
+          "nodejs": ["sample-app"],
+          "python": ["dd-lib-python-init-test-django"]
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### `k8s_components.json` - Component Versions
+
+```json
+{
+  "cluster_agent": {
+    "pinned": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.73.1",
+    "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
+    "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi-dev/cluster-agent-dev:master"
+  },
+  "lib_init": {
+    "java": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-java-init:latest_snapshot"
+    },
+    "nodejs": {
+      "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest",
+      "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-js-init:latest_snapshot"
+    }
+  },
+  "helm_chart": {
+    "pinned": "3.156.1",
+    "prod": "3.161.1"
+  }
+}
+```
+
+### Version Selection Logic
+
+| Context | Versions Used | Purpose |
+|---------|---------------|---------|
+| **Default (local/manual)** | `pinned` (if exists), else `prod` | Stable, consistent testing |
+| **System-tests Scheduled CI** | All versions (`pinned`, `prod`, `dev`) | Comprehensive version coverage |
+| **System-tests PR/Commit** | All versions for injector/lib_init, `pinned` for rest | Fast feedback with key variations |
+| **Tracer Repository CI** | `pinned` or `prod` only | Stable infrastructure for tracer testing |
+| **Custom Override** | `K8S_LIB_INIT_IMG`, `K8S_INJECTOR_IMG` env vars | Testing specific versions |
+
+### Modifying Configurations
+
+**Add a new scenario-weblog combination:**
+
+Edit `k8s_ssi.json`:
+```json
+{
+  "scenarios": ["MY_NEW_SCENARIO"],
+  "weblogs": [{"python": ["my-new-weblog"]}]
+}
+```
+
+**Update component versions:**
+
+Edit `k8s_components.json`:
+```json
+{
+  "cluster_agent": {
+    "pinned": "...cluster-agent:7.80.0",  // ← Change version here
+    "prod": "...cluster-agent:latest"
+  }
+}
+```
+
+**Test with custom versions locally:**
+
+```bash
+export K8S_LIB_INIT_IMG="my-registry/my-lib-init:my-tag"
+./run.sh K8S_LIB_INJECTION --k8s-library java ...
+```
+
+### Implementation Details
+
+- **Parser**: [`utils/k8s/k8s_components_parser.py`](../../utils/k8s/k8s_components_parser.py) - Singleton that reads `k8s_components.json`
+- **CI Matrix Builder**: [`utils/scripts/ci_orchestrators/gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py) - Generates test matrix for GitLab CI
+- **Scenario Configuration**: [`utils/_context/_scenarios/k8s_lib_injection.py`](../../utils/_context/_scenarios/k8s_lib_injection.py) - Uses parser to load default versions
+
+
 
 ## How to develop a test case
 
@@ -225,7 +436,7 @@ The folders and files shown in the figure above are as follows:
 
 * **lib-injection/build/docker:** This folder contains the sample applications with the source code and scripts that allow us to build and push docker weblog images.
 * **tests/k8s_lib_injection:** All tests cases are stored on this folder. Conftests.py file manages the kubernetes cluster lifecycle.
-* **utils/_context/scenarios:**: In this folder you can find the K8s Lib injection scenario definition.
+* **utils/_context/scenarios:** In this folder you can find the K8s Lib injection scenario definition.
 * **utils/k8s_lib_injection:** Here we can find the main utilities for the control and deployment of the components to be tested. For example:
   * **k8s_cluster_provider.py:** Implementation of the k8s cluster management. By default the provider is Kind, but you can use the MiniKube implementation or AWS EKS remote implementation.
   * **k8s_datadog_kubernetes.py:** Utils for:
@@ -234,19 +445,19 @@ The folders and files shown in the figure above are as follows:
     - Extract Datadog Components debug information.
   * **k8s_weblog.py:**  Manages the weblog application lifecycle.
     - Deploy weblog as pod configured to perform library injection manually/without the Datadog admission controller.
-    - Deploy weblog as pod configured to automatically perform the library injection using the Datadog admission controler.
+    - Deploy weblog as pod configured to automatically perform the library injection using the Datadog admission controller.
     - Extract weblog debug information.
-  * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
+  * **k8s_command_utils.py:** Command line utils to launch the Helm Chart commands and other shell commands.
 
 ### Implement a new test case
 
 All test cases associated to a scenario, will run on an isolated Kubernetes environment. The Kubernetes cluster will start up when the scenario is started (for local managed k8s providers).
 
-All test cases can access to the K8s cluster infomation, using the "k8s_cluster_info" object stored in the scenario context. You can use this object to know about the open ports in the cluster (test agent port and weblog port) or to access to the Kubernetes Python API to interact with the cluster.
+All test cases can access to the K8s cluster information, using the "k8s_cluster_info" object stored in the scenario context. You can use this object to know about the open ports in the cluster (test agent port and weblog port) or to access to the Kubernetes Python API to interact with the cluster.
+
 An example of a Kubernetes test:
 
 ```python
-
 from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
 
 @features.k8s_admission_controller
@@ -256,17 +467,17 @@ class TestExample:
         logger.info(
             f"Test config: Weblog - [{get_cluster_info().get_weblog_port()}] Agent - [{get_cluster_info().get_agent_port()}]"
         )
-        #This test will be executed after the k8s starts and after deploy all the tested components on the cluster
+        # This test will be executed after the k8s starts and after deploy all the tested components on the cluster
 
-        #Check that app was auto instrumented
+        # Check that app was auto instrumented
         traces_json = get_dev_agent_traces(get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
 ```
 
 ## How to debug your kubernetes environment and tests results
 
-In the testing kubernetes scenarios, multiple components are involved and sometimes can be painfull to debug a failure.
-You can find a folder named "logs_[scenario name]" with all the logs associated with the execution
+In the testing kubernetes scenarios, multiple components are involved and sometimes can be painful to debug a failure.
+You can find a folder named "logs_[scenario name]" with all the logs associated with the execution.
 In the following image you can see the log folder content:
 
 ![Log folder structure](../lib-injection/k8s_lib_injections_log_folders.png "Log folder structure")
@@ -290,10 +501,10 @@ These are the main important log/data files:
 * **get.pods.log:** Current started pod list.
 * **myapp.describe.log:** Describe weblog pod.
 * **myapp.logs.log:** Current weblog pod logs. It could be empty if we are deploying the weblog as Kubernetes deployment.
-* **test-LANG-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumention process. It could be empty if we are deploying the weblog application as Pod.
+* **test-LANG-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumentation process. It could be empty if we are deploying the weblog application as Pod.
 
 ## How to debug your kubernetes environment at runtime
 
-You can use the *--sleep* parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
+You can use the `--sleep` parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
 
 [Check the sleep parameter documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md#spawn-components-but-do-nothing)

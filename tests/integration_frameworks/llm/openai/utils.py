@@ -1,5 +1,12 @@
 from typing import Any
 
+from utils import irrelevant, context
+
+
+@irrelevant("openai" not in context.weblog_variant)
+class BaseOpenaiTest: ...
+
+
 TOOLS: list[dict[str, Any]] = [
     {
         "type": "function",

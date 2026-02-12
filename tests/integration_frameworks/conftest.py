@@ -40,10 +40,15 @@ def test_agent(
     worker_id: str,
     request: pytest.FixtureRequest,
 ) -> Generator[TestAgentAPI, None, None]:
+    agent_env = {}
+    if not request.config.option.generate_cassettes:
+        agent_env["VCR_CI_MODE"] = "1"
+
     with scenarios.integration_frameworks.get_test_agent_api(
         request=request,
         worker_id=worker_id,
         test_id=test_id,
+        agent_env=agent_env,
     ) as result:
         yield result
 

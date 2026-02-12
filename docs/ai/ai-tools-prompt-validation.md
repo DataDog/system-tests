@@ -34,10 +34,7 @@ For more information, visit the [official Promptfoo documentation](https://www.p
 system-tests/
 ├── 📄 promptfooconfig.yaml              # Main configuration file
 ├── 📄 promptfoo-errors.log             # Error logs
-├── 📁 .cursor/rules/                    # Cursor IDE rules directory
-│   └── 📄 promptfoo-llm.mdc            # Rules file for automated test execution
 ├── 📁 .promptfoo/                       # Promptfoo test directory
-│   ├── 📄 local_cursor_provider.py     # Custom provider for Cursor IDE integration
 │   ├── 📄 tests_overview.yaml          # Tests for general system-tests overview
 │   ├── 📄 tests_aws_ssi.yaml           # Tests for AWS SSI scenarios
 │   ├── 📄 tests_end_to_end.yaml        # Tests for end-to-end scenarios
@@ -49,68 +46,21 @@ system-tests/
 
 ### Key Components
 
-* **promptfooconfig.yaml**: Main configuration that orchestrates all test suites
-* **.cursor/rules/promptfoo-llm.mdc**: Rules file that automates the test execution process in Cursor IDE
+* **promptfooconfig.yaml**: Main configuration that orchestrates all test suites and configures the Claude AI provider
 * **.promptfoo/**: Contains all test definitions organized by scenario type
-* **local_cursor_provider.py**: Custom provider for IDE integration
 * **Test files**: Each YAML file contains specific test cases for different system-tests scenarios
 * **promptfoo_eval.sh**: Interactive wizard script for running evaluations from the terminal
 
-## Run the tests inside the IDE
+## Running Promptfoo Evaluations
 
-The process has been simplified using the new rules file (`.cursor/rules/promptfoo-llm.mdc`) that provides automated instructions to the AI assistant. You can now execute tests in two simple steps:
-
-### Generate Test Responses
-
-**For the full test suite**, simply ask in the chat:
-
-```
-@promptfoo-llm.mdc Run the complete test suite.
-```
-
-**For a specific test suite**, reference the specific test file:
-
-```
-@promptfoo-llm.mdc test the file .promptfoo/tests_aws_ssi.yaml
-```
-
-The AI assistant will automatically:
-1. Delete any existing `logs/responses.yaml` file
-2. Parse the specified test files (or all test files if none specified)
-3. Process each `user_prompt` field and generate responses
-4. Create a `logs/responses.yaml` file with all query-response pairs
-5. Remind you to run the evaluation command
-
-### Evaluate Responses
-
-Once the AI assistant has generated the `logs/responses.yaml` file, run the Promptfoo evaluation:
-
-**For the full test suite:**
-```bash
-promptfoo eval
-```
-
-**For a specific test suite:**
-```bash
-promptfoo eval -t .promptfoo/tests_aws_ssi.yaml
-```
-
-### Review Results
-
-```bash
-promptfoo view
-```
-
-## Run the tests using the Wizard Script
-
-For a more guided experience, you can use the interactive wizard script that walks you through the entire evaluation process step by step.
+The system-tests repository uses an interactive wizard script that guides you through the evaluation process step by step.
 
 ### Prerequisites
 
-Before running the wizard, ensure you have one of the following AI agents installed:
+Before running the wizard, ensure you have:
 
-* **cursor-agent**: The Cursor IDE agent CLI tool
-* **claude**: The Claude CLI from Anthropic
+* **Promptfoo** installed (see installation instructions above)
+* **Internet access** for the Claude AI provider
 
 ### Running the Wizard
 
@@ -124,20 +74,23 @@ From the repository root, execute:
 
 The wizard guides you through three interactive steps:
 
-#### Step 1: Select AI Agent
+#### Step 1: Select Provider
 
-Choose which AI agent will generate the test responses:
+Choose which AI provider will generate and evaluate the test responses. The wizard automatically discovers available providers from `promptfooconfig.yaml`:
 
 ```
-━━━ Step 1: Select AI Agent ━━━
+━━━ Step 1: Select Provider ━━━
 
-Which AI agent would you like to use for the evaluation?
+Which provider would you like to use for the evaluation?
 
-  1) cursor-agent  - Use Cursor AI Agent
-  2) claude        - Use Claude CLI
+  0) Use ALL providers
 
-Enter your choice (1 or 2):
+  1) anthropic:claude-agent-sdk
+
+Enter your choice (0-1):
 ```
+
+**Note:** The default configuration uses the Claude AI Agent SDK provider, which provides the most comprehensive evaluation capabilities.
 
 #### Step 2: Select Test Scenarios
 
@@ -162,11 +115,7 @@ Enter your choice (0-6):
 
 #### Step 3: Automatic Execution
 
-The wizard then automatically:
-
-1. Logs in to the selected AI agent (if using cursor-agent)
-2. Runs the AI agent with the promptfoo rules file to generate responses
-3. Executes `promptfoo eval` with the selected test file(s)
+The wizard then automatically executes `promptfoo eval` with the selected provider and test file(s).
 
 ### Example Output
 
@@ -175,33 +124,35 @@ The wizard then automatically:
 ║          🤖 Promptfoo Evaluation Wizard 🧙‍♂️               ║
 ╚═══════════════════════════════════════════════════════════╝
 
-━━━ Step 1: Select AI Agent ━━━
-✓ Selected agent: claude
+━━━ Step 1: Select Provider ━━━
+✓ Selected provider: anthropic:claude-agent-sdk
 
 ━━━ Step 2: Select Test Scenarios ━━━
 ✓ Selected scenario: aws_ssi
 
 ━━━ Step 3: Running Evaluation ━━━
-🚀 Running evaluation with claude...
 📊 Running promptfoo evaluation...
 ✅ Evaluation complete!
 ```
 
-### When to Use Each Method
+### Reviewing Results
 
-| Method | Best For |
-|--------|----------|
-| **IDE Method** | Quick iterations, debugging specific prompts, when already working in Cursor IDE |
-| **Wizard Script** | Full evaluation runs, running tests from terminal, comparing different AI agents |
+After the evaluation completes, view the results in the interactive web UI:
 
-## Rules File Integration
+```bash
+promptfoo view
+```
 
-The new approach leverages Cursor IDE's rules system through the `.cursor/rules/promptfoo-llm.mdc` file, which:
+## How Promptfoo Testing Works
 
-* Provides standardized instructions for test execution
-* Eliminates the need for manual prompt construction
-* Ensures consistent behavior across different test runs
-* Supports both full test suite and individual test file execution
-* Automatically handles file cleanup and response generation
+Promptfoo evaluates AI assistant responses by:
 
-This streamlined process makes it easier to validate AI assistant behavior and maintain high-quality responses across all system-tests scenarios.
+1. **Test Definition**: Each YAML test file contains scenarios with `user_prompt` fields and expected behavior assertions
+2. **Provider Execution**: The Claude AI provider receives each prompt and generates a response
+3. **Assertion Validation**: Promptfoo validates responses against defined assertions (e.g., contains certain keywords, follows specific patterns, meets quality criteria)
+4. **Results Reporting**: Detailed pass/fail results with explanations for each test case
+
+This approach ensures:
+* **Consistency**: AI responses remain accurate across documentation updates
+* **Quality**: Responses meet defined quality standards
+* **Regression Prevention**: Changes to rules or documentation don't break existing functionality

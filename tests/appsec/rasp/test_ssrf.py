@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import pytest
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
@@ -17,11 +16,20 @@ from tests.appsec.rasp.utils import (
 )
 
 
-if context.library > "python_lambda@8.117.0":
-    pytestmark = [
-        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
-        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
-    ]
+class SlashInsensitiveStr(str):
+    """A string that compares equal after stripping trailing '/' characters.
+    Example: SlashInsensitiveStr("a/b") == "a/b/"  -> True
+    """
+
+    __slots__ = ()
+
+    def __eq__(self, other: object):
+        if not isinstance(other, (str, SlashInsensitiveStr)):
+            return NotImplemented
+        return self.rstrip("/") == other.rstrip("/")
+
+    def __hash__(self):
+        return super().__hash__()
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
@@ -38,9 +46,7 @@ class Test_Ssrf_UrlQuery:
     def test_ssrf_get(self):
         assert self.r.status_code == 403
 
-        expected_http_value = "http://169.254.169.254"
-        if context.library == "nodejs":
-            expected_http_value += "/"
+        expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
         interfaces.library.assert_rasp_attack(
             self.r,
@@ -66,9 +72,7 @@ class Test_Ssrf_BodyUrlEncoded:
     def test_ssrf_post_urlencoded(self):
         assert self.r.status_code == 403
 
-        expected_http_value = "http://169.254.169.254"
-        if context.library == "nodejs":
-            expected_http_value += "/"
+        expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
         interfaces.library.assert_rasp_attack(
             self.r,
@@ -101,9 +105,7 @@ class Test_Ssrf_BodyXml:
     def test_ssrf_post_xml(self):
         assert self.r.status_code == 403
 
-        expected_http_value = "http://169.254.169.254"
-        if context.library == "nodejs":
-            expected_http_value += "/"
+        expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
         interfaces.library.assert_rasp_attack(
             self.r,
@@ -136,9 +138,7 @@ class Test_Ssrf_BodyJson:
     def test_ssrf_post_json(self):
         assert self.r.status_code == 403
 
-        expected_http_value = "http://169.254.169.254"
-        if context.library == "nodejs":
-            expected_http_value += "/"
+        expected_http_value = SlashInsensitiveStr("http://169.254.169.254")
 
         interfaces.library.assert_rasp_attack(
             self.r,

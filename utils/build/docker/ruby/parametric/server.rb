@@ -23,8 +23,14 @@ require 'datadog/tracing/span_link'
 
 require 'datadog/tracing/diagnostics/environment_logger'
 
+# Used for OpenFeature testing
+require 'open_feature/sdk'
+require 'datadog/open_feature/provider'
+
 # Only used for OpenTelemetry testing.
 require 'opentelemetry/sdk'
+require 'opentelemetry-metrics-sdk'
+require 'opentelemetry/exporter/otlp_metrics'
 require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true works out of the box for Ruby APM
 
 OpenTelemetry::SDK.configure # Initialize OpenTelemetry
@@ -66,8 +72,14 @@ DD_SPANS = {}
 DD_TRACES = {}
 DD_DIGEST = {}
 OTEL_SPANS = {}
+OTEL_METERS = {}
+OTEL_METER_INSTRUMENTS = {}
 
 HeaderTuple = Struct.new(:key, :value, keyword_init: true)
+
+def create_instrument_key(meter_name, name, kind, unit, description)
+  [meter_name, name.strip.downcase, kind, unit, description].join(',')
+end
 
 class StartSpanArgs
   attr_accessor :parent_id, :name, :service, :type, :resource, :span_tags
@@ -148,6 +160,20 @@ class SpanSetMetricArgs
 end
 
 class SpanSetMetricReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class ManualSamplingArgs
+  attr_accessor :span_id
+
+  def initialize(params)
+    @span_id = params['span_id']
+  end
+end
+
+class ManualSamplingReturn
   def to_json(*_args)
     {}.to_json
   end
@@ -459,6 +485,241 @@ class OtelSetAttributesReturn
   end
 end
 
+class OtelGetMeterArgs
+  attr_accessor :name, :version, :schema_url, :attributes
+
+  def initialize(params)
+    @name = params['name']
+    @version = params['version']
+    @schema_url = params['schema_url']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelGetMeterReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateCounterArgs
+  attr_accessor :meter_name, :name, :description, :unit
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+  end
+end
+
+class OtelCreateCounterReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCounterAddArgs
+  attr_accessor :meter_name, :name, :unit, :description, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @unit = params['unit']
+    @description = params['description']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelCounterAddReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateUpDownCounterArgs
+  attr_accessor :meter_name, :name, :description, :unit
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+  end
+end
+
+class OtelCreateUpDownCounterReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelUpDownCounterAddArgs
+  attr_accessor :meter_name, :name, :unit, :description, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @unit = params['unit']
+    @description = params['description']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelUpDownCounterAddReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateGaugeArgs
+  attr_accessor :meter_name, :name, :description, :unit
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+  end
+end
+
+class OtelCreateGaugeReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelGaugeRecordArgs
+  attr_accessor :meter_name, :name, :unit, :description, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @unit = params['unit']
+    @description = params['description']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelGaugeRecordReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateHistogramArgs
+  attr_accessor :meter_name, :name, :description, :unit
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+  end
+end
+
+class OtelCreateHistogramReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelHistogramRecordArgs
+  attr_accessor :meter_name, :name, :unit, :description, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @unit = params['unit']
+    @description = params['description']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelHistogramRecordReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateAsynchronousCounterArgs
+  attr_accessor :meter_name, :name, :description, :unit, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelCreateAsynchronousCounterReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateAsynchronousUpDownCounterArgs
+  attr_accessor :meter_name, :name, :description, :unit, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelCreateAsynchronousUpDownCounterReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelCreateAsynchronousGaugeArgs
+  attr_accessor :meter_name, :name, :description, :unit, :value, :attributes
+
+  def initialize(params)
+    @meter_name = params['meter_name']
+    @name = params['name']
+    @description = params['description']
+    @unit = params['unit']
+    @value = params['value']
+    @attributes = params['attributes']
+  end
+end
+
+class OtelCreateAsynchronousGaugeReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
+class OtelMetricsForceFlushArgs
+  def initialize(params)
+  end
+end
+
+class OtelMetricsForceFlushReturn
+  attr_accessor :success
+
+  def initialize(success)
+    @success = success
+  end
+
+  def to_json(*_args)
+    { success: @success }.to_json
+  end
+end
+
 class TraceSpanAddEventsArgs
   attr_accessor :span_id, :name, :timestamp, :attributes
 
@@ -476,6 +737,18 @@ class TraceSpanAddEventReturn
   end
 end
 
+class OpenFeatureArgs
+  attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes
+
+  def initialize(params)
+    @flag = params['flag']
+    @variation_type = params['variationType']
+    @default_value = params['defaultValue']
+    @targeting_key = params['targetingKey']
+    @attributes = params['attributes']
+  end
+end
+
 def get_ddtrace_version
   Gem::Version.new(Datadog::VERSION)
 end
@@ -488,6 +761,52 @@ def extract_http_headers(headers)
     Datadog::Tracing::Contrib::HTTP.extract(headers)
   else
     Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.extract(headers)
+  end
+end
+
+def handle_ffe_start(req, res)
+  OpenFeature::SDK.set_provider(Datadog::OpenFeature::Provider.new)
+
+  # NOTE: There is no set_provider_and_wait in Ruby OpenFeature::SDK, but this is
+  #       a subject to change.
+  #
+  #       Remote Configuration will be received at this point because of the short
+  #       polling delay.
+  10.times do
+    evaluator = Datadog::OpenFeature.engine.instance_variable_get(:@evaluator)
+    break unless evaluator.instance_variable_get(:@configuration).nil?
+
+    sleep 0.5
+  end
+
+  res.write({}.to_json)
+end
+
+def handle_ffe_evaluation(req, res)
+  args = OpenFeatureArgs.new(JSON.parse(req.body.read))
+  client = OpenFeature::SDK.build_client
+
+  begin
+    context = OpenFeature::SDK::EvaluationContext.new(
+      targeting_key: args.targeting_key, **args.attributes
+    )
+    options = {
+      flag_key: args.flag, default_value: args.default_value, evaluation_context: context
+    }
+
+    value =
+      case args.variation_type
+      when 'BOOLEAN'then client.fetch_boolean_value(**options)
+      when 'STRING' then client.fetch_string_value(**options)
+      when 'INTEGER' then client.fetch_integer_value(**options)
+      when 'NUMERIC' then client.fetch_float_value(**options)
+      when 'JSON' then client.fetch_object_value(**options)
+      else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+      end
+
+    res.write({value: value, reason: 'DEFAULT'}.to_json)
+  rescue => e
+    res.write({value: args.default_value, reason: 'ERROR'}.to_json)
   end
 end
 
@@ -567,6 +886,10 @@ class MyApp
       handle_trace_config(req, res)
     when '/trace/span/set_metric'
       handle_trace_span_set_metric(req, res)
+    when '/trace/span/manual_keep'
+      handle_trace_span_manual_keep(req, res)
+    when '/trace/span/manual_drop'
+      handle_trace_span_manual_drop(req, res)
     when '/trace/span/inject_headers'
       handle_trace_span_inject_headers(req, res)
     when '/trace/span/extract_headers'
@@ -601,8 +924,38 @@ class MyApp
       handle_trace_otel_set_name(req, res)
     when '/trace/otel/set_attributes'
       handle_trace_otel_set_attributes(req, res)
+    when '/metrics/otel/get_meter'
+      handle_metrics_otel_get_meter(req, res)
+    when '/metrics/otel/create_counter'
+      handle_metrics_otel_create_counter(req, res)
+    when '/metrics/otel/counter_add'
+      handle_metrics_otel_counter_add(req, res)
+    when '/metrics/otel/create_updowncounter'
+      handle_metrics_otel_create_updowncounter(req, res)
+    when '/metrics/otel/updowncounter_add'
+      handle_metrics_otel_updowncounter_add(req, res)
+    when '/metrics/otel/create_gauge'
+      handle_metrics_otel_create_gauge(req, res)
+    when '/metrics/otel/gauge_record'
+      handle_metrics_otel_gauge_record(req, res)
+    when '/metrics/otel/create_histogram'
+      handle_metrics_otel_create_histogram(req, res)
+    when '/metrics/otel/histogram_record'
+      handle_metrics_otel_histogram_record(req, res)
+    when '/metrics/otel/create_asynchronous_counter'
+      handle_metrics_otel_create_asynchronous_counter(req, res)
+    when '/metrics/otel/create_asynchronous_updowncounter'
+      handle_metrics_otel_create_asynchronous_updowncounter(req, res)
+    when '/metrics/otel/create_asynchronous_gauge'
+      handle_metrics_otel_create_asynchronous_gauge(req, res)
+    when '/metrics/otel/force_flush'
+      handle_metrics_otel_force_flush(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
+    when '/ffe/start'
+      handle_ffe_start(req, res)
+    when '/ffe/evaluate'
+      handle_ffe_evaluation(req, res)
     else
       res.status = 404
       res.write('Not Found')
@@ -675,6 +1028,22 @@ class MyApp
     res.write(SpanSetMetricReturn.new.to_json)
   end
 
+  def handle_trace_span_manual_keep(req, res)
+    args = ManualSamplingArgs.new(JSON.parse(req.body.read))
+    span = find_span(args.span_id)
+    trace = DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
+    trace.keep!
+    res.write(ManualSamplingReturn.new.to_json)
+  end
+
+  def handle_trace_span_manual_drop(req, res)
+    args = ManualSamplingArgs.new(JSON.parse(req.body.read))
+    span = find_span(args.span_id)
+    trace = DD_TRACES[span.trace_id] = Datadog::Tracing.active_trace
+    trace.reject!
+    res.write(ManualSamplingReturn.new.to_json)
+  end
+
   def handle_trace_span_inject_headers(req, res)
     args = SpanInjectArgs.new(JSON.parse(req.body.read))
     digest = get_digest(args.span_id)
@@ -733,17 +1102,17 @@ class MyApp
   def handle_trace_span_add_event(req, res)
     args = TraceSpanAddEventsArgs.new(JSON.parse(req.body.read))
     span = find_span(args.span_id)
-    
+
     # Create a new SpanEvent with the provided parameters
     event = Datadog::Tracing::SpanEvent.new(
       args.name,
       attributes: args.attributes,
       time_unix_nano: args.timestamp * 1000
     )
-    
+
     # Add the event to the span's events array
     span.span_events << event
-    
+
     res.write(TraceSpanAddEventReturn.new.to_json)
   end
 
@@ -877,6 +1246,268 @@ class MyApp
     end
 
     res.write(OtelSetAttributesReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_get_meter(req, res)
+    args = OtelGetMeterArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.name]
+      meter_provider = OpenTelemetry.meter_provider
+      OTEL_METERS[args.name] = meter_provider.meter(
+        args.name,
+        version: args.version,
+      )
+    end
+
+    res.write(OtelGetMeterReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_counter(req, res)
+    args = OtelCreateCounterArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+    counter = meter.create_counter(args.name, unit: args.unit, description: args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'counter', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = counter
+
+    res.write(OtelCreateCounterReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_counter_add(req, res)
+    args = OtelCounterAddArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'counter', args.unit, args.description)
+
+    unless OTEL_METER_INSTRUMENTS[instrument_key]
+      res.status = 400
+      res.write({ error: "Instrument with identifying fields Name=#{args.name},Kind=Counter,Unit=#{args.unit},Description=#{args.description} not found in registered instruments for Meter=#{args.meter_name}" }.to_json)
+      return
+    end
+
+    counter = OTEL_METER_INSTRUMENTS[instrument_key]
+    counter.add(args.value, attributes: args.attributes)
+
+    res.write(OtelCounterAddReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_updowncounter(req, res)
+    args = OtelCreateUpDownCounterArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+    counter = meter.create_up_down_counter(args.name, unit: args.unit, description: args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'updowncounter', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = counter
+
+    res.write(OtelCreateUpDownCounterReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_updowncounter_add(req, res)
+    args = OtelUpDownCounterAddArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'updowncounter', args.unit, args.description)
+
+    unless OTEL_METER_INSTRUMENTS[instrument_key]
+      res.status = 400
+      res.write({ error: "Instrument with identifying fields Name=#{args.name},Kind=UpDownCounter,Unit=#{args.unit},Description=#{args.description} not found in registered instruments for Meter=#{args.meter_name}" }.to_json)
+      return
+    end
+
+    counter = OTEL_METER_INSTRUMENTS[instrument_key]
+    counter.add(args.value, attributes: args.attributes)
+
+    res.write(OtelUpDownCounterAddReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_gauge(req, res)
+    args = OtelCreateGaugeArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+    gauge = meter.create_gauge(args.name, unit: args.unit, description: args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'gauge', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = gauge
+
+    res.write(OtelCreateGaugeReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_gauge_record(req, res)
+    args = OtelGaugeRecordArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'gauge', args.unit, args.description)
+
+    unless OTEL_METER_INSTRUMENTS[instrument_key]
+      res.status = 400
+      res.write({ error: "Instrument with identifying fields Name=#{args.name},Kind=Gauge,Unit=#{args.unit},Description=#{args.description} not found in registered instruments for Meter=#{args.meter_name}" }.to_json)
+      return
+    end
+
+    gauge = OTEL_METER_INSTRUMENTS[instrument_key]
+    gauge.record(args.value, attributes: args.attributes)
+
+    res.write(OtelGaugeRecordReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_histogram(req, res)
+    args = OtelCreateHistogramArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+    histogram = meter.create_histogram(args.name, unit: args.unit, description: args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'histogram', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = histogram
+
+    res.write(OtelCreateHistogramReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_histogram_record(req, res)
+    args = OtelHistogramRecordArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'histogram', args.unit, args.description)
+
+    unless OTEL_METER_INSTRUMENTS[instrument_key]
+      res.status = 400
+      res.write({ error: "Instrument with identifying fields Name=#{args.name},Kind=Histogram,Unit=#{args.unit},Description=#{args.description} not found in registered instruments for Meter=#{args.meter_name}" }.to_json)
+      return
+    end
+
+    histogram = OTEL_METER_INSTRUMENTS[instrument_key]
+    histogram.record(args.value, attributes: args.attributes)
+
+    res.write(OtelHistogramRecordReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_asynchronous_counter(req, res)
+    args = OtelCreateAsynchronousCounterArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+
+    observable_counter = meter.create_observable_counter(
+      args.name,
+      callback: proc { args.value },
+      unit: args.unit,
+      description: args.description
+    )
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'observable_counter', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = observable_counter
+
+    res.write(OtelCreateAsynchronousCounterReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_asynchronous_updowncounter(req, res)
+    args = OtelCreateAsynchronousUpDownCounterArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+
+    observable_updowncounter = meter.create_observable_up_down_counter(
+      args.name,
+      callback: proc { args.value },
+      unit: args.unit,
+      description: args.description
+    )
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'observable_updowncounter', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = observable_updowncounter
+
+    res.write(OtelCreateAsynchronousUpDownCounterReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_create_asynchronous_gauge(req, res)
+    args = OtelCreateAsynchronousGaugeArgs.new(JSON.parse(req.body.read))
+
+    unless OTEL_METERS[args.meter_name]
+      res.status = 400
+      res.write({ error: "Meter name #{args.meter_name} not found in registered meters" }.to_json)
+      return
+    end
+
+    meter = OTEL_METERS[args.meter_name]
+
+    observable_gauge = meter.create_observable_gauge(
+      args.name,
+      callback: proc { args.value },
+      unit: args.unit,
+      description: args.description
+    )
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, 'observable_gauge', args.unit, args.description)
+    OTEL_METER_INSTRUMENTS[instrument_key] = observable_gauge
+
+    res.write(OtelCreateAsynchronousGaugeReturn.new.to_json)
+  end
+
+  def handle_metrics_otel_force_flush(req, res)
+    args = OtelMetricsForceFlushArgs.new(JSON.parse(req.body.read))
+
+    meter_provider = OpenTelemetry.meter_provider
+
+    if meter_provider.respond_to?(:force_flush)
+      meter_provider.force_flush
+    end
+
+    res.write(OtelMetricsForceFlushReturn.new(true).to_json)
   end
 
   def get_ddtrace_version

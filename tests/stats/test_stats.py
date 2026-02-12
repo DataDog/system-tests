@@ -1,5 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
+from utils import interfaces, weblog, features, scenarios, logger
 
 """
 Test scenarios we want:
@@ -28,17 +28,6 @@ class Test_Client_Stats:
         for _ in range(3):
             weblog.get("/stats-unique?code=204")
 
-    @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
-    @missing_feature(
-        context.weblog_variant in ("play", "ratpack"),
-        library="java",
-        reason="play and ratpack controllers also generate stats and the test will fail",
-    )
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.53.0",
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_client_stats(self):
         stats_count = 0
         ok_hits = 0
@@ -73,12 +62,6 @@ class Test_Client_Stats:
         for user_id in test_user_ids:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.53.0",
-        reason="Tracers have not implemented this feature yet.",
-    )
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="rasp endpoint not implemented")
     def test_obfuscation(self):
         stats_count = 0
         hits = 0
@@ -96,14 +79,9 @@ class Test_Client_Stats:
         )  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.53.0",
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_is_trace_root(self):
         """Test IsTraceRoot presence in stats.
-        Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
+        Note: Once all tracers have implemented it and the test xpasses for all of them, we can move these
         assertions to `test_client_stats` method.
         """
         root_found = False
@@ -115,7 +93,7 @@ class Test_Client_Stats:
     @scenarios.default
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
-        assert len(requests) == 0, "Stats should be disabled by default"
+        assert len(requests) == 0, "Client-side stats should be disabled by default"
 
 
 @features.client_side_stats_supported
@@ -123,11 +101,6 @@ class Test_Client_Stats:
 class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.53.0",
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_info_endpoint_supports_client_side_stats(self):
         """Test that agent /info endpoint contains required fields for Client-Side Stats feature detection"""
         info_requests = list(interfaces.library.get_data("/info"))
@@ -204,11 +177,6 @@ class Test_Peer_Tags:
         for _ in range(2):
             weblog.get("/healthcheck")
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.53.0",
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_peer_tags(self):
         """Test that client spans include peer tags while server spans don't"""
         client_stats_found = False
@@ -261,14 +229,10 @@ class Test_Transport_Headers:
 
     def setup_transport_headers(self):
         """Setup for transport headers test - generates stats to trigger transport"""
+        interfaces.library.wait_for_client_side_stats_payload()
         for _ in range(2):
             weblog.get("/")
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.53.0",
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_transport_headers(self):
         """Test that stats transport includes required and optional headers"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -276,27 +240,27 @@ class Test_Transport_Headers:
 
         # Test the most recent stats request
         stats_request = stats_requests[-1]
-        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+        headers = {header[0].lower(): header[1] for header in stats_request["request"]["headers"]}
 
         logger.debug(f"Stats request headers: {headers}")
 
-        assert "Content-Type" in headers, "Stats request should have Content-Type header"
-        assert headers["Content-Type"] == "application/msgpack", (
-            f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
+        assert "content-type" in headers, "Stats request should have Content-Type header"
+        assert headers["content-type"] == "application/msgpack", (
+            f"Content-Type should be application/msgpack, found: {headers['content-type']}"
         )
 
-        content_length = headers.get("Content-Length")
-        assert content_length, f"Content-Length should not be empty, found: {content_length}"
-        assert int(content_length) > 0, f"Content-Length should be positive, found: {content_length}"
+        content_length = headers.get("content-length")
+        assert content_length, f"content-length should not be empty, found: {content_length}"
+        assert int(content_length) > 0, f"content-length should be positive, found: {content_length}"
 
-        assert "Datadog-Meta-Lang" in headers, "Datadog-Meta-Lang header not found"
-        assert headers["Datadog-Meta-Lang"], "Datadog-Meta-Lang header should not be empty"
+        assert "datadog-meta-lang" in headers, "datadog-meta-lang header not found"
+        assert headers["datadog-meta-lang"], "datadog-meta-lang header should not be empty"
 
-        assert "Datadog-Meta-Tracer-Version" in headers, "Datadog-Meta-Tracer-Version header not found"
-        assert headers["Datadog-Meta-Tracer-Version"], "Datadog-Meta-Tracer-Version header should not be empty"
+        assert "datadog-meta-tracer-version" in headers, "datadog-meta-tracer-version header not found"
+        assert headers["datadog-meta-tracer-version"], "datadog-meta-tracer-version header should not be empty"
 
-        if "Datadog-Obfuscation-Version" in headers:
-            obfuscation_version = headers["Datadog-Obfuscation-Version"]
+        if "datadog-obfuscation-version" in headers:
+            obfuscation_version = headers["datadog-obfuscation-version"]
             # Validate it's a positive integer string
             assert obfuscation_version.isdigit(), (
                 f"Obfuscation version should be positive integer, found: {obfuscation_version}"
@@ -305,10 +269,6 @@ class Test_Transport_Headers:
                 f"Obfuscation version should be positive integer, found: {obfuscation_version}"
             )
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_container_id_header(self):
         """Test that stats transport includes container id headers"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -316,7 +276,7 @@ class Test_Transport_Headers:
 
         # Test the most recent stats request
         stats_request = stats_requests[-1]
-        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+        headers = {header[0].lower(): header[1] for header in stats_request["request"]["headers"]}
 
         logger.debug(f"Stats request headers: {headers}")
 
@@ -330,19 +290,60 @@ class Test_Transport_Headers:
 
 
 @features.client_side_stats_supported
+@scenarios.trace_stats_computation_client_drop_p0s_false
+class Test_Client_Drop_P0s:
+    """Test that tracers respect agent's client_drop_p0s capability"""
+
+    def setup_client_drop_p0s_false(self):
+        for _ in range(2):
+            weblog.get("/")
+
+    def test_client_drop_p0s_false(self):
+        """Test that when agent reports client_drop_p0s=false, tracer does not report computing stats."""
+
+        # Verify the agent is configured to report client_drop_p0s as false
+        info_requests = list(interfaces.library.get_data("/info"))
+        assert len(info_requests) > 0, "Should have at least one /info request"
+        info_data = info_requests[0]["response"]["content"]
+        assert info_data.get("client_drop_p0s") is False, "Agent should report client_drop_p0s as false for this test"
+
+        # Check that no stats payloads were sent
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) == 0, "No stats should be sent when client_drop_p0s is false"
+
+        # Check trace headers to ensure Datadog-Client-Computed-Stats is not set to true
+        trace_requests = list(interfaces.library.get_data("/v0.4/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v0.5/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v0.7/traces"))
+
+        assert len(trace_requests) > 0, "Should have at least one trace request"
+
+        for trace_request in trace_requests:
+            headers = {header[0].lower(): header[1] for header in trace_request["request"]["headers"]}
+            logger.debug(f"Trace request headers: {headers}")
+
+            # The header should either not be present, or be set to false
+            if "datadog-client-computed-stats" in headers:
+                header_value = headers["datadog-client-computed-stats"].lower()
+                assert header_value in ("false", "no", "n", "0", ""), (
+                    f"When client_drop_p0s is false, Datadog-Client-Computed-Stats should be false/absent, "
+                    f"found: {header_value}"
+                )
+
+
+@features.client_side_stats_supported
 @scenarios.trace_stats_computation
 class Test_Time_Bucketing:
     """Test time bucketing validation for Client-Side Stats"""
 
     def setup_client_side_stats(self):
         """Setup for time bucketing test - generates spans across time"""
+        interfaces.library.wait_for_client_side_stats_payload()
         for _ in range(3):
             weblog.get("/")
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_client_side_stats(self):
         """Test that client-side stats are properly bucketed in 10-second intervals"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -387,10 +388,6 @@ class Test_Time_Bucketing:
                 assert stat["Errors"] >= 0, f"Errors should be non-negative, found: {stat['Errors']}"
                 assert stat["Duration"] >= 0, f"Duration should be non-negative, found: {stat['Duration']}"
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_client_side_stats_bucket_alignment(self):
         """Test that client-side stats are aligned on 10-second intervals"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -423,10 +420,6 @@ class Test_Time_Bucketing:
         for _ in range(3):
             weblog.get("/")
 
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
-        reason="Tracers have not implemented this feature yet.",
-    )
     def test_agent_aggregated_stats(self):
         """Test that agent-aggregated stats use 2-second buckets with 1-second offset"""
 

@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from utils import scenarios, features, rfc, irrelevant
+from utils import scenarios, features, rfc
 from utils.docker_fixtures.spec.trace import find_span, find_trace
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -146,7 +146,6 @@ class Test_Span_Events:
         assert event["attributes"].get("double") == "0.0"
         assert isinstance(event["attributes"].get("double"), str)
 
-    @irrelevant(library="ruby", reason="Does not support v0.7")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.7", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_event_v07(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event in the v0.7 format, which support the native attribute representation."""
@@ -159,7 +158,6 @@ class Test_Span_Events:
 
         self._test_span_with_native_event(library_env, test_agent, test_library)
 
-    @irrelevant(library="ruby", reason="Does not support v0.5")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_event_v05(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event in the v0.5 format, which does not support the native attribute representation.
@@ -169,9 +167,7 @@ class Test_Span_Events:
         self._test_span_with_meta_event(library_env, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
-    def test_span_with_invalid_event_attributes(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_span_with_invalid_event_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span event, with invalid attributes, to an active span.
         Span events with invalid attributes should be discarded.
         Valid attributes should be kept.

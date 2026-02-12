@@ -3,18 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 
-import pytest
-
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
+from utils import weblog, context, interfaces, missing_feature, rfc, scenarios, features
 from utils.tools import nested_lookup
-from utils.dd_constants import PYTHON_RELEASE_GA_1_1
-
-
-if context.library > "python_lambda@8.117.0":
-    pytestmark = [
-        pytest.mark.xfail(reason="bug (APPSEC-60014)"),
-        pytest.mark.declaration(declaration="bug", details="APPSEC-60014"),
-    ]
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -40,7 +30,6 @@ class Test_ConfigurationVariables:
     def setup_disabled(self):
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.everything_disabled
     def test_disabled(self):
@@ -65,7 +54,6 @@ class Test_ConfigurationVariables:
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
-    @missing_feature(context.library < "java@0.113.0")
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
@@ -76,8 +64,6 @@ class Test_ConfigurationVariables:
     def setup_obfuscation_parameter_key(self):
         self.r_op_key = weblog.get("/waf", headers={"hide-key": f"acunetix-user-agreement {self.SECRET}"})
 
-    @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
@@ -94,8 +80,6 @@ class Test_ConfigurationVariables:
         headers = {"attack": f"acunetix-user-agreement {self.SECRET_WITH_HIDDEN_VALUE}"}
         self.r_op_value = weblog.get("/waf", headers=headers)
 
-    @missing_feature(context.library <= "ruby@1.0.0")
-    @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
@@ -123,7 +107,6 @@ class Test_ConfigurationVariables_New_Obfuscation:
     def setup_partial_obfuscation_parameter_value(self):
         self.r_op_value = weblog.get(f"/.git?password={self.SECRET_WITH_HIDDEN_VALUE}")
 
-    @missing_feature(context.library <= "ruby@1.0.0")
     def test_partial_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 

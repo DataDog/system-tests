@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils import interfaces, scenarios, weblog, features, logger
 from utils.buddies import java_buddy, _Weblog as Weblog
 
 
@@ -73,9 +73,6 @@ class _BaseKafka:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(interfaces.library, span_kind="producer", topic=self.WEBLOG_TO_BUDDY_TOPIC)
@@ -116,9 +113,6 @@ class _BaseKafka:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
-    @missing_feature(
-        library="ruby", reason="Expected to fail, one end is always Python which does not currently propagate context"
-    )
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(self.buddy_interface, span_kind="producer", topic=self.BUDDY_TO_WEBLOG_TOPIC)
@@ -172,10 +166,8 @@ class Test_Kafka(_BaseKafka):
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
 
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

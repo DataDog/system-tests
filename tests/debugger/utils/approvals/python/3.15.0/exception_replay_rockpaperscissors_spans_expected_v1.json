@@ -1,0 +1,107 @@
+{
+  "snapshot_0": [
+    {
+      "attributes": {
+        "_dd.convertedv1": "v04",
+        "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
+        "_dd.debug.error.2.function": "exceptionReplayRps",
+        "_dd.debug.error.2.line": "40",
+        "_dd.debug.error.2.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.exception_capture_id": "<scrubbed>",
+        "_dd.debug.error.exception_hash": "<scrubbed>",
+        "component": "flask",
+        "env": "system-tests",
+        "error.debug_info_captured": "true",
+        "error.message": "paper exception",
+        "error.stack": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/ddtrace/contrib/internal/flask/wrappers.py\", <scrubbed>",
+        "error.type": "debugger.exception_replay.ExceptionReplayPaper",
+        "key1": "val1",
+        "key2": "val2",
+        "version": "<scrubbed>"
+      },
+      "componentRef": "flask",
+      "duration": "<scrubbed>",
+      "envRef": "system-tests",
+      "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
+      "nameRef": "exceptionreplay.exceptionReplayRps",
+      "parentID": "<scrubbed>",
+      "resourceRef": "/exceptionreplay/rps",
+      "serviceRef": "weblog",
+      "spanID": "<scrubbed>",
+      "start": "<scrubbed>",
+      "versionRef": "1.0.0"
+    },
+    "efficient_trace_payload_format"
+  ],
+  "snapshot_1": [
+    {
+      "attributes": {
+        "_dd.convertedv1": "v04",
+        "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
+        "_dd.debug.error.2.function": "exceptionReplayRps",
+        "_dd.debug.error.2.line": "38",
+        "_dd.debug.error.2.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.exception_capture_id": "<scrubbed>",
+        "_dd.debug.error.exception_hash": "<scrubbed>",
+        "component": "flask",
+        "env": "system-tests",
+        "error.debug_info_captured": "true",
+        "error.message": "rock exception",
+        "error.stack": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/ddtrace/contrib/internal/flask/wrappers.py\", <scrubbed>",
+        "error.type": "debugger.exception_replay.ExceptionReplayRock",
+        "key1": "val1",
+        "key2": "val2",
+        "version": "<scrubbed>"
+      },
+      "componentRef": "flask",
+      "duration": "<scrubbed>",
+      "envRef": "system-tests",
+      "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
+      "nameRef": "exceptionreplay.exceptionReplayRps",
+      "parentID": "<scrubbed>",
+      "resourceRef": "/exceptionreplay/rps",
+      "serviceRef": "weblog",
+      "spanID": "<scrubbed>",
+      "start": "<scrubbed>",
+      "versionRef": "1.0.0"
+    },
+    "efficient_trace_payload_format"
+  ],
+  "snapshot_2": [
+    {
+      "attributes": {
+        "_dd.convertedv1": "v04",
+        "_dd.debug.error.2.file": "/app/exception_replay_controller.py",
+        "_dd.debug.error.2.function": "exceptionReplayRps",
+        "_dd.debug.error.2.line": "42",
+        "_dd.debug.error.2.snapshot_id": "<scrubbed>",
+        "_dd.debug.error.exception_capture_id": "<scrubbed>",
+        "_dd.debug.error.exception_hash": "<scrubbed>",
+        "component": "flask",
+        "env": "system-tests",
+        "error.debug_info_captured": "true",
+        "error.message": "scissors exception",
+        "error.stack": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/ddtrace/contrib/internal/flask/wrappers.py\", <scrubbed>",
+        "error.type": "debugger.exception_replay.ExceptionReplayScissors",
+        "key1": "val1",
+        "key2": "val2",
+        "version": "<scrubbed>"
+      },
+      "componentRef": "flask",
+      "duration": "<scrubbed>",
+      "envRef": "system-tests",
+      "error": true,
+      "kind": "SPAN_KIND_INTERNAL",
+      "nameRef": "exceptionreplay.exceptionReplayRps",
+      "parentID": "<scrubbed>",
+      "resourceRef": "/exceptionreplay/rps",
+      "serviceRef": "weblog",
+      "spanID": "<scrubbed>",
+      "start": "<scrubbed>",
+      "versionRef": "1.0.0"
+    },
+    "efficient_trace_payload_format"
+  ]
+}

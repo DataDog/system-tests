@@ -79,6 +79,7 @@ class DockerFixturesScenario(Scenario):
         worker_id: str,
         request: pytest.FixtureRequest,
         test_id: str,
+        agent_env: dict[str, str],
         container_otlp_http_port: int = 4318,
         container_otlp_grpc_port: int = 4317,
     ) -> Generator[TestAgentAPI, None, None]:
@@ -89,6 +90,7 @@ class DockerFixturesScenario(Scenario):
                 worker_id=worker_id,
                 docker_network=docker_network,
                 container_name=f"ddapm-test-agent-{test_id}",
+                agent_env=agent_env,
                 container_otlp_http_port=container_otlp_http_port,
                 container_otlp_grpc_port=container_otlp_grpc_port,
             ) as result,
@@ -108,3 +110,20 @@ class DockerFixturesScenario(Scenario):
             logger.info("No local dd-trace-js found, do not mount any volume")
 
         return volumes
+
+    @staticmethod
+    def get_python_env_and_volumes() -> tuple[dict[str, str], dict[str, str]]:
+        env = {}
+        volumes = {}
+
+        try:
+            with open("./binaries/python-load-from-local", encoding="utf-8") as f:
+                path = f.read().strip(" \r\n")
+                source = os.path.join(str(Path.cwd()), path)
+                resolved_path = Path(source).resolve()
+                volumes[str(resolved_path)] = "/volumes/dd-trace-py"
+                env["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+        except FileNotFoundError:
+            logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
+
+        return env, volumes

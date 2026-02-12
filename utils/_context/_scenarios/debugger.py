@@ -19,6 +19,7 @@ class DebuggerScenario(EndToEndScenario):
             name=name,
             doc=doc,
             rc_api_enabled=True,
+            rc_backend_enabled=True,
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
@@ -27,7 +28,7 @@ class DebuggerScenario(EndToEndScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        library = self.weblog_container.image.labels["system-tests-library"]
+        library = self.weblog_infra.library_name
         if library == "python":
             self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "0.1"
         else:

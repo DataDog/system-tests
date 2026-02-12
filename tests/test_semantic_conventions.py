@@ -5,7 +5,7 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features, scenarios
+from utils import context, interfaces, features, scenarios
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -14,6 +14,8 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
+    "envoy": "go",
+    "haproxy": "go",
 }
 
 """
@@ -35,6 +37,7 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
     "graphql-go": "graphql-go/graphql",
@@ -49,6 +52,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
         "grpc.server": "grpc-server",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-jetty": {
         "servlet.request": "jetty-server",
@@ -57,12 +61,14 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
         "servlet.error": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-3-native": {
         "servlet.request": "tomcat-server",
         "spring.handler": "spring-web-controller",
         "hsqldb.query": "java-jdbc-statement",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-openliberty": {
         "servlet.request": ["liberty-server", "java-web-servlet"],
@@ -70,6 +76,7 @@ VARIANT_COMPONENT_MAP = {
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-undertow": {
         "servlet.request": "undertow-http-server",
@@ -78,6 +85,7 @@ VARIANT_COMPONENT_MAP = {
         "undertow-http.request": "undertow-http-server",
         "servlet.response": "java-web-servlet-response",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-wildfly": {
         "servlet.request": "undertow-http-server",
@@ -86,6 +94,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "spring-boot-payara": {
         "servlet.request": "java-web-servlet",
@@ -93,6 +102,7 @@ VARIANT_COMPONENT_MAP = {
         "servlet.forward": "java-web-servlet-dispatcher",
         "spring.handler": "spring-web-controller",
         "servlet.response": "java-web-servlet-response",
+        "response.render": "spring-webmvc",
     },
     "resteasy-netty3": {"netty.request": ["netty", "jax-rs"], "jax-rs.request": "jax-rs-controller"},
     "akka-http": "akka-http-server",
@@ -118,6 +128,7 @@ VARIANT_COMPONENT_MAP = {
         "hsqldb.query": "java-jdbc-statement",
         "spring.handler": "spring-web-controller",
         "servlet.forward": "java-web-servlet-dispatcher",
+        "response.render": "spring-webmvc",
     },
     "vertx3": {"netty.request": "netty", "vertx.route-handler": "vertx"},
     "vertx4": {"netty.request": "netty", "vertx.route-handler": "vertx"},
@@ -152,19 +163,13 @@ optional_uds_feature = (
 )
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
-    @bug(library="cpp_nginx", reason="APMAPI-924")
-    @bug(library="cpp_httpd", reason="APMAPI-924")
-    @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
@@ -182,10 +187,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
-    @bug(library="ruby", reason="APMAPI-922")
-    @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
-    @bug(context.library < "php@0.68.2", reason="APMRP-360")
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
@@ -205,7 +206,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
@@ -224,7 +224,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
@@ -259,11 +258,6 @@ class Test_Meta:
 
         interfaces.library.validate_one_span(validator=validator)
 
-    @bug(library="php", reason="APMAPI-923")
-    # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
-    @bug(context.library < "java@1.1.0", reason="APMRP-360")
-    @bug(library="dotnet", reason="AIT-8735")
-    @missing_feature(context.library < "dotnet@2.6.0")
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
@@ -285,8 +279,6 @@ class Test_Meta:
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
-    @bug(library="php", reason="APMAPI-920")
-    @bug(context.library >= "nodejs@4.44.0", reason="APMAPI-921")
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
@@ -346,11 +338,8 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_one_span(validator=validator)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.trace_data_integrity
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

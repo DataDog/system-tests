@@ -1,6 +1,6 @@
-FROM golang:1.24-alpine AS build
+FROM golang:1.25-alpine AS build
 
-RUN apk add --no-cache jq curl bash gcc musl-dev socat
+RUN apk add --no-cache jq curl bash gcc musl-dev socat git
 
 # print important lib versions
 RUN go version && curl --version

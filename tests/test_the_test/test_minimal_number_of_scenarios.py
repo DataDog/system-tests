@@ -24,7 +24,7 @@ FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attack
     ("APPSEC_BLOCKING_FULL_DENYLIST", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     (
         "APPSEC_RUNTIME_ACTIVATION",
-        "FEATURE_FLAG_EXPOSURE",
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
     ): "Scenarios test different features with different RC configurations",
     # If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
     # test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail
@@ -84,8 +84,7 @@ def test_minimal_number_of_scenarios():
             ".name",
             ".scenario_groups",
             # duplicated values
-            "._required_containers",
-            "._supporting_containers",
+            "._containers",
             ".weblog_container.depends_on",
             # will use a dedicated logic
             ".weblog_container.environment",

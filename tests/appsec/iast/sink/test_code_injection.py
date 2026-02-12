@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, features, rfc, weblog
+from utils import features, rfc, weblog
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_stack_traces,
@@ -24,7 +24,6 @@ class TestCodeInjection(BaseSinkTest):
         "nodejs": get_nodejs_iast_file_paths(),
     }
 
-    @missing_feature(context.library < "nodejs@5.34.0")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 

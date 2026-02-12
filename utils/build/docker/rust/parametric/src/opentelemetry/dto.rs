@@ -279,3 +279,188 @@ pub fn format_trace_state(trace_state: &HashMap<String, String>) -> String {
         .collect::<Vec<_>>()
         .join(",")
 }
+
+// --- Metrics DTOs ---
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelGetMeterArgs {
+    pub name: String,
+    pub version: Option<String>,
+    pub schema_url: Option<String>,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelGetMeterReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateCounterArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateCounterReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCounterAddArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub unit: String,
+    pub description: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCounterAddReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateUpDownCounterArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateUpDownCounterReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelUpDownCounterAddArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub unit: String,
+    pub description: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelUpDownCounterAddReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateGaugeArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateGaugeReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelGaugeRecordArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub unit: String,
+    pub description: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelGaugeRecordReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateHistogramArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateHistogramReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelHistogramRecordArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub unit: String,
+    pub description: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelHistogramRecordReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateAsynchronousCounterArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateAsynchronousCounterReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateAsynchronousUpDownCounterArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateAsynchronousUpDownCounterReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateAsynchronousGaugeArgs {
+    pub meter_name: String,
+    pub name: String,
+    pub description: String,
+    pub unit: String,
+    pub value: serde_json::Number,
+    pub attributes: HashMap<String, serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateAsynchronousGaugeReturn {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelMetricsForceFlushArgs {}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelMetricsForceFlushReturn {
+    pub success: bool,
+}
+
+// --- Logs DTOs ---
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateLoggerArgs {
+    pub name: String,
+    pub level: String,
+    pub version: Option<String>,
+    pub schema_url: Option<String>,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelCreateLoggerReturn {
+    pub success: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelWriteLogArgs {
+    pub logger_name: String,
+    pub level: String,
+    pub message: String,
+    pub span_id: Option<u64>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelWriteLogReturn {
+    pub success: bool,
+}
