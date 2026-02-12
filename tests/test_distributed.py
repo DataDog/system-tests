@@ -4,7 +4,7 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context, logger
-from utils.dd_constants import TraceAgentPayloadFormat, TraceLibraryPayloadFormat
+from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 
 
@@ -175,7 +175,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         spans = [
             (span, span_format, trace_chunk)
             for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span, span_format) is not None
+            if interfaces.library.get_span_links(span, span_format) is not None
             and interfaces.library.get_span_trace_id(
                 span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
             )
@@ -190,6 +190,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
         span, span_format, _ = spans[0]
         span_links = interfaces.library.get_span_links(span, span_format)
+        assert span_links is not None
         assert len(span_links) == 2
         link1 = span_links[0]
         assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
@@ -235,6 +236,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
 
         span, span_format, _ = spans[0]
         links = interfaces.library.get_span_links(span, span_format)
+        assert links is not None
         assert len(links) == 1
         link1 = links[0]
         assert link1.get("tracestate") is None
