@@ -491,7 +491,7 @@ class Test_Config_IntegrationEnabled_False:
             assert (
                 list(
                     filter(
-                        lambda item: "pdo" in interfaces.library.get_span_meta(item[0], item[1]).get("service", ""),
+                        lambda item: "pdo" in item[0].get("service", ""),
                         spans_with_format,
                     )
                 )
@@ -532,7 +532,7 @@ class Test_Config_IntegrationEnabled_True:
         if context.library == "php":
             assert list(
                 filter(
-                    lambda item: "pdo" in interfaces.library.get_span_meta(item[0], item[1]).get("service", ""),
+                    lambda item: "pdo" in item[0].get("service", ""),
                     spans_with_format,
                 )
             ), f"No PDO span found in trace: {spans_with_format}"
