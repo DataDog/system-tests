@@ -129,7 +129,7 @@ Running system-tests involves a few key steps:
    source venv/bin/activate
    ```
 > **macOs note** If the `build.sh` script fails due to a missing `timeout` command, it likely means you did not run the Datadog laptop setup [script](https://datadoghq.atlassian.net/wiki/spaces/EE1/pages/3334374707/Laptop+Setup+Script)
-> 
+>
 > Quick fix:
 > ```bash
 > brew install coreutils
