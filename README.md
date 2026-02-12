@@ -8,7 +8,6 @@ Key principles:
 
 * **Black-box testing** -- only component interfaces are checked, no assumptions about internals. "Check that the car moves, regardless of the engine."
 * **Cross-language** -- one test validates all tracer libraries.
-* **pytest-based** -- familiar Python testing framework.
 
 ## Quick start
 
@@ -35,6 +34,22 @@ source venv/bin/activate
 > ```
 
 ![Output on success](./utils/assets/output.png?raw=true)
+
+### Reading the output
+
+System-tests uses [pytest](https://docs.pytest.org/) under the hood. The test output follows standard pytest conventions (see the [pytest documentation on test outcomes](https://docs.pytest.org/en/stable/how-to/output.html)). Each test is represented by a symbol:
+
+| Symbol | Meaning | Description |
+|--------|---------|-------------|
+| `.` | **pass** | Test is enabled and successful |
+| `F` | **fail** | Test is enabled but unsuccessful -- needs investigation |
+| `x` | **xfail** | Test is disabled and unsuccessful (expected behavior) |
+| `X` | **xpass** | Test is disabled but successful -- easy win, time to [enable it](docs/edit/enable-test.md) |
+| `s` | **skipped** | Test was not executed (irrelevant or flaky) |
+
+For a full explanation of test outcomes and how declarations (like `bug`, `missing_feature`, `flaky`) affect them, see [test outcomes](docs/execute/test-outcomes.md) and the [glossary](docs/glossary.md).
+
+If a test fails, check the standard output first -- it usually contains enough info. For deeper investigation, look at the [logs folder](docs/execute/logs.md).
 
 ## Documentation
 
