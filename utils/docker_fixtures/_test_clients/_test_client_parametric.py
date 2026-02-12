@@ -527,7 +527,7 @@ class ParametricTestClientApi:
 
         Args:
             logger_name: The name of the logger to use
-            level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            level: The log level (DEBUG, INFO, WARN, ERROR)
             message: The log message to generate
             span_id: Optional ID of the span that should be active when the log is generated
 
