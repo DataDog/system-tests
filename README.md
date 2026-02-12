@@ -149,6 +149,20 @@ Specific scenarios may require additional tools:
 - **Kubernetes tests** -- require Kind/Minikube for local K8s clusters. See [K8s docs](docs/scenarios/k8s_library_injection_overview.md).
 - **AWS SSI tests** -- require AWS credentials and Pulumi setup. See [AWS SSI docs](docs/scenarios/onboarding.md).
 
+## Contributing
+
+Before submitting a PR, always run the [linter](docs/edit/format.md) (`./format.sh`). Here are the most common types of contributions, ordered by frequency:
+
+| What you want to do | Guide |
+|----------------------|-------|
+| Activate or deactivate a test for a library | [Manifests](docs/edit/manifest.md), [enable a test](docs/edit/enable-test.md), [skip tests](docs/edit/skip-tests.md) |
+| Add or edit a test | [Add a new test](docs/edit/add-new-test.md), [editing overview](docs/edit/README.md) |
+| Add or edit a scenario | [Scenarios guide](docs/edit/scenarios.md), [scenarios overview](docs/scenarios/README.md) |
+| Add or edit a weblog | [Weblog spec](docs/weblog/end-to-end_weblog.md), [build options](docs/execute/build.md) |
+| Other changes | [Full editing docs](docs/edit/README.md), [internals](docs/internals/README.md) |
+
+For testing against unmerged tracer changes, see [enable-test.md](docs/edit/enable-test.md) and [binaries](docs/execute/binaries.md).
+
 ## Technologies
 
 System-tests is built on **Python** and **pytest**, using **Docker** for isolated environments. Depending on the scenario, it also leverages **Kubernetes** (Kind/Minikube), **Pulumi**, and the **AWS API**. See the [architecture overview](docs/architecture/overview.md) for details.
