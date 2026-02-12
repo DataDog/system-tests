@@ -764,9 +764,25 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 
+	// Trace /no_route outside the traced ServeMux so req.Pattern stays empty.
+	// This lets the tracer instrumentation run without setting http.route for this path.
+	noRouteHandler := httptrace.WrapHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	}), "", "/no_route")
+
+	rootHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/no_route" {
+			noRouteHandler.ServeHTTP(w, r)
+			return
+		}
+		mux.ServeHTTP(w, r)
+	})
+
 	srv := &http.Server{
 		Addr:    ":7777",
-		Handler: mux,
+		Handler: rootHandler,
 	}
 
 	common.InitDatadog()

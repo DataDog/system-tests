@@ -374,7 +374,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
-            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "false",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
         },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
