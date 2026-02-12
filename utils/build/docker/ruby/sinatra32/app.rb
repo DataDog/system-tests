@@ -3,6 +3,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'faraday/follow_redirects'
 require 'sinatra/json'
 
 begin
@@ -326,6 +327,31 @@ end
   send(http_method.downcase, '/external_request') { external_request_handler }
 end
 Sinatra::Application.send(:route, 'TRACE', '/external_request') { external_request_handler }
+
+get '/external_request/redirect' do
+  total_redirects = request.params['totalRedirects'] || '0'
+
+  headers = {}
+  request.params.each do |key, value|
+    next if key == 'totalRedirects'
+    headers[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+  end
+
+  url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+  conn = Faraday.new do |f|
+    f.response :follow_redirects, limit: 10
+  end
+  downstream_response = conn.get(url, nil, headers)
+
+  content_type :json
+  {
+    status: downstream_response.status,
+    headers: downstream_response.headers.to_h
+  }.to_json
+rescue => e
+  content_type :json
+  {status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})"}.to_json
+end
 
 get '/flush' do
   # NOTE: If anything needs to be flushed here before the test suite ends,
