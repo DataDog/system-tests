@@ -60,7 +60,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             (span, span_format, trace_chunk)
             for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span, span_format) is not None
+            if interfaces.library.get_span_links(span, span_format) is not None
             and interfaces.library.get_span_trace_id(
                 span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
             )
@@ -71,7 +71,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
         assert len(trace) == 1, f"Expected 1 span with matching criteria, got {len(trace)}. Trace: {trace}"
         span, span_format, _trace_chunk = trace[0]
-        links = _retrieve_span_links(span, span_format)
+        links = interfaces.library.get_span_links(span, span_format)
         assert links is not None, f"No span links found in span. Span keys: {list(span.keys())}"
         assert len(links) == 1, f"Expected 1 link, got {len(links)}. Links: {links}"
         link1 = links[0]
@@ -106,7 +106,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             (span, span_format, trace_chunk)
             for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span, span_format) is not None
+            if interfaces.library.get_span_links(span, span_format) is not None
             and interfaces.library.get_span_trace_id(
                 span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
             )
@@ -137,7 +137,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         trace = [
             (span, span_format, trace_chunk)
             for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span, span_format) is not None
+            if interfaces.library.get_span_links(span, span_format) is not None
             and interfaces.library.get_span_trace_id(
                 span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
             )
@@ -189,7 +189,7 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span, span_format, _ = spans[0]
-        span_links = _retrieve_span_links(span, span_format)
+        span_links = interfaces.library.get_span_links(span, span_format)
         assert len(span_links) == 2
         link1 = span_links[0]
         assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
@@ -220,7 +220,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         spans = [
             (span, span_format, trace_chunk)
             for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span, span_format) is not None
+            if interfaces.library.get_span_links(span, span_format) is not None
             and interfaces.library.get_span_trace_id(
                 span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
             )
@@ -234,15 +234,10 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span, span_format, _ = spans[0]
-        links = _retrieve_span_links(span, span_format)
+        links = interfaces.library.get_span_links(span, span_format)
         assert len(links) == 1
         link1 = links[0]
         assert link1.get("tracestate") is None
-
-
-def _retrieve_span_links(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
-    """Retrieve span links from a span using the library interface helper method."""
-    return interfaces.library.get_span_links(span, span_format)
 
 
 # The Datadog specific tracecontext flags to mark flags are set
@@ -273,7 +268,6 @@ class Test_Synthetics_APM_Datadog:
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         _, span, span_format = spans[0]
-        # parentID is an agent format field, not library format - keep direct access
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         meta = interfaces.agent.get_span_meta(span, span_format)
@@ -302,7 +296,6 @@ class Test_Synthetics_APM_Datadog:
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         _, span, span_format = spans[0]
-        # parentID is an agent format field, not library format - keep direct access
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
         meta = interfaces.agent.get_span_meta(span, span_format)
