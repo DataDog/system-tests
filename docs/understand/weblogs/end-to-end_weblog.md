@@ -890,7 +890,7 @@ It supports the following body fields:
 
 ### GET /flush
 
-This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
+This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/write/flushing.md`.
 
 ### \[GET,POST\] /rasp/lfi
 

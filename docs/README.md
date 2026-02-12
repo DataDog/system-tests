@@ -16,6 +16,7 @@ Learn what system-tests is, how it works, and what the key concepts are.
 - [Architecture overview](understand/architecture.md) -- components, containers, data flow, and what system-tests is good (and bad) at
 - [Scenarios](understand/scenarios/README.md) -- the different types of tests: end-to-end, parametric, SSI, Kubernetes
 - [Weblogs](understand/weblogs/README.md) -- the test applications that get instrumented by tracer libraries
+- [Test flow](understand/test-flow.md) -- the full test execution flow (setup, wait, test)
 - [Glossary](glossary.md) -- definitions of terms like pass, fail, xpass, xfail, enabled, disabled
 - [Ownership](who-is-the-owner.md) -- who owns what in this repository
 
@@ -57,13 +58,17 @@ How to add, modify, enable, and disable tests.
 - [Update Docker images](write/update-docker-images.md) -- modifying test app Docker images
 - [Runbook](write/runbook.md) -- operational runbook
 - [Troubleshooting](write/troubleshooting.md) -- debugging tips during development
+- [Flushing](write/flushing.md) -- how data flushing works and implementing `/flush`
+- [Library interface validation](write/library-interface-validation-methods.md) -- API reference for validating tracer-to-agent traces
+- [Agent interface validation](write/agent-interface-validation-methods.md) -- API reference for validating agent-to-backend data
+- [Backend interface validation](write/backend-interface-validation-methods.md) -- API reference for validating backend API responses
 
 ## Scenario-specific guides
 
 Deep dives into each scenario type.
 
 - **End-to-end**: covered in [scenarios overview](understand/scenarios/README.md) and [architecture](understand/architecture.md)
-- **Parametric**: [overview](understand/scenarios/parametric.md) and [contributing guide](understand/scenarios/parametric_contributing.md)
+- **Parametric**: [overview](understand/scenarios/parametric.md) and [contributing guide](write/parametric_contributing.md)
 - **AWS SSI / Onboarding**: [full guide](understand/scenarios/onboarding.md) and [provision structure](understand/scenarios/onboarding_provision_section.md)
 - **Docker SSI**: [guide](understand/scenarios/docker_ssi.md) and [Docker fixtures](understand/scenarios/docker_fixtures.md)
 - **Kubernetes lib injection**: [overview](understand/scenarios/k8s_library_injection_overview.md), [details](understand/scenarios/k8s_lib_injection.md), and [injector dev](understand/scenarios/k8s_injector_dev.md)
@@ -93,12 +98,7 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 - [Internals overview](internals/README.md) -- index of internal documentation
 - [End-to-end lifecycle](internals/end-to-end-life-cycle.md) -- how e2e scenarios execute step by step
 - [Parametric lifecycle](internals/parametric-life-cycle.md) -- how parametric scenarios execute
-- [Test flow](internals/test-flow.md) -- the full test execution flow
-- [Library interface validation](internals/library-interface-validation-methods.md) -- validating traces between tracer and agent
-- [Agent interface validation](internals/agent-interface-validation-methods.md) -- validating data between agent and backend
-- [Backend interface validation](internals/backend-interface-validation-methods.md) -- validating backend API responses
 - [Pytest internals](internals/pytest.md) -- log levels and pytest configuration
-- [Flushing](internals/flushing.md) -- how data flushing works
 - [Requirements](internals/requirements.md) -- internal dependency requirements
 - [History](internals/history.md) -- historical context
 - [MITM certificate](internals/recreating_MITM_certificate.md) -- recreating the proxy certificate

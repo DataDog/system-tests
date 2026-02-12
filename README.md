@@ -104,7 +104,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 | [Internals overview](docs/internals/README.md) | Deep-dive index for maintainers |
 | [End-to-end lifecycle](docs/internals/end-to-end-life-cycle.md) | How e2e scenarios execute step by step |
 | [Parametric lifecycle](docs/internals/parametric-life-cycle.md) | How parametric scenarios execute |
-| [Interface validation](docs/internals/library-interface-validation-methods.md) | Validating intercepted traces |
+| [Interface validation](docs/write/library-interface-validation-methods.md) | API reference for validating intercepted traces |
 
 ### AI tooling
 

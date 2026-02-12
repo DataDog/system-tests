@@ -187,4 +187,4 @@ This means:
 - [Interface Initialization](../../utils/interfaces/__init__.py)
 - [Library Interface Validation Methods](./library-interface-validation-methods.md)
 - [End-to-End Testing Guide](../run/README.md)
-- [Adding New Tests](../write/add-new-test.md)
+- [Adding New Tests](./add-new-test.md)

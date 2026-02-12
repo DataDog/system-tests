@@ -5,6 +5,7 @@ This section covers the core concepts of system-tests: what the components are, 
 ## Architecture
 
 - [Architecture overview](architecture.md) -- components, containers, data flow, and what system-tests is good (and bad) at
+- [Test flow](test-flow.md) -- the full test execution flow (setup, wait, test)
 
 ## Scenarios
 

@@ -6,21 +6,11 @@ All about system-tests deep internals. For those of you who are not afraid of ge
 
 - [End-to-end lifecycle](end-to-end-life-cycle.md) -- how end-to-end scenarios start containers, run setups, and execute tests
 - [Parametric lifecycle](parametric-life-cycle.md) -- how parametric scenarios execute
-- [Test flow](test-flow.md) -- the full test execution flow from build to results
-
-## Interface validation
-
-System-tests intercepts messages between components and validates them. These are the three validation interfaces:
-
-- [Library interface](library-interface-validation-methods.md) -- validates traces/messages between the tracer and the agent
-- [Agent interface](agent-interface-validation-methods.md) -- validates data between the agent and the backend
-- [Backend interface](backend-interface-validation-methods.md) -- validates responses from the Datadog backend API
 
 ## Pytest and configuration
 
 - [Pytest internals](pytest.md) -- log levels, pytest configuration, and output control
 - [Requirements](requirements.md) -- internal dependency requirements
-- [Flushing](flushing.md) -- how data flushing works in test scenarios
 
 ## Infrastructure and tooling
 

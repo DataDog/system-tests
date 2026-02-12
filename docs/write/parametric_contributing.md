@@ -19,7 +19,7 @@ System-tests are **not** for testing internal or niche library behavior. Unit te
 ## Getting set up
 
 We usually add new system tests when validating a new feature. To begin, set up the system-tests repo to run with a version of the library that has already implemented the feature you'd like to test (published or on a branch).
-Follow [Binaries Documentation](../../run/binaries.md) for your particular tracer language to set this up.
+Follow [Binaries Documentation](../run/binaries.md) for your particular tracer language to set this up.
 
 [Verify that you can run some (any) parametric tests with your custom tracer](parametric.md#running-the-tests). Make sure some pass — no need to run the whole suite (you can stop the tests from running with `ctrl+c`). If you have any issues, checkout the [debugging section](parametric.md#debugging) to troubleshoot.
 

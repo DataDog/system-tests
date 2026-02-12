@@ -10,7 +10,7 @@ To make changes, you must be able to run tests locally. Instructions for running
 
 **Note**
 
-For information on contributing to specifically **parametric** scenario, see [parametric contributing](../understand/scenarios/parametric_contributing.md).
+For information on contributing to specifically **parametric** scenario, see [parametric contributing](./parametric_contributing.md).
 
 **Callout**
 
@@ -32,6 +32,15 @@ You'll commonly need to run unmerged changes to your library against system test
 12. [remote-config.md](./remote-config.md): Write remote config tests
 13. [versions.md](./versions.md): Version specification guidelines
 14. [runbook.md](./runbook.md): Operational runbook
+15. [flushing.md](./flushing.md): How data flushing works and implementing `/flush`
+
+### Interface validation API reference
+
+These documents cover the APIs you use in test assertions:
+
+- [library-interface-validation-methods.md](./library-interface-validation-methods.md): Validating tracer-to-agent traces
+- [agent-interface-validation-methods.md](./agent-interface-validation-methods.md): Validating agent-to-backend data
+- [backend-interface-validation-methods.md](./backend-interface-validation-methods.md): Validating backend API responses
 
 ---
 
