@@ -47,7 +47,7 @@ def test_all_class_has_feature_decorator(session: pytest.Session, deselected_ite
     if shouldfail:
         raise ValueError(
             "Some test classes misses @features decorator. "
-            "More info on https://github.com/DataDog/system-tests/blob/main/docs/edit/add-new-test.md"
+            "More info on https://github.com/DataDog/system-tests/blob/main/docs/write/add-new-test.md"
         )
 
 

@@ -266,5 +266,5 @@ Rate limit hit, sleeping N seconds
 - [Interface Initialization](../../utils/interfaces/__init__.py)
 - [Library Interface Validation Methods](./library-interface-validation-methods.md)
 - [Agent Interface Validation Methods](./agent-interface-validation-methods.md)
-- [End-to-End Testing Guide](../execute/README.md)
+- [End-to-End Testing Guide](../run/README.md)
 - [Datadog API Documentation](https://docs.datadoghq.com/api/latest/)

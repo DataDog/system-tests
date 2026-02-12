@@ -87,7 +87,7 @@ print_usage() {
     echo -e "  Print default weblog for Python:"
     echo -e "    ${SCRIPT_NAME} --default-weblog --library python"
     echo
-    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/execute/build.md"
+    echo -e "More info at https://github.com/DataDog/system-tests/blob/main/docs/run/build.md"
     echo
 }
 

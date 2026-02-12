@@ -1,9 +1,9 @@
-Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [the parametric contributing doc](/docs/scenarios/parametric_contributing.md)for parametric-specific instructions.
+Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [the parametric contributing doc](/docs/understand/scenarios/parametric_contributing.md)for parametric-specific instructions.
 
 Once the changes are complete, post them in a PR.
 
 #### Notes
-* Each test class tests only one feature (see [the doc on features](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md))
+* Each test class tests only one feature (see [the doc on features](./features.md))
 * A test class can have several tests
 * If an RFC for the feature exists, you must use the decorator `rfc` decorator:
 ```python
@@ -150,7 +150,7 @@ class Test_Feature():
 
 You'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.
 
-- build: `build.sh <library_name> [options...]`, see [build documentation](../execute/build.md) for more info
-- run: `./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail`, see [run documentation](../execute/run.md) for more info
+- build: `build.sh <library_name> [options...]`, see [build documentation](../run/build.md) for more info
+- run: `./run.sh tests/test_some_feature.py::Test_Feature::test_feature_detail`, see [run documentation](../run/run.md) for more info
 
 You now have the basics. Expect to dive into the test internals, but feel free to ask for help on slack at [#apm-shared-testing](https://dd.slack.com/archives/C025TJ4RZ8X)

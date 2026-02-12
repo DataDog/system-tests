@@ -53,7 +53,7 @@ These test components are also involved through the testing process:
 
 The following image represents, in general terms, the necessary and dependent architecture to be able to run the K8s library injection tests:
 
-![Architecture overview](../lib-injection/lib-injection-tests.png "Architecture overview")
+![Architecture overview](../images/lib-injection-tests.png "Architecture overview")
 
 ## K8s library injection scenarios
 

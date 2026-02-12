@@ -280,7 +280,7 @@ if [[ -z "$ONBOARDING_KEEP_VMS" ]]; then
     echo -e "${YELLOW}📌 Step: Keep alive the AWS machine ${NC}"
     echo "🖥️ Keep Virtual Machines Alive?"
     echo "By default, VMs shut down after tests. You can keep them running for debugging."
-    echo "Refer to the guide: https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md#how-to-debug-a-virtual-machine-at-runtime"
+    echo "Refer to the guide: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-a-virtual-machine-at-runtime"
     read -p "Do you want to keep VMs running after tests? (y/n): " keep_vms_choice
 
     if [[ "$keep_vms_choice" =~ ^[Yy]$ ]]; then

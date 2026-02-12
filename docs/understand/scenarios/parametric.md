@@ -93,7 +93,7 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -k test_metrics_
 Tests can be aborted using CTRL-C but note that containers maybe still be running and will have to be shut down.
 
 ### Running the tests for a custom tracer
-To run tests against custom tracer builds, refer to the [Binaries Documentation](../execute/binaries.md)
+To run tests against custom tracer builds, refer to the [Binaries Documentation](../../run/binaries.md)
 
 #### After Testing with a Custom Tracer:
 Note: Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:
@@ -134,7 +134,7 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
 ```
 
 ### Understanding the test outcomes
-Please refer to this [chart](docs/execute/test-outcomes.md)
+Please refer to this [chart](docs/run/test-outcomes.md)
 
 ### Debugging
 

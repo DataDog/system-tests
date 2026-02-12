@@ -40,11 +40,11 @@ System-tests contains various testing scenarios; the two most commonly used are 
 
 Based on the class `EndToEndScenario`, they spawn a "weblog" HTTP server designed to mimic customer applications with automatic instrumentation, a "test-agent" to mimic the Datadog Agent, and communication with the Datadog backend via a proxy. The `DEFAULT` scenario is the main scenario of system tests, and is in this family.
 
-End-To-End scenarios are good for testing real-world scenarios — they support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
+End-To-End scenarios are good for testing real-world scenarios -- they support the full lifecycle of a trace (hence the name, "End-To-End"). Use End-To-End scenarios to test tracing integrations, security products, profiling, dynamic instrumentation, and more. When in doubt, use end-to-end.
 
 ### Parametric scenario
 
-Parametric scenarios are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
+Parametric scenarios are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. You can find dedicated parametric instructions in [parametric.md](parametric.md).
 
 ### Auto-Inject/OnBoarding/SSI scenarios
 
@@ -54,7 +54,17 @@ Automatic library injection simplifies the APM onboarding experience for custome
 
 ### Kubernetes Auto-Inject/SSI scenarios
 
-
 The lib-injection project is a feature to allow injection of the Datadog library into a customer's application container without requiring them to modify their application images.
 
-This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_library_injection_overview.md).
+This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailed documentation can be found [here](k8s_library_injection_overview.md).
+
+---
+
+## See also
+
+- [How to run a scenario](../../run/run.md) -- running tests and selecting scenarios
+- [How to add a new scenario](../../write/scenarios.md) -- creating a new scenario
+- [Scenario lifecycle](lifecycle.md) -- how scenarios execute step by step
+- [Architecture overview](../architecture.md) -- how the test components fit together
+- [Weblogs](../weblogs/README.md) -- the test applications used across scenarios
+- [Back to documentation index](../../README.md)

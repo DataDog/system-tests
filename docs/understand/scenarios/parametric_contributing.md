@@ -8,18 +8,18 @@ Note: a more in-depth overview of parametric system-tests can be found in [param
 
 Let's figure out if your feature is a good candidate to be tested with parametric system-tests.
 
-System-tests in general are great for assuring uniform behavior between different dd-trace repos (tracing, ASM, DI, profiling, etc.). There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/scenarios/parametric.md).
+System-tests in general are great for assuring uniform behavior between different dd-trace repos (tracing, ASM, DI, profiling, etc.). There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/understand/scenarios/parametric.md).
 
 Parametric tests in the Datadog system test repository validate the behavior of APM Client Libraries by interacting only with their public interfaces. These tests ensure the telemetry generated (spans, metrics, instrumentation telemetry) is consistent and accurate when libraries handle different input parameters (e.g., calling a Tracer's startSpan method with a specific type) and configurations (e.g., sampling rates, distributed tracing header formats, remote settings). They run against web applications written in Ruby, Java, Go, Python, PHP, Node.js, C++, and .NET, which expose endpoints simulating real-world ddtrace usage. The generated telemetry is sent to a Datadog agent, queried, and verified by system tests to confirm proper library functionality across scenarios.
 
 If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues. End-to-end tests are also what should be used for verify behavior between tracer integrations.
-For more on the differences between end-to-end and parametric tests, see [here](/docs/scenarios/README.md#scenarios)
+For more on the differences between end-to-end and parametric tests, see [here](/docs/understand/scenarios/README.md#scenarios)
 System-tests are **not** for testing internal or niche library behavior. Unit tests are a better fit for that case.
 
 ## Getting set up
 
 We usually add new system tests when validating a new feature. To begin, set up the system-tests repo to run with a version of the library that has already implemented the feature you'd like to test (published or on a branch).
-Follow [Binaries Documentation](../execute/binaries.md) for your particular tracer language to set this up.
+Follow [Binaries Documentation](../../run/binaries.md) for your particular tracer language to set this up.
 
 [Verify that you can run some (any) parametric tests with your custom tracer](parametric.md#running-the-tests). Make sure some pass — no need to run the whole suite (you can stop the tests from running with `ctrl+c`). If you have any issues, checkout the [debugging section](parametric.md#debugging) to troubleshoot.
 
@@ -57,9 +57,9 @@ Next copy the testing code you want to use as a base/guideline (usually the clas
 
 Then:
 
-* [Change the name of the feature annotation it'll fit under for the feature parity board](/docs/edit/features.md) (Not always needed e.g. `@features.datadog_headers_propagation` is used for all the propagation features)
+* [Change the name of the feature annotation it'll fit under for the feature parity board](/docs/write/features.md) (Not always needed e.g. `@features.datadog_headers_propagation` is used for all the propagation features)
 * Change the class and method name to fit what you're testing.
-* [Change your tracer's respective manifest.yml file](/docs/edit/manifest.md) or else the script won't know to run your new test. If you're confused at how to do this properly, search for the file you copied the test from in the manifest file and see how it's specified, you can probably copy that for your new file (make sure the path is the same).
+* [Change your tracer's respective manifest.yml file](/docs/write/manifest.md) or else the script won't know to run your new test. If you're confused at how to do this properly, search for the file you copied the test from in the manifest file and see how it's specified, you can probably copy that for your new file (make sure the path is the same).
 For the version value, to make sure your test runs, specify the current release your tracer is on. This is the minimum value that the script will run your test with. If you make it too high, the script will skip your test.
 * Write the test pulling from examples of other tests written. Remember you're almost always follwing the pattern of making spans, getting them from the trace_agent, and then verifying values on them.
 

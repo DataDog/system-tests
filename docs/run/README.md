@@ -1,5 +1,3 @@
-
-
 ## Run tests
 
 You will need a bash based terminal, python3.12, git and docker. Clone this folder, then:
@@ -28,4 +26,25 @@ If system tests fails, you'll need to dig into logs. Most of the time and with s
 
 ## Troubleshooting
 
-For troubleshooting check the troubleshooting [page](./troubleshooting.md)
+For troubleshooting check the troubleshooting [page](./troubleshooting.md).
+
+---
+
+## In this section
+
+- [Build](./build.md) -- build options, weblog variants, image names
+- [Run](./run.md) -- run options, test selection, scenarios, sleep mode
+- [Test outcomes](./test-outcomes.md) -- detailed explanation of test result states
+- [Logs](./logs.md) -- log folder structure and what each file contains
+- [Replay mode](./replay.md) -- re-run tests without rebuilding the environment
+- [Custom tracer versions](./binaries.md) -- testing with local or unmerged tracer builds
+- [Force execute](./force-execute.md) -- running disabled tests on demand
+- [Debug traces](./dd-trace-debug.md) -- activating tracer debug output
+- [Troubleshooting](./troubleshooting.md) -- common issues and solutions
+
+## See also
+
+- [Scenarios](../understand/scenarios/README.md) -- understand the different scenario types
+- [Writing tests](../write/README.md) -- how to add or modify tests
+- [Architecture overview](../understand/architecture.md) -- how the test components work together
+- [Back to documentation index](../README.md)

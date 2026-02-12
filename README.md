@@ -44,12 +44,12 @@ System-tests uses [pytest](https://docs.pytest.org/) under the hood. The test ou
 | 🟢 `.` | **pass** | Test is enabled and successful |
 | 🔴 `F` | **fail** | Test is enabled but unsuccessful -- needs investigation |
 | 🟡 `x` | **xfail** | Test is disabled and unsuccessful (expected behavior) |
-| 🟡 `X` | **xpass** | Test is disabled but successful -- easy win, time to [enable it](docs/edit/enable-test.md) |
+| 🟡 `X` | **xpass** | Test is disabled but successful -- easy win, time to [enable it](docs/write/enable-test.md) |
 | 🟡 `s` | **skipped** | Test was not executed (irrelevant or flaky) |
 
-For a full explanation of test outcomes and how declarations (like `bug`, `missing_feature`, `flaky`) affect them, see [test outcomes](docs/execute/test-outcomes.md) and the [glossary](docs/glossary.md).
+For a full explanation of test outcomes and how declarations (like `bug`, `missing_feature`, `flaky`) affect them, see [test outcomes](docs/run/test-outcomes.md) and the [glossary](docs/glossary.md).
 
-If a test fails, check the standard output first -- it usually contains enough info. For deeper investigation, look at the [logs folder](docs/execute/logs.md).
+If a test fails, check the standard output first -- it usually contains enough info. For deeper investigation, look at the [logs folder](docs/run/logs.md).
 
 ## Documentation
 
@@ -59,43 +59,43 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 
 | Topic | Description |
 |-------|-------------|
-| [Architecture overview](docs/architecture/overview.md) | Components, containers, data flow |
-| [Scenarios](docs/scenarios/README.md) | End-to-end, parametric, SSI, K8s -- what each one tests |
-| [Weblogs](docs/weblog/README.md) | The test applications instrumented by tracers |
+| [Architecture overview](docs/understand/architecture.md) | Components, containers, data flow |
+| [Scenarios](docs/understand/scenarios/README.md) | End-to-end, parametric, SSI, K8s -- what each one tests |
+| [Weblogs](docs/understand/weblogs/README.md) | The test applications instrumented by tracers |
 | [Glossary](docs/glossary.md) | Definitions of pass, fail, xpass, xfail, etc. |
 
 ### Run tests
 
 | Topic | Description |
 |-------|-------------|
-| [Build](docs/execute/build.md) | Build options, weblog variants, image names |
-| [Run](docs/execute/run.md) | Run options, selecting tests, scenarios, timeouts |
-| [Logs](docs/execute/logs.md) | Understanding the logs folder structure |
-| [Test outcomes](docs/execute/test-outcomes.md) | Reading test results |
-| [Replay mode](docs/execute/replay.md) | Re-run tests without rebuilding |
-| [Custom tracer versions](docs/execute/binaries.md) | Testing with local tracer builds |
-| [Troubleshooting](docs/execute/troubleshooting.md) | Common issues and how to fix them |
+| [Build](docs/run/build.md) | Build options, weblog variants, image names |
+| [Run](docs/run/run.md) | Run options, selecting tests, scenarios, timeouts |
+| [Logs](docs/run/logs.md) | Understanding the logs folder structure |
+| [Test outcomes](docs/run/test-outcomes.md) | Reading test results |
+| [Replay mode](docs/run/replay.md) | Re-run tests without rebuilding |
+| [Custom tracer versions](docs/run/binaries.md) | Testing with local tracer builds |
+| [Troubleshooting](docs/run/troubleshooting.md) | Common issues and how to fix them |
 
 ### Write and edit tests
 
 | Topic | Description |
 |-------|-------------|
-| [Add a new test](docs/edit/add-new-test.md) | Step-by-step guide to adding tests |
-| [Add a new scenario](docs/edit/scenarios.md) | Creating new test scenarios |
-| [Enable / disable tests](docs/edit/enable-test.md) | Activating tests for a library version |
-| [Manifests](docs/edit/manifest.md) | How test activation is declared per library |
-| [Skip tests](docs/edit/skip-tests.md) | Decorators for conditional skipping |
-| [Features](docs/edit/features.md) | Linking tests to the feature parity dashboard |
-| [Formatting](docs/edit/format.md) | Linter and code style |
-| [Troubleshooting](docs/edit/troubleshooting.md) | Debugging tips for test development |
+| [Add a new test](docs/write/add-new-test.md) | Step-by-step guide to adding tests |
+| [Add a new scenario](docs/write/scenarios.md) | Creating new test scenarios |
+| [Enable / disable tests](docs/write/enable-test.md) | Activating tests for a library version |
+| [Manifests](docs/write/manifest.md) | How test activation is declared per library |
+| [Skip tests](docs/write/skip-tests.md) | Decorators for conditional skipping |
+| [Features](docs/write/features.md) | Linking tests to the feature parity dashboard |
+| [Formatting](docs/write/format.md) | Linter and code style |
+| [Troubleshooting](docs/write/troubleshooting.md) | Debugging tips for test development |
 
 ### CI integration
 
 | Topic | Description |
 |-------|-------------|
-| [CI overview](docs/CI/README.md) | Adding system-tests to your CI pipeline |
-| [GitHub Actions](docs/CI/github-actions.md) | GitHub Actions workflow details |
-| [System-tests CI](docs/CI/system-tests-ci.md) | How the system-tests own CI works |
+| [CI overview](docs/ci/README.md) | Adding system-tests to your CI pipeline |
+| [GitHub Actions](docs/ci/github-actions.md) | GitHub Actions workflow details |
+| [System-tests CI](docs/ci/system-tests-ci.md) | How the system-tests own CI works |
 
 ### Internals
 
@@ -146,26 +146,26 @@ Support coming soon.
 
 Specific scenarios may require additional tools:
 
-- **Kubernetes tests** -- require Kind/Minikube for local K8s clusters. See [K8s docs](docs/scenarios/k8s_library_injection_overview.md).
-- **AWS SSI tests** -- require AWS credentials and Pulumi setup. See [AWS SSI docs](docs/scenarios/onboarding.md).
+- **Kubernetes tests** -- require Kind/Minikube for local K8s clusters. See [K8s docs](docs/understand/scenarios/k8s_library_injection_overview.md).
+- **AWS SSI tests** -- require AWS credentials and Pulumi setup. See [AWS SSI docs](docs/understand/scenarios/onboarding.md).
 
 ## Contributing
 
-Before submitting a PR, always run the [linter](docs/edit/format.md) (`./format.sh`). Here are the most common types of contributions, ordered by frequency:
+Before submitting a PR, always run the [linter](docs/write/format.md) (`./format.sh`). Here are the most common types of contributions, ordered by frequency:
 
 | What you want to do | Guide |
 |----------------------|-------|
-| Activate or deactivate a test for a library | [Manifests](docs/edit/manifest.md), [enable a test](docs/edit/enable-test.md), [skip tests](docs/edit/skip-tests.md) |
-| Add or edit a test | [Add a new test](docs/edit/add-new-test.md), [editing overview](docs/edit/README.md) |
-| Add or edit a scenario | [Scenarios guide](docs/edit/scenarios.md), [scenarios overview](docs/scenarios/README.md) |
-| Add or edit a weblog | [Weblog spec](docs/weblog/end-to-end_weblog.md), [build options](docs/execute/build.md) |
-| Other changes | [Full editing docs](docs/edit/README.md), [internals](docs/internals/README.md) |
+| Activate or deactivate a test for a library | [Manifests](docs/write/manifest.md), [enable a test](docs/write/enable-test.md), [skip tests](docs/write/skip-tests.md) |
+| Add or edit a test | [Add a new test](docs/write/add-new-test.md), [editing overview](docs/write/README.md) |
+| Add or edit a scenario | [Scenarios guide](docs/write/scenarios.md), [scenarios overview](docs/understand/scenarios/README.md) |
+| Add or edit a weblog | [Weblog spec](docs/understand/weblogs/end-to-end_weblog.md), [build options](docs/run/build.md) |
+| Other changes | [Full editing docs](docs/write/README.md), [internals](docs/internals/README.md) |
 
-For testing against unmerged tracer changes, see [enable-test.md](docs/edit/enable-test.md) and [binaries](docs/execute/binaries.md).
+For testing against unmerged tracer changes, see [enable-test.md](docs/write/enable-test.md) and [binaries](docs/run/binaries.md).
 
 ## Technologies
 
-System-tests is built on **Python** and **pytest**, using **Docker** for isolated environments. Depending on the scenario, it also leverages **Kubernetes** (Kind/Minikube), **Pulumi**, and the **AWS API**. See the [architecture overview](docs/architecture/overview.md) for details.
+System-tests is built on **Python** and **pytest**, using **Docker** for isolated environments. Depending on the scenario, it also leverages **Kubernetes** (Kind/Minikube), **Pulumi**, and the **AWS API**. See the [architecture overview](docs/understand/architecture.md) for details.
 
 <details>
 <summary>Repository structure</summary>

@@ -35,7 +35,7 @@ def _mark_test_object(test_object, feature_id: int, owner: _Owner):
 
 
 class _Features:
-    """See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
+    """See https://github.com/DataDog/system-tests/blob/main/docs/write/features.md
 
     Data source is the feature parity dashboard https://feature-parity.us1.prod.dog/
     """

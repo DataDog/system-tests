@@ -84,7 +84,7 @@ The framework used for running tests is [pytest](https://docs.pytest.org/).
 
 For a test to be run, it must have the filename prefix `test_`.
 
-Follow the [example and instructions provided within `./docs/architecture/test_template.py`](/docs/architecture/test_template.py).
+Follow the [example and instructions provided within `./docs/understand/test_template.py`](/docs/understand/test_template.py).
 
 ## How do I troubleshoot a failing test?
 
@@ -206,6 +206,6 @@ This container uses mitmproxy to inspect and dump the traffic and then forwards 
 
 ## Testing a local version of the tracer
 
-Read the instructions in [the binaries documentation](/docs/execute/binaries.md).
+Read the instructions in [the binaries documentation](/docs/run/binaries.md).
 
 In short, copy your tracer version to the `./binaries` folder, and build and run as usual.
