@@ -54,7 +54,7 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
         return _get_dotnet_startup_logs(test_library, required=required)
     elif context.library in ("nodejs", "ruby"):
         try:
-            logs = test_library.container.logs(stderr=False, stdout=True).decode("utf-8")
+            logs = test_library.container.logs(stderr=True, stdout=True).decode("utf-8")
         except Exception as e:
             if required:
                 pytest.fail(f"Failed to retrieve container logs: {e}")
