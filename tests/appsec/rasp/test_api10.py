@@ -5,7 +5,7 @@
 import json
 import urllib.parse
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 
 from tests.appsec.rasp.utils import (
     find_series,
