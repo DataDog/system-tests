@@ -45,7 +45,6 @@
             apple-sdk
           ];
 
-
           shellHook = ''
             export PYTHON_VERSION="$(python -c 'import platform; import re; print(re.sub(r"\.\d+$", "", platform.python_version()))')"
 
