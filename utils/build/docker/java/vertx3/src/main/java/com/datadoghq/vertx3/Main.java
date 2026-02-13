@@ -75,7 +75,7 @@ public class Main {
                     Span span = tracer.buildSpan("test-span").start();
                     span.setTag("test-tag", "my value");
                     try {
-                        ctx.response().setStatusCode(200).end("Hello World!");
+                        ctx.response().setStatusCode(200).end("Hello world!\n");
                     } finally {
                         span.finish();
                     }
