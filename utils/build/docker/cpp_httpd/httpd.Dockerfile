@@ -22,7 +22,7 @@ RUN echo "LoadModule datadog_module /usr/lib/apache2/modules/mod_datadog.so" > /
 RUN a2enmod datadog
 
 # Create C++ application
-RUN echo "Hello world\n" > /app/index.html
+RUN printf 'Hello world!\n' > /app/index.html
 WORKDIR /app
 RUN echo "#!/bin/bash\napachectl -D FOREGROUND" > app.sh
 RUN chmod +x app.sh
