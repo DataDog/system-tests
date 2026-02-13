@@ -68,7 +68,8 @@ require('./auth')(app, tracer)
 require('./stripe')(app)
 
 app.get('/', (req, res) => {
-  res.send('Hello\n')
+  res.set('Content-Type', 'text/plain')
+  res.send('Hello world!\n')
 })
 
 app.get('/healthcheck', (req, res) => {

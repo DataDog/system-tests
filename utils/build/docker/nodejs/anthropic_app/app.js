@@ -11,6 +11,11 @@ const anthropic = new Anthropic({
   baseURL: `${process.env.DD_TRACE_AGENT_URL}/vcr/anthropic`
 });
 
+app.get('/', (req, res) => {
+  res.set('Content-Type', 'text/plain');
+  res.send('Hello world!\n');
+});
+
 app.post('/create', async (req, res) => {
   const { model, messages, parameters, extra_headers } = req.body;
 
