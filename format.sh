@@ -29,14 +29,16 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [ ! -d "venv/" ]; then
-  echo "Runner is not installed, installing it (ETA 60s)"
-  ./build.sh -i runner
-elif ! diff requirements.txt venv/requirements.txt; then
-  ./build.sh -i runner
-fi
+if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+  if [ ! -d "venv/" ]; then
+    echo "Runner is not installed, installing it (ETA 60s)"
+    ./build.sh -i runner
+  elif ! diff requirements.txt venv/requirements.txt; then
+    ./build.sh -i runner
+  fi
 
-source venv/bin/activate
+  source venv/bin/activate
+fi
 
 echo "Running mypy type checks..."
 if ! mypy --config pyproject.toml; then
