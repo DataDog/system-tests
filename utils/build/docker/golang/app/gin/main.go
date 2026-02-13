@@ -57,7 +57,10 @@ func main() {
 	r.Use(gintrace.Middleware("weblog"))
 
 	r.Any("/", func(ctx *gin.Context) {
+		ctx.Writer.Header().Set("Content-Type", "text/plain")
+		ctx.Writer.Header().Set("Content-Length", "13")
 		ctx.Writer.WriteHeader(http.StatusOK)
+		ctx.Writer.Write([]byte("Hello world!\n"))
 	})
 	r.Any("/stats-unique", func(ctx *gin.Context) {
 		if c := ctx.Request.URL.Query().Get("code"); c != "" {

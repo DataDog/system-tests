@@ -391,6 +391,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
   tests/appsec/test_shell_execution.py::Test_ShellExecution: v0.95.0
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_1st_argument: bug (APPSEC-55673)
+  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.12.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v1.12.0

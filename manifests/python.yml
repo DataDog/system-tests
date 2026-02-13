@@ -729,6 +729,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: irrelevant (drop support in v3.12.0.dev)
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.12.0.dev
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
+  tests/appsec/test_span_tags_headers.py: v3.19.0
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v2.11.0-rc
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
