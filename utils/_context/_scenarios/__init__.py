@@ -998,7 +998,7 @@ class _Scenarios:
     k8s_lib_injection_appsec_enabled = K8sScenario(
         "K8S_LIB_INJECTION_APPSEC_ENABLED",
         doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
-        weblog_env={"DD_APPSEC_ENABLED": "true"},
+        dd_cluster_feature={"datadog.asm.threats.enabled": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
