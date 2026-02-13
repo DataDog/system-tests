@@ -15,8 +15,8 @@ def validate_headers_tags(span: dict):
         f"Expected content-type to be 'text/html', 'text/plain' or 'application/json', got {content_type}"
     )
 
-    assert (content_type := span["meta"].get("http.response.headers.content-length")), (
-        f"Expected content-length, got {content_type}"
+    assert (content_length := span["meta"].get("http.response.headers.content-length")), (
+        f"Expected content-length, got {content_length}"
     )
 
     return True
