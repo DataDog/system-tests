@@ -41,7 +41,7 @@ def test_main():
             container_c.depends_on.append(container_d)
             container_b.depends_on.append(container_c)
 
-            self._required_containers = [container_a, container_b, container_c, container_d]
+            self._containers = [container_a, container_b, container_c, container_d]
 
     scenario = FakeScenario()
     scenario.configure(None)
@@ -64,7 +64,7 @@ def test_recursive():
             container_b.depends_on.append(container_c)
             container_c.depends_on.append(container_a)
 
-            self._required_containers = [container_a, container_b, container_c]
+            self._containers = [container_a, container_b, container_c]
 
     scenario = FakeScenario()
     scenario.configure(None)
@@ -96,7 +96,7 @@ def test_recursive_2():
             container_f.depends_on.append(container_g)
             container_g.depends_on.append(container_c)
 
-            self._required_containers = [container_a]
+            self._containers = [container_a]
 
     scenario = FakeScenario()
     scenario.configure(None)
