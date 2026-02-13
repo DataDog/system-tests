@@ -196,11 +196,11 @@ If you find patterns or rules that should be added:
 
 ## 📚 Additional Resources
 
-- [Weblog Documentation](../../../docs/weblog/)
-- [System-Tests Scenarios](../../../docs/scenarios/)
-- [Development Guide](../../../docs/edit/)
+- [Weblog Documentation](../understand/weblogs/)
+- [System-Tests Scenarios](../understand/scenarios/)
+- [Development Guide](../edit/)
 - [Slack: #apm-shared-testing](https://datadoghq.slack.com/channels/apm-shared-testing)
 
 ---
 
-**📋 DOCUMENTATION USED**: @java-endpoint-prompt.mdc, @docs/weblog/, @docs/scenarios/
+**📋 DOCUMENTATION USED**: @java-endpoint-prompt.mdc, @docs/understand/weblogs/, @docs/understand/scenarios/

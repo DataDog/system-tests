@@ -275,7 +275,7 @@ The allowed parameters are:
 
 The following image illustrates the DJM scenario:
 
-![DJM Scenario](../lib-injection/k8s_djm.png "DJM Scenario")
+![DJM Scenario](../images/k8s_djm.png "DJM Scenario")
 
 ## How to use a MiniKube implementation
 
@@ -430,7 +430,7 @@ To develop a new test case in the K8s Library injection tests, you need to know 
 
 The following picture shows the main directories for the k8s lib injection tests:
 
-![Folder structure](../lib-injection/k8s_lib_injections_folders.png "Folder structure")
+![Folder structure](../images/k8s_lib_injections_folders.png "Folder structure")
 
 The folders and files shown in the figure above are as follows:
 
@@ -480,7 +480,7 @@ In the testing kubernetes scenarios, multiple components are involved and someti
 You can find a folder named "logs_[scenario name]" with all the logs associated with the execution.
 In the following image you can see the log folder content:
 
-![Log folder structure](../lib-injection/k8s_lib_injections_log_folders.png "Log folder structure")
+![Log folder structure](../images/k8s_lib_injections_log_folders.png "Log folder structure")
 
 These are the main important log/data files:
 
@@ -507,4 +507,4 @@ These are the main important log/data files:
 
 You can use the `--sleep` parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
 
-[Check the sleep parameter documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md#spawn-components-but-do-nothing)
+[Check the sleep parameter documentation](../../execute/run.md#spawn-components-but-do-nothing)

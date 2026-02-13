@@ -7,21 +7,21 @@ alwaysApply: true
 
 * To run the tests associated to an end to end scenario use the document [run the tests](mdc:docs/execute/run.md).
 * In system-tests scenario lifecycles: once components are ready, the test setup_* methods run to trigger trace generation via the weblog. Traces are captured by validation interfaces. Then containers shut down, and test methods run to validate the captured traces.
-* You can find information about the end-to-end weblogs in the document [end-to-end weblog specification](mdc:docs/weblog/README.md).
-* All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](mdc:docs/weblog/README.md).
+* You can find information about the end-to-end weblogs in the document [end-to-end weblog specification](mdc:docs/understand/weblogs/README.md).
+* All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](mdc:docs/understand/weblogs/README.md).
 * To know about all the end-to-end weblogs available on system-tests, list all docker files in the folder [weblog folder](mdc:utils/build/docker). This is the pattern to discover them: "utils/build/docker/<language>/<weblog_name>.Dockerfile".
 * A new end-to-end weblog must be referenced in the document [build script documentation](mdc:docs/execute/build.md).
 * if you create a new end to end weblog, create it always with one example endpoint and the MANDATORY endpoint '/healthcheck'. Check other weblogs to know the reponse format for the healthcheck endpoint. You don't need to validate this endpoint on any tests, the validation is performed by the core, to know if the scenario is ready.
-* if you craete a new end to end weblog you always must to show a list of the end to end endpoints that are registered on system-tests, reading the section "Endpoints" of the document [end-to-end weblog specification](mdc:docs/weblog/README.md). Ask to the user if he wants to implement one or more endpoints of the list in the new weblog.
+* if you craete a new end to end weblog you always must to show a list of the end to end endpoints that are registered on system-tests, reading the section "Endpoints" of the document [end-to-end weblog specification](mdc:docs/understand/weblogs/README.md). Ask to the user if he wants to implement one or more endpoints of the list in the new weblog.
 * After creating a new end to end weblog ALWAYS check the compatible scenarios on [workflow datada](mdc:utils/scripts/ci_orchestrators/workflow_data.py) using the method "_is_supported".
 * The end to end scenario test cases use the "weblog" object defined in the python file [weblog object](mdc:utils/_weblog.py) to make request to the endpoints (weblog.request, weblog.get, weblog.post, etc).
 * To know how to add a new end to end tests case use the document [how to add a new end to end test](mdc:docs/edit/add-new-test.md).
 * The logs folder structure for the end to end scenarios is explained in the document [logs folder structure end to end scenarios](mdc:docs/execute/logs.md).
 * CRITICAL BUILD COMMAND: When providing build commands for end-to-end weblogs, ALWAYS use the correct format: `./build.sh <language> -w <weblog-variant>` (e.g., `./build.sh java -w spring-boot`, `./build.sh python -w flask-poc`, `./build.sh nodejs -w express4`). NEVER use `./build.sh <weblog-variant>` without the language parameter. The language parameter is MANDATORY. The correct syntax is documented in [build script documentation](mdc:docs/execute/build.md).
 * End to End scenarios store and validate messages:
-  * Intercepted between instrumented application (instrumented by library/datadog tracer) and datadog agent. these messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/library. These intercepted json messages are parsed and validated using the "library interface" implemented as class "LibraryInterfaceValidator" in the [Libray interface core implementation](mdc:utils/interfaces/_library/core.py). For details use the [library interface](mdc:docs/internals/library-interface-validation-methods.md) documentation.
-  * Intercepted between datadog agent and datadog backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/agent. These intercepted json messages are parsed and validated using the "agent interface" implemented as class "AgentInterfaceValidator" in the [agent interface core implementation](mdc:utils/interfaces/_agent.py). For details use the [agent interface](mdc:docs/internals/agent-interface-validation-methods.md) documentation.
-  * Returned by the datadog backend API. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/backend/files. The "backend interface" implemented as class "_BackendInterfaceValidator" in the [backend interface core implementation](mdc:utils/interfaces/_backend.py) exposes methods to interact with the datadog backend API. For details use the [backend interface](mdc:docs/internals/backend-interface-validation-methods.md) documentation.
+  * Intercepted between instrumented application (instrumented by library/datadog tracer) and datadog agent. these messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/library. These intercepted json messages are parsed and validated using the "library interface" implemented as class "LibraryInterfaceValidator" in the [Libray interface core implementation](mdc:utils/interfaces/_library/core.py). For details use the [library interface](mdc:docs/edit/library-interface-validation-methods.md) documentation.
+  * Intercepted between datadog agent and datadog backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/agent. These intercepted json messages are parsed and validated using the "agent interface" implemented as class "AgentInterfaceValidator" in the [agent interface core implementation](mdc:utils/interfaces/_agent.py). For details use the [agent interface](mdc:docs/edit/agent-interface-validation-methods.md) documentation.
+  * Returned by the datadog backend API. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/backend/files. The "backend interface" implemented as class "_BackendInterfaceValidator" in the [backend interface core implementation](mdc:utils/interfaces/_backend.py) exposes methods to interact with the datadog backend API. For details use the [backend interface](mdc:docs/edit/backend-interface-validation-methods.md) documentation.
 * The library interface, agent interface and backend interface are instantiated as singleton in [validation interfaces](mdc:utils/interfaces/__init__.py) and they can be used by the end to end test cases as following example:
 
 ```python
@@ -55,11 +55,10 @@ The different choices to debug the tests/scenario are documented on these docuem
 
 * [sleep mode](mdc:docs/execute/run.md): Use the '--sleep' parameter to spawn components (start containers), but do nothing (keep the components alive without launching the tests).
 * [replay mode](mdc:docs/execute/replay.md): The replay mode reuses a previously executed test scenario to skip environment setup and rerun only the test methods, drastically speeding up iterations during system test development.
-* [run individual tests](docs/architecture/overview.md): Run individual tests
-* [user logger](docs/edit/troubleshooting.md): How to add more log traces in your code.
-* [activate tracer debug](docs/execute/dd-trace-debug.md): Activate the tracer debug traces.
+* [run individual tests](docs/understand/architecture.md): Run individual tests
+* [user logger](docs/edit/README.md#using-logger): How to add more log traces in your code.
+* [troubleshooting](docs/execute/troubleshooting.md): Activate tracer debug, change pytest log level, common issues.
 * [log folder structure](docs/execute/logs.md): Understand the log folder structure.
-* [pytest logs](docs/internals/pytest.md): Changing the log level output.
 
 #### Common steps to debug a test failure
 1. if failure is in CI, the user should get the log folder and extract it into system-tests root folder (with the name 'logs_<scenario_name>')

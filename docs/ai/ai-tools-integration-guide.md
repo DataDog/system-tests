@@ -40,7 +40,18 @@ Cursor AI is the default IDE and automatically integrates the predefined rules l
 
 Cursor allows you to add specialized rules tailored for very specific tasks. These rules aren't loaded by default into the AI context but can easily be activated by mentioning them explicitly in the chat, enabling precise and focused interactions.
 
-Visit [Cursor specialized tasks](cursor-specialized-prompts.md) to explore the specialized tasks supported by system-tests. Feel free to create and contribute as many specialized rules as you need—your teammates will greatly appreciate your efforts!
+#### Cursor specialized prompts
+
+These are manual rules you need to explicitly mention to activate them:
+
+- **java-endpoint-prompt** - Java Endpoint Generation Specialist
+  - Comprehensive guidelines for implementing Java weblog endpoints across different frameworks
+  - Covers Spring Boot, Vert.x 3/4, Jersey, Play, Ratpack, Akka-HTTP, RESTEasy
+  - Includes build validation, dependency preservation, and framework-specific patterns
+  - **How to activate**: Mention "java-endpoint-prompt.mdc" in your request
+  - **Additional documentation**: [Java Endpoint Implementation Guide](ai-prompt-java-endpoint-prompt.md)
+
+Feel free to create and contribute as many specialized rules as you need—your teammates will greatly appreciate your efforts!
 
 If you introduce new instructions, enhance existing documentation, or improve the predefined rules, you're strongly encouraged to add corresponding tests. These tests play a vital role in validating your enhancements and ensuring the AI assistant performs optimally. For further guidance, see section [Prompt validation](ai-tools-prompt-validation.md).
 
@@ -50,7 +61,7 @@ Cursor AI documentation suite:
 
 - **[Cursor AI Comprehensive Guide](cursor-ai-comprehensive-guide.md)**: Complete overview of AI integration with practical examples and workflows
 - **[Cursor Practical Examples](cursor-practical-examples.md)**: Real-world examples and step-by-step workflows
-- **[Cursor Specialized Prompts](cursor-specialized-prompts.md)**: Manual rule activation guide
+- **Cursor Specialized Prompts**: See [above](#cursor-specialized-prompts) for manual rule activation
 - **[AI Tools Prompt Validation (beta)](ai-tools-prompt-validation.md)**: Testing and validation framework
 
 **📖 New to AI in system-tests?** Start with the [Cursor AI Comprehensive Guide](cursor-ai-comprehensive-guide.md) for a complete introduction.

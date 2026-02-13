@@ -22,3 +22,10 @@ At the moment, it is not possible to run the CI for all libraries in a particula
 
 As a security measure, the "Fail if target branch is specified" job always fails if a target branch is selected.
 
+### Scenario detection in CI
+
+When a modification is made in system tests, the CI tries to detect which scenario to run:
+
+1. based on modified files in `tests/`, by extracting scenarios targeted by those files
+2. based on any modification in a `tests/**/utils.py`, and applying the logic 1. on any sub file in `tests/**`
+

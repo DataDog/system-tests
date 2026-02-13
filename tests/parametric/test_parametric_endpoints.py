@@ -3,7 +3,7 @@ The results of these unit tests are reported to the feature parity dashboard.
 Parametric endpoints that are not tested in this file are not yet supported.
 Avoid using those endpoints in the parametric tests.
 When in doubt refer to the python implementation as the source of truth via
-the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/scenarios/parametric.md#shared-interface
+the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/understand/scenarios/parametric.md#shared-interface
 """
 
 import pytest

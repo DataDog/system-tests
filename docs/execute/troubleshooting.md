@@ -67,3 +67,46 @@ chmod 755 ./utils/build/docker/postgres-init-db.sh
 ```
 
 Then, rebuild and rerun.
+
+## Using `logger` for debugging
+
+When a test fails, having the good information in the output makes all the difference. There is sweet spot between no info, and too much info, use your common sense!
+
+```python
+from utils import logger
+
+...
+
+logger.debug("Try to find span with ...")
+logger.info("Found to find span with ...")
+logger.error("Span is missing ...")
+```
+
+## Pytest log level
+
+You can change log level in `pytest.ini`. About levels, here is the key principle:
+
+* INFO => useful to understand what's happening on agent, backend ...
+* DEBUG => useful to understand what's happening on test itself.
+
+## Activating tracer debug output
+
+End-to-end testing requires to have a setup as close as possible to what would be "real condition". It means that we try to not set any environment variable that would change the library behavior if it's not what would be typically used by our customers (and if it's not what we want to test).
+
+In consequence, DD_TRACE_DEBUG is not set. Though, it makes any debugging session hard. You can locally (or temporarily in your CI) activate this by using one of those two ways:
+
+### `--force-dd-trace-debug` option
+
+By adding this option to your `./run.sh` script, you will activate debug logs in the weblog:
+
+```bash
+./run.sh <SCENARIO> --force-dd-trace-debug
+```
+
+### Using `SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG` env var
+
+By setting this env var to `true`, you'll achieve the same effect. A convenient way if you want to always have this locally, is to add it to your `.env` file.
+
+```bash
+echo "SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG=true" >> .env
+```

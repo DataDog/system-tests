@@ -8,12 +8,12 @@ Note: a more in-depth overview of parametric system-tests can be found in [param
 
 Let's figure out if your feature is a good candidate to be tested with parametric system-tests.
 
-System-tests in general are great for assuring uniform behavior between different dd-trace repos (tracing, ASM, DI, profiling, etc.). There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/scenarios/parametric.md).
+System-tests in general are great for assuring uniform behavior between different dd-trace repos (tracing, ASM, DI, profiling, etc.). There are two types of system-tests, [end-to-end](/docs/README.md) and [parametric](/docs/understand/scenarios/parametric.md).
 
 Parametric tests in the Datadog system test repository validate the behavior of APM Client Libraries by interacting only with their public interfaces. These tests ensure the telemetry generated (spans, metrics, instrumentation telemetry) is consistent and accurate when libraries handle different input parameters (e.g., calling a Tracer's startSpan method with a specific type) and configurations (e.g., sampling rates, distributed tracing header formats, remote settings). They run against web applications written in Ruby, Java, Go, Python, PHP, Node.js, C++, and .NET, which expose endpoints simulating real-world ddtrace usage. The generated telemetry is sent to a Datadog agent, queried, and verified by system tests to confirm proper library functionality across scenarios.
 
 If your usage does not require different parameter values, then [end-to-end system-tests](/docs/README.md) should be used as they will achieve the same level of behavior uniformity verification and test the feature on real world use cases, catching more issues. End-to-end tests are also what should be used for verify behavior between tracer integrations.
-For more on the differences between end-to-end and parametric tests, see [here](/docs/scenarios/README.md#scenarios)
+For more on the differences between end-to-end and parametric tests, see [here](/docs/understand/scenarios/README.md#scenarios)
 System-tests are **not** for testing internal or niche library behavior. Unit tests are a better fit for that case.
 
 ## Getting set up

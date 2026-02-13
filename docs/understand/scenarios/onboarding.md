@@ -42,7 +42,7 @@ The automatic libray injection is tested on three possible scenarios:
 * Datadog Agent deployed on the host, your application deployed on containers ([agent on host and app in containers documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentonhostappincontainers)).
 * Datadog Agent and your application installed on containers ([containers injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=agentandappinseparatecontainers)).
 
-> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_library_injection_overview.md).
+> For Kubernetes Datadog library injection capabilities check the [kubernetes injection documentation](https://docs.datadoghq.com/tracing/trace_collection/library_injection_local/?tab=kubernetes) or take a look at the [kubernetes injection testing scenarios](k8s_library_injection_overview.md).
 
 ## Knowledge concepts
 
@@ -61,7 +61,7 @@ Before start with the onboarding tests, we need to know some terms:
 
 The following picture ilustrates how the system-tests providers can handle the software/provision installations agains different virtual machine types:
 
-![SSI tests architecture](../lib-injection/onboarding_overview.png "SSI tests architecture")
+![SSI tests architecture](../images/onboarding_overview.png "SSI tests architecture")
 
 ### Virtual Machine scenario
 
@@ -399,7 +399,7 @@ This wizard will help you with the following tasks:
 
 You just need to run the script `utils/scripts/ssi_wizards/aws_onboarding_wizard.sh `
 
-![SSI tests architecture](../lib-injection/aws_onboarding_wizard.png "Onboarding Wizard")
+![SSI tests architecture](../images/aws_onboarding_wizard.png "Onboarding Wizard")
 
 ## Run the scenario manually
 
@@ -455,7 +455,7 @@ Developing new tests might involve one or several operations:
 To develop a new test case in the SSI Library injection tests, you need to know about the project folder structure.
 The following picture shows the main directories for the SSI tests:
 
-![Folder structure](../lib-injection/ssi_lib_injections_folders.png "Folder structure")
+![Folder structure](../images/ssi_lib_injections_folders.png "Folder structure")
 
 * **lib-injection/build/docker:** This folder contains the sample applications source code.
 * **tests/auto_inject:** All tests cases are stored on this folder.
@@ -768,7 +768,7 @@ class TestAutoInjection:
 
 In the virtual machine scenarios, multiple components are involved and sometimes can be painfull to debug a failure. You can find a folder named "logs_[scenario name]" with all the logs associated with the execution In the following image you can see the log folder content:
 
-![Log folder structure](../lib-injection/ssi_lib_injections_log_folders.png "Log folder structure")
+![Log folder structure](../images/ssi_lib_injections_log_folders.png "Log folder structure")
 
 These are the main important log/data files:
 

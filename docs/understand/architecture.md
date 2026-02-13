@@ -84,7 +84,7 @@ The framework used for running tests is [pytest](https://docs.pytest.org/).
 
 For a test to be run, it must have the filename prefix `test_`.
 
-Follow the [example and instructions provided within `./docs/architecture/test_template.py`](/docs/architecture/test_template.py).
+Follow the [example and instructions provided within `./docs/understand/test_template.py`](/docs/understand/test_template.py).
 
 ## How do I troubleshoot a failing test?
 
