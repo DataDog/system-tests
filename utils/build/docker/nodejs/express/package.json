@@ -12,21 +12,21 @@
   "license": "ISC",
   "dependencies": {
     "@openfeature/core": "^1.9.0",
-    "@openfeature/server-sdk": "~1.19.0",
+    "@openfeature/server-sdk": "~1.20.1",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^1.30.1",
     "amqplib": "^0.10.3",
-    "aws-sdk": "^2.1530.0",
+    "aws-sdk": "^2.1693.0",
     "axios": "1.2.3",
-    "body-parser": "^1.19.1",
-    "cookie-parser": "^1.4.6",
-    "express-session": "^1.18.1",
+    "body-parser": "^1.20.4",
+    "cookie-parser": "^1.4.7",
+    "express-session": "^1.18.2",
     "express-xml-bodyparser": "^0.3.0",
     "glob": "^8.0.3",
-    "graphql": "^15.8.0",
+    "graphql": "^15.10.1",
     "kafkajs": "^2.2.4",
     "ldapjs": "2.0.0",
-    "mongodb": "^6.1.0",
+    "mongodb": "^6.21.0",
     "mssql": "^9.1.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.5.0",
@@ -34,22 +34,22 @@
     "passport": "^0.6.0",
     "passport-http": "^0.3.0",
     "passport-local": "^1.0.0",
-    "pg": "^8.8.0",
+    "pg": "^8.18.0",
     "pug": "^3.0.3",
     "semver": "^7.6.3",
-    "sinon": "^17.0.1",
+    "sinon": "^17.0.2",
     "stripe": "^20.0.0",
-    "winston": "^3.17.0"
+    "winston": "^3.19.0"
   },
   "devDependencies": {
-    "eslint": "^8.53.0",
+    "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-mocha": "^10.2.0",
-    "eslint-plugin-n": "^16.2.0",
-    "eslint-plugin-promise": "^6.1.1"
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.6.0"
   },
   "overrides": {
-    "@openfeature/server-sdk": "$@openfeature/server-sdk"
+    "@openfeature/server-sdk": "1.20.1"
   }
 }
