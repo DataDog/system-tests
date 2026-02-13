@@ -7,4 +7,6 @@ if (isset($user)) {
     \datadog\appsec\track_authenticated_user_event_automated($user);
 }
 
-phpinfo();
+header('Content-Type: text/plain');
+header('Content-Length: 13');
+echo "Hello world!\n";
