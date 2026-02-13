@@ -9,7 +9,7 @@ filelock==3.12.4  # for parametric tests
 jsonschema==4.26.0
 kubernetes==29.0.0  #lib-injection kubernetes
 matplotlib  # for performance tests
-mitmproxy==9.0.1
+mitmproxy==10.4.2
 mock==5.2.0
 msgpack==1.0.8
 mypy==1.19.1
