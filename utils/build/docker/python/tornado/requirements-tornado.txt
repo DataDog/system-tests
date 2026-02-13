@@ -6,6 +6,6 @@ jinja2
 psycopg2-binary
 packaging==25.0
 xmltodict==0.14.2
-openfeature-sdk==0.8.3
+openfeature-sdk==0.8.4
 stripe==11.6.0
 httpx
