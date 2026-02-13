@@ -19,7 +19,7 @@ asyncpg==0.29.0
 aiomysql==0.2.0
 mysql-connector-python==9.0.0
 mysqlclient==2.2.4
-urllib3==1.26.19
+urllib3==2.6.3
 openfeature-sdk==0.8.3
 loguru==0.7.3
 stripe==12.5.1
