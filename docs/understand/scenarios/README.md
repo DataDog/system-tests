@@ -62,8 +62,8 @@ This feature enables applications written in Java, Node.js, Python, .NET or Ruby
 
 ## See also
 
-- [How to run a scenario](../../run/run.md) -- running tests and selecting scenarios
-- [How to add a new scenario](../../write/scenarios.md) -- creating a new scenario
+- [How to run a scenario](../../execute/run.md) -- running tests and selecting scenarios
+- [How to add a new scenario](../../edit/scenarios.md) -- creating a new scenario
 - [Scenario lifecycle](lifecycle.md) -- how scenarios execute step by step
 - [Architecture overview](../architecture.md) -- how the test components fit together
 - [Weblogs](../weblogs/README.md) -- the test applications used across scenarios

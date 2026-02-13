@@ -9,8 +9,8 @@ alwaysApply: false
 
 When reviewing PRs that include changes to test activation or deactivation (manifest files or test decorators), you must verify that all modifications comply with the rules and guidelines documented in:
 
-- [skip-tests.md](mdc:docs/write/skip-tests.md) - When and how to use decorators vs manifests
-- [manifest.md](mdc:docs/write/manifest.md) - Manifest file format, syntax, and best practices
+- [skip-tests.md](mdc:docs/edit/skip-tests.md) - When and how to use decorators vs manifests
+- [manifest.md](mdc:docs/edit/manifest.md) - Manifest file format, syntax, and best practices
 
 Key verification points:
 - Manifests are preferred over decorators when possible

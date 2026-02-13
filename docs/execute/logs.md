@@ -9,4 +9,4 @@ System tests export a lot of data in `logs/` folder, and this folder is usually 
 * `logs/interfaces.log`: Debug log of what's happening on interfaces
 * `logs/pytest.log`: **Entire debug, including `logs/interfaces.log`, lot of infos here**
 * `logs/report.json`: Technical data about the test run, will be exported to dashboard
-* `logs/weblog_image.json`: Result of `docker inspect` on [weblog](../write/weblog.md) images
+* `logs/weblog_image.json`: Result of `docker inspect` on [weblog](../edit/weblog.md) images

@@ -23,7 +23,7 @@ jobs:
       - if: ${{ failure() }}
         shell: bash
         run:
-          'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/write/format.md"
+          'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/format.md"
 
           exit 1
 

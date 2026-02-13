@@ -34,6 +34,6 @@ Weblogs are the test applications that tracers instrument. See the [weblogs over
 
 ## See also
 
-- [Running tests](../run/README.md) -- how to build and execute scenarios
-- [Writing tests](../write/README.md) -- how to add or modify tests
+- [Running tests](../execute/README.md) -- how to build and execute scenarios
+- [Writing tests](../edit/README.md) -- how to add or modify tests
 - [Back to documentation index](../README.md)

@@ -507,4 +507,4 @@ These are the main important log/data files:
 
 You can use the `--sleep` parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
 
-[Check the sleep parameter documentation](../../run/run.md#spawn-components-but-do-nothing)
+[Check the sleep parameter documentation](../../execute/run.md#spawn-components-but-do-nothing)

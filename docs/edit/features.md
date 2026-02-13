@@ -36,4 +36,4 @@ Several key points:
 
 ## Skip tests
 
-See [skip-tests.md](/docs/write/skip-tests.md)
+See [skip-tests.md](/docs/edit/skip-tests.md)

@@ -198,7 +198,7 @@ If you find patterns or rules that should be added:
 
 - [Weblog Documentation](../understand/weblogs/)
 - [System-Tests Scenarios](../understand/scenarios/)
-- [Development Guide](../write/)
+- [Development Guide](../edit/)
 - [Slack: #apm-shared-testing](https://datadoghq.slack.com/channels/apm-shared-testing)
 
 ---

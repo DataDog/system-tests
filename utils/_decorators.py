@@ -18,7 +18,7 @@ def configure(config: pytest.Config):
     pass  # nothing to do right now
 
 
-_MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/write/manifest.md"
+_MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
 def _is_jira_ticket(declaration_details: str | None) -> bool:

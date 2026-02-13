@@ -24,51 +24,51 @@ Learn what system-tests is, how it works, and what the key concepts are.
 
 Everything you need to build images and execute test scenarios.
 
-- [Run overview](run/README.md) -- entry point for running tests
-- [Build](run/build.md) -- build options, weblog variants, image names
-- [Run](run/run.md) -- run options, test selection, scenarios, sleep mode, timeouts
-- [Test outcomes](run/test-outcomes.md) -- understanding test result symbols and states
-- [Logs](run/logs.md) -- the log folder structure and what each file contains
-- [Replay mode](run/replay.md) -- re-run test methods without rebuilding the environment
-- [Custom tracer versions](run/binaries.md) -- testing with local or unmerged tracer builds
-- [Force execute](run/force-execute.md) -- running disabled tests on demand
-- [Skip empty scenarios](run/skip-empty-scenario.md) -- behavior when a scenario has no matching tests
-- [Xfail strict mode](run/xfail-strict.md) -- strict xfail behavior
-- [Troubleshooting](run/troubleshooting.md) -- common issues when running tests
-- [Debug traces](run/dd-trace-debug.md) -- activating tracer debug output
-- [SSI execution](run/ssi.md) -- running SSI-specific scenarios
-- [End-to-end execution](run/e2e.md) -- running end-to-end scenarios
+- [Execute overview](execute/README.md) -- entry point for running tests
+- [Build](execute/build.md) -- build options, weblog variants, image names
+- [Run](execute/run.md) -- run options, test selection, scenarios, sleep mode, timeouts
+- [Test outcomes](execute/test-outcomes.md) -- understanding test result symbols and states
+- [Logs](execute/logs.md) -- the log folder structure and what each file contains
+- [Replay mode](execute/replay.md) -- re-run test methods without rebuilding the environment
+- [Custom tracer versions](execute/binaries.md) -- testing with local or unmerged tracer builds
+- [Force execute](execute/force-execute.md) -- running disabled tests on demand
+- [Skip empty scenarios](execute/skip-empty-scenario.md) -- behavior when a scenario has no matching tests
+- [Xfail strict mode](execute/xfail-strict.md) -- strict xfail behavior
+- [Troubleshooting](execute/troubleshooting.md) -- common issues when running tests
+- [Debug traces](execute/dd-trace-debug.md) -- activating tracer debug output
+- [SSI execution](execute/ssi.md) -- running SSI-specific scenarios
+- [End-to-end execution](execute/e2e.md) -- running end-to-end scenarios
 
 ## Writing and editing tests
 
 How to add, modify, enable, and disable tests.
 
-- [Write overview](write/README.md) -- entry point for editing tests
-- [Add a new test](write/add-new-test.md) -- step-by-step guide for creating a test
-- [Add a new scenario](write/scenarios.md) -- creating new test scenarios
-- [Enable a test](write/enable-test.md) -- activating a test for a library version
-- [Skip / disable tests](write/skip-tests.md) -- decorators for conditional test skipping
-- [Manifests](write/manifest.md) -- the YAML files that control test activation per library
-- [Versions](write/versions.md) -- version specification guidelines
-- [Features](write/features.md) -- linking tests to the feature parity dashboard
-- [Formatting](write/format.md) -- linter and code style (`format.sh`)
-- [IAST validations](write/iast-validations.md) -- marking tests with vulnerabilities
-- [Remote config](write/remote-config.md) -- writing remote config tests
-- [CI and scenarios](write/CI-and-scenarios.md) -- how scenarios are wired into CI
-- [Update Docker images](write/update-docker-images.md) -- modifying test app Docker images
-- [Runbook](write/runbook.md) -- operational runbook
-- [Troubleshooting](write/troubleshooting.md) -- debugging tips during development
-- [Flushing](write/flushing.md) -- how data flushing works and implementing `/flush`
-- [Library interface validation](write/library-interface-validation-methods.md) -- API reference for validating tracer-to-agent traces
-- [Agent interface validation](write/agent-interface-validation-methods.md) -- API reference for validating agent-to-backend data
-- [Backend interface validation](write/backend-interface-validation-methods.md) -- API reference for validating backend API responses
+- [Edit overview](edit/README.md) -- entry point for editing tests
+- [Add a new test](edit/add-new-test.md) -- step-by-step guide for creating a test
+- [Add a new scenario](edit/scenarios.md) -- creating new test scenarios
+- [Enable a test](edit/enable-test.md) -- activating a test for a library version
+- [Skip / disable tests](edit/skip-tests.md) -- decorators for conditional test skipping
+- [Manifests](edit/manifest.md) -- the YAML files that control test activation per library
+- [Versions](edit/versions.md) -- version specification guidelines
+- [Features](edit/features.md) -- linking tests to the feature parity dashboard
+- [Formatting](edit/format.md) -- linter and code style (`format.sh`)
+- [IAST validations](edit/iast-validations.md) -- marking tests with vulnerabilities
+- [Remote config](edit/remote-config.md) -- writing remote config tests
+- [CI and scenarios](edit/CI-and-scenarios.md) -- how scenarios are wired into CI
+- [Update Docker images](edit/update-docker-images.md) -- modifying test app Docker images
+- [Runbook](edit/runbook.md) -- operational runbook
+- [Troubleshooting](edit/troubleshooting.md) -- debugging tips during development
+- [Flushing](edit/flushing.md) -- how data flushing works and implementing `/flush`
+- [Library interface validation](edit/library-interface-validation-methods.md) -- API reference for validating tracer-to-agent traces
+- [Agent interface validation](edit/agent-interface-validation-methods.md) -- API reference for validating agent-to-backend data
+- [Backend interface validation](edit/backend-interface-validation-methods.md) -- API reference for validating backend API responses
 
 ## Scenario-specific guides
 
 Deep dives into each scenario type.
 
 - **End-to-end**: covered in [scenarios overview](understand/scenarios/README.md) and [architecture](understand/architecture.md)
-- **Parametric**: [overview](understand/scenarios/parametric.md) and [contributing guide](write/parametric_contributing.md)
+- **Parametric**: [overview](understand/scenarios/parametric.md) and [contributing guide](edit/parametric_contributing.md)
 - **AWS SSI / Onboarding**: [full guide](understand/scenarios/onboarding.md) and [provision structure](understand/scenarios/onboarding_provision_section.md)
 - **Docker SSI**: [guide](understand/scenarios/docker_ssi.md) and [Docker fixtures](understand/scenarios/docker_fixtures.md)
 - **Kubernetes lib injection**: [overview](understand/scenarios/k8s_library_injection_overview.md), [details](understand/scenarios/k8s_lib_injection.md), and [injector dev](understand/scenarios/k8s_injector_dev.md)

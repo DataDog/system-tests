@@ -45,6 +45,6 @@ For troubleshooting check the troubleshooting [page](./troubleshooting.md).
 ## See also
 
 - [Scenarios](../understand/scenarios/README.md) -- understand the different scenario types
-- [Writing tests](../write/README.md) -- how to add or modify tests
+- [Writing tests](../edit/README.md) -- how to add or modify tests
 - [Architecture overview](../understand/architecture.md) -- how the test components work together
 - [Back to documentation index](../README.md)

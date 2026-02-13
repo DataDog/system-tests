@@ -15,6 +15,6 @@ In system tests, **weblogs** are an abstraction that represents the HTTP infrast
 ## See also
 
 - [Scenarios](../scenarios/README.md) -- the different test scenario types that use weblogs
-- [Build](../../run/build.md) -- how to build weblog images and select variants
+- [Build](../../execute/build.md) -- how to build weblog images and select variants
 - [Architecture overview](../architecture.md) -- how weblogs fit into the test architecture
 - [Back to documentation index](../../README.md)

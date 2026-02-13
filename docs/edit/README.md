@@ -1,4 +1,4 @@
-System tests allow developers define scenarios and ensure datadog libraries produce consistent telemetry (that is, traces, metrics, profiles, etc...). This "write" section addresses the following use-cases:
+System tests allow developers define scenarios and ensure datadog libraries produce consistent telemetry (that is, traces, metrics, profiles, etc...). This "edit" section addresses the following use-cases:
 
 1. Adding a new test (maybe to support a new or existing feature)
 2. Modifying an existing test, whether that's modifying the test client (test*.py files) or the weblog and/or parametric apps that serve the test client requests)
@@ -6,7 +6,7 @@ System tests allow developers define scenarios and ensure datadog libraries prod
 
 **Note: Anytime you make changes and open a PR, re-run the linter**: [format.md](./format.md)
 
-To make changes, you must be able to run tests locally. Instructions for running **end-to-end** tests can be found [here](../run/README.md#run-tests) and for **parametric**, [here](../understand/scenarios/parametric.md#running-the-tests).
+To make changes, you must be able to run tests locally. Instructions for running **end-to-end** tests can be found [here](../execute/README.md#run-tests) and for **parametric**, [here](../understand/scenarios/parametric.md#running-the-tests).
 
 **Note**
 
@@ -46,7 +46,7 @@ These documents cover the APIs you use in test assertions:
 
 ## See also
 
-- [Running tests](../run/README.md) -- how to build and run scenarios
+- [Running tests](../execute/README.md) -- how to build and run scenarios
 - [Scenarios](../understand/scenarios/README.md) -- understanding the different scenario types
 - [Weblogs](../understand/weblogs/README.md) -- the test applications and their endpoints
 - [Manifests](./manifest.md) -- the primary mechanism for test activation per library

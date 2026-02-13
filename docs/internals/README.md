@@ -30,5 +30,5 @@ All about system-tests deep internals. For those of you who are not afraid of ge
 
 - [Architecture overview](../understand/architecture.md) -- high-level system-tests architecture
 - [Scenarios](../understand/scenarios/README.md) -- the different test scenario types
-- [Running tests](../run/README.md) -- how to build and run scenarios
+- [Running tests](../execute/README.md) -- how to build and run scenarios
 - [Back to documentation index](../README.md)

@@ -9,10 +9,10 @@ alwaysApply: true
 
 ## Key Documentation
 
-- @docs/write/manifest.md: Manifest file format, entry formats, and syntax rules
-- @docs/write/skip-tests.md: Decorator usage (when manifests cannot be used)
-- @docs/write/enable-test.md: How to enable tests
-- @docs/write/versions.md: Version specification guidelines
+- @docs/edit/manifest.md: Manifest file format, entry formats, and syntax rules
+- @docs/edit/skip-tests.md: Decorator usage (when manifests cannot be used)
+- @docs/edit/enable-test.md: How to enable tests
+- @docs/edit/versions.md: Version specification guidelines
 
 ---
 

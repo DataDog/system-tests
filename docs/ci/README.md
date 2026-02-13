@@ -5,8 +5,8 @@ All information you need to add System Tests in your CI.
 You'll need a CI that with `docker` and `python 3.12` installed, among with very common UNIX tools.
 
 1. Clone this repo
-2. Copy paste your components' build inside `./binaries` (See [binaries documentation](../run/binaries.md))
-3. `./build.sh` with relevant `library` (see [build documentation](../run/build.md)). Example: `./build.sh java`
+2. Copy paste your components' build inside `./binaries` (See [binaries documentation](../execute/binaries.md))
+3. `./build.sh` with relevant `library` (see [build documentation](../execute/build.md)). Example: `./build.sh java`
 4. `./run.sh`
 
 You will find different template or example:
@@ -25,6 +25,6 @@ You will find different template or example:
 
 ## See also
 
-- [Running tests](../run/README.md) -- build and run options
-- [CI and scenarios](../write/CI-and-scenarios.md) -- how scenarios are wired into CI
+- [Running tests](../execute/README.md) -- build and run options
+- [CI and scenarios](../edit/CI-and-scenarios.md) -- how scenarios are wired into CI
 - [Back to documentation index](../README.md)

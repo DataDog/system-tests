@@ -712,7 +712,7 @@ class Test_TelemetryV2:
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
-        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/write/runbook.md#test_config_telemetry_completeness
+        Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
 
         config_norm_rules = load_telemetry_json("config_norm_rules")
@@ -752,7 +752,7 @@ class Test_TelemetryV2:
                 if len(missing_config_keys) != 0:
                     logger.error(json.dumps(missing_config_keys, indent=2))
                     raise ValueError(
-                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/write/runbook.md#test_config_telemetry_completeness"
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")

@@ -206,6 +206,6 @@ This container uses mitmproxy to inspect and dump the traffic and then forwards 
 
 ## Testing a local version of the tracer
 
-Read the instructions in [the binaries documentation](/docs/run/binaries.md).
+Read the instructions in [the binaries documentation](/docs/execute/binaries.md).
 
 In short, copy your tracer version to the `./binaries` folder, and build and run as usual.

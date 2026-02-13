@@ -1,4 +1,4 @@
-By default, system tests will build a [weblog](../write/weblog.md) image that ships the latest production version of the specified tracer language library.
+By default, system tests will build a [weblog](../edit/weblog.md) image that ships the latest production version of the specified tracer language library.
 
 But we often want to run system tests against unmerged changes. The general approach is to identify the git commit hash that contains your changes and use this commit hash to download a targeted build of the tracer. Note: ensure that the commit is pushed to a remote branch first, and when taking the commit hash, ensure you use the full hash. You can identify the commit hash using `git log` or from the github UI.
 

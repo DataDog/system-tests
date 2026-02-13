@@ -110,5 +110,5 @@ def test_custom_validation(self):
 
 - [Library Interface Core Implementation](../../utils/interfaces/_library/core.py)
 - [Interface Initialization](../../utils/interfaces/__init__.py)
-- [End-to-End Testing Guide](../run/README.md)
+- [End-to-End Testing Guide](../execute/README.md)
 - [Adding New Tests](./add-new-test.md)

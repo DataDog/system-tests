@@ -1,4 +1,4 @@
-Each test can be flagged with an expected outcome, with a declaration in [manifests files](../write/manifest.md) or using inline decorators (`@bug`, `@missing_features` ...).
+Each test can be flagged with an expected outcome, with a declaration in [manifests files](../edit/manifest.md) or using inline decorators (`@bug`, `@missing_features` ...).
 
 Those declarations are interpreted by system-tests and impact the test execution and the outcome of the entire run. See [glossary](../glossary.md) for terminology definitions.
 

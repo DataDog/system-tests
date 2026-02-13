@@ -19,7 +19,7 @@ System-tests are **not** for testing internal or niche library behavior. Unit te
 ## Getting set up
 
 We usually add new system tests when validating a new feature. To begin, set up the system-tests repo to run with a version of the library that has already implemented the feature you'd like to test (published or on a branch).
-Follow [Binaries Documentation](../run/binaries.md) for your particular tracer language to set this up.
+Follow [Binaries Documentation](../execute/binaries.md) for your particular tracer language to set this up.
 
 [Verify that you can run some (any) parametric tests with your custom tracer](parametric.md#running-the-tests). Make sure some pass — no need to run the whole suite (you can stop the tests from running with `ctrl+c`). If you have any issues, checkout the [debugging section](parametric.md#debugging) to troubleshoot.
 
@@ -57,9 +57,9 @@ Next copy the testing code you want to use as a base/guideline (usually the clas
 
 Then:
 
-* [Change the name of the feature annotation it'll fit under for the feature parity board](/docs/write/features.md) (Not always needed e.g. `@features.datadog_headers_propagation` is used for all the propagation features)
+* [Change the name of the feature annotation it'll fit under for the feature parity board](/docs/edit/features.md) (Not always needed e.g. `@features.datadog_headers_propagation` is used for all the propagation features)
 * Change the class and method name to fit what you're testing.
-* [Change your tracer's respective manifest.yml file](/docs/write/manifest.md) or else the script won't know to run your new test. If you're confused at how to do this properly, search for the file you copied the test from in the manifest file and see how it's specified, you can probably copy that for your new file (make sure the path is the same).
+* [Change your tracer's respective manifest.yml file](/docs/edit/manifest.md) or else the script won't know to run your new test. If you're confused at how to do this properly, search for the file you copied the test from in the manifest file and see how it's specified, you can probably copy that for your new file (make sure the path is the same).
 For the version value, to make sure your test runs, specify the current release your tracer is on. This is the minimum value that the script will run your test with. If you make it too high, the script will skip your test.
 * Write the test pulling from examples of other tests written. Remember you're almost always follwing the pattern of making spans, getting them from the trace_agent, and then verifying values on them.
 

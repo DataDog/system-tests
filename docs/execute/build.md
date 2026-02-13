@@ -15,7 +15,7 @@ Build images used for system tests.
 * `<library_name>`: library to test. See LIBRARIES section.
 * `-i`: Comma separated list of images you need to build. See *Image names* section for possible values. Default: all of them
 * `--images`: Same as `-i`
-* `-w`: Name of a [weblog](../write/weblog.md) variation
+* `-w`: Name of a [weblog](../edit/weblog.md) variation
 * `--weblog-variant`: same as `-w`
 
 ## Image names
