@@ -87,7 +87,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 | [Skip tests](docs/edit/skip-tests.md) | Decorators for conditional skipping |
 | [Features](docs/edit/features.md) | Linking tests to the feature parity dashboard |
 | [Formatting](docs/edit/format.md) | Linter and code style |
-| [Troubleshooting](docs/edit/troubleshooting.md) | Debugging tips for test development |
+| [Troubleshooting](docs/execute/troubleshooting.md) | Debugging tips for test development |
 
 ### CI integration
 
@@ -103,7 +103,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 |-------|-------------|
 | [Internals overview](docs/internals/README.md) | Deep-dive index for maintainers |
 | [End-to-end lifecycle](docs/internals/end-to-end-life-cycle.md) | How e2e scenarios execute step by step |
-| [Parametric lifecycle](docs/internals/parametric-life-cycle.md) | How parametric scenarios execute |
+| [Parametric lifecycle](docs/understand/scenarios/parametric.md#parametric-lifecycle) | How parametric scenarios execute |
 | [Interface validation](docs/edit/library-interface-validation-methods.md) | API reference for validating intercepted traces |
 
 ### AI tooling
@@ -219,7 +219,13 @@ flowchart TD
 
 ## Ownership
 
-See [who-is-the-owner.md](docs/who-is-the-owner.md) for code ownership details.
+* Inside `/tests/`
+    * Check `.github/CODEOWNERS` first.
+    * The `@features(...)` decorator on a test class/method names the precise owner.
+* Inside `/utils/build/docker/<lang>/`
+    * Owned by the corresponding `<lang>` guild.
+* Everything else
+    * Owned by `@DataDog/system-tests-core`.
 
 ## Need help?
 

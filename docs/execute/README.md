@@ -38,9 +38,7 @@ For troubleshooting check the troubleshooting [page](./troubleshooting.md).
 - [Logs](./logs.md) -- log folder structure and what each file contains
 - [Replay mode](./replay.md) -- re-run tests without rebuilding the environment
 - [Custom tracer versions](./binaries.md) -- testing with local or unmerged tracer builds
-- [Force execute](./force-execute.md) -- running disabled tests on demand
-- [Debug traces](./dd-trace-debug.md) -- activating tracer debug output
-- [Troubleshooting](./troubleshooting.md) -- common issues and solutions
+- [Troubleshooting](./troubleshooting.md) -- common issues, debugging tips, and tracer debug output
 
 ## See also
 

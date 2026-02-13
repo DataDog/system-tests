@@ -36,7 +36,7 @@ In most cases, you can ignore these.
 
 ### Approach \#1: Good only if you don't need to modify the test)
 
-Use the [`-F` option](../execute/force-execute.md):
+Use the [`-F` option](../execute/run.md#force-execute-disabled-tests):
 
 1. If needed, add the test in system tests, skip it using manifest, merge this PR
 2. Do your PR in your repo

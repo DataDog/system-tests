@@ -58,13 +58,52 @@ The lib-injection project is a feature to allow injection of the Datadog library
 
 This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailed documentation can be found [here](k8s_library_injection_overview.md).
 
+### IPv6 scenario
+
+The `IPV6` scenario sets up an IPv6 docker network and uses an IPv6 address as DD_AGENT_HOST to verify that the library is able to communicate to the agent using an IPv6 address. It does not use a proxy between the lib and the agent to not interfere at any point here, so all assertions must be done on the outgoing traffic from the agent.
+
+Please note that it requires the docker daemon to support IPv6. It should be ok on Linux CI and Mac OS, but has not been tested on Windows.
+
+A user has seen his network function altered after running it on a linux laptop (to be investigated). If it happen, `docker network prune` may solve the issue.
+
+### Go proxies (Envoy and HAProxy) scenario
+
+```mermaid
+flowchart LR
+%% Nodes
+    A("Test runner")
+    B("Proxy (Envoy or HAProxy)")
+    C("Go security processor")
+    D("HTTP app")
+    E("Proxy")
+    F("Agent")
+    G("Backend")
+
+%% Edge connections between nodes
+    A --> B --> D
+    B --> C --> B
+    C --> E --> F --> G
+    %% D -- Mermaid js --> I --> J
+```
+
+## Scenario lifecycle
+
+System tests spawn several services before starting. Here is the lifecycle:
+
+1. Starts agent proxy and library proxy
+1. Starts runner => the runner will spy communication thanks to proxies, and will start tests only when all components are up and running
+1. Starts agent
+1. Starts weblog
+1. Execute tests
+1. Exports all images logs
+1. End of process
+
 ---
 
 ## See also
 
 - [How to run a scenario](../../execute/run.md) -- running tests and selecting scenarios
 - [How to add a new scenario](../../edit/scenarios.md) -- creating a new scenario
-- [Scenario lifecycle](lifecycle.md) -- how scenarios execute step by step
 - [Architecture overview](../architecture.md) -- how the test components fit together
 - [Weblogs](../weblogs/README.md) -- the test applications used across scenarios
 - [Back to documentation index](../../README.md)

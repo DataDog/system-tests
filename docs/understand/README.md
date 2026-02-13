@@ -16,7 +16,7 @@ Scenarios define what gets tested and how. See the [scenarios overview](scenario
 - [AWS SSI / Onboarding](scenarios/onboarding.md) -- auto-instrumentation on VMs
 - [Docker SSI](scenarios/docker_ssi.md) -- auto-instrumentation in Docker containers
 - [Kubernetes lib injection](scenarios/k8s_library_injection_overview.md) -- auto-instrumentation in K8s
-- [Scenario lifecycle](scenarios/lifecycle.md) -- how scenarios execute step by step
+- [Scenario lifecycle](scenarios/README.md#scenario-lifecycle) -- how scenarios execute step by step
 
 ## Weblogs
 
@@ -28,7 +28,6 @@ Weblogs are the test applications that tracers instrument. See the [weblogs over
 ## Reference
 
 - [Glossary](../glossary.md) -- definitions of pass, fail, xpass, xfail, enabled, disabled
-- [Ownership](../who-is-the-owner.md) -- who owns what in this repository
 
 ---
 

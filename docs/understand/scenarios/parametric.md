@@ -134,7 +134,7 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
 ```
 
 ### Understanding the test outcomes
-Please refer to this [chart](docs/execute/test-outcomes.md)
+Please refer to this [chart](../../execute/test-outcomes.md)
 
 ### Debugging
 
@@ -244,6 +244,28 @@ The http server implementations for each tracer can be found at the following lo
 ![image](https://github.com/user-attachments/assets/fc144fc1-95aa-4d50-97c5-cda8fdbcefef)
 
 ![image](https://github.com/user-attachments/assets/bb577aa2-b373-4468-b383-8394507309cc)
+
+## Parametric lifecycle
+
+Parametric scenario is a scenario that only targets libraries. It spawns, for each test, docker network, a container with the tested library behind a custom HTTP interface\*, and a container with a test agent. Those three items are removed at the end of the test.
+
+To keep this scenario reasonably fast, it also use `xdist` plugin, that split the test session in as many core as it exists. Here is an example with two cores:
+
+![Output on success](../../utils/assets/parametric_infra.png?raw=true)
+
+Note: [previously a gRPC interface](https://github.com/DataDog/system-tests/issues/1930)
+
+## Docker fixtures
+
+A `DockerFixturesScenario` is a scenario category where each test will use a dedicated Test Agent and Test Library container.
+
+The name comes from pytest fixture, which is the mechanism that allows a test method to get information about test context:
+
+```python
+@scenarios.parametric
+def test_stuff(test_library):
+    assert test_library.is_running()  # test_library is an API against a tested container
+```
 
 [1]: https://github.com/DataDog/dd-trace-cpp
 [2]: https://docs.pytest.org/en/6.2.x/usage.html#specifying-tests-selecting-tests

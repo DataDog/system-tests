@@ -56,10 +56,8 @@ The different choices to debug the tests/scenario are documented on these docuem
 * [sleep mode](mdc:docs/execute/run.md): Use the '--sleep' parameter to spawn components (start containers), but do nothing (keep the components alive without launching the tests).
 * [replay mode](mdc:docs/execute/replay.md): The replay mode reuses a previously executed test scenario to skip environment setup and rerun only the test methods, drastically speeding up iterations during system test development.
 * [run individual tests](docs/understand/architecture.md): Run individual tests
-* [user logger](docs/edit/troubleshooting.md): How to add more log traces in your code.
-* [activate tracer debug](docs/execute/dd-trace-debug.md): Activate the tracer debug traces.
+* [troubleshooting](docs/execute/troubleshooting.md): How to add log traces, activate tracer debug, change pytest log level.
 * [log folder structure](docs/execute/logs.md): Understand the log folder structure.
-* [pytest logs](docs/internals/pytest.md): Changing the log level output.
 
 #### Common steps to debug a test failure
 1. if failure is in CI, the user should get the log folder and extract it into system-tests root folder (with the name 'logs_<scenario_name>')
