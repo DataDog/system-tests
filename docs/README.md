@@ -78,10 +78,10 @@ Deep dives into each scenario type.
 
 Adding system-tests to your continuous integration pipeline.
 
-- [CI overview](ci/README.md) -- general steps to integrate
-- [GitHub Actions](ci/github-actions.md) -- GitHub Actions workflow
-- [GitLab CI](ci/gitlab-ci.md) -- GitLab CI setup
-- [System-tests CI](ci/system-tests-ci.md) -- how the system-tests own CI pipeline works
+- [CI overview](CI/README.md) -- general steps to integrate
+- [GitHub Actions](CI/github-actions.md) -- GitHub Actions workflow
+- [GitLab CI](CI/gitlab-ci.md) -- GitLab CI setup
+- [System-tests CI](CI/system-tests-ci.md) -- how the system-tests own CI pipeline works
 
 ## Weblogs
 
@@ -109,8 +109,8 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 
 ## RFCs
 
-- [RFCs](rfcs/README.md) -- historical Request for Comments documents
-- [Manifest RFC](rfcs/manifest.md) -- the original manifest design proposal
+- [RFCs](RFCs/README.md) -- historical Request for Comments documents
+- [Manifest RFC](RFCs/manifest.md) -- the original manifest design proposal
 
 ## AI tooling
 

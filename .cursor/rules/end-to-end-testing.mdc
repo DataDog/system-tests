@@ -72,4 +72,4 @@ The different choices to debug the tests/scenario are documented on these docuem
 * If you need how to test custom version of the tracer or how the binaries folder works read this documentation: [binaries folder](mdc:docs/execute/binaries.md)
 
 ### the chicken or the egg dilemma: Troubleshooting end-to-end tests/scenarios between a branch in the tracer and system-tests (main or specific branch)
-* If the user has a branch in tracer that would break the main system-tests branch, you can use this documentation to guide the user: [enable test](mdc:docs/edit/enable-test.md#alternative-approaches) and [target branch selection](mdc:docs/ci/system-tests-ci.md#target-branch-selection)
+* If the user has a branch in tracer that would break the main system-tests branch, you can use this documentation to guide the user: [enable test](mdc:docs/edit/enable-test.md#alternative-approaches) and [target branch selection](mdc:docs/CI/system-tests-ci.md#target-branch-selection)

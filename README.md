@@ -93,9 +93,9 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 
 | Topic | Description |
 |-------|-------------|
-| [CI overview](docs/ci/README.md) | Adding system-tests to your CI pipeline |
-| [GitHub Actions](docs/ci/github-actions.md) | GitHub Actions workflow details |
-| [System-tests CI](docs/ci/system-tests-ci.md) | How the system-tests own CI works |
+| [CI overview](docs/CI/README.md) | Adding system-tests to your CI pipeline |
+| [GitHub Actions](docs/CI/github-actions.md) | GitHub Actions workflow details |
+| [System-tests CI](docs/CI/system-tests-ci.md) | How the system-tests own CI works |
 
 ### Internals
 
