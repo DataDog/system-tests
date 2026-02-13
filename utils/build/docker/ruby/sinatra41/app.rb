@@ -35,7 +35,9 @@ set :host_authorization, { permitted_hosts: [] }
 set :strict_paths, false
 
 get '/' do
-  'Hello, world!'
+  content_type 'text/plain'
+  headers 'Content-Length' => '13'
+  "Hello world!\n"
 end
 
 get '/healthcheck' do
