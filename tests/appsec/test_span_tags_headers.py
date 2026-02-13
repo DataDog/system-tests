@@ -32,9 +32,8 @@ class Test_Headers_No_Event:
 
     def test_content_type_no_event(self):
         # Send a non-malicious request with no triggered rules - should have the content-type and content-length tags
-
         assert self.r.status_code == 200
-
+        interfaces.library.assert_no_appsec_event(self.r)
         interfaces.library.validate_one_span(self.r, validator=validate_headers_tags)
 
 
@@ -48,9 +47,8 @@ class Test_Headers_Event_No_Blocking:
 
     def test_content_type_event(self):
         # Send a request that triggers a security event but not blocking - should have the content-type and content-length tags
-
         assert self.r.status_code == 200
-
+        interfaces.library.assert_waf_attack(self.r, rule="ttr-000-003")
         interfaces.library.validate_one_span(self.r, validator=validate_headers_tags)
 
 
@@ -64,7 +62,6 @@ class Test_Headers_Event_Blocking:
 
     def test_content_type_event_blocking(self):
         # Send a request that triggers a blocking security event - should have the content-type and content-length tags
-
         assert self.r.status_code == 403
-
+        interfaces.library.assert_waf_attack(self.r, rule="arachni_rule")
         interfaces.library.validate_one_span(self.r, validator=validate_headers_tags)
