@@ -26,7 +26,8 @@ You'll commonly need to run unmerged changes to your library against system test
 6. [skip-tests.md](./skip-tests.md): Disable tests
 7. [manifest.md](./manifest.md): How tests are marked as enabled or disabled for libraries
 8. [Troubleshooting](../execute/troubleshooting.md): Tips for debugging
-9. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
+9. [Logging](#using-logger): Adding log output to tests
+10. [iast-validations.md](./iast-validations.md): Mark tests with vulnerabilities
 10. [update-docker-images.md](./update-docker-images.md): Modify test app docker images
 12. [remote-config.md](./remote-config.md): Write remote config tests
 13. [versions.md](./versions.md): Version specification guidelines
@@ -40,6 +41,25 @@ These documents cover the APIs you use in test assertions:
 - [library-interface-validation-methods.md](./library-interface-validation-methods.md): Validating tracer-to-agent traces
 - [agent-interface-validation-methods.md](./agent-interface-validation-methods.md): Validating agent-to-backend data
 - [backend-interface-validation-methods.md](./backend-interface-validation-methods.md): Validating backend API responses
+
+## Using `logger`
+
+When a test fails, having the good information in the output makes all the difference. There is a sweet spot between no info and too much info, use your common sense!
+
+```python
+from utils import logger
+
+...
+
+logger.debug("Try to find span with ...")
+logger.info("Found span with ...")
+logger.error("Span is missing ...")
+```
+
+You can change log level in `pytest.ini`. About levels, here is the key principle:
+
+* INFO => useful to understand what's happening on agent, backend ...
+* DEBUG => useful to understand what's happening on test itself.
 
 ---
 
