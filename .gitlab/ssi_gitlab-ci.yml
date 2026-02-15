@@ -25,6 +25,16 @@ ssi_tests:
     variables:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    # Cache Python venv to avoid recompiling packages on every run
+    # Cache is invalidated when requirements.txt or pyproject.toml changes
+    cache:
+      key:
+        files:
+          - system-tests/requirements.txt
+          - system-tests/pyproject.toml
+      paths:
+        - system-tests/venv/
+      policy: pull-push
     after_script: |
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
@@ -74,6 +84,16 @@ ssi_tests:
     variables:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    # Cache Python venv to avoid recompiling packages on every run
+    # Cache is invalidated when requirements.txt or pyproject.toml changes
+    cache:
+      key:
+        files:
+          - system-tests/requirements.txt
+          - system-tests/pyproject.toml
+      paths:
+        - system-tests/venv/
+      policy: pull-push
     script:
         - |
             if [[ -n "${DD_INSTALL_SCRIPT_VERSION}" ]]; then
@@ -172,6 +192,16 @@ ssi_tests:
   variables:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  # Cache Python venv to avoid recompiling packages on every run
+  # Cache is invalidated when requirements.txt or pyproject.toml changes
+  cache:
+    key:
+      files:
+        - system-tests/requirements.txt
+        - system-tests/pyproject.toml
+    paths:
+      - system-tests/venv/
+    policy: pull-push
   script:
     - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate
