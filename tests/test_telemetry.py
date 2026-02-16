@@ -3,6 +3,7 @@ from typing import Any
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import timedelta
+from http import HTTPStatus
 import time
 from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
@@ -205,8 +206,8 @@ class Test_Telemetry:
                 logger.debug(
                     f"runtime id {runtime_id} reported app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
                 )
-                if data["response"]["status_code"] == 202:
-                    # if for some reason the agent do no answer 202, the tracer should report another event
+                if data["response"]["status_code"] in (HTTPStatus.OK, HTTPStatus.ACCEPTED):
+                    # if for some reason the agent do no answer 200/202, the tracer should report another event
                     count_by_runtime_id[runtime_id] += 1
 
         for runtime_id, count in count_by_runtime_id.items():
