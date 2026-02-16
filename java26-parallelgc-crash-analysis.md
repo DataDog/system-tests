@@ -6,6 +6,24 @@
 **Status:** 🔴 Critical - JVM Crash (SIGSEGV)
 
 ---
+## 📋 Initial Investigation Request
+
+### Problem Statement
+
+The **Docker SSI** scenario crashes when testing **Java 26** with the following configuration combination:
+
+- `DD_PROFILING_HEAP_HISTOGRAM_ENABLED=true` (Datadog profiling feature)  
+- `-XX:+UseParallelGC` (Parallel Garbage Collector)
+
+This issue **does not** reproduce on **Java 25**, and it also **does not** occur on **Java 26** when using alternative garbage collectors (e.g., **G1GC**).
+
+### Investigation Request
+
+Please investigate the root cause in **`dd-trace-java`**, focusing on the implementation details and runtime interactions of:
+
+- `DD_PROFILING_HEAP_HISTOGRAM_ENABLED`
+- Any code paths that differ by **JDK version (25 vs 26)** and/or **GC selection (ParallelGC vs G1GC)**
+- How heap histogram collection is triggered (signals/JFR/JVMTI/management APIs, etc.) and whether it conflicts with Parallel GC on Java 26
 
 ## Executive Summary
 
