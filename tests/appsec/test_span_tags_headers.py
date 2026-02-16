@@ -55,7 +55,7 @@ class Test_Headers_Event_No_Blocking:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 class Test_Headers_Event_Blocking:
-    """Check for headers in the absence of security event"""
+    """Check for headers when a security event is triggered"""
 
     def setup_content_type_event_blocking(self):
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
