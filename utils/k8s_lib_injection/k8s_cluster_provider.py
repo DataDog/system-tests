@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import tempfile
@@ -42,7 +44,7 @@ class PrivateRegistryConfig:
 class K8sProviderFactory:
     """Use the correct provider specified by Id"""
 
-    def get_provider(self, provider_id):
+    def get_provider(self, provider_id: str) -> K8sClusterProvider:
         logger.info(f"Using {provider_id} provider")
         if provider_id == "kind":
             return K8sKindClusterProvider()
@@ -57,7 +59,7 @@ class K8sProviderFactory:
 class K8sClusterProvider:
     """Common interface for all the providers that will be used to create the k8s cluster."""
 
-    def __init__(self, is_local_managed=False):
+    def __init__(self, *, is_local_managed: bool = False) -> None:
         self.is_local_managed = is_local_managed
         self._cluster_info = None
 
@@ -172,7 +174,9 @@ class K8sClusterProvider:
 
 
 class K8sClusterInfo:
-    def __init__(self, cluster_name=None, context_name=None, cluster_template=None):
+    def __init__(
+        self, cluster_name: str | None = None, context_name: str | None = None, cluster_template: str | None = None
+    ) -> None:
         self.cluster_name = cluster_name
         self.context_name = context_name
         self.cluster_host_name = None
@@ -317,13 +321,13 @@ class K8sEKSRemoteClusterProvider(K8sClusterProvider):
             logger.error(f"Error loading kube config: {e}")
             raise e
 
-    def execute_piped_command(self, command):
+    def execute_piped_command(self, command: str) -> str:
         # awk_comm = 'kubectl config get-contexts |  awk \'{if ($1 ~ "@lib-injection-testing-eks-sandbox") print $1}\''
         p2 = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)  # noqa: S602
         res, err = p2.communicate()
         return res.decode("utf-8").strip()
 
-    def get_token(self, cluster_name):
+    def get_token(self, cluster_name: str) -> str:
         # From cluster name like: "lib-injection-testing-eks-sandbox.us-east-1.eksctl.io" I only take "lib-injection-testing-eks-sandbox"
         cluster_min_name = cluster_name.split(".")[0]
         token = execute_command(f"aws-iam-authenticator token -i {cluster_min_name} --token-only")

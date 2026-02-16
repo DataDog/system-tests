@@ -3,11 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 import time
+from collections.abc import Callable
 import tests.debugger.utils as debugger
 
 
 from utils import scenarios, features, missing_feature, context, irrelevant, logger
-from utils.interfaces._library.miscs import validate_process_tags
+from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
 class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
@@ -416,6 +417,24 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_process_tags_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
+    def setup_process_tags_snapshot_svc(self):
+        self.setup_process_tags_snapshot()
+
+    def check_process_tags_snapshot(self, validate_process_tags_func: Callable):
+        self._assert()
+        self._validate_snapshots()
+        process_tags = None
+        for snapshot_key in self.probe_snapshots:
+            for snapshot in self.probe_snapshots[snapshot_key]:
+                current_process_tags = snapshot["process_tags"]
+                if process_tags is None:
+                    process_tags = current_process_tags
+                    validate_process_tags_func(process_tags)
+                elif process_tags != current_process_tags:
+                    raise ValueError(
+                        f"Process tags are not matching. Expected ({process_tags}) vs found({current_process_tags})"
+                    )
+
     @features.process_tags
     @missing_feature(
         condition=context.library.name not in ("java", "dotnet", "python"),
@@ -425,20 +444,20 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         condition=context.weblog_variant == "spring-boot-3-native",
         reason="Not yet implemented",
     )
+    def test_process_tags_snapshot_svc(self):
+        self.check_process_tags_snapshot(validate_process_tags_svc)
+
+    @features.process_tags
+    @missing_feature(
+        condition=context.library.name not in ("java", "dotnet", "python", "ruby"),
+        reason="Not yet implemented",
+    )
+    @missing_feature(
+        condition=context.weblog_variant == "spring-boot-3-native",
+        reason="Not yet implemented",
+    )
     def test_process_tags_snapshot(self):
-        self._assert()
-        self._validate_snapshots()
-        process_tags = None
-        for snapshot_key in self.probe_snapshots:
-            for snapshot in self.probe_snapshots[snapshot_key]:
-                current_process_tags = snapshot["process_tags"]
-                if process_tags is None:
-                    process_tags = current_process_tags
-                    validate_process_tags(process_tags)
-                elif process_tags != current_process_tags:
-                    raise ValueError(
-                        f"Process tags are not matching. Expected ({process_tags}) vs found({current_process_tags})"
-                    )
+        self.check_process_tags_snapshot(validate_process_tags)
 
 
 @features.debugger_line_probe

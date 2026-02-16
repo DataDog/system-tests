@@ -109,8 +109,7 @@ class BaseDebuggerTest:
     rc_states: list[remote_config.RemoteConfigStateResults] = []
     prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
-
-    setup_failures: list
+    setup_failures: list = []
 
     use_debugger_endpoint: bool = False
 

@@ -21,11 +21,15 @@ Read and follow these rules in EVERY interaction:
 7. **`.cursor/rules/end-to-end-testing.mdc`** - End-to-end testing guidelines
 8. **`.cursor/rules/k8s-ssi.mdc`** - Kubernetes library injection testing
 9. **`.cursor/rules/test-activation.mdc`** - Test activation/deactivation rules
+10. **`.cursor/rules/doc.mdc`** - Rules for editing the documentation
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 
-10. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
-11. **`.cursor/rules/promptfoo-llm.mdc`** - Promptfoo LLM testing guidelines
+11. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
+
+## Pull request review guidelines
+
+12. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
 
 ---
 

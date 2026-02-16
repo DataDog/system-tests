@@ -152,7 +152,7 @@ public class App {
         // if a java engineer knows how to remove this?
         // waiting for that, just set a random value
         response.setHeader("Content-Language", "not-set");
-        return "Hello World!";
+        return "Hello world!\n";
     }
 
     @RequestMapping("/healthcheck")
@@ -1432,6 +1432,11 @@ public class App {
             return ResponseEntity.badRequest().body(e.toString());
         }
         return ResponseEntity.ok("ok");
+    }
+
+    @GetMapping("/resource_renaming/{*path}")
+    public String resourceRenaming(@PathVariable(required = false) String path) {
+        return "ok";
     }
 
     @Bean

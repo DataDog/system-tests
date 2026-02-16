@@ -74,8 +74,8 @@ class TestedContainer:
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
         self,
-        name: str,
-        image_name: str,
+        name: str = "",
+        image_name: str = "",
         *,
         allow_old_container: bool = False,
         binary_file_name: str | None = None,
@@ -92,6 +92,9 @@ class TestedContainer:
         working_dir: str | None = None,
         pid_mode: str | None = None,
     ) -> None:
+        assert name
+        assert image_name
+
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.allow_old_container = allow_old_container
@@ -401,11 +404,13 @@ class TestedContainer:
     def stop(self):
         self._starting_thread = None
 
+        logger.debug(f"Stopping container {self.name}")
+
         if self._container:
             self._container.reload()
             if self._container.status != "running":
                 self.healthy = False
-                pytest.exit(f"Container {self.name} is not running, please check logs", 1)
+                pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
             self._container.stop()
 
@@ -1055,7 +1060,13 @@ class WeblogContainer(TestedContainer):
         weblog.get("/", timeout=timeout)
 
     def flush(self) -> None:
-        # for weblogs who supports it, call the flush endpoint
+        if self.library.name not in (
+            "nodejs",
+            "ruby",
+        ):
+            # only nodejs and ruby supports it
+            return
+
         try:
             r = weblog.get("/flush", timeout=10)
             assert r.status_code == HTTPStatus.OK
@@ -1097,6 +1108,10 @@ class WeblogContainer(TestedContainer):
         logger.stdout(f"Weblog variant: {self.weblog_variant}")
 
         self.stdout_interface.init_patterns(self.library)
+
+    @property
+    def library_name(self) -> str:
+        return self.image.labels["system-tests-library"]
 
     @property
     def library(self) -> ComponentVersion:
