@@ -442,6 +442,7 @@ class BaseDebuggerTest:
         """Wait for snapshots from all expected probe IDs to be received."""
         logger.debug(f"Waiting for snapshots from all probes: {self.probe_ids}")
         self._all_snapshots_found = False
+        self._found_probe_ids: set[str] = set()  # Initialize instance variable to accumulate across callbacks
         interfaces.agent.wait_for(self._wait_for_all_snapshots, timeout=timeout)
         return self._all_snapshots_found
 
@@ -450,7 +451,6 @@ class BaseDebuggerTest:
             return False
 
         contents = data["request"].get("content", []) or []
-        found_probe_ids = set()
 
         for content in contents:
             # Filter out snapshots from before the test start time for multiple tests using the same file.
@@ -463,16 +463,16 @@ class BaseDebuggerTest:
             if snapshot and "probe" in snapshot:
                 probe_id = snapshot["probe"]["id"]
                 if probe_id in self.probe_ids:
-                    found_probe_ids.add(probe_id)
+                    self._found_probe_ids.add(probe_id)
                     logger.debug(f"Found snapshot for probe {probe_id}")
 
         # Check if we have snapshots for all expected probe IDs
-        if set(self.probe_ids).issubset(found_probe_ids):
+        if set(self.probe_ids).issubset(self._found_probe_ids):
             logger.debug(f"All snapshots found for probes: {self.probe_ids}")
             self._all_snapshots_found = True
             return True
 
-        logger.debug(f"Still waiting for snapshots. Found: {found_probe_ids}, Expected: {self.probe_ids}")
+        logger.debug(f"Still waiting for snapshots. Found: {self._found_probe_ids}, Expected: {self.probe_ids}")
         return False
 
     _no_capture_reason_span_found = False
