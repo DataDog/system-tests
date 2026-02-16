@@ -681,7 +681,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
