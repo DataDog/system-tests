@@ -102,7 +102,7 @@ There are three ways to run system-tests with a custom node tracer.
     - Create a file `nodejs-load-from-npm` in `binaries/`
     - In the file, add the path to the branch of the custom tracer. The content will be installed by npm install.
     - Content Examples:
-      - `DataDog/dd-trace-js#master`
+      - `DataDog/dd-trace-js#main`
       - `DataDog/dd-trace-js#<commit-hash>`
     - Run any scenario normally with `./build.sh nodejs` and `./run.sh` and your remote changes will be in effect
 2. Using a custom tracer existing in a local branch.
