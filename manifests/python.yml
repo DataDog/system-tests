@@ -2077,7 +2077,6 @@ manifest:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
     - declaration: bug (APMAPI-1858)
-      weblog: django-poc
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant
