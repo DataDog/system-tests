@@ -11,11 +11,6 @@ const client = new OpenAI({
   baseURL: `${process.env.DD_TRACE_AGENT_URL}/vcr/openai`
 });
 
-app.get('/', (req, res) => {
-  res.set('Content-Type', 'text/plain');
-  res.send('Hello world!\n');
-});
-
 app.post('/chat/completions', async (req, res) => {
   const { model, messages, parameters } = req.body;
   const stream = parameters.stream;
