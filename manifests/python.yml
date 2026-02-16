@@ -1041,8 +1041,6 @@ manifest:
       component_version: '>=3.0.0-dev'
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
-    - declaration: bug (APPSEC-61117)
-      component_version: '>=4.4.0-dev'
     - declaration: missing_feature (No implemented)
       component_version: <3.15.0
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
@@ -1415,9 +1413,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: flaky (APMAPI-1051)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
-    - declaration: missing_feature (failure 2.8.0)
-      component_version: <4.3.1
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: flaky (APMAPI-179)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: irrelevant (DD_TRACE_SAMPLE_RATE was removed in 3.x)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown

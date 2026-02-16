@@ -449,7 +449,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name not in ("java", "dotnet", "python"),
+        condition=context.library.name not in ("java", "dotnet", "python", "ruby"),
         reason="Not yet implemented",
     )
     @missing_feature(
