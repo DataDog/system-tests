@@ -26,6 +26,8 @@ RUN mkdir -p /opt/nginx-src \
     && tar -xzf nginx.tar.gz \
     && rm nginx.tar.gz
 
+RUN mkdir -p /var/log/system-tests
+
 RUN git clone --depth 1 https://github.com/leev/ngx_http_geoip2_module.git /opt/nginx-src/ngx_http_geoip2_module
 
 WORKDIR /tmp/nginx-${NGINX_VERSION}
@@ -36,8 +38,8 @@ RUN cd /opt/nginx-src/nginx-${NGINX_VERSION} && ./configure \
         --prefix=/usr/lib/nginx \
         --sbin-path=/usr/sbin \
         --conf-path=/etc/nginx/nginx.conf \
-        --http-log-path=/var/log/nginx/access.log \
-        --error-log-path=/var/log/nginx/error.log \
+        --http-log-path=/var/log/system-tests/access.log \
+        --error-log-path=/var/log/system-tests/error.log \
         --lock-path=/var/lock/nginx.lock \
         --pid-path=/run/nginx.pid \
         --modules-path=/usr/lib/nginx/modules \
