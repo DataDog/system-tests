@@ -163,7 +163,9 @@ build() {
                 python -m pip install --upgrade pip setuptools==75.8.0
             fi
             python -m pip install -e .
-            cp requirements.txt venv/requirements.txt
+            if [[ -d "venv/" ]]; then
+                cp requirements.txt venv/requirements.txt
+            fi
 
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
