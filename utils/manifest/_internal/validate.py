@@ -1,5 +1,6 @@
 import ast
 import importlib.util
+import inspect
 import json
 import sys
 from pathlib import Path
@@ -176,7 +177,8 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
 
             if function_name is not None:
                 class_obj = getattr(module, class_name)
-                found_function = hasattr(class_obj, function_name)
+                attr = getattr(class_obj, function_name, None)
+                found_function = attr is not None and inspect.isfunction(attr)
 
                 if not found_function:
                     errors.append(f"{file_path}::{class_name} does not contain function {function_name}")

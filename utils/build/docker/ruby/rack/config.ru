@@ -4,6 +4,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'faraday/follow_redirects'
 
 # tracer configuration of Rack integration
 
@@ -342,6 +343,35 @@ module ExternalRequest
   end
 end
 
+module ExternalRequestRedirect
+  module_function
+
+  def run(request)
+    total_redirects = request.params['totalRedirects'] || '0'
+
+    headers = request.params.each.with_object({}) do |(key, value), hash|
+      next if key == 'totalRedirects'
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+    conn = Faraday.new do |f|
+      f.response :follow_redirects, limit: 10
+    end
+    downstream_response = conn.get(url, nil, headers)
+
+    response = {
+      status: downstream_response.status,
+      headers: downstream_response.headers.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -526,6 +556,8 @@ app = proc do |env|
     SSRFHandler.run(request)
   elsif request.path == '/external_request'
     ExternalRequest.run(request)
+  elsif request.path == '/external_request/redirect'
+    ExternalRequestRedirect.run(request)
   elsif request.path.include?('/api_security/sampling/')
     ApiSecurityWithSampling.run(request)
   elsif request.path.include?('/api_security_sampling/')
