@@ -39,6 +39,7 @@ def test_tracer_release():
         scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
         scenarios.docker_ssi_servicenaming,
+        scenarios.docker_ssi_profiling,
         scenarios.go_proxies_default,
         scenarios.go_proxies_appsec_blocking,
         scenarios.host_auto_injection_install_script_appsec,
@@ -64,6 +65,7 @@ def test_tracer_release():
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
         scenarios.otel_collector_e2e,
+        scenarios.default_antithesis,
     ]
 
     for scenario in get_all_scenarios():

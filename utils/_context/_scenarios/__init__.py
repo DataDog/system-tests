@@ -7,6 +7,7 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
+from .default_antithesis import DefaultAntithesisScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
@@ -47,6 +48,8 @@ class _Scenarios:
     mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
 
     default = DefaultScenario("DEFAULT")
+    default_antithesis = DefaultAntithesisScenario("DEFAULT_ANTITHESIS")
+    default_antithesis_debug = DefaultScenario("DEFAULT_ANTITHESIS_DEBUG")
 
     # performance scenario just spawn an agent and a weblog, and spies the CPU and mem usage
     performances = PerformanceScenario(
@@ -1027,6 +1030,17 @@ class _Scenarios:
         doc="Validates the installer and the ssi on a docker environment",
         extra_env_vars={"DD_SERVICE": "payments-service"},
         appsec_enabled="true",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
+    docker_ssi_profiling = DockerSSIScenario(
+        "DOCKER_SSI_PROFILING",
+        doc="Validates the crashtracking for ssi on a docker environment",
+        extra_env_vars={
+            "DD_PROFILING_UPLOAD_PERIOD": "2",
+            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1000",
+            "DD_PROFILING_START_FORCE_FIRST": "true",
+        },
+        profiling_enabled="auto",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(

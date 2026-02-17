@@ -1,5 +1,8 @@
 FROM ghcr.io/graalvm/native-image-community:22.0.0 as build
 
+# Install required utilities for install_ddtrace.sh (unzip, zip, wget)
+RUN microdnf install -y unzip zip wget && microdnf clean all
+
 ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
 COPY --from=maven:3.9.9-eclipse-temurin-17 /usr/share/maven /usr/share/maven

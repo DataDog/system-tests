@@ -37,11 +37,18 @@ class DockerSSIScenario(Scenario):
     _network: Network = None
 
     def __init__(
-        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None, appsec_enabled=None
+        self,
+        name,
+        doc,
+        extra_env_vars: dict | None = None,
+        scenario_groups=None,
+        appsec_enabled=None,
+        profiling_enabled=None,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
         self._appsec_enabled = appsec_enabled
+        self._profiling_enabled = profiling_enabled
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
         self._weblog_injection = DockerSSIContainer(extra_env_vars=extra_env_vars)
@@ -111,6 +118,7 @@ class DockerSSIScenario(Scenario):
             self._custom_library_version,
             self._custom_injector_version,
             self._appsec_enabled,
+            self._profiling_enabled,
         )
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
@@ -302,6 +310,7 @@ class DockerSSIImageBuilder:
         custom_library_version,
         custom_injector_version,
         appsec_enabled=None,
+        profiling_enabled=None,
     ) -> None:
         self.scenario_name = scenario_name
         self.host_log_folder = host_log_folder
@@ -321,6 +330,7 @@ class DockerSSIImageBuilder:
         self._custom_library_version = custom_library_version
         self._custom_injector_version = custom_injector_version
         self._appsec_enabled = appsec_enabled
+        self._profiling_enabled = profiling_enabled
 
     @property
     def dd_lang(self) -> str:
@@ -486,6 +496,7 @@ class DockerSSIImageBuilder:
                     "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
                     "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
                     "DD_APPSEC_ENABLED": self._appsec_enabled,
+                    "DD_PROFILING_ENABLED": self._profiling_enabled,
                 },
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)

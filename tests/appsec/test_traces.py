@@ -23,6 +23,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 @features.security_events_metadata
 @scenarios.go_proxies_default
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -66,6 +67,8 @@ class Test_RetainTraces:
 @features.security_events_metadata
 @scenarios.go_proxies_default
 @scenarios.default
+@scenarios.default_antithesis
+@scenarios.default_antithesis_debug
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
@@ -143,6 +146,7 @@ class Test_AppSecEventSpanTags:
 @features.security_events_metadata
 @scenarios.go_proxies_default
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
@@ -293,6 +297,7 @@ class Test_AppSecObfuscator:
 @features.security_events_metadata
 @scenarios.go_proxies_default
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
@@ -321,6 +326,7 @@ class Test_CollectRespondHeaders:
 @features.security_events_metadata
 @scenarios.go_proxies_default
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
@@ -354,6 +360,7 @@ class Test_CollectDefaultRequestHeader:
 @features.security_events_metadata
 @scenarios.go_proxies_default
 @scenarios.default
+@scenarios.default_antithesis
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):
