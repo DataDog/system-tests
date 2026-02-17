@@ -56,7 +56,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 
         self.wait_for_all_probes(statuses=["EMITTING"])
 
-        if not self.wait_for_snapshot_received(timeout=60):
+        if not self.wait_for_all_snapshots(timeout=60):
             self.setup_failures.append("Snapshot was not received")
 
     def _assert(self):
