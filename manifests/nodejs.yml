@@ -938,8 +938,8 @@ manifest:
         nextjs: missing_feature
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe:
     - weblog_declaration:
-        express4: *ref_5_85_0
-        express5: *ref_5_85_0
+        express4: *ref_5_87_0
+        express5: *ref_5_87_0
         "*": irrelevant (one weblog is enough coverage)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
