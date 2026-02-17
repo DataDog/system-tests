@@ -35,6 +35,7 @@
 
             # linters
             shellcheck
+            yamlfmt
 
             # for scripts
             bash
