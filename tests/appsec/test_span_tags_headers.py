@@ -1,23 +1,37 @@
+import logging
 from utils import weblog, interfaces, features, scenarios
+from utils._weblog import CaseInsensitiveDict
+
+logger = logging.getLogger(__name__)
 
 
-def validate_builder(content_length: str | None, *, mandatory: bool = True):
+def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
+    content_type = headers.get("Content-Type")
+    content_length = headers.get("Content-Length")
+
     def validator(span: dict):
         assert (enabled := span["metrics"].get("_dd.appsec.enabled")) == 1.0, (
             f"Expected _dd.appsec.enabled to be '1.0', got {enabled}"
         )
 
-        assert (content_type := span["meta"].get("http.response.headers.content-type")), (
-            f"Expected content-type, got {content_type}"
+        assert (content_type_tag := span["meta"].get("http.response.headers.content-type")), (
+            f"Expected content-type, got {content_type_tag}"
         )
 
-        assert isinstance(content_type, str), f"Expected content-type to be a string, got {type(content_type)}"
-        assert content_type.startswith(("text/", "application/json")), (
-            f"Expected content-type to be 'text/html', 'text/plain' or 'application/json', got {content_type}"
+        assert isinstance(content_type_tag, str), f"Expected content-type to be a string, got {type(content_type_tag)}"
+        assert content_type_tag.startswith(("text/", "application/json")), (
+            f"Expected content-type to be 'text/html', 'text/plain' or 'application/json', got {content_type_tag}"
+        )
+        assert content_type == content_type_tag, (
+            f"Expected content-type header to be {content_type}, got {content_type_tag}"
         )
 
         if mandatory:
             assert content_length is not None, "Expected content-length header to be present"
+        else:
+            logger.info(
+                f"Content-length is optional for this test, skipping assertion. Got content-length: {content_length}"
+            )
 
         if content_length is not None:
             assert (content_length_tag := span["meta"].get("http.response.headers.content-length")) == content_length, (
@@ -42,8 +56,7 @@ class Test_Headers_No_Event:
         assert self.r.status_code == 200
         interfaces.library.assert_no_appsec_event(self.r)
         # content-length is mandatory on this endpoint
-        content_length = self.r.headers.get("Content-Length")
-        interfaces.library.validate_one_span(self.r, validator=validate_builder(content_length))
+        interfaces.library.validate_one_span(self.r, validator=validate_builder(self.r.headers))
 
 
 @features.appsec_request_blocking
@@ -59,8 +72,7 @@ class Test_Headers_Event_No_Blocking:
         assert self.r.status_code == 200
         interfaces.library.assert_waf_attack(self.r, rule="ttr-000-003")
         # content-length is mandatory on this endpoint
-        content_length = self.r.headers.get("Content-Length")
-        interfaces.library.validate_one_span(self.r, validator=validate_builder(content_length))
+        interfaces.library.validate_one_span(self.r, validator=validate_builder(self.r.headers))
 
 
 @features.appsec_request_blocking
@@ -76,5 +88,4 @@ class Test_Headers_Event_Blocking:
         assert self.r.status_code == 403
         interfaces.library.assert_waf_attack(self.r, rule="arachni_rule")
         # content-length is optional on blocking response
-        content_length = self.r.headers.get("Content-Length")
-        interfaces.library.validate_one_span(self.r, validator=validate_builder(content_length, mandatory=False))
+        interfaces.library.validate_one_span(self.r, validator=validate_builder(self.r.headers, mandatory=False))
