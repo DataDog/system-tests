@@ -736,6 +736,109 @@ fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
   })
 })
 
+fastify.get('/otel_drop_in_baggage_api_combined', async (request, reply) => {
+  const api = require('@opentelemetry/api');
+  const {
+    setBaggageItem,
+    removeBaggageItem,
+  } = require('dd-trace/packages/dd-trace/src/baggage');
+  const ContextManager = require('dd-trace/packages/dd-trace/src/opentelemetry/context_manager');
+
+  const url = request.query.url;
+  console.log(url);
+
+  const parsedUrl = new URL(url);
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET',
+  };
+
+  const contextManager = new ContextManager();
+  api.context.setGlobalContextManager(contextManager);
+
+  // foo_case_sensitive_key=value_to_be_replaced
+  // unused_key=unused_value
+  // FOO_CASE_SENSITIVE_KEY=UNTOUCHED
+  // remove_me_key=remove_me_value
+  let baggage =
+    api.propagation.getActiveBaggage() || api.propagation.createBaggage();
+  let newContext;
+  if (request.query.baggage_remove_datadog) {
+    const baggageToRemove = request.query.baggage_remove_datadog.split(',');
+    for (const key of baggageToRemove) {
+      removeBaggageItem(key); // FOO_CASE_SENSITIVE_KEY
+    }
+  }
+  baggage = api.propagation.getActiveBaggage();
+  if (request.query.baggage_remove_otel) {
+    const baggageToRemove = request.query.baggage_remove_otel.split(',');
+    for (const key of baggageToRemove) {
+      baggage = baggage.removeEntry(key.trim()); // remove_me_key
+    }
+  }
+  newContext = api.propagation.setBaggage(api.context.active(), baggage);
+  if (request.query.baggage_set_datadog) {
+    const baggageToSet = request.query.baggage_set_datadog
+      .split(',')
+      .map((item) => item.split('='));
+    api.context.with(newContext, () => {
+      for (const [key, value] of baggageToSet) {
+        // foo_case_sensitive_key=overwrite_value
+        // new_foo=new_value
+        setBaggageItem(key.trim(), value.trim());
+      }
+    });
+  }
+  baggage = api.propagation.getActiveBaggage();
+  if (request.query.baggage_set_otel) {
+    const baggageToSet = request.query.baggage_set_otel
+      .split(',')
+      .map((item) => item.split('='));
+    for (const [key, value] of baggageToSet) {
+      // foo_case_sensitive_key=latest_value
+      baggage = baggage.setEntry(key.trim(), { value: value.trim() });
+    }
+  }
+
+  newContext = api.propagation.setBaggage(api.context.active(), baggage);
+
+  return new Promise((resolve, reject) => {
+    api.context.with(newContext, () => {
+      const httpRequest = http.request(options, (response) => {
+        let responseBody = '';
+        response.on('data', (chunk) => {
+          responseBody += chunk;
+        });
+
+        response.on('end', () => {
+          resolve({
+            url,
+            status_code: response.statusCode,
+            request_headers: response.req._headers,
+            response_headers: response.headers,
+            response_body: responseBody,
+          });
+        });
+      });
+
+      httpRequest.on('error', (error) => {
+        console.log(error);
+        resolve({
+          url,
+          status_code: 500,
+          request_headers: null,
+          response_headers: null,
+        });
+      });
+
+      httpRequest.end();
+    });
+  });
+});
+
 fastify.post('/shell_execution', async (request, reply) => {
   const { spawnSync } = require('child_process')
   const options = { shell: !!request?.body?.options?.shell }
