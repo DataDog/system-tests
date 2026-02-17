@@ -1,8 +1,5 @@
-import logging
-from utils import weblog, interfaces, features, scenarios
+from utils import weblog, interfaces, features, scenarios, logger
 from utils._weblog import CaseInsensitiveDict
-
-logger = logging.getLogger(__name__)
 
 
 def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
