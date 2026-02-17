@@ -6,8 +6,6 @@ class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def root
-    response.headers['Content-Type'] = 'text/plain'
-    response.headers['Content-Length'] = '13'
     render plain: "Hello world!\n"
   end
 

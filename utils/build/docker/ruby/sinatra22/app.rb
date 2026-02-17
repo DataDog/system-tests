@@ -32,8 +32,6 @@ else
 end
 
 get '/' do
-  content_type 'text/plain'
-  headers 'Content-Length' => '13'
   "Hello world!\n"
 end
 
