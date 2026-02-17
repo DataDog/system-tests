@@ -987,8 +987,8 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py:
     - weblog_declaration:
         "*": v2.19.0
-        rails6-app-deployment-mode: missing_feature
-        ruby-app-deployment-mode: missing_feature
+        rails6-app-deployment-mode: v2.24.0
+        ruby-app-deployment-mode: v2.24.0
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <2.19.0
