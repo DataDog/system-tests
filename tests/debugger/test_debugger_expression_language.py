@@ -948,7 +948,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             elif value_type == "string":
                 instance_type = "java.lang.String"
             elif value_type == "pii":
-                instance_type = "com.datadoghq.system_tests.springboot.PiiBase"
+                instance_type = "com.datadoghq.system_tests.springboot.debugger.PiiBase"
             else:
                 instance_type = value_type
         elif self.get_tracer()["language"] == "python":

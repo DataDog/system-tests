@@ -1,6 +1,5 @@
 {
     "normalization_rules": {
-        "cgo_enabled": "go_cgo_enabled",
         "DD_HAPROXY_SPOA_HEALTHCHECK_PORT": "haproxy_spoa_healthcheck_port",
         "DD_HAPROXY_SPOA_HOST": "haproxy_spoa_host",
         "DD_HAPROXY_SPOA_PORT": "haproxy_spoa_port",
@@ -11,6 +10,7 @@
         "DD_SERVICE_EXTENSION_TLS": "service_extension_tls",
         "DD_SERVICE_EXTENSION_TLS_CERT_FILE": "service_extension_tls_cert_file",
         "DD_SERVICE_EXTENSION_TLS_KEY_FILE": "service_extension_tls_key_file",
+        "cgo_enabled": "go_cgo_enabled",
         "endpoint_count_enabled": "endpoint_count_enabled",
         "execution_trace_enabled": "execution_trace_enabled",
         "execution_trace_period": "execution_trace_period",

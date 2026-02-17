@@ -40,5 +40,6 @@
     "s3_503_Slow_Down":"503 Slow Down",
     "openssl_ssl_connect_connection_reset_by_peer": "OpenSSL SSL_connect: Connection reset by peer in connection to keys.datadoghq.com:443",
     "Failed_get_info_Microsoft.AspNetCore'":"Failed to retrieve information about 'Microsoft.AspNetCore'",
-    "error_download_failed_with_curl_install_script":"Error: Download failed with curl"
+    "error_download_failed_with_curl_install_script":"Error: Download failed with curl",
+    "error_response_from_docker_daemon":"dial tcp: lookup auth.docker.io: no such host"
 }
