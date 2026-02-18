@@ -1,19 +1,18 @@
-Each test can be flagged with an expected outcome, with a declaration in [manifests files](../edit/manifest.md) or using inline decorators (`@bug`, `@missing_features` ...).
+System-tests uses [pytest](https://docs.pytest.org/) under the hood. The test output follows standard pytest conventions (see the [pytest documentation on test outcomes](https://docs.pytest.org/en/stable/how-to/output.html)).
 
-Those declarations are interpreted by system-tests and impact the test execution and the outcome of the entire run. See [glossary](../glossary.md) for terminology definitions.
+Each test can be flagged with an expected outcome, with a declaration in [manifests files](../edit/manifest.md) or using inline decorators (`@bug`, `@missing_features` ...). Those declarations are interpreted by system-tests and impact the test execution and the outcome of the entire run. See [glossary](../glossary.md) for terminology definitions.
 
-| Declaration                                       | Test is executed  | Test actual outcome | System test output  | Comment
-| -                                                 | -                 | -                   | -                   | -
-| \<no_declaration>                                 | Yes               | ✅ Successful       | 🟢 Pass             | All good :sunglasses:
-| Missing feature or bug or incomplete test app     | Yes               | ❌ Unsuccessful     | 🟢 xfail            | Test is disabled and unsuccessful (expected behavior)
-| Missing feature or bug or incomplete test app     | Yes               | ✅ Successful       | 🟠 xpass            | Test is disabled but successful -> easy win, time to enable the test
-| Flaky                                             | No                | N.A.                | N.A. (skipped)      | A flaky test doesn't provide any useful information, and thus, is skipped
-| Irrelevant                                        | No                | N.A.                | N.A. (skipped)      | There is no purpose of running such a test, it is skipped
-| \<no_declaration>                                 | Yes               | ❌ Unsuccessful     | 🔴 Fail             | Only use case where system test fails: the test is enabled but unsuccessful
+| Symbol | Meaning | Declaration | Test is executed | Description |
+| ------ | ------- | ----------- | ---------------- | ----------- |
+| 🟢 `.` | **pass** | \<none> | Yes | Test is enabled and successful |
+| 🔴 `F` | **fail** | \<none> | Yes | Test is enabled but unsuccessful -- needs investigation |
+| 🟡 `x` | **xfail** | `missing_feature`, `bug`, or `incomplete_test_app` | Yes | Test is disabled and unsuccessful (expected behavior) |
+| 🟡 `X` | **xpass** | `missing_feature`, `bug`, or `incomplete_test_app` | Yes | Test is disabled but successful -- easy win, time to [enable it](../edit/enable-test.md) |
+| 🟡 `s` | **skipped** | `flaky` or `irrelevant` | No | Test was not executed (irrelevant or flaky) |
 
 ## Xfail strict mode
 
-If a test is flagged as `missing_feature` or `bug`, the test is disabled but still executed (see [glossary](../glossary.md) for terminology):
+If a test is flagged as `missing_feature`, `bug`, or `incomplete_test_app`, the test is disabled but still executed (see [glossary](../glossary.md) for terminology):
 
 * if it is unsuccessful -> xfail (result is ignored)
 * if it is successful -> xpass (easy win), a warning is printed but it does not fail the entire process

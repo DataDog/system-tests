@@ -1,6 +1,6 @@
 ## What is system-tests?
 
-Slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
+Having trouble? Reach out on slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
 
 System-tests is a black-box testing workbench for Datadog tracer libraries. It runs the **same tests** against every tracer implementation -- Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust -- so shared features stay consistent across languages.
 
@@ -27,29 +27,9 @@ source venv/bin/activate
 ./run.sh tests/test_smoke.py::Test_Class::test_method   # run a single test
 ```
 
-> **macOS note:** if `build.sh` fails with a missing `timeout` command, run:
-> ```bash
-> brew install coreutils
-> export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
-> ```
+Having trouble? Check the [troubleshooting page](docs/execute/troubleshooting.md).
 
-![Output on success](./utils/assets/output.png?raw=true)
-
-### Reading the output
-
-System-tests uses [pytest](https://docs.pytest.org/) under the hood. The test output follows standard pytest conventions (see the [pytest documentation on test outcomes](https://docs.pytest.org/en/stable/how-to/output.html)). Each test is represented by a symbol:
-
-| Symbol | Meaning | Description |
-|--------|---------|-------------|
-| 🟢 `.` | **pass** | Test is enabled and successful |
-| 🔴 `F` | **fail** | Test is enabled but unsuccessful -- needs investigation |
-| 🟡 `x` | **xfail** | Test is disabled and unsuccessful (expected behavior) |
-| 🟡 `X` | **xpass** | Test is disabled but successful -- easy win, time to [enable it](docs/edit/enable-test.md) |
-| 🟡 `s` | **skipped** | Test was not executed (irrelevant or flaky) |
-
-For a full explanation of test outcomes and how declarations (like `bug`, `missing_feature`, `flaky`) affect them, see [test outcomes](docs/execute/test-outcomes.md) and the [glossary](docs/glossary.md).
-
-If a test fails, check the standard output first -- it usually contains enough info. For deeper investigation, look at the [logs folder](docs/execute/logs.md).
+To understand the test output, see [test outcomes](docs/execute/test-outcomes.md) and the [glossary](docs/glossary.md).
 
 ## Documentation
 
@@ -72,7 +52,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 | [Run](docs/execute/run.md) | Run options, selecting tests, scenarios, timeouts |
 | [Logs](docs/execute/logs.md) | Understanding the logs folder structure |
 | [Test outcomes](docs/execute/test-outcomes.md) | Reading test results |
-| [Replay mode](docs/execute/replay.md) | Re-run tests without rebuilding |
+| [Replay mode](docs/execute/replay.md) | Re-run tests without starting the containers |
 | [Custom tracer versions](docs/execute/binaries.md) | Testing with local tracer builds |
 | [Troubleshooting](docs/execute/troubleshooting.md) | Common issues and how to fix them |
 
@@ -112,37 +92,7 @@ All detailed documentation lives in the [`docs/`](docs/README.md) folder. Here i
 |-------|-------------|
 | [AI integration guide](docs/ai/ai-tools-integration-guide.md) | Built-in rules for AI-assisted development |
 
-## Python 3.12 installation
-
-We recommend [pyenv](https://github.com/pyenv/pyenv#getting-pyenv) to manage Python versions.
-
-<details>
-<summary>Platform-specific instructions</summary>
-
-#### Ubuntu/Debian
-
-```bash
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.12 python3.12-distutils python3.12-venv python3.12-dev
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python3.12 get-pip.py
-./build.sh -i runner
-```
-
-#### macOS (Homebrew)
-
-```bash
-brew install python@3.12
-```
-
-#### Windows
-
-Support coming soon.
-
-</details>
-
-### Additional requirements
+## Additional requirements
 
 Specific scenarios may require additional tools:
 
@@ -162,60 +112,6 @@ Before submitting a PR, always run the [linter](docs/edit/format.md) (`./format.
 | Other changes | [Full editing docs](docs/edit/README.md), [internals](docs/internals/README.md) |
 
 For testing against unmerged tracer changes, see [enable-test.md](docs/edit/enable-test.md) and [binaries](docs/execute/binaries.md).
-
-## Technologies
-
-System-tests is built on **Python** and **pytest**, using **Docker** for isolated environments. Depending on the scenario, it also leverages **Kubernetes** (Kind/Minikube), **Pulumi**, and the **AWS API**. See the [architecture overview](docs/understand/architecture.md) for details.
-
-<details>
-<summary>Repository structure</summary>
-
-```
-system-tests/
-|-- binaries/           # Folder to store binary tracer files for testing specific versions
-|-- docs/               # Documentation files
-|-- lib-injection/      # Weblogs for testing library injection
-|-- manifests/          # YAML config files for test activation per library version
-|-- tests/              # Test implementations
-|-- utils/              # Utility code and shared libraries
-|   |-- _context/       # Test context and scenario definitions
-|   |   |-- _scenarios/ # Scenario implementations
-|   |-- assets/         # Images and other static assets
-|   |-- build/          # Build utilities and scripts
-|   |   |-- docker/     # Docker templates for e2e weblogs
-|   |   |-- ssi/        # Docker SSI build utilities
-|   |   |-- virtual_machine/ # AWS SSI scenarios and weblog provisions
-|   |-- interfaces/     # Interface definitions for components
-|   |-- parametric/     # Parametric testing utilities
-|   |-- scripts/        # Helper and utility scripts
-|
-|-- build.sh            # Script to build test environment
-|-- run.sh              # Script to run tests and scenarios
-```
-
-</details>
-
-<details>
-<summary>Build and run flow</summary>
-
-```mermaid
-flowchart TD
-    BUILDNODE[./build.sh nodejs] --> BUILT
-    BUILDDOTNET[./build.sh dotnet] --> BUILT
-    BUILDJAVA[./build.sh java] --> BUILT
-    BUILDGO[./build.sh golang] --> BUILT
-    BUILDPHP[./build.sh php] --> BUILT
-    BUILDPY[./build.sh python] --> BUILT
-    BUILDRUBY[./build.sh ruby] --> BUILT
-    BUILT[Build complete] --> RUNDEFAULT
-    RUNDEFAULT[./run.sh] -->|wait| FINISH
-    FINISH[Tests complete] --> LOGS
-    FINISH[Tests complete] --> OUTPUT
-    OUTPUT[Test output in bash]
-    LOGS[Logs directory per scenario]
-```
-
-</details>
 
 ## Ownership
 

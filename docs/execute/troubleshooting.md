@@ -1,3 +1,12 @@
+## macOS: missing `timeout` command
+
+If `build.sh` fails with a missing `timeout` command, install GNU coreutils:
+
+```bash
+brew install coreutils
+export PATH="$(brew --prefix)/opt/coreutils/libexec/gnubin:$PATH"
+```
+
 ## `docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', FileNotFoundError(2, 'No such file or directory'))`
 
 Your docker engine is either not started or not ready. Start it, and wait a bit before trying again. This error also happens when you do not allow the default socket to be used (see Advanced options in docker desktop).
