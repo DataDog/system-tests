@@ -22,11 +22,10 @@ jobs:
           - python
           # - python_lambda
           # - ruby
+          # - cpp_nginx
         version:
           - prod
         # include:
-        #   - library: cpp_nginx
-        #     version: prod
         #   - library: rust
         #     version: dev
       fail-fast: false
@@ -51,8 +50,6 @@ jobs:
       library: ${{ matrix.library }}
       parametric_job_count: 8
       # desired_execution_time: 3600  # 30 minutes
-      _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
-      push_to_test_optimization: ${{ matrix.version == 'dev' }}
 
   create_test_report:
     name: Create test report
