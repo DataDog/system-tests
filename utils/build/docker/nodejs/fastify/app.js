@@ -89,7 +89,8 @@ fastify.addContentTypeParser('text/plain', { parseAs: 'buffer' }, function (req,
 
 fastify.get('/', async (request, reply) => {
   console.log('Received a request')
-  return 'Hello\n'
+  reply.type('text/plain')
+  return 'Hello world!\n'
 })
 
 fastify.get('/healthcheck', async (request, reply) => {

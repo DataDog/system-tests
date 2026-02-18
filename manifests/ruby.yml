@@ -701,6 +701,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
+  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.22.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.22.0-dev
@@ -961,6 +962,9 @@ manifest:
         rails80: v2.8.0
         uds-rails: v2.12.0
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
+  ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_different_casing
+  : bug (DEBUG-5107)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5111)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
@@ -989,8 +993,10 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py:
     - weblog_declaration:
         "*": v2.19.0
-        rails6-app-deployment-mode: missing_feature
-        ruby-app-deployment-mode: missing_feature
+        rails6-app-deployment-mode: v2.24.0
+        ruby-app-deployment-mode: v2.24.0
+        rails6-app-vendored-mode: v2.29.0-dev
+        ruby-app-vendored-mode: v2.29.0-dev
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <2.19.0
@@ -998,7 +1004,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <2.19.0
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: bug (APPSEC-60983)
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-884)
     - declaration: missing_feature (Not implemented)

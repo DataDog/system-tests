@@ -80,8 +80,8 @@ refs:
   - &ref_5_79_0 '>=5.79.0'
   - &ref_5_80_0 '>=5.80.0'
   - &ref_5_81_0 '>=5.81.0'
-  - &ref_5_82_0 '>=5.82.0'
   - &ref_5_83_0 '>=5.83.0'
+  - &ref_5_87_0 '>=5.87.0'  # Debugger: Capture expressions support
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
@@ -947,7 +947,8 @@ manifest:
         nextjs: missing_feature
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe:
     - weblog_declaration:
-        express4: missing_feature
+        express4: *ref_5_87_0
+        express5: *ref_5_87_0
         "*": irrelevant (one weblog is enough coverage)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
     - weblog_declaration:
@@ -1208,6 +1209,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: *ref_5_55_0_5_78_0
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: *ref_5_79_0
   tests/appsec/test_shell_execution.py::Test_ShellExecution: *ref_5_3_0
+  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: *ref_5_59_0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: *ref_5_60_0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: *ref_5_60_0
@@ -1388,6 +1390,16 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: *ref_5_43_0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: *ref_5_43_0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: *ref_5_43_0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: *ref_5_87_0
+        express4-typescript: *ref_5_87_0
+        express5: *ref_5_87_0
+        fastify: *ref_5_87_0
+        nextjs: irrelevant
+        uds-express4: *ref_5_87_0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": irrelevant
@@ -1464,7 +1476,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <5.66.0
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: *ref_5_83_0
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -1922,6 +1934,8 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
   : missing_feature (Not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: missing_feature (Startup configuration log not emitted by default when DD_TRACE_STARTUP_LOGS is unset)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not emitted when agent is unreachable)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: *ref_5_25_0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs::test_library_settings_2: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Defaults: *ref_5_6_0

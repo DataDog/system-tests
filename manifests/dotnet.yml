@@ -503,6 +503,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: missing_feature
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.26.3
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
+  tests/appsec/test_span_tags_headers.py: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v3.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: missing_feature
@@ -665,6 +666,11 @@ manifest:
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.53.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: v2.53.0
+  ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_different_casing
+  : bug (DEBUG-5104)
+  ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_unknown_path_prefix
+  : bug (DEBUG-5101)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5108)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload:  # Modified by easy win activation script
@@ -687,7 +693,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_instrumentation_source_ssi:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
-  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
