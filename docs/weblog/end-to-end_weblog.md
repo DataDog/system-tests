@@ -1263,6 +1263,32 @@ It takes a raw (unparsed) request body, and a signature located in header `Strip
 The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
 If an error happens, the endpoint must respond with a 403 error code.
 
+### GET /llm
+
+For now this endpoint will only be implemented by Python and Node.js
+
+This endpoint collects interactions with LLMs. The request will have the following query parameters
+- `model`:  Identifies the LLM model invoked. Examples are: `gpt-4.1`, `gpt-4o-mini`, `text-davinci-003`.
+- `operation`: Instead of having one each point for each function wrapped, this parameter will be used to decide what method to trigger. The following table maps all operation values to wrapped method:
+| Value | Python mapped method | Node.js mapped method |
+| --- | --- | --- |
+| `openai-latest-responses.create` | `OpenAI().responses.create(...)` | `client.responses.create` |
+| `openai-latest-chat.completions.create` | `OpenAI().chat.completions.create(...)` | `client.chat.completions.create` |
+| `openai-latest-completions.create` | `OpenAI().completions.create(...)` | `client.completions.create` |
+| `openai-legacy-chat.completions.create` | `openai.ChatCompletion.create` | `openai.createChatCompletion` |
+| `openai-legacy-completions.create` | `openai.Completion.create` | `openai.createCompletion` |
+| `openai-async-responses.create` | `AsyncOpenAI().responses.create(...)` | not implemented |
+| `openai-async-chat.completions.create` | `AsyncOpenAI().chat.completions.create(...)` | not implemented |
+| `openai-async-completions.create` | `AsyncOpenAI().completions.create(...)` | not implemented |
+
+For exmaple a call to `/llm?model=gpt-4.1&operation=openai-latest-responses.create`(url encoded) will do the will require that python does thes following call
+```
+OpenAI().responses.create(model="gpt-4.1", ...)
+```
+
+This approach makes the endpoint ready to be expanded in the future.
+
+
 ## Weblog specification
 
 There are several rules shared between all the existing end-to-end weblogs.
