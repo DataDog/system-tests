@@ -61,7 +61,7 @@ manifest:
         "*": irrelevant
         fastapi: v3.13.0.dev
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_type: irrelevant
-  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoint_fallback.py: irrelevant (python weblogs always have http.route)
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0
@@ -327,7 +327,7 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.3.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
@@ -341,22 +341,14 @@ manifest:
     - weblog_declaration:
         "*": v4.1.0
         *django: v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
-    - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
-        *django: v4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
-    - weblog_declaration:
-        "*": v3.14.0.rc
-        fastapi: v3.15.0.dev (with requests support)
-        *django: v4.3.0-dev0 (with httpx support)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v4.5.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
@@ -368,7 +360,7 @@ manifest:
         fastapi: v3.15.0.dev (with requests support)
         *django: v4.3.0-dev0 (with httpx support)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v4.5.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: v2.20.0.dev
@@ -737,6 +729,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: irrelevant (drop support in v3.12.0.dev)
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.12.0.dev
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
+  tests/appsec/test_span_tags_headers.py: v3.19.0
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v2.11.0-rc
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
@@ -814,9 +807,9 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: v4.5.0-rc1 (previously in v2.11.0)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: v4.5.0-rc1 (previously in v2.11.0)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: v4.5.0-rc1 (previously in v2.11.0)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1: v2.11.0
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_no_accept: v1.16.1
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v2.10.0
@@ -1016,6 +1009,9 @@ manifest:
       component_version: 2.16.0
     - declaration: bug (DEBUG-3127)
       component_version: 2.16.1
+  ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_different_casing
+  : bug (DEBUG-5106)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5110)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -1048,8 +1044,6 @@ manifest:
       component_version: '>=3.0.0-dev'
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_telemetry_abort: irrelevant
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi:
-    - declaration: bug (APPSEC-61117)
-      component_version: '>=4.4.0-dev'
     - declaration: missing_feature (No implemented)
       component_version: <3.15.0
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
@@ -1387,6 +1381,8 @@ manifest:
         uwsgi-poc: v4.2.0
         uds-flask: v4.2.0
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.15.0
+  tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.15.0
   ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
   : - declaration: bug (APMON-1496)
       component_version: '>2.12.2'
@@ -1414,15 +1410,12 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.11.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.9.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention:  # Modified by easy win activation script
-    - declaration: bug (APMAPI-857)
-      component_version: <4.3.1
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: flaky (APMAPI-857, APMAPI-1860)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: flaky (APMAPI-1860)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: flaky (APMAPI-1051)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1:  # Modified by easy win activation script
-    - declaration: missing_feature (failure 2.8.0)
-      component_version: <4.3.1
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: flaky (APMAPI-179)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: irrelevant (DD_TRACE_SAMPLE_RATE was removed in 3.x)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: missing_feature (failure 2.8.0)  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_EmptyServiceTargets: v2.18.1  # version unknown
@@ -2079,9 +2072,12 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:
+    - declaration: flaky (APMAPI-1858)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
+    - declaration: bug (APMAPI-1858)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant

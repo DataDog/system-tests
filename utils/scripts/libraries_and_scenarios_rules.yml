@@ -58,6 +58,13 @@ patterns:
         libraries: null
 
     requirements.txt: # run all by default
+
+    utils/build/docker/python/*/requirements*.txt:
+        libraries: python
+
+    utils/build/docker/python_lambda/*/requirements*.txt:
+        libraries: python_lambda
+
     "*.txt":
         scenario_groups: null
         libraries: null

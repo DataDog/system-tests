@@ -34,7 +34,8 @@ di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
-  res.send('Hello\n');
+  res.set('Content-Type', 'text/plain');
+  res.send('Hello world!\n');
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {

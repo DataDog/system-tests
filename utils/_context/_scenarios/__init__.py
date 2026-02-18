@@ -674,7 +674,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
@@ -722,7 +722,7 @@ class _Scenarios:
             # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
             "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         doc="Check pii redaction",
@@ -990,6 +990,17 @@ class _Scenarios:
         },
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
+    k8s_lib_injection_appsec_disabled = K8sScenario(
+        "K8S_LIB_INJECTION_APPSEC_DISABLED",
+        doc="Kubernetes lib injection with admission controller and appsec disabled by default",
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+    )
+    k8s_lib_injection_appsec_enabled = K8sScenario(
+        "K8S_LIB_INJECTION_APPSEC_ENABLED",
+        doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
+        dd_cluster_feature={"datadog.asm.threats.enabled": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+    )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     # K8s Injector dev scenarios
@@ -1029,7 +1040,7 @@ class _Scenarios:
     appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
         "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
         weblog_env={
-            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+            "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "0",
         },
     )
 

@@ -35,6 +35,7 @@
 
             # linters
             shellcheck
+            yamlfmt
 
             # for scripts
             bash
@@ -44,7 +45,6 @@
             # for python watchdog package
             apple-sdk
           ];
-
 
           shellHook = ''
             export PYTHON_VERSION="$(python -c 'import platform; import re; print(re.sub(r"\.\d+$", "", platform.python_version()))')"
