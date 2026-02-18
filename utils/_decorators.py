@@ -90,6 +90,7 @@ def _expected_to_fail(
         if library not in (
             "cpp",
             "cpp_httpd",
+            "cpp_kong",
             "cpp_nginx",
             "dotnet",
             "golang",
