@@ -1248,3 +1248,267 @@ class Test_TelemetrySCAEnvVar:
             assert cfg_appsec_enabled[0].get("value") is None
         else:
             assert dd_appsec_sca_enabled not in configuration_by_name
+
+
+@scenarios.parametric
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/AP/pages/")
+@features.app_extended_heartbeat_event
+class Test_ExtendedHeartbeat:
+    """Test app-extended-heartbeat telemetry event"""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",  # 500ms for fast testing
+            }
+        ],
+    )
+    def test_app_extended_heartbeat_sent(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Verify app-extended-heartbeat events are sent with configuration data"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        # Wait for at least one extended heartbeat (may take 2-3 intervals)
+        time.sleep(1.5)
+
+        event = test_agent.wait_for_telemetry_event("app-extended-heartbeat", wait_loops=400)
+
+        assert event is not None, "app-extended-heartbeat event not found"
+        assert event["request_type"] == "app-extended-heartbeat"
+
+        payload = event["payload"]
+
+        # Validate payload contains at least one of the expected rich data types
+        # (Following schema in utils/interfaces/schemas/miscs/telemetry/v2/events/extended-heartbeat.json)
+        has_config = "configuration" in payload and len(payload.get("configuration", [])) > 0
+        has_deps = "dependencies" in payload and len(payload.get("dependencies", [])) > 0
+        has_integrations = "integrations" in payload and len(payload.get("integrations", [])) > 0
+
+        assert has_config or has_deps or has_integrations, (
+            "Extended heartbeat payload must contain configuration, dependencies, or integrations. "
+            f"Got payload keys: {list(payload.keys())}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.3",
+            }
+        ],
+    )
+    def test_app_extended_heartbeat_interval(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Verify extended heartbeat respects configured interval"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        # Collect events over time
+        time.sleep(1.5)  # Expect ~5 events at 0.3s interval
+
+        timestamps = []
+        for event in test_agent.telemetry(clear=False):
+            e = test_agent._get_telemetry_event(event, "app-extended-heartbeat")
+            if e:
+                timestamps.append(event["tracer_time"])
+
+        assert len(timestamps) >= 2, (
+            f"Should receive at least 2 extended heartbeat events, got {len(timestamps)}. "
+            "Check that DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL is respected."
+        )
+
+        # Calculate delays between consecutive events (tracer_time is in milliseconds)
+        delays = [(timestamps[i + 1] - timestamps[i]) / 1000.0 for i in range(len(timestamps) - 1)]
+        avg_delay = sum(delays) / len(delays)
+
+        # Allow 50% margin for timing variance (looser than heartbeat tests due to longer interval)
+        lower = 0.3 * 0.5
+        upper = 0.3 * 1.5
+
+        assert avg_delay > lower, (
+            f"Extended heartbeat sent too fast: {avg_delay:.3f}s (expected ~0.3s). "
+            f"Intervals: {[f'{d:.3f}s' for d in delays]}"
+        )
+        assert avg_delay < upper, (
+            f"Extended heartbeat sent too slow: {avg_delay:.3f}s (expected ~0.3s). "
+            f"Intervals: {[f'{d:.3f}s' for d in delays]}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",
+            }
+        ],
+    )
+    def test_extended_heartbeat_payload_content(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Test that extended heartbeat payload contains configuration, dependencies, integrations"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        time.sleep(1.5)
+        event = test_agent.wait_for_telemetry_event("app-extended-heartbeat", wait_loops=400)
+
+        assert event is not None, "app-extended-heartbeat event not found"
+        payload = event["payload"]
+
+        # Verify required fields exist
+        assert "configuration" in payload, "Missing configuration field"
+        assert "dependencies" in payload, "Missing dependencies field"
+        assert "integrations" in payload, "Missing integrations field"
+
+        # Verify data types
+        assert isinstance(payload["configuration"], list), "configuration should be a list"
+        assert isinstance(payload["dependencies"], list), "dependencies should be a list"
+        assert isinstance(payload["integrations"], list), "integrations should be a list"
+
+        # Verify at least some data is present (at least one field should have data)
+        has_data = (
+            len(payload["configuration"]) > 0
+            or len(payload["dependencies"]) > 0
+            or len(payload["integrations"]) > 0
+        )
+        assert has_data, "Extended heartbeat should contain some configuration/dependencies/integrations"
+
+        # Validate configuration structure if present
+        if len(payload["configuration"]) > 0:
+            config_item = payload["configuration"][0]
+            assert "name" in config_item, "Configuration item should have 'name'"
+            # Other fields like 'value', 'origin' are optional per schema
+
+        # Validate dependencies structure if present
+        if len(payload["dependencies"]) > 0:
+            dep_item = payload["dependencies"][0]
+            assert "name" in dep_item, "Dependency item should have 'name'"
+            # 'version' is optional per schema
+
+        # Validate integrations structure if present
+        if len(payload["integrations"]) > 0:
+            integ_item = payload["integrations"][0]
+            assert "name" in integ_item, "Integration item should have 'name'"
+            # Other fields like 'enabled', 'auto_enabled', 'compatible', 'version' are optional
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",
+            }
+        ],
+    )
+    def test_extended_heartbeat_matches_app_started(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Test that extended heartbeat contains same data as app-started"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        time.sleep(1.5)
+
+        events = test_agent.telemetry(clear=False)
+
+        # Find app-started and app-extended-heartbeat events
+        app_started = None
+        extended_hb = None
+
+        for event in events:
+            if test_agent._get_telemetry_event(event, "app-started"):
+                app_started = test_agent._get_telemetry_event(event, "app-started")
+            if test_agent._get_telemetry_event(event, "app-extended-heartbeat"):
+                extended_hb = test_agent._get_telemetry_event(event, "app-extended-heartbeat")
+
+        assert app_started is not None, "app-started event not found"
+        assert extended_hb is not None, "app-extended-heartbeat event not found"
+
+        # Configuration should match (same keys)
+        started_config_keys = {c["name"] for c in app_started["payload"].get("configuration", [])}
+        extended_config_keys = {c["name"] for c in extended_hb["payload"].get("configuration", [])}
+        assert started_config_keys == extended_config_keys, (
+            f"Configuration keys should match. "
+            f"app-started has: {started_config_keys}, "
+            f"extended-heartbeat has: {extended_config_keys}"
+        )
+
+        # Dependencies should match (name and version pairs)
+        started_deps = {(d["name"], d.get("version")) for d in app_started["payload"].get("dependencies", [])}
+        extended_deps = {(d["name"], d.get("version")) for d in extended_hb["payload"].get("dependencies", [])}
+        assert started_deps == extended_deps, (
+            f"Dependencies should match. "
+            f"app-started has {len(started_deps)} deps, "
+            f"extended-heartbeat has {len(extended_deps)} deps"
+        )
+
+        # Integrations should match (by name)
+        started_integ = {i["name"] for i in app_started["payload"].get("integrations", [])}
+        extended_integ = {i["name"] for i in extended_hb["payload"].get("integrations", [])}
+        assert started_integ == extended_integ, (
+            f"Integrations should match. "
+            f"app-started has: {started_integ}, "
+            f"extended-heartbeat has: {extended_integ}"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "0.5",
+            }
+        ],
+    )
+    def test_extended_heartbeat_excludes_products_and_install_signature(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
+        """Test that extended heartbeat does not include products/install_signature"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        time.sleep(1.5)
+        event = test_agent.wait_for_telemetry_event("app-extended-heartbeat", wait_loops=400)
+
+        assert event is not None, "app-extended-heartbeat event not found"
+        payload = event["payload"]
+
+        # These fields should NOT be present (they're only in app-started)
+        excluded_fields = ["products", "install_signature", "error", "additional_payload"]
+
+        for field in excluded_fields:
+            assert field not in payload, (
+                f"'{field}' should not be in extended heartbeat payload. "
+                f"Found keys: {list(payload.keys())}"
+            )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                # No DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL set (use default)
+            }
+        ],
+    )
+    def test_extended_heartbeat_default_interval(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Test that default interval is 24 hours (not immediate)"""
+
+        with test_library.dd_start_span("test"):
+            pass
+
+        # Wait a reasonable amount of time
+        time.sleep(2.0)
+
+        events = test_agent.telemetry(clear=False)
+        extended_hb_events = [e for e in events if test_agent._get_telemetry_event(e, "app-extended-heartbeat")]
+
+        # Should be zero events (24-hour default interval hasn't elapsed)
+        assert len(extended_hb_events) == 0, (
+            f"Extended heartbeat should not fire within 2s when using default 24h interval. "
+            f"Found {len(extended_hb_events)} events."
+        )
