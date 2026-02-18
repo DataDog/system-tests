@@ -35,7 +35,7 @@ set :host_authorization, { permitted_hosts: [] }
 set :strict_paths, false
 
 get '/' do
-  'Hello, world!'
+  "Hello world!\n"
 end
 
 get '/healthcheck' do
