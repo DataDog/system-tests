@@ -1661,6 +1661,7 @@ manifest:
     - declaration: missing_feature (Converts boolean values to strings)
       component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v3.11.0
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: v2.0.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.8.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0

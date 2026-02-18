@@ -1394,6 +1394,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_not_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.1.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.18.0
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: v2.1.0-dev
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.0.0  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.0.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.0.0

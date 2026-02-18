@@ -1931,6 +1931,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: *ref_4_23_0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: *ref_5_13_0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: *ref_5_59_0
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: '>=5.0.0'
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: *ref_5_16_0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:

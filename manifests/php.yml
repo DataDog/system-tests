@@ -756,6 +756,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_injection_enabled: '>=1.16.0'
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs::test_instrumentation_source_non_ssi: '>=1.16.0'
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: v1.0.0-dev
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.96.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0

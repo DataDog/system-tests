@@ -219,6 +219,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: v0.2.0-dev
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:  # Modified by easy win activation script
     - declaration: bug (APMAPI-908)
       component_version: <2.0.0
