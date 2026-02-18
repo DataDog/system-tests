@@ -58,7 +58,7 @@ jobs:
         run: nix develop --command ./build.sh -i runner
       - name: Test the test
         # no `docker` to actually run tests
-        if: ${{ matrix.platform.os != "darwin" }}
+        if: ${{ matrix.platform.os != 'darwin' }}
         run: nix develop --command ./run.sh TEST_THE_TEST
 
   complete:
