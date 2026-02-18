@@ -484,8 +484,8 @@ app.get('/external_request/redirect', (req: Request, res: Response) => {
         response.on('end', () => {
           res.status(200).send('OK')
         })
+        }
         response.resume()
-      }
     })
 
     request.end()

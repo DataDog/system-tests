@@ -32,8 +32,8 @@ export async function GET (request) {
           response.on('end', () => {
             resolve(NextResponse.json({ status: 'OK' }, { status: 200 }))
           })
-          response.resume()
         }
+        response.resume()
       })
 
       httpRequest.end()

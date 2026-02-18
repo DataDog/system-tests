@@ -739,8 +739,8 @@ app.get('/external_request/redirect', (req, res) => {
         response.on('end', () => {
           res.status(200).send('OK')
         })
-        response.resume()
       }
+      response.resume()
     })
 
     request.end()

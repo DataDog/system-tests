@@ -923,8 +923,8 @@ fastify.get('/external_request/redirect', async (request, reply) => {
           response.on('end', () => {
             resolve('OK')
           })
-          response.resume()
         }
+        response.resume()
       })
 
       httpRequest.end()
