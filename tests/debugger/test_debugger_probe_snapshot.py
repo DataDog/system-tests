@@ -56,8 +56,10 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 
         self.wait_for_all_probes(statuses=["EMITTING"])
 
-        if not self.wait_for_all_snapshots(timeout=60):
-            self.setup_failures.append("Snapshot was not received")
+        # Only wait for snapshots for log probes; span/decor probes create spans instead
+        if probe_type == "log":
+            if not self.wait_for_all_snapshots(timeout=60):
+                self.setup_failures.append("Snapshot was not received")
 
     def _assert(self):
         self.collect()
