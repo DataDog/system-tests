@@ -108,9 +108,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (multi-value header extraction is not supported by otel rust yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (Invalid tracestate keys for OpenTelemetry's implementation)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # Modified by easy win activation script
-    - declaration: missing_feature (can't guarantee the order of strings in the tracestate since they came from the map.)
-      component_version: <0.2.1
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: flaky (can't guarantee the order of strings in the tracestate since they came from the map.)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature  # Created by easy win activation script
