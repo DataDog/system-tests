@@ -66,6 +66,15 @@ manifest:
         fastapi: v3.13.0.dev
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_type: irrelevant
   tests/appsec/api_security/test_endpoint_fallback.py: irrelevant (python weblogs always have http.route)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_responses_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0

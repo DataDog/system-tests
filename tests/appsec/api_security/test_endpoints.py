@@ -1,0 +1,94 @@
+from utils import interfaces, rfc, scenarios, weblog, features, irrelevant, context
+from utils._weblog import HttpResponse
+
+
+def assert_llm_span(request: HttpResponse, model: str) -> None:
+    """Common assertions for LLM endpoint spans."""
+    span = interfaces.library.get_root_span(request)
+    assert span["meta"]["appsec.events.llm.call.provider"] == "openai"
+    assert span["meta"]["appsec.events.llm.call.model"] == model
+    assert span["metrics"]["_sampling_priority_v1"] == 1
+
+
+@rfc(
+    "https://docs.google.com/document/d/1TIFxbtbkldjOA6S5JFlCTMfqniXfJXZmDKptI5w2pnk/edit?tab=t.0#heading=h.xtljwwxyhqk7"
+)
+@scenarios.appsec_api_security
+@features.api_llm_endpoint
+class Test_LLM_Endpoint:
+    """Tests for the /llm endpoint capturing LLM interaction metadata."""
+
+    def setup_openai_latest_responses_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-responses.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_latest_responses_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_latest_chat_completions_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-chat.completions.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_latest_chat_completions_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_latest_completions_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-completions.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_latest_completions_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_legacy_chat_completions_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-legacy-chat.completions.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_legacy_chat_completions_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_legacy_completions_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-legacy-completions.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_legacy_completions_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_async_responses_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-responses.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_async_responses_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_async_chat_completions_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-chat.completions.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_async_chat_completions_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_openai_async_completions_create(self):
+        self.model = "gpt-4.1"
+        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-completions.create")
+
+    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
+    def test_openai_async_completions_create(self):
+        assert_llm_span(self.request, self.model)
+
+    def setup_root_no_llm(self):
+        # Baseline request to root endpoint should not produce LLM tags
+        self.root_request = weblog.get("/")
+
+    def test_root_has_no_llm_tags(self):
+        """Assert that LLM-specific meta tags are not present on the span."""
+        span = interfaces.library.get_root_span(self.root_request)
+        meta = span.get("meta", {})
+        assert "appsec.events.llm.call.provider" not in meta
+        assert "appsec.events.llm.call.model" not in meta
