@@ -1,6 +1,7 @@
 import json
 
 from utils import context, interfaces, scenarios, weblog, features
+from utils.dd_constants import SamplingPriority
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -169,6 +170,29 @@ class Test_Evaluation:
                 request,
                 validator=self._assert_span(action="DENY", messages=self.messages, blocking="false"),
                 full_trace=True,
+            )
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RootSpanUserKeep:
+    def setup_root_span_user_keep(self):
+        self.messages = MESSAGES["DENY"]
+        self.r = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: "false"}, json=self.messages)
+
+    def test_root_span_user_keep(self):
+        """Any trace with an ai_guard span must keep its root span."""
+        assert self.r.status_code == 200
+
+        spans = [span for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True)]
+        assert any(span.get("resource") == "ai_guard" for span in spans), "No ai_guard span found in the trace"
+
+        root_spans = [span for span in spans if span.get("parent_id") in (0, None)]
+        assert root_spans, "No root span found in the trace"
+
+        for root_span in root_spans:
+            assert root_span.get("metrics", {}).get("_sampling_priority_v1") == SamplingPriority.USER_KEEP, (
+                "Root span should be kept when an ai_guard span exists"
             )
 
 
