@@ -289,7 +289,7 @@ def print_docker_ssi_gitlab_pipeline(
                 result_pipeline[vm_job]["stage"] = scenario
                 result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
                 result_pipeline[vm_job]["tags"] = [
-                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'docker-in-docker:microvm-arm64'}"
+                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'docker-in-docker:arm64'}"
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}
@@ -321,7 +321,7 @@ def print_docker_ssi_gitlab_pipeline(
 
                 result_pipeline[vm_job]["script"] = [
                     "aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}",  # noqa: E501
-                    "SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner",
+                    "SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
                     (

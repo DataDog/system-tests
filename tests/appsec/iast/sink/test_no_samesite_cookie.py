@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, features, rfc, scenarios, flaky
+from utils import weblog, features, rfc, scenarios
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     BaseTestCookieNameFilter,
@@ -35,7 +35,6 @@ class TestNoSamesiteCookie(BaseSinkTest):
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @flaky(weblog_variant="vertx4", reason="APPSEC-56453")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 

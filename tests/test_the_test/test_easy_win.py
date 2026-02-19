@@ -11,6 +11,7 @@ from utils.scripts.activate_easy_wins._internal.test_artifact import (
 )
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.core import update_manifest
+from utils.scripts.activate_easy_wins._internal.types import Context
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -73,6 +74,34 @@ def test_parse_artifact_data_xpassed_tests():
         assert "tests/test_module.py::Test_Class::test_method" in test_data[context].xpass_nodes
         assert "tests/test_module.py::Test_Class::test_other" not in test_data[context].xpass_nodes
         assert weblogs["python"] == {"flask"}
+
+
+def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes():
+    """Test for parametric tests with mixed outcomes"""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir)
+        scenario_dir = data_dir / "test_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+
+        report = create_report_json(
+            library_name="python",
+            library_version="2.0.0",
+            weblog_variant="flask",
+            tests=[
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param1]", "outcome": "xpassed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param3]", "outcome": "xpassed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_pass[param]", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        test_data, _ = parse_artifact_data(data_dir, ["python"])
+
+        context = next(iter(test_data.keys()))
+        assert "tests/test_module.py::Test_Class::test_mixed" not in test_data[context].xpass_nodes
+        assert "tests/test_module.py::Test_Class::test_pass" in test_data[context].xpass_nodes
 
 
 def test_parse_artifact_data_xfailed_tests():
@@ -311,10 +340,7 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
         # Class level should be NONE because it contains tests that should not be activated
         assert trie.get("tests/parametric/test_params.py/Test_Params") == ActivationStatus.NONE
 
-        # Verify xpass_nodes contain the full nodeid WITH parameters (for tracking)
-        # but trie keys are WITHOUT parameters (for manifest rules)
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
-        assert "tests/parametric/test_params.py::Test_Params::test_mixed" in test_data[context].xpass_nodes
+        assert "tests/parametric/test_params.py::Test_Params::test_mixed" not in test_data[context].xpass_nodes
         assert "tests/parametric/test_params.py::Test_Params::test_all_pass" in test_data[context].xpass_nodes
 
 
@@ -609,3 +635,121 @@ manifest:
 
         rule = result["manifest"].get("tests/appsec/test_feature.py::Test_Feature::test_method2")
         assert rule == [{"declaration": "bug (XXXX)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
+
+
+# =============================================================================
+# Tests for version processing in Context.create
+# =============================================================================
+
+
+def test_context_create_strips_java_build_metadata():
+    """Test that Context.create strips build metadata (commit SHA after +) from Java versions."""
+    context = Context.create("java", "1.44.0+abcdef123", "spring-boot")
+    assert context is not None
+    assert str(context.library_version) == "1.44.0"
+    assert "+" not in str(context.library_version)
+
+
+def test_context_create_preserves_non_java_versions():
+    """Test that Context.create does not alter versions for non-Java libraries."""
+    context = Context.create("python", "2.5.0+azeroiut", "flask")
+    assert context is not None
+    assert str(context.library_version) == "2.5.0+azeroiut"
+
+
+# =============================================================================
+# Tests for comment preservation
+# =============================================================================
+
+
+def test_easy_win_comment_preserves_existing_comment():
+    """Test that existing YAML comments are not overwritten by the easy win activation script.
+
+    When a manifest entry already has an inline comment and the activation script
+    would try to add an 'Easy win for ...' comment, the pre-existing comment must
+    be preserved.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        # Create manifest with a pre-existing inline comment on a list-style rule.
+        # The list-style bug declaration without weblog_declaration triggers the
+        # else branch in write_poke, which attempts to write an "Easy win for ..." comment.
+        manifest_content = """---
+manifest:
+  tests/appsec/test_feature.py::Test_Feature: # Important: tracked in TICKET-456
+    - declaration: bug (TICKET-123)
+      component_version: '>=1.0.0'
+"""
+        (manifest_dir / "ruby.yml").write_text(manifest_content)
+
+        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+        update_manifest(manifest_editor, test_data)
+        manifest_editor.write(manifest_dir)
+
+        output_content = (manifest_dir / "ruby.yml").read_text()
+        # The pre-existing comment must still be there
+        assert "Important: tracked in TICKET-456" in output_content
+        # The easy win comment must NOT have overwritten it
+        assert "Easy win for" not in output_content
+
+
+def test_easy_win_comment_added_when_no_existing_comment():
+    """Test that the easy win comment IS added when there is no pre-existing comment.
+
+    This ensures the comment-preservation guard does not prevent comments from
+    being added to entries that have no comment yet.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/appsec/test_feature.py::Test_Feature::test_method", "outcome": "xpassed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        # Same manifest structure but WITHOUT a pre-existing comment
+        manifest_content = """---
+manifest:
+  tests/appsec/test_feature.py::Test_Feature:
+    - declaration: bug (TICKET-123)
+      component_version: '>=1.0.0'
+"""
+        (manifest_dir / "ruby.yml").write_text(manifest_content)
+
+        test_data, weblogs = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+        update_manifest(manifest_editor, test_data)
+        manifest_editor.write(manifest_dir)
+
+        output_content = (manifest_dir / "ruby.yml").read_text()
+        # The easy win comment should have been added since there was no pre-existing comment
+        assert "Easy win for" in output_content

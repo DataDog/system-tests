@@ -5,11 +5,11 @@ alwaysApply: true
 ---
 # Test Activation and Deactivation
 
-This rule describes how to activate or deactivate tests in system-tests. **Always prefer manifests over decorators.**
+**Always prefer manifests over decorators.**
 
 ## Key Documentation
 
-- @docs/edit/manifest.md: Manifest file format and examples
+- @docs/edit/manifest.md: Manifest file format, entry formats, and syntax rules
 - @docs/edit/skip-tests.md: Decorator usage (when manifests cannot be used)
 - @docs/edit/enable-test.md: How to enable tests
 - @docs/edit/versions.md: Version specification guidelines
@@ -35,166 +35,40 @@ Does the condition depend ONLY on:
             → Use DECORATOR (only option)
 ```
 
-**IMPORTANT:** Manifests can handle test files, classes, AND individual methods. The old guidance that "methods require decorators" is incorrect.
-
 ---
 
-## Part 1: Using Manifests (Preferred)
+## Manifest Rules
 
-### When to Use Manifests
+### Do NOT Create New Manifest Files
 
-Use manifests when the condition depends on:
-- ✅ Specific library (e.g., "for nodejs")
-- ✅ Library version (e.g., "for java >= 1.5.0")
-- ✅ Weblog variant (e.g., "for fastify weblog")
-- ✅ Any combination of the above
-
-### Manifest File Location
-
-Each library has its own manifest: `manifests/{library}.yml`
-
-Valid libraries:
-```
-cpp, cpp_httpd, cpp_nginx, dotnet, golang, java, java_otel,
-nodejs, nodejs_otel, php, python, python_lambda, python_otel, ruby, rust
-```
-
-**IMPORTANT: Do NOT create new manifest files.** The existing manifests cover all supported libraries. If you think a new manifest file is needed:
-1. STOP and ask the user before creating it
-2. Explain that creating new manifests is unusual and not standard practice
-3. Suggest the user ask in the **#apm-shared-testing** Slack channel to confirm if a new manifest is appropriate
-4. Only proceed if the user explicitly confirms after understanding this is non-standard
-5. If confirmed, also update the component list in `utils/manifest/_internal/parser.py` to include the new component name
-
-### Node ID Format
-
-```
-tests/path/to/file.py                           # Entire file
-tests/path/to/file.py::TestClassName            # Entire class
-tests/path/to/file.py::TestClassName::test_method  # Specific method
-```
-
-### Manifest Entry Formats
-
-#### Format A: Simple Version (feature available from version X)
-
-```yaml
-tests/path/test.py::TestClass: v1.2.0
-tests/path/test.py::TestClass::test_method: v2.0.0
-```
-
-#### Format B: Simple Marker (all versions)
-
-```yaml
-tests/path/test.py::TestClass: irrelevant
-tests/path/test.py::TestClass: missing_feature
-tests/path/test.py::TestClass: bug (JIRA-123)
-tests/path/test.py::TestClass: flaky (JIRA-123)
-tests/path/test.py::TestClass: incomplete_test_app (reason)
-```
-
-#### Format C: Marker with Reason
-
-```yaml
-tests/path/test.py::TestClass: irrelevant (Not applicable to this library)
-tests/path/test.py::TestClass: missing_feature (Feature not implemented yet)
-```
-
-#### Format D: Explicit Declaration with Version Constraint
-
-Use when you need both a marker with reason AND a version constraint:
-
-```yaml
-tests/path/test.py::TestClass::test_method:
-  - declaration: bug (JIRA-123)
-    component_version: '>=5.0.0'
-
-tests/path/test.py::TestClass::test_method:
-  - declaration: missing_feature (Feature description)
-    component_version: '<2.5.0'
-```
-
-The `component_version` field supports the full [npm semver range syntax](https://github.com/npm/node-semver#ranges):
-```yaml
-component_version: '>=1.0.0'           # Greater than or equal
-component_version: '<2.0.0'            # Less than
-component_version: '>=1.0.0 <2.0.0'    # Range (AND)
-component_version: '^1.3.0 || >=2.3.0' # Multiple ranges (OR)
-component_version: '^1.3.0'            # Caret: >=1.3.0 <2.0.0
-```
-
-#### Format E: Weblog-Specific Declaration
-
-Use when different weblogs have different behavior:
-
-```yaml
-tests/path/test.py::TestClass:
-  - weblog_declaration:
-      "*": v1.0.0              # Default for all weblogs
-      flask-poc: v2.0.0        # Different version for flask
-      fastify: missing_feature # Not available for fastify
-      express4: bug (JIRA-123) # Bug on express4
-```
-
-#### Format F: Long Node IDs (YAML Multiline)
-
-**Do not use this format manually.** If a node ID is too long, `./format.sh` will automatically convert it to multiline syntax:
-
-```yaml
-? tests/very/long/path/to/test_file.py::VeryLongTestClassName::very_long_method
-: bug (JIRA-123)
-```
-
-Always write entries in the standard format and let the formatter handle long lines.
-
-### Manifest Syntax Rules
-
-1. **Alphabetical order**: Entries MUST be sorted alphabetically by node ID
-2. **Quote special characters**: Values containing YAML special characters MUST be quoted to avoid syntax errors:
-   - `>` and `<` - Version comparisons (interpreted as YAML folded/literal block indicators)
-   - `:` - Colons in reasons or descriptions (interpreted as YAML key-value separators)
-   - `#` - Hash symbols (interpreted as YAML comments)
-   - `@`, `!`, `*`, `&`, `|`, `{`, `}`, `[`, `]` - Other YAML reserved characters
-   
-   **Examples:**
-   ```yaml
-   # WRONG - will cause YAML parsing errors
-   component_version: >=5.0.0
-   test: irrelevant (Issue: something with colon)
-   
-   # CORRECT - properly quoted
-   component_version: '>=5.0.0'
-   test: 'irrelevant (Issue: something with colon)'
-   test: "bug (See ticket #123)"
-   ```
-   
-   **Tip:** When in doubt, quote the value. Single quotes (`'`) are preferred for version ranges; double quotes (`"`) work too.
-3. **Valid markers only**: Use only `irrelevant`, `bug`, `flaky`, `missing_feature`, `incomplete_test_app`
-4. **JIRA references**: Always include JIRA ticket for `bug` and `flaky` markers
+The existing manifests cover all supported libraries. If creating a new manifest seems needed:
+1. STOP and ask the user first
+2. Suggest asking in **#apm-shared-testing** Slack channel
+3. Only proceed if explicitly confirmed
+4. If confirmed, also update `utils/manifest/_internal/parser.py`
 
 ### Using YAML References (Anchors)
 
-Manifests often define reusable references at the top in a `refs:` section:
+is a repeating pattern in your modifications.
+
+References are defined in the `refs:` section at the top of manifests:
 
 ```yaml
 refs:
   - &ref_5_0_0 v5.0.0
   - &ref_5_6_0 '>=5.6.0'
   - &django_weblogs "django-poc, django-py3.13, python3.12"
-manifest:
-  tests/path/test.py::TestClass: *ref_5_0_0
 ```
 
-**Rules for using references:**
-1. **Check for existing references**: Before adding a version, look at the `refs:` section at the top of the manifest. If a matching reference exists, use it instead of hardcoding the value.
-2. **Always verify reference content**: Before using a reference, check what it actually contains. References can be:
-   - Simple versions: `&ref_5_0_0 v5.0.0`
-   - Version ranges: `&ref_5_6_backports '>=5.6.0 || ^4.3.0'`
-   - Markers: `&ref_missing missing_feature`
-   - Weblog lists: `&django_weblogs "django-poc, django-py3.13, python3.12"`
-3. **Don't mix reference types**: A version reference should only be used where a version is expected. Never use a version range reference as a `declaration` value or vice versa.
+**Rules:**
+1. Check for existing references before adding a version
+2. Verify what a reference contains before using it
+3. Don't mix reference types (version refs vs declaration refs)
+4. You should not change existing references without explicit approval from the user.
+5. You can create new references only in manifests that already have references and 
+   with approval from the user. You should propose creating new references when there 
 
-**Example mistake to avoid:**
+**Mistake to avoid:**
 ```yaml
 # WRONG - using a version ref where a declaration is expected
 tests/path/test.py::TestClass:
@@ -207,100 +81,18 @@ tests/path/test.py::TestClass:
     component_version: '<5.0.0'
 ```
 
-### Advanced Patterns
-
-For more complex scenarios, see @docs/edit/manifest.md#advanced-syntax-examples and test manifests in `tests/test_the_test/manifests/`.
-
-**Weblog filtering with explicit format:**
-```yaml
-refs:
-  - &django_weblogs "django-poc, django-py3.13, python3.12"
-manifest:
-  # Apply to specific weblogs only
-  tests/appsec/iast:
-    - component_version: "<3.11.0"
-      declaration: missing_feature (Description)
-      weblog: *django_weblogs
-
-  # Exclude specific weblogs (apply to all others)
-  tests/appsec/test.py:
-    - excluded_weblog: [django-py3.13, django-poc]
-      component_version: "<3.13.0"
-      declaration: missing_feature
-```
-
-**Directory-level rules:**
-```yaml
-manifest:
-  tests/appsec/iast/sink: missing_feature  # Entire directory
-  tests/appsec/iast/sink/test_specific.py: v2.0.0  # Override for specific file
-```
-
-**Weblog declaration with wildcard and overrides:**
-```yaml
-manifest:
-  tests/path/test.py::TestClass:
-    - weblog_declaration:
-        "*": v2.4.0          # Default for all weblogs
-        fastapi: missing_feature  # Override for fastapi
-        flask-poc: v2.5.0    # Different version for flask
-```
-
 ### After Modifying Manifests
 
-**ALWAYS run `./format.sh` after any manifest modification.** This script:
-- Validates YAML syntax
-- Sorts entries alphabetically
-- Checks for formatting issues
-
-```bash
-./format.sh
-```
-
-If `format.sh` fails, fix the reported issues before committing. You can also run the `TEST_THE_TEST` scenario for additional validation.
+**ALWAYS run `./format.sh` after any manifest modification.**
 
 ---
 
-## Part 2: Using Decorators (Only When Necessary)
+## Decorator Rules
 
-### When to Use Decorators
-
-Use decorators ONLY when the condition cannot be expressed in manifests:
-- `context.scenario` - Scenario-specific conditions
-- `context.vm_name` - VM-specific conditions
-- `context.installed_language_runtime` - Runtime version conditions
-- `context.agent_version` combined with other conditions (agent version alone can use `manifests/agent.yml`)
-- Complex boolean logic combining multiple attributes
-- `force_skip=True` requirement (completely prevents test execution)
-
-### Decorator Types and Behavior
-
-| Decorator | Behavior | When to Use |
-|-----------|----------|-------------|
-| `@irrelevant` | Test is SKIPPED completely | Feature doesn't apply to this context |
-| `@missing_feature` | Test RUNS, XFAIL if fails, XPASS if passes | Feature not yet implemented |
-| `@bug` | Test RUNS, XFAIL if fails, XPASS if passes | Known bug |
-| `@flaky` | Test is NOT executed by default | Intermittent failures |
-| `@incomplete_test_app` | Same as missing_feature | Weblog endpoint not implemented |
-
-### Decorator Syntax
-
-```python
-from utils import bug, flaky, irrelevant, missing_feature, incomplete_test_app
-
-@decorator_name(condition, reason="explanation")
-```
-
-### Decorator Parameters
-
-- `condition`: Boolean expression (first positional argument)
-- `library`: Target library (e.g., `library="java"` or `library="python@2.5.0"`)
-- `reason`: Explanation (REQUIRED - always include this)
-- `force_skip`: Set to `True` to completely skip test execution (use sparingly)
-
-### Version Format in Decorators
+### Version Format
 
 **CRITICAL**: Always use `library@version` format:
+
 ```python
 # CORRECT
 @missing_feature(context.library < "python@2.5.0", reason="...")
@@ -309,38 +101,24 @@ from utils import bug, flaky, irrelevant, missing_feature, incomplete_test_app
 @missing_feature(context.library < "2.5.0", reason="...")
 ```
 
-### Decorator Examples
+### Always Include Reason
+
+** Rules **
+1. When you don't know the reason you should ask the user
+2. Bugs must reference a valid JIRA ticket, you must ask the user for one
 
 ```python
-# Scenario-specific (cannot use manifest)
-@irrelevant(context.scenario == scenarios.profiling, reason="Not applicable to profiling")
-def test_something(self):
-    pass
+# CORRECT
+@missing_feature(condition, reason="Feature not implemented yet")
+@bug(condition, reason="JIRA-1234")
 
-# VM-specific (cannot use manifest)
-@flaky(context.vm_name == "Amazon_Linux_2023_amd64", reason="JIRA-123")
-def test_something(self):
-    pass
-
-# Combined conditions (cannot use manifest - multiple attributes)
-@missing_feature(
-    context.library == "java" and context.agent_version < "7.50.0",
-    reason="Requires agent 7.50.0+ for Java"
-)
-def test_something(self):
-    pass
-
-# Force skip (prevents any execution)
-@bug(context.library < "java@1.5.0", reason="JIRA-123", force_skip=True)
-def test_something(self):
-    pass
+# WRONG - missing reason
+@missing_feature(condition)
 ```
 
 ---
 
-## Part 3: Quick Reference
-
-### User Request → Action
+## Quick Reference: User Request → Action
 
 | User Request | Use | Format |
 |--------------|-----|--------|
@@ -356,19 +134,37 @@ def test_something(self):
 | "Bug for agent + library combo" | **Decorator** | Complex condition |
 | "Skip test completely" | **Decorator** | With `force_skip=True` |
 
-### Common Mistakes to Avoid
+---
+
+## Common Mistakes to Avoid
 
 1. ❌ Using decorators when manifests can express the condition
-2. ❌ Forgetting the `reason` parameter
+2. ❌ Forgetting the `reason` parameter in decorators
 3. ❌ Using `library < "2.5.0"` instead of `library < "python@2.5.0"`
 4. ❌ Not sorting manifest entries alphabetically
-5. ❌ Using `false` or invalid markers in manifests
-6. ❌ Forgetting to quote values with special YAML characters
-7. ❌ Creating new manifest files (ask user first, suggest #apm-shared-testing Slack)
+5. ❌ Using `false` or invalid markers in manifests (use only: `irrelevant`, `bug`, `flaky`, `missing_feature`, `incomplete_test_app`)
+6. ❌ Forgetting to quote values with special YAML characters (`>`, `<`, `:`, `#`)
+7. ❌ Creating new manifest files without asking first
+8. ❌ Using `X.Y.Z` instead of `vX.Y.Z` for versions (see warning below)
+
+### Version Format Warning
+
+**If you see a version like `1.2.0` (without `v` prefix) in a manifest, ASK THE USER if this is intentional:**
+
+- `vX.Y.Z` = `>=X.Y.Z` (enabled for this version AND all future versions) ✓ Common case
+- `X.Y.Z` = exactly that version only ⚠️ Rarely intended
+
+```yaml
+# COMMON - enables test for v1.2.0 and all later versions
+tests/path/test.py::TestClass: v1.2.0
+
+# RARE - enables test ONLY for exactly version 1.2.0 (not 1.2.1, not 1.3.0)
+tests/path/test.py::TestClass: 1.2.0  # ⚠️ Ask user: "Did you mean v1.2.0?"
+```
 
 ---
 
-## Part 4: Examples
+## Examples
 
 ### Example 1: Deactivate for library (all versions)
 

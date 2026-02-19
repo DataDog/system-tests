@@ -3,9 +3,10 @@ from typing import Any
 from collections import defaultdict
 from collections.abc import Callable
 from datetime import timedelta
+from http import HTTPStatus
 import time
 from dateutil.parser import isoparse
-from utils import context, interfaces, missing_feature, bug, irrelevant, weblog, scenarios, features, rfc, logger
+from utils import context, interfaces, bug, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
 from utils.telemetry import get_lang_configs, load_telemetry_json
 
@@ -184,21 +185,33 @@ class Test_Telemetry:
                 last_known_data = data
 
     @features.telemetry_app_started_event
+    @rfc(
+        "https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/overview.md#app-lifecycle-events:~:text=A%20tracer%20session%20should%20be%20generated%20when%20the%20tracer%20starts%20and%20should%20be%20identical%20within%20the%20context%20of%20a%20host%20(i.e.%20multiple%20threads%5Cprocesses%20that%20belong%20to%20a%20single%20instrumented%20app%20should%20share%20the%20same%20runtime_id)"
+    )
     def test_app_started_sent_exactly_once(self):
-        """Request type app-started is sent exactly once"""
+        r"""Request type app-started is sent exactly once per runtime id.
+        * multiple threads\processes that belong to a single instrumented app should share the same runtime_id
+        * each runtime id should report exactly one app-started event
+        """
 
-        count_by_runtime_id: dict[str, int] = defaultdict(lambda: 0)
+        count_by_runtime_id: dict[str, int] = {}
 
         for data in interfaces.library.get_telemetry_data():
+            runtime_id: str = data["request"]["content"]["runtime_id"]
+
+            if runtime_id not in count_by_runtime_id:
+                count_by_runtime_id[runtime_id] = 0
+
             if get_request_type(data) == "app-started":
                 logger.debug(
-                    f"Found app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
+                    f"runtime id {runtime_id} reported app-started in {data['log_filename']}. Response from agent: {data['response']['status_code']}"
                 )
-                runtime_id = data["request"]["content"]["runtime_id"]
-                if data["response"]["status_code"] == 202:
+                if data["response"]["status_code"] in (HTTPStatus.OK, HTTPStatus.ACCEPTED):
+                    # if for some reason the agent do no answer 200/202, the tracer should report another event
                     count_by_runtime_id[runtime_id] += 1
 
-        assert all(count == 1 for count in count_by_runtime_id.values())
+        for runtime_id, count in count_by_runtime_id.items():
+            assert count == 1, f"runtime id {runtime_id} did not reported exactly one app-started event"
 
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
@@ -234,8 +247,6 @@ class Test_Telemetry:
                 return
         raise ValueError("app-started message not found")
 
-    @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
-    @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
     @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
@@ -441,7 +452,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
-    @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
 
@@ -522,10 +532,6 @@ class Test_Telemetry:
     def setup_app_product_change(self):
         weblog.get("/enable_product")
 
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
-        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
-    )
     def test_app_product_change(self):
         """Test product change data when product is enabled"""
 
@@ -705,10 +711,6 @@ class Test_TelemetryV2:
                     "Product information is not accurately reported by telemetry on app-started event"
                 )
 
-    @irrelevant(
-        condition=context.library not in ("python",),
-        reason="This test causes to many friction. It has been replaced by alerts on slack channels",
-    )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
@@ -731,6 +733,8 @@ class Test_TelemetryV2:
 
                 norm_rules = lang_config.get("normalization_rules", {})
                 exact_keys = get_all_keys_and_values(config_norm_rules, norm_rules)
+                # backend side normalizes keys to lowercase, we need to mimic this behavior
+                exact_keys = [key.lower() for key in exact_keys]
 
                 prefix_keys = get_all_keys_and_values(
                     config_prefix_block_list,

@@ -58,6 +58,13 @@ patterns:
         libraries: null
 
     requirements.txt: # run all by default
+
+    utils/build/docker/python/*/requirements*.txt:
+        libraries: python
+
+    utils/build/docker/python_lambda/*/requirements*.txt:
+        libraries: python_lambda
+
     "*.txt":
         scenario_groups: null
         libraries: null
@@ -153,6 +160,7 @@ patterns:
         libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
+        libraries: null
     .github/workflows/changelog.yml:
         scenario_groups: null
         libraries: null
@@ -313,6 +321,8 @@ patterns:
         scenario_groups: open_telemetry
     utils/build/docker/*/parametric/*:
         scenarios: PARAMETRIC
+    utils/build/docker/vcr/cassettes/aiguard/*:
+      scenario_groups: ai_guard
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the

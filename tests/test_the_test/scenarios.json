@@ -3861,6 +3861,12 @@
   "tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride::test_profiling_override_cluster_env": [
     "K8S_LIB_INJECTION_PROFILING_OVERRIDE"
   ],
+  "tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault::test_appsec_disabled_by_default": [
+    "K8S_LIB_INJECTION_APPSEC_DISABLED"
+  ],
+  "tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled::test_appsec_admission_controller": [
+    "K8S_LIB_INJECTION_APPSEC_ENABLED"
+  ],
   "tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_extract": [
     "APM_TRACING_E2E_OTEL"
   ],
@@ -4188,7 +4194,7 @@
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags[library_env1]": [
     "PARAMETRIC"
   ],
-  "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_sample_rate[library_env0]": [
+  "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_sampling_rate[library_env0]": [
     "PARAMETRIC"
   ],
   "tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection[library_env0]": [

@@ -109,8 +109,7 @@ class BaseDebuggerTest:
     rc_states: list[remote_config.RemoteConfigStateResults] = []
     prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
-
-    setup_failures: list
+    setup_failures: list = []
 
     use_debugger_endpoint: bool = False
 
@@ -146,7 +145,14 @@ class BaseDebuggerTest:
         return definitions.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes: list[dict]) -> None:
+    def set_probes(
+        self,
+        probes: list[dict],
+        *,
+        path_prefix: str = "",
+        uppercase_source_files: bool = False,
+        use_backslashes: bool = False,
+    ) -> None:
         def _enrich_probes(probes: list[dict]):
             def __get_probe_type(probe_id: str):
                 if probe_id.startswith("log"):
@@ -179,7 +185,7 @@ class BaseDebuggerTest:
                             probe["where"]["methodName"][0].lower() + probe["where"]["methodName"][1:]
                         )
                     elif language == "python":
-                        probe["where"]["typeName"] = "debugger_controller"
+                        probe["where"]["typeName"] = "debugger.debugger_controller"
                         probe["where"]["methodName"] = re.sub(
                             r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
                         ).lower()
@@ -196,24 +202,36 @@ class BaseDebuggerTest:
                         method = method[0].lower() + method[1:] if method else ""
                         probe["where"]["methodName"] = "main.(*DebuggerController)." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
+                    source_file = ""
+
                     if language == "dotnet":
-                        probe["where"]["sourceFile"] = "DebuggerController.cs"
+                        source_file = "DebuggerController.cs"
                     elif language == "java":
-                        probe["where"]["sourceFile"] = "DebuggerController.java"
+                        source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
                     elif language == "python":
-                        probe["where"]["sourceFile"] = "debugger_controller.py"
+                        source_file = "debugger/debugger_controller.py"
                     elif language == "ruby":
                         # In docker container the controller will not have the
                         # shared/rails prefix, this is fine because DI will
                         # remove prefixes as part of file matching.
-                        probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
+                        source_file = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         if context.weblog_variant == "express4-typescript":
-                            probe["where"]["sourceFile"] = "debugger/index.ts"
+                            source_file = "debugger/index.ts"
                         else:
-                            probe["where"]["sourceFile"] = "debugger/index.js"
+                            source_file = "debugger/index.js"
                     elif language == "php":
-                        probe["where"]["sourceFile"] = "debugger.php"
+                        source_file = "debugger.php"
+
+                    if uppercase_source_files:
+                        source_file = source_file.upper()
+                    if path_prefix:
+                        source_file = os.path.join(path_prefix, source_file)
+                    if use_backslashes:
+                        source_file = source_file.replace("/", "\\")
+
+                    probe["where"]["sourceFile"] = source_file
+
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -437,6 +455,86 @@ class BaseDebuggerTest:
 
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
+
+    def wait_for_all_snapshots(self, exception_message: str = "", timeout: int = 30) -> bool:
+        """Wait for snapshots from all expected probe IDs to be received.
+
+        Args:
+            exception_message: Optional exception message to filter snapshots by. When provided,
+                             only waits for a single snapshot matching this exception message.
+            timeout: Maximum time to wait in seconds.
+
+        Returns:
+            True if the expected snapshots were found, False otherwise.
+
+        """
+        exception_snapshot = bool(exception_message)
+        if exception_snapshot:
+            logger.debug(f"Waiting for snapshot with exception message: {exception_message}")
+            self._exception_message = exception_message
+            self._snapshot_found = False
+            interfaces.agent.wait_for(
+                lambda data: self._wait_for_all_snapshots(data, exception_snapshot=True), timeout=timeout
+            )
+            return self._snapshot_found
+        else:
+            logger.debug(f"Waiting for snapshots from all probes: {self.probe_ids}")
+            self._all_snapshots_found = False
+            self._found_probe_ids: set[str] = set()
+            interfaces.agent.wait_for(
+                lambda data: self._wait_for_all_snapshots(data, exception_snapshot=False), timeout=timeout
+            )
+            return self._all_snapshots_found
+
+    def _wait_for_all_snapshots(self, data: dict, *, exception_snapshot: bool = False) -> bool:
+        if data["path"] not in [_LOGS_PATH, _DEBUGGER_PATH]:
+            return False
+
+        if exception_snapshot:
+            logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
+
+        contents = data["request"].get("content", []) or []
+
+        for content in contents:
+            # Filter out snapshots from before the test start time for multiple tests using the same file.
+            if "timestamp" in content and self.start_time is not None:
+                if content["timestamp"] < self.start_time:
+                    continue
+
+            snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+
+            if not snapshot or "probe" not in snapshot:
+                continue
+
+            # Handle exception snapshot filtering
+            if exception_snapshot:
+                if "exceptionId" not in snapshot:
+                    continue
+
+                exception_message = self.get_exception_message(snapshot)
+                logger.debug(f"Found exception message is {exception_message}")
+
+                if self._exception_message and self._exception_message in exception_message:
+                    self._snapshot_found = True
+                    logger.debug(f"Exception snapshot found: {self._snapshot_found}")
+                    return True
+            else:
+                # Handle all probes snapshot collection
+                probe_id = snapshot["probe"]["id"]
+                if probe_id in self.probe_ids:
+                    self._found_probe_ids.add(probe_id)
+                    logger.debug(f"Found snapshot for probe {probe_id}")
+
+        # For all probes mode, check if we have snapshots for all expected probe IDs
+        if not exception_snapshot:
+            if set(self.probe_ids).issubset(self._found_probe_ids):
+                logger.debug(f"All snapshots found for probes: {self.probe_ids}")
+                self._all_snapshots_found = True
+                return True
+
+            logger.debug(f"Still waiting for snapshots. Found: {self._found_probe_ids}, Expected: {self.probe_ids}")
+
+        return False
 
     _no_capture_reason_span_found = False
 

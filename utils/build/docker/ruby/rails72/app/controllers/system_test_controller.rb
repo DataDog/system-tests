@@ -6,7 +6,7 @@ class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def root
-    render plain: 'Hello, world!'
+    render plain: "Hello world!\n"
   end
 
   def waf
@@ -212,6 +212,70 @@ class SystemTestController < ApplicationController
     headers = {}
     OpenTelemetry.propagation.inject(headers)
     render json: JSON.generate(headers), content_type: 'application/json'
+  end
+
+  def otel_drop_in_baggage_api_otel
+    baggage_to_remove = request.params[:baggage_remove].split(',') || []
+    baggage_to_set = request.params[:baggage_set].split(',').map { |item| item.split('=') } || []
+
+    baggage_to_remove.each do |key|
+      OpenTelemetry::Baggage.remove_value(key)
+    end
+    baggage_to_set.each do |key, value|
+      OpenTelemetry::Baggage.set_value(key, value)
+    end
+
+    url = params[:url]
+    uri = URI(url)
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    result = {
+      "url": url,
+      "status_code": response.code.to_i,
+      "request_headers": request.each_header.to_h,
+      "response_headers": response.each_header.to_h,
+    }
+
+    render json: result
+  end
+
+  def otel_drop_in_baggage_api_datadog
+    baggage_to_remove = request.params[:baggage_remove].split(',') || []
+    baggage_to_set = request.params[:baggage_set].split(',').map { |item| item.split('=') } || []
+
+    baggage_to_remove.each do |key|
+      Datadog::Tracing.baggage.delete(key)
+    end
+    baggage_to_set.each do |key, value|
+      Datadog::Tracing.baggage[key] = value
+    end
+
+    url = params[:url]
+    uri = URI(url)
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    result = {
+      "url": url,
+      "status_code": response.code.to_i,
+      "request_headers": request.each_header.to_h,
+      "response_headers": response.each_header.to_h,
+    }
+
+    render json: result
   end
 
   def handle_path_params

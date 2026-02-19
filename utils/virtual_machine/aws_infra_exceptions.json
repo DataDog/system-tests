@@ -37,5 +37,9 @@
     "error_creating_lease":"error creating lease: grpc: the client connection is closing: context canceled",
     "could_not_automatically_download_and_install_resource_plugin":"Could not automatically download and install resource plugin",
     "error_dotnet_loading_service_index":"Unable to load the service index for source https://api.nuget.org/v3/index.json",
-    "s3_503_Slow_Down":"503 Slow Down"
+    "s3_503_Slow_Down":"503 Slow Down",
+    "openssl_ssl_connect_connection_reset_by_peer": "OpenSSL SSL_connect: Connection reset by peer in connection to keys.datadoghq.com:443",
+    "Failed_get_info_Microsoft.AspNetCore'":"Failed to retrieve information about 'Microsoft.AspNetCore'",
+    "error_download_failed_with_curl_install_script":"Error: Download failed with curl",
+    "error_response_from_docker_daemon":"dial tcp: lookup auth.docker.io: no such host"
 }
