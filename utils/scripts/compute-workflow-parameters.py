@@ -231,6 +231,7 @@ if __name__ == "__main__":
         help="One of the supported Datadog library",
         choices=[
             "cpp_httpd",
+            "cpp_kong",
             "cpp_nginx",
             "cpp",
             "dotnet",
