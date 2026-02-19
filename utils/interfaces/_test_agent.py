@@ -119,7 +119,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
 
                 # v2 logs send in the form of `payload:{logs:[]}`
                 # we should also check if `logs` value is a list, and iterate
-                # through the objects in the list
+                # through the `dict`s in the list
                 if "logs" in payload and isinstance(payload["logs"], list):
                     for log in payload["logs"]:
                         if isinstance(log, dict):
