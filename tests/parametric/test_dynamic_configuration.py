@@ -1014,22 +1014,25 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Only the last set of sampling rules should be applied"""
-        rc_state = set_and_wait_rc(
+        old_rate: float = 0.5
+        new_rate: float = 0.1
+        max_propagation_retries: int = 30
+
+        rc_state: dict = set_and_wait_rc(
             test_agent,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
                         "service": "svc*",
                         "resource": "*",
-                        "sample_rate": 0.5,
+                        "sample_rate": old_rate,
                         "provenance": "customer",
                     }
                 ],
             },
         )
 
-        # Keep a reference on the RC config ID
-        config_id = rc_state["id"]
+        config_id: str = rc_state["id"]
 
         set_and_wait_rc(
             test_agent,
@@ -1039,7 +1042,7 @@ class TestDynamicConfigSamplingRules:
                     {
                         "service": "foo*",
                         "resource": "*",
-                        "sample_rate": 0.1,
+                        "sample_rate": new_rate,
                         "provenance": "customer",
                     }
                 ],
@@ -1050,14 +1053,15 @@ class TestDynamicConfigSamplingRules:
         # previous sampling rules. set_and_wait_rc waits for telemetry and RC acknowledgment,
         # but these signals can be satisfied by stale events from the prior config, causing a
         # window where the new rules aren't yet active. Retry to allow for full propagation.
-        trace = None
-        for _ in range(30):
+        trace: list[Span] | None = None
+        for _ in range(max_propagation_retries):
             trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
-            span = find_first_span_in_trace_payload(trace)
-            if span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(0.1):
+            span: Span = find_first_span_in_trace_payload(trace)
+            if span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(new_rate):
                 break
             time.sleep(0.1)
-        assert_sampling_rate(trace, 0.1)
+        assert trace is not None
+        assert_sampling_rate(trace, new_rate)
 
         trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
-        assert_sampling_rate(trace, 1)
+        assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
