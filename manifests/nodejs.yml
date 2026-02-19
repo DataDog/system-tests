@@ -1687,21 +1687,21 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.88.0"
+        express5: ">=5.37.0 <5.88.0"
+        fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.88.0"
+        express5: ">=5.37.0 <5.88.0"
+        fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.88.0"
+        express5: ">=5.37.0 <5.88.0"
+        fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: *ref_5_83_0
