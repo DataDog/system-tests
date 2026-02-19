@@ -1,15 +1,10 @@
 from collections.abc import Callable
-from utils import weblog, interfaces, scenarios, features, context
-from utils import missing_feature, irrelevant
+from utils import weblog, interfaces, scenarios, features
 from utils.interfaces._library.miscs import validate_process_tags, validate_process_tags_svc
 
 
 @scenarios.tracing_config_nondefault
 @features.process_tags
-@missing_feature(
-    condition=context.library.name not in ("java", "golang", "dotnet", "python", "ruby"),
-    reason="Not yet implemented",
-)
 class Test_Process_Tags:
     """Test the presence of process tags in various payloads."""
 
@@ -57,15 +52,9 @@ class Test_Process_Tags:
             found = True
         assert found, "Process tags are missing"
 
-    @irrelevant(
-        condition=context.weblog_variant == "spring-boot-3-native",
-    )
     def test_remote_config_process_tags_svc(self):
         self.check_remote_config_process_tags(validate_process_tags_svc)
 
-    @irrelevant(
-        condition=context.weblog_variant == "spring-boot-3-native",
-    )
     def test_remote_config_process_tags(self):
         self.check_remote_config_process_tags(validate_process_tags)
 
@@ -90,14 +79,8 @@ class Test_Process_Tags:
 
         assert found, "Process tags are missing"
 
-    @irrelevant(
-        condition=context.weblog_variant == "spring-boot-3-native",
-    )
     def test_telemetry_process_tags_svc(self):
         self.check_telemetry_process_tags(validate_process_tags_svc)
 
-    @irrelevant(
-        condition=context.weblog_variant == "spring-boot-3-native",
-    )
     def test_telemetry_process_tags(self):
         self.check_telemetry_process_tags(validate_process_tags)

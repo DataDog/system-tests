@@ -7,9 +7,8 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v1.6.2
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v1.6.2
@@ -945,10 +944,13 @@ manifest:
       component_version: '>1.5.1'
     - declaration: flaky (APMRP-360)
       component_version: <=0.90
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+  tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration: missing_feature (Telemetry is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once: irrelevant (PHP registers 2 telemetry services)
   tests/test_telemetry.py::Test_Telemetry::test_seq_id: irrelevant (PHP registers 2 telemetry services)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v0.99.1
   tests/test_telemetry.py::Test_TelemetryV2: v0.90
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing (both in libdatadog and php))
+  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py: missing_feature
