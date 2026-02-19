@@ -1,7 +1,28 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_db_connection_string: "irrelevant (Open telemetry doesn't send this span for nodejs and mssql. It's recomended but not mandatory)"
+  tests/integrations/test_open_telemetry.py::Test_MsSql::test_db_mssql_instance_name: irrelevant (Open Telemetry doesn't generate this span. It's recomended but not mandatory)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_db_operation: missing_feature (We are not generating this span)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_obfuscate_query: bug (OTEL-940)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_resource: "missing_feature (Resource span is not generating correctly. We find resource value: execsql master)"
@@ -14,6 +35,19 @@ manifest:
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_type_and_stack: missing_feature (Open telemetry with nodejs is not generating this information.)
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-940)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for nodejs but it should do)"
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_sql_table: missing_feature (Open Telemetry doesn't send this span for python. But according to the OTEL specification it would be recommended)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_error_exception_event: missing_feature (Open telemetry with nodejs is not generating this information.)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_error_type_and_stack: missing_feature (Open telemetry with nodejs is not generating this information.)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-940)
+  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)

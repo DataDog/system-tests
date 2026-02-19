@@ -11,7 +11,7 @@ from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import retrieve_span_links
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures import TestAgentAPI
-from utils import features, missing_feature, context, scenarios
+from utils import features, context, scenarios
 from .conftest import APMLibrary
 
 # this global mark applies to all tests in this file.
@@ -619,10 +619,6 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(
-        context.library in ("dotnet", "golang", "ruby"),
-        reason="Newer agents/testagents enabled native span event serialization by default",
-    )
     def test_otel_add_event_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.AddEvent API and its serialization into the meta tag 'events'"""
         # Since timestamps may not be standardized across languages, use microseconds as the input
@@ -688,10 +684,6 @@ class Test_Otel_Span_Methods:
         root_span = find_span(trace, span.span_id)
         assert "error" not in root_span or root_span["error"] == 0
 
-    @missing_feature(
-        context.library in ("dotnet", "golang", "ruby"),
-        reason="Newer agents/testagents enabled native span event serialization by default",
-    )
     def test_otel_record_exception_meta_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.RecordException API (requires Span.AddEvent API support)
         and its serialization into the Datadog error tags and the 'events' tag
@@ -732,10 +724,6 @@ class Test_Otel_Span_Methods:
         if context.library != "php":
             assert "error.type" in root_span["meta"]
 
-    @missing_feature(
-        context.library in ("dotnet", "golang", "ruby"),
-        reason="Newer agents/testagents enabled native span event serialization by default",
-    )
     def test_otel_record_exception_attributes_serialization(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Tests the Span.RecordException API (requires Span.AddEvent API support)
         and its serialization into the Datadog error tags and the 'events' tag

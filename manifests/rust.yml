@@ -4,12 +4,36 @@ refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
+  tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.0.1
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -135,6 +159,7 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_logs.py: v0.3.0
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
@@ -178,6 +203,8 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
@@ -217,6 +244,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.0.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.0.1
@@ -234,6 +262,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_regex_special_chars: missing_feature  # Created by easy win activation script
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
   tests/parametric/test_tracer.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=0.2.1'  # Modified by easy win activation script
@@ -245,4 +274,7 @@ manifest:
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
   tests/stats/test_stats.py: missing_feature
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_v1_payloads.py: missing_feature

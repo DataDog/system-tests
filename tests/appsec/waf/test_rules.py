@@ -4,7 +4,7 @@
 
 """Exhaustive tests on WAF default rule set"""
 
-from utils import context, weblog, interfaces, bug, missing_feature, irrelevant, features, waf_rules
+from utils import weblog, interfaces, features, waf_rules
 
 
 @features.waf_rules
@@ -53,10 +53,6 @@ class Test_LFI:
         self.r_2 = weblog.get("/waf/0x5c0x2e0x2e0x2f")
         self.r_3 = weblog.get("/waf/", params={"attack": "/.htaccess"})
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
     def test_lfi(self):
         """AppSec catches LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.lfi)
@@ -74,9 +70,6 @@ class Test_LFI:
     def setup_lfi_in_path(self):
         self.r_5 = weblog.get("/waf/..")
 
-    @irrelevant(
-        context.weblog_variant in ("akka-http", "play") and context.library == "java", reason="path is normalized to /"
-    )
     def test_lfi_in_path(self):
         """AppSec catches LFI attacks in URL path like /.."""
         interfaces.library.assert_waf_attack(self.r_5, waf_rules.lfi.crs_930_110)
@@ -143,7 +136,6 @@ class Test_PhpCodeInjection:
         self.r_7 = weblog.get("/waf/", params={"x-attack": " var_dump ()"})
         self.r_8 = weblog.get("/waf/", params={"x-attack": 'o:4:"x":5:{d}'})
 
-    @missing_feature(context.library < "golang@1.36.0" and context.weblog_variant == "echo")
     def test_php_code_injection_bug(self):
         """Appsec WAF detects other php injection rules"""
         interfaces.library.assert_waf_attack(self.r_7, waf_rules.php_code_injection.crs_933_160)
@@ -268,7 +260,6 @@ class Test_DiscoveryScan:
         self.r10 = weblog.get("/administrator/components/component.php")
         self.r11 = weblog.get("/login.pwd")
 
-    @bug(context.library < "java@0.98.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
     def test_security_scan(self):
         """AppSec WAF catches Discovery scan"""
 

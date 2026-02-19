@@ -13,9 +13,7 @@ from utils import (
     interfaces,
     scenarios,
     irrelevant,
-    bug,
     features,
-    flaky,
     logger,
     context,
 )
@@ -67,8 +65,6 @@ class Test_DsmKafka:
     def setup_dsm_kafka(self):
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
-    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
-    @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -112,7 +108,6 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @features.datastreams_monitoring_support_for_kafka
-    @irrelevant(context.library != "dotnet")
     def test_dsm_kafka_without_cluster_id(self):
         assert self.r.text == "ok"
 
@@ -499,7 +494,6 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
-    @flaky(context.weblog_variant == "spring-boot", reason="AIDM-117")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"

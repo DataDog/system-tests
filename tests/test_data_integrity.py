@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
+from utils import weblog, interfaces, rfc, features, scenarios, logger
 from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
 from utils.cgroup_info import get_container_id
 
@@ -71,17 +71,6 @@ class Test_TraceHeaders:
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
 
-    @missing_feature(
-        context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
-    )
-    @missing_feature(
-        context.library == "java" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
-    )
-    @missing_feature(
-        context.library == "nodejs" and context.weblog_variant not in ["express4", "express5"],
-        reason="Missing endpoint",
-    )
-    @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 

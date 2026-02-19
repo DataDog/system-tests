@@ -1,7 +1,7 @@
 import pytest
 
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
-from utils import irrelevant, context, scenarios, features
+from utils import scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -179,10 +179,6 @@ class Test_128_Bit_Traceids:
         assert "_dd.p.tid=" + dd_p_tid in headers["x-datadog-tags"]
         validate_dd_p_tid(dd_p_tid)
 
-    @irrelevant(
-        context.library in ("ruby", "python"),
-        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -204,10 +200,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
-    @irrelevant(
-        context.library in ("ruby", "python"),
-        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -225,10 +217,6 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid is None
         check_64_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
-    @irrelevant(
-        context.library in ("ruby", "python"),
-        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -244,10 +232,6 @@ class Test_128_Bit_Traceids:
 
         check_64_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
-    @irrelevant(
-        context.library in ("ruby", "python"),
-        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
-    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],

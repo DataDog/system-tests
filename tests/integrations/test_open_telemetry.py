@@ -1,4 +1,4 @@
-from utils import context, features, interfaces, irrelevant, missing_feature, scenarios, logger
+from utils import context, features, interfaces, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
 import json
@@ -77,10 +77,6 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             else:
                 assert db_operation.lower() in span_meta["db.operation"].lower(), f"Test is failing for {db_operation}"
 
-    @missing_feature(
-        context.library in ("python_otel", "nodejs_otel"),
-        reason="Open Telemetry doesn't send this span for python. But according to the OTEL specification it would be recommended ",
-    )
     def test_db_sql_table(self):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
         for db_operation, request in self.get_requests(excluded_operations=["procedure"]):
@@ -173,10 +169,6 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
 
     db_service = "mssql"
 
-    @irrelevant(
-        context.library in ("java_otel", "nodejs_otel"),
-        reason="Open Telemetry doesn't generate this span. It's recomended but not mandatory",
-    )
     def test_db_mssql_instance_name(self):
         """The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance.
         This value should be set only if it's specified on the mssql connection string.

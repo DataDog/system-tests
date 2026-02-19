@@ -34,4 +34,12 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: v7.48.0
   tests/test_sampling_rates.py::Test_SamplingRates: v7.33.0
   tests/test_telemetry.py::Test_APMOnboardingInstallID: v7.50.0
+  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
+    - declaration: bug (APMAPI-926)
+      component_version: '>7.53.0'
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
+    - declaration: bug (APMRP-360)
+      component_version: '>=7.36.0 <7.37.0'
+    - declaration: bug (APMAPI-926)
+      component_version: '>7.53.0'
   tests/test_v1_payloads.py::Test_V1Payloads: v7.73.0-devel

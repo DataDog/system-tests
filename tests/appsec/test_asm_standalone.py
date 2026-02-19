@@ -8,7 +8,7 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
-from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
+from utils import context, weblog, interfaces, scenarios, features, rfc, logger
 
 USER = "test"
 NEW_USER = "testnew"
@@ -750,13 +750,6 @@ class BaseSCAStandaloneTelemetry:
         self.r0 = weblog.get("/load_dependency")
         self.r1 = weblog.get("/load_dependency")
 
-    @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
-    @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
-    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 

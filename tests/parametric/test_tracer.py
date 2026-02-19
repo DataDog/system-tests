@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, rfc, scenarios, features, context
+from utils import missing_feature, rfc, scenarios, features
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -202,7 +202,6 @@ class Test_TracerUniversalServiceTagging:
 @scenarios.parametric
 @features.process_tags
 @rfc("https://docs.google.com/document/d/1c47iSTWxIOHMHfZTF2nT9xfyQaIBP9KJvI9sRn5SvpM")
-@missing_feature(context.library != "java")
 class Test_ProcessTags_ServiceName:
     @parametrize("library_env", [{"DD_SERVICE": "test-service"}])
     def test_process_tag_svc_user(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

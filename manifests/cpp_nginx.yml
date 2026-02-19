@@ -92,6 +92,9 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded::test_blocking_ipv6: missing_feature (Forwarded not yet supported)  # Created by easy win activation script
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: v1.4.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_blocking_before: irrelevant (Tag adding happens before WAF run)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body::test_non_blocking_plain_text:
+    - weblog_declaration:
+        nginx: irrelevant (Blocks on text/plain if parsed to a String)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: v1.4.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: v1.2.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before: irrelevant (Tag adding happens before WAF run)
@@ -131,6 +134,7 @@ manifest:
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v1.3.0
   tests/appsec/test_logs.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_metastruct.py: irrelevant (ASM is not implemented in C++)
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_rate_limiter.py::Test_Main: missing_feature (Rate limiting not implemented)
   tests/appsec/test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
@@ -142,6 +146,7 @@ manifest:
   tests/appsec/test_suspicious_attacker_blocking.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_trace_tagging.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v1.2.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.2.0
   tests/appsec/test_traces.py::Test_AppSecObfuscator::test_appsec_obfuscator_cookies_with_custom_rules:  # Easy win for all weblogs and version 1.12.0
     - declaration: bug (APPSEC-58808)
@@ -197,6 +202,7 @@ manifest:
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring: missing_feature (WAF monitoring tags not implemented)  # Created by easy win activation script
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: missing_feature (WAF monitoring tags not implemented)  # Created by easy win activation script
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once: missing_feature (WAF monitoring tags not implemented)  # Created by easy win activation script
+  tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
   tests/appsec/waf/test_rules.py::Test_CommandInjection: v1.2.0
   tests/appsec/waf/test_rules.py::Test_DiscoveryScan: v1.2.0
   tests/appsec/waf/test_rules.py::Test_HttpProtocol: v1.2.0
@@ -229,14 +235,30 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
     - weblog_declaration:
         "*": missing_feature (Endpoint not implemented)
+  tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: missing_feature
+  tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
   tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
   tests/integrations/test_dsm.py::Test_DsmKafka: missing_feature
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: missing_feature
@@ -246,8 +268,18 @@ manifest:
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
   tests/integrations/test_inferred_proxy.py: missing_feature
+  tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
+  tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
+  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
+  tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v1.3.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (we opt into cache)
@@ -320,6 +352,9 @@ manifest:
   tests/test_identify.py: irrelevant
   tests/test_ipv6.py: missing_feature (APMAPI-869)
   tests/test_library_conf.py: irrelevant
+  tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
+  tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_miscs.py: irrelevant
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
