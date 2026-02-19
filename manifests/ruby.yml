@@ -43,6 +43,7 @@ manifest:
         sinatra41: irrelevant
         uds-sinatra: irrelevant
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
@@ -74,6 +75,11 @@ manifest:
       weblog: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
     - declaration: irrelevant
       weblog: [rack, rails42]
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_metadata: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.19.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.15.0
@@ -2094,6 +2100,7 @@ manifest:
     - declaration: missing_feature (Telemetry V2 is not implemented yet)
       component_version: <1.22.0
   tests/test_telemetry.py::Test_Telemetry::test_app_heartbeats_delays: flaky (APMAPI-226)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration:
     - declaration: missing_feature (Telemetry V2 is not implemented yet)
       component_version: <1.22.0
@@ -2134,6 +2141,7 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.11
+  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers:
     - declaration: missing_feature (dd-client-library-version missing)
       component_version: <1.22.0

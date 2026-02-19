@@ -1,8 +1,6 @@
 from utils import (
-    context,
     features,
     interfaces,
-    irrelevant,
     rfc,
     scenarios,
     weblog,
@@ -41,9 +39,6 @@ class Test_API_Security_Sampling_Rate:
             for _ in range(self.N**2)
         ]
 
-    @irrelevant(
-        context.library not in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented"
-    )
     def test_sampling_rate(self):
         """Can provide request header schema"""
         n = self.N
