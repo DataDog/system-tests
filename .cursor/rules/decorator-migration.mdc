@@ -1,16 +1,19 @@
-# Decorator to Manifest Migration Guide
-
-This guide describes how to migrate pytest decorator-based test skip/xfail declarations to YAML manifest files in the system-tests repository.
-
-## Overview
-
-System-tests uses two mechanisms to control test execution based on library versions and configurations:
-1. **Decorators** (legacy): Python decorators on test classes/methods
-2. **Manifests** (preferred): YAML files in the `manifests/` directory
-
-The goal is to migrate from decorators to manifests for simpler, more maintainable test activation rules.
-
 ---
+description: Guide to migrate decorators
+alwaysApply: false
+---
+
+## Must do
+
+When there is any doubt on the migration ask the user for more information
+
+When a decorator impacts more than one language make sure the you added an entry
+in every relevant manifest. You should make a subagent check your work.
+
+Any existing manifest entry must be preserved, you should create new entries alongside
+the old one. It does not matter if the new and the old entry are conflicting. The
+only time where it is not required to add a new entry is when the old entry is 
+exactly identical to the new one.
 
 ## Part 1: Understanding Decorators
 
