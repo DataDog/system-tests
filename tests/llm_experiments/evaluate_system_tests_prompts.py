@@ -4,6 +4,7 @@ POC: Evaluate System-Tests AI Assistant Prompts using Datadog LLM Observability
 This script demonstrates how to evaluate AI assistant responses using:
 - Datadog LLM Observability Experiments: https://docs.datadoghq.com/llm_observability/experiments/setup/
 - Semantic Similarity Evaluator: https://docs.datadoghq.com/llm_observability/guide/evaluation_developer_guide/#semanticsimilarityevaluator
+- Dogfooding LLM Experiments: https://datadoghq.atlassian.net/wiki/spaces/MO1/pages/5334368583/Dogfooding+LLM+Experiments
 
 Workflow:
 1. Initialize Datadog LLM Observability
