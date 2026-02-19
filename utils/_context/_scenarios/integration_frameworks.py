@@ -159,3 +159,11 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             self.environment["DD_TRACE_DNS_ENABLED"] = "false"
             self.environment["DD_TRACE_NET_ENABLED"] = "false"
             self.environment["DD_TRACE_FETCH_ENABLED"] = "false"
+        elif library == "java":
+            # Disable Jetty/Javalin/servlet instrumentation to only see OpenAI spans
+            self.environment["DD_INTEGRATION_OKHTTP_ENABLED"] = "false"
+            self.environment["DD_INTEGRATION_JETTY_ENABLED"] = "false"
+            # Reduce telemetry intervals for faster metric reporting in tests
+            self.environment["DD_TELEMETRY_HEARTBEAT_INTERVAL"] = "1"
+            self.environment["DD_TELEMETRY_METRICS_INTERVAL"] = "1"
+            self.environment["DD_TRACE_DEBUG"] = "true"
