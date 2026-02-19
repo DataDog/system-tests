@@ -1,4 +1,4 @@
-package com.datadoghq.system_tests.springboot;
+package com.datadoghq.system_tests.springboot.debugger;
 
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;

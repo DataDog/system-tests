@@ -68,7 +68,8 @@ require('./auth')(app, tracer)
 require('./stripe')(app)
 
 app.get('/', (req, res) => {
-  res.send('Hello\n')
+  res.set('Content-Type', 'text/plain')
+  res.send('Hello world!\n')
 })
 
 app.get('/healthcheck', (req, res) => {
@@ -663,6 +664,91 @@ app.get('/add_event', (req, res) => {
   rootSpan.addEvent('span.event', { string: 'value', int: 1 }, Date.now())
 
   res.status(200).json({ message: 'Event added' })
+})
+
+app.all('/external_request', (req, res) => {
+  const status = req.query.status || '200'
+  const urlExtra = req.query.url_extra || ''
+
+  const headers = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  let body = null
+  if (req.body && Object.keys(req.body).length > 0) {
+    body = JSON.stringify(req.body)
+    headers['Content-Type'] = req.headers['content-type'] || 'application/json'
+  }
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path: `/mirror/${status}${urlExtra}`,
+    method: req.method,
+    headers
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
+      const payload = JSON.parse(responseBody)
+      res.status(200).json({
+        status: response.statusCode,
+        payload,
+        headers: response.headers
+      })
+    })
+  })
+
+  // Write body if present
+  if (body) {
+    request.write(body)
+  }
+
+  request.end()
+})
+
+app.get('/external_request/redirect', (req, res) => {
+  const headers = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = req.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path) => {
+    const options = {
+      hostname: 'internal_server',
+      port: 8089,
+      path,
+      method: 'GET',
+      headers
+    }
+
+    const request = http.request(options, (response) => {
+      if (response.statusCode === 302 && response.headers.location) {
+        // Follow the redirect
+        followRedirect(response.headers.location)
+      } else {
+        // Final response
+        response.on('end', () => {
+          res.status(200).send('OK')
+        })
+      }
+      response.resume()
+    })
+
+    request.end()
+  }
+
+  // Start the redirect chain
+  followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
 })
 
 require('./rasp')(app)

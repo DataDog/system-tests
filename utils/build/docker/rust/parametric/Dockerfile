@@ -1,4 +1,4 @@
-FROM rust:1.84.1-slim-bookworm AS builder
+FROM rust:1.85.1-slim-bookworm AS builder
 WORKDIR /usr/app
 COPY utils/build/docker/rust/parametric .
 COPY utils/build/docker/rust/parametric/../install_ddtrace.sh ./binaries/ /binaries/

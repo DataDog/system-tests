@@ -1,4 +1,5 @@
 use ::opentelemetry::global::{self, BoxedTracer};
+use ::opentelemetry::InstrumentationScope;
 use ::opentelemetry::metrics::Meter;
 use anyhow::{Context, Result};
 use axum::{
@@ -7,7 +8,7 @@ use axum::{
 };
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
-use opentelemetry_sdk::{metrics::SdkMeterProvider, trace::SdkTracerProvider};
+use opentelemetry_sdk::{logs::SdkLoggerProvider, metrics::SdkMeterProvider, trace::SdkTracerProvider};
 use serde::Deserialize;
 use serde_json::json;
 use std::{
@@ -47,6 +48,8 @@ struct AppState {
     meter_provider: Arc<Mutex<Option<SdkMeterProvider>>>,
     otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
     otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
+        logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
+    otel_loggers: Arc<Mutex<HashMap<String, InstrumentationScope>>>,
 }
 
 #[derive(Default, Clone)]
@@ -74,12 +77,13 @@ async fn main() {
     };
 
     let meter_provider = init_metrics();
+    let logger_provider = init_logs();
 
     // Replace the default panic hook with one that uses structured logging at ERROR level.
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
 
     // Run and log any error.
-    if let Err(ref error) = run(tracer, meter_provider).await {
+    if let Err(ref error) = run(tracer, meter_provider, logger_provider).await {
         error!(
             error = format!("{error:#}"),
             backtrace = %error.backtrace(),
@@ -113,6 +117,11 @@ fn init_metrics() -> SdkMeterProvider {
         .init()
 }
 
+fn init_logs() -> SdkLoggerProvider {
+    datadog_opentelemetry::logs()
+        .init()
+}
+
 fn log_error(error: &impl Display) {
     let now = OffsetDateTime::now_utc().format(&Rfc3339).unwrap();
     let error = serde_json::to_string(&json!({
@@ -139,6 +148,7 @@ pub async fn serve(
     config: Config,
     tracer_provider: SdkTracerProvider,
     meter_provider: SdkMeterProvider,
+    logger_provider: SdkLoggerProvider,
 ) -> Result<()> {
     let Config {
         addr,
@@ -156,6 +166,8 @@ pub async fn serve(
         meter_provider: Arc::new(Mutex::new(Some(meter_provider))),
         otel_meters: Arc::new(Mutex::new(HashMap::new())),
         otel_meter_instruments: Arc::new(Mutex::new(HashMap::new())),
+        logger_provider: Arc::new(Mutex::new(Some(logger_provider))),
+        otel_loggers: Arc::new(Mutex::new(HashMap::new())),
     };
 
     let app = Router::new()
@@ -258,7 +270,7 @@ fn make_span(request: &Request<Body>) -> Span {
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 
-async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider) -> Result<()> {
+async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider, logger_provider: SdkLoggerProvider) -> Result<()> {
     let port = u16::from_str_radix(
         &env::var("APM_TEST_CLIENT_SERVER_PORT").unwrap_or("8080".to_string()),
         10,
@@ -272,5 +284,5 @@ async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider) -> Res
 
     info!(?config, "starting");
 
-    serve(config, tracer, meter_provider).await
+    serve(config, tracer, meter_provider, logger_provider).await
 }

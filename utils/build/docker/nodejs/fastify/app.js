@@ -89,7 +89,8 @@ fastify.addContentTypeParser('text/plain', { parseAs: 'buffer' }, function (req,
 
 fastify.get('/', async (request, reply) => {
   console.log('Received a request')
-  return 'Hello\n'
+  reply.type('text/plain')
+  return 'Hello world!\n'
 })
 
 fastify.get('/healthcheck', async (request, reply) => {
@@ -607,6 +608,135 @@ fastify.get('/otel_drop_in_default_propagator_inject', async (request, reply) =>
   return result
 })
 
+fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
+  const api = require('@opentelemetry/api')
+  const ContextManager = require('dd-trace/packages/dd-trace/src/opentelemetry/context_manager')
+
+  const url = request.query.url
+  console.log(url)
+
+  const parsedUrl = new URL(url)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const baggageRemove = request.query.baggage_remove
+  const baggageSet = request.query.baggage_set
+  const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
+  const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
+
+  const contextManager = new ContextManager()
+  api.context.setGlobalContextManager(contextManager)
+
+  let baggage = api.propagation.getActiveBaggage() || api.propagation.createBaggage()
+  for (const key of baggageToRemove) {
+    baggage = baggage.removeEntry(key.trim())
+  }
+  for (const [key, value] of baggageToSet) {
+    baggage = baggage.setEntry(key.trim(), { value: value.trim() })
+  }
+
+  const newContext = api.propagation.setBaggage(api.context.active(), baggage)
+
+  return new Promise((resolve, reject) => {
+    api.context.with(newContext, () => {
+      const httpRequest = http.request(options, (response) => {
+        let responseBody = ''
+        response.on('data', (chunk) => {
+          responseBody += chunk
+        })
+
+        response.on('end', () => {
+          resolve({
+            url,
+            status_code: response.statusCode,
+            request_headers: response.req._headers,
+            response_headers: response.headers,
+            response_body: responseBody
+          })
+        })
+      })
+
+      httpRequest.on('error', (error) => {
+        console.log(error)
+        resolve({
+          url,
+          status_code: 500,
+          request_headers: null,
+          response_headers: null
+        })
+      })
+
+      httpRequest.end()
+    })
+  })
+})
+
+fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
+  const { setBaggageItem, removeBaggageItem } = require('dd-trace/packages/dd-trace/src/baggage')
+
+  const url = request.query.url
+  console.log(url)
+
+  const parsedUrl = new URL(url)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const baggageRemove = request.query.baggage_remove
+  const baggageSet = request.query.baggage_set
+  const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
+  const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
+
+  for (const key of baggageToRemove) {
+    console.log(`Removing baggage item: ${key.trim()}`)
+    removeBaggageItem(key.trim())
+  }
+  for (const [key, value] of baggageToSet) {
+    console.log(`Setting baggage item: ${key.trim()} = ${value.trim()}`)
+    setBaggageItem(key.trim(), value.trim())
+  }
+
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request(options, (response) => {
+      let responseBody = ''
+      response.on('data', (chunk) => {
+        responseBody += chunk
+      })
+
+      response.on('end', () => {
+        resolve({
+          url,
+          status_code: response.statusCode,
+          request_headers: response.req._headers,
+          response_headers: response.headers,
+          response_body: responseBody
+        })
+      })
+    })
+
+    httpRequest.on('error', (error) => {
+      console.log(error)
+      resolve({
+        url,
+        status_code: 500,
+        request_headers: null,
+        response_headers: null
+      })
+    })
+
+    httpRequest.end()
+  })
+})
+
 fastify.post('/shell_execution', async (request, reply) => {
   const { spawnSync } = require('child_process')
   const options = { shell: !!request?.body?.options?.shell }
@@ -712,6 +842,100 @@ fastify.get('/add_event', async (request, reply) => {
 
   reply.status(200)
   return { message: 'Event added' }
+})
+
+fastify.all('/external_request', async (request, reply) => {
+  const status = request.query.status || '200'
+  const urlExtra = request.query.url_extra || ''
+
+  const headers = {}
+  for (const [key, value] of Object.entries(request.query)) {
+    if (key !== 'status' && key !== 'url_extra') {
+      headers[key] = String(value)
+    }
+  }
+
+  let body = null
+  if (request.body && Object.keys(request.body).length > 0) {
+    body = JSON.stringify(request.body)
+    headers['Content-Type'] = request.headers['content-type'] || 'application/json'
+  }
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path: `/mirror/${status}${urlExtra}`,
+    method: request.method,
+    headers
+  }
+
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request(options, (response) => {
+      let responseBody = ''
+      response.on('data', (chunk) => {
+        responseBody += chunk
+      })
+
+      response.on('end', () => {
+        const payload = JSON.parse(responseBody)
+        reply.status(200)
+        resolve({
+          payload,
+          status: response.statusCode,
+          headers: response.headers
+        })
+      })
+    })
+
+    // Write body if present
+    if (body) {
+      httpRequest.write(body)
+    }
+
+    httpRequest.end()
+  })
+})
+
+fastify.get('/external_request/redirect', async (request, reply) => {
+  const headers = {}
+  for (const [key, value] of Object.entries(request.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = request.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path) => {
+    return new Promise((resolve) => {
+      const options = {
+        hostname: 'internal_server',
+        port: 8089,
+        path,
+        method: 'GET',
+        headers
+      }
+
+      const httpRequest = http.request(options, (response) => {
+        if (response.statusCode === 302 && response.headers.location) {
+          // Follow the redirect
+          resolve(followRedirect(response.headers.location))
+        } else {
+          // Final response
+          response.on('end', () => {
+            resolve('OK')
+          })
+        }
+        response.resume()
+      })
+
+      httpRequest.end()
+    })
+  }
+
+  // Start the redirect chain
+  await followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
+  reply.status(200)
+  return 'OK'
 })
 
 require('./rasp')(fastify)
