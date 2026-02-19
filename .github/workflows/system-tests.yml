@@ -224,9 +224,15 @@ jobs:
         if: inputs.library == 'python' && inputs._build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
+      - name: Fetch Go versions
+        if: inputs.library == 'golang'
+        id: go-versions
+        uses: ./.github/actions/go-versions
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+        env:
+          GO_VERSION: ${{ steps.go-versions.outputs.stable }}
       - name: Remove secrets
         if: always()
         run: |
