@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, scenarios, weblog, features, irrelevant, context
+from utils import interfaces, rfc, scenarios, weblog, features, context
 from utils._weblog import HttpResponse
 
 
@@ -22,7 +22,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-responses.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_latest_responses_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -30,7 +29,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-chat.completions.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_latest_chat_completions_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -38,7 +36,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-completions.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_latest_completions_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -46,7 +43,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-legacy-chat.completions.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_legacy_chat_completions_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -54,7 +50,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-legacy-completions.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_legacy_completions_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -62,7 +57,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-responses.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_async_responses_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -70,7 +64,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-chat.completions.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_async_chat_completions_create(self):
         assert_llm_span(self.request, self.model)
 
@@ -78,7 +71,6 @@ class Test_LLM_Endpoint:
         self.model = "gpt-4.1"
         self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-completions.create")
 
-    @irrelevant(context.library not in ["python", "nodejs"], reason="LLM endpoint only implemented for Python/Node.js")
     def test_openai_async_completions_create(self):
         assert_llm_span(self.request, self.model)
 
