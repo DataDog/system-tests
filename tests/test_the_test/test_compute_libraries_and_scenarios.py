@@ -12,6 +12,7 @@ from utils import scenarios
 default_libs_with_prod = [
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "envoy",
@@ -28,6 +29,7 @@ default_libs_with_prod = [
 default_libs_with_dev = [
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "envoy",
