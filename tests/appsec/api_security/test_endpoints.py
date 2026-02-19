@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, scenarios, weblog, features, context
+from utils import interfaces, rfc, scenarios, weblog, features
 from utils._weblog import HttpResponse
 
 
@@ -18,61 +18,55 @@ def assert_llm_span(request: HttpResponse, model: str) -> None:
 class Test_LLM_Endpoint:
     """Tests for the /llm endpoint capturing LLM interaction metadata."""
 
+    MODEL = "gpt-4.1"
+
     def setup_openai_latest_responses_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-responses.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-latest-responses.create")
 
     def test_openai_latest_responses_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_latest_chat_completions_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-chat.completions.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-latest-chat.completions.create")
 
     def test_openai_latest_chat_completions_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_latest_completions_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-latest-completions.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-latest-completions.create")
 
     def test_openai_latest_completions_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_legacy_chat_completions_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-legacy-chat.completions.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-legacy-chat.completions.create")
 
     def test_openai_legacy_chat_completions_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_legacy_completions_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-legacy-completions.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-legacy-completions.create")
 
     def test_openai_legacy_completions_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_async_responses_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-responses.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-async-responses.create")
 
     def test_openai_async_responses_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_async_chat_completions_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-chat.completions.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-async-chat.completions.create")
 
     def test_openai_async_chat_completions_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_openai_async_completions_create(self):
-        self.model = "gpt-4.1"
-        self.request = weblog.get("/llm?model=gpt-4.1&operation=openai-async-completions.create")
+        self.request = weblog.get(f"/llm?model={self.MODEL}&operation=openai-async-completions.create")
 
     def test_openai_async_completions_create(self):
-        assert_llm_span(self.request, self.model)
+        assert_llm_span(self.request, self.MODEL)
 
     def setup_root_no_llm(self):
         # Baseline request to root endpoint should not produce LLM tags
