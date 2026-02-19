@@ -117,6 +117,19 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 ):
                     crash_reports.append(payload)
 
+                # v2 logs send in the form of `payload:{logs:[]}`
+                # we should also check if `logs` value is a list, and iterate
+                # through the objects in the list
+                if "logs" in payload and isinstance(payload["logs"], list):
+                    for log in payload["logs"]:
+                        if isinstance(log, dict):
+                            if (
+                                "si_signo" in log.get("tags", "")
+                                or "signame" in log.get("tags", "")
+                                or "signum" in log.get("tags", "")
+                            ):
+                                crash_reports.append(log)
+
         return crash_reports
 
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
