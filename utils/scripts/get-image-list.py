@@ -43,6 +43,7 @@ if __name__ == "__main__":
         choices=[
             "cpp",
             "cpp_httpd",
+            "cpp_kong",
             "cpp_nginx",
             "dotnet",
             "python",
