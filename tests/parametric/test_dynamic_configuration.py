@@ -1,7 +1,6 @@
 """Test the dynamic configuration via Remote Config (RC) feature of the APM libraries."""
 
 import json
-import time
 from pathlib import Path
 from typing import Any
 
@@ -1046,17 +1045,7 @@ class TestDynamicConfigSamplingRules:
             },
         )
 
-        # After updating the RC config, the library may briefly still be applying the
-        # previous sampling rules. set_and_wait_rc waits for telemetry and RC acknowledgment,
-        # but these signals can be satisfied by stale events from the prior config, causing a
-        # window where the new rules aren't yet active. Retry to allow for full propagation.
-        trace = None
-        for _ in range(30):
-            trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
-            span = find_first_span_in_trace_payload(trace)
-            if span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(0.1):
-                break
-            time.sleep(0.1)
+        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
         assert_sampling_rate(trace, 0.1)
 
         trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
