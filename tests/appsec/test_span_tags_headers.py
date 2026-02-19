@@ -1,10 +1,12 @@
-from utils import weblog, interfaces, features, scenarios, logger
+from utils import weblog, interfaces, features, scenarios, logger, rfc
 from utils._weblog import CaseInsensitiveDict
 
 
 def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
     content_type = headers.get("Content-Type")
     content_length = headers.get("Content-Length")
+    content_encoding = headers.get("Content-Encoding")
+    content_language = headers.get("Content-Language")
 
     def validator(span: dict):
         assert (enabled := span["metrics"].get("_dd.appsec.enabled")) == 1.0, (
@@ -35,11 +37,24 @@ def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
                 f"Expected content-length to be {content_length}, got {content_length_tag}"
             )
 
+        if content_encoding is not None:
+            assert (
+                content_encoding_tag := span["meta"].get("http.response.headers.content-encoding")
+            ) == content_encoding, f"Expected content-encoding to be {content_encoding}, got {content_encoding_tag}"
+        logger.info(f"Content-encoding is optional for this test. Got content-encoding: {content_encoding}")
+
+        if content_language is not None:
+            assert (
+                content_language_tag := span["meta"].get("http.response.headers.content-language")
+            ) == content_language, f"Expected content-language to be {content_language}, got {content_language_tag}"
+        logger.info(f"Content-language is optional for this test. Got content-language: {content_language}")
+
         return True
 
     return validator
 
 
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/SAAL/pages/2186870984/HTTP+header+collection")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 class Test_Headers_No_Event:

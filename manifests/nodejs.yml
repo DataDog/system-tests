@@ -95,14 +95,17 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_81_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_69_0
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:
     - weblog_declaration:
@@ -130,6 +133,11 @@ manifest:
         nextjs: missing_feature
     - component_version: "5.82.0"
       declaration: flaky (APPSEC-60648)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_metadata: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
@@ -348,6 +356,11 @@ manifest:
         "*": *ref_4_17_0
         fastify: *ref_5_61_0
         nextjs: missing_feature
+  tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection::test_secure:
+    - declaration: missing_feature (express-mongo-sanitize is not yet compatible with express5)
+      weblog: [express5]
+    - declaration: missing_feature (we do not support a sanitizer for mongodb and fastify yet)
+      weblog: [fastify]
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_ExtendedLocation:
     - weblog_declaration:
         "*": *ref_5_37_0
@@ -612,18 +625,18 @@ manifest:
     - declaration: irrelevant (cookie name filtering is not present anymore after the change on cookie vuln hash calculation.)
       component_version: '>=5.50.0'
   tests/appsec/rasp/test_api10.py::Test_API10_all: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: *ref_5_87_0
   tests/appsec/rasp/test_api10.py::Test_API10_request_body: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_request_method: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_headers: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_status: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_request_method: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_headers: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_status: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: *ref_5_87_0
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: *ref_5_87_0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": *ref_5_30_0
@@ -1683,21 +1696,21 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.88.0"
+        express5: ">=5.37.0 <5.88.0"
+        fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.88.0"
+        express5: ">=5.37.0 <5.88.0"
+        fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
     - weblog_declaration:
         "*": irrelevant
-        express4: *ref_5_37_0
-        express5: *ref_5_37_0
-        fastify: *ref_5_37_0
+        express4: ">=5.37.0 <5.88.0"
+        express5: ">=5.37.0 <5.88.0"
+        fastify: ">=5.37.0 <5.88.0"
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: *ref_5_83_0
@@ -2176,6 +2189,7 @@ manifest:
         nextjs: missing_feature
         uds-express4: *ref_3_7_0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant
@@ -2183,4 +2197,5 @@ manifest:
         express5: *ref_5_56_0
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: *ref_4_21_0
+  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py: missing_feature

@@ -13,6 +13,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.57.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -29,6 +33,19 @@ manifest:
         vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: bug (APMAPI-912)
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags:
+    - weblog_declaration:
+        spring-boot-3-native: irrelevant
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc:
+    - weblog_declaration:
+        spring-boot-3-native: irrelevant
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags:
+    - weblog_declaration:
+        spring-boot-3-native: irrelevant
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:
+    - weblog_declaration:
+        spring-boot-3-native: irrelevant
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
     - weblog_declaration:
         "*": v0.2.0  # real version not known
@@ -40,6 +57,8 @@ manifest:
         spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
+        ? "spring-boot, spring-boot-jetty, spring-boot-payara, spring-boot-openliberty, spring-boot-undertow, uds-spring-boot, spring-boot-wildfly"
+        : missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:
     - weblog_declaration:
         "*": v1.38.0
@@ -135,6 +154,9 @@ manifest:
         spring-boot-wildfly: irrelevant (Not applicable to weblog variant)
         uds-spring-boot: irrelevant (Not applicable to weblog variant)
         spring-boot-jetty: irrelevant (Not applicable to weblog variant)
+  tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type:
+    - weblog_declaration:
+        spring-boot: missing_feature
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code:
     - weblog_declaration:
         spring-boot: irrelevant (Not applicable to weblog variant)
@@ -165,6 +187,9 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies::test_request_method:
+    - declaration: flaky (APPSEC-58008)
+      weblog: [spring-boot-jetty]
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
     - weblog_declaration:
         "*": v1.31.0
@@ -399,6 +424,8 @@ manifest:
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_executed_sink:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.22.0
+    - declaration: flaky (APPSEC-56453)
+      weblog: [vertx4]
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.22.0
@@ -451,6 +478,8 @@ manifest:
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_executed_sink:
     - declaration: missing_feature (Metric not implemented)
       component_version: <1.22.0
+    - declaration: flaky (APPSEC-56453)
+      weblog: [vertx4]
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.22.0
@@ -476,6 +505,8 @@ manifest:
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_executed_sink:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.22.0
+    - declaration: flaky (APPSEC-56453)
+      weblog: [vertx4]
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.22.0
@@ -549,6 +580,9 @@ manifest:
         resteasy-netty3: v1.11.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.12.0
+  tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection::test_secure:
+    - declaration: missing_feature (Endpoint responds 500)
+      weblog: [jersey-grizzly2]
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection::test_telemetry_metric_executed_sink:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.11.0
@@ -648,6 +682,11 @@ manifest:
         spring-boot-jetty: v1.17.0
         vertx3: v1.16.0
         vertx4: v1.17.0
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader::test_secure:
+    - declaration: missing_feature (Endpoint responds 405)
+      weblog: [jersey-grizzly2, resteasy-netty3]
+    - declaration: missing_feature (Endpoint responds 403)
+      weblog: [vertx3]
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:
     - weblog_declaration:
@@ -833,12 +872,21 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.12.0
         vertx4: v1.12.0
+  tests/appsec/iast/source/test_body.py::TestRequestBody::test_source_reported:
+    - declaration: bug (APPSEC-56007)
+      weblog: [jersey-grizzly2]
   tests/appsec/iast/source/test_body.py::TestRequestBody::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.17.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
   tests/appsec/iast/source/test_body.py::TestRequestBody::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.9.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
     - declaration: bug (APMRP-360)
       component_version: '>=1.13.0 <1.17.0'
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName:
@@ -854,11 +902,18 @@ manifest:
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.22.0
+    - declaration: missing_feature (Not working as expected)
+      weblog: [akka-http]
   tests/appsec/iast/source/test_cookie_name.py::TestCookieName::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.9.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
     - declaration: bug (APMRP-360)
       component_version: '>=1.16.0 <1.22.0'
+    - declaration: missing_feature (Not working as expected)
+      weblog: [akka-http]
   tests/appsec/iast/source/test_cookie_value.py::TestCookieValue:
     - weblog_declaration:
         "*": v1.10.0
@@ -873,9 +928,15 @@ manifest:
   tests/appsec/iast/source/test_cookie_value.py::TestCookieValue::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.17.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
   tests/appsec/iast/source/test_cookie_value.py::TestCookieValue::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.17.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
   tests/appsec/iast/source/test_graphql_resolver.py::TestGraphqlResolverArgument: missing_feature
   tests/appsec/iast/source/test_header_name.py::TestHeaderName:
     - weblog_declaration:
@@ -891,9 +952,19 @@ manifest:
   tests/appsec/iast/source/test_header_name.py::TestHeaderName::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Not working as expected)
       component_version: <1.16.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
+    - declaration: missing_feature (Metrics not implemented)
+      weblog: [jersey-grizzly2, vertx4]
   tests/appsec/iast/source/test_header_name.py::TestHeaderName::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Not working as expected)
       component_version: <1.16.0
+    - declaration: missing_feature (Metrics not implemented)
+      component_version: '<1.22.0'
+      excluded_weblog: [spring-boot, spring-boot-jetty, spring-boot-undertow, spring-boot-openliberty, spring-boot-wildfly, spring-boot-payara, spring-boot-3-native, uds-spring-boot]
+    - declaration: missing_feature (Metrics not implemented)
+      weblog: [jersey-grizzly2, vertx4]
   tests/appsec/iast/source/test_header_value.py::TestHeaderValue:
     - weblog_declaration:
         "*": v1.3.0
@@ -3928,17 +3999,17 @@ manifest:
       component_version: <=1.38.1
     - declaration: flaky (APMAPI-723)
       component_version: '>=1.39.0'
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change:  # Created by easy win activation script
-    - weblog_declaration:
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_client_configuration:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Created by easy win activation script
     - weblog_declaration:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:  # Created by easy win activation script
+  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
     - weblog_declaration:
+        spring-boot-openliberty: bug (APPSEC-6583)
+        spring-boot-wildfly: bug (APPSEC-6583)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_Telemetry::test_seq_id:  # Created by easy win activation script
     - weblog_declaration:
@@ -3958,6 +4029,7 @@ manifest:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.23.0
+  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_the_test/test_json_report.py::Test_Mock: v0.2.1
   tests/test_the_test/test_json_report.py::Test_NotReleased: missing_feature
   tests/test_v1_payloads.py: missing_feature
