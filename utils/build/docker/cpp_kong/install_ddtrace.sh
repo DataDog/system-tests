@@ -65,8 +65,29 @@ fi
 # ---------------------------------------------------------------------------
 # 2. Get Kong plugin files
 # ---------------------------------------------------------------------------
-if [ -d kong-plugin-ddtrace ]; then
+rock_file=""
+for f in kong-plugin-ddtrace*.rock; do
+  if [ -e "$f" ]; then
+    rock_file="$f"
+    break
+  fi
+done
+
+if [ -n "$rock_file" ]; then
+  echo "Extracting Kong plugin from .rock artifact: ${rock_file}"
+  mkdir -p kong-rock-extract
+  unzip -o "${rock_file}" -d kong-rock-extract
+  for extracted_dir in kong-rock-extract/kong-plugin-ddtrace-*/; do
+    if [ -d "$extracted_dir" ]; then
+      mv "$extracted_dir" kong-plugin-ddtrace
+      break
+    fi
+  done
+  rm -rf kong-rock-extract
+
+elif [ -d kong-plugin-ddtrace ]; then
   echo "Using Kong plugin from binaries/kong-plugin-ddtrace"
+
 else
   KONG_PLUGIN_BRANCH="${KONG_PLUGIN_BRANCH:-main}"
   echo "Cloning kong-plugin-ddtrace branch ${KONG_PLUGIN_BRANCH}"

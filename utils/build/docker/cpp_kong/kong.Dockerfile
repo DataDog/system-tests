@@ -13,7 +13,7 @@ RUN apt-get update && \
         > /etc/apt/sources.list.d/kitware.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        cmake g++ make libcurl4-openssl-dev git jq curl && \
+        cmake g++ make libcurl4-openssl-dev git jq curl unzip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /builds /binaries

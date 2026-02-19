@@ -306,6 +306,11 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
     assert_version_is_dev
     get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog_artifact" "mod_datadog.so"
 
+elif [ "$TARGET" = "cpp_kong" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
+    get_github_action_artifact "DataDog/kong-plugin-ddtrace" "main.yml" "main" "kong-ddtrace-artifact" "kong-plugin-ddtrace*.rock"
+
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
     ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)

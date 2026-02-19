@@ -18,6 +18,25 @@ There are two ways for running the C++ library tests with a custom tracer:
 
 * Profiling: add a ddprof release tar to the binaries folder. Call the `install_ddprof`.
 
+## C++ Kong library (cpp_kong)
+
+There are three ways to run system-tests with a custom Kong plugin:
+
+1. Place a `kong-plugin-ddtrace*.rock` file (`.src.rock` artifact from CI) in `binaries/`. The build will extract the source files from the rock package.
+2. Clone the kong-plugin-ddtrace repo inside `binaries/`:
+    ```bash
+    cd binaries && git clone https://github.com/DataDog/kong-plugin-ddtrace.git
+    ```
+3. Use `load-binary.sh` to download the latest CI artifact automatically:
+    ```bash
+    ./utils/scripts/load-binary.sh cpp_kong
+    ```
+
+To test with a custom dd-trace-cpp C binding, you can additionally:
+* Create a file `cpp-load-from-git` in `binaries/` (e.g. `https://github.com/DataDog/dd-trace-cpp@main`)
+* Clone dd-trace-cpp inside `binaries/`
+* Place a pre-built `libdd_trace_c.so` in `binaries/`
+
 ## .Net library
 
 * Add a file `datadog-dotnet-apm-<VERSION>.tar.gz` in `binaries/`. `<VERSION>` must be a valid version number.
