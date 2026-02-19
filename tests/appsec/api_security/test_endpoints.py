@@ -7,13 +7,13 @@ def assert_llm_span(request: HttpResponse, model: str) -> None:
     span = interfaces.library.get_root_span(request)
     assert span["meta"]["appsec.events.llm.call.provider"] == "openai"
     assert span["meta"]["appsec.events.llm.call.model"] == model
-    assert span["metrics"]["_sampling_priority_v1"] == 1
+    assert span["metrics"]["_sampling_priority_v1"] == 2
 
 
 @rfc(
     "https://docs.google.com/document/d/1TIFxbtbkldjOA6S5JFlCTMfqniXfJXZmDKptI5w2pnk/edit?tab=t.0#heading=h.xtljwwxyhqk7"
 )
-@scenarios.appsec_api_security
+@scenarios.appsec_rasp
 @features.api_llm_endpoint
 class Test_LLM_Endpoint:
     """Tests for the /llm endpoint capturing LLM interaction metadata."""
