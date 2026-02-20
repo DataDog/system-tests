@@ -37,7 +37,7 @@ manifest:
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": missing_feature
-        echo: v2.6.0-dev  # Automatic with orchestrion, semi-manual without
+        echo: v2.7.0-dev  # Automatic with orchestrion, semi-manual without
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
