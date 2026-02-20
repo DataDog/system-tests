@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from utils import weblog, context, interfaces, missing_feature, rfc, scenarios, features
+from utils import weblog, interfaces, rfc, scenarios, features
 from utils.tools import nested_lookup
 
 
@@ -30,7 +30,6 @@ class Test_ConfigurationVariables:
     def setup_disabled(self):
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.everything_disabled
     def test_disabled(self):
         """Test DD_APPSEC_ENABLED = false"""
@@ -54,7 +53,6 @@ class Test_ConfigurationVariables:
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
-    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
         """Test DD_APPSEC_WAF_TIMEOUT = low value"""

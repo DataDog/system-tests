@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, irrelevant, features, flaky, bug
+from utils import context, missing_feature, irrelevant, features
 from tests.appsec.iast.utils import BaseSourceTest
 
 
@@ -26,14 +26,11 @@ class TestParameterValue(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @flaky(context.weblog_variant == "resteasy-netty3", reason="APPSEC-56007")
-    @bug(context.weblog_variant == "play", reason="APPSEC-58349")
     def test_source_post_reported(self):
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(context.weblog_variant == "play", reason="APPSEC-58349")
     def test_source_get_reported(self):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 

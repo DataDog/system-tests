@@ -1,7 +1,6 @@
 from pathlib import Path
 
-from utils import interfaces, bug, scenarios, weblog, rfc, features
-from utils._context.core import context
+from utils import interfaces, scenarios, weblog, rfc, features
 from .test_blocking_security_response_id import (
     is_valid_uuid4,
     extract_security_response_id_from_json,
@@ -104,8 +103,6 @@ class Test_Blocking:
     def setup_no_accept(self):
         self.r_na = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-undertow", reason="APMRP-360")
-    @bug(context.library < "java@0.115.0" and context.weblog_variant == "spring-boot-wildfly", reason="APMRP-360")
     def test_no_accept(self):
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403

@@ -1,4 +1,4 @@
-from utils import scenarios, weblog, interfaces, features, missing_feature, context
+from utils import scenarios, weblog, interfaces, features
 from utils._weblog import HttpResponse
 
 
@@ -40,7 +40,6 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
         """Setup requests for root endpoint testing"""
         self.r_root = weblog.get("/")
 
-    @missing_feature(context.weblog_variant == "fastify", reason="Fasitfy root route is always '/' not empty string")
     def test_http_endpoint_root(self):
         """Test that root endpoint is handled correctly"""
         assert get_endpoint_tag(self.r_root) == "/"

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, bug, interfaces, missing_feature, scenarios, features, logger
+from utils import context, interfaces, scenarios, features, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 
 from .utils import BaseDbIntegrationsTestClass
@@ -172,7 +172,6 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
                 ]:  # These fields hostname, user... are the same as password
                     assert span_meta[key] != db_container.db_password, f"Test is failing for {db_operation}"
 
-    @missing_feature(condition=context.library != "java", reason="Apply only java")
     def test_db_jdbc_drive_classname(self):
         """The fully-qualified class name of the Java Database Connectivity (JDBC) driver used to connect."""
 
@@ -295,6 +294,5 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
                 f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span_meta['sql.query']}"
             )
 
-    @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     def test_sql_success(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_sql_success()

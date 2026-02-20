@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from utils import scenarios, features, logger, irrelevant, context
+from utils import scenarios, features, logger
 from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
@@ -330,7 +330,6 @@ class Test_FR07_Host_Name:
             },
         ],
     )
-    @irrelevant(context.library != "python", reason="DD_HOSTNAME is only supported in Python")
     def test_hostname_from_dd_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is set from DD_HOSTNAME."""
         with test_library as library:

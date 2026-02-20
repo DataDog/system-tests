@@ -341,7 +341,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
-    @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
