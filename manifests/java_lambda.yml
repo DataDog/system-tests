@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
+---
+manifest:
+  tests/appsec/api_security/test_schemas.py: missing_feature
+  tests/appsec/rasp/test_api10.py: missing_feature
+  tests/appsec/rasp/test_cmdi.py: missing_feature
+  tests/appsec/rasp/test_lfi.py: missing_feature
+  tests/appsec/rasp/test_shi.py: missing_feature
+  tests/appsec/rasp/test_sqli.py: missing_feature
+  tests/appsec/rasp/test_ssrf.py: missing_feature
+  tests/appsec/test_alpha.py::Test_Basic: v1.59.0-SNAPSHOT
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
+    - weblog_declaration:
+        "*": missing_feature
+        java-alb: irrelevant (application-load-balancer event type does not support path params)
+        java-alb-multi: irrelevant (application-load-balancer event type does not support path params)
+        java-function-url: irrelevant (function-url event type does not support path params)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: missing_feature
+  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature
+  tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant (only api gateway inferred spans are specified for now)
+        java-apigw-http: missing_feature
+        java-apigw-rest: missing_feature
+  tests/appsec/test_reports.py::Test_AttackTimestamp: v1.59.0-SNAPSHOT
+  tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.59.0-SNAPSHOT
+  tests/appsec/test_reports.py::Test_Info: v1.59.0-SNAPSHOT
+  tests/appsec/test_reports.py::Test_RequestHeaders: v1.59.0-SNAPSHOT
+  tests/appsec/test_reports.py::Test_StatusCode: v1.59.0-SNAPSHOT
+  tests/appsec/test_reports.py::Test_TagsFromRule: v1.59.0-SNAPSHOT
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.59.0-SNAPSHOT
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event: missing_feature
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v1.59.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.59.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v1.59.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders: v1.59.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.59.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_RetainTraces: v1.59.0-SNAPSHOT
+  tests/appsec/test_versions.py::Test_Events: v1.59.0-SNAPSHOT
+  tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
+  tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_v1_payloads.py: missing_feature

@@ -118,7 +118,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
+        choices=["cpp", "golang", "dotnet", "java", "java_lambda", "nodejs", "php", "python", "ruby", "rust"],
     )
     parser.addoption(
         "--github-token-file",

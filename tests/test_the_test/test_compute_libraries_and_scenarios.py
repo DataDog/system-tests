@@ -18,6 +18,7 @@ default_libs_with_prod = [
     "golang",
     "haproxy",
     "java",
+    "java_lambda",
     "nodejs",
     "otel_collector",
     "php",
@@ -34,6 +35,7 @@ default_libs_with_dev = [
     "golang",
     "haproxy",
     "java",
+    "java_lambda",
     "nodejs",
     "php",
     "python",
@@ -320,8 +322,8 @@ class Test_ComputeLibrariesAndScenarios:
 
         assert_github_processor(
             inputs,
-            ["python_lambda"],
-            ["python_lambda"],
+            ["java_lambda", "python_lambda"],
+            ["java_lambda", "python_lambda"],
             600,
             "true",
             "DEFAULT",

@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [python_lambda]
+  - &lambda_libraries [java_lambda, python_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
@@ -411,6 +411,13 @@ patterns:
         libraries: java
     utils/build/build_java_base_images.sh:
         libraries: java
+
+    manifests/java_lambda.yml:
+      scenario_groups: null  # already handled by the manifest comparison
+      libraries: java_lambda
+    utils/build/docker/java_lambda/*:
+      scenario_groups: appsec_lambda
+      libraries: java_lambda
 
     manifests/nodejs.yml:
         scenario_groups: null  # already handled by the manifest comparison

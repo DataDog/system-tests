@@ -7,6 +7,7 @@ LIBRARIES = [
     "dotnet",
     "golang",
     "java",
+    "java_lambda",
     # "k8s_cluster_agent",
     "nodejs",
     "php",
