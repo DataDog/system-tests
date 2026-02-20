@@ -66,7 +66,7 @@ class BaseGraphQLOperationError:
 
         spans = list(
             span
-            for _, _, span in interfaces.library.get_spans(request=self.request, full_trace=True)
+            for _, _, span, _ in interfaces.library.get_spans(request=self.request, full_trace=True)
             if self._is_graphql_execute_span(span)
         )
 

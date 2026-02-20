@@ -16,7 +16,7 @@ from utils._weblog import HttpResponse
 
 def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
+    for _, _, span, _ in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
@@ -26,8 +26,9 @@ def get_schema(request: HttpResponse, address: str):
 
 def get_span_meta(request: HttpResponse, key: str):
     """Get a specific meta value from the root span"""
-    span = interfaces.library.get_root_span(request)
-    return span.get("meta", {}).get(key)
+    span, span_format = interfaces.library.get_root_span(request)
+    meta = interfaces.library.get_span_meta(span, span_format)
+    return meta.get(key)
 
 
 @rfc("https://docs.google.com/document/d/1GnWwiaw6dkVtgn5f1wcHJETND_Svqd-sJl6FSVVuCkI")

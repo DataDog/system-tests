@@ -13,12 +13,12 @@ def validate_span_tags(
     request: HttpResponse, expected_meta: Sequence[str] = (), expected_metrics: Sequence[str] = ()
 ) -> None:
     """Validate RASP span tags are added when an event is generated"""
-    span = interfaces.library.get_root_span(request)
-    meta = span["meta"]
+    span, span_format = interfaces.library.get_root_span(request)
+    meta = interfaces.library.get_span_meta(span, span_format)
     for m in expected_meta:
         assert m in meta, f"missing span meta tag `{m}` in {meta}"
 
-    metrics = span["metrics"]
+    metrics = interfaces.library.get_span_metrics(span, span_format)
     for m in expected_metrics:
         assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 

@@ -36,7 +36,7 @@ class Test_ExtendedRequestBodyCollection:
                 },
             },
         )
-        span = interfaces.library.get_root_span(request=response)
+        span, _span_format = interfaces.library.get_root_span(request=response)
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
@@ -70,12 +70,12 @@ class Test_ExtendedRequestBodyCollection:
                 },
             },
         )
-        span = interfaces.library.get_root_span(request=self.r)
+        span, span_format = interfaces.library.get_root_span(request=self.r)
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
         assert_body_property(body, "command", "/usr/bin/touch /tmp/passwd" + "A" * 4070)
-        meta = span.get("meta", {})
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert meta.get("_dd.appsec.rasp.request_body_size.exceeded") == "true"
 
     def setup_if_no_rasp_event_no_collect_request_body(self):
@@ -90,7 +90,7 @@ class Test_ExtendedRequestBodyCollection:
     def test_if_no_rasp_event_no_collect_request_body(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
+        span, _span_format = interfaces.library.get_root_span(request=self.r)
         meta_struct = span.get("meta_struct", {})
         assert meta_struct.get("http.request.body") is None
 

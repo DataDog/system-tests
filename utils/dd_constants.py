@@ -128,3 +128,17 @@ class TraceAgentPayloadFormat(StrEnum):
     efficient_trace_payload_format = "efficient_trace_payload_format"
     """ Efficient format introduced in agent version 7.73.0. Uses idxTracerPayloads field instead of tracerPayloads
     RFC: https://docs.google.com/document/d/1hNS6anKYutOYW-nmR759UlKXUdT6H0mRwVt7_L70ESc/edit?usp=sharing"""
+
+
+class TraceLibraryPayloadFormat(StrEnum):
+    """Describe which format is used to carry trace payloads from the library to the agent
+    This enum is used only in system-tests to differentiate between different library payloads
+    and is not exposed directly in trace payloads.
+    """
+
+    v04 = "v04"
+    """ v0.4/v0.5 format - list of spans with meta/metrics separated"""
+
+    v1 = "v1"
+    """ v1.0 format - chunks with spans using attributes and name_value/type_value fields
+    RFC: https://docs.google.com/document/d/1hNS6anKYutOYW-nmR759UlKXUdT6H0mRwVt7_L70ESc/edit?usp=sharing"""

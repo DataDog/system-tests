@@ -39,7 +39,8 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         for r in self.r_blocked_requests:
             assert r.status_code == 403
             interfaces.library.assert_waf_attack(r, rule="blk-001-002", address="usr.id")
-            span = interfaces.library.get_root_span(r)
-            assert span["meta"]["appsec.event"] == "true"
-            assert span["meta"]["appsec.blocked"] == "true"
-            assert span["meta"]["http.status_code"] == "403"
+            span, span_format = interfaces.library.get_root_span(r)
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert meta["appsec.event"] == "true"
+            assert meta["appsec.blocked"] == "true"
+            assert meta["http.status_code"] == "403"

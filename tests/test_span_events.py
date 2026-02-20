@@ -22,8 +22,8 @@ class Test_SpanEvents_WithAgentSupport:
     def test_v04_v07_default_format(self):
         """For traces that default to the v0.4 or v0.7 format, send events as a top-level `span_events` field"""
         interfaces.library.assert_trace_exists(self.r)
-        span = interfaces.library.get_root_span(self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert "span_events" in span
         assert "events" not in meta
 
@@ -36,8 +36,8 @@ class Test_SpanEvents_WithAgentSupport:
         given this format does not support native serialization.
         """
         interfaces.library.assert_trace_exists(self.r)
-        span = interfaces.library.get_root_span(self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert "span_events" not in span
         assert "events" in meta
 
@@ -57,7 +57,7 @@ class Test_SpanEvents_WithoutAgentSupport:
     def test_send_as_a_tag(self):
         """Send span events as the tag `events` when the agent does not support native serialization"""
         interfaces.library.assert_trace_exists(self.r)
-        span = interfaces.library.get_root_span(self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert "span_events" not in span
         assert "events" in meta

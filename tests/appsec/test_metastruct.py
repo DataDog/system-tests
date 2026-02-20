@@ -14,9 +14,9 @@ class Test_SecurityEvents_Appsec_Metastruct_Enabled:
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
 
     def test_appsec_event_use_metastruct(self):
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
-        meta_struct = span.get("meta_struct", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
+        meta_struct = interfaces.library.get_span_meta_struct(span, span_format)
         assert meta["appsec.event"] == "true"
         assert "_dd.appsec.json" not in meta
         assert "appsec" in meta_struct
@@ -37,10 +37,10 @@ class Test_SecurityEvents_Iast_Metastruct_Enabled:
         self.r = weblog.get("/iast/source/cookievalue/test", cookies={"table": "user"})
 
     def test_iast_event_use_metastruct(self):
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
-        metrics = span.get("metrics", {})
-        meta_struct = span.get("meta_struct", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
+        metrics = interfaces.library.get_span_metrics(span, span_format)
+        meta_struct = interfaces.library.get_span_meta_struct(span, span_format)
         assert meta.get("_dd.iast.enabled") == "1" or metrics.get("_dd.iast.enabled") == 1.0
         assert "_dd.iast.json" not in meta
         assert "iast" in meta_struct
@@ -61,9 +61,9 @@ class Test_SecurityEvents_Appsec_Metastruct_Disabled:
         self.r = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
 
     def test_appsec_event_fallback_json(self):
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
-        meta_struct = span.get("meta_struct", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
+        meta_struct = interfaces.library.get_span_meta_struct(span, span_format)
         assert meta["appsec.event"] == "true"
         assert "_dd.appsec.json" in meta
         assert "appsec" not in meta_struct
@@ -85,9 +85,9 @@ class Test_SecurityEvents_Iast_Metastruct_Disabled:
         self.r = weblog.get("/set_cookie", params={"name": "metastruct-no", "value": "no"})
 
     def test_iast_event_fallback_json(self):
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
-        meta_struct = span.get("meta_struct", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
+        meta_struct = interfaces.library.get_span_meta_struct(span, span_format)
         assert meta["_dd.iast.enabled"] == "1"
         assert "_dd.iast.json" in meta
         assert "iast" not in meta_struct

@@ -13,8 +13,8 @@ class Test_ExtendedHeaderCollection:
     @staticmethod
     def assert_feature_is_enabled(response: HttpResponse) -> None:
         assert response.status_code == 200
-        span = interfaces.library.get_root_span(request=response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=response)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert meta.get("http.request.headers.x-my-header-1") == "value1"
 
     def setup_feature_is_enabled(self):
@@ -41,14 +41,14 @@ class Test_ExtendedHeaderCollection:
 
     def test_if_appsec_event_collect_all_request_headers(self):
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert meta.get("http.request.headers.x-my-header-1") == "value1"
         assert meta.get("http.request.headers.x-my-header-2") == "value2"
         assert meta.get("http.request.headers.x-my-header-3") == "value3"
         assert meta.get("http.request.headers.x-my-header-4") == "value4"
         assert meta.get("http.request.headers.content-type") == "text/html"
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
 
     def setup_if_no_appsec_event_collect_allowed_request_headers(self):
@@ -67,14 +67,14 @@ class Test_ExtendedHeaderCollection:
     def test_if_no_appsec_event_collect_allowed_request_headers(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert meta.get("http.request.headers.x-my-header-1") is None
         assert meta.get("http.request.headers.x-my-header-2") is None
         assert meta.get("http.request.headers.x-my-header-3") is None
         assert meta.get("http.request.headers.x-my-header-4") is None
         assert meta.get("http.request.headers.content-type") == "text/html"
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
 
     def setup_not_exceed_default_50_maximum_request_header_collection(self):
@@ -91,8 +91,8 @@ class Test_ExtendedHeaderCollection:
     def test_not_exceed_default_50_maximum_request_header_collection(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Ensure no more than 50 meta entries start with "http.request.headers."
         header_keys = [k for k in meta if k.startswith("http.request.headers.")]
@@ -101,7 +101,7 @@ class Test_ExtendedHeaderCollection:
         # Ensure allowed headers are collected
         assert meta.get("http.request.headers.content-type") == "text/html"
 
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         # Confirm _dd.appsec.request.header_collection.discarded exists and is > 0
         discarded = metrics.get("_dd.appsec.request.header_collection.discarded")
         assert discarded is not None
@@ -121,15 +121,15 @@ class Test_ExtendedHeaderCollection:
     )
     def test_if_appsec_event_collect_all_response_headers(self):
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert meta.get("http.response.headers.x-test-header-1") == "value1"
         assert meta.get("http.response.headers.x-test-header-2") == "value2"
         assert meta.get("http.response.headers.x-test-header-3") == "value3"
         assert meta.get("http.response.headers.x-test-header-4") == "value4"
         assert meta.get("http.response.headers.x-test-header-5") == "value5"
         assert meta.get("http.response.headers.content-language") == "en-US"
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
 
     def setup_if_no_appsec_event_collect_allowed_response_headers(self):
@@ -139,8 +139,8 @@ class Test_ExtendedHeaderCollection:
     def test_if_no_appsec_event_collect_allowed_response_headers(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
         assert meta.get("http.response.headers.x-test-header-1") is None
         assert meta.get("http.response.headers.x-test-header-2") is None
         assert meta.get("http.response.headers.x-test-header-3") is None
@@ -149,7 +149,7 @@ class Test_ExtendedHeaderCollection:
         assert (
             meta.get("http.response.headers.content-language") is None
         )  # at least in java we are not collecting response headers by default
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
 
     def setup_not_exceed_default_50_maximum_response_header_collection(self):
@@ -168,8 +168,8 @@ class Test_ExtendedHeaderCollection:
     def test_not_exceed_default_50_maximum_response_header_collection(self):
         self.assert_feature_is_enabled(self.check_r)
         assert self.r.status_code == 200
-        span = interfaces.library.get_root_span(request=self.r)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.r)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Ensure no more than 50 meta entries start with "http.request.headers."
         header_keys = [k for k in meta if k.startswith("http.response.headers.")]
@@ -178,7 +178,7 @@ class Test_ExtendedHeaderCollection:
         # Ensure allowed headers are collected
         assert meta.get("http.response.headers.content-language") == "en-US"
 
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         # Confirm _dd.appsec.response.header_collection.discarded exists and is > 0
         discarded = metrics.get("_dd.appsec.response.header_collection.discarded")
         assert discarded is not None

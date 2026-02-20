@@ -15,7 +15,7 @@ class Test_ShellExecution:
     def fetch_command_execution_span(r: HttpResponse) -> dict:
         assert r.status_code == 200
 
-        traces = [t for _, t in interfaces.library.get_traces(request=r)]
+        traces = [t for _, t, _ in interfaces.library.get_traces(request=r)]
         assert traces, "No traces found"
         assert len(traces) == 1
         spans = traces[0]

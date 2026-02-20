@@ -14,7 +14,11 @@ DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
 
 
 def get_span_meta(r: HttpResponse):
-    res = [span.get("meta", {}) for _, _, span in interfaces.library.get_spans(request=r)]
+    # Use helper method to get meta for both v04 and v1 formats
+    res = []
+    for _, _, span, span_format in interfaces.library.get_spans(request=r):
+        meta = interfaces.library.get_span_meta(span, span_format)
+        res.append(meta)
     assert res, f"no spans found in {r}"
     return res
 

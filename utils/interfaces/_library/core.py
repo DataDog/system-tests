@@ -2,18 +2,21 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import ast
 import base64
 from collections.abc import Callable, Iterable, Generator
 import copy
+import inspect
 import json
+import msgpack
+import re
 import threading
 
 from utils.tools import get_rid_from_user_agent, get_rid_from_span
 from utils._logger import logger
-from utils.dd_constants import RemoteConfigApplyState, Capabilities
+from utils.dd_constants import RemoteConfigApplyState, Capabilities, TraceLibraryPayloadFormat
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
-from utils.interfaces._library.miscs import _SpanTagValidator
 from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
@@ -22,14 +25,406 @@ from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
+class _SpanTagValidator:
+    """Will run an arbitrary check on spans. If a request is provided, only span"""
+
+    path_filters = ["/v0.4/traces", "/v0.5/traces"]
+
+    def __init__(
+        self,
+        tags: dict | None,
+        *,
+        value_as_regular_expression: bool,
+        library_interface: "LibraryInterfaceValidator | None" = None,
+    ):
+        self.tags = {} if tags is None else tags
+        self.value_as_regular_expression = value_as_regular_expression
+        self.library_interface = library_interface
+
+    def __call__(self, span: dict, span_format: TraceLibraryPayloadFormat | None = None):
+        # If span_format is provided, use helper methods; otherwise assume v04 format for backward compatibility
+        if span_format is not None and self.library_interface is not None:
+            meta = self.library_interface.get_span_meta(span, span_format)
+        else:
+            # Backward compatibility: assume v04 format
+            meta = span.get("meta", {})
+
+        for tag_key in self.tags:
+            if tag_key not in meta:
+                raise ValueError(f"{tag_key} tag not found in span's meta")
+
+            expect_value = self.tags[tag_key]
+            actual_value = meta[tag_key]
+
+            if self.value_as_regular_expression:
+                if not re.compile(expect_value).fullmatch(actual_value):
+                    raise ValueError(
+                        f'{tag_key} tag value is "{actual_value}", and should match regex "{expect_value}"'
+                    )
+            elif expect_value != actual_value:
+                raise ValueError(f'{tag_key} tag in span\'s meta should be "{expect_value}", not "{actual_value}"')
+
+        return True
+
+
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
-    trace_paths = ["/v0.4/traces", "/v0.5/traces"]
+    trace_paths = ["/v0.4/traces", "/v0.5/traces", "/v1.0/traces"]
+    # Number of hex characters needed to represent 64 bits (lower trace ID)
+    _TRACE_ID_HEX_LENGTH = 16
 
     def __init__(self, name: str):
         super().__init__(name)
         self.ready = threading.Event()
+
+    @staticmethod
+    def _detect_span_format(span: dict) -> TraceLibraryPayloadFormat:
+        """Detect the format of a span based on its structure."""
+        if "name_value" in span or "type_value" in span or "attributes" in span:
+            return TraceLibraryPayloadFormat.v1
+        return TraceLibraryPayloadFormat.v04
+
+    @staticmethod
+    def get_span_meta(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> dict:
+        """Returns the meta dictionary of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            return span.get("meta", {})
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            # In v1 format, meta and metrics are joined in attributes
+            return span.get("attributes", {})
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def _is_numeric_value(value: float | str) -> bool:
+        """Check if a value is numeric (int, float, or string that can be converted to number)."""
+        if isinstance(value, (int, float)):
+            return True
+        if isinstance(value, str):
+            try:
+                float(value)
+                return True
+            except (ValueError, TypeError):
+                return False
+        return False
+
+    @staticmethod
+    def get_span_metrics(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> dict:
+        """Returns the metrics dictionary of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            return span.get("metrics", {})
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            # In v1 format, metrics are in attributes, but we need to filter for numeric values
+            attributes = span.get("attributes", {})
+            metric_keys = {
+                "process_id",
+                "_dd.top_level",
+                "_dd.sampling_priority",
+                "_sampling_priority_v1",
+                "_dd.agent_psr",
+                "_dd.trace_span_attribute_schema",
+            }
+
+            return {
+                key: value
+                for key, value in attributes.items()
+                if key in metric_keys or (key.startswith("_dd.") and LibraryInterfaceValidator._is_numeric_value(value))
+            }
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_name(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> str:
+        """Returns the name of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            return span.get("name", "")
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            return span.get("name_value", "")
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_type(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> str:
+        """Returns the type of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            return span.get("type", "")
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            return span.get("type_value", "")
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_trace_id(
+        span: dict, trace_chunk: dict | None = None, span_format: TraceLibraryPayloadFormat | None = None
+    ) -> int:
+        """Returns the trace_id of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            return span.get("trace_id", 0)
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            # In v1 format, trace_id is at the chunk level
+            if trace_chunk and "trace_id" in trace_chunk:
+                trace_id = trace_chunk["trace_id"]
+                # Convert hex string to int (extract lower 64 bits)
+                if isinstance(trace_id, str) and trace_id.startswith("0x"):
+                    try:
+                        return int(trace_id[-16:], 16)
+                    except ValueError:
+                        return int(trace_id, 16) if trace_id.startswith("0x") else 0
+                return trace_id if isinstance(trace_id, int) else 0
+            return 0
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_trace_id(trace: dict | list[dict], span_format: TraceLibraryPayloadFormat | None = None) -> int:
+        """Returns the trace_id from a trace according to its format.
+
+        For v04 format, trace is a list of spans and trace_id is in the first span.
+        For v1 format, trace is a dict (chunk) with trace_id at the chunk level.
+        """
+        if span_format is None:
+            # Try to detect format from trace structure
+            if isinstance(trace, dict) and "spans" in trace:
+                span_format = TraceLibraryPayloadFormat.v1
+            elif isinstance(trace, list) and len(trace) > 0:
+                span_format = TraceLibraryPayloadFormat.v04
+            else:
+                raise ValueError("Cannot determine span format from trace structure")
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            # For v04, trace is a list of spans, trace_id is in the first span
+            if isinstance(trace, list) and len(trace) > 0:
+                return trace[0].get("trace_id", 0)
+            return 0
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            # For v1, trace is a dict (chunk) with trace_id at the chunk level
+            if isinstance(trace, dict) and "trace_id" in trace:
+                trace_id = trace["trace_id"]
+                # Convert hex string to int (extract lower 64 bits)
+                if isinstance(trace_id, str) and trace_id.startswith("0x"):
+                    try:
+                        return int(trace_id[-16:], 16)
+                    except ValueError:
+                        return int(trace_id, 16) if trace_id.startswith("0x") else 0
+                return trace_id if isinstance(trace_id, int) else 0
+            return 0
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_parent_id(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> int | None:
+        """Returns the parent_id of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        # parent_id is a top-level field in both formats
+        return span.get("parent_id")
+
+    @staticmethod
+    def get_span_links(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> list[dict] | None:
+        """Returns the span links of a span according to its format.
+
+        Returns a normalized list of span links with consistent field names:
+        - trace_id: int (lower 64 bits)
+        - trace_id_high: int | None (upper 64 bits, if present)
+        - span_id: int
+        - attributes: dict | None
+        - tracestate: str | None
+        - flags: int
+        """
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        # Check for span_links at top level (v1 format or v04 with span_links field)
+        # Also check for "links" which is used in v1 format
+        span_links = span.get("span_links") or span.get("links")
+        if span_links is not None:
+            normalized_links = []
+            for link in span_links:
+                normalized_link = {}
+
+                # Handle trace_id - normalize to int (lower 64 bits) and optionally trace_id_high
+                trace_id = link.get("trace_id")
+                if trace_id is not None:
+                    if isinstance(trace_id, str):
+                        # Handle hex string format (e.g., "0x1234..." or "1234...")
+                        trace_id_str = trace_id.removeprefix("0x")
+                        if len(trace_id_str) >= LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                            # Extract lower 64 bits
+                            normalized_link["trace_id"] = int(
+                                trace_id_str[-LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH :], 16
+                            )
+                            # Extract upper 64 bits if present
+                            if len(trace_id_str) > LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                                normalized_link["trace_id_high"] = int(
+                                    trace_id_str[: -LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH], 16
+                                )
+                        else:
+                            normalized_link["trace_id"] = int(trace_id_str, 16)
+                    elif isinstance(trace_id, int):
+                        normalized_link["trace_id"] = trace_id
+                    # Note: bytes should already be converted to hex string by deserializer
+
+                # Handle span_id
+                span_id = link.get("span_id")
+                if span_id is not None:
+                    if isinstance(span_id, str):
+                        # Convert hex string to int if needed
+                        normalized_link["span_id"] = (
+                            int(span_id, 16)
+                            if span_id.startswith("0x") or all(c in "0123456789abcdefABCDEF" for c in span_id)
+                            else int(span_id)
+                        )
+                    else:
+                        normalized_link["span_id"] = span_id
+
+                # Copy other fields
+                if "attributes" in link:
+                    normalized_link["attributes"] = link["attributes"]
+                if "tracestate" in link:
+                    normalized_link["tracestate"] = link["tracestate"]
+                elif "trace_state" in link:
+                    normalized_link["tracestate"] = link["trace_state"]
+                if "flags" in link:
+                    # Ensure flags have the TRACECONTEXT_FLAGS_SET bit
+                    normalized_link["flags"] = link["flags"] | (1 << 31)
+                else:
+                    normalized_link["flags"] = 0
+
+                normalized_links.append(normalized_link)
+            return normalized_links
+
+        # Check meta for _dd.span_links (v04 format stored in meta)
+        meta = LibraryInterfaceValidator.get_span_meta(span, span_format)
+        span_links_value = meta.get("_dd.span_links")
+        if span_links_value is not None:
+            # Convert span_links tags into normalized format
+            json_links = json.loads(span_links_value)
+            normalized_links = []
+            for json_link in json_links:
+                normalized_link = {}
+                # Parse trace_id from hex string
+                trace_id_str = json_link["trace_id"]
+                if len(trace_id_str) >= LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                    normalized_link["trace_id"] = int(
+                        trace_id_str[-LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH :], 16
+                    )
+                    if len(trace_id_str) > LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH:
+                        normalized_link["trace_id_high"] = int(
+                            trace_id_str[: -LibraryInterfaceValidator._TRACE_ID_HEX_LENGTH], 16
+                        )
+                else:
+                    normalized_link["trace_id"] = int(trace_id_str, 16)
+                # Parse span_id from hex string
+                normalized_link["span_id"] = int(json_link["span_id"], 16)
+                if "attributes" in json_link:
+                    normalized_link["attributes"] = json_link["attributes"]
+                if "tracestate" in json_link:
+                    normalized_link["tracestate"] = json_link["tracestate"]
+                elif "trace_state" in json_link:
+                    normalized_link["tracestate"] = json_link["trace_state"]
+                if "flags" in json_link:
+                    normalized_link["flags"] = json_link["flags"] | (1 << 31)
+                else:
+                    normalized_link["flags"] = 0
+                normalized_links.append(normalized_link)
+            return normalized_links
+
+        return None
+
+    @staticmethod
+    def get_span_meta_struct(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> dict:
+        """Returns the meta_struct dictionary of a span according to its format.
+
+        For v04 format, returns span.get("meta_struct", {}).
+        For v1 format, checks if there's binary appsec data in attributes and decodes it.
+        """
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        if span_format == TraceLibraryPayloadFormat.v04:
+            return span.get("meta_struct", {})
+
+        if span_format == TraceLibraryPayloadFormat.v1:
+            # In v1 format, appsec data that was in meta_struct is now in attributes as binary data
+            attributes = span.get("attributes", {})
+            if not isinstance(attributes, dict):
+                return {}
+
+            meta_struct = {}
+
+            # Check if there's an "appsec" key in attributes with binary data
+            # The binary data is msgpack-encoded, similar to how meta_struct worked in v04
+            if "appsec" in attributes:
+                appsec_value = attributes["appsec"]
+
+                # Handle bytes value (msgpack-encoded binary data)
+                if isinstance(appsec_value, bytes):
+                    try:
+                        decoded = msgpack.unpackb(appsec_value, unicode_errors="replace", strict_map_key=False)
+                        # The decoded value should be the appsec data dict directly
+                        if isinstance(decoded, dict) and decoded:
+                            meta_struct["appsec"] = decoded
+                    except (msgpack.UnpackException, ValueError, TypeError):
+                        # Not msgpack-encoded or invalid data, skip silently
+                        pass
+                    except Exception:
+                        # Any other exception, log but don't fail
+                        logger.debug(f"Unexpected error decoding appsec data: {type(Exception).__name__}")
+                elif isinstance(appsec_value, str):
+                    # Handle string representation of bytes (e.g., "b'\\x81\\xa8triggers...'")
+                    # This happens when the bytes are serialized to JSON as a string literal
+                    try:
+                        # Try to parse the bytes literal string (e.g., "b'\\x81...'" -> bytes)
+                        if appsec_value.startswith(("b'", 'b"')):
+                            bytes_value = ast.literal_eval(appsec_value)
+                            if isinstance(bytes_value, bytes):
+                                decoded = msgpack.unpackb(bytes_value, unicode_errors="replace", strict_map_key=False)
+                                if isinstance(decoded, dict) and decoded:
+                                    meta_struct["appsec"] = decoded
+                    except (ValueError, SyntaxError, TypeError, msgpack.UnpackException):
+                        # Failed to parse or decode, skip silently
+                        pass
+                    except Exception:
+                        # Any other exception, log but don't fail
+                        logger.debug(f"Unexpected error decoding appsec string data: {type(Exception).__name__}")
+
+            return meta_struct
+
+        raise ValueError(f"Unknown span format: {span_format}")
+
+    @staticmethod
+    def get_span_span_id(span: dict, span_format: TraceLibraryPayloadFormat | None = None) -> int | None:
+        """Returns the span_id of a span according to its format."""
+        if span_format is None:
+            span_format = LibraryInterfaceValidator._detect_span_format(span)
+
+        # span_id is a top-level field in both formats (may be called "id" in v1)
+        if span_format == TraceLibraryPayloadFormat.v1:
+            return span.get("id") or span.get("span_id")
+        return span.get("span_id")
 
     def ingest_file(self, src_path: str):
         self.ready.set()
@@ -61,7 +456,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     ############################################################
     def get_traces(
         self, request: HttpResponse | GrpcResponse | None = None
-    ) -> Generator[tuple[dict, list[dict]], None, None]:
+    ) -> Generator[tuple[dict, list[dict] | dict, TraceLibraryPayloadFormat], None, None]:
         rid: str | None = None
 
         if request:
@@ -71,7 +466,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 logger.warning("HTTP app failed to respond, it will very probably fail")
 
         trace_found = False
-        for data in self.get_data(path_filters=self.trace_paths):
+        # Handle v04/v05 traces
+        for data in self.get_data(path_filters=["/v0.4/traces", "/v0.5/traces"]):
             traces = data["request"]["content"]
             if not traces:  # may be none
                 continue
@@ -79,13 +475,34 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             for trace in traces:
                 if rid is None:
                     trace_found = True
-                    yield data, trace
+                    yield data, trace, TraceLibraryPayloadFormat.v04
                 else:
                     for span in trace:
                         if rid == get_rid_from_span(span):
                             logger.debug(f"Found a trace in {data['log_filename']}")
                             trace_found = True
-                            yield data, trace
+                            yield data, trace, TraceLibraryPayloadFormat.v04
+                            break
+
+        # Handle v1.0 traces
+        for data in self.get_data(path_filters="/v1.0/traces"):
+            traces = data["request"]["content"]
+            if not traces:  # may be none
+                continue
+
+            if not traces.get("chunks"):
+                continue
+
+            for trace_chunk in traces.get("chunks"):
+                if rid is None:
+                    trace_found = True
+                    yield data, trace_chunk, TraceLibraryPayloadFormat.v1
+                else:
+                    for span in trace_chunk.get("spans", []):
+                        if rid == get_rid_from_span(span):
+                            logger.debug(f"Found a trace in {data['log_filename']}")
+                            trace_found = True
+                            yield data, trace_chunk, TraceLibraryPayloadFormat.v1
                             break
 
         if not trace_found:
@@ -125,54 +542,88 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         if not trace_found:
             logger.warning("No trace found")
 
-    def get_spans(self, request: HttpResponse | None = None, *, full_trace: bool = False):
+    def get_spans(
+        self, request: HttpResponse | None = None, *, full_trace: bool = False
+    ) -> Generator[tuple[dict, dict | list[dict], dict, TraceLibraryPayloadFormat], None, None]:
         """Iterate over all spans reported by the tracer to the agent.
 
         If request is not None and full_trace is False, only span triggered by that request will be
         returned.
         If request is not None and full_trace is True, all spans from a trace triggered by that
         request will be returned.
+
+        Returns: (data, trace, span, span_format)
         """
         rid = request.get_rid() if request else None
 
-        for data, trace in self.get_traces(request=request):
-            for span in trace:
-                if rid is None or full_trace:
-                    yield data, trace, span
-                elif rid == get_rid_from_span(span):
-                    logger.debug(f"Found a span in {data['log_filename']}")
-                    yield data, trace, span
+        for data, trace, trace_format in self.get_traces(request=request):
+            # Check if this is a v1 format trace (has "spans" key) or v04 format (list of spans)
+            if trace_format == TraceLibraryPayloadFormat.v1:
+                # v1 format: trace is a chunk with "spans" array
+                assert isinstance(trace, dict), "v1 format trace must be a dict"
+                spans = trace.get("spans", [])
+                for span in spans:
+                    if rid is None or full_trace:
+                        yield data, trace, span, trace_format
+                    elif rid == get_rid_from_span(span):
+                        logger.debug(f"Found a span in {data['log_filename']}")
+                        yield data, trace, span, trace_format
+            else:
+                # v04 format: trace is a list of spans
+                assert isinstance(trace, list), "v04 format trace must be a list"
+                for span in trace:
+                    if rid is None or full_trace:
+                        yield data, trace, span, trace_format
+                    elif rid == get_rid_from_span(span):
+                        logger.debug(f"Found a span in {data['log_filename']}")
+                        yield data, trace, span, trace_format
 
     def get_root_spans(self, request: HttpResponse | None = None):
-        for data, _, span in self.get_spans(request=request):
-            if span.get("parent_id") in (0, None):
-                yield data, span
+        """Returns root spans in their native format along with the format.
 
-    def get_root_span(self, request: HttpResponse) -> dict:
+        Returns: (data, span, span_format)
+        Use helper methods (get_span_meta, get_span_metrics, etc.) to access span fields.
+        """
+        for data, _trace, span, span_format in self.get_spans(request=request):
+            parent_id = span.get("parent_id")
+            if parent_id in (0, None):
+                yield data, span, span_format
+
+    def get_root_span(self, request: HttpResponse) -> tuple[dict, TraceLibraryPayloadFormat]:
         """Get the root span associated with a given request. This function will fail
         if a request is not given, if there is no root span, or if there
         is more than one root span. For special cases, use get_root_spans.
+
+        Returns: (span, span_format)
+        Use helper methods to access span fields.
         """
         assert request is not None, "A request object is mandatory"
-        spans = [s for _, s in self.get_root_spans(request=request)]
+        spans = [(s, f) for _, s, f in self.get_root_spans(request=request)]
         assert spans, "No root spans found"
         assert len(spans) == 1, "More then one root span found"
         return spans[0]
 
     def get_appsec_events(self, request: HttpResponse | None = None, *, full_trace: bool = False):
-        for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
-            if "appsec" in span.get("meta_struct", {}):
+        for data, trace, span, span_format in self.get_spans(request=request, full_trace=full_trace):
+            # Try to get appsec data from meta_struct (works for both v04 and v1 formats)
+            meta_struct = self.get_span_meta_struct(span, span_format)
+            if "appsec" in meta_struct:
                 if request:  # do not spam log if all data are sent to the validator
-                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
+                    span_id = self.get_span_span_id(span, span_format) or "unknown"
+                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span_id}")
 
-                appsec_data = span["meta_struct"]["appsec"]
+                appsec_data = meta_struct["appsec"]
                 yield data, trace, span, appsec_data
-            elif "_dd.appsec.json" in span.get("meta", {}):
-                if request:  # do not spam log if all data are sent to the validator
-                    logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
+            else:
+                # Fallback to _dd.appsec.json in meta/attributes
+                meta = self.get_span_meta(span, span_format)
+                if "_dd.appsec.json" in meta:
+                    if request:  # do not spam log if all data are sent to the validator
+                        span_id = self.get_span_span_id(span, span_format) or "unknown"
+                        logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span_id}")
 
-                appsec_data = span["meta"]["_dd.appsec.json"]
-                yield data, trace, span, appsec_data
+                    appsec_data = meta["_dd.appsec.json"]
+                    yield data, trace, span, appsec_data
 
     def get_legacy_appsec_events(self, request: HttpResponse | None = None):
         paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]
@@ -274,7 +725,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_one_appsec(
         self,
         request: HttpResponse | None = None,
-        validator: Callable[[dict, dict], bool] | None = None,
+        validator: Callable[[dict, dict], bool] | Callable[[dict, dict, TraceLibraryPayloadFormat], bool] | None = None,
         *,
         legacy_validator: Callable | None = None,
         full_trace: bool = False,
@@ -285,11 +736,28 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         * If validator() raise an exception. the validate_one will fail
 
         If no payload satisfies validator(), then validate_one will fail
+
+        The validator can accept either:
+        - (span, appsec_data, span_format) - recommended, use helper methods for format-agnostic access
+        - (span, appsec_data) - for backward compatibility, but will only work with v04 format spans
         """
         if validator:
             for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
-                if validator(span, appsec_data) is True:
-                    return
+                # Detect span format and try to call validator with format if it accepts 3 parameters
+                span_format = self._detect_span_format(span)
+                try:
+                    sig = inspect.signature(validator)
+                    if len(sig.parameters) == 3:  # noqa: PLR2004
+                        # Validator accepts (span, appsec_data, span_format)
+                        if validator(span, appsec_data, span_format) is True:  # type: ignore[call-arg]
+                            return
+                    # Validator accepts only (span, appsec_data) - backward compatibility
+                    elif validator(span, appsec_data) is True:  # type: ignore[call-arg]
+                        return
+                except TypeError:
+                    # Fallback: try calling with 2 parameters
+                    if validator(span, appsec_data) is True:  # type: ignore[call-arg]
+                        return
 
         if legacy_validator:
             for _, event in self.get_legacy_appsec_events(request=request):
@@ -320,11 +788,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     ######################################################
 
     def assert_iast_implemented(self):
-        for _, span in self.get_root_spans():
-            if "_dd.iast.enabled" in span.get("metrics", {}):
+        for _, span, span_format in self.get_root_spans():
+            metrics = self.get_span_metrics(span, span_format)
+            if "_dd.iast.enabled" in metrics:
                 return
 
-            if "_dd.iast.enabled" in span.get("meta", {}):
+            meta = self.get_span_meta(span, span_format)
+            if "_dd.iast.enabled" in meta:
                 return
 
         raise ValueError("_dd.iast.enabled has not been found in any metrics")
@@ -342,8 +812,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def assert_receive_request_root_trace(self):  # TODO : move this in test class
         """Asserts that a trace for a request has been sent to the agent"""
 
-        for _, span in self.get_root_spans():
-            if span.get("type") == "web":
+        for _, span, span_format in self.get_root_spans():
+            span_type = self.get_span_type(span, span_format)
+            if span_type == "web":
                 return
 
         raise ValueError("Nothing has been reported. No request root span with has been found")
@@ -351,14 +822,25 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def assert_trace_id_uniqueness(self):
         trace_ids: dict[int, str] = {}
 
-        for data, trace in self.get_traces():
-            spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
+        for data, trace, trace_format in self.get_traces():
+            if trace_format == TraceLibraryPayloadFormat.v1:
+                assert isinstance(trace, dict), "v1 format trace must be a dict"
+                spans = trace.get("spans", [])
+            else:
+                assert isinstance(trace, list), "v04 format trace must be a list"
+                spans = trace
 
-            if spans:
+            root_spans = [span for span in spans if span.get("parent_id") in ("0", 0, None)]
+
+            if root_spans:
                 log_filename = data["log_filename"]
-                span = spans[0]
-                assert "trace_id" in span, f"'trace_id' is missing in {log_filename}"
-                trace_id = span["trace_id"]
+                span = root_spans[0]
+                span_format = self._detect_span_format(span)
+                trace_dict: dict | None = (
+                    trace if trace_format == TraceLibraryPayloadFormat.v1 and isinstance(trace, dict) else None
+                )
+                trace_id = self.get_span_trace_id(span, trace_dict, span_format)
+                assert trace_id != 0, f"'trace_id' is missing in {log_filename}"
 
                 if trace_id in trace_ids:
                     raise ValueError(
@@ -430,9 +912,17 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         If no payload satisfies validator(), then validate_one will fail
         """
 
-        for data, trace in self.get_traces(request=request):
+        for data, trace, trace_format in self.get_traces(request=request):
+            # For v1 format, extract spans from chunk for backward compatibility
+            if trace_format == TraceLibraryPayloadFormat.v1:
+                assert isinstance(trace, dict), "v1 format trace must be a dict"
+                trace_spans = trace.get("spans", [])
+            else:
+                assert isinstance(trace, list), "v04 format trace must be a list"
+                trace_spans = trace
+
             try:
-                if validator(trace) is True:
+                if validator(trace_spans) is True:
                     return
             except Exception:
                 logger.error(f"{data['log_filename']} did not validate this test")
@@ -445,7 +935,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self,
         request: HttpResponse | None = None,
         *,
-        validator: Callable[[dict], bool],
+        validator: Callable[[dict, TraceLibraryPayloadFormat], bool] | Callable[[dict], bool],
         full_trace: bool = False,
     ):
         """Will call validator() on all spans (eventually filtered on span trigerred by request).
@@ -456,11 +946,23 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         * If validator() raise an exception. the validate_one will fail
 
         If no payload satisfies validator(), then validate_one will fail
+
+        The validator can accept either:
+        - (span, span_format) - recommended, use helper methods for format-agnostic access
+        - (span) - for backward compatibility, but will only work with v04 format spans
         """
-        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
+        for _, _trace, span, span_format in self.get_spans(request=request, full_trace=full_trace):
             try:
-                if validator(span) is True:
-                    return
+                sig = inspect.signature(validator)
+                if len(sig.parameters) == 2:  # noqa: PLR2004
+                    # Validator accepts (span, format)
+                    if validator(span, span_format) is True:  # type: ignore[call-arg]
+                        return
+                # Validator accepts only (span) - backward compatibility
+                # Only works for v04 format
+                elif span_format == TraceLibraryPayloadFormat.v04:
+                    if validator(span) is True:  # type: ignore[call-arg]
+                        return
             except Exception as e:
                 logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
                 raise
@@ -471,18 +973,29 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self,
         request: HttpResponse | None = None,
         *,
-        validator: Callable[[dict], None],
+        validator: Callable[[dict, TraceLibraryPayloadFormat], None] | Callable[[dict], None],
         full_trace: bool = False,
         allow_no_data: bool = False,
     ):
         """Will call validator() on all spans (eventually filtered on span trigerred by request)
         If ever a validator raise an exception, the validation will fail
+
+        The validator can accept either:
+        - (span, span_format) - recommended, use helper methods for format-agnostic access
+        - (span) - for backward compatibility, but will only work with v04 format spans
         """
         data_is_missing = True
-        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
+        for _, _trace, span, span_format in self.get_spans(request=request, full_trace=full_trace):
             data_is_missing = False
             try:
-                validator(span)
+                sig = inspect.signature(validator)
+                if len(sig.parameters) == 2:  # noqa: PLR2004
+                    # Validator accepts (span, format)
+                    validator(span, span_format)  # type: ignore[call-arg]
+                # Validator accepts only (span) - backward compatibility
+                # Only works for v04 format
+                elif span_format == TraceLibraryPayloadFormat.v04:
+                    validator(span)  # type: ignore[call-arg]
             except Exception as e:
                 logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
                 raise
@@ -498,10 +1011,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         value_as_regular_expression: bool = False,
         full_trace: bool = False,
     ):
-        validator = _SpanTagValidator(tags=tags, value_as_regular_expression=value_as_regular_expression)
+        validator = _SpanTagValidator(
+            tags=tags, value_as_regular_expression=value_as_regular_expression, library_interface=self
+        )
         success = False
-        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
-            success = success or validator(span)
+        for _, _trace, span, span_format in self.get_spans(request=request, full_trace=full_trace):
+            success = success or validator(span, span_format)
 
         if not success:
             raise ValueError("Can't find anything to validate this test")
@@ -520,8 +1035,11 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         yield from self.get_data(path_filters="/profiling/v1/input")
 
     def assert_trace_exists(self, request: HttpResponse, span_type: str | None = None):
-        for _, _, span in self.get_spans(request=request):
-            if span_type is None or span.get("type") == span_type:
+        for _, _trace, span, span_format in self.get_spans(request=request):
+            if span_type is None:
+                return
+            actual_type = self.get_span_type(span, span_format)
+            if actual_type == span_type:
                 return
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")

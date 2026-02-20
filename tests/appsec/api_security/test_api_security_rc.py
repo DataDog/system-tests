@@ -9,7 +9,7 @@ from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
+    for _, _, span, _ in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         key = "_dd.appsec.s." + address
         payload = meta.get(key)

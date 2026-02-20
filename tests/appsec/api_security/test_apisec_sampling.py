@@ -15,7 +15,7 @@ import time
 
 def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
-    for _, _, span in interfaces.library.get_spans(request):
+    for _, _, span, _ in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:

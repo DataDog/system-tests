@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, features
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 @features.user_monitoring
@@ -15,13 +16,18 @@ class Test_Basic:
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
 
-        def validate_identify_tags(span: dict):
+        def validate_identify_tags(span: dict, span_format: TraceLibraryPayloadFormat | None = None):
+            # Use helper method to get meta for both v04 and v1 formats
+            if span_format is None:
+                span_format = interfaces.library._detect_span_format(span)  # noqa: SLF001
+            meta = interfaces.library.get_span_meta(span, span_format)
+
             for tag in ["id", "name", "email", "session_id", "role", "scope"]:
                 key = f"usr.{tag}"
-                assert key in span["meta"], f"Can't find {key} in span's meta"
+                assert key in meta, f"Can't find {key} in span's meta"
 
                 expected_value = f"usr.{tag}"  # key and value are the same on weblog spec
-                value = span["meta"][key]
+                value = meta[key]
                 if value != expected_value:
                     raise Exception(f"{key} value is '{value}', should be '{expected_value}'")
 

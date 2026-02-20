@@ -6,6 +6,7 @@ import re
 from urllib.parse import urlparse
 
 from utils import context, interfaces, features, scenarios
+from utils.dd_constants import TraceLibraryPayloadFormat
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -173,15 +174,17 @@ class Test_Meta:
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
-        def validator(span: dict):
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
-            if span.get("type") != "web":  # do nothing if is not web related
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type != "web":  # do nothing if is not web related
                 return None
 
-            assert "span.kind" in span["meta"], "Web span expects a span.kind meta tag"
-            assert span["meta"]["span.kind"] in ["server", "client"], "Meta tag span.kind should be client or server"
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "span.kind" in meta, "Web span expects a span.kind meta tag"
+            assert meta["span.kind"] in ["server", "client"], "Meta tag span.kind should be client or server"
 
             return True
 
@@ -190,16 +193,18 @@ class Test_Meta:
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
-        def validator(span: dict):
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
-            if span.get("type") != "web":  # do nothing if is not web related
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type != "web":  # do nothing if is not web related
                 return None
 
-            assert "http.url" in span["meta"], "web span expect an http.url meta tag"
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "http.url" in meta, "web span expect an http.url meta tag"
 
-            scheme = urlparse(span["meta"]["http.url"]).scheme
+            scheme = urlparse(meta["http.url"]).scheme
             assert scheme in ["http", "https"], f"Meta http.url's scheme should be http or https, not {scheme}"
 
             return True
@@ -209,16 +214,18 @@ class Test_Meta:
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
-        def validator(span: dict):
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
-            if span.get("type") != "web":  # do nothing if is not web related
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type != "web":  # do nothing if is not web related
                 return None
 
-            assert "http.status_code" in span["meta"], "web span expect an http.status_code meta tag"
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "http.status_code" in meta, "web span expect an http.status_code meta tag"
 
-            _ = int(span["meta"]["http.status_code"])
+            _ = int(meta["http.status_code"])
 
             return True
 
@@ -227,16 +234,18 @@ class Test_Meta:
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
-        def validator(span: dict):
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
-            if span.get("type") != "web":  # do nothing if is not web related
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type != "web":  # do nothing if is not web related
                 return None
 
-            assert "http.method" in span["meta"], "web span expect an http.method meta tag"
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "http.method" in meta, "web span expect an http.method meta tag"
 
-            value = span["meta"]["http.method"]
+            value = meta["http.method"]
 
             assert isinstance(value, (str, bytes)), "Method should always be a string"
 
@@ -261,16 +270,17 @@ class Test_Meta:
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
-        def validator(span: dict):
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert "language" in span["meta"], "Span must have a language tag set."
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "language" in meta, "Span must have a language tag set."
 
             library = context.library.name
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
-            actual_language = span["meta"]["language"]
+            actual_language = meta["language"]
             assert actual_language == expected_language, (
                 f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
             )
@@ -282,24 +292,27 @@ class Test_Meta:
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
-        def validator(span: dict):
-            if span.get("type") != "web":  # do nothing if is not web related
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
+            span_type = interfaces.library.get_span_type(span, span_format)
+            if span_type != "web":  # do nothing if is not web related
                 return
 
-            expected_component = get_component_name(span["name"])
+            span_name = interfaces.library.get_span_name(span, span_format)
+            expected_component = get_component_name(span_name)
 
-            assert "component" in span.get("meta", {}), (
-                f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "component" in meta, (
+                f"No component tag found. Expected span {span_name} component to be: {expected_component}."
             )
-            actual_component = span["meta"]["component"]
+            actual_component = meta["component"]
 
             if isinstance(expected_component, list):
-                exception_message = f"""Expected span {span["name"]} to have component meta tag equal
+                exception_message = f"""Expected span {span_name} to have component meta tag equal
                  to one of the following, [{expected_component}], got: {actual_component}."""
 
                 assert actual_component in expected_component, exception_message
             else:
-                exception_message = f"Expected span {span['name']} to have component meta tag, {expected_component}, got: {actual_component}."
+                exception_message = f"Expected span {span_name} to have component meta tag, {expected_component}, got: {actual_component}."
                 assert actual_component == expected_component, exception_message
 
         interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
@@ -309,11 +322,12 @@ class Test_Meta:
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
-        def validator(span: dict):
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert "runtime-id" in span["meta"], "No runtime-id tag found. Expected tag to be present."
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert "runtime-id" in meta, "No runtime-id tag found. Expected tag to be present."
 
         interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
@@ -325,12 +339,11 @@ class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
     def test_meta_dd_tags(self):
-        def validator(span: dict):
-            assert span["meta"]["key1"] == "val1", (
-                f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
-            )
-            assert span["meta"]["key2"] == "val2", (
-                f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
+        def validator(span: dict, span_format: TraceLibraryPayloadFormat | None):
+            meta = interfaces.library.get_span_meta(span, span_format)
+            assert meta["key1"] == "val1", f'keyTag tag in span\'s meta should be "test", not {meta.get("env", "N/A")}'
+            assert meta["key2"] == "val2", (
+                f'dKey tag in span\'s meta should be "key2:val2", not {meta.get("key2", "N/A")}'
             )
 
             return True
@@ -346,7 +359,8 @@ class Test_MetricsStandardTags:
 
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
-        spans = [s for _, s in interfaces.library.get_root_spans()]
-        assert spans, "Did not receive any root spans to validate."
-        for span in spans:
-            assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"
+        spans_with_format = [(s, f) for _, s, f in interfaces.library.get_root_spans()]
+        assert spans_with_format, "Did not receive any root spans to validate."
+        for span, span_format in spans_with_format:
+            metrics = interfaces.library.get_span_metrics(span, span_format)
+            assert "process_id" in metrics, "Root span expect a process_id metrics tag"

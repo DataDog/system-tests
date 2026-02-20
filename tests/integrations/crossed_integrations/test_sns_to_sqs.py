@@ -28,10 +28,15 @@ class _BaseSNS:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
-        for data, trace in interface.get_traces():
+        for data, trace, _trace_format in interface.get_traces():
+            # Handle both v04 (list) and v1 (dict) formats
+            if isinstance(trace, list):
+                spans = trace
+            else:
+                spans = trace.get("spans", [])
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
-            for span in reversed(trace):
+            for span in reversed(spans):
                 if not span.get("meta"):
                     continue
 

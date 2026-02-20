@@ -25,13 +25,16 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
     for line in "${lines[@]}"; do
         path="${line%@*}"
         commit="${line#*@}"
-        # Get the correct pseudo-version using go list
-        pseudo_version=$(go list -m -json "$path@$commit" | jq -r .Version)
+        # Fetch the main module at the specified commit - this will update go.mod with the correct pseudo-version
+        echo "Fetching $path@$commit"
+        go get "$path@$commit"
+        # Get the pseudo-version that was added to go.mod
+        pseudo_version=$(go list -m -f '{{.Version}}' "$path")
+        echo "Using pseudo-version: $pseudo_version"
+        # Replace the main module to use the pseudo-version explicitly
         go mod edit -replace "$path=$path@$pseudo_version"
-        for contrib in $CONTRIBS; do
-            echo "Install contrib $contrib from go get -v $contrib@commit"
-            go mod edit -replace "$contrib=$contrib@$pseudo_version"
-        done
+        # For contrib modules, let go mod tidy resolve them based on the main module's requirements
+        # They will automatically resolve to compatible versions from the same commit
 	break
     done
 else

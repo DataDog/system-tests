@@ -31,8 +31,8 @@ class Test_Truncation:
         )
 
     def test_truncation(self):
-        span = interfaces.library.get_root_span(self.req)
-        metrics = span.get("metrics")
+        span, span_format = interfaces.library.get_root_span(self.req)
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics, "Expected metrics"
 
         assert int(metrics["_dd.appsec.truncated.string_length"]) == 5000

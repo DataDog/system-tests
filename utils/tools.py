@@ -72,7 +72,9 @@ def get_rid_from_span(span: dict) -> str | None:
 
     user_agent = None
 
-    if span.get("type") == "rpc":
+    # Handle both v04 format (type) and v1 format (type_value)
+    span_type = span.get("type") or span.get("type_value")
+    if span_type == "rpc":
         user_agent = meta.get("grpc.metadata.user-agent")
         # java does not fill this tag; it uses the normal http tags
 

@@ -58,22 +58,34 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
     def test_span_links_from_conflicting_contexts(self):
         trace = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
-            and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
+            (span, span_format, trace_chunk)
+            for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
+            if interfaces.library.get_span_links(span, span_format) is not None
+            and interfaces.library.get_span_trace_id(
+                span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
+            )
+            == 2
+            and interfaces.library.get_span_parent_id(span, span_format)
+            == 10  # Only fetch the trace that is related to the header extractions
         ]
 
-        assert len(trace) == 1
-        span = trace[0]
-        links = _retrieve_span_links(span)
-        assert len(links) == 1
+        assert len(trace) == 1, f"Expected 1 span with matching criteria, got {len(trace)}. Trace: {trace}"
+        span, span_format, _trace_chunk = trace[0]
+        links = interfaces.library.get_span_links(span, span_format)
+        assert links is not None, f"No span links found in span. Span keys: {list(span.keys())}"
+        assert len(links) == 1, f"Expected 1 link, got {len(links)}. Links: {links}"
         link1 = links[0]
-        assert link1["trace_id"] == 2
+        assert "trace_id" in link1, f"trace_id not found in link. Link keys: {list(link1.keys())}, Link: {link1}"
+        # Convert hex trace_id to int if needed
+        trace_id_value = link1["trace_id"]
+        if isinstance(trace_id_value, str) and trace_id_value.startswith("0x"):
+            trace_id_value = int(trace_id_value[-16:], 16)
+        assert trace_id_value == 2, f"Expected trace_id 2, got {trace_id_value}"
         assert link1["span_id"] == 987654321
         assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link1["trace_id_high"] == 1229782938247303441
+        # trace_id_high might not be present in v1 format
+        if "trace_id_high" in link1:
+            assert link1["trace_id_high"] == 1229782938247303441
 
     """Datadog and tracecontext headers, trace-id does match, Datadog is primary
     context we want to make sure there's no span link since they match"""
@@ -92,11 +104,15 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
     def test_no_span_links_from_nonconflicting_contexts(self):
         trace = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 1
-            and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
+            (span, span_format, trace_chunk)
+            for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
+            if interfaces.library.get_span_links(span, span_format) is not None
+            and interfaces.library.get_span_trace_id(
+                span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
+            )
+            == 1
+            and interfaces.library.get_span_parent_id(span, span_format)
+            == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 0
@@ -119,11 +135,15 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
     def test_no_span_links_from_invalid_trace_id(self):
         trace = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 5
-            and span["parent_id"] == 987654324  # Only fetch the trace that is related to the header extractions
+            (span, span_format, trace_chunk)
+            for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
+            if interfaces.library.get_span_links(span, span_format) is not None
+            and interfaces.library.get_span_trace_id(
+                span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
+            )
+            == 5
+            and interfaces.library.get_span_parent_id(span, span_format)
+            == 987654324  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 0
@@ -153,19 +173,24 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
 
     def test_span_links_flags_from_conflicting_contexts(self):
         spans = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
-            and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
+            (span, span_format, trace_chunk)
+            for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
+            if interfaces.library.get_span_links(span, span_format) is not None
+            and interfaces.library.get_span_trace_id(
+                span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
+            )
+            == 2
+            and interfaces.library.get_span_parent_id(span, span_format)
+            == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
         if len(spans) != 1:
             logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
-        span = spans[0]
-        span_links = _retrieve_span_links(span)
+        span, span_format, _ = spans[0]
+        span_links = interfaces.library.get_span_links(span, span_format)
+        assert span_links is not None
         assert len(span_links) == 2
         link1 = span_links[0]
         assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
@@ -194,51 +219,27 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
 
     def test_span_links_omit_tracestate_from_conflicting_contexts(self):
         spans = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
-            and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
+            (span, span_format, trace_chunk)
+            for _, trace_chunk, span, span_format in interfaces.library.get_spans(self.req, full_trace=True)
+            if interfaces.library.get_span_links(span, span_format) is not None
+            and interfaces.library.get_span_trace_id(
+                span, trace_chunk if isinstance(trace_chunk, dict) else None, span_format
+            )
+            == 2
+            and interfaces.library.get_span_parent_id(span, span_format)
+            == 987654321  # Only fetch the trace that is related to the header extractions
         ]
 
         if len(spans) != 1:
             logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
-        span = spans[0]
-        links = _retrieve_span_links(span)
+        span, span_format, _ = spans[0]
+        links = interfaces.library.get_span_links(span, span_format)
+        assert links is not None
         assert len(links) == 1
         link1 = links[0]
         assert link1.get("tracestate") is None
-
-
-def _retrieve_span_links(span: dict):
-    if span.get("span_links") is not None:
-        return span["span_links"]
-
-    if span["meta"].get("_dd.span_links") is not None:
-        # Convert span_links tags into msgpack v0.4 format
-        json_links = json.loads(span["meta"].get("_dd.span_links"))
-        links = []
-        for json_link in json_links:
-            link = {}
-            link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
-            link["span_id"] = int(json_link["span_id"], base=16)
-            if len(json_link["trace_id"]) > 16:
-                link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
-            if "attributes" in json_link:
-                link["attributes"] = json_link.get("attributes")
-            if "tracestate" in json_link:
-                link["tracestate"] = json_link.get("tracestate")
-            elif "trace_state" in json_link:
-                link["tracestate"] = json_link.get("trace_state")
-            if "flags" in json_link:
-                link["flags"] = json_link.get("flags") | 1 << 31
-            else:
-                link["flags"] = 0
-            links.append(link)
-        return links
-    return None
 
 
 # The Datadog specific tracecontext flags to mark flags are set

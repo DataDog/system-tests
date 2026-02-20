@@ -98,8 +98,8 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Check that extended headers are collected when the rule matches
         assert meta.get("http.request.headers.x-my-header-1") == "value1"
@@ -109,7 +109,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert meta.get("http.request.headers.content-type") == "text/html"
 
         # Check that no headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
 
     def setup_no_extended_data_collection_without_event(self):
@@ -143,8 +143,8 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection is ignored by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Check that extended headers are NOT collected when there is no event
         assert meta.get("http.request.headers.x-my-header-1") is None
@@ -156,7 +156,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert meta.get("http.request.headers.content-type") == "text/html"
 
         # Check that no headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
 
     def setup_extended_data_collection_with_rc_header_limit(self):
@@ -188,8 +188,8 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection header limit is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Ensure no more than 50 meta entries start with "http.request.headers."
         header_keys = [k for k in meta if k.startswith("http.request.headers.")]
@@ -198,7 +198,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         # Ensure allowed headers are collected
         assert meta.get("http.request.headers.content-type") == "text/html"
 
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
 
         # Confirm _dd.appsec.request.header_collection.discarded exists and is > 0
         discarded = metrics.get("_dd.appsec.request.header_collection.discarded")
@@ -241,8 +241,8 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended data collection is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Check that extended headers are redacted
         assert meta.get("http.request.headers.authorization") == "<redacted>"
@@ -256,7 +256,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert meta.get("http.request.headers.content-type") == "text/html"
 
         # Check that no headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
 
 
@@ -290,8 +290,8 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Check that extended response headers are collected when the rule matches
         assert meta.get("http.response.headers.x-test-header-1") == "value1"
@@ -301,7 +301,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.content-language") == "en-US"
 
         # Check that no response headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
 
     def setup_no_extended_response_headers_collection_without_event(self):
@@ -328,8 +328,8 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection is not working when rule is not triggered
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Check that extended response headers are NOT collected when the rule is not triggered
         assert meta.get("http.response.headers.x-test-header-1") is None
@@ -341,7 +341,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.content-language") is None
 
         # Check that no response headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
 
     def setup_extended_response_headers_collection_with_rc_header_limit(self):
@@ -369,8 +369,8 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection header limit is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Ensure exactly 50 meta entries start with "http.response.headers."
         header_keys = [k for k in meta if k.startswith("http.response.headers.")]
@@ -379,7 +379,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         # Ensure allowed response headers are collected
         assert meta.get("http.response.headers.content-language") == "en-US"
 
-        metrics = span.get("metrics", {})
+        metrics = interfaces.library.get_span_metrics(span, span_format)
         # Confirm _dd.appsec.response.header_collection.discarded exists and is > 0
         discarded = metrics.get("_dd.appsec.response.header_collection.discarded")
         assert discarded is not None
@@ -410,8 +410,8 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert self.response.status_code == 200
 
         # Verify extended response headers data collection header limit is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
+        span, span_format = interfaces.library.get_root_span(request=self.response)
+        meta = interfaces.library.get_span_meta(span, span_format)
 
         # Check that extended headers are redacted
         assert meta.get("http.response.headers.authorization") == "<redacted>"
@@ -453,7 +453,7 @@ class Test_ExtendedRequestBodyCollection:
         assert self.response.status_code == 200
 
         # Verify extended request body data collection is working by checking span meta_struct
-        span = interfaces.library.get_root_span(request=self.response)
+        span, _span_format = interfaces.library.get_root_span(request=self.response)
         meta_struct = span.get("meta_struct", {})
 
         # Check that request body is collected in meta_struct when the rule matches
@@ -486,7 +486,7 @@ class Test_ExtendedRequestBodyCollection:
         assert self.response.status_code == 200
 
         # Verify extended request body data collection is not working when rule is not triggered
-        span = interfaces.library.get_root_span(request=self.response)
+        span, _span_format = interfaces.library.get_root_span(request=self.response)
         meta_struct = span.get("meta_struct", {})
 
         # Check that request body is NOT collected when the rule is not triggered
@@ -517,7 +517,7 @@ class Test_ExtendedRequestBodyCollection:
         assert self.response.status_code == 200
 
         # Verify extended request body data collection with truncation is working by checking span meta_struct
-        span = interfaces.library.get_root_span(request=self.response)
+        span, _span_format = interfaces.library.get_root_span(request=self.response)
         meta_struct = span.get("meta_struct", {})
 
         # Check that request body is collected in meta_struct when the rule matches
