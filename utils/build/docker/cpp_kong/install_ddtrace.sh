@@ -77,6 +77,13 @@ if [ -n "$rock_file" ]; then
   echo "Extracting Kong plugin from .rock artifact: ${rock_file}"
   mkdir -p kong-rock-extract
   unzip -o "${rock_file}" -d kong-rock-extract
+  # The .src.rock contains a nested source archive (e.g. tip.zip).
+  for inner_zip in kong-rock-extract/*.zip; do
+    if [ -e "$inner_zip" ]; then
+      unzip -o "$inner_zip" -d kong-rock-extract
+      break
+    fi
+  done
   for extracted_dir in kong-rock-extract/kong-plugin-ddtrace-*/; do
     if [ -d "$extracted_dir" ]; then
       mv "$extracted_dir" kong-plugin-ddtrace
