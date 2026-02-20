@@ -1,7 +1,7 @@
 import base64
 from enum import IntEnum
 import json
-
+from typing import Any
 import msgpack
 
 
@@ -158,7 +158,9 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     if len(attrs) % 3 != 0:
         raise ValueError(f"Attributes list must be a multiple of 3: {attrs}")
-    attrs_dict = {}
+
+    attrs_dict: dict[str, Any] = {}
+
     for i in range(0, len(attrs), 3):
         k = attrs[i]
         if isinstance(k, int):
@@ -170,11 +172,13 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
                 v = strings[v]
         attrs_dict[k] = v
 
-    if "appsec" in attrs_dict:
-        attrs_dict["appsec"] = msgpack.unpackb(attrs_dict["appsec"], unicode_errors="replace", strict_map_key=False)
-
-    if "_dd.span_links" in attrs_dict:
-        attrs_dict["_dd.span_links"] = json.loads(attrs_dict["_dd.span_links"])
+    for key in list(attrs_dict):
+        if key.startswith("_dd.appsec.s."):
+            attrs_dict[key] = json.loads(attrs_dict[key])
+        elif key == "appsec":
+            attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
+        elif key == "_dd.span_links":
+            attrs_dict[key] = json.loads(attrs_dict[key])
 
     return attrs_dict
 

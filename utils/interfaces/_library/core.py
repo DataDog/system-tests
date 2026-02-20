@@ -410,7 +410,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         key_path: str | list[str] | None = None,
         *,
         full_trace: bool = False,
-        span_validator: Callable | None = None,
+        span_validator: Callable[[DataDogSpan, dict], None] | None = None,
     ):
         """Asserts the WAF detected an attack on the provided request.
 
@@ -508,7 +508,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             try:
                 validator(span)
             except Exception as e:
-                logger.error(f"This span is failing validation ({e}): {json.dumps(span.raw_data, indent=2)}")
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span.raw_span, indent=2)}")
                 raise
 
         if not allow_no_data and data_is_missing:

@@ -101,28 +101,28 @@ class DataDogTrace:
 class DataDogSpan:
     """Wrapper around trace object reported by dd-trace libraries"""
 
-    def __init__(self, trace: DataDogTrace, raw_data: dict):
+    def __init__(self, trace: DataDogTrace, raw_span: dict):
         self.trace = trace
 
-        self.raw_data = raw_data
+        self.raw_span = raw_span
 
     def get(self, key: str, default: Any = None):  # noqa: ANN401
-        if key == "trace_id":
+        if key == "trace_id" and self.trace.format == TraceLibraryPayloadFormat.v10:
             return self.trace.trace_id
 
         if key in ("meta", "meta_struct", "metrics") and self.trace.format == TraceLibraryPayloadFormat.v10:
-            return self.raw_data["attributes"]
+            return self.raw_span["attributes"]
 
-        return self.raw_data.get(key, default)
+        return self.raw_span.get(key, default)
 
     def __getitem__(self, key: str):
-        if key == "trace_id":
+        if key == "trace_id" and self.trace.format == TraceLibraryPayloadFormat.v10:
             return self.trace.trace_id
 
         if key in ("meta", "meta_struct", "metrics") and self.trace.format == TraceLibraryPayloadFormat.v10:
-            return self.raw_data["attributes"]
+            return self.raw_span["attributes"]
 
-        return self.raw_data[key]
+        return self.raw_span[key]
 
     def __contains__(self, key: str) -> bool:
-        return key in self.raw_data
+        return key in self.raw_span

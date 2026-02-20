@@ -215,7 +215,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
 
 def _retrieve_span_links(span: DataDogSpan):
     if span.trace.format == TraceLibraryPayloadFormat.v10:
-        return span.raw_data["attributes"].get("_dd.span_links")
+        return span.raw_span["attributes"].get("_dd.span_links")
 
     if span.get("span_links") is not None:
         return span["span_links"]

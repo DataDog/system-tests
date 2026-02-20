@@ -9,7 +9,7 @@ from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
 from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogSpan, DataDogTrace, TraceLibraryPayloadFormat
 
 USER = "test"
 NEW_USER = "testnew"
@@ -59,6 +59,14 @@ def assert_tags(
         return True
     except (KeyError, AssertionError):
         return False
+
+
+def _assert_trace_id(trace: DataDogTrace, span: DataDogSpan, trace_id: int) -> None:
+    if trace.format == TraceLibraryPayloadFormat.v10:
+        assert trace.trace_id_equals(trace_id)
+    else:
+        assert span.raw_span["trace_id"] == trace_id
+        assert trace.raw_trace[0]["trace_id"] == trace_id
 
 
 class BaseAsmStandaloneUpstreamPropagation(ABC):
@@ -149,8 +157,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -195,8 +202,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -241,8 +247,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -287,8 +292,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -331,8 +335,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -375,8 +378,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -421,8 +423,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -466,8 +467,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -511,8 +511,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -553,8 +552,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -595,8 +593,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -637,8 +634,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            _assert_trace_id(trace, span, 1212121212121212121)
 
             # Some tracers use true while others use yes
             assert any(
@@ -875,8 +871,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
             SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0
         }
         for data, trace, span in interfaces.library.get_spans(request=request):
-            assert span["trace_id"] == 1212121212121212121
-            assert trace[0]["trace_id"] == 1212121212121212121
+            assert trace.trace_id_equals(1212121212121212121)
             assert assert_tags(trace[0], span, "metrics", tested_metrics)
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
 

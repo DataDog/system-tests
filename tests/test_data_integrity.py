@@ -217,7 +217,7 @@ class Test_LibraryHeaders:
 
             if trace.format in (TraceLibraryPayloadFormat.v04, TraceLibraryPayloadFormat.v05):
                 for span in trace:
-                    assert span.raw_data["trace_id"] == trace_id
+                    assert span.raw_span["trace_id"] == trace_id
 
 
 @features.agent_data_integrity
