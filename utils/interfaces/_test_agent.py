@@ -130,7 +130,8 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                             ):
                                 crash_reports.append(log)
 
-        return crash_reports
+        # Filter for crash reports only; ignoring crash pings
+        return [r for r in crash_reports if "is_crash:true" not in r.get("tags", "")]
 
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
         """Get telemetry configurations for a given runtime ID and service name."""
