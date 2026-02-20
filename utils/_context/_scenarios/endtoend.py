@@ -418,7 +418,11 @@ class EndToEndScenario(DockerScenario):
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog(
-            [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies] + [interfaces.open_telemetry] if self.include_opentelemetry else []
+            [interfaces.library, interfaces.agent]
+            + [container.interface for container in self.buddies]
+            + [interfaces.open_telemetry]
+            if self.include_opentelemetry
+            else []
         )
 
     def _set_weblog_domain(self):
