@@ -344,18 +344,6 @@ class EndToEndScenario(DockerScenario):
 
         library = self.weblog_infra.library_name
 
-        if library == "golang":
-            # temporary fix, waiting for a proper support of v1.0 traces:
-            # golang uses by default the v1.0 trace format, whoch is not yet correctly supported
-            # by system-tests. Unless there are explicit env var, force the trace format to be v0.5
-
-            weblog_env = self.weblog_infra.http_container.environment
-            if (
-                "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED" not in weblog_env
-                and "DD_TRACE_AGENT_PROTOCOL_VERSION" not in weblog_env
-            ):
-                weblog_env["DD_TRACE_AGENT_PROTOCOL_VERSION"] = "0.4"
-
         if self._library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
