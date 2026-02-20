@@ -1288,6 +1288,7 @@ OpenAI().responses.create(model="gpt-4.1", ...)
 
 This approach makes the endpoint ready to be expanded in the future.
 
+In scenarios that use this endpoint, `OPENAI_BASE_URL` is set to the system-tests internal server, which mocks the OpenAI API responses.
 
 ## Weblog specification
 
