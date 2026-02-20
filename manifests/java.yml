@@ -3851,6 +3851,7 @@ manifest:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: flaky (APPSEC-61406)
   tests/test_rum_injection.py:
     - weblog_declaration:
         "*": irrelevant (RUM injection only supported for spring-boot)
