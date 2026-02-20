@@ -1,5 +1,15 @@
 from utils import weblog, interfaces, scenarios, features
 from utils.dd_constants import SamplingPriority, SamplingMechanism, SpanKind
+from utils.dd_types import TraceLibraryPayloadFormat
+
+
+class Test_V1PayloadByDefault:
+    """Tracers use by default v1 trace format"""
+
+    def test_main(self):
+        for data, trace in interfaces.library.get_traces():
+            assert data["path"] == "/v0.1/traces"
+            assert trace.format == TraceLibraryPayloadFormat.v10
 
 
 @scenarios.apm_tracing_efficient_payload
