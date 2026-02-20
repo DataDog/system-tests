@@ -304,6 +304,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "agent",
         "cpp",
         "cpp_httpd",
+        "cpp_kong",
         "cpp_nginx",
         "dotnet",
         "golang",

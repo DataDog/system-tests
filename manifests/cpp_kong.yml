@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
+---
+# Kong plugin ddtrace manifest
+# This is a proxy-based weblog; most application-level tests are irrelevant.
+manifest:
+  tests/ai_guard/: irrelevant (Kong is a proxy, not an application)
+  tests/apm_tracing_e2e/: missing_feature (missing endpoints on weblog)
+  tests/appsec/: irrelevant (ASM is not implemented in Kong plugin)
+  tests/debugger/: irrelevant
+  tests/ffe/: missing_feature
+  tests/integrations/: missing_feature (Endpoints not implemented)
+  tests/otel/: irrelevant (library does not implement OpenTelemetry)
+  tests/parametric/: irrelevant (Parametric scenario is not applied on Kong)
+  tests/remote_config/: missing_feature
+  tests/serverless/: missing_feature
+  tests/stats/: missing_feature
+  tests/test_baggage.py: missing_feature (Baggage not implemented)
+  tests/test_config_consistency.py: missing_feature
+  tests/test_data_integrity.py: missing_feature
+  tests/test_distributed.py: missing_feature
+  tests/test_graphql.py: irrelevant
+  tests/test_identify.py: irrelevant
+  tests/test_ipv6.py: missing_feature
+  tests/test_library_conf.py: irrelevant
+  tests/test_miscs.py: irrelevant
+  tests/test_profiling.py: irrelevant (Kong is a proxy, not a profiling target)
+  tests/test_protobuf.py: missing_feature
+  tests/test_resource_renaming.py: missing_feature
+  tests/test_rum_injection.py: irrelevant
+  tests/test_sampling_rates.py: missing_feature
+  tests/test_scrubbing.py: irrelevant
+  tests/test_semantic_conventions.py: missing_feature
+  tests/test_smoke.py: missing_feature
+  tests/test_span_events.py: missing_feature
+  tests/test_standard_tags.py: irrelevant
+  tests/test_telemetry.py: missing_feature
+  tests/test_v1_payloads.py: missing_feature

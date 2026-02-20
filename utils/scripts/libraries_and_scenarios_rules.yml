@@ -350,6 +350,13 @@ patterns:
     utils/build/build_cpp_base_images.sh:
         libraries: cpp
 
+    manifests/cpp_kong.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_kong
+    utils/build/docker/cpp_kong/*:
+        libraries: cpp_kong
+        scenario_groups: [ end_to_end, ]
+
     manifests/cpp_httpd.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: cpp_httpd
