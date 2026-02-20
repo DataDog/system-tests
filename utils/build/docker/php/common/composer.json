@@ -3,7 +3,8 @@
     "type": "project",
     "require": {
         "weblog/acme": "*",
-        "monolog/monolog": "*"
+        "monolog/monolog": "*",
+        "openai-php/client": "*"
     },
     "repositories": [
         {
