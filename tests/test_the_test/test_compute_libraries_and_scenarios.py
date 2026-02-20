@@ -33,7 +33,7 @@ default_libs_with_dev = [
     "cpp_nginx",
     "dotnet",
     "envoy",
-    # "golang",
+    "golang",
     "haproxy",
     "java",
     "nodejs",
