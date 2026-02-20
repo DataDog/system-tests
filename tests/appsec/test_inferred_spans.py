@@ -2,7 +2,7 @@ import json
 import time
 from typing import Any
 
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features, context
 
 
 INFERRED_SPAN_NAMES = {"aws.apigateway", "aws.httpapi"}
@@ -75,12 +75,16 @@ class Test_Proxy_Inferred_Span_Tags:
         self.r = weblog.get("/waf/?message=<script>alert()</script>", headers=headers)
 
     def test_proxy_inferred_span(self) -> None:
+        # Java sets service name from x-dd-proxy-domain-name header on all spans,
+        # while other languages keep the configured service name on service-entry spans
+        expected_service = "system-tests-api-gateway.com" if context.library == "java" else "weblog"
+
         service_entry_span_appsec_data = None
         for _, _, span, appsec_data in interfaces.library.get_appsec_events(self.r):
-            if span.get("service") == "weblog":
+            if span.get("service") == expected_service:
                 service_entry_span_appsec_data = appsec_data
 
-        assert service_entry_span_appsec_data, "Expected non empty appsec data on the weblog entry span"
+        assert service_entry_span_appsec_data, f"Expected non empty appsec data on span with service={expected_service}"
 
         def validate_inferred_span(span: dict[str, Any]) -> bool:
             if span.get("name") != "aws.apigateway":

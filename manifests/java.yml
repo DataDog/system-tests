@@ -2038,7 +2038,10 @@ manifest:
     - weblog_declaration:
         "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": v1.60.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": v0.111.0
