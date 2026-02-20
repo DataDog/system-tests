@@ -588,6 +588,7 @@ if __name__ == "__main__":
         "endtoend": [
             "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
             "APM_TRACING_E2E_OTEL",
+            "APM_TRACING_OTLP",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
             "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
