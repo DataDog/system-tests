@@ -1403,6 +1403,7 @@ manifest:
         flask-poc: v2.19.0
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.15.0
