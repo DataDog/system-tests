@@ -70,7 +70,7 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                                 break  # Skip to next span
 
     def get_trace_stats(self, resource: str):
-        paths = ["/api/v0.2/stats", "/v1/metrics"]
+        paths = ["/v1/metrics"]
 
         for data in self.get_data(path_filters=paths):
             resource_metrics = data.get("request").get("content").get("resource_metrics") or data.get("request").get(
