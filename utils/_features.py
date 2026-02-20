@@ -2167,18 +2167,6 @@ class _Features:
         return _mark_test_object(test_object, feature_id=485, owner=_Owner.idm)
 
     @staticmethod
-    def envoy_external_processing(test_object):
-        """Support for Envoy External Processing
-
-        https://feature-parity.us1.prod.dog/#/?feature=350
-        """
-        from utils import context  # noqa: PLC0415
-
-        return _mark_test_object(
-            test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
-        )
-
-    @staticmethod
     def context_propagation_extract_behavior(test_object):
         """Context Propagation: Extraction behavior can be configured at the service level
 
@@ -2523,16 +2511,12 @@ class _Features:
         return _mark_test_object(test_object, feature_id=484, owner=_Owner.sdk_capabilities)
 
     @staticmethod
-    def haproxy_stream_processing_offload(test_object):
-        """HAProxy Stream Processing Offload
+    def go_proxies(test_object):
+        """Go-based proxies proxy
 
-        https://feature-parity.us1.prod.dog/#/?feature=489
+        https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        from utils import context  # noqa: PLC0415
-
-        return _mark_test_object(
-            test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
-        )
+        return _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
 
     @staticmethod
     def efficient_trace_payload(test_object):
@@ -2709,6 +2693,86 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=526
         """
         return _mark_test_object(test_object, feature_id=526, owner=_Owner.asm)
+
+    @staticmethod
+    def llm_observability_sdk_enablement(test_object):
+        """LLM Observability SDK enablement
+
+        https://feature-parity.us1.prod.dog/#/?feature=542
+        """
+        return _mark_test_object(test_object, feature_id=542, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def ai_guard(test_object):
+        """AI Guard SDK
+
+        https://feature-parity.us1.prod.dog/#/?feature=528
+        """
+        return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
+
+    @staticmethod
+    def apm_google_genai_generate_content(test_object):
+        """APM supports Google GenAI generate content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=531
+        """
+        return _mark_test_object(test_object, feature_id=531, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def apm_google_genai_embed_content(test_object):
+        """APM supports Google GenAI embed content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=532
+        """
+        return _mark_test_object(test_object, feature_id=532, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content(test_object):
+        """LLM Observability supports Google GenAI generate content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=533
+        """
+        return _mark_test_object(test_object, feature_id=533, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content_reasoning(test_object):
+        """LLM Observability supports Google GenAI generate content reasoning interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=534
+        """
+        return _mark_test_object(test_object, feature_id=534, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_generate_content_with_tools(test_object):
+        """LLM Observability supports Google GenAI generate content with tools interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=536
+        """
+        return _mark_test_object(test_object, feature_id=536, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def llm_observability_google_genai_embed_content(test_object):
+        """LLM Observability supports Google GenAI embed content interactions
+
+        https://feature-parity.us1.prod.dog/#/?feature=537
+        """
+        return _mark_test_object(test_object, feature_id=537, owner=_Owner.ml_observability)
+
+    @staticmethod
+    def appsec_automated_payment_events(test_object):
+        """Business Logic Events for payment processors
+
+        https://feature-parity.us1.prod.dog/#/?feature=541
+        """
+        return _mark_test_object(test_object, feature_id=541, owner=_Owner.asm)
+
+    @staticmethod
+    def llm_observability_datasets(test_object):
+        """LLM Observability supports datasets and experiments
+
+        https://feature-parity.us1.prod.dog/#/?feature=543
+        """
+        return _mark_test_object(test_object, feature_id=543, owner=_Owner.ml_observability)
 
 
 features = _Features()

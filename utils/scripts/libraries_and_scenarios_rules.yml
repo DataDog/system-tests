@@ -58,6 +58,13 @@ patterns:
         libraries: null
 
     requirements.txt: # run all by default
+
+    utils/build/docker/python/*/requirements*.txt:
+        libraries: python
+
+    utils/build/docker/python_lambda/*/requirements*.txt:
+        libraries: python_lambda
+
     "*.txt":
         scenario_groups: null
         libraries: null
@@ -153,6 +160,7 @@ patterns:
         libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
+        libraries: null
     .github/workflows/changelog.yml:
         scenario_groups: null
         libraries: null
@@ -173,11 +181,9 @@ patterns:
     .github/workflows/run-open-telemetry.yml:
         scenario_groups: open_telemetry
     .github/workflows/run-parametric.yml:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
-    .github/workflows/run-stream-processing-offload.yml:
-        scenario_groups: stream_processing_offload
     .github/*:
         scenario_groups: null
 
@@ -194,7 +200,7 @@ patterns:
     utils/_context/_scenarios/debugger.py:
         scenario_groups: debugger
     utils/_context/_scenarios/default.py:
-        scenario_groups: default
+        scenarios: DEFAULT
     utils/_context/_scenarios/_docker_fixtures.py:
         scenario_groups: docker_fixtures
     utils/_context/_scenarios/appsec_rasp.py:
@@ -202,7 +208,7 @@ patterns:
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/integration_frameworks.py:
-        scenario: INTEGRATION_FRAMEWORKS
+        scenarios: INTEGRATION_FRAMEWORKS
     utils/_context/_scenarios/integrations.py:
         scenario_groups: integrations
     utils/_context/_scenarios/ipv6.py:
@@ -211,23 +217,20 @@ patterns:
         scenario_groups: open_telemetry
         libraries: *otel_libraries
     utils/_context/_scenarios/parametric.py:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
-    utils/_context/_scenarios/stream_processing_offload.py:
-        scenario_groups: stream_processing_offload
+    utils/_context/_scenarios/go_proxies.py:
+        scenario_groups: go_proxies
 
 
 ############################### Script file rules ##############################
 # This section contains rules to apply to script files.
 ################################################################################
 
-    utils/scripts/activate-easy-wins.py:
-        scenario_groups: null
-        libraries: null
-    utils/scripts/activate-easy-wins.sh:
-        scenario_groups: null
-        libraries: null
+    utils/scripts/activate_easy_wins/*:
+      scenario_groups: null
+      libraries: null
     utils/scripts/add-system-tests-label-on-known-tickets.py:
         scenario_groups: null
     utils/scripts/ai/*:
@@ -250,7 +253,7 @@ patterns:
         scenario_groups: null
         libraries: null
     utils/scripts/parametric/*:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
     utils/scripts/slack/send_changelog.sh:
@@ -277,7 +280,7 @@ patterns:
     utils/docker_ssi/*:
         scenario_groups: docker_ssi
     utils/_features.py:
-        scenario_groups: default
+        scenarios: DEFAULT
     utils/interfaces/schemas*:
         scenario_groups: end_to_end
     utils/k8s_lib_injection*:
@@ -302,7 +305,7 @@ patterns:
     utils/telemetry/*:
         scenario_groups: telemetry
     utils/proxy/*:
-        scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
+        scenario_groups: [ end_to_end, open_telemetry ]
     utils/virtual_machine/*:
         scenario_groups: onboarding
 
@@ -317,7 +320,9 @@ patterns:
     utils/build/docker/nodejs_otel/*:
         scenario_groups: open_telemetry
     utils/build/docker/*/parametric/*:
-        scenario: PARAMETRIC
+        scenarios: PARAMETRIC
+    utils/build/docker/vcr/cassettes/aiguard/*:
+      scenario_groups: ai_guard
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
@@ -389,6 +394,13 @@ patterns:
     utils/build/build_golang_base_images.sh:
         libraries: golang
 
+    manifests/envoy.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: envoy
+    manifests/haproxy.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: haproxy
+
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
@@ -455,16 +467,16 @@ patterns:
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
 
-    # manifests/rust.yml:
-    #     scenario_groups: null  # already handled by the manifest comparison
-    #     libraries: rust
-    # utils/build/docker/rust/*:
-    #     scenario_groups: [ end_to_end, open_telemetry]
-    #     libraries: rust
-    # lib-injection/build/docker/rust/*:
-    #     libraries: rust
-    # utils/build/build_rust_base_images.sh:
-    #     libraries: rust
+    manifests/rust.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: rust
+    utils/build/docker/rust/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: rust
+    lib-injection/build/docker/rust/*:
+        libraries: rust
+    utils/build/build_rust_base_images.sh:
+        libraries: rust
 
     manifests/python_otel.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -515,6 +527,3 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
     tests/*:
         scenario_groups: null # dynamic selection
-
-
-

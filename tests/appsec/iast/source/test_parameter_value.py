@@ -26,11 +26,6 @@ class TestParameterValue(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @irrelevant(
-        library="python",
-        reason="Flask and Django need a header; otherwise, they return a 415 status code."
-        "TODO: When FastAPI implements POST body source, verify if it does too.",
-    )
     @flaky(context.weblog_variant == "resteasy-netty3", reason="APPSEC-56007")
     @bug(context.weblog_variant == "play", reason="APPSEC-58349")
     def test_source_post_reported(self):
@@ -42,16 +37,13 @@ class TestParameterValue(BaseSourceTest):
     def test_source_get_reported(self):
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
-    @missing_feature(context.library < "java@1.9.0", reason="Not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
     )
-    @missing_feature(library="dotnet", reason="Not implemented")
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
-    @missing_feature(context.library < "java@1.11.0", reason="Not implemented")
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",

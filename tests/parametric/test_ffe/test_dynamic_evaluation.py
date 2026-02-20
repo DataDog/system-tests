@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
+    context,
     features,
     scenarios,
 )
@@ -88,20 +89,17 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_remote_config(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_ffe_remote_config(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 
+        assert test_library.is_alive(), "library container is not alive"
         apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(
-        self, library_env: dict[str, str], test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test FFE flag evaluation logic with various targeting scenarios.
 
         This is the core FFE test that validates the OpenFeature provider correctly:
@@ -111,6 +109,13 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
+        # Skip OF.7 (empty targeting key) test for libraries with known bugs
+        # Java: FFL-1729 - OpenFeature Java SDK rejects empty targeting keys
+        # Node.js: FFL-1730 - OpenFeature JS SDK rejects empty targeting keys
+        if test_case_file == "test-case-of-7-empty-targeting-key.json":
+            if context.library.name in ("java", "nodejs"):
+                pytest.skip("OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
+
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
 
@@ -151,3 +156,33 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"flag='{flag}', targetingKey='{targeting_key}', "
                 f"expected={expected_result}, actual={actual_value}"
             )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_ffe_of7_empty_targeting_key(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """OF.7: Empty string is a valid targeting key.
+
+        This test validates that flag evaluation succeeds when the targeting key
+        is an empty string. The flag should still match allocations and return
+        the expected value, not fail with TARGETING_KEY_MISSING.
+
+        Temporary dedicated test until FFL-1729 (Java) and FFL-1730 (Node.js) are resolved.
+        """
+        # Set up UFC Remote Config and wait for it to be applied
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+
+        # Initialize FFE provider
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
+
+        # Evaluate flag with empty targeting key
+        result = test_library.ffe_evaluate(
+            flag="empty-targeting-key-flag",
+            variation_type="STRING",
+            default_value="default",
+            targeting_key="",
+            attributes={},
+        )
+
+        assert result.get("value") == "on-value", (
+            f"OF.7 failed: empty targeting key should return 'on-value', got '{result.get('value')}'"
+        )

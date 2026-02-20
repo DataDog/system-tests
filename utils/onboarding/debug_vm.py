@@ -1,9 +1,11 @@
 from pathlib import Path
 import stat
+from paramiko.sftp_client import SFTPClient
 from utils._logger import logger
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
-def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
+def download_vm_logs(vm: _VirtualMachine, remote_folder_paths: list[str], local_base_logs_folder: str):
     """Using SSH/SFTP connects to VM and downloads one or more folders from the remote machine
 
     Args:
@@ -73,12 +75,11 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         c.close()
         logger.info(f"Successfully downloaded all folders from {vm.get_ip()}")
 
-    except Exception as e:
-        logger.error(f"Cannot download folders from remote machine {vm.get_ip()}")
-        logger.exception(e)
+    except Exception:
+        logger.error("Cannot download folders from remote machine")
 
 
-def _download_folder_recursive(sftp, remote_dir, local_dir):
+def _download_folder_recursive(sftp: SFTPClient, remote_dir: str, local_dir: str):
     """Recursively download a folder using SFTP"""
     try:
         # List contents of remote directory

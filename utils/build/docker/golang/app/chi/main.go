@@ -370,7 +370,10 @@ func main() {
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Length", "13")
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Hello world!\n"))
 	})
 
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)

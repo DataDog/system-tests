@@ -3,7 +3,7 @@
 import { Request, Response } from "express";
 import http from 'http';
 
-const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
+const tracer = require('dd-trace').init();
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -34,7 +34,8 @@ di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
-  res.send('Hello\n');
+  res.set('Content-Type', 'text/plain');
+  res.send('Hello world!\n');
 });
 
 app.get('/healthcheck', (req: Request, res: Response) => {
@@ -365,11 +366,11 @@ app.get('/flush', (req: Request, res: Response) => {
   }
 
   if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err)))
+    promises.push(promisify((err: any) => tracer._tracer._exporter._writer.flush(err))())
   }
 
   if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err)))
+    promises.push(promisify((err: any) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
   }
 
   Promise.all(promises).then(() => {
@@ -408,6 +409,91 @@ app.get('/set_cookie', (req: Request, res: Response) => {
 
   res.header('Set-Cookie', `${name}=${value}`)
   res.send('OK')
+})
+
+app.all('/external_request', (req: Request, res: Response) => {
+  const status = req.query.status || '200'
+  const urlExtra = req.query.url_extra || ''
+
+  const headers: any = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  let body = null
+  if (req.body && Object.keys(req.body).length > 0) {
+    body = JSON.stringify(req.body)
+    headers['Content-Type'] = req.headers['content-type'] || 'application/json'
+  }
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path: `/mirror/${status}${urlExtra}`,
+    method: req.method,
+    headers
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
+      const payload = JSON.parse(responseBody)
+      res.status(200).json({
+        status: response.statusCode,
+        payload,
+        headers: response.headers
+      })
+    })
+  })
+
+  // Write body if present
+  if (body) {
+    request.write(body)
+  }
+
+  request.end()
+})
+
+app.get('/external_request/redirect', (req: Request, res: Response) => {
+  const headers: any = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = req.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path: string) => {
+    const options = {
+      hostname: 'internal_server',
+      port: 8089,
+      path,
+      method: 'GET',
+      headers
+    }
+
+    const request = http.request(options, (response: http.IncomingMessage) => {
+      if (response.statusCode === 302 && response.headers.location) {
+        // Follow the redirect
+        followRedirect(response.headers.location)
+      } else {
+        // Final response
+        response.on('end', () => {
+          res.status(200).send('OK')
+        })
+        }
+        response.resume()
+    })
+
+    request.end()
+  }
+
+  // Start the redirect chain
+  followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
 })
 
 require('./rasp')(app)

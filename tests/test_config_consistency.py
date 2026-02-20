@@ -15,7 +15,6 @@ from utils import (
     bug,
     missing_feature,
     logger,
-    incomplete_test_app,
 )
 
 # get the default log output
@@ -45,10 +44,12 @@ class Test_Config_HttpServerErrorStatuses_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        span, span_format = spans[0]
 
-        assert spans[0]["type"] == "web"
-        assert spans[0]["meta"]["http.status_code"] == "400"
-        assert "error" not in spans[0] or spans[0]["error"] == 0
+        assert interfaces.agent.get_span_type(span, span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
+        assert span_meta["http.status_code"] == "400"
+        assert "error" not in span or span["error"] == 0
 
     def setup_status_code_500(self):
         self.r = weblog.get("/status?code=500")
@@ -59,9 +60,11 @@ class Test_Config_HttpServerErrorStatuses_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        span, span_format = spans[0]
 
-        assert spans[0]["meta"]["http.status_code"] == "500"
-        assert spans[0]["error"] == 1
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
+        assert span_meta["http.status_code"] == "500"
+        assert span["error"]
 
 
 @scenarios.tracing_config_nondefault
@@ -77,11 +80,12 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
-
-        assert spans[0]["type"] == "web"
-        assert spans[0]["meta"]["http.status_code"] == "200"
-        assert spans[0]["error"] == 1
+        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
+        span, span_format = spans[0]
+        assert interfaces.agent.get_span_type(span, span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
+        assert span_meta["http.status_code"] == "200"
+        assert span["error"]
 
     def setup_status_code_202(self):
         self.r = weblog.get("/status?code=202")
@@ -91,11 +95,12 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
 
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
-
-        assert spans[0]["type"] == "web"
-        assert spans[0]["meta"]["http.status_code"] == "202"
-        assert spans[0]["error"] == 1
+        assert len(spans) == 1, "Agent received the incorrect amount of chunks"
+        span, span_format = spans[0]
+        assert interfaces.agent.get_span_type(span, span_format) == "web"
+        span_meta = interfaces.agent.get_span_meta(span, span_format)
+        assert span_meta.get("http.status_code") == "202"
+        assert span.get("error")
 
 
 # Tests for verifying default query string obfuscation behavior can be found in the Test_StandardTagsUrl test class
@@ -111,8 +116,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="APMAPI-770",
     )
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
-    @missing_feature(context.library < "golang@2.1.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -123,7 +126,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_server(self):
         self.r = weblog.get("/?application_key=value")
 
-    @bug(context.library == "python", reason="APMAPI-772")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
@@ -136,16 +138,10 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
 
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
-    @missing_feature(
-        context.library < "golang@2.1.0-dev",
-        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
-    )
     @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -167,16 +163,10 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
 
-    @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
-    @missing_feature(
-        context.library < "golang@2.1.0-dev",
-        reason="Client query string collection disabled by default; obfuscation only occurs on server side",
-    )
     @missing_feature(
         context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
         reason="Missing endpoint",
     )
-    @bug(context.library >= "golang@1.72.0", reason="APMAPI-1196")
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -402,11 +392,8 @@ def _get_span_by_tags(spans: list, tags: dict):
     return {}
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.unified_service_tagging
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
@@ -422,8 +409,9 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        assert spans[0]["service"] == "service_test"
+        assert len(spans) == 1, f"Agent received the incorrect amount of spans, Spans: {spans}"
+        span_format = spans[0][1]
+        assert interfaces.agent.get_span_service(spans[0][0], span_format) == "service_test"
 
 
 @scenarios.default
@@ -438,8 +426,10 @@ class Test_Config_UnifiedServiceTagging_Default:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        span, span_format = spans[0]
+
         assert (
-            spans[0]["service"] != "service_test"
+            interfaces.agent.get_span_service(span, span_format) != "service_test"
         )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
 
 
@@ -577,7 +567,6 @@ class Test_Config_LogInjection_Default_Unstructured:
 @scenarios.tracing_config_empty
 @features.log_injection
 @features.log_injection_128bit_traceid
-@bug(context.library == "golang@2.1.0", reason="LANGPLAT-670")
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
@@ -603,9 +592,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
         self.message = "Test_Config_LogInjection_128Bit_TraceId_Enabled.test_incoming_64bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
-    @incomplete_test_app(
-        context.library == "ruby", reason="rails70 app does not use the incoming headers in log correlation"
-    )
     def test_incoming_64bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
@@ -636,10 +622,6 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 @scenarios.tracing_config_nondefault_4
 @features.log_injection
 @features.log_injection_128bit_traceid
-@bug(context.library == "golang@2.1.0", reason="LANGPLAT-670")
-@irrelevant(
-    context.library == "python", reason="The Python tracer does not support disabling logging 128-bit trace IDs"
-)
 class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 

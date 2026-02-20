@@ -128,6 +128,18 @@ Running system-tests involves a few key steps:
    # Activate the virtual environment
    source venv/bin/activate
    ```
+> **macOs note** If the `build.sh` script fails due to a missing `timeout` command, it likely means you did not run the Datadog laptop setup [script](https://datadoghq.atlassian.net/wiki/spaces/EE1/pages/3334374707/Laptop+Setup+Script)
+>
+> Quick fix:
+> ```bash
+> brew install coreutils
+> ```
+> Update your command-line settings with:
+> ```bash
+> # Prefer GNU binaries to Macintosh binaries.
+> export PATH="{{ homebrew_dir }}/opt/coreutils/libexec/gnubin:$PATH"
+> ```
+
 2. **Build necessary images** for the language you want to test:
 
    ```bash
@@ -151,6 +163,9 @@ Running system-tests involves a few key steps:
 
    # Run a specific test class or method
    ./run.sh tests/parametric/test_waf.py::Test_WAFAddresses::test_post_json_value
+
+   # Run with timeout applied to each test
+   ./run.sh -v --timeout=<SECONDS> <SCENARIO NAME>
    ```
 
 For more advanced options:

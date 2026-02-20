@@ -59,7 +59,9 @@ func main() {
 	r.OnAddRouteHandler = echotrace.OnAddRouteHandler
 
 	r.Any("/", func(c echo.Context) error {
-		return c.NoContent(http.StatusOK)
+		c.Response().Header().Set("Content-Type", "text/plain")
+		c.Response().Header().Set("Content-Length", "13")
+		return c.String(http.StatusOK, "Hello world!\n")
 	})
 
 	r.GET("/healthcheck", func(c echo.Context) error {

@@ -17,15 +17,25 @@ from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
-from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
+from .k8s_lib_injection import K8sScenario, K8sSparkScenario
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
-from .external_processing import ExternalProcessingScenario
-from .stream_processing_offload import StreamProcessingOffloadScenario
+from .go_proxies import GoProxiesScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context.ports import ContainerPorts
 from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
+from utils._context.containers import (
+    CassandraContainer,
+    KafkaContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+    PostgresContainer,
+    RabbitMqContainer,
+    VCRCassettesContainer,
+)
 
 update_environ_with_local_env()
 
@@ -56,13 +66,15 @@ class _Scenarios:
         },
         include_intake=False,
         include_collector=False,
-        include_postgres_db=True,
-        include_cassandra_db=True,
-        include_mongo_db=True,
-        include_kafka=True,
-        include_rabbitmq=True,
-        include_mysql_db=True,
-        include_sqlserver=True,
+        extra_containers=(
+            MsSqlServerContainer,
+            MySqlContainer,
+            RabbitMqContainer,
+            KafkaContainer,
+            MongoContainer,
+            CassandraContainer,
+            PostgresContainer,
+        ),
         doc=(
             "We use the open telemetry library to automatically instrument the weblogs instead of using the DD library."
             "This scenario represents this case in the integration with different external systems, for example the "
@@ -84,6 +96,24 @@ class _Scenarios:
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
             "may drop some of them"
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    trace_stats_computation_client_drop_p0s_false = EndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE",
+        # Same as trace_stats_computation but with client_drop_p0s set to false
+        # to test tracer behavior when agent doesn't support client-side P0 dropping
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+        },
+        client_drop_p0s=False,
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
+            "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
         ),
         scenario_groups=[scenario_groups.appsec],
     )
@@ -179,6 +209,7 @@ class _Scenarios:
             "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
@@ -225,7 +256,7 @@ class _Scenarios:
         "EVERYTHING_DISABLED",
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
         appsec_enabled=False,
-        include_postgres_db=True,
+        other_weblog_containers=(PostgresContainer,),
         doc="Disable appsec and test DBM setting integration outcome when disabled",
         scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
     )
@@ -343,6 +374,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "false",
         },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
@@ -594,8 +626,7 @@ class _Scenarios:
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
-        include_kafka=True,
-        include_postgres_db=True,
+        other_weblog_containers=(PostgresContainer, KafkaContainer),
         rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
@@ -613,8 +644,7 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
         },
-        include_kafka=True,
-        include_postgres_db=True,
+        other_weblog_containers=(PostgresContainer, KafkaContainer),
         doc="Test tracer configuration when a collection of non-default settings are applied",
         scenario_groups=[scenario_groups.tracing_config],
     )
@@ -644,13 +674,15 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
+            "DD_TRACE_OTEL_ENABLED": "true",
         },
         doc="",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -690,7 +722,7 @@ class _Scenarios:
             # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
             "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
         doc="Check pii redaction",
@@ -726,8 +758,10 @@ class _Scenarios:
     debugger_inproduct_enablement = EndToEndScenario(
         "DEBUGGER_INPRODUCT_ENABLEMENT",
         rc_api_enabled=True,
+        rc_backend_enabled=False,
         weblog_env={
-            "DD_APM_TRACING_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
+            "DD_TRACE_FLUSH_INTERVAL": "100",
         },
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",
@@ -737,6 +771,7 @@ class _Scenarios:
     debugger_telemetry = EndToEndScenario(
         "DEBUGGER_TELEMETRY",
         rc_api_enabled=True,
+        rc_backend_enabled=True,
         weblog_env={
             "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
@@ -869,14 +904,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    demo_aws = InstallerAutoInjectionScenario(
-        "DEMO_AWS",
-        "Demo aws scenario",
-        vm_provision="demo",
-        scenario_groups=[],
-        github_workflow="aws_ssi",
-    )
-
     host_auto_injection_install_script = InstallerAutoInjectionScenario(
         "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
@@ -904,20 +931,6 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
-    lib_injection_validation = WeblogInjectionScenario(
-        "LIB_INJECTION_VALIDATION",
-        doc="Validates the init images without kubernetes enviroment",
-        github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
-    )
-
-    lib_injection_validation_unsupported_lang = WeblogInjectionScenario(
-        "LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG",
-        doc="Validates the init images without kubernetes enviroment (unsupported lang versions)",
-        github_workflow="libinjection",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
-    )
-
     k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
     k8s_lib_injection_operator = K8sScenario(
         "K8S_LIB_INJECTION_OPERATOR",
@@ -929,14 +942,18 @@ class _Scenarios:
         doc="Kubernetes lib injection with admission controller and uds",
         use_uds=True,
     )
-    k8s_lib_injection_no_ac = K8sManualInstrumentationScenario(
+    k8s_lib_injection_no_ac = K8sScenario(
         "K8S_LIB_INJECTION_NO_AC",
         doc="Kubernetes lib injection without admission controller",
+        with_cluster_agent=False,
+        with_datadog_operator=False,
     )
-    k8s_lib_injection_no_ac_uds = K8sManualInstrumentationScenario(
+    k8s_lib_injection_no_ac_uds = K8sScenario(
         "K8S_LIB_INJECTION_NO_AC_UDS",
         doc="Kubernetes lib injection without admission controller and UDS",
         use_uds=True,
+        with_cluster_agent=False,
+        with_datadog_operator=False,
     )
     k8s_lib_injection_profiling_disabled = K8sScenario(
         "K8S_LIB_INJECTION_PROFILING_DISABLED",
@@ -972,6 +989,17 @@ class _Scenarios:
             "clusterAgent.env[0].value": "auto",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+    )
+    k8s_lib_injection_appsec_disabled = K8sScenario(
+        "K8S_LIB_INJECTION_APPSEC_DISABLED",
+        doc="Kubernetes lib injection with admission controller and appsec disabled by default",
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+    )
+    k8s_lib_injection_appsec_enabled = K8sScenario(
+        "K8S_LIB_INJECTION_APPSEC_ENABLED",
+        doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
+        dd_cluster_feature={"datadog.asm.threats.enabled": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
@@ -1012,7 +1040,7 @@ class _Scenarios:
     appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
         "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
         weblog_env={
-            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+            "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "0",
         },
     )
 
@@ -1071,32 +1099,19 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    external_processing = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING",
-        doc="Envoy + external processing",
+    go_proxies_default = GoProxiesScenario(
+        name="GO_PROXIES_DEFAULT",
+        doc="Default tests for proxies using the security processor.",
         rc_api_enabled=True,
+        scenario_groups=[],
     )
 
-    external_processing_blocking = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING_BLOCKING",
-        doc="Envoy + external processing + blocking rule file",
-        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    )
-
-    stream_processing_offload = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD",
-        doc="HAProxy + stream processing offload agent",
-        rc_api_enabled=True,
-    )
-
-    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
-        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
-        doc="HAProxy + stream processing offload agent + blocking rule file",
-        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        stream_processing_offload_volumes={
-            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
-        },
+    go_proxies_appsec_blocking = GoProxiesScenario(
+        name="GO_PROXIES_APPSEC_BLOCKING",
+        doc="Default tests for proxies using the security processor with appsec blocking rule file",
+        processor_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        processor_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        scenario_groups=[],
     )
 
     ipv6 = IPV6Scenario("IPV6")
@@ -1158,6 +1173,19 @@ class _Scenarios:
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
+
+    ai_guard = EndToEndScenario(
+        "AI_GUARD",
+        other_weblog_containers=(VCRCassettesContainer,),
+        weblog_env={
+            "DD_AI_GUARD_ENABLED": "true",
+            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+            "DD_API_KEY": "mock_api_key",
+            "DD_APP_KEY": "mock_app_key",
+        },
+        doc="AI Guard SDK tests",
+        scenario_groups=[scenario_groups.ai_guard],
     )
 
 

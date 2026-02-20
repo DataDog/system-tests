@@ -5,11 +5,8 @@
 from utils import weblog, interfaces, scenarios, features
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.threats_alpha_preview
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.appsec_lambda_default
 @scenarios.default
 class Test_Basic:

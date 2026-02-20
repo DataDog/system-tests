@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import pytest
-from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, logger
+from utils import weblog, bug, context, interfaces, missing_feature, rfc, scenarios, features, logger
 
 
 @features.appsec_request_blocking
@@ -38,16 +38,6 @@ class Test_UrlQuery:
     def test_query_encoded(self):
         """AppSec catches attacks in URL query value, even encoded"""
         interfaces.library.assert_waf_attack(self.r_query_encoded, address="server.request.query")
-
-    def setup_query_with_strict_regex(self):
-        self.r_query_with_strict_regex = weblog.get("/waf/", params={"value": "0000012345"})
-
-    @irrelevant(context.agent_version >= "1.2.6", reason="Need to find another rule")
-    def test_query_with_strict_regex(self):
-        """AppSec catches attacks in URL query value, even with regex containing start and end char"""
-        interfaces.library.assert_waf_attack(
-            self.r_query_with_strict_regex, pattern="0000012345", address="server.request.query"
-        )
 
 
 @features.appsec_request_blocking
@@ -98,9 +88,6 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
-    @irrelevant(library="ruby", reason="Rack transforms underscores into dashes")
-    @irrelevant(library="php", reason="PHP normalizes into dashes; additionally, matching on keys is not supported")
-    @irrelevant(library="cpp_nginx", reason="Header rejected by nginx ('client sent invalid header line'")
     @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """Attacks on specific header X_Filename, and report it"""
@@ -159,12 +146,6 @@ class Test_Cookies:
     def setup_cookies_with_semicolon_custom_rules(self):
         self.r_cwsccr = weblog.get("/waf", cookies={"value": "%3Bshutdown--"})
 
-    @irrelevant(
-        library="java",
-        reason="cookies are not urldecoded; see RFC 6265, which only suggests they be base64 "
-        "encoded to represent disallowed octets",
-    )
-    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @scenarios.appsec_custom_rules
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""
@@ -173,7 +154,6 @@ class Test_Cookies:
     def setup_cookies_with_spaces_custom_rules(self):
         self.r_cwscr_2 = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
 
-    @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
     @scenarios.appsec_custom_rules
     def test_cookies_with_spaces_custom_rules(self):
         """Cookie with pattern containing a space"""
@@ -183,9 +163,6 @@ class Test_Cookies:
         """Other cookies patterns"""
         self.r_cwsc2cc = weblog.get("/waf/", cookies={"x-attack": 'o:4:"x":5:{d}'})
 
-    @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
-    @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
-    @bug(context.library < "java@0.96.0", reason="APMRP-360")
     @scenarios.appsec_custom_rules
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
@@ -193,54 +170,21 @@ class Test_Cookies:
 
 
 @features.appsec_request_blocking
-class Test_BodyRaw:
-    """Appsec supports <body>"""
-
-    def setup_raw_body(self):
-        self.r = weblog.post("/waf", data="/.adsensepostnottherenonobook")
-
-    @irrelevant(reason="no rule with body raw yet")
-    def test_raw_body(self):
-        """AppSec detects attacks in raw body"""
-        interfaces.library.assert_waf_attack(self.r, address="server.request.body.raw")
-
-
-@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
-@features.appsec_request_blocking
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
-
-    def setup_body_key(self):
-        self.r_key = weblog.post("/waf", data={'<vmlframe src="xss">': "value"})
-
-    @irrelevant(reason="matching against keys is impossible with current rules")
-    def test_body_key(self):
-        """AppSec detects attacks in URL encoded body keys"""
-        interfaces.library.assert_waf_attack(self.r_key, pattern="x", address="x")
 
     def setup_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         self.r_value = weblog.post("/waf", data={"value": '<vmlframe src="xss">'})
 
-    @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_body_value(self):
         """AppSec detects attacks in URL encoded body values"""
         interfaces.library.assert_waf_attack(self.r_value, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyJson:
     """Appsec supports <JSON encoded body>"""
-
-    def setup_json_key(self):
-        """AppSec detects attacks in JSON body keys"""
-        self.r_key = weblog.post("/waf", json={'<vmlframe src="xss">': "value"})
-
-    @irrelevant(reason="matching against keys is impossible with current rules")
-    def test_json_key(self):
-        """AppSec detects attacks in JSON body keys"""
-        interfaces.library.assert_waf_attack(self.r_key, pattern="x", address="x")
 
     def setup_json_value(self):
         """AppSec detects attacks in JSON body values"""
@@ -253,17 +197,11 @@ class Test_BodyJson:
     def setup_json_array(self):
         self.r_array = weblog.post("/waf", json=['<vmlframe src="xss">'])
 
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="rack")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra14")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra20")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="sinatra21")
-    @irrelevant(reason="unsupported by framework", library="ruby", weblog_variant="uds-sinatra")
     def test_json_array(self):
         """AppSec detects attacks in JSON body arrays"""
         interfaces.library.assert_waf_attack(self.r_array, value='<vmlframe src="xss">', address="server.request.body")
 
 
-@bug(context.library == "nodejs@2.8.0", reason="APMRP-360")
 @features.appsec_request_blocking
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
@@ -311,7 +249,6 @@ class Test_ResponseStatus:
     def setup_basic(self):
         self.r = weblog.get("/mysql")
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_basic(self):
         """AppSec reports 404 responses"""
         interfaces.library.assert_waf_attack(self.r, pattern="404", address="server.response.status")
@@ -451,7 +388,6 @@ class Test_GraphQL:
             ),
         )
 
-    @missing_feature(library="golang", reason="Not supported or implemented in existing libraries")
     def test_request_monitor_attack_directive(self):
         self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 

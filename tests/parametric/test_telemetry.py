@@ -10,7 +10,7 @@ import pytest
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
-from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger, bug
+from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
 
@@ -199,9 +199,7 @@ class Test_Defaults:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
-    @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
-    def test_library_settings(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
 
@@ -288,8 +286,7 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
-    def test_library_settings(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
 
@@ -357,9 +354,7 @@ class Test_Consistent_Configs:
             }
         ],
     )
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
-    def test_library_settings_2(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_library_settings_2(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
 
@@ -416,8 +411,7 @@ class Test_Environment:
             }
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
-    def test_library_settings(self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_library_settings(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
 
@@ -471,12 +465,6 @@ class Test_Environment:
                 assert cfg_item.get("value") == environment_value, f"Unexpected value for '{matched_name}'"
             assert cfg_item.get("origin") == "env_var", f"Unexpected origin for '{matched_name}'"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -508,9 +496,7 @@ class Test_Environment:
             }
         ],
     )
-    def test_telemetry_otel_env_hiding(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_otel_env_hiding(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
@@ -564,15 +550,6 @@ class Test_Environment:
                     f"Could not find a metric with {dd_config} and {otel_config} in otelHiding metrics: {otel_hiding}"
                 )
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="OTEL Sampling config is mapped to a different datadog config")
-    @missing_feature(
-        context.library == "nodejs", reason="does not collect otel_env.invalid metrics for otel_resource_attributes"
-    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -595,9 +572,7 @@ class Test_Environment:
             }
         ],
     )
-    def test_telemetry_otel_env_invalid(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_otel_env_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library.dd_start_span("test"):
             pass
         event = test_agent.wait_for_telemetry_event("generate-metrics", wait_loops=400)
@@ -684,7 +659,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     def test_stable_configuration_origin(
         self,
         local_cfg: dict[str, bool],
-        library_env: dict[str, str],
         fleet_cfg: dict[str, bool],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -730,9 +704,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library <= "java@v1.53.0-SNAPSHOT", reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [
@@ -752,7 +723,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     def test_stable_configuration_config_id(
         self,
         local_cfg: dict[str, bool],
-        library_env: dict[str, str],
         fleet_cfg: dict[str, bool],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -836,13 +806,9 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @bug(context.library == "python", reason="APMAPI-1630")
-    @bug(context.library == "ruby", reason="APMAPI-1631")
-    @bug(context.library == "nodejs", reason="APMAPI-1709")
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
         local_cfg: dict[str, str],
-        library_env: dict[str, str],
         fleet_cfg: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -921,11 +887,9 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         reason="extended configs are not supported",
     )
     @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
-    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self,
         local_cfg: dict[str, str],
-        library_env: dict[str, str],
         fleet_cfg: dict[str, str],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -1056,9 +1020,7 @@ class Test_TelemetryInstallSignature:
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_telemetry_event_not_propagated(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_event_not_propagated(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When instrumentation data is not propagated to the library
         The telemetry event should not contain telemetry as the Agent will add it when not present.
         """
@@ -1106,7 +1068,6 @@ class Test_TelemetrySSIConfigs:
     )
     def test_injection_enabled(
         self,
-        library_env: dict[str, str],
         expected_value: str,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -1157,9 +1118,7 @@ class Test_TelemetrySSIConfigs:
             ),
         ],
     )
-    def test_inject_force(
-        self, library_env: dict[str, str], expected_value: str, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_inject_force(self, expected_value: str, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Ensure SSI DD_INJECT_FORCE configuration is captured by a telemetry event."""
 
         # Some libraries require a first span for telemetry to be emitted.
@@ -1185,9 +1144,7 @@ class Test_TelemetrySSIConfigs:
         assert inject_force.get("origin") == "env_var"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_SERVICE": "service_test"}])
-    def test_instrumentation_source_non_ssi(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_instrumentation_source_non_ssi(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         # Some libraries require a first span for telemetry to be emitted.
         with test_library.dd_start_span("first_span"):
             pass
@@ -1226,7 +1183,6 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false"}, False),
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     def test_telemetry_sca_enabled_propagated(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
@@ -1246,7 +1202,6 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, False),
         ],
     )
-    @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
     @irrelevant(context.library not in ("python", "golang"))
     def test_telemetry_sca_enabled_propagated_specifics(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
@@ -1261,6 +1216,7 @@ class Test_TelemetrySCAEnvVar:
     def _assert_telemetry_sca_enabled_propagated(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
+        assert test_library.is_alive(), "Library container is not running"
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
@@ -1278,13 +1234,8 @@ class Test_TelemetrySCAEnvVar:
         assert cfg_appsec_enabled[0].get("value") in (outcome_value, str(outcome_value).lower())
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @missing_feature(
-        context.library <= "python@2.16.0",
-        reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
-    )
-    def test_telemetry_sca_enabled_not_propagated(
-        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
+    def test_telemetry_sca_enabled_not_propagated(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        assert test_library.is_alive(), "Library container is not running"
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
 
         assert configuration_by_name is not None, "Missing telemetry configuration"

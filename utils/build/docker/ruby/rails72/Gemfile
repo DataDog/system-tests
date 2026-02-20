@@ -13,7 +13,8 @@ gem 'opentelemetry-sdk', '~> 1.8.0'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
 gem 'faraday', '~> 2.13.0'
-# FFL related dependencies
+gem 'faraday-follow_redirects', '~> 0.3'
+# FFE related dependencies
 gem 'openfeature-sdk', '~> 0.4'
 
 group :development do

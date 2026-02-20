@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, scenarios, features, rfc, weblog
+from utils import scenarios, features, rfc, weblog
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -25,23 +25,12 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
         "nodejs": get_nodejs_iast_file_paths(),
     }
 
-    @missing_feature(
-        context.weblog_variant == "express5", reason="express-mongo-sanitize is not yet compatible with express5"
-    )
-    @missing_feature(
-        context.weblog_variant == "fastify", reason="we do not support a sanitizer for mongodb and fastify yet"
-    )
     def test_secure(self):
         super().test_secure()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
-    @missing_feature(library="dotnet", reason="Not implemented yet")
     def test_telemetry_metric_instrumented_sink(self):
         super().test_telemetry_metric_instrumented_sink()
 
-    @missing_feature(context.library < "java@1.13.0", reason="Not implemented yet")
-    @missing_feature(library="python", reason="Not implemented yet")
     def test_telemetry_metric_executed_sink(self):
         super().test_telemetry_metric_executed_sink()
 

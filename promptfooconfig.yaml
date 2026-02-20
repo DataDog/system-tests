@@ -3,6 +3,9 @@ description: 'system-tests'
 
 prompts:
   - |
+    * You CAN use tools to read files and verify your responses.
+    * Provide complete and accurate information based on the codebase and the prompts/rules files in the workspace.
+    * NEVER modify, create, delete, or apply changes to any files. If changes are needed, only describe the exact edits you would make (file paths + what to add/remove/replace) so I can apply them manually.
     {{user_prompt}}
 tests:
   - .promptfoo/tests_overview.yaml
@@ -12,10 +15,18 @@ tests:
   - .promptfoo/tests_task_java_endpoint_prompt.yaml
   - .promptfoo/tests_k8s_tests.yaml
 providers:
-  - id: 'file://.promptfoo/local_cursor_provider.py'
-    label: 'Local Cursor Provider' # Optional display label for this provider
+  - id: anthropic:claude-agent-sdk
+    config:
+      working_dir: .
+      model: claude-sonnet-4-5-20250929
+      allow_all_tools: true
+      setting_sources: ['project']
+      max_turns: 50
+      max_thinking_tokens: 5000
+      betas:
+        - context-1m-2025-08-07
 
- # - id: anthropic:messages:claude-sonnet-4-5-20250929
- #   config:
- #     temperature: 0
- #     max_tokens: 4000
+
+      #tools:
+      #  type: preset
+      #  preset: claude_code

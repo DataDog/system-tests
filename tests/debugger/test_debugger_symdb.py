@@ -4,7 +4,7 @@
 
 import re
 import tests.debugger.utils as debugger
-from utils import features, scenarios, bug, context, missing_feature
+from utils import features, scenarios, context, missing_feature
 
 
 @features.debugger_symdb
@@ -86,7 +86,5 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     def setup_symdb_upload(self):
         self._setup()
 
-    @bug(context.library == "dotnet", reason="DEBUG-3298")
-    @bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
     def test_symdb_upload(self):
         self._assert()

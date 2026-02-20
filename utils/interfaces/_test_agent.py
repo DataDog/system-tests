@@ -117,6 +117,19 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 ):
                     crash_reports.append(payload)
 
+                # v2 logs send in the form of `payload:{logs:[]}`
+                # we should also check if `logs` value is a list, and iterate
+                # through the `dict`s in the list
+                if "logs" in payload and isinstance(payload["logs"], list):
+                    for log in payload["logs"]:
+                        if isinstance(log, dict):
+                            if (
+                                "si_signo" in log.get("tags", "")
+                                or "signame" in log.get("tags", "")
+                                or "signum" in log.get("tags", "")
+                            ):
+                                crash_reports.append(log)
+
         return crash_reports
 
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
@@ -145,7 +158,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 if event and event["request_type"] in ("app-started", "app-client-configuration-change"):
                     # Sort configurations by seq_id so the latest configuration is the last one in the list
                     config_list = event["payload"].get("configuration", [])
-                    config_list.sort(key=lambda x: x.get("seq_id", 0))
+                    config_list.sort(key=lambda x: x.get("seq_id") or 0)
                     for config in config_list:
                         configurations[config["name"]] = config
         return configurations

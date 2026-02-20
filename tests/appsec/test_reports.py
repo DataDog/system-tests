@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, context, interfaces, bug, scenarios, rfc, features
+from utils import weblog, interfaces, scenarios, rfc, features
 from utils._weblog import HttpResponse
 
 
@@ -12,7 +12,6 @@ class Test_StatusCode:
     def setup_basic(self):
         self.r = weblog.get("/path_that_doesn't_exists", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_basic(self):
         assert self.r.status_code == 404
         interfaces.library.assert_waf_attack(self.r)
@@ -64,11 +63,8 @@ class Test_Info:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_RequestHeaders:
@@ -91,7 +87,6 @@ class Test_RequestHeaders:
             },
         )
 
-    @bug(context.library < "dotnet@2.1.0", reason="APMRP-360")
     def test_http_request_headers(self):
         """AppSec reports the HTTP headers used for actor IP detection."""
 
@@ -106,11 +101,8 @@ class Test_RequestHeaders:
         interfaces.library.add_appsec_reported_header(self.r, "true-client-ip")
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_TagsFromRule:
@@ -137,11 +129,8 @@ class Test_TagsFromRule:
             assert "category" in trigger["rule"]["tags"]
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_ExtraTagsFromRule:
@@ -169,11 +158,8 @@ def _get_appsec_triggers(request: HttpResponse):
     return triggers
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.security_events_metadata
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AttackTimestamp:

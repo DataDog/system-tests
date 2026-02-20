@@ -6,8 +6,6 @@ import re
 
 from utils.dd_constants import Capabilities
 from tests.appsec.utils import find_series
-from utils import context, missing_feature
-from utils import bug
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
@@ -51,21 +49,21 @@ class Test_BlockingActionChangesWithRemoteConfig:
     """
 
     def setup_block_405(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_405).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_405).apply()
         self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_505).apply()
+        self.config_state_3 = rc.tracer_rc_state.set_config(*BLOCK_505).apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_4 = rc.rc_state.set_config(*BLOCK_REDIRECT).apply()
+        self.config_state_4 = rc.tracer_rc_state.set_config(*BLOCK_REDIRECT).apply()
         self.response_4 = weblog.get(
             "/waf/", headers={"User-Agent": "dd-test-scanner-log-block"}, allow_redirects=False
         )
 
-        self.config_state_5 = rc.rc_state.reset().apply()
+        self.config_state_5 = rc.tracer_rc_state.reset().apply()
         self.response_5 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
     def test_block_405(self):
@@ -142,27 +140,24 @@ class Test_UpdateRuleFileWithRemoteConfig:
     """
 
     def setup_update_rules(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
         self.response_1b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        self.config_state_2 = rc.rc_state.set_config(*RULE_FILE).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*RULE_FILE).apply()
         self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
         self.response_2b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_405).apply()
+        self.config_state_3 = rc.tracer_rc_state.set_config(*BLOCK_405).apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
         self.response_3b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        self.config_state_4 = rc.rc_state.del_config(RULE_FILE[0]).apply()
+        self.config_state_4 = rc.tracer_rc_state.del_config(RULE_FILE[0]).apply()
         self.response_4 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
         self.response_4b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
-        self.config_state_5 = rc.rc_state.reset().apply()
+        self.config_state_5 = rc.tracer_rc_state.reset().apply()
 
-    @bug(
-        context.library < "nodejs@5.25.0", reason="APMRP-360"
-    )  # rules version was not correctly reported after an RC update
     def test_update_rules(self):
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
@@ -327,37 +322,36 @@ class Test_AsmDdMultiConfiguration:
     and provide the ASM_DD_MULTICONFIG(42) capability
     """
 
-    @missing_feature(context.library == "java")
     def test_asm_dd_multiconfig_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
 
     def setup_update_rules(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
         # Using default rules, Arachni should work
         self.response_0 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
         # The Arachni rule should be removed and replaced by TechnoViking
-        self.config_state_1 = rc.rc_state.set_config(*FIRST_RULE_FILE).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*FIRST_RULE_FILE).apply()
         self.response_1a = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
         self.response_1b = weblog.get("/waf/", headers={"User-Agent": "TechnoViking/v1"})
 
         # The Anubis rule is introduced alongside TechnoViking
-        self.config_state_2 = rc.rc_state.set_config(*SECOND_RULE_FILE).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*SECOND_RULE_FILE).apply()
         self.response_2a = weblog.get("/waf/", headers={"User-Agent": "TechnoViking/v1"})
         self.response_2b = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
 
         # The TechnoViking rule has been removed
-        self.config_state_3 = rc.rc_state.del_config(FIRST_RULE_FILE[0]).apply()
+        self.config_state_3 = rc.tracer_rc_state.del_config(FIRST_RULE_FILE[0]).apply()
         self.response_3a = weblog.get("/waf/", headers={"User-Agent": "TechnoViking/v1"})
         self.response_3b = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
 
         # Back to Default, Arachni should be available
-        self.config_state_4 = rc.rc_state.del_config(SECOND_RULE_FILE[0]).apply()
+        self.config_state_4 = rc.tracer_rc_state.del_config(SECOND_RULE_FILE[0]).apply()
         self.response_4a = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
         self.response_4b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
         # Reset the RC State
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
     def test_update_rules(self):
         # Arachni using the default rule file
@@ -388,32 +382,32 @@ class Test_AsmDdMultiConfiguration:
         interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
 
     def setup_update_rules_with_rules_compat(self):
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
         # Using default rules, Arachni should work
         self.response_0 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
         # The Arachni rule should be removed and replaced by TechnoViking
-        self.config_state_1 = rc.rc_state.set_config(*FIRST_RULE_FILE).apply()
+        self.config_state_1 = rc.tracer_rc_state.set_config(*FIRST_RULE_FILE).apply()
         self.response_1a = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
         self.response_1b = weblog.get("/waf/", headers={"User-Agent": "TechnoViking/v1"})
 
         # The Anubis rule is introduced alongside TechnoViking
-        self.config_state_2 = rc.rc_state.set_config(*RULES_COMPAT_FILE).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*RULES_COMPAT_FILE).apply()
         self.response_2a = weblog.get("/waf/", headers={"User-Agent": "TechnoViking/v1"})
         self.response_2b = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
 
         # The TechnoViking rule has been removed
-        self.config_state_3 = rc.rc_state.del_config(FIRST_RULE_FILE[0]).apply()
+        self.config_state_3 = rc.tracer_rc_state.del_config(FIRST_RULE_FILE[0]).apply()
         self.response_3a = weblog.get("/waf/", headers={"User-Agent": "TechnoViking/v1"})
         self.response_3b = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
 
         # Back to Default, Arachni should be available
-        self.config_state_4 = rc.rc_state.del_config(RULES_COMPAT_FILE[0]).apply()
+        self.config_state_4 = rc.tracer_rc_state.del_config(RULES_COMPAT_FILE[0]).apply()
         self.response_4a = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
         self.response_4b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
         # Reset the RC State
-        rc.rc_state.reset().apply()
+        rc.tracer_rc_state.reset().apply()
 
     def test_update_rules_with_rules_compat(self):
         # Arachni using the default rule file
@@ -459,13 +453,13 @@ FOO_ACTION = (
 @features.changing_rules_using_rc
 class Test_Unknown_Action:
     def setup_unknown_action(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_2 = rc.rc_state.set_config(*FOO_ACTION).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*FOO_ACTION).apply()
         self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_3 = rc.rc_state.reset().apply()
+        self.config_state_3 = rc.tracer_rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
     def test_unknown_action(self):
@@ -498,13 +492,13 @@ BLOCK_FOO_ACTION = (
 @features.changing_rules_using_rc
 class Test_Multiple_Actions:
     def setup_multiple_actions(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_FOO_ACTION).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*BLOCK_FOO_ACTION).apply()
         self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_3 = rc.rc_state.reset().apply()
+        self.config_state_3 = rc.tracer_rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
     def test_multiple_actions(self):
@@ -526,17 +520,15 @@ EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
-# Empty RC updates were incorrectly sent to waf
-@bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")
 class Test_Empty_Config:
     def setup_empty_config(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_2 = rc.rc_state.set_config(*EMPTY_CONFIG).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*EMPTY_CONFIG).apply()
         self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_3 = rc.rc_state.reset().apply()
+        self.config_state_3 = rc.tracer_rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
     def test_empty_config(self):
@@ -571,15 +563,14 @@ DUPLICATE_ID_CONFIG = (
 @features.changing_rules_using_rc
 class Test_Invalid_Config:
     def setup_invalid_config(self):
-        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.config_state_1 = rc.tracer_rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-        self.config_state_2 = rc.rc_state.set_config(*DUPLICATE_ID_CONFIG).apply()
+        self.config_state_2 = rc.tracer_rc_state.set_config(*DUPLICATE_ID_CONFIG).apply()
 
-        self.config_state_3 = rc.rc_state.reset().apply()
+        self.config_state_3 = rc.tracer_rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-    @bug(context.library < "nodejs@5.68.0", reason="APPSEC-59077")
     def test_invalid_config(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")

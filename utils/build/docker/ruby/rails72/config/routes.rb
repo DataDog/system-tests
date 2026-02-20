@@ -9,7 +9,7 @@ Rails.application.routes.draw do
       [200, {'Content-Type' => 'text/plain'}, ['OK']]
     end
   end
-  mount ResourceRenamingRackApp.new => '/resource_renaming'
+  get '/resource_renaming/*path', to: ResourceRenamingRackApp.new
 
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
@@ -62,6 +62,8 @@ Rails.application.routes.draw do
 
   get '/otel_drop_in_default_propagator_extract' => 'system_test#otel_drop_in_default_propagator_extract'
   get '/otel_drop_in_default_propagator_inject' => 'system_test#otel_drop_in_default_propagator_inject'
+  get '/otel_drop_in_baggage_api_otel' => 'system_test#otel_drop_in_baggage_api_otel'
+  get '/otel_drop_in_baggage_api_datadog' => 'system_test#otel_drop_in_baggage_api_datadog'
 
   get '/debugger/init' => 'debugger#init'
   get '/debugger/pii' => 'debugger#pii'
@@ -73,15 +75,24 @@ Rails.application.routes.draw do
     get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
   end
 
-  get '/rasp/sqli' => 'rasp_sqli#show'
-  post '/rasp/sqli' => 'rasp_sqli#show'
+  scope '/rasp' do
+    get 'sqli' => 'rasp#sqli'
+    get 'ssrf' => 'rasp#ssrf'
 
-  get '/rasp/ssrf' => 'rasp_ssrf#show'
-  post '/rasp/ssrf' => 'rasp_ssrf#show'
+    post 'sqli' => 'rasp#sqli'
+    post 'ssrf' => 'rasp#ssrf'
+  end
+
+  match '/external_request' => 'rasp#external_request', via: %i[get post put trace]
+  get '/external_request/redirect' => 'rasp#external_request_redirect'
 
   get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
   get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
   get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
 
   post '/ffe' => 'open_feature#evaluate'
+  post '/ffe/start' => 'open_feature#start'
+  post '/ffe/evaluate' => 'open_feature#evaluate'
+
+  post '/ai_guard/evaluate' => 'ai_guard#evaluate'
 end

@@ -11,6 +11,8 @@
 /utils/build/docker/ruby*/ @DataDog/ruby-guild @DataDog/asm-ruby @DataDog/system-tests-core
 /utils/build/docker/rust*/ @DataDog/apm-rust @DataDog/system-tests-core
 
+/utils/build/docker/vcr/cassettes/aiguard @DataDog/k9-ai-guard @DataDog/system-tests-core
+/utils/docker_fixtures/spec/llm_observability.py @DataDog/ml-observability @DataDog/system-tests-core
 /utils/telemetry/intake/ @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
 /utils/telemetry/intake/static/ @DataDog/apm-sdk
 
@@ -18,9 +20,11 @@
 /tests/parametric/ @DataDog/system-tests-core @DataDog/apm-sdk-capabilities
 /tests/parametric/test_config_consistency.py @DataDog/apm-sdk-capabilities
 /tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/tests/parametric/test_llm_observability @DataDog/ml-observability @DataDog/system-tests-core
 /tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
 /tests/remote_config/ @DataDog/remote-config @DataDog/system-tests-core
 /tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
+/tests/ai_guard/ @DataDog/k9-ai-guard @DataDog/system-tests-core
 /tests/debugger/ @DataDog/debugger @DataDog/system-tests-core
 /tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
 /tests/serverless @DataDog/serverless @DataDog/system-tests-core
@@ -29,13 +33,20 @@
 /tests/integration_frameworks/llm/ @DataDog/ml-observability
 
 /manifests/cpp.yml @DataDog/dd-trace-cpp
+/manifests/cpp_httpd.yml @DataDog/dd-trace-cpp
+/manifests/cpp_nginx.yml @DataDog/dd-trace-cpp
 /manifests/dotnet.yml @DataDog/apm-dotnet @DataDog/asm-dotnet
 /manifests/golang.yml @DataDog/dd-trace-go-guild
 /manifests/java.yml @DataDog/asm-java @DataDog/apm-java
 /manifests/nodejs.yml @DataDog/dd-trace-js
 /manifests/php.yml @DataDog/apm-php @DataDog/asm-php
 /manifests/python.yml @DataDog/apm-python @DataDog/asm-python
+/manifests/python_lambda.yml @DataDog/apm-python @DataDog/asm-python
+/manifests/python_otel.yml @DataDog/apm-python @DataDog/asm-python
 /manifests/ruby.yml @DataDog/ruby-guild @DataDog/asm-ruby
 /manifests/rust.yml @DataDog/apm-rust
 
 /.github/chainguard/** @DataDog/system-tests-core # Security sensitive
+
+/*.nix @DataDog/nix-guild @DataDog/system-tests-core
+/flake.lock @DataDog/nix-guild @DataDog/system-tests-core

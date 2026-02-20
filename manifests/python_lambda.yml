@@ -1,36 +1,37 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
     - weblog_declaration:
         "*": v8.113.0
@@ -40,36 +41,36 @@ manifest:
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
     - weblog_declaration:
         "*": v8.113.0
-        alb: missing_feature
-        alb-multi: missing_feature
-        function-url: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v8.117.0.dev
+        alb: v8.121.0  # Modified by easy win activation script
+        alb-multi: v8.121.0  # Modified by easy win activation script
+        function-url: v8.121.0  # Modified by easy win activation script
+  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: bug (APPSEC-61151)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: bug (APPSEC-60508)
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v8.117.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v8.117.0.dev
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: bug (APPSEC-61151)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v8.117.0.dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v8.117.0.dev
@@ -210,7 +211,11 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
-  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags: missing_feature
+  tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags:
+    - weblog_declaration:
+        "*": irrelevant (only api gateway inferred spans are specified for now)
+        apigw-http: v8.121.0
+        apigw-rest: v8.121.0
   tests/appsec/test_only_python.py::Test_ImportError: v7.112.0
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v7.112.0
   tests/appsec/test_reports.py::Test_Info: v7.112.0
@@ -218,9 +223,11 @@ manifest:
   tests/appsec/test_reports.py::Test_StatusCode: v7.112.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v8.113.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v7.112.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: bug (APPSEC-58202)
   tests/appsec/test_traces.py::Test_AppSecObfuscator: v7.112.0
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v7.112.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders: v7.112.0
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: bug (APPSEC-58202)
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v7.112.0
   tests/appsec/test_traces.py::Test_RetainTraces: v7.112.0
   tests/appsec/test_versions.py::Test_Events: v7.112.0
@@ -228,6 +235,9 @@ manifest:
     - weblog_declaration:
         "*": v8.113.0
         alb-multi: v8.114.0.dev
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers:
     - weblog_declaration:
         "*": v8.113.0

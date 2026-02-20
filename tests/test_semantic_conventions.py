@@ -14,6 +14,8 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
+    "envoy": "go",
+    "haproxy": "go",
 }
 
 """
@@ -35,6 +37,7 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
     "graphql-go": "graphql-go/graphql",
@@ -160,12 +163,9 @@ optional_uds_feature = (
 )
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -338,11 +338,8 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_one_span(validator=validator)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.trace_data_integrity
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

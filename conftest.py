@@ -20,7 +20,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
-from utils._context.component_version import ComponentVersion
+from utils._context.component_version import ComponentVersion, Version
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
@@ -46,6 +46,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--force-execute", "-F", action="append", default=[], help="Item to execute, even if they are skipped"
     )
     parser.addoption("--scenario-report", action="store_true", help="Produce a report on nodeids and their scenario")
+    parser.addoption("--declaration-report", action="store_true", help="Produce a report on nodeids and their scenario")
     parser.addoption(
         "--skip-empty-scenario",
         action="store_true",
@@ -270,15 +271,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-
-    manifest = Manifest(
-        context.library.name,
-        context.library.version,
-        context.weblog_variant,
-        context.agent_version,
-        context.dd_apm_inject_version,
-        context.k8s_cluster_agent_version,
-    )
+    manifest_components: dict[str, Version] = {
+        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
+    }
+    manifest = Manifest(manifest_components, context.weblog_variant)
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
@@ -289,12 +285,17 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     deselected = []
 
     all_declared_scenarios = {}
+    all_declarations = {}
 
     def iter_markers(self: pytest.Item, name: str | None = None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     must_pass_item_count = 0
     for item in items:
+        marker_names = [marker.name for marker in item.iter_markers()]
+        if "skip_if_xfail" in marker_names and "declaration" in marker_names:
+            item.add_marker(pytest.mark.skip())
+
         # if the item has explicit scenario markers, we use them
         # otherwise we use markers declared on its parents
         own_markers = [marker for marker in item.own_markers if marker.name == "scenario"]
@@ -305,6 +306,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             declared_scenarios = [marker.args[0] for marker in scenario_markers]
 
         all_declared_scenarios[item.nodeid] = declared_scenarios
+        all_declarations[item.nodeid] = [str(marker) for marker in item.own_markers if marker.name in ("xfail", "skip")]
 
         # If we are running scenario with the option sleep, we deselect all
         if session.config.option.sleep:
@@ -341,6 +343,10 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
+    if config.option.declaration_report:
+        with open(f"{context.scenario.host_log_folder}/declarations.json", "w", encoding="utf-8") as f:
+            json.dump(all_declarations, f, indent=2)
+            pytest.exit("Declaration collection mode, not running the tests")
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
@@ -369,6 +375,9 @@ def _item_is_skipped(item: pytest.Item):
 
 def pytest_collection_finish(session: pytest.Session) -> None:
     if session.config.option.collectonly:
+        return
+
+    if session.config.option.declaration_report:
         return
 
     if session.config.option.sleep:  # on this mode, we simply sleep, not running any test or setup
@@ -493,9 +502,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
 
+    if session.config.option.collectonly:
+        return
+
     context.scenario.pytest_sessionfinish(session, exitstatus)
 
-    if session.config.option.collectonly or session.config.option.replay:
+    if session.config.option.replay:
         return
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
