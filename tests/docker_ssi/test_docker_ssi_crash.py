@@ -53,6 +53,8 @@ class TestDockerSSICrash:
         )
 
         # Crash report should have been generated
-        crash_reports = interfaces.test_agent.get_crash_reports()
+        # Ignore crash pings
+        crash_reports = [r for r in interfaces.test_agent.get_crash_reports() if r.get("level") == "ERROR"]
+
         assert crash_reports, "No crash report found"
         assert len(crash_reports) == 1, "More than one crash report found"
