@@ -152,7 +152,7 @@ def _openai_fake_usage() -> dict:
     return {"prompt_tokens": 1, "completion_tokens": 2, "total_tokens": 3}
 
 
-@app.post("/v1/chat/completions", response_class=fastapi.responses.JSONResponse)
+@app.post("/chat/completions", response_class=fastapi.responses.JSONResponse)
 async def openai_chat_completions(request: fastapi.Request):
     """Mock for OpenAI Chat Completions API (POST /chat/completions)."""
     try:
@@ -179,7 +179,7 @@ async def openai_chat_completions(request: fastapi.Request):
     )
 
 
-@app.post("/v1/completions", response_class=fastapi.responses.JSONResponse)
+@app.post("/completions", response_class=fastapi.responses.JSONResponse)
 async def openai_completions(request: fastapi.Request):
     """Mock for OpenAI Completions API (POST /completions, legacy)."""
     try:
@@ -207,9 +207,11 @@ async def openai_completions(request: fastapi.Request):
     )
 
 
-@app.post("/v1/responses", response_class=fastapi.responses.JSONResponse)
+@app.post("/responses", response_class=fastapi.responses.JSONResponse)
 async def openai_responses(request: fastapi.Request):
-    """Mock for OpenAI Responses API (POST /responses)."""
+    """Mock for OpenAI Responses API (POST /responses).
+    Shape matches openai-php/client CreateResponse (created_at, status, output with output_text content).
+    """
     try:
         body = await request.json() if request.headers.get("content-length") else {}
     except Exception:
@@ -219,18 +221,34 @@ async def openai_responses(request: fastapi.Request):
         {
             "id": "resp-fake-internal",
             "object": "response",
-            "created": int(time.time()),
+            "created_at": int(time.time()),
+            "status": "completed",
             "model": model,
             "output": [
                 {
                     "type": "message",
+                    "id": "msg-fake-internal",
                     "role": "assistant",
-                    "content": [{"type": "text", "text": "Fake response from internal_server mock."}],
+                    "status": "completed",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": "Fake response from internal_server mock.",
+                            "annotations": [],
+                        }
+                    ],
                 }
             ],
+            "output_text": "Fake response from internal_server mock.",
+            "parallel_tool_calls": False,
+            "tool_choice": "none",
+            "tools": [],
+            "store": True,
             "usage": {
                 "input_tokens": 1,
+                "input_tokens_details": {"cached_tokens": 0},
                 "output_tokens": 2,
+                "output_tokens_details": {"reasoning_tokens": 0},
                 "total_tokens": 3,
             },
         },
