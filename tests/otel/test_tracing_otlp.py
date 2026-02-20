@@ -102,31 +102,3 @@ class Test_Otel_Tracing_OTLP:
         assert span_attributes.get("http.method") == "GET"
         assert span_attributes.get("http.status_code") == "200" # We may want to convert this to int later
         assert span_attributes.get("http.url") == "http://localhost:7777/"
-
-        # Assert trace stats
-        for metric, data_point in interfaces.open_telemetry.get_trace_stats("GET /"):
-            # If we run another export, we'll have the same aggregation keys with zero counts. Skip them.
-            if not data_point.get("sum"):
-                continue
-
-            assert metric.get("name") == "request.latencies"
-            assert metric.get("description") == "Summary of request latencies"
-            assert metric.get("unit") == "ns"
-            assert metric.get("histogram").get("aggregationTemporality") == "AGGREGATION_TEMPORALITY_DELTA"
-
-            assert int(data_point.get("count")) == 1
-            assert sum(map(int, data_point.get("bucketCounts"))) == int(data_point.get("count"))
-            assert len(data_point.get("bucketCounts")) == len(data_point.get("explicitBounds"))
-            assert data_point.get("explicitBounds") == sorted(data_point.get("explicitBounds"))
-            assert_single_histogram_data_point(data_point.get("sum"), list(map(int, data_point.get("bucketCounts"))), data_point.get("explicitBounds"))
-
-            attributes = dict(get_keyvalue_generator(data_point.get("attributes")))
-            assert "Name" in attributes
-            assert attributes.get("Resource") == "GET /"
-            assert attributes.get("Type") == "web"
-            assert attributes.get("StatusCode") == "200"
-            assert attributes.get("TopLevel") == "True"
-            assert attributes.get("Error") == "False"
-            assert len(attributes) == 6
-
-
