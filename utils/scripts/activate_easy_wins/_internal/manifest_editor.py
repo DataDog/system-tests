@@ -385,7 +385,11 @@ class ManifestEditor:
                             {"weblog_declaration": {"*": manifest.rules[rule]["excluded_component_version"]}}
                         ]
                     else:
-                        manifest[rule] = [ManifestEditor.serialize_condition(self.manifest.data[rule][0])]
+                        manifest[rule] = [
+                            ManifestEditor.serialize_condition(
+                                next(x for x in self.manifest.data[rule] if x["component"] == condition["component"])
+                            )
+                        ]
                 manifest[rule].append(condition_dict)
                 if isinstance(manifest[rule], CommentedSeq) and len(manifest[rule]) > 0:
                     last_index = len(manifest[rule]) - 1
