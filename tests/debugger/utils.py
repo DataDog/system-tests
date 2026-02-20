@@ -602,9 +602,9 @@ class BaseDebuggerTest:
                     for payload in content["tracerPayloads"]:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
-                                resource, resource_type = span.get("resource", ""), span.get("type")
+                                resource, resource_type = span.get("resource"), span.get("type")
 
-                                if resource.startswith("GET") and resource_type == "web":
+                                if resource == "GET /headers" and resource_type == "web":
                                     code_origin_type = span["meta"].get("_dd.code_origin.type", "")
 
                                     if code_origin_type == "entry":
