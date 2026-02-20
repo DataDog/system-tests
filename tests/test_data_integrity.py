@@ -7,6 +7,7 @@
 import string
 from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
 from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
+from utils.dd_types import DataDogTrace
 from utils.cgroup_info import get_container_id
 
 
@@ -238,7 +239,7 @@ class Test_Agent:
                     trace_ids_reported_by_agent.add(int(span["traceID"]))
                     break
 
-        def get_span_with_sampling_data(trace: list):
+        def get_span_with_sampling_data(trace: DataDogTrace):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.

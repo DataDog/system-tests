@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogSpan, DataDogTrace
 
 """Those are the constants used by the sampling algorithm in all the tracers
 
@@ -21,7 +22,7 @@ SAMPLING_KNUTH_FACTOR = 1111111111111111111
 MAX_UINT64 = 2**64 - 1
 
 
-def get_trace_request_path(root_span: dict) -> str | None:
+def get_trace_request_path(root_span: DataDogSpan) -> str | None:
     if root_span.get("type") != "web":
         return None
 
@@ -36,9 +37,9 @@ def get_trace_request_path(root_span: dict) -> str | None:
 def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
     path_to_logfile = {}
 
-    for data, span in interfaces.library.get_root_spans():
+    for trace, span in interfaces.library.get_root_spans():
         path = get_trace_request_path(span)
-        path_to_logfile[path] = data["log_filename"]
+        path_to_logfile[path] = trace.data["log_filename"]
 
     has_error = False
     for path in paths:
@@ -114,9 +115,9 @@ class Test_SamplingRates:
         # test sampling
         sampled_count = {True: 0, False: 0}
 
-        for data, root_span in interfaces.library.get_root_spans():
+        for trace, root_span in interfaces.library.get_root_spans():
             metrics = root_span["metrics"]
-            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {data['log_filename']}"
+            assert "_sampling_priority_v1" in metrics, f"_sampling_priority_v1 is missing in {trace.log_filename}"
             sampled_count[priority_should_be_kept(metrics["_sampling_priority_v1"])] += 1
 
         trace_count = sum(sampled_count.values())
@@ -149,11 +150,11 @@ class Test_SamplingDecisions:
     def test_sampling_decision(self):
         """Verify that traces are sampled following the sample rate"""
 
-        def validator(datum: dict, root_span: dict):
+        def validator(trace: DataDogTrace, root_span: DataDogSpan):
             sampling_priority = root_span["metrics"].get("_sampling_priority_v1")
             if sampling_priority is None:
                 raise ValueError(
-                    f"Message: {datum['log_filename']}:"
+                    f"Message: {trace.log_filename}:"
                     "Metric _sampling_priority_v1 should be set on traces that with sampling decision"
                 )
 

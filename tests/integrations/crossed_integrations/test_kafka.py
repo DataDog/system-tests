@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import json
 
 from utils import interfaces, scenarios, weblog, features, logger
 from utils.buddies import java_buddy, _Weblog as Weblog
+from utils.dd_types import DataDogSpan
 
 
 class _BaseKafka:
@@ -15,7 +14,9 @@ class _BaseKafka:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface: interfaces.LibraryInterfaceValidator, span_kind: str, topic: str) -> dict | None:
+    def get_span(
+        cls, interface: interfaces.LibraryInterfaceValidator, span_kind: str, topic: str
+    ) -> DataDogSpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -36,7 +37,7 @@ class _BaseKafka:
         return None
 
     @staticmethod
-    def get_topic(span: dict) -> str | None:
+    def get_topic(span: DataDogSpan) -> str | None:
         """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("kafka.topic")  # this is in python
         if topic is None:

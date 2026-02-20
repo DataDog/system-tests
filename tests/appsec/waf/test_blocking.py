@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from utils import interfaces, bug, scenarios, weblog, rfc, features
-from utils._context.core import context
+from utils import interfaces, bug, scenarios, weblog, rfc, features, context
+from utils.dd_types import DataDogSpan
 from .test_blocking_security_response_id import (
     is_valid_uuid4,
     extract_security_response_id_from_json,
@@ -123,7 +123,7 @@ class Test_Blocking:
             self.r_abt, pattern="Arachni/v", address="server.request.headers.no_cookies"
         )
 
-        def validate_appsec_blocked(span: dict):
+        def validate_appsec_blocked(span: DataDogSpan):
             if span.get("type") not in ("web", "serverless"):
                 return None
 

@@ -3,7 +3,7 @@ import time
 from typing import Any, Literal
 
 from utils import weblog, scenarios, features, interfaces, logger
-
+from utils.dd_types import DataDogSpan
 
 DISTRIBUTED_TRACE_ID = 1
 DISTRIBUTED_PARENT_ID = 2
@@ -115,7 +115,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error(_BaseTestCase):
         )
 
 
-def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> dict | None:
+def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> DataDogSpan | None:
     logger.debug(f"Trying to find API Gateway span for interface: {interface}")
 
     for data, trace in interface.get_traces():
@@ -138,7 +138,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
 
 def assert_api_gateway_span(
     test_case: _BaseTestCase,
-    span: dict,
+    span: DataDogSpan,
     path: str,
     status_code: str,
     *,

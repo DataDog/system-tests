@@ -38,7 +38,7 @@ class V1SpanKeys(IntEnum):
     duration = 7
     error = 8
     attributes = 9
-    type_value = 10
+    type = 10
     span_links = 11
     span_events = 12
     env = 13
@@ -77,7 +77,7 @@ _span_key_strings = [
     "service",
     "name_value",
     "resource",
-    "type_value",
+    "type",
     "env",
     "version",
     "component",
@@ -167,6 +167,10 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             if isinstance(v, int):
                 v = strings[v]
         attrs_dict[k] = v
+
+    if "appsec" in attrs_dict:
+        attrs_dict["appsec"] = msgpack.unpackb(attrs_dict["appsec"], unicode_errors="replace", strict_map_key=False)
+
     return attrs_dict
 
 

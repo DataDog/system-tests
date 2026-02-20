@@ -8,6 +8,7 @@ import re
 
 from utils import weblog, interfaces, context, scenarios, features, irrelevant, bug, logger
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogSpan
 
 
 def remove_traceparent(s: str) -> str:
@@ -54,7 +55,7 @@ class Test_Dbm:
                     ]
                 )
 
-    def _get_db_span(self, response: HttpResponse) -> dict:
+    def _get_db_span(self, response: HttpResponse) -> DataDogSpan:
         assert response.status_code == 200, f"Request: {context.scenario.name} wasn't successful."
 
         spans = []
@@ -83,11 +84,11 @@ class Test_Dbm:
         for request in self.requests:
             self._assert_span_is_untagged(self._get_db_span(request))
 
-    def _assert_span_is_untagged(self, span: dict) -> None:
+    def _assert_span_is_untagged(self, span: DataDogSpan) -> None:
         meta = span.get("meta", {})
         assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
 
-    def _assert_span_is_tagged(self, span: dict) -> None:
+    def _assert_span_is_tagged(self, span: DataDogSpan) -> None:
         meta = span.get("meta", {})
         assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
         tag_value = meta.get(self.META_TAG)

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, rfc, features
-
+from utils.dd_types import DataDogSpan
 
 def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
     if tag not in span["meta"]:
@@ -97,7 +97,7 @@ class Test_Propagate:
     def test_identify_tags_incoming(self):
         """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
 
-        def usr_id_not_present(span: dict):
+        def usr_id_not_present(span: DataDogSpan):
             if "usr.id" in span["meta"]:
                 raise Exception("usr.id must not be present in this span")
             return True
