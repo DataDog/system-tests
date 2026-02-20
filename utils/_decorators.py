@@ -103,6 +103,7 @@ def _expected_to_fail(
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "java_lambda",
             "rust",
         ):
             raise ValueError(f"Unknown library: {library}")

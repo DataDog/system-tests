@@ -20,9 +20,9 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
     - weblog_declaration:
         "*": missing_feature
-        alb: irrelevant (application-load-balancer event type does not support path params)
-        alb-multi: irrelevant (application-load-balancer event type does not support path params)
-        function-url: irrelevant (function-url event type does not support path params)
+        java-alb: irrelevant (application-load-balancer event type does not support path params)
+        java-alb-multi: irrelevant (application-load-balancer event type does not support path params)
+        java-function-url: irrelevant (function-url event type does not support path params)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: missing_feature
@@ -37,8 +37,8 @@ manifest:
   tests/appsec/test_inferred_spans.py::Test_Lambda_Inferred_Span_Tags:
     - weblog_declaration:
         "*": irrelevant (only api gateway inferred spans are specified for now)
-        apigw-http: missing_feature
-        apigw-rest: missing_feature
+        java-apigw-http: missing_feature
+        java-apigw-rest: missing_feature
   tests/appsec/test_reports.py::Test_AttackTimestamp: v1.59.0-SNAPSHOT
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.59.0-SNAPSHOT
   tests/appsec/test_reports.py::Test_Info: v1.59.0-SNAPSHOT

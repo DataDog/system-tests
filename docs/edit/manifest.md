@@ -27,6 +27,7 @@ Each component has its own manifest file in the `manifests/` directory.
 - `manifests/dotnet.yml` - .NET library
 - `manifests/golang.yml` - Go library
 - `manifests/java.yml` - Java library
+- `manifests/java_lambda.yml` - Java AWS Lambda library
 - `manifests/java_otel.yml` - Java OpenTelemetry
 - `manifests/nodejs.yml` - Node.js library
 - `manifests/nodejs_otel.yml` - Node.js OpenTelemetry

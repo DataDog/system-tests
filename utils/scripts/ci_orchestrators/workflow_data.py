@@ -496,7 +496,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     # this function will remove some couple scenarios/weblog that are not supported
 
     # Only Allow Lambda scenarios for the lambda libraries
-    is_lambda_library = library in ("python_lambda",)
+    is_lambda_library = library in ("python_lambda","java_lambda",)
     is_lambda_scenario = scenario in (
         "APPSEC_LAMBDA_DEFAULT",
         "APPSEC_LAMBDA_BLOCKING",
