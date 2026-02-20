@@ -15,6 +15,7 @@ from utils import (
 )
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogSpan
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
@@ -40,7 +41,7 @@ class Test_RetainTraces:
         _sampling_priority_v1 tags
         """
 
-        def validate_appsec_event_span_tags(span: dict):
+        def validate_appsec_event_span_tags(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -305,11 +306,11 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     def test_header_collection(self):
-        def assert_header_in_span_meta(span: dict, header: str):
+        def assert_header_in_span_meta(span: DataDogSpan, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_response_headers(span: dict):
+        def validate_response_headers(span: DataDogSpan):
             for header in ["content-type", "content-length", "content-language"]:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
@@ -374,11 +375,11 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assert_header_in_span_meta(span: dict, header: str):
+        def assert_header_in_span_meta(span: DataDogSpan, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_request_headers(span: dict):
+        def validate_request_headers(span: DataDogSpan):
             for header in [
                 "x-amzn-trace-id",
                 "cloudfront-viewer-ja3-fingerprint",

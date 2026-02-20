@@ -298,7 +298,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_one_appsec(
         self,
         request: HttpResponse | None = None,
-        validator: Callable[[dict, dict], bool] | None = None,
+        validator: Callable[[DataDogSpan, dict], bool] | None = None,
         *,
         legacy_validator: Callable | None = None,
         full_trace: bool = False,
@@ -508,7 +508,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             try:
                 validator(span)
             except Exception as e:
-                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span.raw_data, indent=2)}")
                 raise
 
         if not allow_no_data and data_is_missing:
@@ -629,7 +629,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert found, f"Nothing has been found for targets_version {targets_version}"
 
     def assert_rasp_attack(self, request: HttpResponse, rule: str, parameters: dict | None = None):
-        def validator(_: dict, appsec_data: dict):
+        def validator(_: DataDogSpan, appsec_data: dict):
             assert "triggers" in appsec_data, "'triggers' not found in '_dd.appsec.json'"
 
             triggers = appsec_data["triggers"]

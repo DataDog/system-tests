@@ -5,7 +5,8 @@
 from utils import weblog, interfaces, rfc, features
 from utils.dd_types import DataDogSpan
 
-def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
+
+def assert_tag_in_span_meta(span: DataDogSpan, tag: str, expected: str):
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -15,7 +16,7 @@ def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
 
 
 def validate_identify_tags(tags: dict[str, str] | list[str]):
-    def inner_validate(span: dict):
+    def inner_validate(span: DataDogSpan):
         for tag in tags:
             if isinstance(tags, dict):
                 assert_tag_in_span_meta(span, tag, tags[tag])

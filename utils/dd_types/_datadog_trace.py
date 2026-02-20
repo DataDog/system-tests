@@ -56,11 +56,30 @@ class DataDogTrace:
         return self.raw_trace
 
     @property
-    def trace_id(self) -> str:
+    def trace_id(self) -> str | int:
         if self.format == TraceLibraryPayloadFormat.v10:
             return self.raw_trace_v_1_0["trace_id"]
 
         return self.raw_trace_v_0_4[0]["trace_id"]
+
+    @property
+    def trace_id_as_int(self) -> int:
+        if self.format == TraceLibraryPayloadFormat.v10:
+            return int(self.raw_trace_v_1_0["trace_id"], 16)
+
+        return self.raw_trace_v_0_4[0]["trace_id"]
+
+    def trace_id_equals(self, other: int | str) -> bool:
+        if isinstance(other, str):
+            assert other.startswith("0x")
+            other = int(other, 16)
+
+        if self.format == TraceLibraryPayloadFormat.v10:
+            trace_id = int(self.raw_trace_v_1_0["trace_id"], 16) & 0xFFFFFFFFFFFFFFFF
+        else:
+            trace_id = self.raw_trace_v_0_4[0]["trace_id"]
+
+        return trace_id == other
 
     @property
     def log_filename(self) -> str:

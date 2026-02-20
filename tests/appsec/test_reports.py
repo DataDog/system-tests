@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, interfaces, scenarios, rfc, features
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogSpan
 
 
 @features.security_events_metadata
@@ -22,7 +23,7 @@ class Test_StatusCode:
 
             return True
 
-        def check_http_code(span: dict, appsec_data: dict):  # noqa: ARG001
+        def check_http_code(span: DataDogSpan, appsec_data: dict):  # noqa: ARG001
             status_code = span["meta"]["http.status_code"]
             assert status_code == "404", f"404 should have been reported, not {status_code}"
 
@@ -43,7 +44,7 @@ class Test_Info:
     def test_service(self):
         """Appsec reports the service information"""
 
-        def _check_service_legacy(event: dict):
+        def _check_service_legacy(event: DataDogSpan):
             name = event["context"]["service"]["name"]
             environment = event["context"]["service"]["environment"]
             assert name == "weblog", f"weblog should have been reported, not {name}"
@@ -51,7 +52,7 @@ class Test_Info:
 
             return True
 
-        def _check_service(span: dict, appsec_data: dict):  # noqa: ARG001
+        def _check_service(span: DataDogSpan, appsec_data: dict):  # noqa: ARG001
             name = span.get("service")
             environment = span.get("meta", {}).get("env")
             assert name == "weblog", f"weblog should have been reported, not {name}"

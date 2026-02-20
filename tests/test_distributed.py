@@ -6,6 +6,7 @@ import json
 from utils import weblog, interfaces, scenarios, features, bug, context, logger
 from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.dd_types import DataDogSpan, TraceLibraryPayloadFormat
 
 
 @scenarios.trace_propagation_style_w3c
@@ -59,9 +60,9 @@ class Test_Span_Links_From_Conflicting_Contexts:
     def test_span_links_from_conflicting_contexts(self):
         trace = [
             span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
+            for _, trace, span in interfaces.library.get_spans(self.req, full_trace=True)
             if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
+            and trace.trace_id_equals(2)
             and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
 
@@ -212,7 +213,10 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         assert link1.get("tracestate") is None
 
 
-def _retrieve_span_links(span: dict):
+def _retrieve_span_links(span: DataDogSpan):
+    if span.trace.format == TraceLibraryPayloadFormat.v10:
+        return span.raw_data["attributes"].get("_dd.span_links")
+
     if span.get("span_links") is not None:
         return span["span_links"]
 

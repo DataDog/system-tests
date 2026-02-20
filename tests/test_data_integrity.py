@@ -7,7 +7,7 @@
 import string
 from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
 from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
-from utils.dd_types import DataDogTrace
+from utils.dd_types import DataDogTrace, TraceLibraryPayloadFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -211,11 +211,13 @@ class Test_LibraryHeaders:
 
         for data, trace in interfaces.library.get_traces():
             assert data["response"]["status_code"] == 200
-            trace_id = trace[0]["trace_id"]
+            trace_id = trace.trace_id_as_int
             assert isinstance(trace_id, int)
             assert trace_id > 0
-            for span in trace:
-                assert span["trace_id"] == trace_id
+
+            if trace.format in (TraceLibraryPayloadFormat.v04, TraceLibraryPayloadFormat.v05):
+                for span in trace:
+                    assert span.raw_data["trace_id"] == trace_id
 
 
 @features.agent_data_integrity
@@ -232,7 +234,7 @@ class Test_Agent:
                 # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
                 # We need to convert it to an integer taking only the lower 64 bits
                 # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
-                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+                trace_id = int(chunk["traceID"], 16)  # & 0xFFFFFFFFFFFFFFFF
                 trace_ids_reported_by_agent.add(trace_id)
             elif chunk_format == TraceAgentPayloadFormat.legacy:
                 for span in chunk["spans"]:
@@ -264,12 +266,12 @@ class Test_Agent:
             metrics = span["metrics"]
             sampling_priority = metrics.get("_sampling_priority_v1")
             if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
-                trace_ids_reported_by_tracer.add(span["trace_id"])
-                if span["trace_id"] not in trace_ids_reported_by_agent:
-                    logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
+                trace_ids_reported_by_tracer.add(trace.trace_id_as_int)
+                if trace.trace_id_as_int not in trace_ids_reported_by_agent:
+                    logger.error(f"Trace {trace.trace_id_as_int} has not been reported ({data['log_filename']})")
                     all_traces_are_reported = False
                 else:
-                    logger.debug(f"Trace {span['trace_id']} has been reported ({data['log_filename']})")
+                    logger.debug(f"Trace {trace.trace_id_as_int} has been reported ({data['log_filename']})")
 
         if not all_traces_are_reported:
             logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")

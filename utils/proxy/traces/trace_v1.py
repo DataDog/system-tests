@@ -1,5 +1,6 @@
 import base64
 from enum import IntEnum
+import json
 
 import msgpack
 
@@ -28,23 +29,24 @@ class V1ChunkKeys(IntEnum):
     sampling_mechanism = 7
 
 
-class V1SpanKeys(IntEnum):
-    service = 1
-    name_value = 2
-    resource = 3
-    span_id = 4
-    parent_id = 5
-    start = 6
-    duration = 7
-    error = 8
-    attributes = 9
-    type = 10
-    span_links = 11
-    span_events = 12
-    env = 13
-    version = 14
-    component = 15
-    span_kind = 16
+V1SpanKeys = {
+    1: "service",
+    2: "name",
+    3: "resource",
+    4: "span_id",
+    5: "parent_id",
+    6: "start",
+    7: "duration",
+    8: "error",
+    9: "attributes",
+    10: "type",
+    11: "span_links",
+    12: "span_events",
+    13: "env",
+    14: "version",
+    15: "component",
+    16: "span_kind",
+}
 
 
 class V1SpanLinkKeys(IntEnum):
@@ -75,7 +77,7 @@ class V1AnyValueKeys(IntEnum):
 _chunk_key_strings = ["origin"]
 _span_key_strings = [
     "service",
-    "name_value",
+    "name",
     "resource",
     "type",
     "env",
@@ -171,6 +173,9 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     if "appsec" in attrs_dict:
         attrs_dict["appsec"] = msgpack.unpackb(attrs_dict["appsec"], unicode_errors="replace", strict_map_key=False)
 
+    if "_dd.span_links" in attrs_dict:
+        attrs_dict["_dd.span_links"] = json.loads(attrs_dict["_dd.span_links"])
+
     return attrs_dict
 
 
@@ -224,18 +229,18 @@ def _uncompress_spans_values(spans: list, strings: list[str]) -> list:
     return uncompressed_spans
 
 
-def _uncompress_spans(spans: list, strings: list[str]) -> list:
+def _uncompress_spans(spans: list[dict], strings: list[str]) -> list:
     uncompressed_spans = []
     for span in spans:
         uncompressed_span = {}
         for k, v in span.items():
             value = v
             try:
-                # Check if k is a valid enum value by trying to create the enum
-                enum_key = V1SpanKeys(k)
-                if enum_key.name in _span_key_strings and isinstance(value, int):
+                # Get the key name from its numerical id
+                key_name = V1SpanKeys[k]
+                if key_name in _span_key_strings and isinstance(value, int):
                     value = strings[v]
-                uncompressed_span[enum_key.name] = value
+                uncompressed_span[key_name] = value
             except ValueError as e:
                 raise ValueError(f"Unknown V1SpanKey: {k}") from e
         uncompressed_spans.append(uncompressed_span)

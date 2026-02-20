@@ -6,7 +6,6 @@
 from utils import weblog, context, interfaces, missing_feature, rfc, scenarios, features
 from utils.tools import nested_lookup
 
-
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
 
