@@ -38,7 +38,7 @@ readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
 readonly DEFAULT_python_lambda=apigw-rest
-readonly DEFAULT_java_lambda=apigw-rest
+readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"

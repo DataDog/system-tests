@@ -32,6 +32,7 @@ LIBRARIES = {
     "dotnet",
     "golang",
     "java",
+    "java_lambda",
     "nodejs",
     "otel_collector",
     "php",
@@ -43,7 +44,7 @@ LIBRARIES = {
     "haproxy",
 }
 
-LAMBDA_LIBRARIES = {"python_lambda"}
+LAMBDA_LIBRARIES = {"python_lambda", "java_lambda"}
 OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
 
 ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
