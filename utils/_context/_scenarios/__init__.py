@@ -701,7 +701,8 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "-1",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "-1",  # Java, Ruby
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "-1",  # Node
         },
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
@@ -741,7 +742,8 @@ class _Scenarios:
         "DEBUGGER_CIRCUIT_BREAKER",
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "0",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "0",  # Java, Ruby
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "0",  # Node
         },
         doc="Test scenario for checking circuit breaker disables probe after first execution",
     )
