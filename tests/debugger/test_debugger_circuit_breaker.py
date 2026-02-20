@@ -2,18 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import time
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, context, logger
+from utils import scenarios, features, missing_feature, context, logger, interfaces
 
 
-@features.debugger_circuit_breaker
-@scenarios.debugger_circuit_breaker
-@missing_feature(context.library != "ruby", reason="Circuit breaker test only for Ruby for now", force_skip=True)
-class Test_Debugger_Circuit_Breaker(debugger.BaseDebuggerTest):
-    """Test that circuit breaker disables probe after consuming too much CPU time"""
+class BaseDebuggerCircuitBreakerTest(debugger.BaseDebuggerTest):
+    """Base class for circuit breaker tests"""
 
-    def setup_circuit_breaker_triggers(self):
+    def _setup(self):
         """Setup test where circuit breaker should trip after first execution"""
         self.initialize_weblog_remote_config()
 
@@ -51,8 +49,10 @@ class Test_Debugger_Circuit_Breaker(debugger.BaseDebuggerTest):
         if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=10):
             logger.warning("Probe did not reach EMITTING status after first call")
 
-        # Wait a bit for circuit breaker to trigger
-        import time
+        # Wait for circuit breaker to trigger and diagnostic to be sent
+        # Cannot use wait_for_all_probes here because the status change is immediate
+        # after the probe executes, and there's no guarantee the diagnostic has been
+        # sent to the agent yet. Give it time to process and send the diagnostic.
         time.sleep(2)
 
         # Check if probe transitioned to ERROR status (circuit breaker tripped)
@@ -64,11 +64,14 @@ class Test_Debugger_Circuit_Breaker(debugger.BaseDebuggerTest):
         logger.info("Calling endpoint second time - should NOT produce snapshot")
         self.send_weblog_request("/debugger/log")
 
-        # Wait a bit to ensure no second snapshot arrives
+        # Wait to ensure no second snapshot arrives
+        # This sleep is necessary to give the system time to potentially send a second
+        # snapshot (if the circuit breaker failed to disable the probe). We want to
+        # ensure that the test would fail if a second snapshot was sent.
         time.sleep(2)
 
-    def test_circuit_breaker_triggers(self):
-        """Test circuit breaker disables probe after first execution"""
+    def _assert(self):
+        """Assert circuit breaker disabled probe after first execution"""
         self.collect()
 
         # Assert setup was ok
@@ -94,9 +97,6 @@ class Test_Debugger_Circuit_Breaker(debugger.BaseDebuggerTest):
 
     def _assert_exception_in_diagnostics(self, probe_id: str):
         """Assert that the diagnostic payload contains exception field with circuit breaker message"""
-        import json
-        from utils import interfaces
-
         # Get raw diagnostic payloads
         debugger_requests = list(interfaces.agent.get_data("/api/v2/debugger"))
 
@@ -138,3 +138,16 @@ class Test_Debugger_Circuit_Breaker(debugger.BaseDebuggerTest):
 
         assert found_exception, \
             f"Did not find exception field in ERROR diagnostic for probe {probe_id}"
+
+
+@features.debugger_circuit_breaker
+@scenarios.debugger_circuit_breaker
+@missing_feature(context.library != "ruby", reason="Circuit breaker test only for Ruby for now", force_skip=True)
+class Test_Debugger_Circuit_Breaker(BaseDebuggerCircuitBreakerTest):
+    """Test that circuit breaker disables probe after consuming too much CPU time"""
+
+    def setup_circuit_breaker(self):
+        self._setup()
+
+    def test_circuit_breaker(self):
+        self._assert()
