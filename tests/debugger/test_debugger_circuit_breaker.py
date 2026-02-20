@@ -45,17 +45,11 @@ class BaseDebuggerCircuitBreakerTest(debugger.BaseDebuggerTest):
         logger.info("Calling endpoint first time - should produce snapshot")
         self.send_weblog_request("/debugger/log")
 
-        # Wait for probe to emit and then get disabled
+        # Wait for probe to emit
         if not self.wait_for_all_probes(statuses=["EMITTING"], timeout=10):
             logger.warning("Probe did not reach EMITTING status after first call")
 
-        # Wait for circuit breaker to trigger and diagnostic to be sent
-        # Cannot use wait_for_all_probes here because the status change is immediate
-        # after the probe executes, and there's no guarantee the diagnostic has been
-        # sent to the agent yet. Give it time to process and send the diagnostic.
-        time.sleep(2)
-
-        # Check if probe transitioned to ERROR status (circuit breaker tripped)
+        # Wait for probe to transition to ERROR status (circuit breaker should trip immediately)
         if not self.wait_for_all_probes(statuses=["ERROR"], timeout=10):
             self.setup_failures.append("Probe did not reach ERROR status (circuit breaker did not trip)")
             return
