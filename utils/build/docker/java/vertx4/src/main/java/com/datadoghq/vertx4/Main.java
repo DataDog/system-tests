@@ -71,13 +71,16 @@ public class Main {
         Router router = Router.router(vertx);
 
         router.get("/")
-                .produces("text/plain")
                 .handler(ctx -> {
                     var tracer = GlobalTracer.get();
                     Span span = tracer.buildSpan("test-span").start();
                     span.setTag("test-tag", "my value");
                     try {
-                        ctx.response().setStatusCode(200).end("Hello world!\n");
+                        ctx.response()
+                                .setStatusCode(200)
+                                .putHeader("Content-Type", "text/plain")
+                                .putHeader("Content-Length", "13")
+                                .end("Hello world!\n");
                     } finally {
                         span.finish();
                     }
