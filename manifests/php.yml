@@ -477,6 +477,7 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
