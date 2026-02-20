@@ -50,7 +50,7 @@ def test_deserialize_http_message():
                 "spans": [
                     {
                         "service": "my-service",
-                        "name_value": "span-name",
+                        "name": "span-name",
                         "resource": "hello",
                         "span_id": 1234,
                         "parent_id": 5555,

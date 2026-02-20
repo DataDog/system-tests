@@ -2,7 +2,7 @@ from utils import weblog, interfaces, scenarios, features
 from utils.dd_constants import SamplingPriority, SamplingMechanism, SpanKind
 from utils.dd_types import TraceLibraryPayloadFormat
 
-
+@features.efficient_trace_payload
 class Test_V1PayloadByDefault:
     """Tracers use by default v1 trace format"""
 
