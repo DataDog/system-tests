@@ -768,6 +768,24 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger],
     )
 
+    debugger_inproduct_enablement_di_env_true = DebuggerScenario(
+        "DEBUGGER_INPRODUCT_ENABLEMENT_DI_ENV_TRUE",
+        doc="Test scenario for DI RC precedence when DD_DYNAMIC_INSTRUMENTATION_ENABLED=true.",
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
+        },
+    )
+
+    debugger_inproduct_enablement_di_env_false = DebuggerScenario(
+        "DEBUGGER_INPRODUCT_ENABLEMENT_DI_ENV_FALSE",
+        doc="Test scenario for DI RC precedence when DD_DYNAMIC_INSTRUMENTATION_ENABLED=false.",
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
+        },
+    )
+
     debugger_telemetry = EndToEndScenario(
         "DEBUGGER_TELEMETRY",
         rc_api_enabled=True,
