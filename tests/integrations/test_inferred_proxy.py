@@ -1,6 +1,6 @@
 import json
 import time
-from typing import Any, Literal
+from typing import Literal
 
 from utils import weblog, scenarios, features, interfaces, logger
 from utils.dd_types import DataDogSpan
@@ -216,7 +216,7 @@ def mandatory_tags_validator_factory(
     else:
         expected_component = "aws-httpapi"
 
-    def validate_api_gateway_span(span: dict[str, Any]) -> bool:
+    def validate_api_gateway_span(span: DataDogSpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 
@@ -300,7 +300,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
     else:
         expected_arn = "arn:aws:apigateway:eu-west-3::/apis/a1b2c3d4e5f"
 
-    def validate_api_gateway_span(span: dict[str, Any]) -> bool:
+    def validate_api_gateway_span(span: DataDogSpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 

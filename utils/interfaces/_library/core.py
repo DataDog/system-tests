@@ -324,7 +324,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def validate_all_appsec(
         self,
-        validator: Callable[[dict, dict], None],
+        validator: Callable[[DataDogSpan, dict], None],
         request: HttpResponse | None = None,
         *,
         allow_no_data: bool = False,

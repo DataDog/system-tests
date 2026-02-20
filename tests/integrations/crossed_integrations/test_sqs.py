@@ -1,8 +1,8 @@
-from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, context, irrelevant, logger
+from utils.dd_types import DataDogSpan
 
 
 class _BaseSQS:
@@ -17,7 +17,7 @@ class _BaseSQS:
     @classmethod
     def get_span(
         cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], queue: str, operation: str
-    ) -> dict | None:
+    ) -> DataDogSpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -25,7 +25,6 @@ class _BaseSQS:
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
-                assert isinstance(span, dict), f"Span is not a dict: {data['log_filename']}"
                 if not span.get("meta"):
                     continue
 
@@ -68,7 +67,7 @@ class _BaseSQS:
         return None
 
     @staticmethod
-    def get_queue(span: dict) -> str | None:
+    def get_queue(span: DataDogSpan) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 

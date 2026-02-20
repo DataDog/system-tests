@@ -137,7 +137,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             )
 
     def fix_priority_lambda(
-        self, span: dict, default_checks: dict[str, str | Callable | None]
+        self, span: DataDogSpan, default_checks: dict[str, str | Callable | None]
     ) -> dict[str, str | Callable | None]:
         if "_dd.appsec.s.req.headers" in span["meta"]:
             return {
