@@ -18,6 +18,15 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
   tests/apm_tracing_e2e/: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/: irrelevant (ASM is not implemented in C++)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_chat_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_responses_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_chat_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: irrelevant (language not implementing this feature)
   tests/debugger/: irrelevant
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
