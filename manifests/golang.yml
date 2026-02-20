@@ -15,10 +15,7 @@ manifest:
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan:
-    - weblog_declaration:
-        "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
-        chi: v0.1  # real version not known
+  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.0.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.0.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: missing_feature
@@ -29,6 +26,7 @@ manifest:
         "*": v1.60.0
         net-http: irrelevant (net-http doesn't handle path params)
         net-http-orchestrion: irrelevant (net-http doesn't handle path params)
+  tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: missing_feature
   tests/appsec/api_security/test_apisecurity_telemetry.py: v2.0.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0
@@ -1394,9 +1392,11 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry: v1.49.0
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
+  tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_v1_payloads.py:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
