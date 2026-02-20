@@ -547,6 +547,7 @@ class TestOpenAiPromptTracking(BaseOpenaiTest):
                     ),
                 }
             ],
+            prompt_multimodal=True,
         )
 
     def test_responses_create_with_prompt_mixed_inputs_url_preserved(
@@ -627,6 +628,7 @@ class TestOpenAiPromptTracking(BaseOpenaiTest):
                     ),
                 }
             ],
+            prompt_multimodal=True,
         )
 
 

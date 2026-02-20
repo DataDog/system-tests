@@ -188,6 +188,9 @@ def assert_prompt_tracking(
     variables: dict,
     expected_chat_template: list[dict],
     expected_messages: list[dict],
+    *,
+    prompt_tracking_instrumentation_method: str = "auto",
+    prompt_multimodal: bool = False,
 ) -> None:
     """Helper to assert prompt tracking metadata and template extraction.
 
@@ -195,6 +198,8 @@ def assert_prompt_tracking(
     - Prompt metadata (id, version, variables)
     - chat_template reconstruction with {{variable}} placeholders
     - Rendered messages (with variables substituted)
+    - prompt_tracking_instrumentation_method tag (default: auto)
+    - prompt_multimodal tag (when True)
     """
     assert "prompt" in span_event["meta"]["input"], "Expected 'prompt' in span_event['meta']['input']"
 
@@ -213,3 +218,9 @@ def assert_prompt_tracking(
     assert span_event["meta"]["input"]["messages"] == expected_messages, (
         f"Expected messages {expected_messages}, got {span_event['meta']['input']['messages']}"
     )
+
+    assert f"prompt_tracking_instrumentation_method:{prompt_tracking_instrumentation_method}" in span_event["tags"], (
+        f"Expected 'prompt_tracking_instrumentation_method:{prompt_tracking_instrumentation_method}' in tags"
+    )
+    if prompt_multimodal:
+        assert "prompt_multimodal:true" in span_event["tags"], "Expected 'prompt_multimodal:true' in tags"
