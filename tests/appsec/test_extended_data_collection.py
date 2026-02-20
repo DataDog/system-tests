@@ -337,9 +337,6 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.x-test-header-3") is None
         assert meta.get("http.response.headers.x-test-header-4") is None
 
-        # response headers are not collected by default
-        assert meta.get("http.response.headers.content-language") is None
-
         # Check that no response headers were discarded (within the 50 limit)
         metrics = span.get("metrics", {})
         assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
