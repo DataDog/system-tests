@@ -4,7 +4,8 @@
     "require": {
         "weblog/acme": "*",
         "monolog/monolog": "*",
-        "openai-php/client": "*"
+        "openai-php/client": "*",
+        "guzzlehttp/guzzle": "*"
     },
     "repositories": [
         {

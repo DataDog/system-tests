@@ -10,8 +10,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use OpenAI\OpenAI;
-
 header('Content-Type: application/json');
 
 $model = $_GET['model'] ?? null;
@@ -23,11 +21,17 @@ if ($model === null || $model === '' || $operation === null || $operation === ''
     exit;
 }
 
-$baseUri = getenv('OPENAI_BASE_URL') ?: 'http://internal_server:8089/v1';
-$client = OpenAI::factory()
-    ->withApiKey('sk-fake')
-    ->withBaseUri($baseUri)
-    ->make();
+try {
+    $baseUri = (string) (getenv('OPENAI_BASE_URL') ?: 'http://internal_server:8089/v1');
+    $client = \OpenAI::factory()
+        ->withApiKey('sk-fake')
+        ->withBaseUri($baseUri)
+        ->make();
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'OpenAI client init failed: ' . $e->getMessage()]);
+    exit;
+}
 
 $params = ['model' => $model];
 
@@ -42,26 +46,6 @@ try {
             $response = $client->chat()->create($params);
             break;
         case 'openai-latest-completions.create':
-            $params['prompt'] = 'Hello';
-            $response = $client->completions()->create($params);
-            break;
-        case 'openai-legacy-chat.completions.create':
-            $params['messages'] = [['role' => 'user', 'content' => 'Hello']];
-            $response = $client->chat()->create($params);
-            break;
-        case 'openai-legacy-completions.create':
-            $params['prompt'] = 'Hello';
-            $response = $client->completions()->create($params);
-            break;
-        case 'openai-async-responses.create':
-            $params['input'] = 'Hello';
-            $response = $client->responses()->create($params);
-            break;
-        case 'openai-async-chat.completions.create':
-            $params['messages'] = [['role' => 'user', 'content' => 'Hello']];
-            $response = $client->chat()->create($params);
-            break;
-        case 'openai-async-completions.create':
             $params['prompt'] = 'Hello';
             $response = $client->completions()->create($params);
             break;
