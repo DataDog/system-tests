@@ -1998,6 +1998,7 @@ manifest:
         "*": incomplete_test_app (endpoint not implemented)
         fastify: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: missing_feature (OTel baggage not unified with Datadog baggage)
+  tests/test_baggage.py::Test_Baggage_Headers_Api_Combined: missing_feature
   tests/test_baggage.py::Test_Baggage_Headers_Basic: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed: *ref_5_56_0
   tests/test_baggage.py::Test_Baggage_Headers_Malformed2: *ref_5_56_0

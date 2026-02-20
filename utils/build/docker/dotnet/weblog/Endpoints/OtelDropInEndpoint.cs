@@ -33,6 +33,32 @@ namespace weblog
             }
         }
 
+        private class CombinedBaggageApiEndpointParameters
+        {
+            public string? Url { get; private init; }
+            public string? BaggageToRemoveDatadog { get; private init; }
+            public string? BaggageToRemoveOTel { get; private init; }
+            public string? BaggageToSetDatadog { get; private init; }
+            public string? BaggageToSetOTel { get; private init; }
+            public static CombinedBaggageApiEndpointParameters Bind(HttpContext context)
+            {
+                string? url = context.Request.Query["url"];
+                string? baggageToRemoveDatadog = context.Request.Query["baggage_remove_datadog"];
+                string? baggageToRemoveOTel = context.Request.Query["baggage_remove_otel"];
+                string? baggageToSetDatadog = context.Request.Query["baggage_set_datadog"];
+                string? baggageToSetOTel = context.Request.Query["baggage_set_otel"];
+                var result = new CombinedBaggageApiEndpointParameters
+                {
+                    Url = url,
+                    BaggageToRemoveDatadog = baggageToRemoveDatadog,
+                    BaggageToRemoveOTel = baggageToRemoveOTel,
+                    BaggageToSetDatadog = baggageToSetDatadog,
+                    BaggageToSetOTel = baggageToSetOTel,
+                };
+                return result;
+            }
+        }
+
         private class BaggageApiEndpointResponse
         {
             [JsonPropertyName("url")]
@@ -84,7 +110,7 @@ namespace weblog
                 var parameters = BaggageApiEndpointParameters.Bind(context);
                 if (parameters.Url == null)
                 {
-                    var example = "http://localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777";
+                    var example = "http://localhost:7777/otel_drop_in_baggage_api_otel?url=http%3A%2F%2Fweblog%3A7777";
                     throw new System.Exception($"Specify the url to call in the query string: {example}");
                 }
 
@@ -122,7 +148,7 @@ namespace weblog
                 var parameters = BaggageApiEndpointParameters.Bind(context);
                 if (parameters.Url == null)
                 {
-                    var example = "http://localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777";
+                    var example = "http://localhost:7777/otel_drop_in_baggage_api_datadog?url=http%3A%2F%2Fweblog%3A7777";
                     throw new System.Exception($"Specify the url to call in the query string: {example}");
                 }
 
@@ -140,6 +166,61 @@ namespace weblog
                     {
                         var keyValue = item.Split('=');
                         Datadog.Trace.Baggage.Current[keyValue[0].Trim()] = keyValue[1].Trim();
+                    }
+                }
+
+                var response = await HttpClientWrapper.LocalGetRequest(parameters.Url);
+                var endpointResponse = new BaggageApiEndpointResponse()
+                {
+                    Url = parameters.Url,
+                    StatusCode = (int)response.StatusCode,
+                    RequestHeaders = response.RequestMessage?.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
+                    ResponseHeaders = response.Headers.Select(kvp => new KeyValuePair<string, string>(kvp.Key, kvp.Value.First())).ToDictionary(),
+                };
+
+                await context.Response.WriteAsJsonAsync(endpointResponse);
+            });
+
+            routeBuilder.MapGet("/otel_drop_in_baggage_api_combined", async context =>
+            {
+                var parameters = CombinedBaggageApiEndpointParameters.Bind(context);
+                if (parameters.Url == null)
+                {
+                    var example = "http://localhost:7777/otel_drop_in_baggage_api_combined?url=http%3A%2F%2Fweblog%3A7777";
+                    throw new System.Exception($"Specify the url to call in the query string: {example}");
+                }
+
+                if (parameters.BaggageToRemoveDatadog is not null)
+                {
+                    foreach (var item in parameters.BaggageToRemoveDatadog.Split(','))
+                    {
+                        Datadog.Trace.Baggage.Current.Remove(item.Trim());
+                    }
+                }
+
+                if (parameters.BaggageToRemoveOTel is not null)
+                {
+                    foreach (var item in parameters.BaggageToRemoveOTel.Split(','))
+                    {
+                        OpenTelemetry.Baggage.RemoveBaggage(item.Trim());
+                    }
+                }
+
+                if (parameters.BaggageToSetDatadog is not null)
+                {
+                    foreach (var item in parameters.BaggageToSetDatadog.Split(','))
+                    {
+                        var keyValue = item.Split('=');
+                        Datadog.Trace.Baggage.Current[keyValue[0].Trim()] = keyValue[1].Trim();
+                    }
+                }
+
+                if (parameters.BaggageToSetOTel is not null)
+                {
+                    foreach (var item in parameters.BaggageToSetOTel.Split(','))
+                    {
+                        var keyValue = item.Split('=');
+                        OpenTelemetry.Baggage.SetBaggage(keyValue[0].Trim(), keyValue[1].Trim());
                     }
                 }
 
