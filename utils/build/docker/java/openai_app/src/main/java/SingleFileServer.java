@@ -144,14 +144,14 @@ public class SingleFileServer {
 
     var builder = ChatCompletionCreateParams.builder();
     builder.model(payload.optString("model"));
-    
+
     // Parse messages array
     JSONArray messages = payload.getJSONArray("messages");
     for (int i = 0; i < messages.length(); i++) {
       JSONObject message = messages.getJSONObject(i);
       String role = message.getString("role");
       String content = message.getString("content");
-      
+
       if ("user".equals(role)) {
         builder.addUserMessage(content);
       } else if ("system".equals(role)) {
@@ -166,13 +166,13 @@ public class SingleFileServer {
       // maxCompletionTokens is preferable
       builder.maxTokens(parameters.optLong("max_tokens"));
     }
-    if (!Double.isNaN(parameters.optDouble("temperature"))) { 
+    if (!Double.isNaN(parameters.optDouble("temperature"))) {
       builder.temperature(parameters.optDouble("temperature"));
     }
     if (tools != null) {
       for (int i = 0; i < tools.length(); i++) {
         JSONObject tool = tools.getJSONObject(i);
-        
+
          JSONObject functionObj = tool.getJSONObject("function");
          Map<String, Object> functionMap = functionObj.toMap();
 
@@ -212,7 +212,7 @@ public class SingleFileServer {
     builder.input(input);
 
     openaiClient.embeddings().create(builder.build());
-    
+
     return toJson(new HashMap<String, String>());
   }
 
@@ -242,7 +242,7 @@ public class SingleFileServer {
       builder.maxOutputTokens((long) parameters.getDouble("max_output_tokens"));
     }
 
-    if (!Double.isNaN(parameters.optDouble("temperature"))) { 
+    if (!Double.isNaN(parameters.optDouble("temperature"))) {
       builder.temperature(parameters.getDouble("temperature"));
     }
 
@@ -257,7 +257,7 @@ public class SingleFileServer {
 
     if (tools != null) {
       List<Object> toolsList = (List<Object>) deepConvertJsonToJava(tools);
-      
+
       builder.tools(JsonValue.from(toolsList));
       builder.toolChoice(JsonValue.from("auto"));
     }
@@ -267,7 +267,7 @@ public class SingleFileServer {
         streamResponse.stream().forEach(chunk -> {
             // consume the stream
         });
-      } 
+      }
     } else {
       openaiClient.responses().create(builder.build());
     }
@@ -303,7 +303,7 @@ public class SingleFileServer {
       List<Object> systemList = (List<Object>) deepConvertJsonToJava(system);
       builder.system(com.anthropic.core.JsonValue.from(systemList));
     }
-    
+
     builder.model(model);
 
     if (messages != null) {
@@ -402,8 +402,8 @@ public class SingleFileServer {
   }
 
   private static void doTraceChildren(JSONArray children) {
-    if (children == null) { 
-      return; 
+    if (children == null) {
+      return;
     }
 
     for (int i = 0; i < children.length(); i++) {
