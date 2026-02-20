@@ -780,7 +780,6 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.2.3
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.2.3
@@ -1237,12 +1236,7 @@ manifest:
         gqlgen: v1.73.0
         graph-gophers: v1.73.0
         graphql-go: v1.73.0
-  tests/test_graphql.py::Test_GraphQLOperationErrorTracking:
-    - weblog_declaration:
-        "*": missing_feature
-        gqlgen: missing_feature
-        graph-gophers: missing_feature
-        graphql-go: missing_feature
+  tests/test_graphql.py::Test_GraphQLOperationErrorTracking: missing_feature
   tests/test_identify.py::Test_Basic: v1.37.0
   tests/test_identify.py::Test_Basic::test_identify_tags:
     - declaration: bug (APMRP-360)
