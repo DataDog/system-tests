@@ -46,6 +46,7 @@ manifest:
   tests/appsec/iast/test_security_controls.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/rasp/: irrelevant (ASM is not implemented in C++)
+  tests/appsec/test_agent_level_smoke_tests.py: missing_feature
   tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: '>=1.12.0'  # Modified by easy win activation script
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_appsec_propagation_does_not_force_schema_collection: missing_feature  # Created by easy win activation script

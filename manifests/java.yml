@@ -1446,6 +1446,7 @@ manifest:
     - weblog_declaration:
         "*": v1.40.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_agent_level_smoke_tests.py: missing_feature
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v0.87.0
