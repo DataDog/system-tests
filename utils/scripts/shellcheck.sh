@@ -43,7 +43,8 @@ function lint() {
         files+=("$f")
     done < <( find utils -name '*.sh'; ls -1 -- *.sh )
 
-    ./venv/bin/shellcheck "${files[@]}"
+    # Parallel shellcheck: process 20 files per batch across 4 cores
+    printf '%s\n' "${files[@]}" | xargs -P 4 -n 20 ./venv/bin/shellcheck
 }
 
 function root() {
