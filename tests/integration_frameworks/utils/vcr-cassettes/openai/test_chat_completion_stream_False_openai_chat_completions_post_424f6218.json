@@ -1,0 +1,57 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "headers": {
+      "User-Agent": "OpenAIClientImpl/Java unknown",
+      "X-Stainless-Arch": "arm64",
+      "X-Stainless-Lang": "java",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-OS-Version": "6.12.65-linuxkit",
+      "X-Stainless-Package-Version": "unknown",
+      "X-Stainless-Retry-Count": "0",
+      "X-Stainless-Runtime": "JRE",
+      "X-Stainless-Runtime-Version": "17.0.9",
+      "X-Stainless-Read-Timeout": "600",
+      "X-Stainless-Timeout": "600",
+      "Content-Type": "application/json",
+      "Content-Length": "96",
+      "Connection": "Keep-Alive",
+      "Accept-Encoding": "gzip"
+    },
+    "body": "{\"messages\":[{\"content\":\"Hello OpenAI!\",\"role\":\"user\"}],\"model\":\"gpt-3.5-turbo\",\"max_tokens\":35}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Fri, 20 Feb 2026 00:00:43 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "access-control-expose-headers": "X-Request-ID",
+      "openai-processing-ms": "796",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "openai-version": "2020-10-01",
+      "Server": "cloudflare",
+      "x-ratelimit-limit-requests": "10000",
+      "x-ratelimit-limit-tokens": "50000000",
+      "x-ratelimit-remaining-requests": "9999",
+      "x-ratelimit-remaining-tokens": "49999994",
+      "x-ratelimit-reset-requests": "6ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_ac2897c2c6e840a0a0e12c7684ecfaae",
+      "x-openai-proxy-wasm": "v0.1",
+      "cf-cache-status": "DYNAMIC",
+      "set-cookie": "__cf_bm=gxZLEchqKMKTztQgXT8SUS624bU_sDykIXEy5gIFT_0-1771545642.824098-1.0.1.1-QpgexMX9Wbte8oAZv3LqUJZ1h0k6pkjTClR8qrer4op9P_ZpyvkkAKda8jZv24esL4dcf9wH2J0QFkZwslpRyBNi17Ws.QFAgt18DyHO8dv4c_nHnZ_4GYCIU1r8ldNt; HttpOnly; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 20 Feb 2026 00:30:43 GMT",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "Content-Encoding": "gzip",
+      "CF-RAY": "9d09b9aba85630ad-SEA",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"chatcmpl-DB8ElAOKW90QXI3wOJx1LBxBOdfgf\",\n  \"object\": \"chat.completion\",\n  \"created\": 1771545643,\n  \"model\": \"gpt-3.5-turbo-0125\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"Hello! How can I assist you today?\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 11,\n    \"completion_tokens\": 9,\n    \"total_tokens\": 20,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": null\n}\n"
+  }
+}
