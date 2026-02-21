@@ -9,7 +9,7 @@ class Test_V1PayloadByDefault:
 
     def test_main(self):
         for data, trace in interfaces.library.get_traces():
-            assert data["path"] == "/v0.1/traces"
+            assert data["path"] == "/v1.0/traces"
             assert trace.format == TraceLibraryPayloadFormat.v10
 
 

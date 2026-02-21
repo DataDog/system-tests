@@ -234,7 +234,7 @@ class Test_Agent:
                 # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
                 # We need to convert it to an integer taking only the lower 64 bits
                 # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
-                trace_id = int(chunk["traceID"], 16)  # & 0xFFFFFFFFFFFFFFFF
+                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
                 trace_ids_reported_by_agent.add(trace_id)
             elif chunk_format == TraceAgentPayloadFormat.legacy:
                 for span in chunk["spans"]:

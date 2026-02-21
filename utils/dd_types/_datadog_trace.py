@@ -87,7 +87,7 @@ class DataDogTraceLegacy(DataDogTrace):
             "/v0.5/traces": TraceLibraryPayloadFormat.v05,
         }[data["path"]]
 
-        self.spans = [DataDogSpan(self, s) for s in self.raw_trace]
+        self.spans = [DataDogSpanLegacy(self, s) for s in self.raw_trace]
 
     @property
     def trace_id(self) -> int:
@@ -106,7 +106,7 @@ class DataDogTracev1(DataDogTrace):
 
         self.format = TraceLibraryPayloadFormat.v10
 
-        self.spans = [DataDogSpan(self, s) for s in self.raw_trace["spans"]]
+        self.spans = [DataDogSpanV1(self, s) for s in self.raw_trace["spans"]]
 
     @property
     def trace_id(self) -> str | int:
@@ -117,7 +117,7 @@ class DataDogTracev1(DataDogTrace):
         return int(self.raw_trace["trace_id"], 16) & 0xFFFFFFFFFFFFFFFF
 
 
-class DataDogSpan:
+class DataDogSpan(ABC):
     """Wrapper around trace object reported by dd-trace libraries"""
 
     def __init__(self, trace: DataDogTrace, raw_span: dict):
@@ -125,23 +125,41 @@ class DataDogSpan:
 
         self.raw_span = raw_span
 
+    def __contains__(self, key: str) -> bool:
+        return key in self.raw_span
+
+    @abstractmethod
     def get(self, key: str, default: Any = None):  # noqa: ANN401
-        if key == "trace_id" and self.trace.format == TraceLibraryPayloadFormat.v10:
+        pass
+
+    @abstractmethod
+    def __getitem__(self, key: str):
+        pass
+
+
+class DataDogSpanLegacy(DataDogSpan):
+    def get(self, key: str, default: Any = None):  # noqa: ANN401
+        return self.raw_span.get(key, default)
+
+    def __getitem__(self, key: str):
+        return self.raw_span[key]
+
+
+class DataDogSpanV1(DataDogSpan):
+    def get(self, key: str, default: Any = None):  # noqa: ANN401
+        if key == "trace_id":
             return self.trace.trace_id
 
-        if key in ("meta", "meta_struct", "metrics") and self.trace.format == TraceLibraryPayloadFormat.v10:
+        if key in ("meta", "meta_struct", "metrics"):
             return self.raw_span["attributes"]
 
         return self.raw_span.get(key, default)
 
     def __getitem__(self, key: str):
-        if key == "trace_id" and self.trace.format == TraceLibraryPayloadFormat.v10:
+        if key == "trace_id":
             return self.trace.trace_id
 
-        if key in ("meta", "meta_struct", "metrics") and self.trace.format == TraceLibraryPayloadFormat.v10:
+        if key in ("meta", "meta_struct", "metrics"):
             return self.raw_span["attributes"]
 
         return self.raw_span[key]
-
-    def __contains__(self, key: str) -> bool:
-        return key in self.raw_span
