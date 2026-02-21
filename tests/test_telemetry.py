@@ -1,4 +1,5 @@
 import json
+import pytest
 from typing import Any
 from collections import defaultdict
 from collections.abc import Callable
@@ -215,37 +216,45 @@ class Test_Telemetry:
 
     @features.telemetry_app_started_event
     def test_app_started_is_first_message(self):
-        """Request type app-started is the first telemetry message or the first message in the first batch"""
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        """Verify that at least one runtime_id (hopefully the parent) generates app-started as its first telemetry message.
+
+        Forked processes may not submit app-started/app-closed events and may only generate metrics or logs.
+        This test ensures at least one runtime generates app-started and it is the first message for that runtime.
+        """
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
         assert len(telemetry_data) > 0, "No telemetry messages"
-        for batch in telemetry_data:
-            if batch["request"]["content"].get("request_type") == "message-batch":
-                if all(
-                    message.get("request_type") in ["sketches", "generate-metrics", "logs"]
-                    for message in batch["request"]["content"]["payload"]
-                ):
-                    # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first.
-                    # If the batch contains only messages not related to app-lifecycle we can ignore it.
-                    continue
-                first_message = batch["request"]["content"]["payload"][0]
-                assert first_message.get("request_type") == "app-started", (
-                    "app-started was not the first message in the first batch"
-                )
-                return
-            else:
-                # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
-                # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-                telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
-                app_started = [
-                    d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"
-                ]
-                assert app_started, "app-started message not found"
-                min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-                assert app_started[0]["request"]["content"]["seq_id"] == min_seq_id, (
-                    "app-started is not the first message by seq_id"
-                )
-                return
-        raise ValueError("app-started message not found")
+
+        # Group by runtime_id
+        telemetry_by_runtime_id: dict[str, list[dict]] = defaultdict(list)
+        for data in telemetry_data:
+            runtime_id = data["request"]["content"].get("runtime_id")
+            assert runtime_id, f"runtime_id is missing in telemetry data {data['request']}"
+            telemetry_by_runtime_id[runtime_id].append(data)
+
+        # Find at least one runtime_id where app-started is the first message by received timestamp
+        for runtime_id, messages in telemetry_by_runtime_id.items():
+            assert len(messages) > 0, (
+                f"No messages found for runtime_id {runtime_id}, telemetry_by_runtime_id: {telemetry_by_runtime_id}"
+            )
+            # Find the message(s) with the earliest timestamp_start (convert to datetime for proper comparison)
+            # This handles edge cases like different timezone formats or precision levels
+            min_timestamp = min(
+                isoparse(msg["request"]["timestamp_start"]) for msg in messages if msg["request"].get("timestamp_start")
+            )
+            # Check if any message with the minimum timestamp is app-started
+            # (handles cases where multiple messages have the same timestamp)
+            first_messages = [
+                msg
+                for msg in messages
+                if msg["request"].get("timestamp_start")
+                and isoparse(msg["request"]["timestamp_start"]) == min_timestamp
+            ]
+            if any(msg["request"]["content"].get("request_type") == "app-started" for msg in first_messages):
+                break
+        else:
+            pytest.fail(
+                f"app-started was not the first message (by received timestamp) for any runtime_id {telemetry_by_runtime_id.values()}"
+            )
 
     @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
