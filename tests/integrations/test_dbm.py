@@ -86,11 +86,11 @@ class Test_Dbm:
 
     def _assert_span_is_untagged(self, span: DataDogSpan) -> None:
         meta = span.get("meta", {})
-        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span, indent=2)}"
+        assert self.META_TAG not in meta, f"{self.META_TAG} found in span meta: {json.dumps(span.raw_span, indent=2)}"
 
     def _assert_span_is_tagged(self, span: DataDogSpan) -> None:
         meta = span.get("meta", {})
-        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span, indent=2)}"
+        assert self.META_TAG in meta, f"{self.META_TAG} not found in span meta: {json.dumps(span.raw_span, indent=2)}"
         tag_value = meta.get(self.META_TAG)
         assert tag_value == "true", f"{self.META_TAG} value is not `true`."
 

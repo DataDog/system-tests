@@ -129,7 +129,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
             if span["resource"] != resource:
                 continue
 
-            logger.debug(f"Span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+            logger.debug(f"Span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
             return span
 
     logger.debug("No span found")

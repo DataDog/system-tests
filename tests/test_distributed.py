@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, logger
+from utils import weblog, interfaces, scenarios, features, bug, context
 from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.dd_types import DataDogSpan, TraceLibraryPayloadFormat
@@ -162,7 +162,6 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
@@ -203,7 +202,6 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]

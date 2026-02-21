@@ -486,7 +486,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     return
                 logger.info(f"Trace {trace.trace_id} do not validate the condition")
             except Exception as e:
-                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span.raw_span, indent=2)}")
                 raise
 
         raise ValueError("No span validates this test")

@@ -55,7 +55,7 @@ class _BaseRabbitMQ:
                 ):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
