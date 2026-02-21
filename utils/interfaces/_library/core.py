@@ -82,13 +82,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 for trace in content:
                     if rid is None:
                         trace_found = True
-                        yield data, DataDogTrace(data, trace)
+                        yield data, DataDogTrace.from_legacy(data, trace)
                     else:
                         for span in trace:
                             if rid == get_rid_from_span(span):
                                 logger.debug(f"Found a trace in {data['log_filename']}")
                                 trace_found = True
-                                yield data, DataDogTrace(data, trace)
+                                yield data, DataDogTrace.from_legacy(data, trace)
                                 break
 
             elif data["path"] == "/v1.0/traces":
@@ -98,13 +98,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 for trace in content.get("chunks"):
                     if rid is None:
                         trace_found = True
-                        yield data, DataDogTrace(data, trace)
+                        yield data, DataDogTrace.from_v1(data, trace)
                     else:
                         for span in trace.get("spans"):
                             if rid == get_rid_from_span(span):
                                 logger.debug(f"Found a trace in {data['log_filename']}")
                                 trace_found = True
-                                yield data, DataDogTrace(data, trace)
+                                yield data, DataDogTrace.from_v1(data, trace)
                                 break
 
             else:

@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import StrEnum
 from typing import Any
@@ -20,70 +21,47 @@ class TraceLibraryPayloadFormat(StrEnum):
     RFC: https://docs.google.com/document/d/1hNS6anKYutOYW-nmR759UlKXUdT6H0mRwVt7_L70ESc/edit?usp=sharing"""
 
 
-class DataDogTrace:
+class DataDogTrace(ABC):
     """Wrapper around trace object reported by dd-trace libraries"""
 
-    def __init__(self, data: dict, raw_trace: dict | list[dict]):
-        self.data = data
-        """raw requests and responses sent to the agent"""
+    data: dict
+    """raw request and response sent to the agent"""
 
-        self.raw_trace = raw_trace
-        """raw trace object"""
+    format: TraceLibraryPayloadFormat
 
-        self.format: TraceLibraryPayloadFormat = {
-            "/v0.4/traces": TraceLibraryPayloadFormat.v04,
-            "/v0.5/traces": TraceLibraryPayloadFormat.v05,
-            "/v1.0/traces": TraceLibraryPayloadFormat.v10,
-        }[data["path"]]
+    raw_trace: dict | list[dict]
+    """raw trace object"""
 
-        if self.format == TraceLibraryPayloadFormat.v10:
-            spans = self.raw_trace_v_1_0["spans"]
-        elif self.format == TraceLibraryPayloadFormat.v05:
-            spans = self.raw_trace_v_0_4
-        else:
-            spans = self.raw_trace_v_0_4
+    spans: list["DataDogSpan"]
 
-        self.spans = [DataDogSpan(self, s) for s in spans]
+    @staticmethod
+    def from_legacy(data: dict, raw_trace: list[dict]) -> "DataDogTrace":
+        return DataDogTraceLegacy(data, raw_trace)
+
+    @staticmethod
+    def from_v1(data: dict, raw_trace: dict) -> "DataDogTracev1":
+        return DataDogTracev1(data, raw_trace)
 
     @property
-    def raw_trace_v_1_0(self) -> dict:
-        assert isinstance(self.raw_trace, dict)
-        return self.raw_trace
-
-    @property
-    def raw_trace_v_0_4(self) -> list[dict]:
-        assert isinstance(self.raw_trace, list)
-        return self.raw_trace
-
-    @property
+    @abstractmethod
     def trace_id(self) -> str | int:
-        if self.format == TraceLibraryPayloadFormat.v10:
-            return self.raw_trace_v_1_0["trace_id"]
-
-        return self.raw_trace_v_0_4[0]["trace_id"]
+        pass
 
     @property
+    @abstractmethod
     def trace_id_as_int(self) -> int:
-        if self.format == TraceLibraryPayloadFormat.v10:
-            return int(self.raw_trace_v_1_0["trace_id"], 16)
-
-        return self.raw_trace_v_0_4[0]["trace_id"]
-
-    def trace_id_equals(self, other: int | str) -> bool:
-        if isinstance(other, str):
-            assert other.startswith("0x")
-            other = int(other, 16)
-
-        if self.format == TraceLibraryPayloadFormat.v10:
-            trace_id = int(self.raw_trace_v_1_0["trace_id"], 16) & 0xFFFFFFFFFFFFFFFF
-        else:
-            trace_id = self.raw_trace_v_0_4[0]["trace_id"]
-
-        return trace_id == other
+        pass
 
     @property
     def log_filename(self) -> str:
         return self.data["log_filename"]
+
+    def trace_id_equals(self, other: int | str) -> bool:
+        if isinstance(other, str):
+            assert other.startswith("0x")
+            other = int(other, 16) & 0xFFFFFFFFFFFFFFFF
+
+        return other == self.trace_id_as_int
 
     def __iter__(self) -> Iterator["DataDogSpan"]:
         """Iterate over spans"""
@@ -96,6 +74,47 @@ class DataDogTrace:
     def __len__(self) -> int:
         """Return span count"""
         return len(self.spans)
+
+
+class DataDogTraceLegacy(DataDogTrace):
+    def __init__(self, data: dict, raw_trace: list[dict]):
+        self.data = data
+
+        self.raw_trace: list[dict] = raw_trace
+
+        self.format: TraceLibraryPayloadFormat = {
+            "/v0.4/traces": TraceLibraryPayloadFormat.v04,
+            "/v0.5/traces": TraceLibraryPayloadFormat.v05,
+        }[data["path"]]
+
+        self.spans = [DataDogSpan(self, s) for s in self.raw_trace]
+
+    @property
+    def trace_id(self) -> int:
+        return self.raw_trace[0]["trace_id"]
+
+    @property
+    def trace_id_as_int(self) -> int:
+        return self.trace_id
+
+
+class DataDogTracev1(DataDogTrace):
+    def __init__(self, data: dict, raw_trace: dict):
+        self.data = data
+
+        self.raw_trace: dict = raw_trace
+
+        self.format = TraceLibraryPayloadFormat.v10
+
+        self.spans = [DataDogSpan(self, s) for s in self.raw_trace["spans"]]
+
+    @property
+    def trace_id(self) -> str | int:
+        return self.raw_trace["trace_id"]
+
+    @property
+    def trace_id_as_int(self) -> int:
+        return int(self.raw_trace["trace_id"], 16) & 0xFFFFFFFFFFFFFFFF
 
 
 class DataDogSpan:
