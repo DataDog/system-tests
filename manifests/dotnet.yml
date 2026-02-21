@@ -959,6 +959,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v2.45.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.50.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.53.0
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.48.0
