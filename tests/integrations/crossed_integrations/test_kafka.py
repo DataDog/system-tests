@@ -5,6 +5,16 @@ from utils.buddies import java_buddy, _Weblog as Weblog
 from utils.dd_types import DataDogSpan
 
 
+def assert_trace_id_equality(a: str | int, b: str | int):
+    if isinstance(a, str):
+        a = int(a, 16) & 0xFFFFFFFFFFFFFFFF
+
+    if isinstance(b, str):
+        b = int(b, 16) & 0xFFFFFFFFFFFFFFFF
+
+    assert a == b
+
+
 class _BaseKafka:
     """Test kafka compatibility with inputted datadog tracer"""
 
@@ -84,7 +94,7 @@ class _BaseKafka:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert_trace_id_equality(producer_span["trace_id"], consumer_span["trace_id"])
 
     def setup_consume(self):
         """Send request A to library buddy : this request will produce a kafka message
@@ -124,7 +134,7 @@ class _BaseKafka:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert_trace_id_equality(producer_span["trace_id"], consumer_span["trace_id"])
 
     def validate_kafka_spans(
         self,
