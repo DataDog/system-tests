@@ -15,4 +15,4 @@ RUN rm jetty-classpath/jetty-jaspi*
 COPY lib-injection/build/docker/java/jetty-app/ .
 RUN javac -cp "jetty-classpath/*" JettyServletMain.java CrashServlet.java
 
-CMD [ "java", "-cp", "jetty-classpath/*:.", "JettyServletMain" ]
+CMD [ "java", "-XX:+UseParallelGC","-cp", "jetty-classpath/*:.", "JettyServletMain" ]
