@@ -1,4 +1,6 @@
-FROM golang:1.25
+ARG GO_VERSION=1.25
+FROM golang:${GO_VERSION}
+ARG GO_VERSION
 
 # print important lib versions
 RUN go version && curl --version
@@ -10,6 +12,7 @@ RUN apt-get update && apt-get -y install jq git
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
+RUN go mod edit -go=${GO_VERSION}
 RUN go mod download && go mod verify
 
 # copy the app code

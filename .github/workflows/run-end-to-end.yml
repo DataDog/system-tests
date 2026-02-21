@@ -156,6 +156,10 @@ jobs:
         scenarios: ${{ inputs.scenarios }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Fetch Go versions
+      if: inputs.library == 'golang'
+      id: go-versions
+      uses: ./.github/actions/go-versions
     - name: Build weblog
       id: build
       run: |
@@ -167,6 +171,7 @@ jobs:
         ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
       env:
         SYSTEM_TEST_BUILD_ATTEMPTS: 3
+        GO_VERSION: ${{ steps.go-versions.outputs.stable }}
 
     - name: Run INTEGRATION_FRAMEWORKS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')

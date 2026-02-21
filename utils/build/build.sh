@@ -123,6 +123,7 @@ build() {
     echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
     echo "BUILD_IMAGES:      $BUILD_IMAGES"
     echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
+    echo "GO_VERSION:        $GO_VERSION"
     echo ""
 
     # Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
@@ -270,6 +271,7 @@ build() {
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     ${GITHUB_TOKEN_SECRET_ARG} \
+                    ${GO_VERSION_BUILD_ARG} \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
@@ -351,6 +353,12 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
+GO_VERSION="${GO_VERSION:-}"
+
+GO_VERSION_BUILD_ARG=""
+if [[ -n "$GO_VERSION" ]]; then
+    GO_VERSION_BUILD_ARG="--build-arg GO_VERSION=${GO_VERSION}"
+fi
 
 if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"

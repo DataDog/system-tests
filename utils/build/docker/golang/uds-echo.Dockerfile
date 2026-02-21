@@ -1,4 +1,6 @@
-FROM golang:1.25-alpine AS build
+ARG GO_VERSION=1.25
+FROM golang:${GO_VERSION}-alpine AS build
+ARG GO_VERSION
 
 RUN apk add --no-cache jq curl bash gcc musl-dev socat git
 
@@ -9,6 +11,7 @@ RUN go version && curl --version
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
+RUN go mod edit -go=${GO_VERSION}
 RUN go mod download && go mod verify
 
 # copy the app code
