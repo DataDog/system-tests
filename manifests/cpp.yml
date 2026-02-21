@@ -209,8 +209,12 @@ manifest:
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019:
     - declaration: bug (APMAPI-1545)
       component_version: <=1.0.0
-  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: incomplete_test_app (Not currently testable)
-  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: incomplete_test_app (Not currently testable)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default:  # Modified by easy win activation script
+    - declaration: incomplete_test_app (Not currently testable)
+      component_version: <2.0.0
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled:  # Modified by easy win activation script
+    - declaration: incomplete_test_app (Not currently testable)
+      component_version: <2.0.0
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
