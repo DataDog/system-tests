@@ -172,6 +172,9 @@ patterns:
     .github/workflows/debug-harness.yml:
         scenario_groups: null
         libraries: null
+    .github/workflows/nightly.yml:
+        scenario_groups: null
+        libraries: null
     .github/workflows/run-docker-ssi.yml:
         scenario_groups: docker_ssi
     .github/workflows/run-end-to-end.yml:

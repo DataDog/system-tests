@@ -1,0 +1,312 @@
+name: Nightly
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron:  '00 03 * * 1-5'
+  pull_request:
+
+
+jobs:
+  nightly:
+    strategy:
+      matrix:
+        library:
+          # - cpp
+          # - cpp_httpd
+          # - dotnet
+          # - golang
+          # - java
+          # - nodejs
+          # - php
+          - python
+          # - python_lambda
+          # - ruby
+          # - cpp_nginx
+        version:
+          - prod
+        # include:
+        #   - library: rust
+        #     version: dev
+      fail-fast: false
+    uses:  DataDog/system-tests/.github/workflows/system-tests.yml@main
+    secrets:
+      TEST_OPTIMIZATION_API_KEY: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+      DD_API_KEY: ${{ secrets.DD_API_KEY }}
+      DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+      DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
+      DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
+      DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
+      DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    permissions:
+      contents: read
+      packages: write
+    with:
+      # scenarios_groups: end-to-end,lib-injection,docker-ssi,go_proxies,integration_frameworks
+      scenarios: DEFAULT
+      library: ${{ matrix.library }}
+      parametric_job_count: 8
+      # desired_execution_time: 3600  # 30 minutes
+
+  create_test_report:
+    name: Create test report
+    permissions:
+      contents: read
+      packages: read
+    if: success() || failure()
+    needs:
+      - nightly
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download logs artifact
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          merge-multiple: false
+          pattern: logs_*
+      - name: Uncompress logs
+        run: |
+            for d in logs_*; do
+              if [ -f "$d/artifact.tar.gz" ]; then
+                tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/report.json' || true
+              fi
+            done
+      - name: Upload test report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: test-report
+          path: |
+            logs_*
+            !logs_*/artifact.tar.gz
+
+  test_activation:
+    name: Test activation
+    runs-on: ubuntu-latest
+    if: success() || failure()
+    strategy:
+      fail-fast: false
+      matrix:
+        library:
+          - cpp
+          - cpp_httpd
+          - cpp_nginx
+          - dotnet
+          - golang
+          - java
+          - nodejs
+          - php
+          - python
+          - python_lambda
+          - ruby
+          - rust
+        include:
+          - library: cpp
+            exclude_owners: ""
+            use_dev: ""
+          - library: cpp_httpd
+            exclude_owners: ""
+            use_dev: ""
+          - library: cpp_nginx
+            exclude_owners: ""
+            use_dev: ""
+          - library: dotnet
+            exclude_owners: ""
+            use_dev: ""
+          - library: golang
+            exclude_owners: ""
+            use_dev: ""
+          - library: java
+            exclude_owners: ""
+            use_dev: ""
+          - library: nodejs
+            exclude_owners: ""
+            use_dev: ""
+          - library: php
+            exclude_owners: ""
+            use_dev: ""
+          - library: python
+            exclude_owners: ""
+            use_dev: ""
+          - library: python_lambda
+            exclude_owners: ""
+            use_dev: ""
+          - library: ruby
+            exclude_owners: ""
+            use_dev: ""
+          - library: rust
+            exclude_owners: ""
+            use_dev: "true"
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    needs:
+      - create_test_report
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          repository: DataDog/system-tests
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: test-report
+          path: data
+
+      - uses: DataDog/system-tests/.github/actions/install_runner@main
+
+      - name: Install additional dependencies
+        shell: bash
+        run: |
+          source venv/bin/activate
+          python -m pip install --upgrade pip ruamel.yaml requests tqdm pygtrie
+
+      - name: Run activation script
+        id: activation_script
+        shell: bash
+        run: |
+          source venv/bin/activate
+          set +e
+          EXTRA_ARGS=""
+          if [[ -n "${{ matrix.exclude_owners }}" ]]; then
+            EXTRA_ARGS="$EXTRA_ARGS --exclude ${{ matrix.exclude_owners }}"
+          fi
+          if [[ -n "${{ matrix.use_dev }}" ]]; then
+            EXTRA_ARGS="$EXTRA_ARGS --dev"
+          fi
+          python -m utils.scripts.activate_easy_wins --no-download --components "${{ matrix.library }}" $EXTRA_ARGS
+          EXIT_CODE=$?
+          ./format.sh
+          set -e
+          echo "activation_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          if [ "$EXIT_CODE" -eq 1 ]; then
+            echo "Activation script returned exit code 1, skipping PR/commit/branch creation"
+          fi
+
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.test-activation
+
+      - name: Check for changes
+        id: check_changes
+        if: steps.activation_script.outputs.activation_exit_code == '0'
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+        shell: bash
+        run: |
+          # Use gh auth as git credential helper
+          gh auth setup-git
+
+          # Ensure local is up to date
+          git fetch origin
+
+          # Check if there are changes to the manifest file
+          if [[ -f "manifests/${{ matrix.library }}.yml" ]]; then
+            if git diff --quiet HEAD "manifests/${{ matrix.library }}.yml"; then
+              echo "No changes to ${{ matrix.library }} manifest"
+              echo "has_changes=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          else
+            echo "Manifest file manifests/${{ matrix.library }}.yml does not exist"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Changes detected in ${{ matrix.library }} manifest"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Set the git user.
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add files
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git add "manifests/${{ matrix.library }}.yml"
+
+      - name: Variables
+        id: vars
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          BRANCH_NAME="auto-${{ matrix.library }}-manifest"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          # Check if branch already exists - skip if it does
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME already exists, skipping"
+            echo "branch_exists=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "branch_exists=false" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
+        run: |
+          echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
+          git checkout -b ${{ steps.vars.outputs.branch_name }}
+
+          echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
+          git push -u origin ${{ steps.vars.outputs.branch_name }}
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+
+      - name: Create commit
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
+        run: |
+          echo "Committing..."
+          git commit -m "Update ${{ matrix.library }} manifest activation" --no-verify
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+
+      - name: Push signed commits
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
+        uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
+        with:
+          github-token: ${{ steps.octo-sts.outputs.token }}
+          repo: DataDog/system-tests
+          local_branch_name: ${{ steps.vars.outputs.branch_name }}
+          remote_name: origin
+          remote_branch_name: ${{ steps.vars.outputs.branch_name }}
+
+      - name: Create Pull Request
+        if: steps.activation_script.outputs.activation_exit_code == '0' && steps.check_changes.outputs.has_changes == 'true' && steps.vars.outputs.branch_exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+        shell: bash
+        run: |
+          BRANCH_NAME="${{ steps.vars.outputs.branch_name }}"
+
+          # Create or reference PR
+          if gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' | grep -q .; then
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+            echo "PR already exists: #$PR_NUMBER"
+          else
+            gh pr create \
+              --title "Auto-activate ${{ matrix.library }} manifest tests" \
+              --body "Automated activation of easy-win tests for ${{ matrix.library }}
+          [View nightly workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - If you approve this PR please also merge it.
+          - If the tests are failing it might be due to a change made since the last nightly system-tests run. You can close the PR, an updated one will be available tomorrow.
+          - If you close the PR please also delete the branch" \
+              --head "$BRANCH_NAME" \
+              --base main
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+          fi
+
+          # Enable auto-merge on the PR
+          echo "Enabling auto-merge on PR #$PR_NUMBER..."
+          gh pr merge "$PR_NUMBER" --auto --squash
