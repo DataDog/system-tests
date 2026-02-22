@@ -146,6 +146,15 @@ class DataDogSpanLegacy(DataDogSpan):
 
 
 class DataDogSpanV1(DataDogSpan):
+    def __contains__(self, key: str) -> bool:
+        if key in ("meta", "meta_struct", "metrics"):
+            return "attributes" in self.raw_span
+
+        if key == "trace_id":
+            return True
+
+        return key in self.raw_span
+
     def get(self, key: str, default: Any = None):  # noqa: ANN401
         if key == "trace_id":
             return self.trace.trace_id

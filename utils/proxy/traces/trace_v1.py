@@ -182,9 +182,9 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     for key in list(attrs_dict):
         if key.startswith("_dd.appsec.s."):
             attrs_dict[key] = json.loads(attrs_dict[key])
-        elif key == "appsec":
+        elif key in ("appsec", "_dd.stack"):
             attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
-        elif key == "_dd.span_links":
+        elif key in ("_dd.span_links",):
             attrs_dict[key] = json.loads(attrs_dict[key])
 
     return attrs_dict
