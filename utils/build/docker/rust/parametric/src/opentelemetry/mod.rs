@@ -191,11 +191,7 @@ async fn get_span_context(
         SpanContextResult {
             span_id: span_context.span_id().to_string(),
             trace_id: span_context.trace_id().to_string(),
-            trace_flags: Some(if span_context.trace_flags().to_u8() == 1 {
-                "01".to_string()
-            } else {
-                "00".to_string()
-            }),
+            trace_flags: Some(format!("{:02x}", span_context.trace_flags().to_u8())),
             trace_state: Some(span_context.trace_state().header().to_string()),
             remote: Some(span_context.is_remote()),
         }

@@ -988,6 +988,9 @@ manifest:
   : - declaration: bug (APMRP-360)
       component_version: <1.57.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (golang does not reconcile duplicate http headers, if duplicate headers received the propagator will not be used)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Randomness bit propagation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Randomness bit propagation is not supported yet)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header:  # Modified by easy win activation script
     - declaration: missing_feature (golang does not reconcile duplicate http headers, if duplicate headers received one only one will be used)
       component_version: <2.5.0
