@@ -2,6 +2,7 @@ import json
 
 from utils import context, interfaces, scenarios, weblog, features
 from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogSpan
 
 BLOCKING_HEADER: str = "X-AI-Guard-Block"
 MESSAGES: dict = {
@@ -59,7 +60,7 @@ def _assert_key(values: dict, key: str, value: object | None = None):
 @scenarios.ai_guard
 class Test_Evaluation:
     def _assert_span(self, action: str, messages: list, *, blocking: str):
-        def validate(span: dict):
+        def validate(span: DataDogSpan):
             if span["resource"] != "ai_guard":
                 return False
 
@@ -200,7 +201,7 @@ class Test_RootSpanUserKeep:
 @scenarios.ai_guard
 class Test_Full_Response_And_Tags:
     def _assert_span(self, response: dict, action: str):
-        def validate(span: dict):
+        def validate(span: DataDogSpan):
             if span["resource"] != "ai_guard":
                 return False
 
@@ -241,7 +242,7 @@ class Test_Full_Response_And_Tags:
 @features.ai_guard
 @scenarios.default
 class Test_SDK_Disabled:
-    def _validate_no_ai_guard_span(self, span: dict):
+    def _validate_no_ai_guard_span(self, span: DataDogSpan):
         assert span["resource"] != "ai_guard"
         return True
 
@@ -267,7 +268,7 @@ class Test_ContentParts:
     """Test AI Guard with multi-modal content parts (text + image_url)."""
 
     def _assert_span_with_content_parts(self, messages: list):
-        def validate(span: dict):
+        def validate(span: DataDogSpan):
             if span["resource"] != "ai_guard":
                 return False
 

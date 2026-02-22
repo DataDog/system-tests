@@ -10,6 +10,7 @@ from utils import (
     weblog,
 )
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogSpan
 
 WEBHOOK_SECRET = b"whsec_FAKE"
 
@@ -31,7 +32,7 @@ def make_webhook_request(data: dict, secret: bytes = WEBHOOK_SECRET):
     )
 
 
-def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool]):
+def assert_payment_event(request: HttpResponse, validator: Callable[[DataDogSpan], bool]):
     assert request.status_code == 200
 
     # make sure a Stripe object was returned by the Stripe SDK
@@ -41,7 +42,7 @@ def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool
     assert body.get("livemode")
 
     # wrap validator for asserts common to all tests
-    def _validator(span: dict):
+    def _validator(span: DataDogSpan):
         # discard non-root spans
         if span.get("parent_id") not in (0, None):
             return False
@@ -57,7 +58,7 @@ def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool
 def assert_no_payment_event(request: HttpResponse, status_code: int):
     assert request.status_code == status_code
 
-    def validator(span: dict):
+    def validator(span: DataDogSpan):
         assert "appsec.events.payments.integration" not in span["meta"]
 
     interfaces.library.validate_all_spans(request, validator=validator)
@@ -110,7 +111,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_checkout_session(self):
         """R1"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             assert span["meta"]["appsec.events.payments.creation.id"] == "cs_FAKE"
             assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 950  # 100 * 10 * 0.9 + 50
             assert span["meta"]["appsec.events.payments.creation.client_reference_id"] == "GabeN"
@@ -184,7 +185,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_intent(self):
         """R2"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             assert span["meta"]["appsec.events.payments.creation.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.creation.amount"] == 6969
             assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
@@ -215,7 +216,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_success(self):
         """R3"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             assert span["meta"]["appsec.events.payments.success.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.success.amount"] == 420
             assert span["meta"]["appsec.events.payments.success.currency"] == "eur"
@@ -255,7 +256,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_failure(self):
         """R4"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             assert span["meta"]["appsec.events.payments.failure.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.failure.amount"] == 1337
             assert span["meta"]["appsec.events.payments.failure.currency"] == "eur"
@@ -293,7 +294,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_cancellation(self):
         """R5"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             assert span["meta"]["appsec.events.payments.cancellation.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.cancellation.amount"] == 1337
             assert span["meta"]["appsec.events.payments.cancellation.cancellation_reason"] == "requested_by_customer"

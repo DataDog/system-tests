@@ -4,6 +4,7 @@
 
 from utils import context, interfaces, weblog, features, irrelevant, rfc
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogSpan
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
@@ -12,14 +13,14 @@ class Test_ShellExecution:
     """Test shell execution tracing"""
 
     @staticmethod
-    def fetch_command_execution_span(r: HttpResponse) -> dict:
+    def fetch_command_execution_span(r: HttpResponse) -> DataDogSpan:
         assert r.status_code == 200
 
         traces = [t for _, t in interfaces.library.get_traces(request=r)]
         assert traces, "No traces found"
         assert len(traces) == 1
-        spans = traces[0]
-        spans = [s for s in spans if s["name"] == "command_execution"]
+        trace = traces[0]
+        spans = [s for s in trace if s["name"] == "command_execution"]
         assert spans, "No command_execution span found"
         assert len(spans) == 1, "More than one command_execution span found"
 

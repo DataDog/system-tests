@@ -1,9 +1,8 @@
 import json
 import time
-from typing import Any
 
 from utils import weblog, interfaces, scenarios, features
-
+from utils.dd_types import DataDogSpan
 
 INFERRED_SPAN_NAMES = {"aws.apigateway", "aws.httpapi"}
 
@@ -23,7 +22,7 @@ class Test_Lambda_Inferred_Span_Tags:
 
         assert lambda_span_appsec_data, "Expected non empty appsec data on aws.lambda span"
 
-        def validate_inferred_span(span: dict[str, Any]) -> bool:
+        def validate_inferred_span(span: DataDogSpan) -> bool:
             if span.get("name") not in INFERRED_SPAN_NAMES:
                 return False
 
@@ -82,7 +81,7 @@ class Test_Proxy_Inferred_Span_Tags:
 
         assert service_entry_span_appsec_data, "Expected non empty appsec data on the weblog entry span"
 
-        def validate_inferred_span(span: dict[str, Any]) -> bool:
+        def validate_inferred_span(span: DataDogSpan) -> bool:
             if span.get("name") != "aws.apigateway":
                 return False
 

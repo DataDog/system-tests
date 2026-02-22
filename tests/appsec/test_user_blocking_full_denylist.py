@@ -1,4 +1,5 @@
 from utils import interfaces, scenarios, weblog, features
+from utils.dd_types import DataDogSpan
 
 from .utils import BaseFullDenyListTest
 
@@ -15,7 +16,7 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
         self.r_nonblock = weblog.get("/users", params={"user": self.NOT_BLOCKED_USER})
 
     def test_nonblocking_test(self):
-        def validate_nonblock_user(span: dict):
+        def validate_nonblock_user(span: DataDogSpan):
             assert span["meta"]["usr.id"] == self.NOT_BLOCKED_USER
             return True
 

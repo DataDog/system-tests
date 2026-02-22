@@ -1,6 +1,8 @@
 import base64
+import contextlib
 from enum import IntEnum
-
+import json
+from typing import Any
 import msgpack
 
 
@@ -28,23 +30,24 @@ class V1ChunkKeys(IntEnum):
     sampling_mechanism = 7
 
 
-class V1SpanKeys(IntEnum):
-    service = 1
-    name_value = 2
-    resource = 3
-    span_id = 4
-    parent_id = 5
-    start = 6
-    duration = 7
-    error = 8
-    attributes = 9
-    type_value = 10
-    span_links = 11
-    span_events = 12
-    env = 13
-    version = 14
-    component = 15
-    span_kind = 16
+V1SpanKeys = {
+    1: "service",
+    2: "name",
+    3: "resource",
+    4: "span_id",
+    5: "parent_id",
+    6: "start",
+    7: "duration",
+    8: "error",
+    9: "attributes",
+    10: "type",
+    11: "span_links",
+    12: "span_events",
+    13: "env",
+    14: "version",
+    15: "component",
+    16: "span_kind",
+}
 
 
 class V1SpanLinkKeys(IntEnum):
@@ -75,9 +78,9 @@ class V1AnyValueKeys(IntEnum):
 _chunk_key_strings = ["origin"]
 _span_key_strings = [
     "service",
-    "name_value",
+    "name",
     "resource",
-    "type_value",
+    "type",
     "env",
     "version",
     "component",
@@ -156,17 +159,34 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     if len(attrs) % 3 != 0:
         raise ValueError(f"Attributes list must be a multiple of 3: {attrs}")
-    attrs_dict = {}
+
+    attrs_dict: dict[str, Any] = {}
+
     for i in range(0, len(attrs), 3):
         k = attrs[i]
         if isinstance(k, int):
             k = strings[k]
         v_type = attrs[i + 1]
         v = attrs[i + 2]
-        if v_type == 1:  # Attribute value is a string
+        if v_type == V1AnyValueKeys.string:  # Attribute value is a string
             if isinstance(v, int):
                 v = strings[v]
+        elif v_type == V1AnyValueKeys.array:
+            attrs_dict[f"___{k}___system-tests-warning___"] = "The deserialization of {k} is weird"
+            # v[0] is the numrical id of k??
+            # v[1] is the value type ??
+            v = v[2:]
+
         attrs_dict[k] = v
+
+    for key in list(attrs_dict):
+        if key.startswith("_dd.appsec.s."):
+            attrs_dict[key] = json.loads(attrs_dict[key])
+        elif key in ("appsec", "_dd.stack"):
+            attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
+        elif key in ("_dd.span_links", "_dd.appsec.json"):
+            attrs_dict[key] = json.loads(attrs_dict[key])
+
     return attrs_dict
 
 
@@ -220,18 +240,27 @@ def _uncompress_spans_values(spans: list, strings: list[str]) -> list:
     return uncompressed_spans
 
 
-def _uncompress_spans(spans: list, strings: list[str]) -> list:
+def _uncompress_spans(spans: list[dict], strings: list[str]) -> list:
     uncompressed_spans = []
     for span in spans:
         uncompressed_span = {}
         for k, v in span.items():
             value = v
             try:
-                # Check if k is a valid enum value by trying to create the enum
-                enum_key = V1SpanKeys(k)
-                if enum_key.name in _span_key_strings and isinstance(value, int):
+                # Get the key name from its numerical id
+                key_name = V1SpanKeys[k]
+                if key_name in _span_key_strings and isinstance(value, int):
                     value = strings[v]
-                uncompressed_span[enum_key.name] = value
+                # Handle span_links specially - they need to be uncompressed
+                if key_name == "span_links":
+                    if value is not None:
+                        value = _uncompress_span_links_list(value, strings)
+                # Handle span_events specially - they need to be uncompressed
+                elif key_name == "span_events":
+                    if value is not None:
+                        # Debug: Uncompressing span events
+                        value = _uncompress_span_events_list(value, strings)
+                uncompressed_span[key_name] = value
             except ValueError as e:
                 raise ValueError(f"Unknown V1SpanKey: {k}") from e
         uncompressed_spans.append(uncompressed_span)
@@ -288,10 +317,143 @@ def deserialize_v1_trace(content: bytes) -> dict:
     return data
 
 
+def _uncompress_span_links_list(span_links: list | None, strings: list[str]) -> list | None:
+    """Uncompress a list of span links by converting integer keys to string keys."""
+    if span_links is None or not isinstance(span_links, list):
+        return span_links
+
+    uncompressed_links = []
+    for link in span_links:
+        if not isinstance(link, dict):
+            uncompressed_links.append(link)
+            continue
+        uncompressed_link = {}
+        for k, v in link.items():
+            value = v
+            try:
+                # Check if k is a valid enum value by trying to create the enum
+                enum_key = V1SpanLinkKeys(k)
+                # Convert integer key to string key name
+                uncompressed_link[enum_key.name] = value
+            except ValueError:
+                # Keep non-enum keys as-is (for backward compatibility)
+                uncompressed_link[k] = value
+
+        # Deserialize trace_id if present (handle both bytes and base64-encoded string)
+        if "trace_id" in uncompressed_link:
+            trace_id = uncompressed_link["trace_id"]
+            if isinstance(trace_id, bytes):
+                # Convert bytes to hex string (same as chunk trace IDs)
+                uncompressed_link["trace_id"] = "0x" + trace_id.hex().upper()
+            elif isinstance(trace_id, str):
+                try:
+                    # Decode the base64-encoded trace_id string to bytes, then to hex
+                    trace_id_bytes = base64.b64decode(trace_id)
+                    uncompressed_link["trace_id"] = "0x" + trace_id_bytes.hex().upper()
+                except Exception:  # noqa: S110
+                    # If it's not base64, it might already be in hex format
+                    pass
+
+        # Uncompress attributes
+        if "attributes" in uncompressed_link:
+            attrs = uncompressed_link["attributes"]
+            # Check if attributes are in list format (key, type, value triplets)
+            if isinstance(attrs, list):
+                uncompressed_link["attributes"] = _attributes_to_dict(attrs, strings)
+            else:
+                with contextlib.suppress(Exception):
+                    # If attributes can't be uncompressed, keep as-is
+                    uncompressed_link["attributes"] = _uncompress_attributes(attrs, strings)
+
+        # Resolve tracestateRef to tracestate (if present as integer key)
+        if "trace_state" in uncompressed_link:
+            trace_state = uncompressed_link["trace_state"]
+            # If trace_state is an integer, it might be a reference to strings array
+            if isinstance(trace_state, int) and trace_state < len(strings):
+                uncompressed_link["tracestate"] = strings[trace_state]
+
+        uncompressed_links.append(uncompressed_link)
+    return uncompressed_links
+
+
+def _uncompress_span_events_list(span_events: list | None, strings: list[str]) -> list | None:
+    """Uncompress a list of span events by converting integer keys to string keys."""
+    if span_events is None or not isinstance(span_events, list):
+        return span_events
+
+    uncompressed_events = []
+    for event in span_events:
+        if not isinstance(event, dict):
+            uncompressed_events.append(event)
+            continue
+        uncompressed_event = {}
+        for k, v in event.items():
+            value = v
+            try:
+                # Check if k is a valid enum value by trying to create the enum
+                enum_key = V1SpanEventKeys(k)
+                # Convert integer key to string key name
+                # Map time -> time_unix_nano and name_value -> name for consistency
+                if enum_key == V1SpanEventKeys.time:
+                    uncompressed_event["time_unix_nano"] = value
+                elif enum_key == V1SpanEventKeys.name_value:
+                    # Resolve name_value from strings array if it's an integer
+                    if isinstance(value, int) and value < len(strings):
+                        uncompressed_event["name"] = strings[value]
+                    else:
+                        uncompressed_event["name"] = value
+                else:
+                    uncompressed_event[enum_key.name] = value
+            except ValueError:
+                # Keep non-enum keys as-is (for backward compatibility)
+                uncompressed_event[k] = value
+
+        # Uncompress attributes
+        if "attributes" in uncompressed_event:
+            attrs = uncompressed_event["attributes"]
+            # Check if attributes are in list format (key, type, value triplets)
+            if isinstance(attrs, list):
+                uncompressed_event["attributes"] = _attributes_to_dict(attrs, strings)
+            else:
+                with contextlib.suppress(Exception):
+                    # If attributes can't be uncompressed, keep as-is
+                    uncompressed_event["attributes"] = _uncompress_attributes(attrs, strings)
+
+        uncompressed_events.append(uncompressed_event)
+    return uncompressed_events
+
+
 def _uncompress_span_link(link: dict, strings: list[str]) -> None:
-    """Uncompress a span link by deserializing traceID, attributes, and tracestate."""
-    # Deserialize the base64-encoded traceID
-    _deserialize_base64_trace_id(link)
+    """Uncompress a span link by deserializing traceID, attributes, and tracestate.
+    This function is used for agent interface where links are already partially processed.
+    """
+    # Convert integer keys to string keys if needed
+    if any(isinstance(k, int) for k in link):
+        uncompressed_link = {}
+        for k, v in link.items():
+            try:
+                enum_key = V1SpanLinkKeys(k)
+                uncompressed_link[enum_key.name] = v
+            except ValueError:
+                # Keep non-enum keys as-is
+                uncompressed_link[k] = v
+        link.clear()
+        link.update(uncompressed_link)
+
+    # Deserialize traceID (handle both bytes and base64-encoded string)
+    if "trace_id" in link:
+        trace_id = link["trace_id"]
+        if isinstance(trace_id, bytes):
+            # Convert bytes to hex string (same as chunk trace IDs)
+            link["trace_id"] = "0x" + trace_id.hex().upper()
+        elif isinstance(trace_id, str) and not trace_id.startswith("0x"):
+            try:
+                trace_id_bytes = base64.b64decode(trace_id)
+                link["trace_id"] = "0x" + trace_id_bytes.hex().upper()
+            except Exception:  # noqa: S110
+                pass
+    elif "traceID" in link:
+        _deserialize_base64_trace_id(link)
 
     # Uncompress attributes
     if "attributes" in link:
@@ -302,6 +464,53 @@ def _uncompress_span_link(link: dict, strings: list[str]) -> None:
         tracestate_ref = link.pop("tracestateRef")
         if isinstance(tracestate_ref, int) and tracestate_ref < len(strings):
             link["tracestate"] = strings[tracestate_ref]
+    elif "trace_state" in link:
+        trace_state = link["trace_state"]
+        if isinstance(trace_state, int) and trace_state < len(strings):
+            link["tracestate"] = strings[trace_state]
+
+
+def _uncompress_span_event(event: dict, strings: list[str]) -> None:
+    """Uncompress a span event by deserializing time, name, and attributes.
+    This function is used for agent interface where events are already partially processed.
+    """
+    # Convert integer keys to string keys if needed
+    if any(isinstance(k, int) for k in event):
+        uncompressed_event = {}
+        for k, v in event.items():
+            try:
+                enum_key = V1SpanEventKeys(k)
+                # Map time -> time_unix_nano and name_value -> name for consistency
+                if enum_key == V1SpanEventKeys.time:
+                    uncompressed_event["time_unix_nano"] = v
+                elif enum_key == V1SpanEventKeys.name_value:
+                    # Resolve name_value from strings array if it's an integer
+                    if isinstance(v, int) and v < len(strings):
+                        uncompressed_event["name"] = strings[v]
+                    else:
+                        uncompressed_event["name"] = v
+                else:
+                    uncompressed_event[enum_key.name] = v
+            except ValueError:
+                # Keep non-enum keys as-is
+                uncompressed_event[k] = v
+        event.clear()
+        event.update(uncompressed_event)
+    else:
+        # Handle name_value -> name mapping even if keys are already strings
+        if "name_value" in event:
+            name_value = event.pop("name_value")
+            if isinstance(name_value, int) and name_value < len(strings):
+                event["name"] = strings[name_value]
+            else:
+                event["name"] = name_value
+        # Handle time -> time_unix_nano mapping
+        if "time" in event and "time_unix_nano" not in event:
+            event["time_unix_nano"] = event.pop("time")
+
+    # Uncompress attributes
+    if "attributes" in event:
+        event["attributes"] = _uncompress_attributes(event["attributes"], strings)
 
 
 def _uncompress_agent_v1_trace(data: dict, interface: str):
@@ -323,4 +532,9 @@ def _uncompress_agent_v1_trace(data: dict, interface: str):
                 # Uncompress span links
                 for link in span.get("links", []):
                     _uncompress_span_link(link, strings)
+                # Uncompress span events (handle both camelCase and snake_case field names)
+                span_events = span.get("spanEvents") or span.get("span_events")
+                if span_events:
+                    for event in span_events:
+                        _uncompress_span_event(event, strings)
     return data

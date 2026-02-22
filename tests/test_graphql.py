@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import copy
 import json
 from typing import Any
 from utils import (
@@ -11,6 +12,7 @@ from utils import (
     features,
     scenarios,
 )
+from utils.dd_types import DataDogSpan, TraceLibraryPayloadFormat
 from collections import defaultdict
 
 COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
@@ -93,14 +95,14 @@ class BaseGraphQLOperationError:
         assert isinstance(attributes[self.type_key], str)
         assert isinstance(attributes[self.stacktrace_key], str)
 
-    def _validate_graphql_attributes(self, attributes: dict, span: dict) -> None:
+    def _validate_graphql_attributes(self, attributes: dict, span: DataDogSpan) -> None:
         """Validate GraphQL-specific attributes (path, locations)"""
         for path in attributes[self.path_key]:
-            assert isinstance(path, str)
+            assert isinstance(path, str), attributes
 
         if self._has_location(span):
             location = attributes[self.locations_key]
-            assert len(location) == 1
+            assert len(location) == 1, f"{self.locations_key} has more than one item"
 
             for loc in location:
                 assert len(loc.split(":")) == 2
@@ -133,17 +135,20 @@ class BaseGraphQLOperationError:
         return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
 
     @staticmethod
-    def _has_location(span: dict) -> bool:
+    def _has_location(span: DataDogSpan) -> bool:
         lang = span.get("meta", {}).get("language", "")
         component = span.get("meta", {}).get("component", "")
         return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
 
     @staticmethod
-    def _get_events(span: dict) -> dict:
+    def _get_events(span: DataDogSpan) -> list[dict]:
+        if span.trace.format == TraceLibraryPayloadFormat.v10:
+            return span["span_events"]
+
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
-            events = span["span_events"]
+            events = copy.deepcopy(span["span_events"])
             for event in events:
                 attributes = event["attributes"]
 
