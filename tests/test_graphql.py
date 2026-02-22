@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import copy
 import json
 from typing import Any
 from utils import (
@@ -101,7 +102,7 @@ class BaseGraphQLOperationError:
 
         if self._has_location(span):
             location = attributes[self.locations_key]
-            assert len(location) == 1
+            assert len(location) == 1, f"{self.locations_key} has more than one item"
 
             for loc in location:
                 assert len(loc.split(":")) == 2
@@ -147,7 +148,7 @@ class BaseGraphQLOperationError:
         if "events" in span["meta"]:
             return json.loads(span["meta"]["events"])
         else:
-            events = span["span_events"]
+            events = copy.deepcopy(span["span_events"])
             for event in events:
                 attributes = event["attributes"]
 

@@ -168,9 +168,15 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             k = strings[k]
         v_type = attrs[i + 1]
         v = attrs[i + 2]
-        if v_type == 1:  # Attribute value is a string
+        if v_type == V1AnyValueKeys.string:  # Attribute value is a string
             if isinstance(v, int):
                 v = strings[v]
+        elif v_type == V1AnyValueKeys.array:
+            attrs_dict[f"___{k}___system-tests-warning___"] = "The deserialization of {k} is weird"
+            # v[0] is the numrical id of k??
+            # v[1] is the value type ??
+            v = v[2:]
+
         attrs_dict[k] = v
 
     for key in list(attrs_dict):
@@ -408,14 +414,6 @@ def _uncompress_span_events_list(span_events: list | None, strings: list[str]) -
             # Check if attributes are in list format (key, type, value triplets)
             if isinstance(attrs, list):
                 uncompressed_event["attributes"] = _attributes_to_dict(attrs, strings)
-
-                if "path" in uncompressed_event["attributes"] and isinstance(
-                    uncompressed_event["attributes"]["path"], list
-                ):
-                    uncompressed_event["attributes"]["path"] = _attributes_to_dict(
-                        uncompressed_event["attributes"]["path"], strings
-                    )
-
             else:
                 with contextlib.suppress(Exception):
                     # If attributes can't be uncompressed, keep as-is
