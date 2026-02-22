@@ -194,7 +194,7 @@ def assert_api_gateway_span(
         )
 
     if is_distributed:
-        assert span["trace_id"] == DISTRIBUTED_TRACE_ID
+        assert span.trace.trace_id_as_int == DISTRIBUTED_TRACE_ID
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
         assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
 
