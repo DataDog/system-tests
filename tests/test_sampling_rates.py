@@ -159,7 +159,7 @@ class Test_SamplingDecisions:
                 )
 
             sampling_decision = priority_should_be_kept(sampling_priority)
-            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
+            expected_decision = trace_should_be_kept(context.tracer_sampling_rate, trace.trace_id_as_int)
             if sampling_decision != expected_decision:
                 if sampling_decision and root_span["meta"].get("_dd.p.dm") == "-5":
                     # If the decision maker is set to -5, it means that the trace has been sampled due
@@ -194,14 +194,18 @@ class Test_SamplingDecisionAdded:
         """Verify that the distributed traces without sampling decisions have a sampling decision added"""
 
         traces = {trace["parent_id"]: trace for trace in self.traces}
+        parent_ids = set(traces.keys())
         spans = []
 
-        def validator(data: dict):
-            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
+        for data, trace in interfaces.library.get_traces():
+            for span in trace:
+                if span.get("parent_id") not in parent_ids:
+                    continue
+
                 expected_trace_id = traces[span["parent_id"]]["trace_id"]
                 spans.append(span)
 
-                assert span["trace_id"] == expected_trace_id, (
+                assert trace.trace_id_as_int == expected_trace_id, (
                     f"Message: {data['log_filename']}: If parent_id matches, "
                     f"trace_id should match too expected trace_id {expected_trace_id} "
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
@@ -212,8 +216,6 @@ class Test_SamplingDecisionAdded:
                 assert sampling_priority is not None, (
                     f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
                 )
-
-        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         if len(spans) != len(traces):
             raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
