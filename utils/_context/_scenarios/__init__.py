@@ -1174,6 +1174,19 @@ class _Scenarios:
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )
+    appsec_with_restart_propagation = EndToEndScenario(
+        "APPSEC_WITH_RESTART_PROPAGATION",
+        weblog_env={"DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart"},
+        appsec_enabled=True,
+        doc="Appsec scenario with restart propagation",
+        scenario_groups=[scenario_groups.appsec],
+    )
+    appsec_without_restart_propagation = EndToEndScenario(
+        "APPSEC_WITHOUT_RESTART_PROPAGATION",
+        appsec_enabled=True,
+        doc="Appsec scenario without restart propagation",
+        scenario_groups=[scenario_groups.appsec],
+    )
 
     ai_guard = EndToEndScenario(
         "AI_GUARD",

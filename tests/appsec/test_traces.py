@@ -24,6 +24,8 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 @scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
+@scenarios.appsec_with_restart_propagation
+@scenarios.appsec_without_restart_propagation
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
 
@@ -67,6 +69,8 @@ class Test_RetainTraces:
 @scenarios.go_proxies_default
 @scenarios.default
 @scenarios.appsec_lambda_default
+@scenarios.appsec_with_restart_propagation
+@scenarios.appsec_without_restart_propagation
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
 
