@@ -84,6 +84,39 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true"}])
+    def test_span_started_with_link_v1(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Test adding a span link created from another span and serialized in the expected v1.0 format.
+        This tests the functionality of "create a direct link between two spans
+        given two valid span (or SpanContext) objects" as specified in the RFC.
+        """
+        with test_library:
+            with test_library.dd_start_span("first") as s1:
+                pass
+
+            with test_library.dd_start_span("second") as s2:
+                s2.add_link(parent_id=s1.span_id, attributes={"foo": "bar", "array": ["a", "b", "c"]})
+
+        traces = test_agent.wait_for_num_traces(2)
+        trace1 = find_trace(traces, s1.trace_id)
+        assert len(trace1) == 1
+        trace2 = find_trace(traces, s2.trace_id)
+        assert len(trace2) == 1
+
+        first = find_span(trace1, s1.span_id)
+        second = find_span(trace2, s2.span_id)
+
+        span_links = second.get("span_links", [])
+        assert len(span_links) == 1
+        link = span_links[0]
+        # in v1.0, trace_id is already sent as a bytes object
+        assert isinstance(link.get("trace_id"), bytes), f"trace_id should be bytes, got {type(link.get('trace_id'))}"
+        assert link.get("span_id") == "{:016x}".format(first["span_id"])
+        assert link["attributes"].get("foo") == "bar"
+        assert link["attributes"].get("array.0") == "a"
+        assert link["attributes"].get("array.1") == "b"
+        assert link["attributes"].get("array.2") == "c"
+
     def test_span_link_from_distributed_datadog_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for
