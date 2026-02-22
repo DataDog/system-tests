@@ -110,11 +110,10 @@ class Test_Feature_Flag_Dynamic_Evaluation:
 
         """
         # Skip OF.7 (empty targeting key) test for libraries with known bugs
-        # Java: FFL-1729 - OpenFeature Java SDK rejects empty targeting keys
         # Node.js: FFL-1730 - OpenFeature JS SDK rejects empty targeting keys
         if test_case_file == "test-case-of-7-empty-targeting-key.json":
-            if context.library.name in ("java", "nodejs"):
-                pytest.skip("OF.7 empty targeting key bug: FFL-1729 (java), FFL-1730 (nodejs)")
+            if context.library.name == "nodejs":
+                pytest.skip("OF.7 empty targeting key bug: FFL-1730 (nodejs)")
 
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
@@ -165,7 +164,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         is an empty string. The flag should still match allocations and return
         the expected value, not fail with TARGETING_KEY_MISSING.
 
-        Temporary dedicated test until FFL-1729 (Java) and FFL-1730 (Node.js) are resolved.
+        Temporary dedicated test until FFL-1730 (Node.js) is resolved.
         """
         # Set up UFC Remote Config and wait for it to be applied
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
