@@ -654,7 +654,6 @@ manifest:
     - declaration: missing_feature (The always_on sampler mapping is properly implemented in v1.2.0)
       component_version: <=1.1.0
   tests/parametric/test_otel_logs.py: missing_feature
-  tests/parametric/test_otel_metrics.py: missing_feature
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
