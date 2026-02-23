@@ -1,4 +1,4 @@
-from utils import context, weblog, interfaces, rfc, scenarios, missing_feature, features
+from utils import weblog, interfaces, rfc, scenarios, features
 from utils.dd_constants import (
     SAMPLING_PRIORITY_KEY,
     SINGLE_SPAN_SAMPLING_MECHANISM,
@@ -10,8 +10,6 @@ from utils.dd_constants import (
 
 
 @rfc("ATI-2419")
-@missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
-@missing_feature(context.library in ["java", "golang"], reason="todo: review the tests for java and golang")
 @scenarios.apm_tracing_e2e_single_span
 @features.single_span_ingestion_control
 class Test_SingleSpan:

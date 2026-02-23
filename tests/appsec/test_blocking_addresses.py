@@ -16,10 +16,11 @@ from utils import (
     features,
     HttpResponse,
 )
+from utils.dd_types import DataDogSpan
 
 
 def _assert_custom_event_tag_presence(expected_value: str):
-    def wrapper(span: dict):
+    def wrapper(span: DataDogSpan):
         tag = "appsec.events.system_tests_appsec_event.value"
         assert tag in span["meta"], f"Can't find {tag} in span's meta"
         value = span["meta"][tag]
@@ -30,7 +31,7 @@ def _assert_custom_event_tag_presence(expected_value: str):
 
 
 def _assert_custom_event_tag_absence():
-    def wrapper(span: dict):
+    def wrapper(span: DataDogSpan):
         tag = "appsec.events.system_tests_appsec_event.value"
         assert tag not in span["meta"], f"Found {tag} in span's meta"
         return True

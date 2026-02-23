@@ -59,7 +59,7 @@ module Hello
   module_function
 
   def run
-    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+    [200, { 'Content-Type' => 'text/plain' }, ["Hello world!\n"]]
   end
 end
 

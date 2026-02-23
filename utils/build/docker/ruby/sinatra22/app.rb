@@ -32,7 +32,7 @@ else
 end
 
 get '/' do
-  'Hello, world!'
+  "Hello world!\n"
 end
 
 get '/healthcheck' do

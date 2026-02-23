@@ -53,7 +53,7 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
 
         self.wait_for_all_probes(statuses=["EMITTING"])
 
-        if not self.wait_for_snapshot_received(timeout=60):
+        if not self.wait_for_all_snapshots(timeout=60):
             self.setup_failures.append("Snapshot was not received")
 
     def _assert(self):
@@ -190,7 +190,6 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library < "java@1.59.0", reason="DEBUG-4929", force_skip=True)
 class Test_Debugger_Line_Capture_Expressions(BaseDebuggerCaptureExpressionsTest):

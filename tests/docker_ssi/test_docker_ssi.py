@@ -44,6 +44,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
+    @bug(context.library < "ruby@2.29.0-dev" and "deployment-mode" in context.weblog_variant, reason="APMLP-1047")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
         assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
@@ -65,6 +66,7 @@ class TestDockerSSIFeatures:
         condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="APMON-1490",
     )
+    @bug(context.library < "ruby@2.29.0-dev" and "deployment-mode" in context.weblog_variant, reason="APMLP-1047")
     def test_install_weblog_running(self):
         logger.info(f"Testing Docker SSI installation. The weblog should be running: {context.library}")
         assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
@@ -79,6 +81,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
+    @bug(context.library < "ruby@2.29.0-dev" and "deployment-mode" in context.weblog_variant, reason="APMLP-1047")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -108,6 +111,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
     @irrelevant(context.library == "dotnet" and context.installed_language_runtime >= "6.0.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime >= "2.6.0")
+    @bug(context.library < "ruby@2.29.0-dev" and "deployment-mode" in context.weblog_variant, reason="APMLP-1047")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -148,6 +152,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
+    @bug(context.library < "ruby@2.29.0-dev" and "deployment-mode" in context.weblog_variant, reason="APMLP-1047")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # Get the latest (effective) configurations
@@ -168,6 +173,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
+    @bug(context.library < "ruby@2.29.0-dev" and "deployment-mode" in context.weblog_variant, reason="APMLP-1047")
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()

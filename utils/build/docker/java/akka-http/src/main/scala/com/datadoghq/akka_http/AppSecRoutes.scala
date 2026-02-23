@@ -46,7 +46,7 @@ object AppSecRoutes {
         val span = tracer.buildSpan("test-span").start
         span.setTag("test-tag", "my value")
         withSpan(span) {
-          complete("Hello world!")
+          complete("Hello world!\n")
         }
       }
     } ~
