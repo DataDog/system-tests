@@ -26,7 +26,7 @@ class Const:
         self.build_attributes()
 
     def shell_export(self, name: str) -> str:
-        return reduce(lambda acc, e: acc + "|" + e, self.categories[name], "").strip("|")
+        return reduce(lambda acc, e: acc + "|" + e, sorted(self.categories[name]), "").strip("|")
 
     def build_attributes(self) -> None: ...
 

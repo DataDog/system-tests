@@ -85,7 +85,7 @@ setup_buildx() {
     docker buildx use dd-builder
 }
 
-VALID_LIBRARIES=$(python -m utils.const LIBRARIES lib_injection)
+VALID_LIBRARIES=$(python3 -m utils.const LIBRARIES lib_injection)
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
