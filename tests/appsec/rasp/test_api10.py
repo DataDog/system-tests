@@ -6,6 +6,7 @@ import json
 import urllib.parse
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils.dd_types import DataDogSpan
 
 from tests.appsec.rasp.utils import (
     find_series,
@@ -27,7 +28,7 @@ class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
     TAGS_EXPECTED_METRIC: list[tuple[str, str]] = []
 
-    def validate(self, span: dict):
+    def validate(self, span: DataDogSpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -43,7 +44,7 @@ class API10:
 
         return True
 
-    def validate_metric(self, span: dict):
+    def validate_metric(self, span: DataDogSpan):
         for tag, expected in self.TAGS_EXPECTED_METRIC:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
@@ -290,7 +291,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogSpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -321,7 +322,7 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogSpan):
         if span.get("parent_id") not in (0, None):
             return None
 

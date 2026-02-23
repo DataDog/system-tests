@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, features
+from utils.dd_types import DataDogSpan
 
 
 @features.user_monitoring
@@ -15,7 +16,7 @@ class Test_Basic:
     def test_identify_tags_with_attack(self):
         # Send a random attack on the identify endpoint - should not affect the usr.id tag
 
-        def validate_identify_tags(span: dict):
+        def validate_identify_tags(span: DataDogSpan):
             for tag in ["id", "name", "email", "session_id", "role", "scope"]:
                 key = f"usr.{tag}"
                 assert key in span["meta"], f"Can't find {key} in span's meta"

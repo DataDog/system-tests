@@ -3,9 +3,10 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, rfc, features
+from utils.dd_types import DataDogSpan
 
 
-def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
+def assert_tag_in_span_meta(span: DataDogSpan, tag: str, expected: str):
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -15,7 +16,7 @@ def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
 
 
 def validate_identify_tags(tags: dict[str, str] | list[str]):
-    def inner_validate(span: dict):
+    def inner_validate(span: DataDogSpan):
         for tag in tags:
             if isinstance(tags, dict):
                 assert_tag_in_span_meta(span, tag, tags[tag])
@@ -97,7 +98,7 @@ class Test_Propagate:
     def test_identify_tags_incoming(self):
         """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
 
-        def usr_id_not_present(span: dict):
+        def usr_id_not_present(span: DataDogSpan):
             if "usr.id" in span["meta"]:
                 raise Exception("usr.id must not be present in this span")
             return True
