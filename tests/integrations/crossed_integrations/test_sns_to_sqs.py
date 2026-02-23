@@ -1,8 +1,8 @@
-from __future__ import annotations
 import json
 
 from utils.buddies import python_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, context, logger
+from utils.dd_types import DataDogSpan
 
 
 class _BaseSNS:
@@ -24,7 +24,7 @@ class _BaseSNS:
         queue: str,
         topic: str,
         operation: str,
-    ) -> dict | None:
+    ) -> DataDogSpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -67,14 +67,14 @@ class _BaseSNS:
                 elif queue != cls.get_queue(span):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
         return None
 
     @staticmethod
-    def get_queue(span: dict) -> str | None:
+    def get_queue(span: DataDogSpan) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
@@ -90,7 +90,7 @@ class _BaseSNS:
         return queue
 
     @staticmethod
-    def get_topic(span: dict) -> str | None:
+    def get_topic(span: DataDogSpan) -> str | None:
         """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("topicname", None)  # this is in nodejs, java, python
 

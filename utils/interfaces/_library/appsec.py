@@ -8,6 +8,7 @@ from collections import Counter
 from collections.abc import Callable
 from utils.interfaces._library.appsec_data import rule_id_to_type
 from utils._logger import logger
+from utils.dd_types import DataDogSpan
 
 
 class _WafAttack:
@@ -69,7 +70,7 @@ class _WafAttack:
 
         return result
 
-    def validate(self, span: dict, appsec_data: dict):
+    def validate(self, span: DataDogSpan, appsec_data: dict):
         if "triggers" not in appsec_data:
             logger.error("triggers is not in appsec_data")
 
@@ -172,7 +173,7 @@ class _ReportedHeader:
 
         return True
 
-    def validate(self, span: dict, appsec_data: dict):  # noqa: ARG002
+    def validate(self, span: DataDogSpan, appsec_data: dict):  # noqa: ARG002
         headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 
