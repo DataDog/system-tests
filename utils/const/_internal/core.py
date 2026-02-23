@@ -7,28 +7,28 @@ import yaml
 
 def load(path: Path) -> dict[str, set[str]]:
     content = yaml.safe_load(path.read_text())
-    categories: dict[str, set[str]] = {"all": set()}
+    groups: dict[str, set[str]] = {"all": set()}
     for element, element_cats in content.items():
-        categories["all"].add(element)
+        groups["all"].add(element)
         for category in element_cats:
-            if category not in categories:
-                categories[category] = set()
-            categories[category].add(element)
-    return categories
+            if category not in groups:
+                groups[category] = set()
+            groups[category].add(element)
+    return groups
 
 
 class Const:
-    categories: dict[str, set[str]]
+    groups: dict[str, set[str]]
     path: Path
 
     def __init__(self) -> None:
-        self.categories = load(self.path)
-        self.build_attributes()
+        self.groups = load(self.path)
+        self._build_attributes()
 
-    def shell_export(self, name: str) -> str:
-        return reduce(lambda acc, e: acc + "|" + e, sorted(self.categories[name]), "").strip("|")
+    def _shell_export(self, name: str) -> str:
+        return reduce(lambda acc, e: acc + "|" + e, sorted(self.groups[name]), "").strip("|")
 
-    def build_attributes(self) -> None: ...
+    def _build_attributes(self) -> None: ...
 
 
 class ConstList:

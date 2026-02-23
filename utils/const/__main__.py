@@ -10,7 +10,7 @@ def main() -> None:
     parser.add_argument("--static", action="store_true")
     args = parser.parse_args()
 
-    export = globals()[args.category].shell_export(args.group)
+    export = globals()[args.category]._shell_export(args.group)  # noqa: SLF001
     if args.static:
         path = Path(f"utils/const/static/{args.category}")
         path.mkdir(parents=True, exist_ok=True)
