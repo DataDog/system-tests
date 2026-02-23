@@ -19,10 +19,10 @@ def load(path: Path) -> dict[str, set[str]]:
 
 class Const:
     groups: dict[str, set[str]]
-    path: Path
+    _path: Path
 
     def __init__(self) -> None:
-        self.groups = load(self.path)
+        self.groups = load(self._path)
         self._build_attributes()
 
     def _shell_export(self, name: str) -> str:
