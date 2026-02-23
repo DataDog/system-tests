@@ -6,7 +6,7 @@ from enum import StrEnum
 import os
 import re
 from utils._logger import logger as _logger
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogSpan, DataDogAgentSpan
 
 
 class ShColors(StrEnum):
@@ -57,7 +57,7 @@ def e(message: str) -> str:
     return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
-def get_rid_from_span(span: DataDogSpan) -> str | None:
+def get_rid_from_span(span: DataDogSpan | DataDogAgentSpan) -> str | None:
     meta = span.get("meta", {})
     metrics = span.get("metrics", {})
 

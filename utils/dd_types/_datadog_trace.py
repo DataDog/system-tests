@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any
 
 
-class TraceLibraryPayloadFormat(StrEnum):
+class LibraryTraceFormat(StrEnum):
     """Describe which format is used to carry trace payloads from the library to the agent
     This enum is used only in system-tests to differentiate between different library payloads
     and is not exposed directly in trace payloads.
@@ -27,7 +27,7 @@ class DataDogTrace(ABC):
     data: dict
     """raw request and response sent to the agent"""
 
-    format: TraceLibraryPayloadFormat
+    format: LibraryTraceFormat
 
     raw_trace: dict | list[dict]
     """raw trace object"""
@@ -82,9 +82,9 @@ class DataDogTraceLegacy(DataDogTrace):
 
         self.raw_trace: list[dict] = raw_trace
 
-        self.format: TraceLibraryPayloadFormat = {
-            "/v0.4/traces": TraceLibraryPayloadFormat.v04,
-            "/v0.5/traces": TraceLibraryPayloadFormat.v05,
+        self.format: LibraryTraceFormat = {
+            "/v0.4/traces": LibraryTraceFormat.v04,
+            "/v0.5/traces": LibraryTraceFormat.v05,
         }[data["path"]]
 
         self.spans = [DataDogSpanLegacy(self, s) for s in self.raw_trace]
@@ -104,7 +104,7 @@ class DataDogTracev1(DataDogTrace):
 
         self.raw_trace: dict = raw_trace
 
-        self.format = TraceLibraryPayloadFormat.v10
+        self.format = LibraryTraceFormat.v10
 
         self.spans = [DataDogSpanV1(self, s) for s in self.raw_trace["spans"]]
 

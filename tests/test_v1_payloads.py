@@ -1,6 +1,6 @@
 from utils import weblog, interfaces, scenarios, features
 from utils.dd_constants import SamplingPriority, SamplingMechanism, SpanKind
-from utils.dd_types import TraceLibraryPayloadFormat
+from utils.dd_types import AgentTraceFormat
 
 
 @features.efficient_trace_payload
@@ -10,7 +10,7 @@ class Test_V1PayloadByDefault:
     def test_main(self):
         for data, trace in interfaces.library.get_traces():
             assert data["path"] == "/v1.0/traces"
-            assert trace.format == TraceLibraryPayloadFormat.v10
+            assert trace.format == AgentTraceFormat.efficient_trace_payload_format
 
 
 @scenarios.apm_tracing_efficient_payload
@@ -20,10 +20,10 @@ class Test_V1Payloads:
         self.r = weblog.get("/status?code=500")
 
     def test_field_changes(self):
-        traces = list(interfaces.library.get_traces(self.r))
-        agent_chunks = list(interfaces.agent.get_chunks_v1(self.r))
-        assert len(traces) == 1
-        _, trace = traces[0]
+        library_traces = list(interfaces.library.get_traces(self.r))
+        agent_traces = list(interfaces.agent.get_traces(self.r))
+        assert len(library_traces) == 1
+        _, trace = library_traces[0]
         assert isinstance(trace.raw_trace, dict)
         assert len(trace.raw_trace["spans"]) == 1
         assert len(trace.raw_trace["trace_id"]) == 34  # 32 bytes for ID and 2 for "0x"
@@ -37,7 +37,8 @@ class Test_V1Payloads:
         assert span.raw_span["component"] == "net/http"
         assert span.raw_span["span_kind"] == SpanKind.SERVER
 
-        assert len(agent_chunks) == 1
-        _, agent_chunk = agent_chunks[0]
-        assert len(agent_chunk["spans"]) == 1
-        assert agent_chunk["traceID"] == trace.raw_trace["trace_id"]
+        assert len(agent_traces) == 1
+        _, agent_trace = agent_traces[0]
+        assert agent_trace.format == AgentTraceFormat.efficient_trace_payload_format
+        assert len(agent_trace.spans) == 1
+        assert agent_trace.get_trace_id() == trace.raw_trace["trace_id"]

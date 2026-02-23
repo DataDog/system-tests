@@ -12,7 +12,7 @@ from utils import (
     features,
     scenarios,
 )
-from utils.dd_types import DataDogSpan, TraceLibraryPayloadFormat
+from utils.dd_types import DataDogSpan, LibraryTraceFormat
 from collections import defaultdict
 
 COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
@@ -142,7 +142,7 @@ class BaseGraphQLOperationError:
 
     @staticmethod
     def _get_events(span: DataDogSpan) -> list[dict]:
-        if span.trace.format == TraceLibraryPayloadFormat.v10:
+        if span.trace.format == LibraryTraceFormat.v10:
             return span["span_events"]
 
         if "events" in span["meta"]:

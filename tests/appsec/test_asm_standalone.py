@@ -9,7 +9,7 @@ from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
 from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
-from utils.dd_types import DataDogSpan, DataDogTrace, TraceLibraryPayloadFormat
+from utils.dd_types import DataDogSpan, DataDogTrace, AgentTraceFormat
 
 USER = "test"
 NEW_USER = "testnew"
@@ -62,7 +62,7 @@ def assert_tags(
 
 
 def _assert_trace_id(trace: DataDogTrace, span: DataDogSpan, trace_id: int) -> None:
-    if trace.format == TraceLibraryPayloadFormat.v10:
+    if trace.format == AgentTraceFormat.efficient_trace_payload_format:
         assert trace.trace_id_equals(trace_id)
     else:
         assert span.raw_span["trace_id"] == trace_id

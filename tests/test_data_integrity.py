@@ -6,8 +6,8 @@
 
 import string
 from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
-from utils.dd_types import DataDogTrace, TraceLibraryPayloadFormat
+from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogTrace, LibraryTraceFormat, AgentTraceFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -215,7 +215,7 @@ class Test_LibraryHeaders:
             assert isinstance(trace_id, int)
             assert trace_id > 0
 
-            if trace.format in (TraceLibraryPayloadFormat.v04, TraceLibraryPayloadFormat.v05):
+            if trace.format in (LibraryTraceFormat.v04, LibraryTraceFormat.v05):
                 for span in trace:
                     assert span.raw_span["trace_id"] == trace_id
 
@@ -229,17 +229,15 @@ class Test_Agent:
 
         # get list of trace ids reported by the agent
         trace_ids_reported_by_agent = set[int]()
-        for _, chunk, chunk_format in interfaces.agent.get_traces():
-            if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        for _, chunk in interfaces.agent.get_traces():
+            if chunk.format == AgentTraceFormat.efficient_trace_payload_format:
                 # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
                 # We need to convert it to an integer taking only the lower 64 bits
                 # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
-                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+                trace_id = int(chunk.get_trace_id(), 16) & 0xFFFFFFFFFFFFFFFF
                 trace_ids_reported_by_agent.add(trace_id)
-            elif chunk_format == TraceAgentPayloadFormat.legacy:
-                for span in chunk["spans"]:
-                    trace_ids_reported_by_agent.add(int(span["traceID"]))
-                    break
+            elif chunk.format == AgentTraceFormat.legacy:
+                trace_ids_reported_by_agent.add(int(chunk.get_trace_id()))
 
         def get_span_with_sampling_data(trace: DataDogTrace):
             # The root span is not necessarily the span wherein the sampling priority can be found.

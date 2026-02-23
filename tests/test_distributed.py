@@ -4,9 +4,8 @@
 
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context
-from utils.dd_constants import TraceAgentPayloadFormat
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.dd_types import DataDogSpan, TraceLibraryPayloadFormat
+from utils.dd_types import DataDogSpan, LibraryTraceFormat, DataDogAgentTrace, AgentTraceFormat
 
 
 @scenarios.trace_propagation_style_w3c
@@ -212,7 +211,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
 
 
 def _retrieve_span_links(span: DataDogSpan):
-    if span.trace.format == TraceLibraryPayloadFormat.v10:
+    if span.trace.format == LibraryTraceFormat.v10:
         return span.raw_span["attributes"].get("_dd.span_links")
 
     if span.get("span_links") is not None:
@@ -266,15 +265,15 @@ class Test_Synthetics_APM_Datadog:
         traces = list(interfaces.agent.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
-        _, trace, trace_format = traces[0]
-        self.assert_trace_id_equals(trace, trace_format, "1234567890")
+        _, trace = traces[0]
+        self.assert_trace_id_equals(trace, "1234567890")
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, span_format)
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
+        meta = interfaces.agent.get_span_meta(span)
+        metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
@@ -293,28 +292,27 @@ class Test_Synthetics_APM_Datadog:
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
-        _, trace, trace_format = traces[0]
-        self.assert_trace_id_equals(trace, trace_format, "1234567891")
+        _, trace = traces[0]
+        self.assert_trace_id_equals(trace, "1234567891")
 
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, span_format)
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
+        meta = interfaces.agent.get_span_meta(span)
+        metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics-browser"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
     @staticmethod
-    def assert_trace_id_equals(trace: dict, trace_format: TraceAgentPayloadFormat, expected_trace_id: str) -> None:
-        if trace_format == TraceAgentPayloadFormat.legacy:
-            actual_trace_id = str(trace["spans"][0]["traceID"])
+    def assert_trace_id_equals(trace: DataDogAgentTrace, expected_trace_id: str) -> None:
+        actual_trace_id = trace.get_trace_id()
+        if trace.format == AgentTraceFormat.legacy:
             assert expected_trace_id == actual_trace_id
-        elif trace_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-            actual_trace_id = str(trace["traceID"])
+        elif trace.format == AgentTraceFormat.efficient_trace_payload_format:
             # In efficient trace payload format, traceID is in hex format
             actual_trace_id = str(int(actual_trace_id, 16))
             assert actual_trace_id == expected_trace_id
         else:
-            raise ValueError(f"Unknown span format: {trace_format}")
+            raise ValueError(f"Unknown span format: {trace.format}")

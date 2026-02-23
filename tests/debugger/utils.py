@@ -12,7 +12,8 @@ from urllib.parse import parse_qs
 from typing import TypedDict, Literal, Any
 
 from utils import interfaces, remote_config, weblog, context, logger
-from utils.dd_constants import RemoteConfigApplyState as ApplyState, TraceAgentPayloadFormat
+from utils.dd_constants import RemoteConfigApplyState as ApplyState
+from utils.dd_types import DataDogAgentSpan
 
 # Agent paths
 _CONFIG_PATH = "/v0.7/config"
@@ -100,8 +101,8 @@ class BaseDebuggerTest:
 
     probe_diagnostics: ProbeDiagnosticsCollection = {}
     probe_snapshots: dict[str, list[dict[str, Any]]] = {}
-    probe_spans: dict[str, list[tuple[dict[str, Any], TraceAgentPayloadFormat]]] = {}
-    all_spans: list[tuple[dict[str, Any], TraceAgentPayloadFormat]] = []
+    probe_spans: dict[str, list[DataDogAgentSpan]] = {}
+    all_spans: list[DataDogAgentSpan] = []
     symbols: list[dict[str, Any]] = []
 
     start_time: int | None = None
@@ -555,8 +556,8 @@ class BaseDebuggerTest:
                 + "'"
             )
             spans = interfaces.agent.get_spans_list()
-            for span, span_format in spans:
-                meta = interfaces.agent.get_span_meta(span, span_format)
+            for span in spans:
+                meta = interfaces.agent.get_span_meta(span)
                 if "_dd.debug.error.no_capture_reason" in meta:
                     error_msg = meta.get("error.msg", "").lower()
                     if self._error_message == error_msg:
@@ -759,7 +760,7 @@ class BaseDebuggerTest:
 
     def _collect_spans(self):
         def _get_spans_hash():
-            span_hash: dict[str, list[tuple[dict, TraceAgentPayloadFormat]]] = {}
+            span_hash: dict[str, list[DataDogAgentSpan]] = {}
 
             span_decoration_line_key = None
             if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
@@ -768,11 +769,11 @@ class BaseDebuggerTest:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
 
             spans_list = interfaces.agent.get_spans_list()
-            for span, span_format in spans_list:
-                self.all_spans.append((span, span_format))
+            for span in spans_list:
+                self.all_spans.append(span)
 
-                span_name = interfaces.agent.get_span_name(span, span_format)
-                meta = interfaces.agent.get_span_meta(span, span_format)
+                span_name = span.get_span_name()
+                meta = span.meta
 
                 is_span_decoration_method = span_name == "dd.dynamic.span"
                 if is_span_decoration_method:
@@ -780,7 +781,7 @@ class BaseDebuggerTest:
                     if probe_id:
                         if probe_id not in span_hash:
                             span_hash[probe_id] = []
-                        span_hash[probe_id].append((span, span_format))
+                        span_hash[probe_id].append(span)
                     continue
 
                 is_span_decoration_line = span_decoration_line_key in meta
@@ -788,7 +789,7 @@ class BaseDebuggerTest:
                     probe_id = meta[span_decoration_line_key]
                     if probe_id not in span_hash:
                         span_hash[probe_id] = []
-                    span_hash[probe_id].append((span, span_format))
+                    span_hash[probe_id].append(span)
                     continue
 
                 has_exception_id = "_dd.debug.error.exception_id" in meta
@@ -796,7 +797,7 @@ class BaseDebuggerTest:
                     exception_id = meta["_dd.debug.error.exception_id"]
                     if exception_id not in span_hash:
                         span_hash[exception_id] = []
-                    span_hash[exception_id].append((span, span_format))
+                    span_hash[exception_id].append(span)
                     continue
 
                 has_exception_capture_id = "_dd.debug.error.exception_capture_id" in meta
@@ -812,13 +813,13 @@ class BaseDebuggerTest:
                                     snapshot_id = meta[key]
                                     if snapshot_id not in span_hash:
                                         span_hash[snapshot_id] = []
-                                    span_hash[snapshot_id].append((span, span_format))
+                                    span_hash[snapshot_id].append(span)
                             continue
                     else:
                         capture_id = meta["_dd.debug.error.exception_capture_id"]
                         if capture_id not in span_hash:
                             span_hash[capture_id] = []
-                        span_hash[capture_id].append((span, span_format))
+                        span_hash[capture_id].append(span)
                     continue
 
                 has_no_capture_reason = "_dd.debug.error.no_capture_reason" in meta
@@ -826,7 +827,7 @@ class BaseDebuggerTest:
                     error_msg = meta.get("error.msg", "")
                     if error_msg not in span_hash:
                         span_hash[error_msg] = []
-                    span_hash[error_msg].append((span, span_format))
+                    span_hash[error_msg].append(span)
                     continue
 
                 # For Python, we need to look for spans with stack trace information
