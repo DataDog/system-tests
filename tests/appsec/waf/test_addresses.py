@@ -4,6 +4,7 @@
 import json
 import pytest
 from utils import weblog, bug, context, interfaces, missing_feature, rfc, scenarios, features, logger
+from utils.dd_types import DataDogSpan
 
 
 @features.appsec_request_blocking
@@ -397,7 +398,7 @@ class Test_GraphQL:
 class Test_GrpcServerMethod:
     """Test as a custom rule until we have official rules for the address"""
 
-    def validate_span(self, span: dict, appsec_data: dict):
+    def validate_span(self, span: DataDogSpan, appsec_data: dict):
         tag = "rpc.grpc.full_method"
         if tag not in span["meta"]:
             logger.info(f"Can't find '{tag}' in span's meta")

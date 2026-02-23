@@ -188,14 +188,14 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v2.5.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: bug (APPSEC-61152)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: bug (APPSEC-61152)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: bug (APPSEC-61152)
+  tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v2.7.0-dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: missing_feature
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: missing_feature
@@ -1284,6 +1284,9 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         net-http: v1.73.0
+  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport::test_send_as_a_tag:
+    - component_version: ">=2.7.0-dev"
+      declaration: missing_feature (span got an event property set as an empty list)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v1.46.0
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_vendor:
     - declaration: bug (APMRP-360)
@@ -1402,3 +1405,4 @@ manifest:
         '*': missing_feature
         net-http: '>=2.5.0'
         net-http-orchestrion: '>=2.5.0'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault: v2.7.0-dev
