@@ -3,6 +3,7 @@ import hashlib
 import struct
 
 from utils import weblog, interfaces, logger, HttpResponse
+from utils.dd_constants import TraceAgentPayloadFormat
 
 
 class BaseDbIntegrationsTestClass:
@@ -13,7 +14,7 @@ class BaseDbIntegrationsTestClass:
 
     def _setup(self):
         """Make request to weblog for each operation: select, update...
-        those requests will be permored only one time for the entire test run
+        those requests will be performed only one time for the entire test run
         """
 
         assert self.db_service is not None, "db_service must be defined"
@@ -74,6 +75,7 @@ class BaseDbIntegrationsTestClass:
     def get_requests(
         self, excluded_operations: Sequence[str] = (), operations: Sequence[str] | None = None
     ) -> Generator[tuple[str, HttpResponse], None, None]:
+        logger.debug(f"Getting requests for {self.db_service} from {self.requests.keys()}")
         for db_operation, request in self.requests[self.db_service].items():
             if operations is not None and db_operation not in operations:
                 continue
@@ -107,41 +109,42 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
     @staticmethod
-    def get_span_from_agent(weblog_request: HttpResponse) -> dict:
-        for data, span in interfaces.agent.get_spans(weblog_request):
-            logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
+    def get_span_from_agent(weblog_request: HttpResponse) -> tuple[dict, TraceAgentPayloadFormat]:
+        for data, chunk, chunk_format in interfaces.agent.get_traces(weblog_request):
+            trace_id = interfaces.agent.get_trace_id(chunk, chunk_format)
+            logger.debug(f"Chunk found: trace id={trace_id}; ({data['log_filename']})")
 
             # iterate over everything to be sure to miss nothing
-            for _, span_child in interfaces.agent.get_spans():
-                if span_child["traceID"] != span["traceID"]:
-                    continue
-
-                logger.debug(f"Checking if span {span_child['spanID']} could match")
-
-                if span_child.get("type") not in ("sql", "db"):
-                    logger.debug(f"Wrong type:{span_child.get('type')}, continue...")
+            for span in chunk["spans"]:
+                logger.debug(f"Checking if span {span['spanID']} could match")
+                span_type = interfaces.agent.get_span_type(span, chunk_format)
+                if span_type not in ("sql", "db"):
+                    logger.debug(f"Wrong type:{span_type}, continue...")
                     # no way it's the span we're looking for
                     continue
 
                 # workaround to avoid conflicts on connection check on mssql
                 # workaround to avoid conflicts on connection check on mssql + nodejs + opentelemetry (there is a bug in the sql obfuscation)
-                if span_child["resource"] in ("SELECT ?", "SELECT 1;"):
-                    logger.debug(f"Wrong resource:{span_child.get('resource')}, continue...")
+                span_resource = interfaces.agent.get_span_resource(span, chunk_format)
+                if span_resource in ("SELECT ?", "SELECT 1;"):
+                    logger.debug(f"Wrong resource:{span_resource}, continue...")
                     continue
 
                 # workaround to avoid conflicts on postgres + nodejs + opentelemetry
-                if span_child["name"] == "pg.connect":
-                    logger.debug(f"Wrong name:{span_child.get('name')}, continue...")
+                span_name = interfaces.agent.get_span_name(span, chunk_format)
+                if span_name == "pg.connect":
+                    logger.debug(f"Wrong name:{span_name}, continue...")
                     continue
 
                 # workaround to avoid conflicts on mssql + nodejs + opentelemetry
-                if span_child["meta"].get("db.statement") == "SELECT 1;":
-                    logger.debug(f"Wrong db.statement:{span_child.get('meta', {}).get('db.statement')}, continue...")
+                span_meta = interfaces.agent.get_span_meta(span, chunk_format)
+                if span_meta.get("db.statement") == "SELECT 1;":
+                    logger.debug(f"Wrong db.statement:{span_meta.get('db.statement')}, continue...")
                     continue
 
-                logger.info(f"Span type==sql found: spanId={span_child['spanID']}")
+                logger.info(f"Span type==sql found: spanId={span['spanID']}")
 
-                return span_child
+                return span, chunk_format
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 

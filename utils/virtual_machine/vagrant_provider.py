@@ -1,14 +1,19 @@
+from collections.abc import Callable
 import socket
 import os
 import subprocess
-import vagrant
-import paramiko
+
 from fabric.api import env
+import paramiko
+import pulumi_command
+from scp import SCPClient
+import vagrant
+
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
+from utils.virtual_machine.virtual_machines import _VirtualMachine
+from utils.virtual_machine.vm_logger import vm_logger
 from utils._logger import logger
 from utils import context
-from scp import SCPClient
-from utils.virtual_machine.vm_logger import vm_logger
 
 
 class VagrantProvider(VmProvider):
@@ -38,7 +43,7 @@ class VagrantProvider(VmProvider):
         # Install provision on the started server
         self.install_provision(self.vm, None, client)
 
-    def _set_vagrant_configuration(self, vm):
+    def _set_vagrant_configuration(self, vm: _VirtualMachine):
         """Makes some configuration on the vagrant files
         These configurations are relative to the provider and to port forwarding (for weblog) and port for ssh
         TODO Support for different vagrant providers. Currently only support for qemu
@@ -90,28 +95,44 @@ class VagrantProvider(VmProvider):
 
 
 class VagrantCommander(Commander):
-    def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
+    def execute_local_command(
+        self,
+        local_command_id: str,
+        local_command: str,
+        env: dict[str, str],
+        last_task: pulumi_command.remote.Command,
+        logger_name: str,
+    ):
         logger.info(f"Vagrant: Execute local command: {local_command}")
 
         result = subprocess.run(local_command.split(" "), stdout=subprocess.PIPE, env=env)
         vm_logger(context.scenario.host_log_folder, logger_name).info(result.stdout)
         return last_task
 
-    def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
+    def copy_file(
+        self,
+        id: str,
+        local_path: str,
+        remote_path: str,
+        connection: pulumi_command.remote.ConnectionArgs,
+        last_task: pulumi_command.remote.Command,
+        vm: _VirtualMachine | None = None,
+    ):
         SCPClient(connection.get_transport()).put(local_path, remote_path)
         return last_task
 
     def remote_command(
         self,
-        vm,
-        installation_id,
-        remote_command,
-        env,
-        connection,
-        last_task,
-        logger_name=None,
-        output_callback=None,
-        populate_env=True,
+        vm: _VirtualMachine,
+        installation_id: str,
+        remote_command: str,
+        env: dict[str, str],
+        connection: pulumi_command.remote.ConnectionArgs,
+        last_task: pulumi_command.remote.Command,
+        logger_name: str | None = None,
+        output_callback: Callable | None = None,
+        *,
+        populate_env: bool = True,
     ):
         logger.debug(f"Running remote-command with installation id: {installation_id}")
 
@@ -149,7 +170,15 @@ class VagrantCommander(Commander):
         return last_task
 
     def remote_copy_folders(
-        self, source_folder, destination_folder, command_id, connection, depends_on, relative_path=False, vm=None
+        self,
+        source_folder: str,
+        destination_folder: str,
+        command_id: str,
+        connection: pulumi_command.remote.ConnectionArgs,
+        depends_on: pulumi_command.remote.Command,
+        *,
+        relative_path: bool = False,
+        vm: _VirtualMachine = None,
     ):
         if not source_folder.endswith("/"):
             source_folder = source_folder + "/"
@@ -163,7 +192,7 @@ class VagrantCommander(Commander):
 
 
 class MySFTPClient(paramiko.SFTPClient):
-    def put_dir(self, source, target):
+    def put_dir(self, source: str, target: str):
         """Uploads the contents of the source directory to the target path. The
         target directory needs to exists. All subdirectories in source are
         created under target.
@@ -175,7 +204,7 @@ class MySFTPClient(paramiko.SFTPClient):
                 self.mkdir("%s/%s" % (target, item), ignore_existing=True)
                 self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
 
-    def mkdir(self, path, mode=511, ignore_existing=False):
+    def mkdir(self, path: str, mode: int = 511, *, ignore_existing: bool = False):
         """Augments mkdir by adding an option to not fail if the folder exists"""
         try:
             super(MySFTPClient, self).mkdir(path, mode)

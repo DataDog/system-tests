@@ -56,6 +56,12 @@
                 "python",
                 "ruby"
               ]
+            },
+            "process_tags": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "string"
+              }
             }
           }
         },

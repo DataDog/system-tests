@@ -1,7 +1,7 @@
 LIBRARIES = [
     # "agent",
     "cpp_httpd",
-    # "cpp_nginx",
+    "cpp_nginx",
     "cpp",
     # "dd_apm_inject",
     "dotnet",
@@ -14,7 +14,7 @@ LIBRARIES = [
     # "python_otel",
     "python",
     "ruby",
-    # "rust"
+    "rust",
 ]
 ARTIFACT_URL = (
     "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"

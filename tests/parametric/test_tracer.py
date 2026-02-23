@@ -4,7 +4,7 @@ from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span
 from utils.docker_fixtures.spec.trace import find_first_span_in_trace_payload
 from utils.docker_fixtures.spec.trace import find_root_span
-from utils import missing_feature, context, rfc, scenarios, features
+from utils import missing_feature, rfc, scenarios, features, context
 from utils.docker_fixtures import TestAgentAPI
 
 from .conftest import APMLibrary
@@ -16,8 +16,6 @@ parametrize = pytest.mark.parametrize
 @scenarios.parametric
 @features.trace_annotation
 class Test_Tracer:
-    @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
-    @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
     def test_tracer_span_top_level_attributes(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Do a simple trace to ensure that the test client is working properly."""
         with (
@@ -137,7 +135,6 @@ class Test_TracerSCITagging:
             },
         ],
     )
-    @missing_feature(context.library == "nodejs", reason="nodejs does not strip credentials yet")
     def test_tracer_repository_url_strip_credentials(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
@@ -200,3 +197,38 @@ class Test_TracerUniversalServiceTagging:
         assert span is not None, "Root span not found"
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
+
+
+@scenarios.parametric
+@features.process_tags
+@rfc("https://docs.google.com/document/d/1c47iSTWxIOHMHfZTF2nT9xfyQaIBP9KJvI9sRn5SvpM")
+@missing_feature(context.library != "java")
+class Test_ProcessTags_ServiceName:
+    @parametrize("library_env", [{"DD_SERVICE": "test-service"}])
+    def test_process_tag_svc_user(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When DD_SERVICE is set, process tags must include svc.user:true"""
+        with test_library, test_library.dd_start_span("operation") as root:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        span = find_root_span(trace)
+        assert span is not None
+        process_tags = span["meta"]["_dd.tags.process"]
+        assert "svc.user:true" in process_tags, f"DD_SERVICE is set - Expecting svc.user:true in {process_tags}"
+
+    @parametrize("library_env", [{}])
+    def test_process_tag_svc_auto(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When DD_SERVICE is unset, process tags must include svc.auto:<default_svc_name>"""
+        with test_library, test_library.dd_start_span("operation") as root:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, root.trace_id)
+
+        span = find_root_span(trace)
+        assert span is not None
+        process_tags = span["meta"]["_dd.tags.process"]
+        expected_tag = f"svc.auto:{span['service']}"
+        assert expected_tag in process_tags, f"DD_SERVICE is set - Expecting {expected_tag} in {process_tags}"

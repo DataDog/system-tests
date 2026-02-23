@@ -3,13 +3,15 @@
 # Copyright 2021 Datadog, Inc.
 
 from collections.abc import Callable
+import copy
 import re
 import os
 import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
+from utils import interfaces, scenarios, features, context, irrelevant, missing_feature, logger
+from utils.dd_constants import TraceAgentPayloadFormat
 
 
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
@@ -32,7 +34,6 @@ _timeout_next = 30
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@irrelevant(context.library <= "dotnet@3.28.0", reason="DEBUG-4582")
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: list[dict] = []
     spans: dict = {}
@@ -49,7 +50,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_snapshot_received(exception_message, timeout)
+            snapshot_found = self.wait_for_all_snapshots(exception_message, timeout)
             timeout = _timeout_next
 
             retries += 1
@@ -87,33 +88,35 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             return [snapshot for _, snapshot in filtered_contents]
 
-        def __filter_spans_by_snapshot_id(snapshots: list[dict]):
+        def __filter_spans_by_snapshot_id(snapshots: list[dict]) -> dict[str, tuple[dict, TraceAgentPayloadFormat]]:
             filtered_spans = {}
 
             for snapshot in snapshots:
                 snapshot_id = snapshot["id"]
                 for spans in self.probe_spans.values():
-                    for span in spans:
+                    for span, span_format in spans:
                         snapshot_ids_in_span = {
-                            key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
+                            key: value
+                            for key, value in interfaces.agent.get_span_meta(span, span_format).items()
+                            if key.endswith("snapshot_id")
                         }.values()
 
                         if snapshot_id in snapshot_ids_in_span:
-                            filtered_spans[snapshot_id] = span
+                            filtered_spans[snapshot_id] = (span, span_format)
                             break
 
             return filtered_spans
 
-        def __filter_spans_by_span_id(contents: list[dict]):
+        def __filter_spans_by_span_id(contents: list[dict]) -> dict[str, tuple[dict, TraceAgentPayloadFormat]]:
             filtered_spans = {}
             for content in contents:
                 span_id = content.get("dd", {}).get("span_id") or content.get("dd.span_id")
                 snapshot_id = content["debugger"]["snapshot"]["id"]
 
                 for spans_list in self.probe_spans.values():
-                    for span in spans_list:
+                    for span, span_format in spans_list:
                         if span.get("spanID") == span_id:
-                            filtered_spans[snapshot_id] = span
+                            filtered_spans[snapshot_id] = (span, span_format)
                             break
 
             return filtered_spans
@@ -285,74 +288,101 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self.snapshots = snapshots
         __approve(snapshots)
 
-    def _validate_spans(self, test_name: str, spans: dict[str, dict]):
-        def __scrub(data: dict[str, dict]) -> dict[str, dict]:
-            def scrub_span(key: str, value: dict | list):
-                if key in {"traceID", "spanID", "parentID", "start", "duration", "metrics"}:
-                    return "<scrubbed>"
+    def _validate_spans(self, test_name: str, spans: dict[str, tuple[dict, TraceAgentPayloadFormat]]):
+        def __scrub(
+            data: dict[str, tuple[dict, TraceAgentPayloadFormat]],
+        ) -> dict[str, tuple[dict, TraceAgentPayloadFormat]]:
+            scrubbed_spans: list[tuple[dict, TraceAgentPayloadFormat]] = []
+            for value in data.values():
+                logger.debug(f"Value: {value}")
+                span_original, span_format = value
+                span = copy.deepcopy(span_original)
+                for scrub_key in ("traceID", "spanID", "parentID", "start", "duration", "metrics"):
+                    if scrub_key in span:
+                        span[scrub_key] = "<scrubbed>"
 
-                if key == "meta" and isinstance(value, dict):
-                    keys_to_remove = []
-                    for meta_key, meta_value in value.items():
-                        # These keys are present in some library versions but not others,
-                        # but are unrelated to the functionality under test
-                        if meta_key in {
-                            "_dd.appsec.fp.http.endpoint",
-                            "_dd.appsec.fp.http.header",
-                            "_dd.appsec.fp.http.network",
-                            "_dd.appsec.fp.session",
-                        }:
-                            keys_to_remove.append(meta_key)
-                        elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
-                            "http.request.headers.user-agent",
-                            "http.useragent",
-                            "thread.name",
-                            "network.client.ip",
-                            "http.client_ip",
-                        }:
-                            value[meta_key] = "<scrubbed>"
-                        elif meta_key == "error.stack":
-                            value[meta_key] = meta_value[:128] + "<scrubbed>"
+                keys_to_remove = []
+                span_meta = interfaces.agent.get_span_meta(span, span_format)
+                for meta_key, meta_value in span_meta.items():
+                    if meta_key in {
+                        "_dd.appsec.fp.http.endpoint",
+                        "_dd.appsec.fp.http.header",
+                        "_dd.appsec.fp.http.network",
+                        "_dd.appsec.fp.session",
+                    }:
+                        keys_to_remove.append(meta_key)
+                    elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
+                        "http.request.headers.user-agent",
+                        "http.useragent",
+                        "thread.name",
+                        "network.client.ip",
+                        "http.client_ip",
+                    }:
+                        span_meta[meta_key] = "<scrubbed>"
+                    elif meta_key == "error.stack":
+                        span_meta[meta_key] = meta_value[:128] + "<scrubbed>"
+                    elif type(meta_value) in (float, int):
+                        keys_to_remove.append(meta_key)
 
-                    for k in keys_to_remove:
-                        value.pop(k, None)
+                for k in keys_to_remove:
+                    span_meta.pop(k, None)
+                interfaces.agent.set_span_attrs(span, span_format, dict(sorted(span_meta.items())))
+                scrubbed_spans.append((span, span_format))
 
-                    return dict(sorted(value.items()))
+            sorted_spans = sorted(
+                scrubbed_spans, key=lambda x: interfaces.agent.get_span_meta(x[0], x[1])["error.type"]
+            )
 
-                return value
-
-            scrubbed_spans = {}
-
-            spans = [{k: scrub_span(k, v) for k, v in span.items()} for span in data.values()]
-            sorted_spans = sorted(spans, key=lambda x: x["meta"]["error.type"])
-
+            sorted_scrubbed_spans: dict[str, tuple[dict, TraceAgentPayloadFormat]] = {}
             # Assign scrubbed spans with unique snapshot labels
-            for span_number, span in enumerate(sorted_spans):
-                scrubbed_spans[f"snapshot_{span_number}"] = dict(sorted(span.items()))
+            for span_number, (span, span_format) in enumerate(sorted_spans):
+                sorted_scrubbed_spans[f"snapshot_{span_number}"] = (dict(sorted(span.items())), span_format)
 
-            return scrubbed_spans
+            return sorted_scrubbed_spans
 
-        def __approve(spans: dict[str, dict]):
+        def __approve(spans: dict[str, tuple[dict, TraceAgentPayloadFormat]]):
+            # Determine the payload format from spans to select the correct expected file
+            # All spans in a test run should have the same format
+            span_formats = {span_format for _, (_, span_format) in spans.items()}
+            is_v1_format = TraceAgentPayloadFormat.efficient_trace_payload_format in span_formats
+
+            # Use different suffixes based on payload format
+            expected_suffix = "spans_expected_v1" if is_v1_format else "spans_expected"
+
             self._write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS or _STORE_NEW_APPROVALS:
-                self._write_approval(spans, test_name, "spans_expected")
+                self._write_approval(spans, test_name, expected_suffix)
 
-            expected = self._read_approval(test_name, "spans_expected")
-            assert expected == spans
+            expected = self._read_approval(test_name, expected_suffix)
+
+            # Normalize spans for comparison based on format:
+            # - JSON serializes tuples as lists, so convert in-memory tuples to lists
+            # - Legacy expected files don't include format, so extract just span dicts for comparison
+            if is_v1_format:
+                # V1 format: convert tuples to lists for comparison (matches JSON serialization)
+                normalized_spans_v1 = {key: [span, str(fmt)] for key, (span, fmt) in spans.items()}
+                assert expected == normalized_spans_v1
+            else:
+                # Legacy format: expected files contain just span dicts without format tuple
+                normalized_spans_legacy = {key: span for key, (span, _) in spans.items()}
+                assert expected == normalized_spans_legacy
 
             missing_keys_dict = {}
 
-            for guid, element in spans.items():
+            for guid, (span, span_format) in spans.items():
                 missing_keys = []
 
-                if "_dd.debug.error.exception_hash" not in element["meta"]:
+                # Use the interface helper to get meta/attributes based on format
+                span_meta = interfaces.agent.get_span_meta(span, span_format)
+
+                if "_dd.debug.error.exception_hash" not in span_meta:
                     missing_keys.append("_dd.debug.error.exception_hash")
 
-                if not any("error.type" for key in element["meta"]):
+                if not any("error.type" for key in span_meta):
                     missing_keys.append("error.type")
 
-                if not any(key in element["meta"] for key in ["error.msg", "error.message"]):
+                if not any(key in span_meta for key in ["error.msg", "error.message"]):
                     missing_keys.append("error.type and either msg or message")
 
                 if missing_keys:
@@ -419,8 +449,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         found_expected_reason = False
         actual_reasons = []
 
-        for span in spans_with_no_capture_reason:
-            meta = span.get("meta", {})
+        for span, span_format in spans_with_no_capture_reason:
+            meta = interfaces.agent.get_span_meta(span, span_format)
             actual_reason = meta["_dd.debug.error.no_capture_reason"]
             actual_reasons.append(actual_reason)
 
@@ -480,8 +510,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
@@ -489,8 +517,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_3(self):
         self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
         self._validate_recursion_snapshots(self.snapshots, 4)
@@ -498,9 +524,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_5(self):
         self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_5(self):
         self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
         self._validate_recursion_snapshots(self.snapshots, 6)
@@ -508,10 +531,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_recursion_20(self):
         self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
-    @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 9)
@@ -520,7 +539,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 
     @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
-    @bug(context.library == "dotnet", reason="DEBUG-3447")
     def test_exception_replay_recursion_inlined(self):
         self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
         self._validate_recursion_snapshots(self.snapshots, 4)
@@ -529,8 +547,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_inner(self):
         self._setup("/exceptionreplay/inner", "outer exception")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
 
@@ -553,7 +569,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_snapshot_received(shape, timeout)
+                shapes[shape] = self.wait_for_all_snapshots(shape, timeout)
                 if self.get_tracer()["language"] == "python":
                     time.sleep(1)
 
@@ -561,8 +577,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             retries += 1
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
 
@@ -570,8 +584,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_multiframe(self):
         self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
 
-    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
 
@@ -579,8 +591,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_async(self):
         self._setup("/exceptionreplay/async", "async exception")
 
-    @flaky(context.library == "dotnet", reason="DEBUG-3281")
-    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])
 
@@ -609,7 +619,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup_no_capture_exception("stackoverflow")
 
     @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
-    @bug(context.library == "dotnet", reason="DEBUG-3999")
     def test_exception_replay_stackoverflow(self):
         self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
 

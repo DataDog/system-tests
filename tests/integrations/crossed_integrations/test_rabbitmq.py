@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import json
 
 from utils.buddies import java_buddy, _Weblog as Weblog
-from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils import interfaces, scenarios, weblog, features, logger
+from utils.dd_types import DataDogSpan
 
 
 class _BaseRabbitMQ:
@@ -26,7 +25,7 @@ class _BaseRabbitMQ:
         queue: str,
         exchange: str,
         operation: list[str],
-    ) -> dict | None:
+    ) -> DataDogSpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -56,7 +55,7 @@ class _BaseRabbitMQ:
                 ):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
@@ -101,8 +100,6 @@ class _BaseRabbitMQ:
             exchange=self.WEBLOG_TO_BUDDY_EXCHANGE,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -169,8 +166,6 @@ class _BaseRabbitMQ:
             exchange=self.BUDDY_TO_WEBLOG_EXCHANGE,
         )
 
-    @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
-    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(

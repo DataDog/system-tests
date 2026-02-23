@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules, missing_feature
+from utils import context, weblog, interfaces, scenarios, features, waf_rules, missing_feature
 
 
 @features.appsec_response_blocking
@@ -12,7 +12,6 @@ class Test_404:
     def setup_404(self):
         self.r = weblog.get("/path_that_doesn't_exists/", headers={"User-Agent": "Arachni/v1"})
 
-    @bug(library="java", weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     def test_404(self):
         """AppSec WAF catches attacks, even on 404"""
 

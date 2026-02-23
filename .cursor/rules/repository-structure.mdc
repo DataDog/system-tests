@@ -24,7 +24,7 @@ system-tests/
 |   |   |-- lifecycle.md        # Scenario lifecycle documentation
 |   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation. You can find here the details about the onboarding tests and how to operate with them. i.e., how to run the tests, how to create a new virtual machine, a new weblog, create provisions...
 |   |   |-- parametric.md       # Parametric scenarios documentation
-|   |   |-- external_processing.md # External processing documentation
+|   |   |-- go_proxies_envoy_haproxy.md # Go proxies (Envoy and HAProxy) documentation
 |   |-- weblog/         # Weblog service documentation
 |
 |-- lib-injection/      # Weblog applications used for all SSI tests: AWS SSI, Docker SSI, K8s lib injection
@@ -97,7 +97,12 @@ system-tests/
   class Test_Sample:
       ...
   ```
-- If no `@scenarios` decorator is present, the class will **always** default to the `default` scenario defined in `utils/_context/_scenarios/__init__.py`.
+- If NO `@scenarios` decorator exists, the test runs ONLY in DEFAULT scenario.
+- The `@scenarios` decorator is the ONLY way to determine which scenarios run a test. Do NOT assume scenarios based on:
+  - The `@features` decorator (used for test activation/deactivation, not scenario association)
+  - Directory location (e.g., `tests/appsec/`)
+  - Test content or what it tests
+  - Scenario groups in scenario definitions
 
 ## 4. Test Methods
 - Always start test method names with the prefix `test_`.

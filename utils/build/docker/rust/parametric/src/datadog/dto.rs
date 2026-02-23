@@ -113,6 +113,12 @@ pub struct SpanSetMetricArgs {
     pub value: f64,
 }
 
+// --- ManualSamplingArgs ---
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ManualSamplingArgs {
+    pub span_id: u64,
+}
+
 // --- SpanSetResourceArgs ---
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SpanSetResourceArgs {

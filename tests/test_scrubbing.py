@@ -5,7 +5,8 @@
 from collections.abc import Callable
 import re
 
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils.dd_types import DataDogTrace
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
@@ -29,11 +30,8 @@ def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Calla
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.library_scrubbing
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
@@ -61,7 +59,6 @@ class Test_UrlQuery:
             },
         )
 
-    @bug(context.library < "dotnet@2.21.0", reason="APPSEC-5773")
     def test_multiple_matching_substring(self):
         interfaces.library.validate_all(validate_no_leak("leak-url-multiple"), allow_no_data=True)
 
@@ -84,7 +81,7 @@ class Test_UrlField:
         """Check that not data is leaked"""
         assert self.r.status_code == 200
 
-        def validate_report(trace: list):
+        def validate_report(trace: DataDogTrace):
             for span in trace:
                 if span.get("type") == "http":
                     logger.info(f"span found: {span}")
@@ -106,11 +103,8 @@ class Test_UrlField:
         interfaces.library.validate_all(validate_no_leak("leak-name-url", whitelist_pattern), allow_no_data=True)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.library_scrubbing
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_EnvVar:
     """Environnement variables are not leaked"""

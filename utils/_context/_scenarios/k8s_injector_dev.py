@@ -66,9 +66,12 @@ class K8sInjectorDevScenario(Scenario):
         # Get component versions: lib init, cluster agent, injector
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
-        self.components["cluster_agent"] = self.k8s_cluster_img.version
+        self.components[self._library.name] = self._library.version
+        self.components["cluster_agent"] = ComponentVersion("cluster_agent", self.k8s_cluster_img.version).version
         self._datadog_apm_inject_version = f"v{self.k8s_injector_img.version}"
-        self.components["datadog-apm-inject"] = self._datadog_apm_inject_version
+        self.components["datadog-apm-inject"] = ComponentVersion(
+            "datadog-apm-inject", self._datadog_apm_inject_version
+        ).version
 
         # is it on sleep mode?
         self._sleep_mode = config.option.sleep

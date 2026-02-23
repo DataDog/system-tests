@@ -4,6 +4,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'faraday/follow_redirects'
 
 # tracer configuration of Rack integration
 
@@ -58,7 +59,7 @@ module Hello
   module_function
 
   def run
-    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+    [200, { 'Content-Type' => 'text/plain' }, ["Hello world!\n"]]
   end
 end
 
@@ -301,6 +302,76 @@ module SSRFHandler
   end
 end
 
+module ExternalRequest
+  module_function
+
+  def run(request)
+    queries = request.GET.dup
+    status_code = queries.delete('status') || '200'
+    url_extra = queries.delete('url_extra') || ''
+
+    headers = queries.each.with_object({}) do |(key, value), hash|
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    request.body.rewind
+    body = request.body.read
+    if body && !body.empty?
+      headers['Content-Type'] = request.content_type
+    else
+      body = nil
+    end
+
+    url = "http://internal_server:8089/mirror/#{status_code}#{url_extra}"
+    method = request.request_method.downcase.to_sym
+    downstream_response = Faraday.new.run_request(method, url, body, headers)
+
+    if (200..299).cover?(downstream_response.status)
+      response = {
+        status: downstream_response.status,
+        headers: downstream_response.headers,
+        payload: JSON.parse(downstream_response.body)
+      }
+    else
+      response = { status: downstream_response.status, error: 'Request failed' }
+    end
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
+module ExternalRequestRedirect
+  module_function
+
+  def run(request)
+    total_redirects = request.params['totalRedirects'] || '0'
+
+    headers = request.params.each.with_object({}) do |(key, value), hash|
+      next if key == 'totalRedirects'
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+    conn = Faraday.new do |f|
+      f.response :follow_redirects, limit: 10
+    end
+    downstream_response = conn.get(url, nil, headers)
+
+    response = {
+      status: downstream_response.status,
+      headers: downstream_response.headers.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -409,15 +480,29 @@ module Flush
     #       this is the place to do it.
     #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
     if (telemetry = Datadog.send(:components)&.telemetry)
-      telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
+      if (worker = telemetry.instance_variable_get(:@worker))
+        if (metrics_manager = worker.instance_variable_get(:@metrics_manager))
+          metric_events = metrics_manager.flush!
+          worker.send(:flush_events, metric_events) if metric_events.any?
+        end
 
-      # HACK: In the current implementation there is no way to force the flushing.
-      #       Instead we are giving us a fraction of time after setting `loop_wait_time`
-      #       and just wait till all penging messages are flushed.
-      #
-      # NOTE: Be aware that system-tests doesn't like slow responses, so change that
-      #       value carefully.
-      sleep 0.2
+        # HACK: In the current implementation there is no way to force the flushing.
+        #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+        #       and just wait till all penging messages are flushed.
+        #
+        # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+        #       value carefully.
+        worker.loop_wait_time = 0
+        sleep 0.2
+      end
+    end
+
+    # NOTE: We don't expose directly flushing in the OpenFeature component as it
+    #       has no use now. But this might change, but for now we are going to
+    #       flush manually knowing some internals.
+    if (open_feature = Datadog.send(:components)&.open_feature)
+      worker = open_feature.instance_variable_get(:@worker)
+      worker.send(:send_events, *worker.dequeue)
     end
 
     [200, { 'Content-Type' => 'text/plain' }, ['OK']]
@@ -469,6 +554,10 @@ app = proc do |env|
     AddEvent.run(request)
   elsif request.path == '/rasp/ssrf'
     SSRFHandler.run(request)
+  elsif request.path == '/external_request'
+    ExternalRequest.run(request)
+  elsif request.path == '/external_request/redirect'
+    ExternalRequestRedirect.run(request)
   elsif request.path.include?('/api_security/sampling/')
     ApiSecurityWithSampling.run(request)
   elsif request.path.include?('/api_security_sampling/')

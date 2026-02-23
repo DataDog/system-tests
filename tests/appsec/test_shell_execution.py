@@ -2,25 +2,25 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import bug, context, interfaces, weblog, features, irrelevant, rfc
+from utils import context, interfaces, weblog, features, irrelevant, rfc
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogSpan
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
 @features.appsec_shell_execution_tracing
-@bug(context.library < "java@1.29.0", reason="APPSEC-10243")
 class Test_ShellExecution:
     """Test shell execution tracing"""
 
     @staticmethod
-    def fetch_command_execution_span(r: HttpResponse) -> dict:
+    def fetch_command_execution_span(r: HttpResponse) -> DataDogSpan:
         assert r.status_code == 200
 
         traces = [t for _, t in interfaces.library.get_traces(request=r)]
         assert traces, "No traces found"
         assert len(traces) == 1
-        spans = traces[0]
-        spans = [s for s in spans if s["name"] == "command_execution"]
+        trace = traces[0]
+        spans = [s for s in trace if s["name"] == "command_execution"]
         assert spans, "No command_execution span found"
         assert len(spans) == 1, "More than one command_execution span found"
 
@@ -50,7 +50,6 @@ class Test_ShellExecution:
             "/shell_execution", json={"command": "echo", "options": {"shell": True}, "args": "foo"}
         )
 
-    @irrelevant(library="java", reason="No method for shell execution in Java")
     def test_track_shell_exec(self):
         span = self.fetch_command_execution_span(self.r_shell_exec)
         assert span["resource"] == "sh"
@@ -67,8 +66,6 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="java", reason="APPSEC-55672")
-    @bug(library="php", reason="APPSEC-55673")
     def test_truncate_1st_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
@@ -86,7 +83,6 @@ class Test_ShellExecution:
         context.library == "php" and "-7." in context.weblog_variant and "7.4" not in context.weblog_variant,
         reason="For PHP 7.4+",
     )
-    @bug(library="java", reason="APPSEC-55672")
     def test_truncate_blank_2nd_argument(self):
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"

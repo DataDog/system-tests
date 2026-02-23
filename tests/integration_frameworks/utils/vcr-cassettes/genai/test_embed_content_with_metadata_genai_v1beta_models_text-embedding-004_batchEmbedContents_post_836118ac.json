@@ -1,0 +1,44 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:batchEmbedContents",
+    "headers": {
+      "Accept": "*/*",
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Content-Type": "application/json",
+      "User-Agent": "google-genai-sdk/1.56.0 gl-python/3.11.14",
+      "x-goog-api-client": "google-genai-sdk/1.56.0 gl-python/3.11.14",
+      "Content-Length": "171",
+      "x-datadog-trace-id": "12404040860072124055",
+      "x-datadog-parent-id": "9880907118049252023",
+      "x-datadog-sampling-priority": "1",
+      "x-datadog-tags": "_dd.p.dm=-0,_dd.p.llmobs_parent_id=5314725692892655203,_dd.p.llmobs_trace_id=140045763161565514582844307225871863853,_dd.p.tid=695bd53800000000",
+      "traceparent": "00-695bd53800000000ac2401715c079e97-892008ac2df452b7-01",
+      "tracestate": "dd=p:892008ac2df452b7;s:1;t.dm:-0;t.llmobs_parent_id:5314725692892655203;t.llmobs_trace_id:140045763161565514582844307225871863853;t.tid:695bd53800000000"
+    },
+    "body": "{\"requests\": [{\"content\": {\"parts\": [{\"text\": \"Why did the chicken cross the road?\"}], \"role\": \"user\"}, \"outputDimensionality\": 10, \"model\": \"models/text-embedding-004\"}]}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Vary": "Origin, X-Origin, Referer",
+      "Content-Encoding": "gzip",
+      "Date": "Mon, 05 Jan 2026 15:14:00 GMT",
+      "Server": "scaffolding on HTTPServer2",
+      "X-XSS-Protection": "0",
+      "X-Frame-Options": "SAMEORIGIN",
+      "X-Content-Type-Options": "nosniff",
+      "Server-Timing": "gfet4t7; dur=184",
+      "Alt-Svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Cross-Origin-Opener-Policy-Report-Only": "same-origin; report-to=\"gfe-default_product_name\"",
+      "Report-To": "{\"group\":\"gfe-default_product_name\",\"max_age\":2592000,\"endpoints\":[{\"url\":\"https://csp.withgoogle.com/csp/report-to/default_product_name\"}]}",
+      "Transfer-Encoding": "chunked"
+    },
+    "body": "{\n  \"embeddings\": [\n    {\n      \"values\": [\n        0.00038115328,\n        -0.031025518,\n        0.056510147,\n        -0.003932052,\n        -0.035378195,\n        0.0054094587,\n        0.027061695,\n        -0.013854291,\n        -0.017028851,\n        0.007571184\n      ]\n    }\n  ]\n}\n"
+  }
+}

@@ -8,33 +8,55 @@ use axum::{
     Json, Router,
 };
 use opentelemetry::{
+    global,
+    logs::{LoggerProvider, Logger, LogRecord, Severity, AnyValue},
+    metrics::{Counter, Gauge, Histogram, Meter, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
     trace::{Link, Span, TraceContextExt, Tracer},
-    Context, KeyValue,
+    Context, InstrumentationScope, KeyValue,
 };
 
 use tracing::debug;
 
 use crate::{get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
 
+pub enum MeterInstrument {
+    Counter(Counter<u64>),
+    UpDownCounter(UpDownCounter<i64>),
+    Gauge(Gauge<f64>),
+    Histogram(Histogram<f64>),
+    ObservableCounter(ObservableCounter<u64>),
+    ObservableUpDownCounter(ObservableUpDownCounter<i64>),
+    ObservableGauge(ObservableGauge<f64>),
+}
+
 pub fn app() -> Router<AppState> {
     Router::new()
-        .route("/start_span", post(start_span))
-        .route("/current_span", get(current_span))
-        .route("/span_context", post(get_span_context))
-        .route("/is_recording", post(is_recording))
-        .route("/set_name", post(set_name))
-        .route("/set_status", post(set_status))
-        .route("/set_attributes", post(set_attributes))
-        .route("/add_event", post(add_event))
-        .route("/record_exception", post(record_exception))
-        .route("/end_span", post(end_span))
-        .route("/flush", post(flush))
-    // .route("/set_baggage", post(set_baggage))
-    // .route("/otel_set_baggage", post(otel_set_baggage))
-    // .route("/get_baggage", get(get_baggage))
-    // .route("/get_all_baggage", get(get_all_baggage))
-    // .route("/remove_baggage", post(remove_baggage))
-    // .route("/remove_all_baggage", post(remove_all_baggage))
+        .route("/trace/otel/start_span", post(start_span))
+        .route("/trace/otel/current_span", get(current_span))
+        .route("/trace/otel/span_context", post(get_span_context))
+        .route("/trace/otel/is_recording", post(is_recording))
+        .route("/trace/otel/set_name", post(set_name))
+        .route("/trace/otel/set_status", post(set_status))
+        .route("/trace/otel/set_attributes", post(set_attributes))
+        .route("/trace/otel/add_event", post(add_event))
+        .route("/trace/otel/record_exception", post(record_exception))
+        .route("/trace/otel/end_span", post(end_span))
+        .route("/trace/otel/flush", post(flush))
+        .route("/metrics/otel/get_meter", post(otel_get_meter))
+        .route("/metrics/otel/create_counter", post(otel_create_counter))
+        .route("/metrics/otel/counter_add", post(otel_counter_add))
+        .route("/metrics/otel/create_updowncounter", post(otel_create_updowncounter))
+        .route("/metrics/otel/updowncounter_add", post(otel_updowncounter_add))
+        .route("/metrics/otel/create_gauge", post(otel_create_gauge))
+        .route("/metrics/otel/gauge_record", post(otel_gauge_record))
+        .route("/metrics/otel/create_histogram", post(otel_create_histogram))
+        .route("/metrics/otel/histogram_record", post(otel_histogram_record))
+        .route("/metrics/otel/create_asynchronous_counter", post(otel_create_asynchronous_counter))
+        .route("/metrics/otel/create_asynchronous_updowncounter", post(otel_create_asynchronous_updowncounter))
+        .route("/metrics/otel/create_asynchronous_gauge", post(otel_create_asynchronous_gauge))
+        .route("/metrics/otel/force_flush", post(otel_metrics_force_flush))
+        .route("/otel/logger/create", post(otel_create_logger))
+        .route("/otel/logger/write", post(otel_write_log))
 }
 
 // Handler implementations
@@ -358,3 +380,500 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
 //     let mut baggage = state.baggage.lock().unwrap();
 //     baggage.clear();
 // }
+
+// --- Metrics Handlers ---
+
+fn create_instrument_key(
+    meter_name: &str,
+    name: &str,
+    kind: &str,
+    unit: &str,
+    description: &str,
+) -> String {
+    format!("{meter_name}::{name}::{kind}::{unit}::{description}")
+}
+
+async fn otel_get_meter(
+    State(state): State<AppState>,
+    Json(args): Json<OtelGetMeterArgs>,
+) -> Json<OtelGetMeterReturn> {
+    let mut meters = state.otel_meters.lock().unwrap();
+    // Store meters by name only, matching the behavior of other language implementations
+    if !meters.contains_key(&args.name) {
+        // Use global meter provider configured by init_metrics(), matching Python's get_meter_provider() behavior
+        let meter_provider = global::meter_provider();
+        // NOTE: Box::leak is used here because InstrumentationScope::builder requires &'static str.
+        // This is a bounded leak (once per unique meter name) since meters are stored in a HashMap.
+        let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
+
+        // Create InstrumentationScope with name, version, and schema_url
+        // Let the SDK handle attributes internally - no custom parsing needed
+        let mut scope_builder = InstrumentationScope::builder(name_static);
+        if let Some(version) = args.version.as_ref() {
+            scope_builder = scope_builder.with_version(version.clone());
+        }
+        if let Some(schema_url) = args.schema_url.as_ref() {
+            scope_builder = scope_builder.with_schema_url(schema_url.clone());
+        }
+        // Note: attributes are handled by the SDK internally, similar to Python's get_meter()
+        let scope = scope_builder.build();
+
+        // Use meter_with_scope() to include version and schema_url
+        let meter = meter_provider.meter_with_scope(scope);
+        meters.insert(args.name.clone(), meter);
+    }
+    Json(OtelGetMeterReturn {})
+}
+
+async fn otel_create_counter(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateCounterArgs>,
+) -> Json<OtelCreateCounterReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let counter = meter
+        .u64_counter(args.name.clone())
+        .with_unit(args.unit.clone())
+        .with_description(args.description.clone())
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "counter",
+        &args.unit,
+        &args.description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::Counter(counter));
+
+    Json(OtelCreateCounterReturn {})
+}
+
+async fn otel_counter_add(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCounterAddArgs>,
+) -> Json<OtelCounterAddReturn> {
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "counter",
+        &args.unit,
+        &args.description,
+    );
+
+    let instruments = state.otel_meter_instruments.lock().unwrap();
+    let instrument = instruments
+        .get(&instrument_key)
+        .expect("Instrument not found in registered instruments");
+
+    if let MeterInstrument::Counter(counter) = instrument {
+        let value = args.value.as_u64().unwrap_or(0);
+        let attributes = parse_attributes(Some(&args.attributes));
+        counter.add(value, &attributes);
+    }
+
+    Json(OtelCounterAddReturn {})
+}
+
+async fn otel_create_updowncounter(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateUpDownCounterArgs>,
+) -> Json<OtelCreateUpDownCounterReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let counter = meter
+        .i64_up_down_counter(args.name.clone())
+        .with_unit(args.unit.clone())
+        .with_description(args.description.clone())
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "updowncounter",
+        &args.unit,
+        &args.description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::UpDownCounter(counter));
+
+    Json(OtelCreateUpDownCounterReturn {})
+}
+
+async fn otel_updowncounter_add(
+    State(state): State<AppState>,
+    Json(args): Json<OtelUpDownCounterAddArgs>,
+) -> Json<OtelUpDownCounterAddReturn> {
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "updowncounter",
+        &args.unit,
+        &args.description,
+    );
+
+    let instruments = state.otel_meter_instruments.lock().unwrap();
+    let instrument = instruments
+        .get(&instrument_key)
+        .expect("Instrument not found in registered instruments");
+
+    if let MeterInstrument::UpDownCounter(counter) = instrument {
+        let value = args.value.as_i64().unwrap_or(0);
+        let attributes = parse_attributes(Some(&args.attributes));
+        counter.add(value, &attributes);
+    }
+
+    Json(OtelUpDownCounterAddReturn {})
+}
+
+async fn otel_create_gauge(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateGaugeArgs>,
+) -> Json<OtelCreateGaugeReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let gauge = meter
+        .f64_gauge(args.name.clone())
+        .with_unit(args.unit.clone())
+        .with_description(args.description.clone())
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "gauge",
+        &args.unit,
+        &args.description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::Gauge(gauge));
+
+    Json(OtelCreateGaugeReturn {})
+}
+
+async fn otel_gauge_record(
+    State(state): State<AppState>,
+    Json(args): Json<OtelGaugeRecordArgs>,
+) -> Json<OtelGaugeRecordReturn> {
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "gauge",
+        &args.unit,
+        &args.description,
+    );
+
+    let instruments = state.otel_meter_instruments.lock().unwrap();
+    let instrument = instruments
+        .get(&instrument_key)
+        .expect("Instrument not found in registered instruments");
+
+    if let MeterInstrument::Gauge(gauge) = instrument {
+        let value = args.value.as_f64().unwrap_or(0.0);
+        let attributes = parse_attributes(Some(&args.attributes));
+        gauge.record(value, &attributes);
+    }
+
+    Json(OtelGaugeRecordReturn {})
+}
+
+async fn otel_create_histogram(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateHistogramArgs>,
+) -> Json<OtelCreateHistogramReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let histogram = meter
+        .f64_histogram(args.name.clone())
+        .with_unit(args.unit.clone())
+        .with_description(args.description.clone())
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "histogram",
+        &args.unit,
+        &args.description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::Histogram(histogram));
+
+    Json(OtelCreateHistogramReturn {})
+}
+
+async fn otel_histogram_record(
+    State(state): State<AppState>,
+    Json(args): Json<OtelHistogramRecordArgs>,
+) -> Json<OtelHistogramRecordReturn> {
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "histogram",
+        &args.unit,
+        &args.description,
+    );
+
+    let instruments = state.otel_meter_instruments.lock().unwrap();
+    let instrument = instruments
+        .get(&instrument_key)
+        .expect("Instrument not found in registered instruments");
+
+    if let MeterInstrument::Histogram(histogram) = instrument {
+        let value = args.value.as_f64().unwrap_or(0.0);
+        let attributes = parse_attributes(Some(&args.attributes));
+        histogram.record(value, &attributes);
+    }
+
+    Json(OtelHistogramRecordReturn {})
+}
+
+async fn otel_create_asynchronous_counter(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateAsynchronousCounterArgs>,
+) -> Json<OtelCreateAsynchronousCounterReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let value = args.value.as_u64().unwrap_or(0);
+    let attributes = parse_attributes(Some(&args.attributes));
+    let name = args.name.clone();
+    let unit = args.unit.clone();
+    let description = args.description.clone();
+
+    let observable_counter = meter
+        .u64_observable_counter(name)
+        .with_unit(unit.clone())
+        .with_description(description.clone())
+        .with_callback(move |observer| {
+            observer.observe(value, &attributes);
+        })
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "observable_counter",
+        &unit,
+        &description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::ObservableCounter(observable_counter));
+
+    Json(OtelCreateAsynchronousCounterReturn {})
+}
+
+async fn otel_create_asynchronous_updowncounter(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateAsynchronousUpDownCounterArgs>,
+) -> Json<OtelCreateAsynchronousUpDownCounterReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let value = args.value.as_i64().unwrap_or(0);
+    let attributes = parse_attributes(Some(&args.attributes));
+    let name = args.name.clone();
+    let unit = args.unit.clone();
+    let description = args.description.clone();
+
+    let observable_updowncounter = meter
+        .i64_observable_up_down_counter(name)
+        .with_unit(unit.clone())
+        .with_description(description.clone())
+        .with_callback(move |observer| {
+            observer.observe(value, &attributes);
+        })
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "observable_updowncounter",
+        &unit,
+        &description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::ObservableUpDownCounter(observable_updowncounter));
+
+    Json(OtelCreateAsynchronousUpDownCounterReturn {})
+}
+
+async fn otel_create_asynchronous_gauge(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateAsynchronousGaugeArgs>,
+) -> Json<OtelCreateAsynchronousGaugeReturn> {
+    let meters = state.otel_meters.lock().unwrap();
+    let meter = meters
+        .get(&args.meter_name)
+        .expect("Meter not found in registered meters");
+
+    let value = args.value.as_f64().unwrap_or(0.0);
+    let attributes = parse_attributes(Some(&args.attributes));
+    let name = args.name.clone();
+    let unit = args.unit.clone();
+    let description = args.description.clone();
+
+    let observable_gauge = meter
+        .f64_observable_gauge(name)
+        .with_unit(unit.clone())
+        .with_description(description.clone())
+        .with_callback(move |observer| {
+            observer.observe(value, &attributes);
+        })
+        .build();
+
+    let instrument_key = create_instrument_key(
+        &args.meter_name,
+        &args.name,
+        "observable_gauge",
+        &unit,
+        &description,
+    );
+    state
+        .otel_meter_instruments
+        .lock()
+        .unwrap()
+        .insert(instrument_key, MeterInstrument::ObservableGauge(observable_gauge));
+
+    Json(OtelCreateAsynchronousGaugeReturn {})
+}
+
+async fn otel_metrics_force_flush(
+    State(state): State<AppState>,
+    Json(_args): Json<OtelMetricsForceFlushArgs>,
+) -> Json<OtelMetricsForceFlushReturn> {
+    let meter_provider_guard = state.meter_provider.lock().unwrap();
+    let result = if let Some(meter_provider) = meter_provider_guard.as_ref() {
+        meter_provider.force_flush().is_ok()
+    } else {
+        false
+    };
+    Json(OtelMetricsForceFlushReturn { success: result })
+}
+
+// --- Logs Handlers ---
+
+async fn otel_create_logger(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateLoggerArgs>,
+) -> Json<OtelCreateLoggerReturn> {
+    let mut loggers = state.otel_loggers.lock().unwrap();
+    if loggers.contains_key(&args.name) {
+        return Json(OtelCreateLoggerReturn { success: false });
+    }
+
+    let logger_provider_guard = state.logger_provider.lock().unwrap();
+    let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
+    
+    // NOTE: Box::leak is used here because InstrumentationScope::builder requires &'static str.
+    // This is a bounded leak (once per unique logger name) since loggers are stored in a HashMap.
+    let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
+    let mut scope_builder = InstrumentationScope::builder(name_static);
+    
+    // with_version and with_schema_url accept String, so we can use .clone() instead of Box::leak
+    if let Some(v) = &args.version {
+        scope_builder = scope_builder.with_version(v.clone());
+    }
+    
+    if let Some(s) = &args.schema_url {
+        scope_builder = scope_builder.with_schema_url(s.clone());
+    }
+    
+    if let Some(attrs) = &args.attributes {
+        let scope_attrs = dto::parse_attributes(Some(attrs));
+        scope_builder = scope_builder.with_attributes(scope_attrs);
+    }
+    
+    let scope = scope_builder.build();
+    loggers.insert(args.name, scope);
+    Json(OtelCreateLoggerReturn { success: true })
+}
+
+async fn otel_write_log(
+    State(state): State<AppState>,
+    Json(args): Json<OtelWriteLogArgs>,
+) -> Json<OtelWriteLogReturn> {
+    let loggers = state.otel_loggers.lock().unwrap();
+    let scope = loggers
+        .get(&args.logger_name)
+        .expect("Logger not found in registered loggers");
+
+    let logger_provider_guard = state.logger_provider.lock().unwrap();
+    let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
+    let logger = logger_provider.logger_with_scope(scope.clone());
+
+    let level_upper = args.level.to_uppercase();
+    let (severity, severity_text) = match level_upper.as_str() {
+        "DEBUG" => (Severity::Debug, "DEBUG"),
+        "INFO" => (Severity::Info, "INFO"),
+        "WARN" => (Severity::Warn, "WARN"),
+        "ERROR" => (Severity::Error, "ERROR"),
+        _ => (Severity::Info, "INFO"),
+    };
+
+    let mut log_record = logger.create_log_record();
+    log_record.set_severity_number(severity);
+    log_record.set_severity_text(severity_text);
+    log_record.set_body(AnyValue::String(args.message.clone().into()));
+    
+    if let Some(span_id) = args.span_id {
+        let contexts = state.contexts.lock().unwrap();
+        let otel_spans = state.extracted_span_contexts.lock().unwrap();
+        
+        if let Some(ctx) = contexts.get(&span_id) {
+            let span = ctx.context.span();
+            let span_context = span.span_context();
+            log_record.set_trace_context(
+                span_context.trace_id(),
+                span_context.span_id(),
+                Some(span_context.trace_flags()),
+            );
+        } else if let Some(ctx) = otel_spans.get(&span_id) {
+            let span = ctx.span();
+            let span_context = span.span_context();
+            log_record.set_trace_context(
+                span_context.trace_id(),
+                span_context.span_id(),
+                Some(span_context.trace_flags()),
+            );
+        }
+    }
+
+    logger.emit(log_record);
+    Json(OtelWriteLogReturn { success: true })
+}

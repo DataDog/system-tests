@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "title": "Capabilities Schema",
+  "description": "Schema for validating capabilities YAML files that define expected Remote Config capabilities reported by tracer libraries across different versions",
+  "properties": {
+    "capabilities": {
+      "type": "object",
+      "description": "Main capabilities section mapping language names to their capability definitions. Each language can have a 'base' set (available in all versions) and version-specific capability sets.",
+      "patternProperties": {
+        "^[a-z]+$": {
+          "$ref": "#/$defs/language_capabilities",
+          "description": "Language name (e.g., 'java', 'nodejs', 'python')"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["capabilities"],
+  "additionalProperties": false,
+
+  "$defs": {
+    "language_capabilities": {
+      "type": "object",
+      "description": "Capability definitions for a specific language. Must include a 'base' set, and can optionally include version-specific capability sets.",
+      "properties": {
+        "base": {
+          "$ref": "#/$defs/capability_list",
+          "description": "Capabilities available in all tested versions of this language"
+        }
+      },
+      "patternProperties": {
+        "^(>=|>|<=|<|\\^|~|\\*|[0-9]).*": {
+          "$ref": "#/$defs/capability_list",
+          "description": "Capabilities added in specific version ranges. Uses npm SemVer syntax (e.g., '>=5.72.0', '>=3.0.0 || ^2.13.0')"
+        }
+      },
+      "required": ["base"],
+      "additionalProperties": false
+    },
+
+    "capability_list": {
+      "type": "array",
+      "description": "List of capability names. Each must match a valid Capabilities enum value from utils/dd_constants.py",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z_]+$",
+        "description": "Capability name in UPPER_SNAKE_CASE format (e.g., 'APM_TRACING_SAMPLE_RATE', 'ASM_ACTIVATION')"
+      },
+      "uniqueItems": true,
+      "minItems": 1
+    }
+  }
+}

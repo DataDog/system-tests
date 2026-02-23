@@ -6,6 +6,7 @@ import re
 from urllib.parse import urlparse
 
 from utils import context, interfaces, features, scenarios
+from utils.dd_types import DataDogSpan
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -14,6 +15,8 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
+    "envoy": "go",
+    "haproxy": "go",
 }
 
 """
@@ -35,6 +38,7 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
     "graphql-go": "graphql-go/graphql",
@@ -160,12 +164,9 @@ optional_uds_feature = (
 )
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -173,7 +174,7 @@ class Test_Meta:
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -190,7 +191,7 @@ class Test_Meta:
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -209,7 +210,7 @@ class Test_Meta:
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -227,7 +228,7 @@ class Test_Meta:
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -261,7 +262,7 @@ class Test_Meta:
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
@@ -282,7 +283,7 @@ class Test_Meta:
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
@@ -309,7 +310,7 @@ class Test_Meta:
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
@@ -325,7 +326,7 @@ class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
     def test_meta_dd_tags(self):
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             assert span["meta"]["key1"] == "val1", (
                 f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
             )
@@ -338,11 +339,8 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_one_span(validator=validator)
 
 
-@features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.trace_data_integrity
-@scenarios.external_processing
-@scenarios.stream_processing_offload
+@scenarios.go_proxies_default
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

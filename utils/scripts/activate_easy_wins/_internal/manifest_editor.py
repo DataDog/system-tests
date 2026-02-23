@@ -7,7 +7,6 @@ from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
 from utils.manifest import Condition
-from utils.manifest._internal.const import simple_regex as simple_version_regex
 from .const import LIBRARIES
 from typing import TYPE_CHECKING
 import re
@@ -130,7 +129,7 @@ class ManifestEditor:
 
     def set_context(self, context: Context) -> ManifestEditor:
         self.context = context
-        self.manifest.update_rules(context.library, context.library_version, context.variant)
+        self.manifest.update_rules({context.library: context.library_version}, context.variant)
         return self
 
     def get_matches(self, nodeid: str) -> set[View]:
@@ -194,6 +193,8 @@ class ManifestEditor:
         self.poked_views[view].add(self.context)
 
     def add_rules(self, rules: list[str], parent: View) -> None:
+        if "excluded_component_version" in parent.condition:
+            return
         for rule in rules:
             if rule not in self.added_rules:
                 self.added_rules[rule] = set()
@@ -297,10 +298,25 @@ class ManifestEditor:
                 ret[rule] = []
             for condition_key, weblogs in weblog_conditions.items():
                 condition = non_var_conditions[condition_key].copy()
-                if set(weblogs) != self.weblogs[condition["component"]]:
+                if set(weblogs) != self.weblogs[condition["component"]] and "parametric-" not in next(iter(weblogs)):
                     condition["weblog"] = list(weblogs)
                 ret[rule].append(condition)
         return ret
+
+    @staticmethod
+    def has_existing_comment(
+        obj: CommentedMap | CommentedSeq,
+        key_or_index: str | int,
+    ) -> bool:
+        try:
+            comment_tokens = obj.ca.items.get(key_or_index)
+            if comment_tokens:
+                for token in comment_tokens:
+                    if token is not None:
+                        return True
+        except (AttributeError, KeyError):
+            pass
+        return False
 
     def write_comment(
         self,
@@ -309,7 +325,7 @@ class ManifestEditor:
         comment: str,
         position: str = "inline",
     ) -> None:
-        """Add a comment to a YAML structure.
+        """Add a comment to a YAML structure, only if no comment already exists.
 
         Args:
             obj: The CommentedMap or CommentedSeq to add the comment to
@@ -319,6 +335,10 @@ class ManifestEditor:
 
         """
         if not isinstance(obj, (CommentedMap, CommentedSeq)):
+            return
+
+        # Don't overwrite existing comments
+        if self.has_existing_comment(obj, key_or_index):
             return
 
         # ruamel.yaml adds the # automatically, so we don't include it in the comment text
@@ -359,6 +379,17 @@ class ManifestEditor:
                     manifest[rule] = []
                     self.write_comment(manifest, rule, "Created by easy win activation script", "inline")
                 condition_dict = self.serialize_condition(condition)
+                if isinstance(manifest[rule], str):
+                    if "excluded_component_version" in self.manifest.data:
+                        manifest[rule] = [
+                            {"weblog_declaration": {"*": manifest.rules[rule]["excluded_component_version"]}}
+                        ]
+                    else:
+                        manifest[rule] = [
+                            ManifestEditor.serialize_condition(
+                                next(x for x in self.manifest.data[rule] if x["component"] == condition["component"])
+                            )
+                        ]
                 manifest[rule].append(condition_dict)
                 if isinstance(manifest[rule], CommentedSeq) and len(manifest[rule]) > 0:
                     last_index = len(manifest[rule]) - 1
@@ -368,14 +399,14 @@ class ManifestEditor:
         for view, contexts in self.poked_views.items():
             raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
-            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]]
+            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]] or "parametric-" in next(
+                iter(weblogs)
+            )
 
-            if "excluded_component_version" in view.condition and (
-                not isinstance(raw_data, str) or not re.fullmatch(simple_version_regex, raw_data)
-            ):
+            if "excluded_component_version" in view.condition:
                 # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
                 weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
-                comment_text = f"This entry should be updated to allow the test to run for weblogs: {weblog_list}"
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
                 manifest_map = self.raw_data[view.condition["component"]]["manifest"]
                 self.write_comment(manifest_map, view.rule, comment_text, "inline")
                 continue
@@ -441,6 +472,15 @@ class ManifestEditor:
                         )
 
             else:
+                # Add comment indicating this entry should be updated to allow the test to run for the relevant weblog
+                weblog_list = "all weblogs" if all_weblogs else ", ".join(sorted(weblogs))
+                comment_text = f"Easy win for {weblog_list} and version {component_version}"
+                manifest_map = self.raw_data[view.condition["component"]]["manifest"]
+                self.write_comment(manifest_map, view.rule, comment_text, "inline")
+                continue
+
+                # Not currently supported because it would require complicated handling
+                # of version ranges
                 raw_data[view.condition_index]["excluded_weblog"] = CommentedSeq(
                     view.condition.get("excluded_weblog", []) + weblogs
                 )

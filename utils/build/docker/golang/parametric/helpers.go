@@ -69,6 +69,10 @@ type FinishSpanArgs struct {
 	Id uint64 `json:"span_id"`
 }
 
+type SpanIDArgs struct {
+	SpanId uint64 `json:"span_id"`
+}
+
 type SpanSetMetaArgs struct {
 	SpanId uint64 `json:"span_id"`
 	Key    string `json:"key"`
@@ -178,6 +182,113 @@ type OtelAddEventArgs struct {
 }
 
 type AttributeKeyVals map[string]interface{}
+
+// OTel Metrics structs
+
+type OtelGetMeterArgs struct {
+	Name       string            `json:"name"`
+	Version    *string           `json:"version"`
+	SchemaUrl  *string           `json:"schema_url"`
+	Attributes *AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateCounterArgs struct {
+	MeterName   string `json:"meter_name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Unit        string `json:"unit"`
+}
+
+type OtelCounterAddArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Unit        string           `json:"unit"`
+	Description string           `json:"description"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateUpDownCounterArgs struct {
+	MeterName   string `json:"meter_name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Unit        string `json:"unit"`
+}
+
+type OtelUpDownCounterAddArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Unit        string           `json:"unit"`
+	Description string           `json:"description"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateGaugeArgs struct {
+	MeterName   string `json:"meter_name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Unit        string `json:"unit"`
+}
+
+type OtelGaugeRecordArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Unit        string           `json:"unit"`
+	Description string           `json:"description"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateHistogramArgs struct {
+	MeterName   string `json:"meter_name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Unit        string `json:"unit"`
+}
+
+type OtelHistogramRecordArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Unit        string           `json:"unit"`
+	Description string           `json:"description"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateAsynchronousCounterArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Unit        string           `json:"unit"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateAsynchronousUpDownCounterArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Unit        string           `json:"unit"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelCreateAsynchronousGaugeArgs struct {
+	MeterName   string           `json:"meter_name"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Unit        string           `json:"unit"`
+	Value       float64          `json:"value"`
+	Attributes  AttributeKeyVals `json:"attributes"`
+}
+
+type OtelMetricsForceFlushArgs struct {
+}
+
+type OtelMetricsForceFlushReturn struct {
+	Success bool `json:"success"`
+}
 
 func (a AttributeKeyVals) ConvertToAttributes() []attribute.KeyValue {
 	var attrs []attribute.KeyValue

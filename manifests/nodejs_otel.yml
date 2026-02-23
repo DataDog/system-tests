@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
+---
+manifest:
+  tests/integrations/test_open_telemetry.py::Test_MsSql::test_db_connection_string: "irrelevant (Open telemetry doesn't send this span for nodejs and mssql. It's recomended but not mandatory)"
+  tests/integrations/test_open_telemetry.py::Test_MsSql::test_db_operation: missing_feature (We are not generating this span)
+  tests/integrations/test_open_telemetry.py::Test_MsSql::test_obfuscate_query: bug (OTEL-940)
+  tests/integrations/test_open_telemetry.py::Test_MsSql::test_resource: "missing_feature (Resource span is not generating correctly. We find resource value: execsql master)"
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for nodejs but it should do)"
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_error_exception_event: missing_feature (Open telemetry with nodejs is not generating this information.)
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_error_type_and_stack: missing_feature (Open telemetry with nodejs is not generating this information.)
+  tests/integrations/test_open_telemetry.py::Test_MySql::test_obfuscate_query: bug (OTEL-940)
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for nodejs but it should do)"
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_exception_event: missing_feature (Open telemetry with nodejs is not generating this information.)
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_type_and_stack: missing_feature (Open telemetry with nodejs is not generating this information.)
+  tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-940)
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_db_operation: "missing_feature (Open Telemetry doesn't send this span for nodejs but it should do)"
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_error_exception_event: missing_feature (Open telemetry with nodejs is not generating this information.)
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_error_type_and_stack: missing_feature (Open telemetry with nodejs is not generating this information.)
+  tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-940)

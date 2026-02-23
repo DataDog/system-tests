@@ -1,4 +1,5 @@
 import json
+import requests
 from utils import weblog, interfaces, features, scenarios
 
 
@@ -16,6 +17,40 @@ def extract_baggage_value(request_headers: dict | list):
             if header.get("key", "").lower() == "baggage":
                 return header.get("value")
     return None
+
+
+def _setup_baggage_api_request(endpoint: str):
+    return weblog.get(
+        endpoint,
+        params={
+            "url": "http://weblog:7777",
+            "baggage_set": "foo_case_sensitive_key=overwrite_value,new_foo=new_value",
+            "baggage_remove": "remove_me_key",
+        },
+        headers={
+            "x-datadog-parent-id": "10",
+            "x-datadog-trace-id": "2",
+            "baggage": "foo_case_sensitive_key=value_to_be_replaced,FOO_CASE_SENSITIVE_KEY=UNTOUCHED,remove_me_key=remove_me_value",
+        },
+    )
+
+
+def _assert_baggage_api_response(response: requests.Response):
+    assert response.status_code == 200
+    data = json.loads(response.text)
+    baggage_header_value = extract_baggage_value(data["request_headers"])
+    assert baggage_header_value is not None
+    header_str = baggage_header_value[0] if isinstance(baggage_header_value, list) else baggage_header_value
+    items = header_str.split(",")
+
+    # Expect the following baggage items:
+    # - "foo_case_sensitive_key=overwrite_value (new pair with conflicting case-sensitive key replaces old pair)
+    # - "FOO_CASE_SENSITIVE_KEY=UNTOUCHED (keys are case-sensitive, so it does not get replaced)
+    # - "new_foo=new_value (new pair added)
+    assert len(items) == 3
+    assert "foo_case_sensitive_key=overwrite_value" in items
+    assert "FOO_CASE_SENSITIVE_KEY=UNTOUCHED" in items
+    assert "new_foo=new_value" in items
 
 
 @scenarios.tracing_config_empty
@@ -162,3 +197,26 @@ class Test_Baggage_Headers_Max_Bytes:
         assert len(items) == 1
         header_size = len(header_str.encode("utf-8"))
         assert header_size <= self.max_bytes
+
+
+# Note: This currently relies on DD_TRACE_OTEL_ENABLED=true
+@scenarios.tracing_config_nondefault_4
+@features.datadog_baggage_headers
+class Test_Baggage_Headers_Api_OTel:
+    def setup_otel_api_update(self):
+        self.r = _setup_baggage_api_request("/otel_drop_in_baggage_api_otel")
+
+    def test_otel_api_update(self):
+        interfaces.library.assert_trace_exists(self.r)
+        _assert_baggage_api_response(self.r)
+
+
+@scenarios.tracing_config_empty
+@features.datadog_baggage_headers
+class Test_Baggage_Headers_Api_Datadog:
+    def setup_datadog_api_update(self):
+        self.r = _setup_baggage_api_request("/otel_drop_in_baggage_api_datadog")
+
+    def test_datadog_api_update(self):
+        interfaces.library.assert_trace_exists(self.r)
+        _assert_baggage_api_response(self.r)

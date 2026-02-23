@@ -52,7 +52,7 @@ public class MyResource {
         Span span = tracer.buildSpan("test-span").start();
         span.setTag("test-tag", "my value");
         try {
-            return "Hello World!";
+            return "Hello world!\n";
         } finally {
             span.finish();
         }
@@ -246,6 +246,12 @@ public class MyResource {
     @Path("/waf")
     public String waf() {
         return "Hello world!";
+    }
+
+    @GET
+    @Path("/resource_renaming/{path: .*}")
+    public String resourceRenaming(@PathParam("path") String path) {
+        return "ok";
     }
 
     @POST

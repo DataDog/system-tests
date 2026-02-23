@@ -5,7 +5,7 @@
 from collections.abc import Sequence
 import json
 
-from utils import interfaces
+from utils import interfaces, logger
 from utils._weblog import HttpResponse
 
 
@@ -127,6 +127,13 @@ def validate_metric_variant(name: str, metric_type: str, variant: str, metric: d
         and f"rule_variant:{variant}" in metric.get("tags", ())
         and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
     )
+
+
+def validate_metric_variant_v2_exists(name: str, metric_type: str, variant: str, metrics: list[dict]) -> bool:
+    logger.debug(f"Validating existence of metric variant v2: {name}, {metric_type}, {variant}")
+    logger.debug(f"Metrics to check:\n{json.dumps(metrics, indent=2)}")
+
+    return any(validate_metric_variant_v2(name, metric_type, variant, metric) for metric in metrics)
 
 
 def validate_metric_variant_v2(

@@ -5,11 +5,12 @@
 import json
 import urllib.parse
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils.dd_types import DataDogSpan
 
 from tests.appsec.rasp.utils import (
     find_series,
-    validate_metric_variant_v2,
+    validate_metric_variant_v2_exists,
 )
 
 
@@ -27,7 +28,7 @@ class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
     TAGS_EXPECTED_METRIC: list[tuple[str, str]] = []
 
-    def validate(self, span: dict):
+    def validate(self, span: DataDogSpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -43,7 +44,7 @@ class API10:
 
         return True
 
-    def validate_metric(self, span: dict):
+    def validate_metric(self, span: DataDogSpan):
         for tag, expected in self.TAGS_EXPECTED_METRIC:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
@@ -91,7 +92,8 @@ class Test_API10_request_method(API10):
     TAGS_EXPECTED = [("_dd.appsec.trace.req_method", "TAG_API10_REQ_METHOD")]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -241,7 +243,8 @@ class Test_API10_downstream_request_tag(API10):
     ]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -265,22 +268,13 @@ class Test_API10_downstream_ssrf_telemetry(API10):
     def test_api10_req(self):
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
-        assert any(validate_metric_variant_v2("rasp.rule.eval", "ssrf", "request", s) for s in series_eval), [
-            s.get("tags") for s in series_eval
-        ]
-        assert any(validate_metric_variant_v2("rasp.rule.eval", "ssrf", "response", s) for s in series_eval), [
-            s.get("tags") for s in series_eval
-        ]
+        assert validate_metric_variant_v2_exists("rasp.rule.eval", "ssrf", "request", series_eval)
+        assert validate_metric_variant_v2_exists("rasp.rule.eval", "ssrf", "response", series_eval)
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
-
-        assert any(validate_metric_variant_v2("rasp.rule.match", "ssrf", "request", s) for s in series_match), [
-            s.get("tags") for s in series_match
-        ]
-        assert any(validate_metric_variant_v2("rasp.rule.match", "ssrf", "response", s) for s in series_match), [
-            s.get("tags") for s in series_match
-        ]
+        assert validate_metric_variant_v2_exists("rasp.rule.match", "ssrf", "request", series_match)
+        assert validate_metric_variant_v2_exists("rasp.rule.match", "ssrf", "response", series_match)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7Cwg/edit#heading=h.giijrtyn1fdx")
@@ -297,7 +291,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogSpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -328,7 +322,7 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogSpan):
         if span.get("parent_id") not in (0, None):
             return None
 

@@ -102,7 +102,7 @@ The system-tests repository provides native support for **Claude CLI** (Anthropi
    claude --permission-mode acceptEdits -p "Your prompt here"
    ```
 
-#### Running Promptfoo Evaluations with Claude
+#### Running Promptfoo Evaluations
 
 Use the interactive wizard script to run prompt evaluations:
 
@@ -111,7 +111,7 @@ Use the interactive wizard script to run prompt evaluations:
 ```
 
 The wizard guides you through:
-1. Selecting the AI agent (**cursor-agent** or **claude**)
+1. Selecting the AI provider (e.g., Claude AI Agent SDK)
 2. Choosing which test scenarios to run
 3. Automatically executing the evaluation
 

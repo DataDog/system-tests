@@ -1,8 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import re
-from utils import context, weblog, interfaces, features, missing_feature, logger
+from utils import context, weblog, interfaces, features, logger
 
 
 # those tests are linked to unix_domain_sockets_support_for_traces only for UDS weblogs
@@ -15,17 +14,9 @@ optional_uds_feature = (
 class Test_Backend:
     """Misc test around agent/backend communication"""
 
-    @missing_feature(condition=True)  # intake.profile does not use FQDN helper
     def test_good_backend(self):
         """Agent reads and use DD_SITE env var"""
         self._assert_good_backend(expected_domain=context.dd_site)
-
-    @missing_feature(context.agent_version < "7.67.0-dev")
-    def test_good_backend_partial(self):
-        """Agent reads and use DD_SITE env var"""
-        self._assert_good_backend(
-            expected_domain=context.dd_site, excluded_sub_domains=("intake.profile", "debugger-intake")
-        )
 
     @staticmethod
     def _assert_good_backend(expected_domain: str, excluded_sub_domains: tuple[str, ...] = ()) -> None:
@@ -39,13 +30,14 @@ class Test_Backend:
             "keys.datadoghq.com",
         )
 
-        # if DD_SITE is set to a known datadog backend, then the agent adds a tailing '.' at the end
-        # to make it a FQDN, and save useless DNS requests. See https://github.com/DataDog/datadog-agent/pull/36972
-        if re.match(r"(?:datadoghq|datad0g)\.(?:com|eu)$|ddog-gov\.com$", expected_domain):
-            expected_domain = expected_domain + "."
-
         for data in interfaces.agent.get_data():
             host: str = data["host"]
+
+            # agent uses FQDN for almost all queries (same domain, but with a tailing dot).
+            # but if for some reason, the connectivity fails, then the agent fallbacks to non-FQDN.
+            # we cannot enforce FQDN assertion in this test, as connectivity fails may happen randomly.
+            # we strip any tailing dot in the observed host for the test.
+            host = host.rstrip(".")
 
             if host.startswith(excluded_sub_domains):
                 logger.debug(f"{data['log_filename']} host: {host} -> ignored subdomain")
@@ -71,7 +63,6 @@ class Test_Library:
     def setup_receive_request_trace(self):
         self.r = weblog.get("/")
 
-    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_receive_request_trace(self):
         """Basic test to verify that libraries sent traces to the agent"""
         interfaces.library.assert_receive_request_root_trace()

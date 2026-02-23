@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as debugger
 import re
 import json
-from utils import scenarios, features, bug, missing_feature, context
+
+import tests.debugger.utils as debugger
+from utils import scenarios, features
 
 
 @features.debugger_expression_language
@@ -20,11 +21,16 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
         self.wait_for_all_probes(statuses=["EMITTING"])
-        self.wait_for_snapshot_received()
+        self.wait_for_all_snapshots()
 
     ############ assert ############
     def _assert(self, expected_response: int):
         self.collect()
+
+        assert len(self.probe_ids) > 0, (
+            "Expected probes to be created for validation. "
+            "Check if the language supports the required probe type for this test."
+        )
 
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_emitting()
@@ -67,8 +73,16 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             expressions=[
                 ["Accessing input", "asd", Dsl("ref", "inputValue")],
                 ["Accessing local", 3, Dsl("ref", "localValue")],
-                ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"])],
-                ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"])],
+                [
+                    "Accessing complex object int",
+                    1,
+                    Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"]),
+                ],
+                [
+                    "Accessing complex object double",
+                    1.1,
+                    Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"]),
+                ],
                 [
                     "Accessing complex object string",
                     "one",
@@ -82,12 +96,21 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 [
                     "Accessing complex object collection first element",
                     "one",
-                    Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Collection"]), 0]),
+                    Dsl(
+                        "index",
+                        [Dsl("getmember", [Dsl("ref", "testStruct"), "Collection"]), 0],
+                    ),
                 ],
                 [
                     "Accessing complex object collection 'two' keyword",
                     2,
-                    Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
+                    Dsl(
+                        "index",
+                        [
+                            Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]),
+                            "two",
+                        ],
+                    ),
                 ],
             ],
             lines=self.method_and_language_to_line_number(method, language),
@@ -113,7 +136,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
-    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_contextual_variables(self):
         self._assert(expected_response=200)
 
@@ -135,7 +157,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/exception")
 
-    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_access_exception(self):
         self._assert(expected_response=500)
 
@@ -162,7 +183,11 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 ["floatValue ne 0", True, Dsl("ne", [Dsl("ref", "floatValue"), 0])],
                 ["floatValue ne 0.1", True, Dsl("ne", [Dsl("ref", "floatValue"), 0.1])],
                 ["floatValue lt 10", True, Dsl("lt", [Dsl("ref", "floatValue"), 10])],
-                ["floatValue lt 10.10", True, Dsl("lt", [Dsl("ref", "floatValue"), 10.10])],
+                [
+                    "floatValue lt 10.10",
+                    True,
+                    Dsl("lt", [Dsl("ref", "floatValue"), 10.10]),
+                ],
                 ["floatValue gt 0", True, Dsl("gt", [Dsl("ref", "floatValue"), 0])],
                 ["floatValue gt 0.0", True, Dsl("gt", [Dsl("ref", "floatValue"), 0.0])],
                 ["floatValue le 5", True, Dsl("le", [Dsl("ref", "floatValue"), 5])],
@@ -170,15 +195,35 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 ["floatValue ge 0", True, Dsl("ge", [Dsl("ref", "floatValue"), 0])],
                 ["floatValue ge 0.0", True, Dsl("ge", [Dsl("ref", "floatValue"), 0.0])],
                 ["floatValue eq 0", False, Dsl("eq", [Dsl("ref", "floatValue"), 0])],
-                ["floatValue eq 0.0", False, Dsl("eq", [Dsl("ref", "floatValue"), 0.0])],
+                [
+                    "floatValue eq 0.0",
+                    False,
+                    Dsl("eq", [Dsl("ref", "floatValue"), 0.0]),
+                ],
                 ["floatValue lt 0", False, Dsl("lt", [Dsl("ref", "floatValue"), 0])],
-                ["floatValue lt 0.0", False, Dsl("lt", [Dsl("ref", "floatValue"), 0.0])],
+                [
+                    "floatValue lt 0.0",
+                    False,
+                    Dsl("lt", [Dsl("ref", "floatValue"), 0.0]),
+                ],
                 ["floatValue gt 10", False, Dsl("gt", [Dsl("ref", "floatValue"), 10])],
-                ["floatValue gt 10.10", False, Dsl("gt", [Dsl("ref", "floatValue"), 10.10])],
+                [
+                    "floatValue gt 10.10",
+                    False,
+                    Dsl("gt", [Dsl("ref", "floatValue"), 10.10]),
+                ],
                 ["floatValue le 0", False, Dsl("le", [Dsl("ref", "floatValue"), 0])],
-                ["floatValue le 0.0", False, Dsl("le", [Dsl("ref", "floatValue"), 0.0])],
+                [
+                    "floatValue le 0.0",
+                    False,
+                    Dsl("le", [Dsl("ref", "floatValue"), 0.0]),
+                ],
                 ["floatValue ge 10", False, Dsl("ge", [Dsl("ref", "floatValue"), 10])],
-                ["floatValue ge 10.10", False, Dsl("ge", [Dsl("ref", "floatValue"), 10.10])],
+                [
+                    "floatValue ge 10.10",
+                    False,
+                    Dsl("ge", [Dsl("ref", "floatValue"), 10.10]),
+                ],
                 ["strValue eq haha", True, Dsl("eq", [Dsl("ref", "strValue"), "haha"])],
                 ["strValue ne hoho", True, Dsl("ne", [Dsl("ref", "strValue"), "hoho"])],
                 ["strValue lt z", True, Dsl("lt", [Dsl("ref", "strValue"), "z"])],
@@ -187,7 +232,11 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 ["strValue le z", True, Dsl("le", [Dsl("ref", "strValue"), "z"])],
                 ["strValue ge a", True, Dsl("ge", [Dsl("ref", "strValue"), "a"])],
                 ["strValue ge haha", True, Dsl("ge", [Dsl("ref", "strValue"), "haha"])],
-                ["strValue eq hoho", False, Dsl("eq", [Dsl("ref", "strValue"), "hoho"])],
+                [
+                    "strValue eq hoho",
+                    False,
+                    Dsl("eq", [Dsl("ref", "strValue"), "hoho"]),
+                ],
                 ["strValue lt a", False, Dsl("lt", [Dsl("ref", "strValue"), "a"])],
                 ["strValue gt z", False, Dsl("gt", [Dsl("ref", "strValue"), "z"])],
                 ["strValue le a", False, Dsl("le", [Dsl("ref", "strValue"), "a"])],
@@ -197,7 +246,10 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(
+            probes,
+            "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
+        )
 
     def test_expression_language_comparison_operators(self):
         self._assert(expected_response=200)
@@ -208,11 +260,18 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         message_map, probes = self._create_expression_probes(
             method_name=method,
             expressions=[
-                ["intValue instanceof int", True, Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("int")])],
+                [
+                    "intValue instanceof int",
+                    True,
+                    Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("int")]),
+                ],
                 [
                     "floatValue instanceof float",
                     True,
-                    Dsl("instanceof", [Dsl("ref", "floatValue"), self._get_type("float")]),
+                    Dsl(
+                        "instanceof",
+                        [Dsl("ref", "floatValue"), self._get_type("float")],
+                    ),
                 ],
                 [
                     "strValue instanceof string",
@@ -244,16 +303,21 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                     False,
                     Dsl("instanceof", [Dsl("ref", "strValue"), self._get_type("float")]),
                 ],
-                ["pii instanceof string", False, Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("string")])],
+                [
+                    "pii instanceof string",
+                    False,
+                    Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("string")]),
+                ],
             ],
             lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(
+            probes,
+            "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
+        )
 
-    @bug(library="dotnet", reason="DEBUG-2530")
-    @bug(library="nodejs", weblog_variant="express4-typescript", reason="DEBUG-3715")
     def test_expression_language_instance_of(self):
         self._assert(expected_response=200)
 
@@ -266,33 +330,67 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 [
                     "intValue eq 5 and strValue ne 5",
                     True,
-                    Dsl("and", [Dsl("eq", [Dsl("ref", "intValue"), 5]), Dsl("ne", [Dsl("ref", "strValue"), "5"])]),
+                    Dsl(
+                        "and",
+                        [
+                            Dsl("eq", [Dsl("ref", "intValue"), 5]),
+                            Dsl("ne", [Dsl("ref", "strValue"), "5"]),
+                        ],
+                    ),
                 ],
                 [
                     "intValue eq 1 or strValue eq haha",
                     True,
-                    Dsl("or", [Dsl("eq", [Dsl("ref", "intValue"), 1]), Dsl("eq", [Dsl("ref", "strValue"), "haha"])]),
+                    Dsl(
+                        "or",
+                        [
+                            Dsl("eq", [Dsl("ref", "intValue"), 1]),
+                            Dsl("eq", [Dsl("ref", "strValue"), "haha"]),
+                        ],
+                    ),
                 ],
-                ["not intValue ne 10", True, Dsl("not", Dsl("ne", [Dsl("ref", "intValue"), 5]))],
+                [
+                    "not intValue ne 10",
+                    True,
+                    Dsl("not", Dsl("ne", [Dsl("ref", "intValue"), 5])),
+                ],
                 [
                     "intValue eq 5 and strValue ne haha",
                     False,
-                    Dsl("and", [Dsl("eq", [Dsl("ref", "intValue"), 5]), Dsl("ne", [Dsl("ref", "strValue"), "haha"])]),
+                    Dsl(
+                        "and",
+                        [
+                            Dsl("eq", [Dsl("ref", "intValue"), 5]),
+                            Dsl("ne", [Dsl("ref", "strValue"), "haha"]),
+                        ],
+                    ),
                 ],
                 [
                     "intValue eq 1 or strValue eq hoho",
                     False,
-                    Dsl("or", [Dsl("eq", [Dsl("ref", "intValue"), 1]), Dsl("eq", [Dsl("ref", "strValue"), "hoho"])]),
+                    Dsl(
+                        "or",
+                        [
+                            Dsl("eq", [Dsl("ref", "intValue"), 1]),
+                            Dsl("eq", [Dsl("ref", "strValue"), "hoho"]),
+                        ],
+                    ),
                 ],
-                ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5]))],
+                [
+                    "not intValue eq 10",
+                    False,
+                    Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5])),
+                ],
             ],
             lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
-        self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
+        self._setup(
+            probes,
+            "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha",
+        )
 
-    @bug(context.library == "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
         self._assert(expected_response=200)
 
@@ -304,35 +402,119 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             expressions=[
                 ##### isempty
                 ["strValue isEmpty", False, Dsl("isEmpty", Dsl("ref", "strValue"))],
-                ["emptyString isEmpty", True, Dsl("isEmpty", Dsl("ref", "emptyString"))],
+                [
+                    "emptyString isEmpty",
+                    True,
+                    Dsl("isEmpty", Dsl("ref", "emptyString")),
+                ],
                 ##### len
                 ["strValue len", 14, Dsl("len", Dsl("ref", "strValue"))],
                 ["emptyString len", 0, Dsl("len", Dsl("ref", "emptyString"))],
                 ##### substring
-                ["strValue substring 0 5", "veryl", Dsl("substring", [Dsl("ref", "strValue"), 0, 5])],
-                ["strValue substring 5 10", "ongst", Dsl("substring", [Dsl("ref", "strValue"), 5, 10])],
-                ["strValue substring 0 0", "", Dsl("substring", [Dsl("ref", "strValue"), 0, 0])],
-                ["emptyString substring 0 0", "", Dsl("substring", [Dsl("ref", "emptyString"), 0, 0])],
+                [
+                    "strValue substring 0 5",
+                    "veryl",
+                    Dsl("substring", [Dsl("ref", "strValue"), 0, 5]),
+                ],
+                [
+                    "strValue substring 5 10",
+                    "ongst",
+                    Dsl("substring", [Dsl("ref", "strValue"), 5, 10]),
+                ],
+                [
+                    "strValue substring 0 0",
+                    "",
+                    Dsl("substring", [Dsl("ref", "strValue"), 0, 0]),
+                ],
+                [
+                    "emptyString substring 0 0",
+                    "",
+                    Dsl("substring", [Dsl("ref", "emptyString"), 0, 0]),
+                ],
                 ##### startsWith
-                ["strValue startsWith very", True, Dsl("startsWith", [Dsl("ref", "strValue"), "very"])],
-                ["strValue startsWith foo", False, Dsl("startsWith", [Dsl("ref", "strValue"), "foo"])],
-                ["emptyString startsWith empty", True, Dsl("startsWith", [Dsl("ref", "emptyString"), ""])],
-                ["emptyString startsWith some", False, Dsl("startsWith", [Dsl("ref", "emptyString"), "some"])],
+                [
+                    "strValue startsWith very",
+                    True,
+                    Dsl("startsWith", [Dsl("ref", "strValue"), "very"]),
+                ],
+                [
+                    "strValue startsWith foo",
+                    False,
+                    Dsl("startsWith", [Dsl("ref", "strValue"), "foo"]),
+                ],
+                [
+                    "emptyString startsWith empty",
+                    True,
+                    Dsl("startsWith", [Dsl("ref", "emptyString"), ""]),
+                ],
+                [
+                    "emptyString startsWith some",
+                    False,
+                    Dsl("startsWith", [Dsl("ref", "emptyString"), "some"]),
+                ],
                 ##### endsWith
-                ["strValue endsWith ring", True, Dsl("endsWith", [Dsl("ref", "strValue"), "ring"])],
-                ["strValue endsWith foo", False, Dsl("endsWith", [Dsl("ref", "strValue"), "foo"])],
-                ["emptyString endsWith empty", True, Dsl("endsWith", [Dsl("ref", "emptyString"), ""])],
-                ["emptyString endsWith some", False, Dsl("endsWith", [Dsl("ref", "emptyString"), "foo"])],
+                [
+                    "strValue endsWith ring",
+                    True,
+                    Dsl("endsWith", [Dsl("ref", "strValue"), "ring"]),
+                ],
+                [
+                    "strValue endsWith foo",
+                    False,
+                    Dsl("endsWith", [Dsl("ref", "strValue"), "foo"]),
+                ],
+                [
+                    "emptyString endsWith empty",
+                    True,
+                    Dsl("endsWith", [Dsl("ref", "emptyString"), ""]),
+                ],
+                [
+                    "emptyString endsWith some",
+                    False,
+                    Dsl("endsWith", [Dsl("ref", "emptyString"), "foo"]),
+                ],
                 ##### contains
-                ["strValue contains str", True, Dsl("contains", [Dsl("ref", "strValue"), "str"])],
-                ["strValue contains STR", False, Dsl("contains", [Dsl("ref", "strValue"), "STR"])],
-                ["emptyString contains empty", True, Dsl("contains", [Dsl("ref", "emptyString"), ""])],
-                ["emptyString contains some", False, Dsl("contains", [Dsl("ref", "emptyString"), "foo"])],
+                [
+                    "strValue contains str",
+                    True,
+                    Dsl("contains", [Dsl("ref", "strValue"), "str"]),
+                ],
+                [
+                    "strValue contains STR",
+                    False,
+                    Dsl("contains", [Dsl("ref", "strValue"), "STR"]),
+                ],
+                [
+                    "emptyString contains empty",
+                    True,
+                    Dsl("contains", [Dsl("ref", "emptyString"), ""]),
+                ],
+                [
+                    "emptyString contains some",
+                    False,
+                    Dsl("contains", [Dsl("ref", "emptyString"), "foo"]),
+                ],
                 ##### matches
-                ["strValue matches regex", True, Dsl("matches", [Dsl("ref", "strValue"), "^v.*g$"])],
-                ["strValue matches STR", False, Dsl("matches", [Dsl("ref", "strValue"), "foo"])],
-                ["emptyString matches empty", True, Dsl("matches", [Dsl("ref", "emptyString"), ""])],
-                ["emptyString matches some", False, Dsl("matches", [Dsl("ref", "emptyString"), "foo"])],
+                [
+                    "strValue matches regex",
+                    True,
+                    Dsl("matches", [Dsl("ref", "strValue"), "^v.*g$"]),
+                ],
+                [
+                    "strValue matches STR",
+                    False,
+                    Dsl("matches", [Dsl("ref", "strValue"), "foo"]),
+                ],
+                [
+                    "emptyString matches empty",
+                    True,
+                    Dsl("matches", [Dsl("ref", "emptyString"), ""]),
+                ],
+                [
+                    "emptyString matches some",
+                    False,
+                    Dsl("matches", [Dsl("ref", "emptyString"), "foo"]),
+                ],
             ],
             lines=self.method_and_language_to_line_number(method, language),
         )
@@ -340,7 +522,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/strings?strValue=verylongstring")
 
-    @bug(library="dotnet", reason="DEBUG-2560")
     def test_expression_language_string_operations(self):
         self._assert(expected_response=200)
 
@@ -366,49 +547,133 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 ["Array5 index 4", 4, Dsl("index", [Dsl("ref", "a5"), 4])],
                 ["List5 index 4", 4, Dsl("index", [Dsl("ref", "l5"), 4])],
                 ##### any
-                ["Array0 any gt 1", False, Dsl("any", [Dsl("ref", "a0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["Array1 any gt 1", False, Dsl("any", [Dsl("ref", "a1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["Array5 any gt 1", True, Dsl("any", [Dsl("ref", "a5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["List0 any gt 1", False, Dsl("any", [Dsl("ref", "l0"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["List1 any gt 1", False, Dsl("any", [Dsl("ref", "l1"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
-                ["List5 any gt 1", True, Dsl("any", [Dsl("ref", "l5"), Dsl("gt", [Dsl("ref", "@it"), 1])])],
+                [
+                    "Array0 any gt 1",
+                    False,
+                    Dsl("any", [Dsl("ref", "a0"), Dsl("gt", [Dsl("ref", "@it"), 1])]),
+                ],
+                [
+                    "Array1 any gt 1",
+                    False,
+                    Dsl("any", [Dsl("ref", "a1"), Dsl("gt", [Dsl("ref", "@it"), 1])]),
+                ],
+                [
+                    "Array5 any gt 1",
+                    True,
+                    Dsl("any", [Dsl("ref", "a5"), Dsl("gt", [Dsl("ref", "@it"), 1])]),
+                ],
+                [
+                    "List0 any gt 1",
+                    False,
+                    Dsl("any", [Dsl("ref", "l0"), Dsl("gt", [Dsl("ref", "@it"), 1])]),
+                ],
+                [
+                    "List1 any gt 1",
+                    False,
+                    Dsl("any", [Dsl("ref", "l1"), Dsl("gt", [Dsl("ref", "@it"), 1])]),
+                ],
+                [
+                    "List5 any gt 1",
+                    True,
+                    Dsl("any", [Dsl("ref", "l5"), Dsl("gt", [Dsl("ref", "@it"), 1])]),
+                ],
                 ##### all
-                ["Array0 all ge 0", True, Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["Array1 all ge 0", True, Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["Array5 all ge 1", False, Dsl("all", [Dsl("ref", "a5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
-                ["List0 all ge 0", True, Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["List1 all ge 0", True, Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])])],
-                ["List5 all ge 1", False, Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])])],
+                [
+                    "Array0 all ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "a0"), Dsl("ge", [Dsl("ref", "@it"), 0])]),
+                ],
+                [
+                    "Array1 all ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "a1"), Dsl("ge", [Dsl("ref", "@it"), 0])]),
+                ],
+                [
+                    "Array5 all ge 1",
+                    False,
+                    Dsl("all", [Dsl("ref", "a5"), Dsl("ge", [Dsl("ref", "@it"), 1])]),
+                ],
+                [
+                    "List0 all ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "l0"), Dsl("ge", [Dsl("ref", "@it"), 0])]),
+                ],
+                [
+                    "List1 all ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "l1"), Dsl("ge", [Dsl("ref", "@it"), 0])]),
+                ],
+                [
+                    "List5 all ge 1",
+                    False,
+                    Dsl("all", [Dsl("ref", "l5"), Dsl("ge", [Dsl("ref", "@it"), 1])]),
+                ],
                 ##### filter
                 [
                     "Array0 len filter lt 2",
                     0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "a0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "a0"), Dsl("lt", [Dsl("ref", "@it"), 2])],
+                        ),
+                    ),
                 ],
                 [
                     "Array1 len filter lt 2",
                     1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "a1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "a1"), Dsl("lt", [Dsl("ref", "@it"), 2])],
+                        ),
+                    ),
                 ],
                 [
                     "Array5 len filter lt 2",
                     2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "a5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "a5"), Dsl("lt", [Dsl("ref", "@it"), 2])],
+                        ),
+                    ),
                 ],
                 [
                     "List0 len filter lt 2",
                     0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "l0"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "l0"), Dsl("lt", [Dsl("ref", "@it"), 2])],
+                        ),
+                    ),
                 ],
                 [
                     "List1 len filter lt 2",
                     1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "l1"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "l1"), Dsl("lt", [Dsl("ref", "@it"), 2])],
+                        ),
+                    ),
                 ],
                 [
                     "List5 len filter lt 2",
                     2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])],
+                        ),
+                    ),
                 ],
             ],
             lines=self.method_and_language_to_line_number(method, language),
@@ -442,28 +707,61 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 ##### index
                 ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), 4])],
                 ##### any
-                ["Hash0 any gt 1", False, Dsl("any", [Dsl("ref", "h0"), Dsl("gt", [get_hash_value, 1])])],
-                ["Hash1 any gt 1", False, Dsl("any", [Dsl("ref", "h1"), Dsl("gt", [get_hash_value, 1])])],
-                ["Hash5 any gt 1", True, Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [get_hash_value, 1])])],
+                [
+                    "Hash0 any gt 1",
+                    False,
+                    Dsl("any", [Dsl("ref", "h0"), Dsl("gt", [get_hash_value, 1])]),
+                ],
+                [
+                    "Hash1 any gt 1",
+                    False,
+                    Dsl("any", [Dsl("ref", "h1"), Dsl("gt", [get_hash_value, 1])]),
+                ],
+                [
+                    "Hash5 any gt 1",
+                    True,
+                    Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [get_hash_value, 1])]),
+                ],
                 ##### all
-                ["Hash0 all ge 0", True, Dsl("all", [Dsl("ref", "h0"), Dsl("ge", [get_hash_value, 0])])],
-                ["Hash1 all ge 0", True, Dsl("all", [Dsl("ref", "h1"), Dsl("ge", [get_hash_value, 0])])],
-                ["Hash5 all ge 1", False, Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [get_hash_value, 1])])],
+                [
+                    "Hash0 all ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "h0"), Dsl("ge", [get_hash_value, 0])]),
+                ],
+                [
+                    "Hash1 all ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "h1"), Dsl("ge", [get_hash_value, 0])]),
+                ],
+                [
+                    "Hash5 all ge 1",
+                    False,
+                    Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [get_hash_value, 1])]),
+                ],
                 ##### filter
                 [
                     "Hash0 len filter lt 2",
                     0,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h0"), Dsl("lt", [get_hash_value, 2])])),
+                    Dsl(
+                        "len",
+                        Dsl("filter", [Dsl("ref", "h0"), Dsl("lt", [get_hash_value, 2])]),
+                    ),
                 ],
                 [
                     "Hash1 len filter lt 2",
                     1,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h1"), Dsl("lt", [get_hash_value, 2])])),
+                    Dsl(
+                        "len",
+                        Dsl("filter", [Dsl("ref", "h1"), Dsl("lt", [get_hash_value, 2])]),
+                    ),
                 ],
                 [
                     "Hash5 len filter lt 2",
                     2,
-                    Dsl("len", Dsl("filter", [Dsl("ref", "h5"), Dsl("lt", [get_hash_value, 2])])),
+                    Dsl(
+                        "len",
+                        Dsl("filter", [Dsl("ref", "h5"), Dsl("lt", [get_hash_value, 2])]),
+                    ),
                 ],
             ],
             lines=self.method_and_language_to_line_number(method, language),
@@ -472,10 +770,105 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
-    @bug(library="dotnet", reason="DEBUG-2602")
-    @missing_feature(library="python", reason="DEBUG-3240", force_skip=True)
-    @missing_feature(context.library <= "ruby@2.22.0", reason="Hash length not implemented")
     def test_expression_language_hash_operations(self):
+        self._assert(expected_response=200)
+
+    def setup_expression_language_hash_key_value(self):
+        key_0: str | int = 0
+        key_2: str | int = 2
+        key_3: str | int = 3
+        key_5: str | int = 5
+
+        # In Node.js, object keys are always strings, so we need to compare with string literals
+        # In other languages, the keys might be actual integers.
+        if self.get_tracer()["language"] == "nodejs":
+            key_3 = "3"
+            key_5 = "5"
+            key_0 = "0"
+            key_2 = "2"
+
+        language, method = self.get_tracer()["language"], "CollectionOperations"
+        message_map, probes = self._create_expression_probes(
+            method_name=method,
+            expressions=[
+                ## Testing @key and @value contextual variables for dictionary iteration
+                ## Hash variables (h0, h1, h5) are dictionaries with integer keys and values
+                ## where key i has value i (e.g., h5 = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4})
+                ##### any with @key and @value
+                [
+                    "Hash5 any key eq 3",
+                    True,
+                    Dsl(
+                        "any",
+                        [Dsl("ref", "h5"), Dsl("eq", [Dsl("ref", "@key"), key_3])],
+                    ),
+                ],
+                [
+                    "Hash5 any value gt 3",
+                    True,
+                    Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [Dsl("ref", "@value"), 3])]),
+                ],
+                [
+                    "Hash1 any key eq 5",
+                    False,
+                    Dsl(
+                        "any",
+                        [Dsl("ref", "h1"), Dsl("eq", [Dsl("ref", "@key"), key_5])],
+                    ),
+                ],
+                ##### all with @key and @value
+                [
+                    "Hash5 all key ge 0",
+                    True,
+                    Dsl(
+                        "all",
+                        [Dsl("ref", "h5"), Dsl("ge", [Dsl("ref", "@key"), key_0])],
+                    ),
+                ],
+                [
+                    "Hash5 all value ge 0",
+                    True,
+                    Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [Dsl("ref", "@value"), 0])]),
+                ],
+                [
+                    "Hash5 all key lt 3",
+                    False,
+                    Dsl(
+                        "all",
+                        [Dsl("ref", "h5"), Dsl("lt", [Dsl("ref", "@key"), key_3])],
+                    ),
+                ],
+                ##### filter with @key and @value
+                [
+                    "Hash5 len filter value lt 2",
+                    2,
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "h5"), Dsl("lt", [Dsl("ref", "@value"), 2])],
+                        ),
+                    ),
+                ],
+                [
+                    "Hash5 len filter key gt 2",
+                    2,
+                    Dsl(
+                        "len",
+                        Dsl(
+                            "filter",
+                            [Dsl("ref", "h5"), Dsl("gt", [Dsl("ref", "@key"), key_2])],
+                        ),
+                    ),
+                ],
+            ],
+            lines=self.method_and_language_to_line_number(method, language),
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression/collections")
+
+    def test_expression_language_hash_key_value(self):
         self._assert(expected_response=200)
 
     ############ nulls ############
@@ -487,8 +880,16 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         if language != "nodejs":
             expressions.extend(
                 [
-                    ["intValue eq null", True, Dsl("eq", [Dsl("ref", "intValue"), None])],
-                    ["strValue eq null", True, Dsl("eq", [Dsl("ref", "strValue"), None])],
+                    [
+                        "intValue eq null",
+                        True,
+                        Dsl("eq", [Dsl("ref", "intValue"), None]),
+                    ],
+                    [
+                        "strValue eq null",
+                        True,
+                        Dsl("eq", [Dsl("ref", "strValue"), None]),
+                    ],
                 ]
             )
 
@@ -501,7 +902,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/null")
 
-    @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_true(self):
         self._assert(expected_response=200)
 
@@ -520,7 +920,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/null?intValue=5&strValue=haha&boolValue=true")
 
-    @bug(library="dotnet", reason="DEBUG-2618")
     def test_expression_language_nulls_false(self):
         self._assert(expected_response=200)
 
@@ -549,7 +948,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
             elif value_type == "string":
                 instance_type = "java.lang.String"
             elif value_type == "pii":
-                instance_type = "com.datadoghq.system_tests.springboot.PiiBase"
+                instance_type = "com.datadoghq.system_tests.springboot.debugger.PiiBase"
             else:
                 instance_type = value_type
         elif self.get_tracer()["language"] == "python":

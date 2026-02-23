@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, bug, context, interfaces, rfc, features, missing_feature
+from utils import weblog, interfaces, rfc, features
+from utils.dd_types import DataDogSpan
 
 
-def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
+def assert_tag_in_span_meta(span: DataDogSpan, tag: str, expected: str):
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -15,7 +16,7 @@ def assert_tag_in_span_meta(span: dict, tag: str, expected: str):
 
 
 def validate_identify_tags(tags: dict[str, str] | list[str]):
-    def inner_validate(span: dict):
+    def inner_validate(span: DataDogSpan):
         for tag in tags:
             if isinstance(tags, dict):
                 assert_tag_in_span_meta(span, tag, tags[tag])
@@ -37,9 +38,6 @@ class Test_Basic:
 
     # reason for those three skip was :
     # DD_TRACE_HEADER_TAGS is not working properly, can't correlate request to trace
-    @bug(context.library <= "golang@1.41.0", reason="APMRP-360")
-    @bug(context.library < "nodejs@2.9.0", reason="APMRP-360")
-    @bug(context.library <= "ruby@2.3.0", reason="APMRP-360")
     def test_identify_tags(self):
         interfaces.library.validate_one_span(
             self.r, validator=validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
@@ -64,8 +62,6 @@ class Test_Propagate_Legacy:
         # Send a request to the identify-propagate endpoint
         self.r_outgoing = weblog.get("/identify-propagate")
 
-    @missing_feature(library="nodejs", reason="only supports incoming tags for now")
-    @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_one_span(self.r_outgoing, validator=validate_identify_tags(tag_table))
@@ -90,8 +86,6 @@ class Test_Propagate:
         # Send a request to the identify-propagate endpoint
         self.r_outgoing = weblog.get("/identify-propagate")
 
-    @missing_feature(library="nodejs", reason="only supports incoming tags for now")
-    @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tag_table = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
         interfaces.library.validate_one_span(self.r_outgoing, validator=validate_identify_tags(tag_table))
@@ -104,7 +98,7 @@ class Test_Propagate:
     def test_identify_tags_incoming(self):
         """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
 
-        def usr_id_not_present(span: dict):
+        def usr_id_not_present(span: DataDogSpan):
             if "usr.id" in span["meta"]:
                 raise Exception("usr.id must not be present in this span")
             return True

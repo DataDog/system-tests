@@ -6,7 +6,6 @@ import base64
 import gzip
 import io
 import json
-import logging
 from hashlib import md5
 from http import HTTPStatus
 import traceback
@@ -29,9 +28,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
 )
 from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
 from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
-
-
-logger = logging.getLogger(__name__)
+from .utils import logger
 
 
 def get_header_value(name: str, headers: list[tuple[str, str]]):
@@ -260,7 +257,7 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
 ) -> None:
     content_disposition = headers.get("content-disposition", "<not set>")
 

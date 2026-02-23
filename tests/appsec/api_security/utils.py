@@ -6,7 +6,7 @@ class BaseAppsecApiSecurityRcTest:
 
     def setup_scenario(self) -> None:
         if BaseAppsecApiSecurityRcTest.states is None:
-            rc_state = remote_config.rc_state
+            rc_state = remote_config.tracer_rc_state
             rc_state.set_config(
                 "datadog/2/ASM/ASM-base/config",
                 {

@@ -302,3 +302,15 @@ def id_to_int(value: str | int) -> int:
         return int(value)
     except ValueError:
         return int(value, 16)
+
+
+def extract_trace_id_from_otel_span(span: dict) -> str:
+    """Extract the full 128-bit trace ID from a span as a hex string.
+
+    Uses otel.trace_id from metadata if available (full 128-bit),
+    otherwise constructs from _dd.p.tid and trace_id (lower 64 bits).
+    """
+    if "otel.trace_id" in span.get("meta", {}):
+        return span["meta"]["otel.trace_id"]
+    root_tid = span["meta"].get("_dd.p.tid", "0" * 16)
+    return f"{root_tid}{span['trace_id']:016x}"

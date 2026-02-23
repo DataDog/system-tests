@@ -6,7 +6,7 @@
 from utils._weblog import weblog, HttpResponse
 from utils._context.core import context
 from utils._context._scenarios import scenarios, scenario_groups
-from utils._decorators import bug, irrelevant, missing_feature, rfc, flaky, incomplete_test_app
+from utils._decorators import bug, irrelevant, missing_feature, rfc, flaky, incomplete_test_app, slow, scenario_crash
 from utils._logger import logger
 from utils import interfaces, _remote_config as remote_config
 from utils.interfaces._core import ValidationError
@@ -26,7 +26,9 @@ __all__ = [
     "missing_feature",
     "remote_config",
     "rfc",
+    "scenario_crash",
     "scenario_groups",
     "scenarios",
+    "slow",
     "weblog",
 ]

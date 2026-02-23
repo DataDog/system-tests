@@ -120,7 +120,6 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
     def setup_fingerprinting_endpoint_blocking(self):
         self.r = weblog.get("/waf?dummyparam=true")
 
-    @missing_feature(library="nodejs", weblog_variant="nextjs", reason="Blocking on querystring is not supported")
     def test_fingerprinting_endpoint_blocking(self):
         assert self.r.status_code == 403
         r_span_meta = get_span_meta(self.r)

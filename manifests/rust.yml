@@ -3,71 +3,246 @@
 refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
+  tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
+  tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
+  tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_exposures.py: missing_feature
-  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: 0.0.1
-  tests/parametric/test_config_consistency.py: missing_feature
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.0.1
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_disabled: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_enabled: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_propagation: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_propagation_and_generation: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: missing_feature (propagation style not supported)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_disabled: missing_feature (128 bit traceid is always enabled)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_enabled: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_enabled_by_default: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_generation_disabled: missing_feature (128 bit traceid is always enabled)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_generation_enabled: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_in_chunk_root: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_in_trace_chunk: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_inconsistent: missing_feature (APMSP-2059)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_malformed: missing_feature (APMSP-2059)
+  tests/parametric/test_config_consistency.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_default_trace_rate_limit: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_Tags::test_dd_service_override: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature  # Created by easy win activation script
   tests/parametric/test_crashtracking.py: missing_feature
-  tests/parametric/test_dynamic_configuration.py: missing_feature
+  tests/parametric/test_dynamic_configuration.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_apply_state: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_env: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_with_sampling_rules: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
-  tests/parametric/test_headers_b3.py: missing_feature
-  tests/parametric/test_headers_b3multi.py: missing_feature
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: missing_feature
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: missing_feature
-  tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: 0.0.1
-  tests/parametric/test_headers_none.py::Test_Headers_None: 0.0.1
-  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: 0.0.1
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: 0.0.1
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: 0.0.1
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: missing_feature
-  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: missing_feature
+  tests/parametric/test_headers_b3.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_inject_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_inject_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_invalid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_single_key_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_propagate_invalid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_single_key_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3multi.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_case_insensitive_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_extract_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_inject_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_propagate_invalid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi::test_headers_b3multi_single_key_propagate_valid: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_extract_header_D005: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_D008: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_all_D009: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_inject_header_D004: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D015: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_D010: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_all_D011: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_D006: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_default_D001: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_all: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_config_with_empty_keys: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_default: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_key_with_asterisk: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_specific_keys: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v0.0.1
+  tests/parametric/test_headers_none.py::Test_Headers_None: v0.0.1
+  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence: v0.0.1
+  ? tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_default_tracecontext_datadog
+  : 'irrelevant (Issue: tracecontext,Datadog was never the default configuration)'
+  tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy: irrelevant (Implements the new 'datadog,tracecontext' default)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v0.0.1
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (multi-value header extraction is not supported by otel rust yet)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (multi-value header extraction is not supported by otel rust yet)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (multi-value header extraction is not supported by otel rust yet)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (Invalid tracestate keys for OpenTelemetry's implementation)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: missing_feature (can't guarantee the order of strings in the tracestate since they came from the map.)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_measured_spans_TS004: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature  # Created by easy win activation script
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_top_level_TS005: missing_feature  # Created by easy win activation script
+  tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_in_order: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_nested_dd_root: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_nested_otel_root: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_datadog_start_after_otel_span: missing_feature  # Created by easy win activation script
+  ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_datadog
+  : missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_otel_start_after_datadog_span: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_datadog: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_otel: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_update_remove_meta: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_update_remove_metric: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_links_add: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_logs.py: missing_feature
-  tests/parametric/test_otel_metrics.py: missing_feature
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: 0.0.1
+  tests/parametric/test_otel_logs.py: v0.3.0
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature (OpenTelemetry Rust SDK limitation - scope version not exported by opentelemetry-otlp)
+  tests/parametric/test_otel_metrics.py: v0.3.0
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_histogram_add_non_negative_and_negative_values
+  : missing_feature (OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: missing_feature (Rust OpenTelemetry SDK 0.31.0's meter() method does not support scope attributes parameter)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.0.1
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_get_span_context: missing_feature (APMSP-2059)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (Old array encoding not supported)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span: missing_feature (APMSP-2059)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans: missing_feature (APMSP-2059)
+  ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
+  : missing_feature (Not implemented)
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
-  tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: 0.0.1
+  tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Finish: 0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Finish: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Meta: 0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Meta: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Metric: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: 0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Config: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: 0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Extract_Headers: 0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Flush: 0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Extract_Headers: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Flush: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Inject_Headers: 0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events: 0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: 0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: 0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Inject_Headers: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: 0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: missing_feature
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: missing_feature  # Created by easy win activation script
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature  # Created by easy win activation script
   tests/parametric/test_process_discovery.py: missing_feature
-  tests/parametric/test_sampling_span_tags.py: missing_feature
+  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: missing_feature
+  tests/parametric/test_sampling_span_tags.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate::test_sampling_knuth_sample_rate_trace_sampling_rule: missing_feature  # Created by easy win activation script
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_events.py: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links: missing_feature
-  tests/parametric/test_span_sampling.py: missing_feature
+  tests/parametric/test_span_sampling.py: '>=0.2.1'  # Modified by easy win activation script
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
+  : missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_by_sss015: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_multi_rule_independent_rate_limiters_sss013: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_multi_rule_keep_drop_span_sampling_sss006: missing_feature  # Created by easy win activation script
+  ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_and_child_dropped_by_sss_when_dropping_policy_is_active016
+  : missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_root_span_selected_by_sss014: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_sampling_rate_not_absolute_value_sss009: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_always_keep_span_sampling_sss011: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_match_span_sampling_sss001: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_only_service_pattern_match_span_sampling_sss004: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_rate_limiter_span_sampling_sss008: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_drop_020: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_single_rule_with_head_and_rule_trace_sampling_keep_019: missing_feature  # Created by easy win activation script
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_special_glob_characters_span_sampling_sss002: missing_feature  # Created by easy win activation script
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_default: missing_feature (Startup logs not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_diagnostic_agent_unreachable: missing_feature (Diagnostic messages not implemented)
+  tests/parametric/test_startup_logs.py::Test_Startup_Logs::test_startup_logs_enabled: missing_feature (Startup logs not implemented)
   tests/parametric/test_telemetry.py::Test_Consistent_Configs: missing_feature
   tests/parametric/test_telemetry.py::Test_Defaults: missing_feature
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature
-  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: missing_feature
-  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: missing_feature  # Created by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: 0.0.1
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: 0.0.1
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: 0.0.1
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: 0.0.1
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.0.1
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.0.1
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v0.0.1
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Resource: v0.0.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags: missing_feature
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_globs_different_casing: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_globs_same_casing: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_meta_existence: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_existence: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_matching: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_no_range_support: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_no_set_support: missing_feature  # Created by easy win activation script
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_regex_special_chars: missing_feature  # Created by easy win activation script
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
-  tests/parametric/test_tracer.py: missing_feature
-  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: missing_feature
+  tests/parametric/test_tracer.py: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_tracer.py::Test_Tracer: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_content_with_debug: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_flare_with_debug: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_tracer_profiling_notracing_flare_content: missing_feature  # Created by easy win activation script
+  tests/stats/test_stats.py: missing_feature
   tests/test_v1_payloads.py: missing_feature

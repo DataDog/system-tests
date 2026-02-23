@@ -6,6 +6,7 @@ gem 'puma', '~> 6.0'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
 gem "faraday", '~> 1.10'
+gem 'faraday_middleware', '~> 1.2'
 
 group :development do
   gem 'pry-byebug'

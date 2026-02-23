@@ -6,6 +6,7 @@ from enum import StrEnum
 import os
 import re
 from utils._logger import logger as _logger
+from utils.dd_types import DataDogSpan
 
 
 class ShColors(StrEnum):
@@ -56,11 +57,7 @@ def e(message: str) -> str:
     return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
-def get_rid_from_span(span: dict) -> str | None:
-    if not isinstance(span, dict):
-        _logger.error(f"Span should be an object, not {type(span)}")
-        return None
-
+def get_rid_from_span(span: DataDogSpan) -> str | None:
     meta = span.get("meta", {})
     metrics = span.get("metrics", {})
 

@@ -228,3 +228,14 @@ def rfc(link: str):  # noqa: ARG001
         return item
 
     return wrapper
+
+
+slow = pytest.mark.skip_if_xfail
+"""Decorator, marks a test function/class as slow to run.
+Such tests are only executed if they were not deactivated
+"""
+
+scenario_crash = pytest.mark.skip_if_xfail
+"""Decorator, marks a test function/class as making its scenario crash when failing.
+Such tests are only executed if they were not deactivated
+"""

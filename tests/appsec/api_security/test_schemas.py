@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, rfc, scenarios, weblog, features, logger, flaky
+from utils import interfaces, rfc, scenarios, weblog, features, logger
 from utils._weblog import HttpResponse
 from types import EllipsisType
 
@@ -78,7 +78,6 @@ class Test_Schema_Request_Cookies:
             "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
         )
 
-    @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
         schema = get_schema(self.request, "req.cookies")

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, rfc, weblog, irrelevant, flaky, context
+from utils import features, rfc, weblog, flaky, context
 from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, assert_metric
 from utils._weblog import HttpResponse
 
@@ -129,7 +129,6 @@ class TestSecurityControls:
         self.setup_iast_is_enabled()
         self.r = weblog.post("iast/sc/s/overloaded/insecure", data={"param": "param"})
 
-    @irrelevant(library="nodejs", reason="no overloaded methods with different signatures in js")
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
     ):

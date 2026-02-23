@@ -77,7 +77,7 @@ public class Main {
                     Span span = tracer.buildSpan("test-span").start();
                     span.setTag("test-tag", "my value");
                     try {
-                        ctx.response().setStatusCode(200).end("Hello World!");
+                        ctx.response().setStatusCode(200).end("Hello world!\n");
                     } finally {
                         span.finish();
                     }
@@ -140,6 +140,11 @@ public class Main {
             // Consume path params
             ctx.pathParams().toString();
             ctx.response().end("Hello world!");
+        });
+        router.getWithRegex("/resource_renaming(?:/(.*))?").handler(ctx -> {
+            // Consume path params
+            ctx.pathParams().toString();
+            ctx.response().end("ok");
         });
         router.post("/waf").handler(BodyHandler.create());
         router.post("/waf").consumes("application/x-www-form-urlencoded")

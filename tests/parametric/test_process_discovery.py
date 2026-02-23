@@ -5,8 +5,7 @@ import json
 import msgpack
 import re
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios, context, missing_feature, bug
-from utils._context.component_version import Version
+from utils import features, scenarios, context
 from .conftest import APMLibrary
 
 
@@ -44,21 +43,6 @@ def read_memfd(test_library: APMLibrary, memfd_path: str):
     return rc, msgpack.unpackb(output)
 
 
-def get_context_tracer_version():
-    # Temporary fix for Ruby until we start to bump the version after a release
-    # This cancels a hack in system-tests framework that increments the patch version
-    # and add -dev to the version string.
-    if context.library.name == "ruby":
-        major = context.library.version.major
-        minor = context.library.version.minor
-        patch = context.library.version.patch
-        return Version(f"{major}.{minor}.{patch}")
-    elif context.library.name == "java":
-        return Version(str(context.library.version).replace("+", "-"))
-    else:
-        return context.library.version
-
-
 def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
     assert tracer_metadata["runtime_id"]
     # assert tracer_metadata["hostname"]
@@ -69,8 +53,16 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
     assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
     assert tracer_metadata["service_env"] == library_env["DD_ENV"]
 
-    version = Version(tracer_metadata["tracer_version"])
-    assert version == get_context_tracer_version()
+    raw_version = context.library.raw_version
+    if context.library.name == "ruby":
+        # weblog may adds tailing -dev
+        raw_version = raw_version.removesuffix("-dev")
+    elif context.library.name == "golang":
+        # for which reason ?
+        raw_version = raw_version.removeprefix("v")
+        tracer_metadata["tracer_version"] = tracer_metadata["tracer_version"].removeprefix("v")
+
+    assert tracer_metadata["tracer_version"] == raw_version
 
 
 def assert_v2(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
@@ -122,14 +114,11 @@ class Test_ProcessDiscovery:
             }
         ],
     )
-    @bug(context.library >= "cpp@2.0.0", reason="APMAPI-1772")  # issue in dd-trace-cpp, the dev branch is still 2.0.0
     def test_metadata_content_without_process_tags(self, test_library: APMLibrary, library_env: dict[str, str]):
         """Verify the content of the memfd file matches the expected metadata format and structure"""
         with test_library:
             assert_metadata_content(test_library, library_env)
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented")
-    @bug(context.library == "cpp", reason="APMAPI-1744")
     @pytest.mark.parametrize(
         "library_env",
         [

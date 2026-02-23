@@ -1,0 +1,31 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "DD-AI-GUARD-LANGUAGE": "jvm",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-VERSION": "1.57.0-SNAPSHOT~c6297d4615",
+      "Content-Type": "application/json",
+      "Connection": "Keep-Alive",
+      "Accept-Encoding": "gzip",
+      "User-Agent": "okhttp/3.12.15"
+    },
+    "body": "{\"data\":{\"attributes\":{\"messages\":[{\"role\":\"user\",\"content\":\"What is the weather like today?\"}],\"meta\":{\"env\":\"system-tests\",\"service\":\"weblog\"}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "514",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"data\":{\"id\":\"8c09bc01-3f4d-4b7f-aaca-57e4e0a05a58\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"is_blocking_enabled\":true,\"reason\":\"No rule match.\",\"tag_probs\":{\"authority-override\":0,\"data-exfiltration\":3.12816276770711e-07,\"denial-of-service-tool-call\":0,\"destructive-tool-call\":0,\"indirect-prompt-injection\":1.9361263070560852e-07,\"instruction-override\":0,\"jailbreak\":7.896306621901772e-07,\"obfuscation\":0,\"role-play\":0,\"security-exploit\":1.9361263070560852e-07,\"system-prompt-extraction\":0},\"tags\":[]}}}"
+  }
+}

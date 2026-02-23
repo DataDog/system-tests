@@ -25,6 +25,8 @@ pub fn app() -> Router<AppState> {
         .route("/span/set_resource", post(set_resource))
         .route("/span/set_meta", post(set_meta))
         .route("/span/set_metric", post(set_metric))
+        .route("/span/manual_keep", post(manual_keep))
+        .route("/span/manual_drop", post(manual_drop))
         .route("/span/error", post(set_error))
         .route("/span/inject_headers", post(inject_headers))
         .route("/span/extract_headers", post(extract_headers))
@@ -226,6 +228,28 @@ async fn set_metric(State(state): State<AppState>, Json(args): Json<SpanSetMetri
         ));
     } else {
         debug!("set_metric: span {} NOT found", args.span_id);
+    }
+}
+
+async fn manual_keep(State(state): State<AppState>, Json(args): Json<ManualSamplingArgs>) {
+    let mut contexts = state.contexts.lock().unwrap();
+    if let Some(ctx) = contexts.get_mut(&args.span_id) {
+        let span = ctx.context.span();
+        debug!("manual_keep: span {} found", args.span_id);
+        debug!("manual_keep: not implemented");
+    } else {
+        debug!("manual_keep: span {} NOT found", args.span_id);
+    }
+}
+
+async fn manual_drop(State(state): State<AppState>, Json(args): Json<ManualSamplingArgs>) {
+    let mut contexts = state.contexts.lock().unwrap();
+    if let Some(ctx) = contexts.get_mut(&args.span_id) {
+        let span = ctx.context.span();
+        debug!("manual_drop: span {} found", args.span_id);
+        debug!("manual_drop: not implemented");
+    } else {
+        debug!("manual_drop: span {} NOT found", args.span_id);
     }
 }
 
