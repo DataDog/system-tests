@@ -49,9 +49,9 @@ class _RequestLogger:
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
 
-        self.host_log_folder = "/app/logs"
+        self.log_folder = os.environ["SYSTEM_TESTS_LOG_FOLDER"]
 
-        self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
+        self.mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
 
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
@@ -218,7 +218,7 @@ class _RequestLogger:
         # get destination
         message_count = messages_counts[interface]
         messages_counts[interface] += 1
-        log_foldename = f"{self.host_log_folder}/interfaces/{interface}"
+        log_foldename = f"{self.log_folder}/interfaces/{interface}"
         export_content_files_to = f"{log_foldename}/files"
         log_filename = f"{log_foldename}/{message_count:05d}_{path.replace('/', '_')}.json"
 
