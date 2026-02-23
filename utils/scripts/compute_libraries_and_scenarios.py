@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
+from utils.const import LIBRARIES as LIB_CONST
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
@@ -25,28 +26,9 @@ root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-LIBRARIES = {
-    "cpp",
-    "cpp_httpd",
-    "cpp_nginx",
-    "dotnet",
-    "golang",
-    "java",
-    "nodejs",
-    "otel_collector",
-    "php",
-    "python",
-    "ruby",
-    "python_lambda",
-    "rust",
-    "envoy",
-    "haproxy",
-}
-
-LAMBDA_LIBRARIES = {"python_lambda"}
-OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
-
-ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
+LIBRARIES = LIB_CONST.all - LIB_CONST.otel
+OTEL_LIBRARIES = LIB_CONST.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
+ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 
 
 def check_scenarios(scenarios: set[str]) -> bool:

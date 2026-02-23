@@ -85,9 +85,10 @@ setup_buildx() {
     docker buildx use dd-builder
 }
 
+VALID_LIBRARIES=$(python -m utils.const LIBRARIES lib_injection)
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -dp|--docker-platform) DOCKER_PLATFORM="$2"; shift ;;
@@ -96,7 +97,13 @@ while [[ "$#" -gt 0 ]]; do
         --initial-delay) INITIAL_DELAY="$2"; shift ;;
         --build-timeout) BUILD_TIMEOUT="$2"; shift ;;
         -h|--help) print_usage; exit 0 ;;
-        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+        *)
+            if [[ "$1" =~ ^(${VALID_LIBRARIES})$ ]]; then
+                TEST_LIBRARY="$1"
+            else
+                echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1
+            fi
+            ;;
     esac
     shift
 done

@@ -18,6 +18,8 @@ from typing import Any
 from collections.abc import Callable
 from pathlib import Path
 
+from utils.const import LIBRARIES
+
 # Get the absolute path to the system-tests directory
 SYSTEM_TESTS_DIR = Path(__file__).resolve().parents[3]
 
@@ -116,7 +118,7 @@ def select_multiple_items(
 
 def select_language() -> str:
     """Ask the user to select the language for the weblog."""
-    languages = ["nodejs", "java", "python", "dotnet", "ruby", "php"]
+    languages = sorted(LIBRARIES.gitlab)
 
     print(f"\n{Colors.BOLD}Select the language of the weblog:{Colors.ENDC}")
     for i, lang in enumerate(languages, 1):
@@ -124,7 +126,7 @@ def select_language() -> str:
 
     while True:
         try:
-            choice_num = int(input("\nEnter number (1-6): "))
+            choice_num = int(input(f"\nEnter number (1-{len(languages)}): "))
             if 1 <= choice_num <= len(languages):
                 return languages[choice_num - 1]
             print(f"{Colors.RED}Please enter a number between 1 and {len(languages)}.{Colors.ENDC}")

@@ -3,6 +3,7 @@ import json
 import secrets
 import sys
 
+from utils.const import LIBRARIES
 from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
@@ -229,26 +230,7 @@ if __name__ == "__main__":
         "library",
         type=str,
         help="One of the supported Datadog library",
-        choices=[
-            "cpp_httpd",
-            "cpp_nginx",
-            "cpp",
-            "dotnet",
-            "golang",
-            "java_otel",
-            "java",
-            "nodejs_otel",
-            "nodejs",
-            "otel_collector",
-            "php",
-            "python_lambda",
-            "python_otel",
-            "python",
-            "ruby",
-            "rust",
-            "envoy",
-            "haproxy",
-        ],
+        choices=sorted(LIBRARIES.all),
     )
 
     parser.add_argument(

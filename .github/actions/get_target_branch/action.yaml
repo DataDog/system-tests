@@ -16,7 +16,8 @@ runs:
       id: extract
       shell: bash
       run: |
-        branch=$(echo "${INPUTS_TEXT}" | grep -ioP '\[(?:java|dotnet|python|python_lambda|ruby|php|golang|cpp|agent|nodejs|rust)@[^]]+(?=\])' | tr -d '[:space:]' || true)
+        LIBS=$(python -m utils.const LIBRARIES all)
+        branch=$(echo "${INPUTS_TEXT}" | grep -ioP "\[(?:${LIBS}|agent)@[^]]+(?=\])" | tr -d '[:space:]' || true)
 
         echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
 

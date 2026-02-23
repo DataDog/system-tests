@@ -1,6 +1,8 @@
 import yaml
 import os
 
+from utils.const import LIBRARIES
+
 # List of allowed variables
 ALLOWED_VARIABLES = [
     "SYSTEM_TESTS_SCENARIOS",
@@ -13,7 +15,7 @@ ALLOWED_VARIABLES = [
     "DD_INSTALL_SCRIPT_VERSION",
 ]
 
-LANG_STAGES = ["java", "python", "nodejs", "dotnet", "ruby", "php"]
+LANG_STAGES = sorted(LIBRARIES.gitlab)
 
 
 def main(language: str | None = None) -> None:
