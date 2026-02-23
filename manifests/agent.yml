@@ -42,4 +42,5 @@ manifest:
       component_version: '>=7.36.0 <7.37.0'
     - declaration: bug (APMAPI-926)
       component_version: '>7.53.0'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault: v7.77.0-devel
   tests/test_v1_payloads.py::Test_V1Payloads: v7.73.0-devel

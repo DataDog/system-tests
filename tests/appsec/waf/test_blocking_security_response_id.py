@@ -209,7 +209,7 @@ class Test_SecurityResponseId_In_Span_Triggers:
 
         # Extract appsec data (support both formats: meta_struct.appsec or meta._dd.appsec.json)
         appsec = meta.get("_dd.appsec.json", {}) or meta_struct.get("appsec", {})
-        assert appsec, "No appsec data found in span"
+        assert appsec, f"No appsec data found in span {meta}"
 
         # Validate triggers structure exists
         triggers = appsec.get("triggers", [])

@@ -13,6 +13,7 @@ from utils import (
 )
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogSpan
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
@@ -38,7 +39,7 @@ class Test_RetainTraces:
         _sampling_priority_v1 tags
         """
 
-        def validate_appsec_event_span_tags(span: dict):
+        def validate_appsec_event_span_tags(span: DataDogSpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -159,7 +160,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogSpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -207,7 +208,7 @@ class Test_AppSecObfuscator:
         # The following payload will be sent as a raw encoded string via the request params
         # and matches an XSS attack. It contains an access token secret we shouldn't have in the event.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogSpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.VALUE_WITH_SECRET, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -230,7 +231,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogSpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY, appsec_data, look_in_keys=True), (
                 "The security events contain the secret value that should be obfuscated"
             )
@@ -255,7 +256,7 @@ class Test_AppSecObfuscator:
         # Note that this value must contain an attack pattern in order to be part of the security event data
         # that is expected to be obfuscated.
 
-        def validate_appsec_span_tags(span: dict, appsec_data: dict):  # noqa: ARG001
+        def validate_appsec_span_tags(span: DataDogSpan, appsec_data: dict):  # noqa: ARG001
             assert not nested_lookup(self.SECRET_VALUE_WITH_SENSITIVE_KEY_CUSTOM, appsec_data, look_in_keys=True), (
                 "Sensitive cookie is not obfuscated"
             )
@@ -283,11 +284,11 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     def test_header_collection(self):
-        def assert_header_in_span_meta(span: dict, header: str):
+        def assert_header_in_span_meta(span: DataDogSpan, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_response_headers(span: dict):
+        def validate_response_headers(span: DataDogSpan):
             for header in ["content-type", "content-length", "content-language"]:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
@@ -352,11 +353,11 @@ class Test_ExternalWafRequestsIdentification:
     def test_external_wafs_header_collection(self):
         """Collect external wafs request identifier and other security info when appsec is enabled."""
 
-        def assert_header_in_span_meta(span: dict, header: str):
+        def assert_header_in_span_meta(span: DataDogSpan, header: str):
             if header not in span["meta"]:
                 raise Exception(f"Can't find {header} in span's meta")
 
-        def validate_request_headers(span: dict):
+        def validate_request_headers(span: DataDogSpan):
             for header in [
                 "x-amzn-trace-id",
                 "cloudfront-viewer-ja3-fingerprint",
