@@ -595,11 +595,11 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
-                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
+                "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
-            working_dir="/app/utils",
+            working_dir="/app",
             volumes={
-                "./utils/": {"bind": "/app/utils/", "mode": "ro"},
+                "./utils/proxy": {"bind": "/app/proxy", "mode": "ro"},
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", ProxyPorts.proxy_commands)},
             command="python -m proxy.core",
@@ -670,7 +670,16 @@ class ProxyContainer(TestedContainer):
         with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
-        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
+        # in any info printed in stdout, log filename should be the same as the host.
+        # In the host, they are accessible in ./logs_<scenario_name>
+        # In proxy container, since only the container code is mounted in /app/proxy, and the working dir is /app,
+        # we need to mount the log folder in /app/logs_<scenario_name>, and give this name to the proxy.
+        # With that, the proxy will save all files as "./logs_<scenario_name>/...", which can be readed directly
+        # in the host from the root of system-tests
+        self.environment["SYSTEM_TESTS_LOG_FOLDER"] = f"./{host_log_folder}"
+        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"}
+
+        # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
         self.volumes[backend_mocks_path] = {
             "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
