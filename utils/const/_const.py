@@ -8,7 +8,7 @@ class Constants(ConstList):
     class Libraries(Const):
         """List of libraries"""
 
-        path = Path("utils/const/libraries.yml")
+        _path = Path("utils/const/libraries.yml")
 
         def _build_attributes(self) -> None:
             self.all = self.groups["all"]
