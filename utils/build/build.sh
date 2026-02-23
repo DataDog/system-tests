@@ -47,7 +47,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 readonly WHITE_BOLD='\033[1;37m'
 
-VALID_LIBRARIES=$(python -m utils.const LIBRARIES buildable)
+VALID_LIBRARIES=$(python3 -m utils.const LIBRARIES buildable)
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
