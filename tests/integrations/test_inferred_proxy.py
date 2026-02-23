@@ -1,9 +1,9 @@
 import json
 import time
-from typing import Any, Literal
+from typing import Literal
 
 from utils import weblog, scenarios, features, interfaces, logger
-
+from utils.dd_types import DataDogSpan
 
 DISTRIBUTED_TRACE_ID = 1
 DISTRIBUTED_PARENT_ID = 2
@@ -115,7 +115,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error(_BaseTestCase):
         )
 
 
-def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> dict | None:
+def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> DataDogSpan | None:
     logger.debug(f"Trying to find API Gateway span for interface: {interface}")
 
     for data, trace in interface.get_traces():
@@ -129,7 +129,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
             if span["resource"] != resource:
                 continue
 
-            logger.debug(f"Span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+            logger.debug(f"Span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
             return span
 
     logger.debug("No span found")
@@ -138,7 +138,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
 
 def assert_api_gateway_span(
     test_case: _BaseTestCase,
-    span: dict,
+    span: DataDogSpan,
     path: str,
     status_code: str,
     *,
@@ -194,7 +194,7 @@ def assert_api_gateway_span(
         )
 
     if is_distributed:
-        assert span["trace_id"] == DISTRIBUTED_TRACE_ID
+        assert span.trace.trace_id_as_int == DISTRIBUTED_TRACE_ID
         assert span["parent_id"] == DISTRIBUTED_PARENT_ID
         assert span["metrics"]["_sampling_priority_v1"] == DISTRIBUTED_SAMPLING_PRIORITY
 
@@ -216,7 +216,7 @@ def mandatory_tags_validator_factory(
     else:
         expected_component = "aws-httpapi"
 
-    def validate_api_gateway_span(span: dict[str, Any]) -> bool:
+    def validate_api_gateway_span(span: DataDogSpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 
@@ -300,7 +300,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
     else:
         expected_arn = "arn:aws:apigateway:eu-west-3::/apis/a1b2c3d4e5f"
 
-    def validate_api_gateway_span(span: dict[str, Any]) -> bool:
+    def validate_api_gateway_span(span: DataDogSpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 
