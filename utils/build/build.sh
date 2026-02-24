@@ -37,6 +37,7 @@ readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
+readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
 readonly DEFAULT_rust=axum
 

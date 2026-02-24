@@ -3,6 +3,7 @@
 cpp:            [           easy_win,         lib_injection, parametric]
 cpp_httpd:      [buildable, easy_win]
 cpp_nginx:      [buildable, easy_win]
+cpp_kong:       [buildable, easy_win]
 dotnet:         [buildable, easy_win, gitlab, lib_injection, parametric]
 envoy:          []
 golang:         [buildable, easy_win,         lib_injection, parametric]
