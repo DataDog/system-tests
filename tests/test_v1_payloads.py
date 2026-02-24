@@ -1,6 +1,6 @@
 from utils import weblog, interfaces, scenarios, features
 from utils.dd_constants import SamplingPriority, SamplingMechanism, SpanKind
-from utils.dd_types import AgentTraceFormat
+from utils.dd_types import AgentTraceFormat, LibraryTraceFormat
 
 
 @features.efficient_trace_payload
@@ -10,7 +10,7 @@ class Test_V1PayloadByDefault:
     def test_main(self):
         for data, trace in interfaces.library.get_traces():
             assert data["path"] == "/v1.0/traces"
-            assert trace.format == AgentTraceFormat.efficient_trace_payload_format
+            assert trace.format == LibraryTraceFormat.v10
 
 
 @scenarios.apm_tracing_efficient_payload
