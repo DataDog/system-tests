@@ -1646,6 +1646,7 @@ manifest:
       component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (OTEL Sampling config is mapped to a different datadog config)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (OTEL Sampling config is mapped to a different datadog config)
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v3.7.0.dev
   ? tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_origin_extended_configs_good_use_case
   : bug (APMAPI-1630)
@@ -1661,7 +1662,6 @@ manifest:
     - declaration: missing_feature (Converts boolean values to strings)
       component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v3.11.0
-  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.8.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0

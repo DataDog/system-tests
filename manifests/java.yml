@@ -3414,6 +3414,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: v1.31.0
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_hiding: missing_feature (Not implemented)
   tests/parametric/test_telemetry.py::Test_Environment::test_telemetry_otel_env_invalid: missing_feature (Not implemented)
+  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: v1.47.0-SNAPSHOT
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin::test_stable_configuration_config_id:
     - declaration: missing_feature (Not implemented)
@@ -3421,7 +3422,6 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: v1.27.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v1.34.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v1.51.0
-  tests/parametric/test_telemetry.py::Test_ExtendedHeartbeat: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.111.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v1.25.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
