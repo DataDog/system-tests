@@ -3,7 +3,7 @@ import hashlib
 import struct
 
 from utils import weblog, interfaces, logger, HttpResponse
-from utils.dd_types import DataDogAgentSpan, DataDogSpan
+from utils.dd_types import DataDogAgentSpan, DataDogLibrarySpan
 
 
 class BaseDbIntegrationsTestClass:
@@ -84,7 +84,7 @@ class BaseDbIntegrationsTestClass:
                 yield db_operation, request
 
     @staticmethod
-    def get_span_from_tracer(weblog_request: HttpResponse) -> DataDogSpan:
+    def get_span_from_tracer(weblog_request: HttpResponse) -> DataDogLibrarySpan:
         for _, _, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
 

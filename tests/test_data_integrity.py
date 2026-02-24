@@ -7,7 +7,7 @@
 import string
 from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
 from utils.dd_constants import SamplingPriority
-from utils.dd_types import DataDogTrace, LibraryTraceFormat, AgentTraceFormat
+from utils.dd_types import DataDogLibraryTrace, LibraryTraceFormat, AgentTraceFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -239,7 +239,7 @@ class Test_Agent:
             elif chunk.format == AgentTraceFormat.legacy:
                 trace_ids_reported_by_agent.add(chunk.trace_id_as_int)
 
-        def get_span_with_sampling_data(trace: DataDogTrace):
+        def get_span_with_sampling_data(trace: DataDogLibraryTrace):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.

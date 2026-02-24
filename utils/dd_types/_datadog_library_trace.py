@@ -21,7 +21,7 @@ class LibraryTraceFormat(StrEnum):
     RFC: https://docs.google.com/document/d/1hNS6anKYutOYW-nmR759UlKXUdT6H0mRwVt7_L70ESc/edit?usp=sharing"""
 
 
-class DataDogTrace(ABC):
+class DataDogLibraryTrace(ABC):
     """Wrapper around trace object reported by dd-trace libraries"""
 
     data: dict
@@ -32,15 +32,15 @@ class DataDogTrace(ABC):
     raw_trace: dict | list[dict]
     """raw trace object"""
 
-    spans: list["DataDogSpan"]
+    spans: list["DataDogLibrarySpan"]
 
     @staticmethod
-    def from_legacy(data: dict, raw_trace: list[dict]) -> "DataDogTrace":
-        return DataDogTraceLegacy(data, raw_trace)
+    def from_legacy(data: dict, raw_trace: list[dict]) -> "DataDogLibraryTrace":
+        return DataDogLibraryTraceLegacy(data, raw_trace)
 
     @staticmethod
-    def from_v1(data: dict, raw_trace: dict) -> "DataDogTracev1":
-        return DataDogTracev1(data, raw_trace)
+    def from_v1(data: dict, raw_trace: dict) -> "DataDogLibraryTracev1":
+        return DataDogLibraryTracev1(data, raw_trace)
 
     @property
     @abstractmethod
@@ -63,11 +63,11 @@ class DataDogTrace(ABC):
 
         return other == self.trace_id_as_int
 
-    def __iter__(self) -> Iterator["DataDogSpan"]:
+    def __iter__(self) -> Iterator["DataDogLibrarySpan"]:
         """Iterate over spans"""
         yield from self.spans
 
-    def __getitem__(self, i: int) -> "DataDogSpan":
+    def __getitem__(self, i: int) -> "DataDogLibrarySpan":
         """Get the ith spans"""
         return self.spans[i]
 
@@ -76,7 +76,7 @@ class DataDogTrace(ABC):
         return len(self.spans)
 
 
-class DataDogTraceLegacy(DataDogTrace):
+class DataDogLibraryTraceLegacy(DataDogLibraryTrace):
     def __init__(self, data: dict, raw_trace: list[dict]):
         self.data = data
 
@@ -87,7 +87,7 @@ class DataDogTraceLegacy(DataDogTrace):
             "/v0.5/traces": LibraryTraceFormat.v05,
         }[data["path"]]
 
-        self.spans = [DataDogSpanLegacy(self, s) for s in self.raw_trace]
+        self.spans = [DataDogLibrarySpanLegacy(self, s) for s in self.raw_trace]
 
     @property
     def trace_id(self) -> int:
@@ -98,7 +98,7 @@ class DataDogTraceLegacy(DataDogTrace):
         return self.trace_id
 
 
-class DataDogTracev1(DataDogTrace):
+class DataDogLibraryTracev1(DataDogLibraryTrace):
     def __init__(self, data: dict, raw_trace: dict):
         self.data = data
 
@@ -106,7 +106,7 @@ class DataDogTracev1(DataDogTrace):
 
         self.format = LibraryTraceFormat.v10
 
-        self.spans = [DataDogSpanV1(self, s) for s in self.raw_trace["spans"]]
+        self.spans = [DataDogLibrarySpanV1(self, s) for s in self.raw_trace["spans"]]
 
     @property
     def trace_id(self) -> str | int:
@@ -117,10 +117,10 @@ class DataDogTracev1(DataDogTrace):
         return int(self.raw_trace["trace_id"], 16) & 0xFFFFFFFFFFFFFFFF
 
 
-class DataDogSpan(ABC):
+class DataDogLibrarySpan(ABC):
     """Wrapper around trace object reported by dd-trace libraries"""
 
-    def __init__(self, trace: DataDogTrace, raw_span: dict):
+    def __init__(self, trace: DataDogLibraryTrace, raw_span: dict):
         self.trace = trace
 
         self.raw_span = raw_span
@@ -137,7 +137,7 @@ class DataDogSpan(ABC):
         pass
 
 
-class DataDogSpanLegacy(DataDogSpan):
+class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
         return self.raw_span.get(key, default)
 
@@ -145,7 +145,7 @@ class DataDogSpanLegacy(DataDogSpan):
         return self.raw_span[key]
 
 
-class DataDogSpanV1(DataDogSpan):
+class DataDogLibrarySpanV1(DataDogLibrarySpan):
     def __contains__(self, key: str) -> bool:
         if key in ("meta", "meta_struct", "metrics"):
             return "attributes" in self.raw_span

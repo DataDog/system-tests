@@ -5,7 +5,7 @@
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.dd_types import DataDogSpan, LibraryTraceFormat
+from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
 
 
 @scenarios.trace_propagation_style_w3c
@@ -210,7 +210,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         assert link1.get("tracestate") is None
 
 
-def _retrieve_span_links(span: DataDogSpan):
+def _retrieve_span_links(span: DataDogLibrarySpan):
     if span.trace.format == LibraryTraceFormat.v10:
         return span.raw_span["attributes"].get("_dd.span_links")
 

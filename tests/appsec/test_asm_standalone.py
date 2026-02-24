@@ -9,7 +9,7 @@ from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils._weblog import HttpResponse, _Weblog
 from utils import context, weblog, interfaces, scenarios, features, rfc, missing_feature, logger
-from utils.dd_types import DataDogSpan, DataDogTrace, AgentTraceFormat
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, AgentTraceFormat
 
 USER = "test"
 NEW_USER = "testnew"
@@ -34,9 +34,9 @@ TRUTHY_VALUES = ["yes", "true", "t", "1"]
 #   - The value can be a string to assert the value of the tag
 #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
 def assert_tags(
-    first_span: DataDogSpan, span: DataDogSpan, obj: str, expected_tags: dict[str, str | None | Callable]
+    first_span: DataDogLibrarySpan, span: DataDogLibrarySpan, obj: str, expected_tags: dict[str, str | None | Callable]
 ) -> bool:
-    def _assert_tags_value(span: DataDogSpan, obj: str, expected_tags: dict[str, str | None | Callable]):
+    def _assert_tags_value(span: DataDogLibrarySpan, obj: str, expected_tags: dict[str, str | None | Callable]):
         struct = span if obj is None else span[obj]
         for tag, value in expected_tags.items():
             if value is None:
@@ -61,7 +61,7 @@ def assert_tags(
         return False
 
 
-def _assert_trace_id(trace: DataDogTrace, span: DataDogSpan, trace_id: int) -> None:
+def _assert_trace_id(trace: DataDogLibraryTrace, span: DataDogLibrarySpan, trace_id: int) -> None:
     if trace.format == AgentTraceFormat.efficient_trace_payload_format:
         assert trace.trace_id_equals(trace_id)
     else:
@@ -137,7 +137,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             )
 
     def fix_priority_lambda(
-        self, span: DataDogSpan, default_checks: dict[str, str | Callable | None]
+        self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
     ) -> dict[str, str | Callable | None]:
         if "_dd.appsec.s.req.headers" in span["meta"]:
             return {

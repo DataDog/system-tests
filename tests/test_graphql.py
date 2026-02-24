@@ -12,7 +12,7 @@ from utils import (
     features,
     scenarios,
 )
-from utils.dd_types import DataDogSpan, LibraryTraceFormat
+from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
 from collections import defaultdict
 
 COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
@@ -95,7 +95,7 @@ class BaseGraphQLOperationError:
         assert isinstance(attributes[self.type_key], str)
         assert isinstance(attributes[self.stacktrace_key], str)
 
-    def _validate_graphql_attributes(self, attributes: dict, span: DataDogSpan) -> None:
+    def _validate_graphql_attributes(self, attributes: dict, span: DataDogLibrarySpan) -> None:
         """Validate GraphQL-specific attributes (path, locations)"""
         for path in attributes[self.path_key]:
             assert isinstance(path, str), attributes
@@ -135,13 +135,13 @@ class BaseGraphQLOperationError:
         return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
 
     @staticmethod
-    def _has_location(span: DataDogSpan) -> bool:
+    def _has_location(span: DataDogLibrarySpan) -> bool:
         lang = span.get("meta", {}).get("language", "")
         component = span.get("meta", {}).get("component", "")
         return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
 
     @staticmethod
-    def _get_events(span: DataDogSpan) -> list[dict]:
+    def _get_events(span: DataDogLibrarySpan) -> list[dict]:
         if span.trace.format == LibraryTraceFormat.v10:
             return span["span_events"]
 

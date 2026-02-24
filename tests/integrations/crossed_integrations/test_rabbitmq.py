@@ -2,7 +2,7 @@ import json
 
 from utils.buddies import java_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, logger
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseRabbitMQ:
@@ -25,7 +25,7 @@ class _BaseRabbitMQ:
         queue: str,
         exchange: str,
         operation: list[str],
-    ) -> DataDogSpan | None:
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
