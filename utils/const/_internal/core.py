@@ -29,13 +29,3 @@ class Const:
         return reduce(lambda acc, e: acc + "|" + e, sorted(self.groups[name]), "").strip("|")
 
     def _build_attributes(self) -> None: ...
-
-
-class ConstList:
-    def build_exports(self, namespace: dict[str, Any]) -> None:
-        classes: list[str] = []
-        for e in dir(self):
-            if isinstance(getattr(self, e), type) and e != "__class__":
-                classes.append(e)
-        for cl in classes:
-            namespace[cl.upper()] = getattr(self, cl)()

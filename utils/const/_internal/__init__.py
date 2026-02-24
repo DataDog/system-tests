@@ -1,3 +1,3 @@
-from .core import Const, load, ConstList
+from .core import Const, load
 
-__all__ = ["Const", "ConstList", "load"]
+__all__ = ["Const", "load"]
