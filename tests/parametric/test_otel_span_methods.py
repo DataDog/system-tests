@@ -789,7 +789,13 @@ class Test_Otel_Span_Methods:
         root_span = find_span(trace, span.span_id)
 
         assert root_span["error"] == 1
-        assert "error.stack" in root_span["meta"]
+        # For dd-trace-go > v2.5.0, we set the throw stack (if available) in error.details and the handling stack in error.stack (always)
+        # for dd-trace-go >= v2.7.0, we set the throw stack (if available) in error.stack and the handling stack in error.handling_stack (always)
+        # https://github.com/DataDog/dd-trace-go/pull/4322
+        if context.library == "go":
+            assert "error.handling_stack" in root_span["meta"]
+        else:
+            assert "error.stack" in root_span["meta"]
         assert "error.message" in root_span["meta"]
         assert "error.type" in root_span["meta"]
 
