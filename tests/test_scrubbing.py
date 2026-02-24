@@ -6,6 +6,7 @@ from collections.abc import Callable
 import re
 
 from utils import context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
+from utils.dd_types import DataDogTrace
 
 
 def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Callable[[dict], None]:
@@ -80,7 +81,7 @@ class Test_UrlField:
         """Check that not data is leaked"""
         assert self.r.status_code == 200
 
-        def validate_report(trace: list):
+        def validate_report(trace: DataDogTrace):
             for span in trace:
                 if span.get("type") == "http":
                     logger.info(f"span found: {span}")

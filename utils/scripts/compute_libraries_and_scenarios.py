@@ -28,6 +28,7 @@ scenario_names = {scenario.name for scenario in get_all_scenarios()}
 LIBRARIES = {
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "golang",
