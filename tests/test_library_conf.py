@@ -534,7 +534,7 @@ class Test_ExtractBehavior_Default:
         # Test the extracted span context
         span = spans[0]
         trace_id = traces[0].trace_id_as_int
-        assert trace_id == 2
+        assert trace_id == 2, traces[0].format
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context

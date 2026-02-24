@@ -38,8 +38,9 @@ class DataDogAgentTrace(ABC):
     @property
     @abstractmethod
     def trace_id(self) -> int | str:
-        """Returns the trace ID of a trace according to its format
-        it may be a int with legacy format, of a string on efficient format
+        """Returns the trace ID of a trace, as it reported by the agent withtout changing anything:
+        * legacy format: string, reprsenting a decimal number
+        * efficient format: string, representing an hexadecimal number, with 8 extra bytes the are a mystery right now
         """
 
     @property
@@ -59,8 +60,6 @@ class DataDogAgentTrace(ABC):
 
 
 class DataDogTraceAgentLegacy(DataDogAgentTrace):
-    # spans: list["DataDogAgentSpanLegacy"]
-
     def __init__(self, data: dict, raw_trace: dict):
         self.data = data
 
@@ -71,12 +70,13 @@ class DataDogTraceAgentLegacy(DataDogAgentTrace):
         self.spans = [DataDogAgentSpanLegacy(self, s) for s in self.raw_trace["spans"]]
 
     @property
-    def trace_id(self) -> int:
+    def trace_id(self) -> str:
+        """The legacy format expose the trace id as a string, reprsenting a decimal number"""
         return self.spans[0]["traceID"]
 
     @property
     def trace_id_as_int(self) -> int:
-        return self.spans[0]["traceID"]
+        return int(self.trace_id)
 
 
 class DataDogTraceAgentV1(DataDogAgentTrace):
