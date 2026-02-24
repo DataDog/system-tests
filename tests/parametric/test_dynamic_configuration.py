@@ -1,6 +1,7 @@
 """Test the dynamic configuration via Remote Config (RC) feature of the APM libraries."""
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
