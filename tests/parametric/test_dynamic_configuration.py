@@ -206,6 +206,7 @@ def set_and_wait_rc(
     if context.library.name in _SLOW_TRACERS:
         # these tracers do not reliably emit app-client-configuration-change on RC update
         _set_rc(test_agent, rc_config, config_id)
+        test_agent.clear()  # Discard stale RC requests from prior config; avoid matching old ACK
     else:
         pre_count: int = test_agent.count_telemetry_events("app-client-configuration-change")
         _set_rc(test_agent, rc_config, config_id)
