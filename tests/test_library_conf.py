@@ -404,7 +404,7 @@ class Test_HeaderTags_Wildcard_Request_Headers:
 
         span = spans[0]
         for tag in tags:
-            assert tag in interfaces.agent.get_span_meta(span)
+            assert tag in span.meta
 
 
 @scenarios.tracing_config_nondefault
@@ -421,7 +421,7 @@ class Test_HeaderTags_Wildcard_Response_Headers:
         assert len(spans) == 1
 
         span = spans[0]
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         for key in response_headers:
             assert RESPONSE_PREFIX + key.lower() in span_meta
             assert span_meta[RESPONSE_PREFIX + key.lower()] == response_headers[key]
@@ -441,7 +441,7 @@ def retrieve_span_links(span: DataDogAgentSpan) -> list[dict] | None:
     if span.trace.format == AgentTraceFormat.efficient_trace_payload_format and span.get("links") is not None:
         return span["links"]
 
-    span_meta = interfaces.agent.get_span_meta(span)
+    span_meta = span.meta
 
     if span_meta.get("_dd.span_links") is None:
         return None

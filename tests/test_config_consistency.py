@@ -47,7 +47,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
         span = spans[0]
 
         assert span.get_span_type() == "web"
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         assert span_meta["http.status_code"] == "400"
         assert "error" not in span or span["error"] == 0
 
@@ -62,7 +62,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         span = spans[0]
 
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         assert span_meta["http.status_code"] == "500"
         assert span["error"]
 
@@ -83,7 +83,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
         span = spans[0]
         assert span.get_span_type() == "web"
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         assert span_meta["http.status_code"] == "200"
         assert span["error"]
 
@@ -98,7 +98,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
         span = spans[0]
         assert span.get_span_type() == "web"
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         assert span_meta.get("http.status_code") == "202"
         assert span.get("error")
 

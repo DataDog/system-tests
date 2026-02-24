@@ -10,7 +10,7 @@ import tests.debugger.utils as debugger
 import time
 from pathlib import Path
 from packaging import version
-from utils import interfaces, scenarios, features, context, irrelevant, missing_feature, logger
+from utils import scenarios, features, context, irrelevant, missing_feature, logger
 from utils.dd_types import DataDogAgentSpan, AgentTraceFormat
 
 
@@ -122,9 +122,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 for spans in self.probe_spans.values():
                     for span in spans:
                         snapshot_ids_in_span = {
-                            key: value
-                            for key, value in interfaces.agent.get_span_meta(span).items()
-                            if key.endswith("snapshot_id")
+                            key: value for key, value in span.meta.items() if key.endswith("snapshot_id")
                         }.values()
 
                         if snapshot_id in snapshot_ids_in_span:
@@ -475,7 +473,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         actual_reasons = []
 
         for span in spans_with_no_capture_reason:
-            meta = interfaces.agent.get_span_meta(span)
+            meta = span.meta
             actual_reason = meta["_dd.debug.error.no_capture_reason"]
             actual_reasons.append(actual_reason)
 

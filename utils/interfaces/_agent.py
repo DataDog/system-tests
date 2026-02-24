@@ -153,11 +153,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     yield data, span
 
     @staticmethod
-    def get_span_meta(span: DataDogAgentSpan) -> dict[str, str]:
-        """Returns the meta dictionary of a span according to its format"""
-        return span.meta
-
-    @staticmethod
     def get_span_metrics(span: DataDogAgentSpan) -> dict[str, str]:
         """Returns the metrics dictionary of a span according to its format"""
         if span.trace.format == AgentTraceFormat.legacy:

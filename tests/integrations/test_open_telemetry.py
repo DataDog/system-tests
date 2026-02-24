@@ -1,4 +1,4 @@
-from utils import context, features, interfaces, irrelevant, missing_feature, scenarios, logger
+from utils import context, features, irrelevant, missing_feature, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
 import json
@@ -22,7 +22,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             assert span is not None, f"Span is not found for {db_operation}"
 
             # DEPRECATED!! Now it is db.instance. The name of the database being connected to. Database instance name.
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             assert span_meta["db.name"] == db_container.db_instance
 
             # Describes the relationship between the Span, its parents, and its children in a Trace.
@@ -61,14 +61,14 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """The connection string used to connect to the database."""
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             assert span_meta["db.connection_string"].strip(), f"Test is failing for {db_operation}"
 
     def test_db_operation(self):
         """The name of the operation being executed"""
         for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
 
             if db_operation == "procedure":
                 assert any(substring in span_meta["db.operation"].lower() for substring in ["call", "exec"]), (
@@ -85,18 +85,18 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """The name of the primary table that the operation is acting upon, including the database name (if applicable)."""
         for db_operation, request in self.get_requests(excluded_operations=["procedure"]):
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             assert span_meta["db.sql.table"].strip(), f"Test is failing for {db_operation}"
 
     def test_error_message(self):
         """A string representing the error message."""
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         assert len(span_meta["error.msg"].strip()) != 0
 
     def test_error_type_and_stack(self):
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
 
         # A string representing the type of the error
         assert span_meta["error.type"].strip()
@@ -108,7 +108,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """New version of test_error_type_and_stack() starting agent@7.75.0"""
 
         span = self.get_span_from_agent(self.requests[self.db_service]["select_error"])
-        span_meta = interfaces.agent.get_span_meta(span)
+        span_meta = span.meta
         events = json.loads(span_meta["events"])
         exception_events = [event for event in events if event["name"] == "exception"]
         assert len(exception_events) > 0
@@ -121,7 +121,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """All queries come out obfuscated from agent"""
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             if db_operation in ["update", "delete", "procedure", "select_error", "select"]:
                 assert span_meta["db.statement"].count("?") == 2, (
                     f"The query is not properly obfuscated for operation {db_operation}"
@@ -141,7 +141,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """Usually the query"""
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             assert db_operation in span_meta["db.statement"].lower(), (
                 f"{db_operation}  not found in {span_meta['db.statement']}"
             )
@@ -183,7 +183,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
         """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             assert span_meta["db.mssql.instance_name"].strip(), (
                 f"db.mssql.instance_name must not be empty for operation {db_operation}"
             )
@@ -192,7 +192,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
         """The name of the operation being executed. Mssql and Open Telemetry doesn't report this span when we call to procedure"""
         for db_operation, request in self.get_requests(excluded_operations=["select_error", "procedure"]):
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
             # db.operation span is not generating by Open Telemetry when we call to procedure or we have a syntax error on the SQL
             if db_operation not in ["select_error", "procedure"]:
                 assert db_operation.lower() in span_meta["db.operation"].lower(), f"Test is failing for {db_operation}"
@@ -207,7 +207,7 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
         """All queries come out obfuscated from agent"""
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            span_meta = interfaces.agent.get_span_meta(span)
+            span_meta = span.meta
 
             if db_operation in ["insert", "select"]:
                 expected_obfuscation_count = 3

@@ -272,7 +272,7 @@ class Test_Synthetics_APM_Datadog:
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span)
+        meta = span.meta
         metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
@@ -300,7 +300,7 @@ class Test_Synthetics_APM_Datadog:
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span)
+        meta = span.meta
         metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics-browser"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1

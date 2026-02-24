@@ -557,7 +557,7 @@ class BaseDebuggerTest:
             )
             spans = interfaces.agent.get_spans_list()
             for span in spans:
-                meta = interfaces.agent.get_span_meta(span)
+                meta = span.meta
                 if "_dd.debug.error.no_capture_reason" in meta:
                     error_msg = meta.get("error.msg", "").lower()
                     if self._error_message == error_msg:

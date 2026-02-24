@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, missing_feature, context, rfc, logger, interfaces
+from utils import scenarios, features, missing_feature, context, rfc, logger
 
 
 @features.debugger_code_origins
@@ -41,7 +41,7 @@ class Test_Debugger_Code_Origins(debugger.BaseDebuggerTest):
             logger.debug(span)
 
             if resource == "GET /healthcheck" and resource_type == "web":
-                meta = interfaces.agent.get_span_meta(span)
+                meta = span.meta
                 code_origin_type = meta.get("_dd.code_origin.type", "")
                 code_origins_entry_found = code_origin_type == "entry"
 

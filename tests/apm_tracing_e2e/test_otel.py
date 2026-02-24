@@ -28,7 +28,7 @@ class Test_Otel_Span:
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
-        parent_meta = interfaces.agent.get_span_meta(parent)
+        parent_meta = parent.meta
         if parent_meta["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
         assert parent_meta.get("attributes") == "values"
@@ -39,7 +39,7 @@ class Test_Otel_Span:
         # childName is no longer the operation name, rather the resource name
         # after remapping the OTel attributes to Datadog semantics
         child = _get_span_by_resource(spans, "otel-name.dd-resource")
-        child_meta = interfaces.agent.get_span_meta(child)
+        child_meta = child.meta
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"

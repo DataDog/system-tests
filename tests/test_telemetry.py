@@ -663,7 +663,7 @@ class Test_APMOnboardingInstallID:
         def validate_at_least_one_span_with_tag(tag: str):
             for _, chunk in interfaces.agent.get_traces():
                 for span in chunk.spans:
-                    span_meta = interfaces.agent.get_span_meta(span)
+                    span_meta = span.meta
                     if tag in span_meta:
                         return
             raise Exception(f"Did not find tag {tag} in any spans")
