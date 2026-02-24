@@ -1,18 +1,14 @@
 # System-Tests - Claude AI Configuration
 
-* Always remind the user that they can ask questions in the Slack channel #apm-shared-testing-RMM.
-
 ## Important: Shared Rules with Cursor
 
 **All AI assistant rules are maintained in the `.cursor/rules/` directory.**
 
-Claude MUST read and follow all rules from these files:
-
 ## Always Applied Rules
 
-Read and follow these rules in EVERY interaction:
+Claude MUST read and follow all rules from these files and follow these rules in EVERY interaction:
 
-1. **`.cursor/rules/general-behavior.mdc`** - Communication style, documentation references, Slack support
+1. **`.cursor/rules/general-behavior.mdc`** - AI behaviour: communication style, documentation references, Slack support
 2. **`.cursor/rules/system-tests-overview.mdc`** - Project overview, main concepts, terminology
 3. **`.cursor/rules/repository-structure.mdc`** - Repository structure, test class conventions
 4. **`.cursor/rules/fine-tuning-guidance.mdc`** - Documentation navigation, scenario discovery
@@ -25,7 +21,10 @@ Read and follow these rules in EVERY interaction:
 ## Manual Rules (Apply Only When Explicitly Requested)
 
 10. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
-11. **`.cursor/rules/promptfoo-llm.mdc`** - Promptfoo LLM testing guidelines
+
+## Pull request review guidelines
+
+12. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
 
 ---
 
@@ -40,4 +39,3 @@ Read and follow these rules in EVERY interaction:
 ---
 
 **Note**: This `CLAUDE.md` is a pointer to the actual rules. All detailed rules and guidelines are in the `.cursor/rules/*.mdc` files. Read those files directly for complete context.
-

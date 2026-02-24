@@ -3,6 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, features
+from utils.dd_types import DataDogSpan
 
 
 @scenarios.everything_disabled
@@ -21,7 +22,7 @@ class Test_StandardTagsClientIp:
     def test_not_reported(self):
         """Test IP-related span tags are not reported when ASM is disabled"""
 
-        def validator(span: dict):
+        def validator(span: DataDogSpan):
             meta = span.get("meta", {})
             assert "appsec.event" not in meta, "unexpected appsec event while appsec should be disabled"
             assert "http.client_ip" not in meta, "unexpected http.client_ip tag"

@@ -17,7 +17,14 @@ All these endpoints must respond `200` unless noted otherwise. If content is not
 
 ### \[GET, POST\] /
 
-The following text may be written to the body of the response:
+The response must include the following headers:
+
+```
+content-type: text/plain
+content-length: 13
+```
+
+The following text must be written to the body of the response:
 
 ```
 Hello world!\n

@@ -18,7 +18,6 @@ The `.cursor` folder contains the AI configuration and rules that make the syste
     ├── general-behavior.mdc        # General AI behavior and communication rules
     ├── java-endpoint-prompt.mdc    # Specialized Java endpoint development rules
     ├── k8s-ssi.mdc                 # Kubernetes SSI testing rules
-    ├── promptfoo-llm.mdc           # LLM testing and validation rules
     ├── repository-structure.mdc    # Repository structure and navigation rules
     ├── system-tests-overview.mdc   # High-level system-tests overview rules
     └── test-activation.mdc         # Test activation and deactivation rules
@@ -41,7 +40,6 @@ The `.cursor` folder contains the AI configuration and rules that make the syste
 
 #### 🎯 **Specialized Task Rules** (Manual Activation)
 - **`java-endpoint-prompt.mdc`**: Comprehensive Java weblog endpoint development specialist
-- **`promptfoo-llm.mdc`**: LLM testing framework for validating AI prompts and responses
 
 ## 🚀 Getting Started with Cursor AI
 

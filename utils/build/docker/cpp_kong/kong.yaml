@@ -1,0 +1,14 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+- name: backend
+  url: http://127.0.0.1:7778
+  plugins:
+  - name: ddtrace
+    config:
+      service_name: kong
+  routes:
+  - name: catch-all
+    paths:
+    - /

@@ -39,7 +39,7 @@ public class WebController {
 
   @RequestMapping("/")
   String home() {
-    return "Hello World!";
+    return "Hello world!\n";
   }
 
   @RequestMapping("/healthcheck")

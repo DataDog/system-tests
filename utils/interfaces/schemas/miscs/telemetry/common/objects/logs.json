@@ -16,7 +16,7 @@
       "type": "string"
     },
     "stack_trace": {
-      "type": "string"
+      "type": ["string", "null"]
     },
     "tracer_time": {
       "type": "number"
