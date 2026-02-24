@@ -793,11 +793,8 @@ class Test_Otel_Span_Methods:
         assert "error.message" in root_span["meta"]
         assert "error.type" in root_span["meta"]
 
-    def test_otel_record_exception_sets_handling_stack_in_go(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
-        """
-        For dd-trace-go > v2.5.0, we set the throw stack (if available) in error.details and the handling stack in error.stack (always)
+    def test_otel_record_exception_sets_handling_stack_in_go(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """For dd-trace-go > v2.5.0, we set the throw stack (if available) in error.details and the handling stack in error.stack (always)
         For dd-trace-go >= v2.7.0, we set the throw stack (if available) in error.stack and the handling stack in error.handling_stack (always)
         https://github.com/DataDog/dd-trace-go/pull/4322
         """
