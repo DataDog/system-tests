@@ -136,6 +136,11 @@ class DataDogLibrarySpan(ABC):
     def __getitem__(self, key: str):
         pass
 
+    @property
+    @abstractmethod
+    def meta(self) -> dict[str, Any]:
+        pass
+
 
 class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -143,6 +148,11 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
 
     def __getitem__(self, key: str):
         return self.raw_span[key]
+
+    @property
+    def meta(self) -> dict[str, Any]:
+        assert "meta" in self.raw_span
+        return self.raw_span["meta"]
 
 
 class DataDogLibrarySpanV1(DataDogLibrarySpan):
@@ -172,3 +182,8 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
             return self.raw_span["attributes"]
 
         return self.raw_span[key]
+
+    @property
+    def meta(self) -> dict[str, Any]:
+        assert "attributes" in self.raw_span
+        return self.raw_span["attributes"]
