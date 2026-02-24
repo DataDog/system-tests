@@ -41,4 +41,4 @@ class Test_V1Payloads:
         _, agent_trace = agent_traces[0]
         assert agent_trace.format == AgentTraceFormat.efficient_trace_payload_format
         assert len(agent_trace.spans) == 1
-        assert agent_trace.get_trace_id() == trace.raw_trace["trace_id"]
+        assert agent_trace.trace_id == trace.raw_trace["trace_id"]

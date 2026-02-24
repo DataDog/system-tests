@@ -220,10 +220,3 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     for client_grouped_stat in client_stats_buckets["Stats"]:
                         if resource == "" or client_grouped_stat["Resource"] == resource:
                             yield client_grouped_stat
-
-    @staticmethod
-    def get_trace_id(chunk: DataDogAgentTrace) -> str:
-        """Returns the trace ID of a chunk according to its format
-        Returns only the lower 64 bits of the trace ID
-        """
-        return chunk.get_trace_id()

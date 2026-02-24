@@ -5,7 +5,7 @@
 import json
 from utils import weblog, interfaces, scenarios, features, bug, context
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.dd_types import DataDogSpan, LibraryTraceFormat, DataDogAgentTrace, AgentTraceFormat
+from utils.dd_types import DataDogSpan, LibraryTraceFormat
 
 
 @scenarios.trace_propagation_style_w3c
@@ -266,7 +266,7 @@ class Test_Synthetics_APM_Datadog:
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
         _, trace = traces[0]
-        self.assert_trace_id_equals(trace, "1234567890")
+        assert trace.trace_id_as_int == 1234567890
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         _, span = spans[0]
@@ -293,7 +293,7 @@ class Test_Synthetics_APM_Datadog:
         traces = list(interfaces.agent.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
         _, trace = traces[0]
-        self.assert_trace_id_equals(trace, "1234567891")
+        assert trace.trace_id_as_int == 1234567891
 
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
@@ -304,15 +304,3 @@ class Test_Synthetics_APM_Datadog:
         metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics-browser"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
-
-    @staticmethod
-    def assert_trace_id_equals(trace: DataDogAgentTrace, expected_trace_id: str) -> None:
-        actual_trace_id = trace.get_trace_id()
-        if trace.format == AgentTraceFormat.legacy:
-            assert expected_trace_id == actual_trace_id
-        elif trace.format == AgentTraceFormat.efficient_trace_payload_format:
-            # In efficient trace payload format, traceID is in hex format
-            actual_trace_id = str(int(actual_trace_id, 16))
-            assert actual_trace_id == expected_trace_id
-        else:
-            raise ValueError(f"Unknown span format: {trace.format}")

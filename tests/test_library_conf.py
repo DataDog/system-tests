@@ -490,13 +490,13 @@ class Test_ExtractBehavior_Default:
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         traces = [trace for _, trace in interfaces.agent.get_traces(self.r)]
-        trace_id = traces[0].get_trace_id()
+        trace_id = traces[0].trace_id_as_int
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
         # Test the extracted span context
         span = spans[0]
-        assert trace_id == "1"
+        assert trace_id == 1
         assert span.get("parentID") == "1"
         span_links = retrieve_span_links(span)
         assert span_links is None
@@ -533,8 +533,8 @@ class Test_ExtractBehavior_Default:
 
         # Test the extracted span context
         span = spans[0]
-        trace_id = traces[0].get_trace_id()
-        assert trace_id == "2"
+        trace_id = traces[0].trace_id_as_int
+        assert trace_id == 2
         assert span.get("parentID") == "2"
 
         # Test the extracted span links: One span link per conflicting trace context

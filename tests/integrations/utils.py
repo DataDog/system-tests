@@ -111,7 +111,7 @@ class BaseDbIntegrationsTestClass:
     @staticmethod
     def get_span_from_agent(weblog_request: HttpResponse) -> DataDogAgentSpan:
         for data, chunk in interfaces.agent.get_traces(weblog_request):
-            trace_id = interfaces.agent.get_trace_id(chunk)
+            trace_id = chunk.trace_id_as_int
             logger.debug(f"Chunk found: trace id={trace_id}; ({data['log_filename']})")
 
             # iterate over everything to be sure to miss nothing

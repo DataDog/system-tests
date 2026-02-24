@@ -35,9 +35,17 @@ class DataDogAgentTrace(ABC):
     def from_agent_v1(data: dict, raw_trace: dict) -> "DataDogTraceAgentV1":
         return DataDogTraceAgentV1(data, raw_trace)
 
+    @property
     @abstractmethod
-    def get_trace_id(self) -> str:
-        """Returns the trace ID of a chunk according to its format
+    def trace_id(self) -> int | str:
+        """Returns the trace ID of a trace according to its format
+        it may be a int with legacy format, of a string on efficient format
+        """
+
+    @property
+    @abstractmethod
+    def trace_id_as_int(self) -> int:
+        """Returns the trace ID of a trace
         Returns only the lower 64 bits of the trace ID
         """
 
@@ -62,10 +70,12 @@ class DataDogTraceAgentLegacy(DataDogAgentTrace):
 
         self.spans = [DataDogAgentSpanLegacy(self, s) for s in self.raw_trace["spans"]]
 
-    def get_trace_id(self) -> str:
-        """Returns the trace ID of a chunk according to its format
-        Returns only the lower 64 bits of the trace ID
-        """
+    @property
+    def trace_id(self) -> int:
+        return self.spans[0]["traceID"]
+
+    @property
+    def trace_id_as_int(self) -> int:
         return self.spans[0]["traceID"]
 
 
@@ -81,11 +91,13 @@ class DataDogTraceAgentV1(DataDogAgentTrace):
 
         self.spans = [DataDogAgentSpanV10(self, s) for s in self.raw_trace["spans"]]
 
-    def get_trace_id(self) -> str:
-        """Returns the trace ID of a chunk according to its format
-        Returns only the lower 64 bits of the trace ID
-        """
-        return str(int(self.raw_trace["traceID"], 16) & 0xFFFFFFFFFFFFFFFF)
+    @property
+    def trace_id(self) -> str:
+        return self.raw_trace["traceID"]
+
+    @property
+    def trace_id_as_int(self) -> int:
+        return int(self.trace_id, 16) & 0xFFFFFFFFFFFFFFFF
 
 
 class DataDogAgentSpan(ABC):
