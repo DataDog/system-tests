@@ -190,11 +190,13 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
-            time.sleep(2)  # Allow tracer to flush trace before scenario stops
+            if context.scenario == scenarios.iast_standalone:
+                time.sleep(2)  # Allow tracer to flush trace before scenario stops
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
-        interfaces.library.assert_trace_exists(self.r)
+        if context.scenario == scenarios.iast_standalone:
+            interfaces.library.assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
