@@ -112,6 +112,16 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
+    def _iast_standalone_wait_for_trace(self) -> None:
+        """Allow tracer to flush when in iast_standalone scenario (reduces flakiness)."""
+        if context.scenario == scenarios.iast_standalone:
+            time.sleep(2)
+
+    def _iast_standalone_assert_trace_exists(self, request: HttpResponse) -> None:
+        """Assert trace exists when in iast_standalone scenario (clearer error messages)."""
+        if context.scenario == scenarios.iast_standalone:
+            interfaces.library.assert_trace_exists(request)
+
     def setup_product_is_enabled(self, session: _Weblog):
         headers = {}
         if self.tested_product == "appsec":
@@ -135,6 +145,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
+            self._iast_standalone_wait_for_trace()
 
     def fix_priority_lambda(
         self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
@@ -148,6 +159,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
@@ -190,13 +202,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
-            if context.scenario == scenarios.iast_standalone:
-                time.sleep(2)  # Allow tracer to flush trace before scenario stops
+            self._iast_standalone_wait_for_trace()
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
-        if context.scenario == scenarios.iast_standalone:
-            interfaces.library.assert_trace_exists(self.r)
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
@@ -239,9 +249,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
+            self._iast_standalone_wait_for_trace()
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
@@ -284,9 +296,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
+            self._iast_standalone_wait_for_trace()
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
@@ -459,9 +473,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
             )
+            self._iast_standalone_wait_for_trace()
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x in [1, 2]}
@@ -503,9 +519,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
             )
+            self._iast_standalone_wait_for_trace()
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
@@ -545,8 +563,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
+        self._iast_standalone_wait_for_trace()
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
@@ -586,6 +606,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "User-Agent": "Arachni/v1",
             },
         )
+        self._iast_standalone_wait_for_trace()
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         spans_checked = 0
@@ -627,8 +648,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
+        self._iast_standalone_wait_for_trace()
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
+        self._iast_standalone_assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
