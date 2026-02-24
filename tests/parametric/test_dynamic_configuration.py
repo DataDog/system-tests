@@ -46,6 +46,11 @@ DEFAULT_ENVVARS = {
     "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
 }
 
+# Max polling loops (~4s at 0.01s/loop) when waiting for RC config-change telemetry.
+_MAX_RC_EVENT_WAIT_LOOPS = 400
+# dotnet, php, ruby: do not reliably emit app-client-configuration-change on RC update.
+_SLOW_TRACERS = ("dotnet", "php", "ruby")
+
 
 def send_and_wait_trace(
     test_library: APMLibrary,
@@ -184,17 +189,35 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
     return rc_config
 
 
-def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
+def set_and_wait_rc(
+    test_agent: TestAgentAPI,
+    config_overrides: dict[str, Any],
+    config_id: str | None = None,
+) -> dict[str, Any]:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
+
+    Uses telemetry event counting to avoid matching stale config-change events from a previous RC update.
+    Prevents a race condition caused by stale events left over from a prior RC update.
     """
-    rc_config = _create_rc_config(config_overrides)
+    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
 
-    _set_rc(test_agent, rc_config, config_id)
+    if context.library.name in _SLOW_TRACERS:
+        # these tracers do not reliably emit app-client-configuration-change on RC update
+        _set_rc(test_agent, rc_config, config_id)
+    else:
+        pre_count: int = test_agent.count_telemetry_events("app-client-configuration-change")
+        _set_rc(test_agent, rc_config, config_id)
 
-    # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+        # Wait until at least one NEW config-change event appears (count exceeds snapshot).
+        for _ in range(_MAX_RC_EVENT_WAIT_LOOPS):
+            if test_agent.count_telemetry_events("app-client-configuration-change") > pre_count:
+                break
+            time.sleep(0.01)
+        else:
+            raise AssertionError("No new app-client-configuration-change telemetry event after RC update")
+
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
@@ -742,7 +765,7 @@ class TestDynamicConfigSamplingRules:
     def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES})
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=400)
 
     @parametrize(
         "library_env",

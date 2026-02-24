@@ -686,7 +686,14 @@ class TestAgentAPI:
             self.clear()
         return metrics
 
-    def _get_telemetry_event(self, event: dict, request_type: str):
+    def _is_matching_telemetry_event(self, event: dict[str, Any], event_name: str) -> bool:
+        """True if event matches event_name and is not from a sidecar."""
+        return (
+            event.get("request_type") == event_name
+            and event.get("application", {}).get("language_version") != "SIDECAR"
+        )
+
+    def _get_telemetry_event(self, event: dict[str, Any], request_type: str) -> dict[str, Any] | None:
         """Extracts telemetry events from a message batch or returns the telemetry event if it
         matches the expected request_type and was not emitted from a sidecar.
         """
@@ -694,13 +701,32 @@ class TestAgentAPI:
             return None
         if event["request_type"] == "message-batch":
             for message in event["payload"]:
-                if message["request_type"] == request_type:
-                    if message.get("application", {}).get("language_version") != "SIDECAR":
-                        return message
-        elif event["request_type"] == request_type:
-            if event.get("application", {}).get("language_version") != "SIDECAR":
-                return event
+                if self._is_matching_telemetry_event(message, request_type):
+                    return message
+        elif self._is_matching_telemetry_event(event, request_type):
+            return event
         return None
+
+    def count_telemetry_events(self, event_name: str) -> int:
+        """Count telemetry events of the given type, using the same logic as _get_telemetry_event.
+
+        Handles both top-level events and events inside message-batch payloads, excluding
+        sidecar-originated events. Used by set_and_wait_rc to avoid matching stale events.
+        """
+        try:
+            events: list[dict[str, Any]] = self.telemetry(clear=False)
+        except requests.exceptions.RequestException:
+            return 0
+
+        count: int = 0
+        for event in events:
+            if self._is_matching_telemetry_event(event, event_name):
+                count += 1
+            elif event.get("request_type") == "message-batch":
+                for message in event.get("payload", []):
+                    if self._is_matching_telemetry_event(message, event_name):
+                        count += 1
+        return count
 
     def wait_for_rc_apply_state(
         self,
