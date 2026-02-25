@@ -93,7 +93,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
             hits = point.get("Hits", 0)
 
             if (method, endpoint) in expected_hits:
-                actual_hits[(method, endpoint)] = hits
+                actual_hits[(method, endpoint)] = actual_hits.get((method, endpoint), 0) + hits
 
         # Verify that the hits match expectations
         for (method, endpoint), expected_count in expected_hits.items():
