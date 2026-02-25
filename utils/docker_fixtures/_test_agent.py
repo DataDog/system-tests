@@ -706,7 +706,7 @@ class TestAgentAPI:
         """Count telemetry events of the given type, using the same logic as _get_telemetry_event.
 
         Handles both top-level events and events inside message-batch payloads, excluding
-        sidecar-originated events. Used by set_and_wait_rc to avoid matching stale events.
+        sidecar-originated events.
         """
         try:
             events = self.telemetry(clear=False)
@@ -718,13 +718,15 @@ class TestAgentAPI:
             if not event:
                 continue
             if event.get("request_type") == event_name:
-                if event.get("application", {}).get("language_version") != "SIDECAR":
-                    count += 1
+                count += int(event.get("application", {}).get("language_version") != "SIDECAR")
             elif event.get("request_type") == "message-batch":
-                for message in event.get("payload", []):
-                    if message.get("request_type") == event_name:
-                        if message.get("application", {}).get("language_version") != "SIDECAR":
-                            count += 1
+                count += sum(
+                    1
+                    for message in event.get("payload", [])
+                    if message.get("request_type") == event_name
+                    and message.get("application", {}).get("language_version") != "SIDECAR"
+                )
+
         return count
 
     def wait_for_rc_apply_state(
@@ -759,10 +761,6 @@ class TestAgentAPI:
                         continue
 
                     for cfg_state in req["body"]["client"]["state"]["config_states"]:
-                        # TODO: rm temp logs
-                        if cfg_state["product"] == "APM_TRACING":
-                            logger.info("RC config_state (APM_TRACING): %s", cfg_state)  # temporary debug
-
                         if cfg_state["product"] != product:
                             logger.debug(f"Product {cfg_state['product']} does not match {product}")
                         elif cfg_state["apply_state"] != state.value:
@@ -771,7 +769,7 @@ class TestAgentAPI:
                                 # will probably be the same as the current state
                                 last_known_state = cfg_state["apply_state"]
                                 logger.debug(f"Apply state {cfg_state['apply_state']} does not match {state}")
-                        elif config_id and cfg_state.get("id") != str(config_id):
+                        elif config_id and str(cfg_state.get("id")) != str(config_id):
                             logger.debug(f"Config state id {cfg_state.get('id')!r} does not match {config_id!r}")
                         else:
                             logger.info(f"Found apply state {state} for product {product}")

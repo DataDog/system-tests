@@ -46,10 +46,8 @@ DEFAULT_ENVVARS = {
     "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
 }
 
-# Max polling loops (~4s at 0.01s/loop) when waiting for RC config-change telemetry.
-_MAX_RC_EVENT_WAIT_LOOPS = 400
-# dotnet, php, ruby: do not reliably emit app-client-configuration-change on RC update.
-_SLOW_TRACERS = ("dotnet", "php", "ruby")
+# Max polling loops (~4s at 0.01s/loop) when waiting for RC-related responses.
+_RC_WAIT_LOOPS = 400
 
 
 def send_and_wait_trace(
@@ -174,12 +172,13 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-def _set_rc(test_agent: TestAgentAPI, config: dict[str, Any], config_id: str | None = None) -> None:
+def _set_rc(test_agent: TestAgentAPI, config: dict[str, Any], config_id: str | None = None) -> str:
     if not config_id:
         config_id = str(hash(json.dumps(config)))
 
     config["id"] = str(config_id)
     test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{config_id}/config", payload=config)
+    return str(config_id)
 
 
 def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
@@ -194,36 +193,17 @@ def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], 
 
     It is assumed that the configuration is successfully applied.
 
-    Uses telemetry event counting to avoid matching stale config-change events from a previous
-    RC update. For dotnet, php, ruby: these tracers do not reliably emit app-client-configuration-change
-    on RC update, so we skip the telemetry wait and use config_id filtering to avoid stale ACKs.
+    Uses config_id filtering in wait_for_rc_apply_state to avoid matching stale ACKs from
+    a previous RC update. This works for all tracers since they echo the config id in config_states.
     """
     rc_config = _create_rc_config(config_overrides)
-    resolved_config_id = config_id or str(hash(json.dumps(rc_config)))
-
-    if context.library.name in _SLOW_TRACERS:
-        # skip telemetry wait, use config_id to avoid matching stale ACKs
-        _set_rc(test_agent, rc_config, resolved_config_id)
-        return test_agent.wait_for_rc_apply_state(
-            "APM_TRACING",
-            state=RemoteConfigApplyState.ACKNOWLEDGED,
-            clear=True,
-            config_id=resolved_config_id,
-        )
-
-    # Snapshot the current count of config-change events BEFORE setting the new config.
-    pre_count: int = test_agent.count_telemetry_events("app-client-configuration-change")
-    _set_rc(test_agent, rc_config, resolved_config_id)
-
-    # Wait until at least one NEW config-change event appears (count exceeds snapshot).
-    for _ in range(_MAX_RC_EVENT_WAIT_LOOPS):
-        if test_agent.count_telemetry_events("app-client-configuration-change") > pre_count:
-            break
-        time.sleep(0.01)
-    else:
-        raise AssertionError("No new app-client-configuration-change telemetry event after RC update")
-
-    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+    used_config_id = _set_rc(test_agent, rc_config, config_id)
+    return test_agent.wait_for_rc_apply_state(
+        "APM_TRACING",
+        state=RemoteConfigApplyState.ACKNOWLEDGED,
+        clear=True,
+        config_id=used_config_id,
+    )
 
 
 def assert_sampling_rate(trace: list[dict], rate: float):
@@ -770,7 +750,7 @@ class TestDynamicConfigSamplingRules:
     def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=_MAX_RC_EVENT_WAIT_LOOPS)
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=_RC_WAIT_LOOPS)
 
     @parametrize(
         "library_env",
