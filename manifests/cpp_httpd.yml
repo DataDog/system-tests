@@ -29,6 +29,7 @@ manifest:
   tests/integrations/test_otel_drop_in.py: irrelevant (library does not implement OpenTelemetry)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/: irrelevant (Parametric scenario is not applied on C++ httpd)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature

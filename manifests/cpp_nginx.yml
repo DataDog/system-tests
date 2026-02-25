@@ -248,6 +248,7 @@ manifest:
   tests/integrations/test_inferred_proxy.py: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v1.3.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (we opt into cache)
