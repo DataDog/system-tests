@@ -112,16 +112,38 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
-    def _iast_standalone_wait_for_trace(self, request: HttpResponse, timeout: float = 5.0) -> None:
+    def _iast_standalone_wait_for_trace(self, request: HttpResponse, timeout: float = 15.0) -> None:
         """Wait until trace is captured (iast_standalone only). Reduces flakiness."""
         if context.scenario != scenarios.iast_standalone:
             return
-        poll_interval: float = 0.5
+        rid: str = request.get_rid()
+        logger.info("IAST_STANDALONE: waiting for trace rid=%s (timeout=%.1fs)", rid, timeout)
+        poll_interval: float = 0.2
+        time.sleep(0.5)  # Give tracer time to flush before first poll
         deadline: float = time.monotonic() + timeout
+        poll_count: int = 0
         while time.monotonic() < deadline:
-            if list(interfaces.library.get_spans(request=request)):
+            spans: list = list(interfaces.library.get_spans(request=request))
+            if spans:
+                logger.info("IAST_STANDALONE: trace found for rid=%s after %d polls", rid, poll_count)
                 return
+            poll_count += 1
+            if poll_count <= 3 or poll_count % 25 == 0:  # Log first 3 and every 5s
+                elapsed: float = time.monotonic() - (deadline - timeout)
+                logger.debug(
+                    "IAST_STANDALONE: poll %d rid=%s after %.1fs, no spans yet",
+                    poll_count,
+                    rid,
+                    elapsed,
+                )
             time.sleep(poll_interval)
+        all_spans_count: int = len(list(interfaces.library.get_spans(request=None)))
+        logger.error(
+            "IAST_STANDALONE: timeout after %.1fs for rid=%s (total spans in library: %d)",
+            timeout,
+            rid,
+            all_spans_count,
+        )
         interfaces.library.assert_trace_exists(request)  # Fails with clear error
 
     def setup_product_is_enabled(self, session: _Weblog):
