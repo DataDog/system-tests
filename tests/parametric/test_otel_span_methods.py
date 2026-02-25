@@ -798,9 +798,6 @@ class Test_Otel_Span_Methods:
         For dd-trace-go >= v2.7.0, we set the throw stack (if available) in error.stack and the handling stack in error.handling_stack (always)
         https://github.com/DataDog/dd-trace-go/pull/4322
         """
-        if context.library != "golang":
-            return
-
         with test_library, test_library.otel_start_span("operation") as span:
             span.set_status(StatusCode.ERROR, "error_desc")
             span.record_exception(

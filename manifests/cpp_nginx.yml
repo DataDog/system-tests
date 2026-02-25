@@ -365,3 +365,4 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2::test_config_telemetry_completeness: irrelevant (This test causes too many friction. It has been replaced by alerts on slack channels)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature
   tests/test_v1_payloads.py: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant

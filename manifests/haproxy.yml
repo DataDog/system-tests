@@ -32,3 +32,4 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
