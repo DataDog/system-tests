@@ -189,35 +189,39 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
     return rc_config
 
 
-def set_and_wait_rc(
-    test_agent: TestAgentAPI,
-    config_overrides: dict[str, Any],
-    config_id: str | None = None,
-) -> dict[str, Any]:
+def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
 
-    Uses telemetry event counting to avoid matching stale config-change events from a previous RC update.
-    Prevents a race condition caused by stale events left over from a prior RC update.
+    Uses telemetry event counting to avoid matching stale config-change events from a previous
+    RC update. For dotnet, php, ruby: these tracers do not reliably emit app-client-configuration-change
+    on RC update, so we skip the telemetry wait and use config_id filtering to avoid stale ACKs.
     """
-    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    rc_config = _create_rc_config(config_overrides)
+    resolved_config_id = config_id or str(hash(json.dumps(rc_config)))
 
     if context.library.name in _SLOW_TRACERS:
-        # these tracers do not reliably emit app-client-configuration-change on RC update
-        _set_rc(test_agent, rc_config, config_id)
-        test_agent.clear()  # Discard stale RC requests from prior config; avoid matching old ACK
-    else:
-        pre_count: int = test_agent.count_telemetry_events("app-client-configuration-change")
-        _set_rc(test_agent, rc_config, config_id)
+        # skip telemetry wait, use config_id to avoid matching stale ACKs
+        _set_rc(test_agent, rc_config, resolved_config_id)
+        return test_agent.wait_for_rc_apply_state(
+            "APM_TRACING",
+            state=RemoteConfigApplyState.ACKNOWLEDGED,
+            clear=True,
+            config_id=resolved_config_id,
+        )
 
-        # Wait until at least one NEW config-change event appears (count exceeds snapshot).
-        for _ in range(_MAX_RC_EVENT_WAIT_LOOPS):
-            if test_agent.count_telemetry_events("app-client-configuration-change") > pre_count:
-                break
-            time.sleep(0.01)
-        else:
-            raise AssertionError("No new app-client-configuration-change telemetry event after RC update")
+    # Snapshot the current count of config-change events BEFORE setting the new config.
+    pre_count: int = test_agent.count_telemetry_events("app-client-configuration-change")
+    _set_rc(test_agent, rc_config, resolved_config_id)
+
+    # Wait until at least one NEW config-change event appears (count exceeds snapshot).
+    for _ in range(_MAX_RC_EVENT_WAIT_LOOPS):
+        if test_agent.count_telemetry_events("app-client-configuration-change") > pre_count:
+            break
+        time.sleep(0.01)
+    else:
+        raise AssertionError("No new app-client-configuration-change telemetry event after RC update")
 
     return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
@@ -766,7 +770,7 @@ class TestDynamicConfigSamplingRules:
     def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=400)
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=_MAX_RC_EVENT_WAIT_LOOPS)
 
     @parametrize(
         "library_env",
@@ -1038,22 +1042,25 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Only the last set of sampling rules should be applied"""
-        rc_state = set_and_wait_rc(
+        old_rate: float = 0.5
+        new_rate: float = 0.1
+        max_propagation_retries: int = 30
+
+        rc_state: dict = set_and_wait_rc(
             test_agent,
             config_overrides={
                 "tracing_sampling_rules": [
                     {
                         "service": "svc*",
                         "resource": "*",
-                        "sample_rate": 0.5,
+                        "sample_rate": old_rate,
                         "provenance": "customer",
                     }
                 ],
             },
         )
 
-        # Keep a reference on the RC config ID
-        config_id = rc_state["id"]
+        config_id: str = rc_state["id"]
 
         set_and_wait_rc(
             test_agent,
@@ -1063,15 +1070,26 @@ class TestDynamicConfigSamplingRules:
                     {
                         "service": "foo*",
                         "resource": "*",
-                        "sample_rate": 0.1,
+                        "sample_rate": new_rate,
                         "provenance": "customer",
                     }
                 ],
             },
         )
 
-        trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
-        assert_sampling_rate(trace, 0.1)
+        # After updating the RC config, the library may briefly still be applying the
+        # previous sampling rules. set_and_wait_rc waits for telemetry and RC acknowledgment,
+        # but these signals can be satisfied by stale events from the prior config, causing a
+        # window where the new rules aren't yet active. Retry to allow for full propagation.
+        trace: list[Span] | None = None
+        for _ in range(max_propagation_retries):
+            trace = send_and_wait_trace(test_library, test_agent, name="test", service="foo")
+            span: Span = find_first_span_in_trace_payload(trace)
+            if span["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(new_rate):
+                break
+            time.sleep(0.1)
+        assert trace is not None
+        assert_sampling_rate(trace, new_rate)
 
         trace = send_and_wait_trace(test_library, test_agent, name="test2", service="svc")
-        assert_sampling_rate(trace, 1)
+        assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
