@@ -76,9 +76,7 @@ class Test_FFE_Initialization_Blocks_Until_Config:
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_init_blocks_until_config_received(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_ffe_init_blocks_until_config_received(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Baseline: config delivered BEFORE ffe_start, evaluate returns real values."""
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
@@ -94,8 +92,7 @@ class Test_FFE_Initialization_Blocks_Until_Config:
         )
 
         assert result.get("value") == "real-flag-value", (
-            f"Expected 'real-flag-value' but got '{result.get('value')}'. "
-            f"Config was delivered before ffe_start()."
+            f"Expected 'real-flag-value' but got '{result.get('value')}'. Config was delivered before ffe_start()."
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -123,7 +120,9 @@ class Test_FFE_Initialization_Blocks_Until_Config:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_ffe_evaluation_immediately_after_start_without_config(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
+        self,
+        test_agent: TestAgentAPI,  # noqa: ARG002
+        test_library: APMLibrary,
     ) -> None:
         """No config, immediate eval -- provider must NOT claim READY in <5s.
 
@@ -163,6 +162,7 @@ class Test_FFE_Initialization_Blocks_Until_Config:
         mid-block, the event is signaled, initialize() returns, and evaluations
         return real values immediately.
         """
+
         # Schedule config delivery 2s from now in a background thread
         def deliver_config():
             time.sleep(2)
@@ -179,9 +179,7 @@ class Test_FFE_Initialization_Blocks_Until_Config:
         assert elapsed > 1.0, (
             f"ffe_start() returned in {elapsed:.1f}s -- too fast, should have blocked until config arrived (~2s)"
         )
-        assert elapsed < 25.0, (
-            f"ffe_start() took {elapsed:.1f}s -- config should have arrived after ~2s, not timed out"
-        )
+        assert elapsed < 25.0, f"ffe_start() took {elapsed:.1f}s -- config should have arrived after ~2s, not timed out"
 
         # Evaluate immediately -- should get real values since config arrived during init
         result = test_library.ffe_evaluate(
@@ -200,9 +198,7 @@ class Test_FFE_Initialization_Blocks_Until_Config:
         "library_env",
         [{**DEFAULT_ENVVARS, "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "3000"}],
     )
-    def test_ffe_init_timeout_returns_error(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_ffe_init_timeout_returns_error(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Short timeout (3s) with no config -- provider should time out and enter ERROR state.
 
         After timeout, deliver config and verify late recovery to READY.
@@ -212,12 +208,8 @@ class Test_FFE_Initialization_Blocks_Until_Config:
         elapsed = time.monotonic() - start_time
 
         # Should have blocked for ~3s (the configured timeout), not instant
-        assert elapsed > 2.0, (
-            f"ffe_start() returned in {elapsed:.1f}s -- should have blocked for ~3s timeout"
-        )
-        assert elapsed < 10.0, (
-            f"ffe_start() took {elapsed:.1f}s -- should have timed out after ~3s, not 30s"
-        )
+        assert elapsed > 2.0, f"ffe_start() returned in {elapsed:.1f}s -- should have blocked for ~3s timeout"
+        assert elapsed < 10.0, f"ffe_start() took {elapsed:.1f}s -- should have timed out after ~3s, not 30s"
 
         # Evaluate before config -- should get defaults (provider is in ERROR state after timeout)
         result_before = test_library.ffe_evaluate(
