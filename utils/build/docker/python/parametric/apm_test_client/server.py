@@ -67,17 +67,8 @@ from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
-# OpenFeature client initialization
+# OpenFeature client -- initialized lazily via /ffe/start endpoint
 openfeature_client = None
-if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
-    try:
-        from openfeature import api
-        from ddtrace.openfeature import DataDogProvider
-
-        api.set_provider(DataDogProvider())
-        openfeature_client = api.get_client()
-    except ImportError:
-        pass
 
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
