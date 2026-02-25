@@ -1014,13 +1014,23 @@ class TestDynamicConfigSamplingRules:
         )
 
         # A span with non-matching tags. Adaptive rate should apply.
-        trace = get_sampled_trace(
-            test_library,
-            test_agent,
-            service=TEST_SERVICE,
-            name="op_name",
-            tags=[("tag-a", "NOT-tag-a-val")],
-        )
+        # Retry: RC ACK can precede full application of new rules (same as test_remote_sampling_rules_retention).
+        max_propagation_retries: int = 30
+        trace: list[Span] | None = None
+        for _ in range(max_propagation_retries):
+            trace = get_sampled_trace(
+                test_library,
+                test_agent,
+                service=TEST_SERVICE,
+                name="op_name",
+                tags=[("tag-a", "NOT-tag-a-val")],
+            )
+            if find_first_span_in_trace_payload(trace)["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(
+                rc_sampling_adaptive_rate
+            ):
+                break
+            time.sleep(0.1)
+        assert trace is not None
         assert_sampling_rate(trace, rc_sampling_adaptive_rate)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
         span = find_first_span_in_trace_payload(trace)
