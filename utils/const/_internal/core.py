@@ -1,6 +1,5 @@
 from functools import reduce
 from pathlib import Path
-from typing import Any
 
 import yaml
 
