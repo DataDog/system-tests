@@ -116,8 +116,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         """Wait until trace is captured (iast_standalone only). Reduces flakiness."""
         if context.scenario != scenarios.iast_standalone:
             return
-        poll_interval = 0.5
-        deadline = time.monotonic() + timeout
+        poll_interval: float = 0.5
+        deadline: float = time.monotonic() + timeout
         while time.monotonic() < deadline:
             if list(interfaces.library.get_spans(request=request)):
                 return
