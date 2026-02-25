@@ -1043,9 +1043,13 @@ manifest:
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_telemetry_metric_executed_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.16.0
+    - declaration: missing_feature (Metrics not implemented)
+      weblog: [akka-http, jersey-grizzly2, resteasy-netty3, vertx4]
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_telemetry_metric_instrumented_source:
     - declaration: missing_feature (Metrics not implemented)
       component_version: <1.16.0
+    - declaration: missing_feature (Metrics not implemented)
+      weblog: [akka-http, jersey-grizzly2, resteasy-netty3, vertx4]
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue:
     - weblog_declaration:
         "*": v1.1.0
@@ -1602,6 +1606,14 @@ manifest:
     - weblog_declaration:
         "*": v1.47.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_app_dependencies_loaded:
+    - weblog_declaration:
+        akka-http: missing_feature (endpoint not implemented)
+        jersey-grizzly2: missing_feature (endpoint not implemented)
+        play: missing_feature (endpoint not implemented)
+        ratpack: missing_feature (endpoint not implemented)
+        vertx3: missing_feature (endpoint not implemented)
+        vertx4: missing_feature (endpoint not implemented)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
     - weblog_declaration:
         "*": v1.45.0

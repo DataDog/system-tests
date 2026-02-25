@@ -1121,6 +1121,7 @@ manifest:
     - weblog_declaration:
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - declaration: missing_feature (Apply only java)
     - weblog_declaration:
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_mssql_instance_name:
@@ -1181,6 +1182,7 @@ manifest:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - declaration: missing_feature (Apply only java)
     - weblog_declaration:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
@@ -1233,6 +1235,7 @@ manifest:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname:  # Created by easy win activation script
+    - declaration: missing_feature (Apply only java)
     - weblog_declaration:
         uwsgi-poc: missing_feature
         uds-flask: missing_feature
@@ -1285,57 +1288,101 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Psycopg::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Pymysql::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg: irrelevant (These are nodejs only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         flask-poc: v2.8.0
         uds-flask: v2.9.0
         uwsgi-poc: v2.9.0
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg::test_dbm_comment:
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
         *flask: v2.9.0
-  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql::test_dbm_comment: flaky (APMAPI-724)
+  tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql::test_dbm_comment:
+    - declaration: flaky (APMAPI-724)
+    - weblog_declaration:
+        flask-poc: bug (APMAPI-1058)
+        uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::_BaseDbmComment::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)

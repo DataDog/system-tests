@@ -378,6 +378,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2::test_app_dependencies_loaded: irrelevant (Go does not support dynamic dependency loading)
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: missing_feature
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: missing_feature
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: missing_feature
