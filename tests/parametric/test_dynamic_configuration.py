@@ -172,32 +172,40 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-def _set_rc(test_agent: TestAgentAPI, config: dict[str, Any], config_id: str | None = None) -> str:
-    if not config_id:
-        config_id = str(hash(json.dumps(config)))
+def _set_rc(
+    test_agent: TestAgentAPI,
+    config: dict[str, Any],
+    config_id: str | int | None = None,
+) -> str:
+    resolved_id: str = str(config_id) if config_id is not None else str(hash(json.dumps(config, sort_keys=True)))
+    config["id"] = resolved_id
+    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=config)
 
-    config["id"] = str(config_id)
-    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{config_id}/config", payload=config)
-    return str(config_id)
+    return resolved_id
 
 
-def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
-    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
+def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
+    rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
     for k, v in config_overrides.items():
         rc_config["lib_config"][k] = v
     return rc_config
 
 
-def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
+def set_and_wait_rc(
+    test_agent: TestAgentAPI,
+    config_overrides: dict[str, Any],
+    config_id: str | int | None = None,
+) -> dict[str, Any]:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
 
-    Uses config_id filtering in wait_for_rc_apply_state to avoid matching stale ACKs from
-    a previous RC update. This works for all tracers since they echo the config id in config_states.
+    Uses config_id filtering (canonical JSON hash) so we only match ACKs for the config we
+    just set—avoids matching stale ACKs from prior configs. Works for all tracers since
+    they echo the config id in config_states.
     """
-    rc_config = _create_rc_config(config_overrides)
-    used_config_id = _set_rc(test_agent, rc_config, config_id)
+    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    used_config_id: str = _set_rc(test_agent, rc_config, config_id)
     return test_agent.wait_for_rc_apply_state(
         "APM_TRACING",
         state=RemoteConfigApplyState.ACKNOWLEDGED,
@@ -1040,7 +1048,7 @@ class TestDynamicConfigSamplingRules:
             },
         )
 
-        config_id: str = rc_state["id"]
+        config_id = rc_state["id"]
 
         set_and_wait_rc(
             test_agent,

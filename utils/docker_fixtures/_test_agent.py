@@ -709,11 +709,11 @@ class TestAgentAPI:
         sidecar-originated events.
         """
         try:
-            events = self.telemetry(clear=False)
+            events: list[Any] = self.telemetry(clear=False)
         except requests.exceptions.RequestException:
             return 0
 
-        count = 0
+        count: int = 0
         for event in events:
             if not event:
                 continue
@@ -737,16 +737,16 @@ class TestAgentAPI:
         clear: bool = False,
         wait_loops: int = 100,
         post_only: bool = False,
-        config_id: str | None = None,
-    ):
+        config_id: str | int | None = None,
+    ) -> dict[str, Any]:
         """Wait for the given RemoteConfig apply state to be received by the test agent.
 
         When config_id is provided, only match config_states whose id equals config_id.
         This avoids matching stale ACKs from a prior RC update (e.g. for dotnet/php/ruby).
         """
         logger.info(f"Wait for RemoteConfig apply state {state} for product {product}")
-        rc_reqs = []
-        last_known_state = None
+        rc_reqs: list[Any] = []
+        last_known_state: int | None = None
         for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests(post_only=post_only)
