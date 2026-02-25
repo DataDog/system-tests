@@ -86,14 +86,14 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         }
 
         # Collect actual hits from stats points
-        actual_hits = {}
+        actual_hits: dict[tuple[str, str], int] = {}
         for point in stats_points:
             method = point.get("HTTPMethod", "")
             endpoint = point.get("HTTPEndpoint", "")
             hits = point.get("Hits", 0)
 
             if (method, endpoint) in expected_hits:
-                actual_hits[(method, endpoint)] = hits
+                actual_hits[(method, endpoint)] = actual_hits.get((method, endpoint), 0) + hits
 
         # Verify that the hits match expectations
         for (method, endpoint), expected_count in expected_hits.items():
