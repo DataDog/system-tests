@@ -326,7 +326,7 @@ class Test_ComputeLibrariesAndScenarios:
             inputs,
             ["java_lambda", "python_lambda"],
             ["java_lambda", "python_lambda"],
-            600,
+            3600,
             "true",
             "DEFAULT",
             "lambda_end_to_end",
