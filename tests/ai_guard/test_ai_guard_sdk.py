@@ -349,10 +349,9 @@ class Test_SensitiveDataScanning:
                 assert _assert_key(sd, "rule_tag")
                 assert _assert_key(sd, "category")
                 assert _assert_key(sd, "matched_text")
-                assert _assert_key(sd, "location")
                 location = _assert_key(sd, "location")
-                assert _assert_key(location, "start_index")
-                assert _assert_key(location, "end_index_exclusive")
+                assert _assert_key(location, "start_index") is not None
+                assert _assert_key(location, "end_index_exclusive") is not None
                 assert _assert_key(location, "path")
             return True
 
