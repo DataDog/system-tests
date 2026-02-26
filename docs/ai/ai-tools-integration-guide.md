@@ -62,9 +62,7 @@ Cursor supports Model Context Protocol (MCP) servers that extend AI capabilities
 **Available MCP Servers:**
 
 - **GitHub MCP Server**: Provides comprehensive GitHub integration including repository management, pull requests, issues, and CI/CD operations. See [GitHub MCP Server Setup](ai-github-mcp-server.md) for detailed installation and configuration instructions.
-
-**Future MCP Servers:**
-Additional MCP servers are planned to further enhance the development experience. These may include integrations for cloud services, testing frameworks, and other development tools commonly used with system-tests.
+- **Datadog MCP Server**: Provides CI Visibility integration including pipeline event search and aggregation, test event analysis, flaky test detection, code coverage summaries, and PR insights. Pre-configured in the repository via `.cursor/mcp.json`. See [Datadog MCP Server Setup](datadog-mcp-server.md) for detailed setup and usage instructions.
 
 To set up MCP servers, follow the specific setup guides for each server. All MCP servers integrate seamlessly with Cursor's AI assistant, providing enhanced context and capabilities for working with the system-tests repository.
 
