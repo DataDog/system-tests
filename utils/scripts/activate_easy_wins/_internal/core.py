@@ -77,7 +77,7 @@ def update_manifest(
     rule_to_tests: dict[str, set[str]] = {}  # Track unique test nodeids per rule
     unique_tests_per_language: dict[str, set[str]] = {}  # Track unique test nodeids per language
     activations_per_owner: dict[str, int] = {}  # Track activations per code owner
-    skipped_nodes = yaml.safe_load(Path("utils/scripts/activate_easy_wins/skip.yml").read_text())
+    skipped_nodes = yaml.safe_load(Path("utils/scripts/activate_easy_wins/skip.yml").read_text()) or {}
 
     for context, test_data_item in test_data.items():
         nodes, trie = test_data_item.xpass_nodes, test_data_item.trie
