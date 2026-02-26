@@ -32,9 +32,9 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
     - weblog_declaration:
-        "*": missing_feature
+        "*": v2.25.0-dev
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
@@ -42,9 +42,9 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
     - weblog_declaration:
-        "*": v2.25.0-dev
+        "*": missing_feature
         rails42: irrelevant
         rack: irrelevant
         sinatra14: irrelevant
