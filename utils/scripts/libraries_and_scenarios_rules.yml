@@ -78,6 +78,7 @@ patterns:
 
     .cursor/*:
         scenario_groups: null
+        libraries: null
     .circleci/*:
         scenario_groups: null
     .vscode/*:
