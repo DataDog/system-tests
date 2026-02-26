@@ -1035,6 +1035,8 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:  # Modified by easy win activation script
     - declaration: missing_feature (Not implemented)
       component_version: <2.5.0
+    - declaration: irrelevant (new error tracking tagging introduced in v2.7.0)
+      component_version: '>=2.7.0-dev.1'
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0-dev.1
