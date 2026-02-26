@@ -46,7 +46,10 @@ MESSAGES: dict = {
         }
     ],
     "SENSITIVE_DATA": [
-        {"role": "user", "content": "My name is John Smith, my email is john.smith@acmebank.com and my SSN is 456-78-9012. Can you look up my account?"},
+        {
+            "role": "user",
+            "content": "My name is John Smith, my email is john.smith@acmebank.com and my SSN is 456-78-9012. Can you look up my account?",
+        },
     ],
 }
 
@@ -355,7 +358,6 @@ class Test_SensitiveDataScanning:
 
         return validate
 
-
     def setup_sensitive_data(self):
         self.messages = MESSAGES["SENSITIVE_DATA"]
         self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
@@ -365,6 +367,4 @@ class Test_SensitiveDataScanning:
         Verifies the response contains sensitive data scanning results.
         """
         assert self.r.status_code == 200
-        interfaces.library.validate_one_span(
-            self.r, validator=self._assert_span_with_sensitive_data(), full_trace=True
-        )
+        interfaces.library.validate_one_span(self.r, validator=self._assert_span_with_sensitive_data(), full_trace=True)
