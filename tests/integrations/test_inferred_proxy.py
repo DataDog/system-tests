@@ -3,7 +3,7 @@ import time
 from typing import Literal
 
 from utils import weblog, scenarios, features, interfaces, logger
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 DISTRIBUTED_TRACE_ID = 1
 DISTRIBUTED_PARENT_ID = 2
@@ -115,7 +115,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error(_BaseTestCase):
         )
 
 
-def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> DataDogSpan | None:
+def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> DataDogLibrarySpan | None:
     logger.debug(f"Trying to find API Gateway span for interface: {interface}")
 
     for data, trace in interface.get_traces():
@@ -138,7 +138,7 @@ def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> 
 
 def assert_api_gateway_span(
     test_case: _BaseTestCase,
-    span: DataDogSpan,
+    span: DataDogLibrarySpan,
     path: str,
     status_code: str,
     *,
@@ -216,7 +216,7 @@ def mandatory_tags_validator_factory(
     else:
         expected_component = "aws-httpapi"
 
-    def validate_api_gateway_span(span: DataDogSpan) -> bool:
+    def validate_api_gateway_span(span: DataDogLibrarySpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 
@@ -300,7 +300,7 @@ def optional_tags_validator_factory(proxy: Literal["aws.apigateway", "aws.httpap
     else:
         expected_arn = "arn:aws:apigateway:eu-west-3::/apis/a1b2c3d4e5f"
 
-    def validate_api_gateway_span(span: DataDogSpan) -> bool:
+    def validate_api_gateway_span(span: DataDogLibrarySpan) -> bool:
         if span.get("metrics", {}).get("_dd.inferred_span") != 1:
             return False
 

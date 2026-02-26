@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, missing_feature, context, rfc, logger, interfaces
+from utils import scenarios, features, missing_feature, context, rfc, logger
 
 
 @features.debugger_code_origins
@@ -30,18 +30,18 @@ class Test_Debugger_Code_Origins(debugger.BaseDebuggerTest):
         self.assert_all_weblog_responses_ok()
 
         code_origins_entry_found = False
-        for span, span_format in self.all_spans:
+        for span in self.all_spans:
             # Web spans for the healthcheck should have code origins defined.
             try:
-                resource = interfaces.agent.get_span_resource(span, span_format)
-                resource_type = interfaces.agent.get_span_type(span, span_format)
+                resource = span.get_span_resource()
+                resource_type = span.get_span_type()
             except KeyError:
                 # Some spans may not have resource or type fields, skip them
                 continue
             logger.debug(span)
 
             if resource == "GET /healthcheck" and resource_type == "web":
-                meta = interfaces.agent.get_span_meta(span, span_format)
+                meta = span.meta
                 code_origin_type = meta.get("_dd.code_origin.type", "")
                 code_origins_entry_found = code_origin_type == "entry"
 

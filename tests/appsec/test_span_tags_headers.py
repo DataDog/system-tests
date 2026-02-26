@@ -1,6 +1,6 @@
 from utils import weblog, interfaces, features, scenarios, logger, rfc
 from utils._weblog import CaseInsensitiveDict
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
@@ -9,7 +9,7 @@ def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
     content_encoding = headers.get("Content-Encoding")
     content_language = headers.get("Content-Language")
 
-    def validator(span: DataDogSpan):
+    def validator(span: DataDogLibrarySpan):
         assert (enabled := span["metrics"].get("_dd.appsec.enabled")) == 1.0, (
             f"Expected _dd.appsec.enabled to be '1.0', got {enabled}"
         )
