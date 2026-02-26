@@ -1,5 +1,5 @@
 from utils import weblog, scenarios, interfaces, features
-from utils.dd_constants import TraceAgentPayloadFormat
+from utils.dd_types import DataDogAgentSpan
 
 
 @features.otel_api
@@ -26,20 +26,20 @@ class Test_Otel_Span:
         assert len(spans) >= 2, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
-        parent, parent_span_format = _get_span_by_resource(spans, "root-otel-name.dd-resource")
+        parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get("parentID") is None
-        parent_meta = interfaces.agent.get_span_meta(parent, parent_span_format)
+        parent_meta = parent.meta
         if parent_meta["language"] != "jvm":  # Java OpenTelemetry API does not provide Span ID API
             assert parent.get("spanID") == "10000"
         assert parent_meta.get("attributes") == "values"
         assert parent_meta.get("error.message") == "testing_end_span_options"
-        parent_metrics = interfaces.agent.get_span_metrics(parent, parent_span_format)
+        parent_metrics = interfaces.agent.get_span_metrics(parent)
         assert parent_metrics["_dd.top_level"] == 1.0
         # Assert the child sent by the agent.
         # childName is no longer the operation name, rather the resource name
         # after remapping the OTel attributes to Datadog semantics
-        child, child_span_format = _get_span_by_resource(spans, "otel-name.dd-resource")
-        child_meta = interfaces.agent.get_span_meta(child, child_span_format)
+        child = _get_span_by_resource(spans, "otel-name.dd-resource")
+        child_meta = child.meta
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
@@ -59,21 +59,21 @@ class Test_Otel_Span:
         assert len(spans) >= 3, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
-        parent, parent_span_format = _get_span_by_resource(spans, "root-otel-name.dd-resource")
-        assert interfaces.agent.get_span_name(parent, parent_span_format) == "internal"
+        parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
+        assert parent.get_span_name() == "internal"
         assert parent.get("parentID") is None
-        parent_metrics = interfaces.agent.get_span_metrics(parent, parent_span_format)
+        parent_metrics = interfaces.agent.get_span_metrics(parent)
         assert parent_metrics["_dd.top_level"] == 1.0
 
         # Assert the Roundtrip child span sent by the agent, this span is created by an external OTel contrib package
-        roundtrip_span, roundtrip_span_format = _get_span_by_name(spans, "client.request")
-        assert interfaces.agent.get_span_name(roundtrip_span, roundtrip_span_format) == "client.request"
-        assert interfaces.agent.get_span_resource(roundtrip_span, roundtrip_span_format) == "HTTP GET"
+        roundtrip_span = _get_span_by_name(spans, "client.request")
+        assert roundtrip_span.get_span_name() == "client.request"
+        assert roundtrip_span.get_span_resource() == "HTTP GET"
         assert roundtrip_span.get("parentID") == parent.get("spanID")
 
         # Assert the Handler function child span sent by the agent.
-        handler_span, handler_span_format = _get_span_by_name(spans, "server.request")
-        assert interfaces.agent.get_span_resource(handler_span, handler_span_format) == "testOperation"
+        handler_span = _get_span_by_name(spans, "server.request")
+        assert handler_span.get_span_resource() == "testOperation"
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
 
         # Assert the spans received from the backend!
@@ -81,19 +81,15 @@ class Test_Otel_Span:
         assert len(spans) == 3
 
 
-def _get_span_by_name(
-    spans: list[tuple[dict, TraceAgentPayloadFormat]], span_name: str
-) -> tuple[dict, TraceAgentPayloadFormat]:
-    for s, span_format in spans:
-        if interfaces.agent.get_span_name(s, span_format) == span_name:
-            return s, span_format
-    return {}, TraceAgentPayloadFormat.legacy
+def _get_span_by_name(spans: list[DataDogAgentSpan], span_name: str) -> DataDogAgentSpan:
+    for s in spans:
+        if s.get_span_name() == span_name:
+            return s
+    raise ValueError("Span not found")
 
 
-def _get_span_by_resource(
-    spans: list[tuple[dict, TraceAgentPayloadFormat]], resource_name: str
-) -> tuple[dict, TraceAgentPayloadFormat]:
-    for s, span_format in spans:
-        if interfaces.agent.get_span_resource(s, span_format) == resource_name:
-            return s, span_format
-    return {}, TraceAgentPayloadFormat.legacy
+def _get_span_by_resource(spans: list[DataDogAgentSpan], resource_name: str) -> DataDogAgentSpan:
+    for s in spans:
+        if s.get_span_resource() == resource_name:
+            return s
+    raise ValueError("Span not found")
