@@ -28,6 +28,7 @@ scenario_names = {scenario.name for scenario in get_all_scenarios()}
 LIBRARIES = {
     "cpp",
     "cpp_httpd",
+    "cpp_kong",
     "cpp_nginx",
     "dotnet",
     "golang",
@@ -176,7 +177,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector", "golang")
+            if "otel" not in library and library not in ("otel_collector",)
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]

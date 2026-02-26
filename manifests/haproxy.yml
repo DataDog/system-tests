@@ -25,6 +25,7 @@ manifest:
   tests/appsec/test_traces.py: v2.4.0
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature (The endpoint /headers is not implemented in the weblog)
   tests/appsec/test_versions.py::Test_Events: v2.4.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.4.0
   tests/test_scrubbing.py: v2.4.0
   tests/test_semantic_conventions.py: v2.4.0

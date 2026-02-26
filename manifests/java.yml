@@ -3384,6 +3384,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags:
     - declaration: missing_feature (Not implemented)
       component_version: <1.40.0
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 1.35.0)
       component_version: <1.35.0
@@ -3851,6 +3852,7 @@ manifest:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: flaky (APPSEC-61406)
   tests/test_rum_injection.py:
     - weblog_declaration:
         "*": irrelevant (RUM injection only supported for spring-boot)

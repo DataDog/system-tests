@@ -6,7 +6,8 @@
 
 import string
 from utils import weblog, interfaces, context, rfc, missing_feature, features, scenarios, logger
-from utils.dd_constants import SamplingPriority, TraceAgentPayloadFormat
+from utils.dd_constants import SamplingPriority
+from utils.dd_types import DataDogLibraryTrace, LibraryTraceFormat, AgentTraceFormat
 from utils.cgroup_info import get_container_id
 
 
@@ -210,11 +211,13 @@ class Test_LibraryHeaders:
 
         for data, trace in interfaces.library.get_traces():
             assert data["response"]["status_code"] == 200
-            trace_id = trace[0]["trace_id"]
+            trace_id = trace.trace_id_as_int
             assert isinstance(trace_id, int)
             assert trace_id > 0
-            for span in trace:
-                assert span["trace_id"] == trace_id
+
+            if trace.format in (LibraryTraceFormat.v04, LibraryTraceFormat.v05):
+                for span in trace:
+                    assert span.raw_span["trace_id"] == trace_id
 
 
 @features.agent_data_integrity
@@ -226,19 +229,17 @@ class Test_Agent:
 
         # get list of trace ids reported by the agent
         trace_ids_reported_by_agent = set[int]()
-        for _, chunk, chunk_format in interfaces.agent.get_traces():
-            if chunk_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
+        for _, chunk in interfaces.agent.get_traces():
+            if chunk.format == AgentTraceFormat.efficient_trace_payload_format:
                 # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
                 # We need to convert it to an integer taking only the lower 64 bits
                 # Note that this ignores the upper 64 bits, but this is fine for just verifying that the trace is reported for our test
-                trace_id = int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF
+                trace_id = chunk.trace_id_as_int
                 trace_ids_reported_by_agent.add(trace_id)
-            elif chunk_format == TraceAgentPayloadFormat.legacy:
-                for span in chunk["spans"]:
-                    trace_ids_reported_by_agent.add(int(span["traceID"]))
-                    break
+            elif chunk.format == AgentTraceFormat.legacy:
+                trace_ids_reported_by_agent.add(chunk.trace_id_as_int)
 
-        def get_span_with_sampling_data(trace: list):
+        def get_span_with_sampling_data(trace: DataDogLibraryTrace):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.
@@ -263,12 +264,12 @@ class Test_Agent:
             metrics = span["metrics"]
             sampling_priority = metrics.get("_sampling_priority_v1")
             if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
-                trace_ids_reported_by_tracer.add(span["trace_id"])
-                if span["trace_id"] not in trace_ids_reported_by_agent:
-                    logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
+                trace_ids_reported_by_tracer.add(trace.trace_id_as_int)
+                if trace.trace_id_as_int not in trace_ids_reported_by_agent:
+                    logger.error(f"Trace {trace.trace_id_as_int} has not been reported ({data['log_filename']})")
                     all_traces_are_reported = False
                 else:
-                    logger.debug(f"Trace {span['trace_id']} has been reported ({data['log_filename']})")
+                    logger.debug(f"Trace {trace.trace_id_as_int} has been reported ({data['log_filename']})")
 
         if not all_traces_are_reported:
             logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")

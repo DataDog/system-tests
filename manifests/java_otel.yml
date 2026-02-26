@@ -6,3 +6,4 @@ manifest:
   tests/integrations/test_open_telemetry.py::Test_MySql::test_properties: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-2778)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
