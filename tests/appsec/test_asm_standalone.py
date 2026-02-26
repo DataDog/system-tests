@@ -144,7 +144,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             rid,
             all_spans_count,
         )
-        interfaces.library.assert_trace_exists(request)  # Fails with clear error
 
     def setup_product_is_enabled(self, session: _Weblog):
         headers = {}
@@ -182,6 +181,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             return default_checks
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
+        interfaces.library.assert_trace_exists(self.r)
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
@@ -228,6 +228,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             self._iast_standalone_wait_for_trace(self.r)
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
+        interfaces.library.assert_trace_exists(self.r)
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
@@ -274,6 +275,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             self._iast_standalone_wait_for_trace(self.r)
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        interfaces.library.assert_trace_exists(self.r)
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
@@ -320,6 +322,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             self._iast_standalone_wait_for_trace(self.r)
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        interfaces.library.assert_trace_exists(self.r)
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): None, "_dd.p.other": "1"}
@@ -496,6 +499,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             self._iast_standalone_wait_for_trace(self.r)
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
+        interfaces.library.assert_trace_exists(self.r)
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
@@ -541,6 +545,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             self._iast_standalone_wait_for_trace(self.r)
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
+        interfaces.library.assert_trace_exists(self.r)
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
@@ -584,6 +589,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self._iast_standalone_wait_for_trace(self.r)
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
+        interfaces.library.assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
@@ -626,6 +632,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self._iast_standalone_wait_for_trace(self.r)
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
+        interfaces.library.assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
@@ -668,6 +675,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self._iast_standalone_wait_for_trace(self.r)
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
+        interfaces.library.assert_trace_exists(self.r)
         spans_checked = 0
         tested_meta: dict[str, str | Callable | None] = {self.propagated_tag(): self.propagated_tag_value()}
         tested_metrics: dict[str, str | Callable | None] = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
