@@ -2,6 +2,7 @@
 
 import json
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -177,7 +178,10 @@ def _set_rc(
     config: dict[str, Any],
     config_id: str | int | None = None,
 ) -> str:
-    resolved_id: str = str(config_id) if config_id is not None else str(hash(json.dumps(config, sort_keys=True)))
+    # Use a unique ID when not passed to avoid matching stale ACKs from prior updates
+    # that used the same hash (identical payloads). hash(config) would repeat for identical
+    # payloads and recreate the stale-ACK race, especially when tests reuse config_id.
+    resolved_id: str = str(config_id) if config_id is not None else str(uuid.uuid4())
     config["id"] = resolved_id
     test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=config)
 
@@ -200,11 +204,15 @@ def set_and_wait_rc(
 
     It is assumed that the configuration is successfully applied.
 
-    Uses config_id filtering (canonical JSON hash) so we only match ACKs for the config we
-    just set—avoids matching stale ACKs from prior configs. Works for all tracers since
-    they echo the config id in config_states.
+    Uses config_id filtering so we only match ACKs for the config we just set—avoids
+    matching stale ACKs from prior configs. When config_id is passed (reuse case),
+    clears before set_rc to discard buffered RC requests so we only see responses
+    from our update.
     """
     rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    if config_id is not None:
+        # Reuse case: discard stale ACKs from prior updates at the same path
+        test_agent.clear()
     used_config_id: str = _set_rc(test_agent, rc_config, config_id)
     return test_agent.wait_for_rc_apply_state(
         "APM_TRACING",
