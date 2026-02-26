@@ -113,7 +113,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
     def _iast_standalone_wait_for_trace(self, request: HttpResponse, timeout: float = 15.0) -> None:
-        """Wait until trace is captured (iast_standalone only). Reduces flakiness."""
+        """Wait until trace is captured (iast_standalone only) to reduce flakiness."""
         if context.scenario != scenarios.iast_standalone:
             return
         rid: str = request.get_rid()
