@@ -565,19 +565,7 @@ manifest:
   tests/appsec/waf/test_rules.py::Test_RFI: v1.28.6
   tests/appsec/waf/test_rules.py::Test_SSRF: v1.28.6
   tests/appsec/waf/test_rules.py::Test_Scanners: v1.28.6
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics:  # Modified by easy win activation script
-    - weblog_declaration:
-        '*': missing_feature
-        uds: '>=3.36.0'
-        poc: '>=3.36.0'
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_headers_are_correct:  # Created by easy win activation script
-    - weblog_declaration:
-        uds: missing_feature
-        poc: missing_feature
-  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests:  # Created by easy win activation script
-    - weblog_declaration:
-        uds: missing_feature
-        poc: missing_feature
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: v3.37.0
   tests/appsec/waf/test_truncation.py::Test_Truncation: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
@@ -891,6 +879,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_attributes_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_meta_serialization: missing_feature (Newer agents/testagents enabled native span event serialization by default)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_all_error_tracking_tags: missing_feature
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attribute_remapping_httpresponsestatuscode:
     - declaration: missing_feature (Implemented in 2.53.0)
       component_version: <2.53.0

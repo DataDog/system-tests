@@ -173,6 +173,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.0.1
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_get_span_context: missing_feature (APMSP-2059)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (Old array encoding not supported)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
