@@ -242,3 +242,21 @@ def test_decode_appsec_s_value_invalid_raises():
         decode_appsec_s_value(base64.b64encode(b"not gzip").decode())
     with pytest.raises(ValueError, match="Invalid JSON"):
         decode_appsec_s_value("[1,2,invalid")  # starts with [ so treated as JSON
+
+
+@scenarios.test_the_test
+def test_decode_appsec_s_value_accepts_bytes():
+    """Test that _dd.appsec.s.* values arriving as bytes (e.g. MessagePack bin) are decoded.
+
+    In v0.4/v0.5 paths _deserialized_nested_json_from_trace_payloads runs before
+    _convert_bytes_values, so meta values can still be bytes; decode_appsec_s_value
+    must accept bytes to avoid TypeError from str-only operations.
+    """
+    # JSON array as bytes
+    assert decode_appsec_s_value(b"[1,2,3]") == [1, 2, 3]
+    # Base64-gzip as bytes (same payload as test_deserialize_v1_trace_appsec_s_base64_gzip)
+    b64_gzip = b"H4sIAAAAAAAAA4uuVkrOT0lVsoqOjraIjdWpVspJzVOyMqyNrY0FAEi0gSwcAAAA"
+    assert decode_appsec_s_value(b64_gzip) == [{"code": [[[8]], {"len": 1}]}]
+    # Invalid UTF-8 bytes raise ValueError
+    with pytest.raises(ValueError, match="Invalid UTF-8"):
+        decode_appsec_s_value(b"\xff\xfe")

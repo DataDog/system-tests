@@ -98,14 +98,21 @@ _span_key_strings = [
 
 
 def decode_appsec_s_value(
-    value: str,
+    value: str | bytes,
 ) -> list[object] | dict[str, object] | str | int | float | bool | None:
     """Decode _dd.appsec.s.* meta values: either JSON or base64(gzip(JSON)).
 
-    If the value starts with '[' it is treated as raw JSON. Otherwise it is
-    treated as base64-encoded gzip-compressed JSON. Raises ValueError if
-    decoding (json, base64, or gzip) fails.
+    Accepts str or bytes (e.g. MessagePack bin-typed strings from v0.4/v0.5
+    traces, where _deserialized_nested_json_from_trace_payloads runs before
+    _convert_bytes_values). If the value starts with '[' it is treated as raw
+    JSON. Otherwise it is treated as base64-encoded gzip-compressed JSON.
+    Raises ValueError if decoding (utf-8, json, base64, or gzip) fails.
     """
+    if isinstance(value, bytes):
+        try:
+            value = value.decode("utf-8")
+        except UnicodeDecodeError as e:
+            raise ValueError(f"Invalid UTF-8 for _dd.appsec.s.* value: {e}") from e
     if not value:
         raise ValueError("_dd.appsec.s.* value cannot be empty")
     s = value.strip()
