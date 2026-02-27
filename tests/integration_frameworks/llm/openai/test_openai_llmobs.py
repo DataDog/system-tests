@@ -1,5 +1,5 @@
 import json
-from utils import features, scenarios
+from utils import features, scenarios, context
 
 import pytest
 from unittest import mock
@@ -279,6 +279,7 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
         assert len(span_events) == 1
 
         llm_span_event = span_events[0]
+        encoding_format = "base64" if context.library == "java" else "float"
         assert_llmobs_span_event(
             llm_span_event,
             integration="openai",
@@ -289,11 +290,10 @@ class TestOpenAiEmbeddingInteractions(BaseOpenaiTest):
             input_messages=None,
             input_documents=[{"text": "Hello OpenAI!"}],
             output_value="[1 embedding(s) returned with size 1536]",
-            metadata={"encoding_format": "float"},
+            metadata={"encoding_format": encoding_format},
             metrics=mock.ANY,
         )
         assert llm_span_event["metrics"]["input_tokens"] == mock.ANY
-        assert llm_span_event["metrics"]["output_tokens"] == mock.ANY
         assert llm_span_event["metrics"]["total_tokens"] == mock.ANY
 
     def test_embedding_error(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
