@@ -33,7 +33,7 @@ def main(language: str | None = None) -> None:
     # Ensure 'variables' section exists and update with new values
     data.setdefault("variables", {}).update(new_variables)
 
-    if language in LANG_STAGES:
+    if language and language in LANG_STAGES:
         data = filter_yaml(data, language)
 
     handle_parallelism(data)

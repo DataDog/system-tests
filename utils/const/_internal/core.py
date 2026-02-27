@@ -1,5 +1,4 @@
 from functools import reduce
-from typing import Any
 
 
 class ConstGroup(set):
@@ -25,7 +24,8 @@ class ConstGroups:
                 self.groups[group.name].add(item)
             self.groups["all"].add(item)
 
-    def _items(self) -> dict[str, list[ConstGroup]]: ...
+    def _items(self) -> dict[str, list[ConstGroup]]:
+        return {}
 
     def _shell_export(self, group: str) -> str:
         return reduce(lambda acc, e: acc + "|" + e, sorted(getattr(self, group)), "").strip("|")
