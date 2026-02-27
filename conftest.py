@@ -11,7 +11,7 @@ import time
 import types
 import xml.etree.ElementTree as ET
 from collections.abc import Generator, Sequence
-from typing import Any
+from typing import Any, Literal
 
 import pytest
 from _pytest.junitxml import xml_key
@@ -394,7 +394,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     last_item_file = ""
     for item in session.items:
         if _item_is_skipped(item):
-            item.user_properties.append(("dd_tags[systest.case.outcome]", "skipped"))
+            _set_outcome_properties("skipped", item.user_properties)
             continue
 
         if not item.instance:  # item is a method bounded to a class
@@ -457,7 +457,7 @@ def pytest_fixture_setup(
         xfails = [*request.node.iter_markers("xfail")]
         outcome = "xfailed" if len(xfails) != 0 else "error"
 
-        request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+        _set_outcome_properties(outcome, request.node.user_properties)
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -477,7 +477,20 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Gener
             elif rep.outcome == "passed":
                 value = "xpassed"
 
-        item.user_properties.append(("dd_tags[systest.case.outcome]", value))
+        _set_outcome_properties(value, item.user_properties)
+
+def _set_outcome_properties(outcome: Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"], user_properties:list) -> None:
+        if outcome in ("passed", "xpassed"):
+            final_status = "pass"
+        elif outcome in ("failed", "error"):
+            final_status = "fail"
+        elif outcome in ("skipped", "xfailed"):
+            final_status = "skip"
+        else:
+            raise ValueError(f"Can't translate `{outcome}` into test optim final status")
+
+        user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+        user_properties.append(("dd_tags[test.final_status]", final_status))
 
 
 @pytest.hookimpl(optionalhook=True)
