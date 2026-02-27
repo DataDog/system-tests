@@ -112,39 +112,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
-    def _iast_standalone_wait_for_trace(self, request: HttpResponse, timeout: float = 15.0) -> None:
-        """Wait until trace is captured (iast_standalone only) to reduce flakiness."""
-        if context.scenario != scenarios.iast_standalone:
-            return
-        rid: str = request.get_rid()
-        logger.info("IAST_STANDALONE: waiting for trace rid=%s (timeout=%.1fs)", rid, timeout)
-        poll_interval: float = 0.2
-        time.sleep(0.5)  # Give tracer time to flush before first poll
-        deadline: float = time.monotonic() + timeout
-        poll_count: int = 0
-        while time.monotonic() < deadline:
-            spans: list = list(interfaces.library.get_spans(request=request))
-            if spans:
-                logger.info("IAST_STANDALONE: trace found for rid=%s after %d polls", rid, poll_count)
-                return
-            poll_count += 1
-            if poll_count <= 3 or poll_count % 25 == 0:  # Log first 3 and every 5s
-                elapsed: float = time.monotonic() - (deadline - timeout)
-                logger.debug(
-                    "IAST_STANDALONE: poll %d rid=%s after %.1fs, no spans yet",
-                    poll_count,
-                    rid,
-                    elapsed,
-                )
-            time.sleep(poll_interval)
-        all_spans_count: int = len(list(interfaces.library.get_spans(request=None)))
-        logger.error(
-            "IAST_STANDALONE: timeout after %.1fs for rid=%s (total spans in library: %d)",
-            timeout,
-            rid,
-            all_spans_count,
-        )
-
     def _iast_assert_trace_exists(self) -> None:
         if context.scenario == scenarios.iast_standalone:
             interfaces.library.assert_trace_exists(self.r)
@@ -172,7 +139,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
-            self._iast_standalone_wait_for_trace(self.r)
 
     def fix_priority_lambda(
         self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
@@ -229,7 +195,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
-            self._iast_standalone_wait_for_trace(self.r)
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         self._iast_assert_trace_exists()
@@ -276,7 +241,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
-            self._iast_standalone_wait_for_trace(self.r)
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         self._iast_assert_trace_exists()
@@ -323,7 +287,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": "_dd.p.other=1",
                 },
             )
-            self._iast_standalone_wait_for_trace(self.r)
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         self._iast_assert_trace_exists()
@@ -500,7 +463,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
             )
-            self._iast_standalone_wait_for_trace(self.r)
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         self._iast_assert_trace_exists()
@@ -546,7 +508,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
             )
-            self._iast_standalone_wait_for_trace(self.r)
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         self._iast_assert_trace_exists()
@@ -590,7 +551,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
-        self._iast_standalone_wait_for_trace(self.r)
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         self._iast_assert_trace_exists()
@@ -633,7 +593,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "User-Agent": "Arachni/v1",
             },
         )
-        self._iast_standalone_wait_for_trace(self.r)
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         self._iast_assert_trace_exists()
@@ -676,7 +635,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
         )
-        self._iast_standalone_wait_for_trace(self.r)
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         self._iast_assert_trace_exists()
