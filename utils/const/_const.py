@@ -1,4 +1,7 @@
-from ._internal import ConstGroups, ConstGroup
+try:
+    from _internal import ConstGroups, ConstGroup
+except ModuleNotFoundError:
+    from ._internal import ConstGroups, ConstGroup
 
 
 class ComponentGroups(ConstGroups):
