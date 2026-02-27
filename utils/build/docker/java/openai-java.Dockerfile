@@ -26,6 +26,9 @@ RUN mkdir -p /integration-framework-tracer-logs
 # Set environment variables
 ENV DD_TRACE_STARTUP_LOGS=true
 
+ENV DD_ENV="test-env"
+ENV DD_VERSION="1.0"
+
 ENV JAVA_TOOL_OPTIONS="-javaagent:/dd-tracer/dd-java-agent.jar"
 
 # Run the application with DD Java agent
