@@ -2670,6 +2670,9 @@ manifest:
       component_version: <0.92.0
     - declaration: flaky (APPSEC-55828)
       component_version: '>=1.42.1'
+    - weblog_declaration:
+        akka-http: irrelevant (path is normalized to /)
+        play: irrelevant (path is normalized to /)
   tests/appsec/waf/test_rules.py::Test_NoSqli:
     - weblog_declaration:
         "*": v0.87.0
