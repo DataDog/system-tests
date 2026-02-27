@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from . import *  # noqa: F403
+from utils.const._const import *  # noqa: F403
 
 
 def main() -> None:
