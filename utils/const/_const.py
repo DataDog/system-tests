@@ -2,6 +2,7 @@ from ._internal import ConstGroups, ConstGroup
 
 
 class ComponentGroups(ConstGroups):
+    # There is an "all" group containing all the items by default
     buildable = ConstGroup()
     easy_win = ConstGroup()
     ssi = ConstGroup()
