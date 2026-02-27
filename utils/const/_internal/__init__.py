@@ -1,3 +1,3 @@
-from .core import ConstList, ConstGroup, register_groups
+from .core import ConstGroups, ConstGroup
 
-__all__ = ["ConstGroup", "ConstList"]
+__all__ = ["ConstGroup", "ConstGroups"]

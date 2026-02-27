@@ -9,7 +9,7 @@ class ConstGroup(set):
         self.name = name
 
 
-class ConstList:
+class ConstGroups:
     groups: dict[str, ConstGroup]
     all = ConstGroup()
 
@@ -29,9 +29,3 @@ class ConstList:
 
     def _shell_export(self, group: str) -> str:
         return reduce(lambda acc, e: acc + "|" + e, sorted(getattr(self, group)), "").strip("|")
-
-
-def register_groups(name_space: dict[str, Any]) -> None:
-    for symbol, val in name_space.items():
-        if isinstance(val, ConstGroup):
-            val.init(symbol)

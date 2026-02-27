@@ -1,10 +1,7 @@
-from ._internal import ConstList, ConstGroup, register_groups
+from ._internal import ConstGroups, ConstGroup
 
 
-# register_groups(globals())
-
-
-class ComponentGroups(ConstList):
+class ComponentGroups(ConstGroups):
     buildable = ConstGroup()
     easy_win = ConstGroup()
     ssi = ConstGroup()
