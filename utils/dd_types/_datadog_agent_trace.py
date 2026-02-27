@@ -169,7 +169,7 @@ class DataDogAgentSpanLegacy(DataDogAgentSpan):
 
     @property
     def metrics(self) -> dict[str, Any]:
-        return self.raw_span["metrics"]
+        return self.raw_span.get("metrics", {})
 
     def get_span_type(self) -> str:
         return self.raw_span.get("type", "")
