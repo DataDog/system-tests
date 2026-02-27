@@ -195,6 +195,7 @@ class Test_RootSpanUserKeep:
             assert root_span.get("metrics", {}).get("_sampling_priority_v1") == SamplingPriority.USER_KEEP, (
                 "Root span should be kept when an ai_guard span exists"
             )
+            assert root_span.get("meta", {}).get("_dd.p.dm") == "-13", "Decision maker (_dd.p.dm) must be set to -13"
 
 
 @features.ai_guard
