@@ -16,8 +16,7 @@ runs:
       id: extract
       shell: bash
       run: |
-        LIBS=$(PYTHONPATH=. python3 -m utils.const LIBRARIES all 2>/dev/null) \
-          || LIBS=$(cat utils/const/static/LIBRARIES/all)
+        LIBS=$(PYTHONPATH=. python3 utils/const/__main__.py COMPONENT_GROUPS all)
         branch=$(echo "${INPUTS_TEXT}" | grep -ioP "\[(?:${LIBS}|agent)@[^]]+(?=\])" | tr -d '[:space:]' || true)
 
         echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT

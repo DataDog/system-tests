@@ -48,8 +48,7 @@ readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 readonly WHITE_BOLD='\033[1;37m'
 
-VALID_LIBRARIES=$(python3 -m utils.const LIBRARIES buildable 2>/dev/null) \
-    || VALID_LIBRARIES=$(cat utils/const/static/LIBRARIES/buildable)
+VALID_LIBRARIES=$(python3 utils/const/__main__.py COMPONENT_GROUPS buildable)
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"

@@ -18,7 +18,7 @@ from typing import Any
 from collections.abc import Callable
 from pathlib import Path
 
-from utils.const import LIBRARIES
+from utils.const import COMPONENT_GROUPS
 
 # Get the absolute path to the system-tests directory
 SYSTEM_TESTS_DIR = Path(__file__).resolve().parents[3]
@@ -118,7 +118,7 @@ def select_multiple_items(
 
 def select_language() -> str:
     """Ask the user to select the language for the weblog."""
-    languages = sorted(LIBRARIES.gitlab)
+    languages = sorted(COMPONENT_GROUPS.ssi)
 
     print(f"\n{Colors.BOLD}Select the language of the weblog:{Colors.ENDC}")
     for i, lang in enumerate(languages, 1):

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 
 import yaml
 
-from utils.const import LIBRARIES as LIB_CONST
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
 from utils._logger import logger
 from utils.manifest import Manifest
@@ -26,8 +26,8 @@ root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-LIBRARIES = LIB_CONST.all - LIB_CONST.otel
-OTEL_LIBRARIES = LIB_CONST.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
+LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
+OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 
 

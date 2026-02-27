@@ -1,7 +1,7 @@
 import yaml
 import os
 
-from utils.const import LIBRARIES
+from utils.const import COMPONENT_GROUPS
 
 # List of allowed variables
 ALLOWED_VARIABLES = [
@@ -15,7 +15,7 @@ ALLOWED_VARIABLES = [
     "DD_INSTALL_SCRIPT_VERSION",
 ]
 
-LANG_STAGES = sorted(LIBRARIES.gitlab)
+LANG_STAGES = sorted(COMPONENT_GROUPS.ssi)
 
 
 def main(language: str | None = None) -> None:
