@@ -35,6 +35,8 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG00
 _deselected_items: list[pytest.Item] = []
 setup_properties = SetupProperties()
 
+PytestOutcome = Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"]
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
@@ -455,7 +457,7 @@ def pytest_fixture_setup(
         (yield).get_result()
     except BaseException:
         xfails = [*request.node.iter_markers("xfail")]
-        outcome = "xfailed" if len(xfails) != 0 else "error"
+        outcome: PytestOutcome = "xfailed" if len(xfails) != 0 else "error"
 
         _set_outcome_properties(outcome, request.node.user_properties)
 
@@ -479,18 +481,19 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Gener
 
         _set_outcome_properties(value, item.user_properties)
 
-def _set_outcome_properties(outcome: Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"], user_properties:list) -> None:
-        if outcome in ("passed", "xpassed"):
-            final_status = "pass"
-        elif outcome in ("failed", "error"):
-            final_status = "fail"
-        elif outcome in ("skipped", "xfailed"):
-            final_status = "skip"
-        else:
-            raise ValueError(f"Can't translate `{outcome}` into test optim final status")
 
-        user_properties.append(("dd_tags[systest.case.outcome]", outcome))
-        user_properties.append(("dd_tags[test.final_status]", final_status))
+def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]) -> None:
+    if outcome in ("passed", "xpassed"):
+        final_status = "pass"
+    elif outcome in ("failed", "error"):
+        final_status = "fail"
+    elif outcome in ("skipped", "xfailed"):
+        final_status = "skip"
+    else:
+        raise ValueError(f"Can't translate `{outcome}` into test optim final status")
+
+    user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+    user_properties.append(("dd_tags[test.final_status]", final_status))
 
 
 @pytest.hookimpl(optionalhook=True)
