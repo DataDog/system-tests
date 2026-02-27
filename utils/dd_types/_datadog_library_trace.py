@@ -168,8 +168,7 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
 
     @property
     def metrics(self) -> dict[str, Any]:
-        assert "metrics" in self.raw_span
-        return self.raw_span["metrics"]
+        return self.raw_span.get("metrics", {})
 
 
 class DataDogLibrarySpanV1(DataDogLibrarySpan):
