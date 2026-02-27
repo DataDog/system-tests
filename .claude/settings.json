@@ -2,5 +2,11 @@
     "env": {
       "OTEL_RESOURCE_ATTRIBUTES": "repo.owner=DataDog,repo.name=system-tests"
     },
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "mcpServers": {
+      "datadog": {
+        "type": "url",
+        "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=software-delivery"
+      }
+    }
   }

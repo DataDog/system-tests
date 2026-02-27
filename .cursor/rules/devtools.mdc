@@ -1,0 +1,27 @@
+---
+description: Rules for interacting with developer tools and external ci services
+globs: 
+alwaysApply: true
+---
+# Developer Tools
+
+## MCP Tools
+
+* Datadog MCP defaults: When using Datadog MCP tools (CI pipelines, tests, flaky tests, coverage, PR insights), default to the repository `github.com/DataDog/system-tests` (or `https://github.com/DataDog/system-tests` for PR-related tools) unless the user specifies a different repository. Use the current git branch and latest commit SHA as context when relevant.
+
+## GitHub Tools
+
+- When interacting with GitHub (github.com), ALWAYS use `gh` on the command line.
+- If `gh` is not installed, recommend the user to install it with: `brew install gh`
+- If there are authentication problems, recommend:
+  - Authenticate: `gh auth login`
+  - Verify authentication status: `gh auth status`
+
+## GitLab Tools
+
+- When interacting with GitLab (gitlab.ddbuild.io), ALWAYS use `glab` on the command line.
+- If `glab` CLI is not installed, recommend the user to install it with: `brew install glab`
+- If there are authentication problems, recommend:
+  - Authenticate: `glab auth login --hostname gitlab.ddbuild.io`
+  - Configure: `glab config set host gitlab.ddbuild.io`
+
