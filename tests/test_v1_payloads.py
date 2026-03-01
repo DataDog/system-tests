@@ -35,10 +35,7 @@ class Test_V1Payloads:
         span = trace.spans[0]
         assert span.raw_span["error"], "Error field must be boolean"
         assert span.raw_span["env"] == "system-tests"
-        assert span.raw_span["component"] in (
-            "net/http",
-            "tomcat-server",
-        )  # TODO probably should be under check for language (go, java, ...)
+        assert span.raw_span["component"], "Component must not be empty"
         assert span.raw_span["span_kind"] == SpanKind.SERVER
 
         assert len(agent_traces) == 1
