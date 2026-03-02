@@ -12,18 +12,13 @@ alwaysApply: true
 ## GitHub Tools
 
 - When interacting with GitHub (github.com), ALWAYS use `gh` on the command line.
-- If `gh` is not installed, recommend the user to install it with: `brew install gh`
-- If there are authentication problems, recommend:
-  - Authenticate: `gh auth login`
-  - Verify authentication status: `gh auth status`
+- If `gh` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitHub CLI](mdc:docs/ai/ai-tools-integration-guide.md#github-cli-gh)
 
 ## GitLab Tools
 
 - When interacting with GitLab (gitlab.ddbuild.io), ALWAYS use `glab` on the command line.
-- If `glab` CLI is not installed, recommend the user to install it with: `brew install glab`
-- If there are authentication problems, recommend:
-  - Authenticate: `glab auth login --hostname gitlab.ddbuild.io`
-  - Configure: `glab config set host gitlab.ddbuild.io`
+- If `glab` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitLab CLI](mdc:docs/ai/ai-tools-integration-guide.md#gitlab-cli-glab)
+
 
 ## Handling the Pull Request and CI
 
