@@ -14,7 +14,6 @@ import requests
 from requests.exceptions import JSONDecodeError
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.core import LibraryInterfaceValidator
-from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils._weblog import HttpResponse
 
@@ -69,7 +68,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
     def _init_rid_to_library_trace_ids(self):
         # Map each request ID to the spans created and submitted during that request call.
         for _, span in self.library_interface.get_root_spans():
-            rid = get_rid_from_span(span)
+            rid = span.get_rid()
 
             if not self.rid_to_library_trace_ids.get(rid):
                 self.rid_to_library_trace_ids[rid] = [span["trace_id"]]

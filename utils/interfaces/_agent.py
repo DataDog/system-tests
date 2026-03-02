@@ -9,7 +9,6 @@ import copy
 import threading
 
 from utils.dd_types import DataDogAgentTrace, DataDogAgentSpan, AgentTraceFormat
-from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
@@ -27,39 +26,8 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_appsec_data(self, request: HttpResponse):
-        rid = request.get_rid()
-
-        for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                continue
-
-            content = data["request"]["content"]["tracerPayloads"]
-
-            for payload in content:
-                for chunk in payload["chunks"]:
-                    for span in chunk["spans"]:
-                        appsec_data = span.get("meta", {}).get("_dd.appsec.json", None) or span.get(
-                            "meta_struct", {}
-                        ).get("appsec", None)
-                        if appsec_data is None:
-                            continue
-
-                        if rid is None:
-                            yield data, payload, chunk, span, appsec_data
-                        elif get_rid_from_span(span) == rid:
-                            logger.debug(f"Found span with rid={rid} in {data['log_filename']}")
-                            yield data, payload, chunk, span, appsec_data
-
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
-
-    def validate_appsec(self, request: HttpResponse, validator: Callable):
-        for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
-            if validator(data, payload, chunk, span, appsec_data):
-                return
-
-        raise ValueError("No data validate this test")
 
     def get_telemetry_data(self, *, flatten_message_batches: bool = True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
@@ -129,7 +97,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         yield data, trace
                     else:
                         for span in trace.spans:
-                            if get_rid_from_span(span) == rid:
+                            if span.get_rid() == rid:
                                 logger.debug(f"Found a span in {trace.log_filename}")
                                 yield data, trace
                                 break
@@ -149,7 +117,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
         for data, trace in self.get_traces(request=request):
             for span in trace.spans:
-                if rid is None or get_rid_from_span(span) == rid:
+                if rid is None or span.get_rid() == rid:
                     yield data, span
 
     @staticmethod

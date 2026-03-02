@@ -8,7 +8,7 @@ import copy
 import json
 import threading
 
-from utils.tools import get_rid_from_user_agent, get_rid_from_span
+from utils.tools import get_rid_from_user_agent
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
@@ -80,15 +80,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             if data["path"] in ("/v0.4/traces", "/v0.5/traces"):
                 for trace in content:
+                    result = DataDogLibraryTrace.from_legacy(data, trace)
                     if rid is None:
                         trace_found = True
-                        yield data, DataDogLibraryTrace.from_legacy(data, trace)
+                        yield data, result
                     else:
-                        for span in trace:
-                            if rid == get_rid_from_span(span):
-                                logger.debug(f"Found a trace in {data['log_filename']}")
+                        for span in result.spans:
+                            if rid == span.get_rid():
+                                logger.debug(f"Found a trace in {result.log_filename}")
                                 trace_found = True
-                                yield data, DataDogLibraryTrace.from_legacy(data, trace)
+                                yield data, result
                                 break
 
             elif data["path"] == "/v1.0/traces":
@@ -96,15 +97,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     continue
 
                 for trace in content.get("chunks"):
+                    result = DataDogLibraryTrace.from_v1(data, trace)
                     if rid is None:
                         trace_found = True
-                        yield data, DataDogLibraryTrace.from_v1(data, trace)
+                        yield data, result
                     else:
-                        for span in trace.get("spans"):
-                            if rid == get_rid_from_span(span):
-                                logger.debug(f"Found a trace in {data['log_filename']}")
+                        for span in result.spans:
+                            if rid == span.get_rid():
+                                logger.debug(f"Found a trace in {result.log_filename}")
                                 trace_found = True
-                                yield data, DataDogLibraryTrace.from_v1(data, trace)
+                                yield data, result
                                 break
 
             else:
@@ -124,11 +126,11 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         rid = request.get_rid() if request else None
 
         for data, trace in self.get_traces(request=request):
-            for span in trace:
+            for span in trace.spans:
                 if rid is None or full_trace:
                     yield data, trace, span
-                elif rid == get_rid_from_span(span):
-                    logger.debug(f"Found a span in {data['log_filename']}")
+                elif rid == span.get_rid():
+                    logger.debug(f"Found a span in {trace.log_filename}")
                     yield data, trace, span
 
     def get_root_spans(
