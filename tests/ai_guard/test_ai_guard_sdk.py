@@ -358,8 +358,7 @@ class Test_SensitiveDataScanning:
         return validate
 
     def setup_sensitive_data(self):
-        self.messages = MESSAGES["SENSITIVE_DATA"]
-        self.r = weblog.post("/ai_guard/evaluate", json=self.messages)
+        self.r = weblog.post("/ai_guard/evaluate", json=MESSAGES["SENSITIVE_DATA"])
 
     def test_sensitive_data(self):
         """Test sensitive data scanning.
