@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import base64
 import gzip
 import io
 import json
@@ -27,7 +26,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
-from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
+from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
 from .utils import logger
 
 
@@ -88,13 +87,12 @@ def _decode_v_0_5_traces(content: tuple):
 
 
 def deserialize_dd_appsec_s_meta(payload: str):
-    """Meta value for _dd.appsec.s.<address> are b64 - gzip - json encoded strings"""
+    """Meta value for _dd.appsec.s.<address> are either JSON or b64-gzip-json encoded.
 
-    try:
-        return json.loads(gzip.decompress(base64.b64decode(payload)).decode())
-    except Exception:
-        # b64/gzip is optional
-        return json.loads(payload)
+    Uses the same decoding logic as v1 trace attribute handling. Raises ValueError
+    if json, base64, or gzip decoding fails.
+    """
+    return decode_appsec_s_value(payload)
 
 
 def deserialize_http_message(
