@@ -2,6 +2,7 @@
 
 import json
 import time
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -43,6 +44,9 @@ DEFAULT_ENVVARS = {
     # Disable CSS which is enabled by default on Go
     "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
 }
+
+# Max polling loops (~4s at 0.01s/loop) when waiting for RC-related responses.
+_RC_WAIT_LOOPS = 400
 
 
 def send_and_wait_trace(
@@ -167,33 +171,53 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-def _set_rc(test_agent: TestAgentAPI, config: dict[str, Any], config_id: str | None = None) -> None:
-    if not config_id:
-        config_id = str(hash(json.dumps(config)))
+def _set_rc(
+    test_agent: TestAgentAPI,
+    config: dict[str, Any],
+    config_id: str | int | None = None,
+) -> str:
+    # Use a unique ID when not passed to avoid matching stale ACKs from prior updates
+    # that used the same hash (identical payloads). hash(config) would repeat for identical
+    # payloads and recreate the stale-ACK race, especially when tests reuse config_id.
+    resolved_id: str = str(config_id) if config_id is not None else str(uuid.uuid4())
+    config["id"] = resolved_id
+    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=config)
 
-    config["id"] = str(config_id)
-    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{config_id}/config", payload=config)
+    return resolved_id
 
 
-def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
-    rc_config = _default_config(TEST_SERVICE, TEST_ENV)
+def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
+    rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
     for k, v in config_overrides.items():
         rc_config["lib_config"][k] = v
     return rc_config
 
 
-def set_and_wait_rc(test_agent: TestAgentAPI, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
+def set_and_wait_rc(
+    test_agent: TestAgentAPI,
+    config_overrides: dict[str, Any],
+    config_id: str | int | None = None,
+) -> dict[str, Any]:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
+
+    Uses config_id filtering so we only match ACKs for the config we just set—avoids
+    matching stale ACKs from prior configs. When config_id is passed (reuse case),
+    clears before set_rc to discard buffered RC requests so we only see responses
+    from our update.
     """
-    rc_config = _create_rc_config(config_overrides)
-
-    _set_rc(test_agent, rc_config, config_id)
-
-    # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+    rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    if config_id is not None:
+        # Reuse case: discard stale ACKs from prior updates at the same path
+        test_agent.clear()
+    used_config_id: str = _set_rc(test_agent, rc_config, config_id)
+    return test_agent.wait_for_rc_apply_state(
+        "APM_TRACING",
+        state=RemoteConfigApplyState.ACKNOWLEDGED,
+        clear=True,
+        config_id=used_config_id,
+    )
 
 
 def assert_sampling_rate(trace: list[dict], rate: float):
@@ -732,7 +756,7 @@ class TestDynamicConfigSamplingRules:
     def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES})
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=_RC_WAIT_LOOPS)
 
     @parametrize(
         "library_env",
@@ -988,13 +1012,23 @@ class TestDynamicConfigSamplingRules:
         )
 
         # A span with non-matching tags. Adaptive rate should apply.
-        trace = get_sampled_trace(
-            test_library,
-            test_agent,
-            service=TEST_SERVICE,
-            name="op_name",
-            tags=[("tag-a", "NOT-tag-a-val")],
-        )
+        # Retry: RC ACK can precede full application of new rules (same as test_remote_sampling_rules_retention).
+        max_propagation_retries: int = 30
+        trace: list[Span] | None = None
+        for _ in range(max_propagation_retries):
+            trace = get_sampled_trace(
+                test_library,
+                test_agent,
+                service=TEST_SERVICE,
+                name="op_name",
+                tags=[("tag-a", "NOT-tag-a-val")],
+            )
+            if find_first_span_in_trace_payload(trace)["metrics"].get("_dd.rule_psr", 1.0) == pytest.approx(
+                rc_sampling_adaptive_rate
+            ):
+                break
+            time.sleep(0.1)
+        assert trace is not None
         assert_sampling_rate(trace, rc_sampling_adaptive_rate)
         # Make sure `_dd.p.dm` is set to "-12" (i.e., remote adaptive/dynamic sampling RULE_RATE)
         span = find_first_span_in_trace_payload(trace)
@@ -1022,7 +1056,7 @@ class TestDynamicConfigSamplingRules:
             },
         )
 
-        config_id: str = rc_state["id"]
+        config_id = rc_state["id"]
 
         set_and_wait_rc(
             test_agent,

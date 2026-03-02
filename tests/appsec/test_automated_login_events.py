@@ -11,7 +11,7 @@ from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 def login_data(username: str, password: str):
@@ -516,7 +516,7 @@ class Test_Login_Events_Extended:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: DataDogSpan):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -536,7 +536,7 @@ class Test_Login_Events_Extended:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: DataDogSpan):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1010,7 +1010,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: DataDogSpan):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1030,7 +1030,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: DataDogSpan):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1041,7 +1041,7 @@ class Test_V2_Login_Events_Anon:
         interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
-def assert_priority(span: DataDogSpan, trace: list[DataDogSpan]):
+def assert_priority(span: DataDogLibrarySpan, trace: list[DataDogLibrarySpan]):
     if "_sampling_priority_v1" not in span["metrics"]:
         # some tracers like java only send the priority in the first and last span of the trace
         assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
@@ -1444,7 +1444,7 @@ class Test_V3_Login_Events:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: DataDogSpan):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1464,7 +1464,7 @@ class Test_V3_Login_Events:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: DataDogSpan):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
