@@ -38,7 +38,8 @@ done
 if [ -f docker-compose-agent-prod.yml ]; then
     # Agent may be installed in a different way
     echo "DD_API_KEY=${DD_API_KEY}" > .env
-    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120
+    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120 2>/dev/null \
+        || sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait
 fi
 #Env variables set on the scenario definition. Write to file and load  
 if [ ! -f scenario_app.env ]

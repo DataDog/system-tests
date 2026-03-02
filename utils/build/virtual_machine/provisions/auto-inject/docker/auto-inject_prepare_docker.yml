@@ -14,7 +14,7 @@
         sudo apt-get update
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-compose-plugin
         sudo apt-get -y install docker-buildx-plugin || true #Ubuntu 21.04 doesn't have this package
-        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
         echo "DOCKER INSTALLED!"
         #To run Docker without root privileges
         #sudo groupadd docker
@@ -29,7 +29,7 @@
         sed -i 's/yum config-manager/yum-config-manager/g' install-docker.sh
         sudo sh install-docker.sh
         sudo systemctl start docker
-        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
       os_branch: centos_8_amd64 # CentOS override
@@ -43,15 +43,14 @@
         # Start Docker service
         sudo systemctl enable docker.service
         sudo systemctl start docker.service
-        # Install docker-compose manually
-        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
       os_branch: rhel_7_amd64 # Rhel 7 override
       remote-command: |
         sudo yum install -y https://vault.centos.org/7.9.2009/extras/x86_64/Packages/container-selinux-2.107-3.el7.noarch.rpm https://vault.centos.org/7.9.2009/extras/x86_64/Packages/slirp4netns-0.4.3-4.el7_8.x86_64.rpm https://vault.centos.org/7.9.2009/extras/x86_64/Packages/fuse3-libs-3.6.1-4.el7.x86_64.rpm https://vault.centos.org/7.9.2009/extras/x86_64/Packages/fuse-overlayfs-0.7.2-6.el7_8.x86_64.rpm https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-rootless-extras-26.1.4-1.el7.x86_64.rpm https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-compose-plugin-2.27.1-1.el7.x86_64.rpm https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-buildx-plugin-0.14.1-1.el7.x86_64.rpm https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-cli-26.1.4-1.el7.x86_64.rpm https://download.docker.com/linux/centos/7/x86_64/stable/Packages/docker-ce-26.1.4-1.el7.x86_64.rpm https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.6.33-3.1.el7.x86_64.rpm
         sudo systemctl start docker
-        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
       os_branch: oracle_linux
@@ -82,17 +81,17 @@
 
         sudo systemctl enable docker.service
         sudo systemctl start docker.service
-        sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
       os_branch: alma_linux
       remote-command: |
             sudo dnf remove -y podman buildah || true
             sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
-            sudo dnf install -y docker-ce
+            sudo dnf install -y docker-ce docker-compose-plugin
             sudo systemctl enable docker.service
             sudo systemctl start docker.service
-            sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+            printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
       os_branch: redhat
@@ -101,7 +100,18 @@
             sudo yum install -y yum-utils
             sudo yum-config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
             sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
-            sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+            printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+    - os_type: linux
+      os_distro: rpm
+      os_branch: fedora
+      remote-command: |
+        sudo dnf remove -y podman buildah containers-common moby-engine docker docker-common || true
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        sudo dnf install -y --allowerasing docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo systemctl enable docker.service
+        sudo systemctl start docker.service
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
       remote-command: |
