@@ -2,7 +2,7 @@ import json
 
 from utils.buddies import python_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, context, logger
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseSNS:
@@ -24,7 +24,7 @@ class _BaseSNS:
         queue: str,
         topic: str,
         operation: str,
-    ) -> DataDogSpan | None:
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -74,7 +74,7 @@ class _BaseSNS:
         return None
 
     @staticmethod
-    def get_queue(span: DataDogSpan) -> str | None:
+    def get_queue(span: DataDogLibrarySpan) -> str | None:
         """Extracts the queue from a span by trying various fields"""
         queue = span["meta"].get("queuename", None)  # this is in nodejs, java, python
 
@@ -90,7 +90,7 @@ class _BaseSNS:
         return queue
 
     @staticmethod
-    def get_topic(span: DataDogSpan) -> str | None:
+    def get_topic(span: DataDogLibrarySpan) -> str | None:
         """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("topicname", None)  # this is in nodejs, java, python
 

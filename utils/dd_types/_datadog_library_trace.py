@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any
 
 
-class TraceLibraryPayloadFormat(StrEnum):
+class LibraryTraceFormat(StrEnum):
     """Describe which format is used to carry trace payloads from the library to the agent
     This enum is used only in system-tests to differentiate between different library payloads
     and is not exposed directly in trace payloads.
@@ -21,26 +21,26 @@ class TraceLibraryPayloadFormat(StrEnum):
     RFC: https://docs.google.com/document/d/1hNS6anKYutOYW-nmR759UlKXUdT6H0mRwVt7_L70ESc/edit?usp=sharing"""
 
 
-class DataDogTrace(ABC):
+class DataDogLibraryTrace(ABC):
     """Wrapper around trace object reported by dd-trace libraries"""
 
     data: dict
     """raw request and response sent to the agent"""
 
-    format: TraceLibraryPayloadFormat
+    format: LibraryTraceFormat
 
     raw_trace: dict | list[dict]
     """raw trace object"""
 
-    spans: list["DataDogSpan"]
+    spans: list["DataDogLibrarySpan"]
 
     @staticmethod
-    def from_legacy(data: dict, raw_trace: list[dict]) -> "DataDogTrace":
-        return DataDogTraceLegacy(data, raw_trace)
+    def from_legacy(data: dict, raw_trace: list[dict]) -> "DataDogLibraryTrace":
+        return DataDogLibraryTraceLegacy(data, raw_trace)
 
     @staticmethod
-    def from_v1(data: dict, raw_trace: dict) -> "DataDogTracev1":
-        return DataDogTracev1(data, raw_trace)
+    def from_v1(data: dict, raw_trace: dict) -> "DataDogLibraryTracev1":
+        return DataDogLibraryTracev1(data, raw_trace)
 
     @property
     @abstractmethod
@@ -63,11 +63,11 @@ class DataDogTrace(ABC):
 
         return other == self.trace_id_as_int
 
-    def __iter__(self) -> Iterator["DataDogSpan"]:
+    def __iter__(self) -> Iterator["DataDogLibrarySpan"]:
         """Iterate over spans"""
         yield from self.spans
 
-    def __getitem__(self, i: int) -> "DataDogSpan":
+    def __getitem__(self, i: int) -> "DataDogLibrarySpan":
         """Get the ith spans"""
         return self.spans[i]
 
@@ -76,18 +76,18 @@ class DataDogTrace(ABC):
         return len(self.spans)
 
 
-class DataDogTraceLegacy(DataDogTrace):
+class DataDogLibraryTraceLegacy(DataDogLibraryTrace):
     def __init__(self, data: dict, raw_trace: list[dict]):
         self.data = data
 
         self.raw_trace: list[dict] = raw_trace
 
-        self.format: TraceLibraryPayloadFormat = {
-            "/v0.4/traces": TraceLibraryPayloadFormat.v04,
-            "/v0.5/traces": TraceLibraryPayloadFormat.v05,
+        self.format: LibraryTraceFormat = {
+            "/v0.4/traces": LibraryTraceFormat.v04,
+            "/v0.5/traces": LibraryTraceFormat.v05,
         }[data["path"]]
 
-        self.spans = [DataDogSpanLegacy(self, s) for s in self.raw_trace]
+        self.spans = [DataDogLibrarySpanLegacy(self, s) for s in self.raw_trace]
 
     @property
     def trace_id(self) -> int:
@@ -98,15 +98,15 @@ class DataDogTraceLegacy(DataDogTrace):
         return self.trace_id
 
 
-class DataDogTracev1(DataDogTrace):
+class DataDogLibraryTracev1(DataDogLibraryTrace):
     def __init__(self, data: dict, raw_trace: dict):
         self.data = data
 
         self.raw_trace: dict = raw_trace
 
-        self.format = TraceLibraryPayloadFormat.v10
+        self.format = LibraryTraceFormat.v10
 
-        self.spans = [DataDogSpanV1(self, s) for s in self.raw_trace["spans"]]
+        self.spans = [DataDogLibrarySpanV1(self, s) for s in self.raw_trace["spans"]]
 
     @property
     def trace_id(self) -> str | int:
@@ -117,10 +117,10 @@ class DataDogTracev1(DataDogTrace):
         return int(self.raw_trace["trace_id"], 16) & 0xFFFFFFFFFFFFFFFF
 
 
-class DataDogSpan(ABC):
+class DataDogLibrarySpan(ABC):
     """Wrapper around trace object reported by dd-trace libraries"""
 
-    def __init__(self, trace: DataDogTrace, raw_span: dict):
+    def __init__(self, trace: DataDogLibraryTrace, raw_span: dict):
         self.trace = trace
 
         self.raw_span = raw_span
@@ -136,16 +136,26 @@ class DataDogSpan(ABC):
     def __getitem__(self, key: str):
         pass
 
+    @property
+    @abstractmethod
+    def meta(self) -> dict[str, Any]:
+        pass
 
-class DataDogSpanLegacy(DataDogSpan):
+
+class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
         return self.raw_span.get(key, default)
 
     def __getitem__(self, key: str):
         return self.raw_span[key]
 
+    @property
+    def meta(self) -> dict[str, Any]:
+        assert "meta" in self.raw_span
+        return self.raw_span["meta"]
 
-class DataDogSpanV1(DataDogSpan):
+
+class DataDogLibrarySpanV1(DataDogLibrarySpan):
     def __contains__(self, key: str) -> bool:
         if key in ("meta", "meta_struct", "metrics"):
             return "attributes" in self.raw_span
@@ -172,3 +182,8 @@ class DataDogSpanV1(DataDogSpan):
             return self.raw_span["attributes"]
 
         return self.raw_span[key]
+
+    @property
+    def meta(self) -> dict[str, Any]:
+        assert "attributes" in self.raw_span
+        return self.raw_span["attributes"]
