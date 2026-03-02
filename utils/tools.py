@@ -6,7 +6,6 @@ from enum import StrEnum
 import os
 import re
 from utils._logger import logger as _logger
-from utils.dd_types import DataDogLibrarySpan, DataDogAgentSpan
 
 
 class ShColors(StrEnum):
@@ -57,46 +56,7 @@ def e(message: str) -> str:
     return f"{ShColors.RED}{message}{ShColors.ENDC}"
 
 
-def get_rid_from_span(span: DataDogLibrarySpan | DataDogAgentSpan) -> str | None:
-    meta = span.get("meta", {})
-    metrics = span.get("metrics", {})
-
-    if span.get("attributes") is not None:
-        # This is a v1 span so it won't have a meta or metrics field
-        # To reuse the logic here just override meta with the attributes
-        meta = span.get("attributes")
-        metrics = span.get("attributes")
-
-    user_agent = None
-
-    if span.get("type") == "rpc":
-        user_agent = meta.get("grpc.metadata.user-agent")
-        # java does not fill this tag; it uses the normal http tags
-
-    if not user_agent and metrics.get("_dd.top_level") == 1.0:
-        # The top level span (aka root span) is mark via the _dd.top_level tag by the tracers
-        user_agent = meta.get("http.request.headers.user-agent")
-
-    if not user_agent:  # try something for .NET
-        user_agent = meta.get("http_request_headers_user-agent")
-
-    if not user_agent:
-        # cpp tracer
-        user_agent = meta.get("http_user_agent")
-
-    if not user_agent:  # last hope
-        user_agent = meta.get("http.useragent")
-
-    if not user_agent:  # last last hope (java opentelemetry autoinstrumentation)
-        user_agent = meta.get("user_agent.original")
-
-    if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
-        user_agent = meta.get("http.user_agent")
-
-    return get_rid_from_user_agent(user_agent)
-
-
-def get_rid_from_user_agent(user_agent: str) -> str | None:
+def get_rid_from_user_agent(user_agent: str | None) -> str | None:
     if not user_agent:
         return None
 

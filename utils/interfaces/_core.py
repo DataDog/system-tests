@@ -198,7 +198,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         if not allow_no_data and data_is_missing:
             raise ValueError(f"No data has been observed on {path_filters}")
 
-    def wait_for(self, wait_for_function: Callable, timeout: int):
+    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> None:
         if self.replay:
             return
 
