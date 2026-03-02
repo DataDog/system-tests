@@ -13,6 +13,9 @@ def assert_llm_span(request: HttpResponse, model: str) -> None:
 @rfc(
     "https://docs.google.com/document/d/1TIFxbtbkldjOA6S5JFlCTMfqniXfJXZmDKptI5w2pnk/edit?tab=t.0#heading=h.xtljwwxyhqk7"
 )
+# This does not belong to RASP, but RASP scenarios are the ones which have a way of
+# injecting hardcoded rules for now. Once LLM rules are merged we can revisit the right
+# scenario for these tests. More info: https://github.com/DataDog/system-tests/pull/6339/changes#r2827405239
 @scenarios.appsec_rasp
 @features.api_llm_endpoint
 class Test_LLM_Endpoint:
