@@ -96,9 +96,9 @@ elif [ -d kong-plugin-ddtrace ]; then
   echo "Using Kong plugin from binaries/kong-plugin-ddtrace"
 
 else
-  KONG_PLUGIN_BRANCH="${KONG_PLUGIN_BRANCH:-main}"
-  echo "Cloning kong-plugin-ddtrace branch ${KONG_PLUGIN_BRANCH}"
-  git clone --depth 1 --branch "$KONG_PLUGIN_BRANCH" \
+  TAG=$(get_latest_release "DataDog/kong-plugin-ddtrace")
+  echo "Installing kong-plugin-ddtrace from latest release ${TAG}"
+  git clone --depth 1 --branch "$TAG" \
       https://github.com/DataDog/kong-plugin-ddtrace.git kong-plugin-ddtrace
 fi
 
@@ -107,6 +107,11 @@ fi
 # ---------------------------------------------------------------------------
 PLUGIN_VERSION=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' \
     kong-plugin-ddtrace/kong/plugins/ddtrace/handler.lua)
+
+if [ -f kong-plugin-ddtrace/dev_commit ]; then
+  COMMIT_SHA=$(cat kong-plugin-ddtrace/dev_commit)
+  PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
+fi
 
 echo "${PLUGIN_VERSION}" > /builds/SYSTEM_TESTS_LIBRARY_VERSION
 printf '{"status":"ok","library":{"name":"cpp_kong","version":"%s"}}' \
