@@ -2578,7 +2578,7 @@ class _Features:
     def api_llm_endpoint(test_object):
         """API Security - Business logic events for LLM-based SDKs
 
-        https://feature-parity.us1.prod.dog/#/?feature=543
+        https://feature-parity.us1.prod.dog/#/?feature=544
         """
         return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.asm)
 
