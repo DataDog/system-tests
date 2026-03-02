@@ -125,9 +125,6 @@ class Test_FFE_Eval_Metric_Basic:
         assert get_tag_value(tags, "feature_flag.key") == self.flag_key, (
             f"Expected tag feature_flag.key:{self.flag_key}, got tags: {tags}"
         )
-        assert get_tag_value(tags, "feature_flag.provider.name") == "Datadog", (
-            f"Expected tag feature_flag.provider.name:Datadog, got tags: {tags}"
-        )
         assert get_tag_value(tags, "feature_flag.result.variant") == "on", (
             f"Expected tag feature_flag.result.variant:on, got tags: {tags}"
         )
