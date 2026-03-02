@@ -37,7 +37,6 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     withSpan(span) {
       Results.Ok("Hello world!\n")
         .as("text/plain; charset=UTF-8")
-        .withHeaders("Content-Length" -> "13")
     }
   }
 
