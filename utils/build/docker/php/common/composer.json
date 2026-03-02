@@ -1,9 +1,11 @@
 {
     "name": "php/weblog",
     "type": "project",
+    "minimum-stability": "stable",
     "require": {
         "weblog/acme": "*",
-        "monolog/monolog": "*"
+        "monolog/monolog": "*",
+        "open-telemetry/api": "^1.0"
     },
     "repositories": [
         {
