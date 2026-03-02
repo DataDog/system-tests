@@ -100,9 +100,10 @@ def test_waf_attack_detection(self):
     interfaces.library.assert_waf_attack(r, rule="sqli-detection")
 
     # Ensure AppSec data reaches agent
-    def appsec_validator(data, payload, chunk, span, appsec_data):
+    def appsec_validator(span, appsec_data):
         return "triggers" in appsec_data
-    interfaces.agent.validate_appsec(r, appsec_validator)
+
+    interfaces.library.validate_one_appsec(r, appsec_validator)
 ```
 
 #### Custom Validation with Validators
