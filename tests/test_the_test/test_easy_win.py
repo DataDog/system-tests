@@ -13,6 +13,7 @@ from utils.scripts.activate_easy_wins._internal.test_artifact import (
 from utils.scripts.activate_easy_wins._internal.manifest_editor import ManifestEditor
 from utils.scripts.activate_easy_wins._internal.core import update_manifest
 from utils.scripts.activate_easy_wins._internal.types import Context
+from utils.scripts.activate_easy_wins._internal.manifest_editor import EASY_WIN_COMMENT
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -667,8 +668,8 @@ def test_easy_win_comment_preserves_existing_comment():
     """Test that existing YAML comments are not overwritten by the easy win activation script.
 
     When a manifest entry already has an inline comment and the activation script
-    would try to add an 'Easy win for ...' comment, the pre-existing comment must
-    be preserved.
+    would try to add a 'TODO: a lower version might be supported' comment, the pre-existing
+    comment must be preserved.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir) / "data"
@@ -691,7 +692,7 @@ def test_easy_win_comment_preserves_existing_comment():
 
         # Create manifest with a pre-existing inline comment on a list-style rule.
         # The list-style bug declaration without weblog_declaration triggers the
-        # else branch in write_poke, which attempts to write an "Easy win for ..." comment.
+        # else branch in write_poke, which attempts to write a "TODO: a lower version might be supported" comment.
         manifest_content = """---
 manifest:
   tests/appsec/test_feature.py::Test_Feature: # Important: tracked in TICKET-456
@@ -709,7 +710,7 @@ manifest:
         # The pre-existing comment must still be there
         assert "Important: tracked in TICKET-456" in output_content
         # The easy win comment must NOT have overwritten it
-        assert "Easy win for" not in output_content
+        assert EASY_WIN_COMMENT not in output_content
 
 
 def test_easy_win_comment_added_when_no_existing_comment():
@@ -753,7 +754,7 @@ manifest:
 
         output_content = (manifest_dir / "ruby.yml").read_text()
         # The easy win comment should have been added since there was no pre-existing comment
-        assert "Easy win for" in output_content
+        assert EASY_WIN_COMMENT in output_content
 
 
 # =============================================================================
