@@ -71,8 +71,7 @@ class Test_Smoke_API_Security:
 
     def test_api_security_smoke(self) -> None:
         assert any(
-            any(key.startswith("_dd.appsec.s.") for key in interfaces.agent.get_span_meta(span, span_format))
-            for _, span, span_format in interfaces.agent.get_spans(self.r)
+            any(key.startswith("_dd.appsec.s.") for key in span.meta) for _, span in interfaces.agent.get_spans(self.r)
         )
 
 
@@ -129,11 +128,11 @@ class Test_Smoke_Remote_Config:
         )
 
         assert any(
-            interfaces.agent.get_span_meta(span, span_format).get("appsec.event") == "true"
+            span.meta.get("appsec.event") == "true"
             and any(
                 trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in appsec_data.get("triggers", [])
             )
-            for _, span, span_format, appsec_data in interfaces.agent.get_appsec_events(self.r)
+            for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r)
         ), "Agent should forward AppSec events for the RC-updated rule"
 
 
@@ -149,12 +148,12 @@ class Test_Smoke_Basic_Attack_Detection:
         has_waf_version = False
         has_appsec_data = False
 
-        for _, span, span_format, appsec_data in interfaces.agent.get_appsec_events(self.r):
-            meta = interfaces.agent.get_span_meta(span, span_format)
-            if meta.get("appsec.event") == "true":
+        for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r):
+            span_meta = span.get("meta", {}) or span.get("attributes", {})
+            if span_meta.get("appsec.event") == "true":
                 found_attack = True
 
-                if "_dd.appsec.waf.version" in meta:
+                if "_dd.appsec.waf.version" in span_meta:
                     has_waf_version = True
 
                 if appsec_data is not None:

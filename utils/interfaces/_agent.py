@@ -16,7 +16,6 @@ import msgpack
 
 from utils._logger import logger
 from utils._weblog import HttpResponse
-from utils.dd_constants import TraceAgentPayloadFormat
 from utils.dd_types import AgentTraceFormat, DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
@@ -34,71 +33,50 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         self.ready.set()
         return super().ingest_file(src_path)
 
-    def get_appsec_data(self, request: HttpResponse):
-        rid = request.get_rid()
+    @staticmethod
+    def _extract_appsec_data(span: DataDogAgentSpan) -> dict[str, Any] | None:
+        appsec_json = span.meta.get("_dd.appsec.json")
+        if isinstance(appsec_json, dict):
+            return appsec_json
+        if isinstance(appsec_json, str):
+            try:
+                decoded = json.loads(appsec_json)
+            except json.JSONDecodeError:
+                decoded = None
+            if isinstance(decoded, dict):
+                return decoded
 
-        for data in self.get_data(path_filters="/api/v0.2/traces"):
-            if "tracerPayloads" not in data["request"]["content"]:
-                continue
+        meta_struct = span.get("meta_struct") or span.get("metaStruct") or {}
+        if not isinstance(meta_struct, dict):
+            return None
 
-            content = data["request"]["content"]["tracerPayloads"]
+        appsec_payload = meta_struct.get("appsec")
+        if isinstance(appsec_payload, dict):
+            return appsec_payload
 
-            for payload in content:
-                for chunk in payload["chunks"]:
-                    for span in chunk["spans"]:
-                        appsec_data = span.get("meta", {}).get("_dd.appsec.json", None) or span.get(
-                            "meta_struct", {}
-                        ).get("appsec", None)
-                        if appsec_data is None:
-                            continue
+        if isinstance(appsec_payload, bytes):
+            decoded_payload = msgpack.loads(appsec_payload, raw=False, strict_map_key=False, unicode_errors="replace")
+            return decoded_payload if isinstance(decoded_payload, dict) else None
 
-                        if rid is None:
-                            yield data, payload, chunk, span, appsec_data
-                        elif get_rid_from_span(span) == rid:
-                            logger.debug(f"Found span with rid={rid} in {data['log_filename']}")
-                            yield data, payload, chunk, span, appsec_data
+        if isinstance(appsec_payload, str):
+            try:
+                payload = base64.b64decode(appsec_payload)
+            except (ValueError, binascii.Error):
+                payload = appsec_payload.encode("utf-8")
+            decoded_payload = msgpack.loads(payload, raw=False, strict_map_key=False, unicode_errors="replace")
+            return decoded_payload if isinstance(decoded_payload, dict) else None
 
-    def get_appsec_events(
-        self, request: HttpResponse | None = None
-    ) -> Generator[tuple[dict, dict, TraceAgentPayloadFormat, dict[str, Any]], None, None]:
-        for data, span, span_format in self.get_spans(request=request):
-            meta = self.get_span_meta(span, span_format)
-            appsec_json = meta.get("_dd.appsec.json")
+        return None
 
-            appsec_data: dict[str, object] | None = None
-            if isinstance(appsec_json, dict):
-                appsec_data = appsec_json
-            elif isinstance(appsec_json, str):
-                try:
-                    decoded = json.loads(appsec_json)
-                except json.JSONDecodeError:
-                    decoded = None
-                if isinstance(decoded, dict):
-                    appsec_data = decoded
-
+    def get_appsec_data(
+        self, request: HttpResponse
+    ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
+        for data, span in self.get_spans(request):
+            appsec_data = self._extract_appsec_data(span)
             if appsec_data is None:
-                meta_struct = span.get("meta_struct") or span.get("metaStruct") or {}
-                if isinstance(meta_struct, dict):
-                    appsec_payload = meta_struct.get("appsec")
-                    if isinstance(appsec_payload, dict):
-                        appsec_data = appsec_payload
-                    elif isinstance(appsec_payload, bytes):
-                        appsec_data = msgpack.loads(
-                            appsec_payload, raw=False, strict_map_key=False, unicode_errors="replace"
-                        )
-                    elif isinstance(appsec_payload, str):
-                        try:
-                            payload = base64.b64decode(appsec_payload)
-                        except (ValueError, binascii.Error):
-                            payload = appsec_payload.encode("utf-8")
-                        appsec_data = msgpack.loads(payload, raw=False, strict_map_key=False, unicode_errors="replace")
-                    elif appsec_payload is not None:
-                        raise TypeError(f"Unsupported meta_struct payload type: {type(appsec_payload)}")
-
-            if not isinstance(appsec_data, dict):
                 continue
 
-            yield data, span, span_format, appsec_data
+            yield data, span, appsec_data
 
     def assert_rasp_attack(
         self,
@@ -153,7 +131,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
             return False
 
-        for data, _, _, appsec_data in self.get_appsec_events(request=request):
+        for data, _, appsec_data in self.get_appsec_data(request=request):
             if validator(data, appsec_data):
                 return
 
@@ -162,6 +140,12 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
+    def validate_appsec(self, request: HttpResponse, validator: Callable):
+        for data, span, appsec_data in self.get_appsec_data(request=request):
+            if validator(data, span, appsec_data):
+                return
+
+        raise ValueError("No data validate this test")
     def get_telemetry_data(self, *, flatten_message_batches: bool = True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
         if flatten_message_batches:
@@ -225,7 +209,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for payload in content:
                 for chunk in payload.get("chunks", []):
-                    trace = builder(data, raw_trace=chunk)
+                    trace = builder(data, chunk)
                     if rid is None:
                         yield data, trace
                     else:
