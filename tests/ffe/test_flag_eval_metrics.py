@@ -21,11 +21,11 @@ METRICS_PIPELINE_WAIT = 25
 
 def make_ufc_fixture(flag_key, variant_key="on", variation_type="STRING", enabled=True):
     """Create a UFC fixture with the given flag configuration."""
-    values = {
+    values: dict[str, dict[str, str | bool]] = {
         "STRING": {"on": "on-value", "off": "off-value"},
         "BOOLEAN": {"on": True, "off": False},
     }
-    var_values = values.get(variation_type, values["STRING"])
+    var_values = values[variation_type]
 
     return {
         "createdAt": "2024-04-17T19:40:53.716Z",
