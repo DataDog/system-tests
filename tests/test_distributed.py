@@ -3,9 +3,9 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, logger
-from utils.dd_constants import TraceAgentPayloadFormat
+from utils import weblog, interfaces, scenarios, features, bug, context
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.dd_types import DataDogLibrarySpan, LibraryTraceFormat
 
 
 @scenarios.trace_propagation_style_w3c
@@ -59,9 +59,9 @@ class Test_Span_Links_From_Conflicting_Contexts:
     def test_span_links_from_conflicting_contexts(self):
         trace = [
             span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
+            for _, trace, span in interfaces.library.get_spans(self.req, full_trace=True)
             if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 2
+            and trace.trace_id_equals(2)
             and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
 
@@ -161,7 +161,6 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
@@ -202,7 +201,6 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         ]
 
         if len(spans) != 1:
-            logger.error(json.dumps(spans, indent=2))
             raise ValueError(f"Expected 1 span, got {len(spans)}")
 
         span = spans[0]
@@ -212,7 +210,10 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         assert link1.get("tracestate") is None
 
 
-def _retrieve_span_links(span: dict):
+def _retrieve_span_links(span: DataDogLibrarySpan):
+    if span.trace.format == LibraryTraceFormat.v10:
+        return span.raw_span["attributes"].get("_dd.span_links")
+
     if span.get("span_links") is not None:
         return span["span_links"]
 
@@ -264,15 +265,15 @@ class Test_Synthetics_APM_Datadog:
         traces = list(interfaces.agent.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
-        _, trace, trace_format = traces[0]
-        self.assert_trace_id_equals(trace, trace_format, "1234567890")
+        _, trace = traces[0]
+        assert trace.trace_id_as_int == 1234567890
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, span_format)
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
+        meta = span.meta
+        metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
 
@@ -291,28 +292,15 @@ class Test_Synthetics_APM_Datadog:
         interfaces.library.assert_trace_exists(self.r)
         traces = list(interfaces.agent.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
-        _, trace, trace_format = traces[0]
-        self.assert_trace_id_equals(trace, trace_format, "1234567891")
+        _, trace = traces[0]
+        assert trace.trace_id_as_int == 1234567891
 
         spans = list(interfaces.agent.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        _, span, span_format = spans[0]
+        _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
-        meta = interfaces.agent.get_span_meta(span, span_format)
-        metrics = interfaces.agent.get_span_metrics(span, span_format)
+        meta = span.meta
+        metrics = interfaces.agent.get_span_metrics(span)
         assert meta[ORIGIN] == "synthetics-browser"
         assert metrics[SAMPLING_PRIORITY_KEY] == 1
-
-    @staticmethod
-    def assert_trace_id_equals(trace: dict, trace_format: TraceAgentPayloadFormat, expected_trace_id: str) -> None:
-        if trace_format == TraceAgentPayloadFormat.legacy:
-            actual_trace_id = str(trace["spans"][0]["traceID"])
-            assert expected_trace_id == actual_trace_id
-        elif trace_format == TraceAgentPayloadFormat.efficient_trace_payload_format:
-            actual_trace_id = str(trace["traceID"])
-            # In efficient trace payload format, traceID is in hex format
-            actual_trace_id = str(int(actual_trace_id, 16))
-            assert actual_trace_id == expected_trace_id
-        else:
-            raise ValueError(f"Unknown span format: {trace_format}")

@@ -1,7 +1,11 @@
 from utils import scenarios
-from utils.proxy.traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace
-import msgpack
+from utils.proxy.traces.trace_v1 import (
+    _uncompress_array,
+    deserialize_v1_trace,
+    _uncompress_agent_v1_trace,
+)
 import base64
+import msgpack
 
 
 @scenarios.test_the_test
@@ -50,7 +54,7 @@ def test_deserialize_http_message():
                 "spans": [
                     {
                         "service": "my-service",
-                        "name_value": "span-name",
+                        "name": "span-name",
                         "resource": "hello",
                         "span_id": 1234,
                         "parent_id": 5555,
@@ -62,7 +66,7 @@ def test_deserialize_http_message():
                         "duration": 150,
                         "error": True,
                         "attributes": {"foo": "bar", "fooNum": 3.14},
-                        "type_value": "span-type",
+                        "type": "span-type",
                     }
                 ],
                 "priority": 1,
@@ -142,3 +146,45 @@ def test_uncompress_agent_v1_trace_with_span_links():
     # Verify span link tracestate is resolved from string reference
     assert span_link["tracestate"] == "tracestate-value"
     assert "tracestateRef" not in span_link
+
+
+@scenarios.test_the_test
+def test_uncompress_array_direct():
+    """Test _uncompress_array with (type, value) pairs: string ref, double, bool."""
+    strings = ["", "first", "second"]
+    # Array: string at index 1, double 2.5, bool True
+    array = [1, 1, 3, 2.5, 2, True]
+    result = _uncompress_array(array, strings)
+    assert result == ["first", 2.5, True]
+
+
+@scenarios.test_the_test
+def test_deserialize_v1_trace_span_attributes_array():
+    """Test that span attributes with array type (V1AnyValueKeys.array) are uncompressed."""
+    # Build payload so that _unstream_strings yields strings = ["", "x", "s", "n", "tag"]
+    # Array value [1, 1, 3, 2.5] = string at index 1 ("x"), double 2.5
+    content = msgpack.packb(
+        {
+            2: "x",
+            11: [
+                {
+                    1: 1,
+                    4: [
+                        {
+                            1: "s",
+                            2: "n",
+                            9: ["tag", 6, [1, 1, 3, 2.5]],
+                        }
+                    ],
+                    6: bytes(
+                        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xE3]
+                    ),
+                    7: 0,
+                }
+            ],
+        }
+    )
+    result = deserialize_v1_trace(content)
+    span = result["chunks"][0]["spans"][0]
+    assert "tag" in span["attributes"]
+    assert span["attributes"]["tag"] == ["x", 2.5]

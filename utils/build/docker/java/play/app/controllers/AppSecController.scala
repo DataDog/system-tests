@@ -36,6 +36,7 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     span.setTag("test-tag", "my value")
     withSpan(span) {
       Results.Ok("Hello world!\n")
+        .as("text/plain; charset=UTF-8")
     }
   }
 
