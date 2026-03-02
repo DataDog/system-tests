@@ -542,6 +542,8 @@ class _Scenarios:
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+            "DD_METRICS_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
         },
         doc="",
         scenario_groups=[scenario_groups.ffe],

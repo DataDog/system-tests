@@ -6,7 +6,6 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_SDK_Disabled: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
@@ -37,7 +36,6 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: missing_feature
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
-  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.0.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.60.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
@@ -178,7 +176,6 @@ manifest:
   tests/appsec/iast/source/test_multipart.py::TestMultipart: missing_feature
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName: missing_feature
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue: missing_feature
-  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/iast/source/test_path.py::TestPath: missing_feature
   tests/appsec/iast/source/test_path_parameter.py::TestPathParameter: missing_feature
   tests/appsec/iast/source/test_sql_row.py::TestSqlRow: missing_feature
@@ -186,7 +183,7 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v2.7.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all: bug (APPSEC-61152)
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.7.0-dev
@@ -594,7 +591,7 @@ manifest:
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
   tests/appsec/test_span_tags_headers.py: v2.4.0
-  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking: v2.7.0-dev
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking: bug (APPSEC-61286)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v1.69.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.1.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0-dev
@@ -667,15 +664,13 @@ manifest:
         gin: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_gRPC: v1.36.0
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:
-    - declaration: bug (APPSEC-61196)
-      component_version: '<2.7.0'
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
     - declaration: missing_feature
       component_version: <1.52.0
     - declaration: bug (APPSEC-61196)
-      component_version: '>=1.52.0 <2.7.0'
+      component_version: '>=1.52.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:
     - declaration: missing_feature
       component_version: <1.52.0
@@ -774,14 +769,8 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.0.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.0.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.0.0
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature (feature not implemented)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature (feature not implemented)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
@@ -789,36 +778,20 @@ manifest:
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots_With_SCM::test_span_decoration_line_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots: v2.2.3
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_mix_snapshot: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_decoration_method_snapshot: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots::test_span_method_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.2.3
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_mix_snapshot: missing_feature (Not yet implemented)
-  ? tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot
-  : missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_method_snapshot: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_log_line_status: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.2.3
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_metric_status: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_decoration_method_status: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.2.3
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/ffe/test_exposures.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
+  tests/ffe/test_flag_eval_metrics.py: v2.7.0-dev
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
@@ -858,7 +831,6 @@ manifest:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
-    - declaration: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_consume_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS::test_produce_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
@@ -872,11 +844,8 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_produce_trace_equality: missing_feature (Expected to fail, Golang does not propagate context)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_MySql: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
@@ -916,7 +885,6 @@ manifest:
         "*": irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
     - weblog_declaration:
         "*": irrelevant
@@ -974,7 +942,6 @@ manifest:
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
-  tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
@@ -985,7 +952,6 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.50.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.72.0-dev
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v1.67.0
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: bug (APMAPI-1030)
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v1.70.1
@@ -1071,13 +1037,10 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: irrelevant (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in go)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: irrelevant (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
   tests/parametric/test_otel_logs.py: '>=2.5.0'  # Modified by easy win activation script
@@ -1192,9 +1155,6 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v1.48.0
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerServiceNameSource::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
-  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: '>=2.5.0'  # Modified by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_flare_log_level_order: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1::test_no_tracer_flare_for_other_task_types: missing_feature  # Created by easy win activation script
@@ -1339,7 +1299,6 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.70.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: v1.70.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v1.53.0
@@ -1359,7 +1318,6 @@ manifest:
         net-http: v2.4.0
         net-http-orchestrion: v2.4.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
-  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v2.7.0-dev
   tests/test_sampling_rates.py::Test_SampleRateFunction: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: v1.72.1  # real version unknown
   tests/test_sampling_rates.py::Test_SamplingDecisions: v1.72.1  # real version unknown
@@ -1493,7 +1451,6 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v1.49.1
