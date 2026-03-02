@@ -22,14 +22,15 @@ Read and follow these rules in EVERY interaction:
 8. **`.cursor/rules/k8s-ssi.mdc`** - Kubernetes library injection testing
 9. **`.cursor/rules/test-activation.mdc`** - Test activation/deactivation rules
 10. **`.cursor/rules/doc.mdc`** - Rules for editing the documentation
+11. **`.cursor/rules/devtools.mdc`** - Developer tools: MCP, GitHub (gh), GitLab (glab) usage
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 
-11. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
+12. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
 
 ## Pull request review guidelines
 
-12. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
+13. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
 
 ---
 
