@@ -136,7 +136,7 @@ class Test_FR03_Resource_Attributes:
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment=otelenv",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment.name=otelenv",
                 "DD_TRACE_DEBUG": None,
             },
         ],
@@ -153,14 +153,14 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "service"
         assert attrs.get("service.version") == "2.0"
-        assert attrs.get("deployment.environment") == "otelenv"
+        assert attrs.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment=otelenv",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment.name=otelenv",
                 "DD_SERVICE": "ddservice",
                 "DD_ENV": "ddenv",
                 "DD_VERSION": "ddver",
@@ -180,7 +180,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "ddservice"
         assert attrs.get("service.version") == "ddver"
-        assert attrs.get("deployment.environment") == "ddenv"
+        assert attrs.get("deployment.environment.name") == "ddenv"
 
 
 @features.otel_logs_enabled
@@ -465,8 +465,10 @@ class Test_FR08_Custom_Headers:
         requests = test_agent.requests()
         logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
         assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
+        # Use case-insensitive header lookup
+        headers_lower = {k.lower(): v for k, v in logs_request[0]["headers"].items()}
+        assert headers_lower.get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
+        assert headers_lower.get("other-config-value") == "value", (
             f"Expected other-config-value, got {logs_request[0]['headers']}"
         )
 
@@ -504,8 +506,10 @@ class Test_FR08_Custom_Headers:
         requests = test_agent.requests()
         logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
         assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
+        # Use case-insensitive header lookup
+        headers_lower = {k.lower(): v for k, v in logs_request[0]["headers"].items()}
+        assert headers_lower.get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
+        assert headers_lower.get("other-config-value") == "value", (
             f"Expected other-config-value, got {logs_request[0]['headers']}"
         )
 
@@ -554,7 +558,7 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
+        assert resource_attrs.get("deployment.environment.name") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
 
         # Verify no duplication in log record attributes
@@ -595,7 +599,7 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
+        assert resource_attrs.get("deployment.environment.name") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
 
 
