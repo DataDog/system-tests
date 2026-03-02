@@ -3,6 +3,8 @@ import contextlib
 from enum import IntEnum
 import json
 from typing import Any
+import warnings
+
 import msgpack
 
 
@@ -172,10 +174,7 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             if isinstance(v, int):
                 v = strings[v]
         elif v_type == V1AnyValueKeys.array:
-            attrs_dict[f"___{k}___system-tests-warning___"] = "The deserialization of {k} is weird"
-            # v[0] is the numrical id of k??
-            # v[1] is the value type ??
-            v = v[2:]
+            v = _uncompress_array(v, strings)
 
         attrs_dict[k] = v
 
@@ -188,6 +187,41 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             attrs_dict[key] = json.loads(attrs_dict[key])
 
     return attrs_dict
+
+
+def _uncompress_array(array: list, strings: list[str]) -> list:
+    # Array is a list where each element is a tuple of (value type, value)
+    # The value type is an integer that corresponds to the V1AnyValueKeys enum
+    if len(array) % 2 != 0:
+        raise ValueError(f"Array must have an even number of elements (type, value pairs): {array}")
+    result: list[Any] = []
+    for i in range(0, len(array), 2):
+        v_type_int = array[i]
+        v = array[i + 1]
+        try:
+            v_type = V1AnyValueKeys(v_type_int)
+        except ValueError as e:
+            raise ValueError(f"Unknown V1AnyValueKeys in array: {v_type_int}") from e
+        if v_type == V1AnyValueKeys.string:
+            if isinstance(v, int):
+                v = strings[v]
+        elif v_type in {
+            V1AnyValueKeys.bool_value,
+            V1AnyValueKeys.double,
+            V1AnyValueKeys.int_value,
+            V1AnyValueKeys.bytes_value,
+        }:
+            pass  # keep as-is
+        elif v_type == V1AnyValueKeys.array:
+            v = _uncompress_array(v, strings)
+        elif v_type == V1AnyValueKeys.key_value_list:
+            warnings.warn(
+                "key_value_list inside array is left as-is (not yet uncompressed)",
+                UserWarning,
+                stacklevel=2,
+            )
+        result.append(v)
+    return result
 
 
 def _uncompress_chunks(chunks: list, strings: list[str]) -> list:
@@ -258,7 +292,6 @@ def _uncompress_spans(spans: list[dict], strings: list[str]) -> list:
                 # Handle span_events specially - they need to be uncompressed
                 elif key_name == "span_events":
                     if value is not None:
-                        # Debug: Uncompressing span events
                         value = _uncompress_span_events_list(value, strings)
                 uncompressed_span[key_name] = value
             except ValueError as e:
