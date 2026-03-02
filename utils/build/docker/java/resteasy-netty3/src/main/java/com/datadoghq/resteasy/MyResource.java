@@ -53,7 +53,6 @@ public class MyResource {
         span.setTag("test-tag", "my value");
         try {
             return Response.ok("Hello world!\n")
-                .header("Content-Type", "text/plain")
                 .header("Content-Length", "13")
                 .build();
         } finally {
