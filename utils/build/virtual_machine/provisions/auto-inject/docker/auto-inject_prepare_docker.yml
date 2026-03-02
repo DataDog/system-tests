@@ -114,6 +114,17 @@
         printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
     - os_type: linux
       os_distro: rpm
+      os_branch: fedora
+      remote-command: |
+        sudo dnf remove -y podman buildah containers-common moby-engine docker docker-common || true
+        sudo dnf -y install dnf-plugins-core
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+        sudo dnf install -y --allowerasing docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo systemctl enable docker.service
+        sudo systemctl start docker.service
+        printf '#!/bin/sh\nexec docker compose "$@"\n' | sudo tee /usr/bin/docker-compose > /dev/null && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
+    - os_type: linux
+      os_distro: rpm
       remote-command: |
         sudo yum -y install docker
         sudo systemctl start docker.service

@@ -50,12 +50,15 @@ public class RaspRouteProvider implements Consumer<Router> {
         router.route("/rasp/*").method(POST).handler(BodyHandler.create());
         router.route().path("/rasp/sqli").consumes("application/xml").blockingHandler(rc -> executeSql(rc, parseXml(rc.body().buffer()).getUserId()));
         router.route().path("/rasp/sqli").consumes("application/json").blockingHandler(rc -> executeSql(rc, rc.body().asJsonObject().getString(USER_ID)));
+        router.route().path("/rasp/sqli").consumes("application/x-www-form-urlencoded").blockingHandler(rc -> executeSql(rc, rc.request().getFormAttribute(USER_ID)));
         router.route().path("/rasp/sqli").blockingHandler(rc -> executeSql(rc, rc.request().getParam(USER_ID)));
         router.route().path("/rasp/lfi").consumes("application/xml").blockingHandler(rc -> executeLfi(rc, parseFileXml(rc.getBody()).getFile()));
         router.route().path("/rasp/lfi").consumes("application/json").blockingHandler(rc -> executeLfi(rc, rc.getBodyAsJson().getString(FILE)));
+        router.route().path("/rasp/lfi").consumes("application/x-www-form-urlencoded").blockingHandler(rc -> executeLfi(rc, rc.request().getFormAttribute(FILE)));
         router.route().path("/rasp/lfi").blockingHandler(rc -> executeLfi(rc, rc.request().getParam(FILE)));
         router.route().path("/rasp/shi").consumes("application/xml").blockingHandler(rc -> executeShi(rc, parseListDirXml(rc.getBody()).getCmd()));
         router.route().path("/rasp/shi").consumes("application/json").blockingHandler(rc -> executeShi(rc, rc.getBodyAsJson().getString(LIST_DIR)));
+        router.route().path("/rasp/shi").consumes("application/x-www-form-urlencoded").blockingHandler(rc -> executeShi(rc, rc.request().getFormAttribute(LIST_DIR)));
         router.route().path("/rasp/shi").blockingHandler(rc -> executeShi(rc, rc.request().getParam(LIST_DIR)));
         router.route().path("/rasp/cmdi").consumes("application/xml").blockingHandler(rc -> executeCmdi(rc, parseCommandXml(rc.getBody()).getCommand()));
         router.route().path("/rasp/cmdi").consumes("application/json").blockingHandler(rc -> {
@@ -63,6 +66,10 @@ public class RaspRouteProvider implements Consumer<Router> {
             String[] commandArray = jsonArray.stream()
                     .map(Object::toString)
                     .toArray(String[]::new);
+            executeCmdi(rc, commandArray);
+        });
+        router.route().path("/rasp/cmdi").consumes("application/x-www-form-urlencoded").blockingHandler(rc -> {
+            String[] commandArray = rc.request().getFormAttribute(COMMAND).split(",");
             executeCmdi(rc, commandArray);
         });
         router.route().path("/rasp/cmdi").blockingHandler(rc -> {
