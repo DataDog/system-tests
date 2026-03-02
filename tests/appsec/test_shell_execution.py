@@ -4,7 +4,7 @@
 
 from utils import context, interfaces, weblog, features, irrelevant, rfc
 from utils._weblog import HttpResponse
-from utils.dd_types import DataDogSpan
+from utils.dd_types import DataDogLibrarySpan
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
@@ -13,7 +13,7 @@ class Test_ShellExecution:
     """Test shell execution tracing"""
 
     @staticmethod
-    def fetch_command_execution_span(r: HttpResponse) -> DataDogSpan:
+    def fetch_command_execution_span(r: HttpResponse) -> DataDogLibrarySpan:
         assert r.status_code == 200
 
         traces = [t for _, t in interfaces.library.get_traces(request=r)]
