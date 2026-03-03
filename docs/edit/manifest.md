@@ -390,6 +390,7 @@ The manifest system addresses these challenges by providing:
 - **Manifest declarations**: Use manifests to declare at which version of your library a feature should be working
 - **When to use decorators**: Decorators still have their place for:
   - Complex skip conditions that cannot be expressed with simple version requirements
+  - Force-skip behavior via [`@slow` or `@scenario_crash`](./skip-tests.md#force-skip-decorators), combined with a manifest declaration
 
 ### In Practice
 

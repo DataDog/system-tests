@@ -45,6 +45,12 @@ MESSAGES: dict = {
             ],
         }
     ],
+    "SENSITIVE_DATA": [
+        {
+            "role": "user",
+            "content": "My name is John Smith, my email is john.smith@acmebank.com and my SSN is 456-78-9012. Can you look up my account?",
+        },
+    ],
 }
 
 
@@ -324,3 +330,39 @@ class Test_ContentParts:
         interfaces.library.validate_one_span(
             self.r, validator=self._assert_span_with_content_parts(self.messages), full_trace=True
         )
+
+
+@features.ai_guard
+@scenarios.ai_guard
+class Test_SensitiveDataScanning:
+    def _assert_span_with_sensitive_data(self):
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            meta_struct = span["meta_struct"]
+            ai_guard = _assert_key(meta_struct, "ai_guard")
+            sds = _assert_key(ai_guard, "sds")
+            assert len(sds) > 0, f"No 'sds' found in metastruct {ai_guard}"
+            for sd in sds:
+                assert _assert_key(sd, "rule_display_name")
+                assert _assert_key(sd, "rule_tag")
+                assert _assert_key(sd, "category")
+                assert _assert_key(sd, "matched_text")
+                location = _assert_key(sd, "location")
+                assert _assert_key(location, "start_index") is not None
+                assert _assert_key(location, "end_index_exclusive") is not None
+                assert _assert_key(location, "path")
+            return True
+
+        return validate
+
+    def setup_sensitive_data(self):
+        self.r = weblog.post("/ai_guard/evaluate", json=MESSAGES["SENSITIVE_DATA"])
+
+    def test_sensitive_data(self):
+        """Test sensitive data scanning.
+        Verifies the response contains sensitive data scanning results.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(self.r, validator=self._assert_span_with_sensitive_data(), full_trace=True)
