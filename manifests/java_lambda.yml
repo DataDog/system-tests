@@ -8,7 +8,7 @@ manifest:
   tests/appsec/rasp/test_shi.py: missing_feature
   tests/appsec/rasp/test_sqli.py: missing_feature
   tests/appsec/rasp/test_ssrf.py: missing_feature
-  tests/appsec/test_alpha.py::Test_Basic: v1.60.0-SNAPSHOT
+  tests/appsec/test_alpha.py::Test_Basic: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature
@@ -39,22 +39,22 @@ manifest:
         "*": irrelevant (only api gateway inferred spans are specified for now)
         java-apigw-http: missing_feature
         java-apigw-rest: missing_feature
-  tests/appsec/test_reports.py::Test_AttackTimestamp: v1.60.0-SNAPSHOT
-  tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.60.0-SNAPSHOT
-  tests/appsec/test_reports.py::Test_Info: v1.60.0-SNAPSHOT
-  tests/appsec/test_reports.py::Test_RequestHeaders: v1.60.0-SNAPSHOT
-  tests/appsec/test_reports.py::Test_StatusCode: v1.60.0-SNAPSHOT
-  tests/appsec/test_reports.py::Test_TagsFromRule: v1.60.0-SNAPSHOT
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.60.0-SNAPSHOT
+  tests/appsec/test_reports.py::Test_AttackTimestamp: missing_feature
+  tests/appsec/test_reports.py::Test_ExtraTagsFromRule: missing_feature
+  tests/appsec/test_reports.py::Test_Info: missing_feature
+  tests/appsec/test_reports.py::Test_RequestHeaders: missing_feature
+  tests/appsec/test_reports.py::Test_StatusCode: missing_feature
+  tests/appsec/test_reports.py::Test_TagsFromRule: missing_feature
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: missing_feature
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event: missing_feature
-  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v1.60.0-SNAPSHOT
-  tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.60.0-SNAPSHOT
-  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: v1.60.0-SNAPSHOT
-  tests/appsec/test_traces.py::Test_CollectRespondHeaders: v1.60.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: missing_feature
+  tests/appsec/test_traces.py::Test_AppSecObfuscator: missing_feature
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: missing_feature
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders: missing_feature
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection: missing_feature
-  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.60.0-SNAPSHOT
-  tests/appsec/test_traces.py::Test_RetainTraces: v1.60.0-SNAPSHOT
-  tests/appsec/test_versions.py::Test_Events: v1.60.0-SNAPSHOT
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: missing_feature
+  tests/appsec/test_traces.py::Test_RetainTraces: missing_feature
+  tests/appsec/test_versions.py::Test_Events: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
