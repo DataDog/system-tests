@@ -10,10 +10,7 @@ from utils import (
     scenarios,
     features,
     rfc,
-    irrelevant,
     context,
-    bug,
-    missing_feature,
     logger,
 )
 
@@ -112,10 +109,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
-    @bug(
-        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
-        reason="APMAPI-770",
-    )
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -138,10 +131,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
 
-    @missing_feature(
-        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
-        reason="Missing endpoint",
-    )
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -163,10 +152,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
 
-    @missing_feature(
-        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
-        reason="Missing endpoint",
-    )
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -401,11 +386,6 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     def setup_specified_service_name(self):
         self.r = weblog.get("/")
 
-    @irrelevant(
-        library="golang",
-        weblog_variant="gin",
-        reason="A custom service name is specified on the gin integration, causing a conflict",
-    )
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
