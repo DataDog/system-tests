@@ -22,6 +22,10 @@ Config:
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
+    # The resource for the /stats-unique route differ between weblogs.
+    # We use this list to match all requests to this route regardless of the weblog.
+    STATS_UNIQUE_RESOURCES = ["GET /stats-unique", "GET stats-unique", "__main__.StatsUniqueHandler"]
+
     def setup_client_stats(self):
         for _ in range(5):
             weblog.get("/stats-unique")
@@ -34,7 +38,7 @@ class Test_Client_Stats:
         ok_top_hits = 0
         no_content_hits = 0
         no_content_top_hits = 0
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             stats_count += 1
             logger.debug(f"asserting on {s}")
             if s["HTTPStatusCode"] == 200:
@@ -85,7 +89,7 @@ class Test_Client_Stats:
         assertions to `test_client_stats` method.
         """
         root_found = False
-        for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
+        for s in interfaces.agent.get_stats(resource=self.STATS_UNIQUE_RESOURCES):
             if s["SpanKind"] == "server":
                 root_found |= s["IsTraceRoot"] == 1
         assert root_found

@@ -8,7 +8,6 @@ from utils import (
     scenarios,
     features,
     context,
-    missing_feature,
     rfc,
     incomplete_test_app,
     logger,
@@ -533,10 +532,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
-    )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
     )
     def test_extended_configs(
         self,

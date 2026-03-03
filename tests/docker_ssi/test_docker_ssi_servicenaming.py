@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context, logger
+from utils import scenarios, interfaces, weblog, features, irrelevant, context, logger
 
 
 @features.ssi_service_naming
@@ -25,7 +25,6 @@ class TestDockerServiceNaming:
 
         self.r = TestDockerServiceNaming._r
 
-    @missing_feature(condition=context.library in ("ruby",), reason="No implemented")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_service_name(self):
         logger.info("Testing Docker SSI service name")
