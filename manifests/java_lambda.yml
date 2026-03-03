@@ -39,6 +39,7 @@ manifest:
         "*": irrelevant (only api gateway inferred spans are specified for now)
         java-apigw-http: missing_feature
         java-apigw-rest: missing_feature
+  tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_reports.py::Test_AttackTimestamp: missing_feature
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: missing_feature
   tests/appsec/test_reports.py::Test_Info: missing_feature
