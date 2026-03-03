@@ -701,10 +701,10 @@
             },
             "os_type": "linux",
             "os_distro": "rpm",
-            "os_branch": "fedora",
+            "os_branch": "fedora41",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "windows_server_2022_amd64",
