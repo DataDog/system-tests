@@ -65,6 +65,8 @@ fi
 # ---------------------------------------------------------------------------
 # 2. Get Kong plugin files
 # ---------------------------------------------------------------------------
+KONG_IS_RELEASE=false
+
 rock_file=""
 for f in kong-plugin-ddtrace*.rock; do
   if [ -e "$f" ]; then
@@ -98,8 +100,10 @@ elif [ -d kong-plugin-ddtrace ]; then
 else
   TAG=$(get_latest_release "DataDog/kong-plugin-ddtrace")
   echo "Installing kong-plugin-ddtrace from latest release ${TAG}"
-  git clone --depth 1 --branch "$TAG" \
-      https://github.com/DataDog/kong-plugin-ddtrace.git kong-plugin-ddtrace
+  curl -sL "https://github.com/DataDog/kong-plugin-ddtrace/archive/refs/tags/${TAG}.tar.gz" \
+      | tar -xz
+  mv "kong-plugin-ddtrace-${TAG#v}" kong-plugin-ddtrace
+  KONG_IS_RELEASE=true
 fi
 
 # ---------------------------------------------------------------------------
@@ -108,9 +112,14 @@ fi
 PLUGIN_VERSION=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' \
     kong-plugin-ddtrace/kong/plugins/ddtrace/handler.lua)
 
-if [ -f kong-plugin-ddtrace/dev_commit ]; then
-  COMMIT_SHA=$(cat kong-plugin-ddtrace/dev_commit)
-  PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
+if [ "$KONG_IS_RELEASE" = "false" ]; then
+  auth_header=$(get_authentication_header)
+  COMMIT_SHA=$(eval "curl --silent --fail --retry 3 $auth_header \
+      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" \
+      | grep '"sha"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+  if [ -n "$COMMIT_SHA" ]; then
+    PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
+  fi
 fi
 
 echo "${PLUGIN_VERSION}" > /builds/SYSTEM_TESTS_LIBRARY_VERSION

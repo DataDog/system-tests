@@ -313,9 +313,7 @@ elif [ "$TARGET" = "cpp_kong" ]; then
     echo "Cloning kong-plugin-ddtrace branch ${LIBRARY_TARGET_BRANCH}"
     git clone --depth 1 --branch "$LIBRARY_TARGET_BRANCH" \
         https://github.com/DataDog/kong-plugin-ddtrace.git kong-plugin-ddtrace
-    COMMIT_SHA=$(git -C kong-plugin-ddtrace rev-parse --short HEAD)
-    echo "$COMMIT_SHA" > kong-plugin-ddtrace/dev_commit
-    echo "Using kong-plugin-ddtrace@${COMMIT_SHA}"
+    echo "Using kong-plugin-ddtrace@$(git -C kong-plugin-ddtrace rev-parse --short HEAD)"
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
