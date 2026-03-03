@@ -27,6 +27,7 @@ manifest:
   tests/test_protobuf.py: missing_feature
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant
+  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py: missing_feature
   tests/test_scrubbing.py: irrelevant
   tests/test_semantic_conventions.py: missing_feature
