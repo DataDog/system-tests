@@ -318,15 +318,15 @@ def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):
                 _deserialize_meta(span)
 
 
+jsonMetaValues = frozenset(["_dd.appsec.json", "_dd.iast.json"])
+
 def _deserialize_meta(span: dict):
     meta = span.get("meta", {})
-
-    keys = ("_dd.appsec.json", "_dd.iast.json")
 
     for key in list(meta):
         if key.startswith("_dd.appsec.s."):
             meta[key] = deserialize_dd_appsec_s_meta(meta[key])
-        elif key in keys:
+        elif key in jsonMetaValues:
             meta[key] = json.loads(meta[key])
 
 
