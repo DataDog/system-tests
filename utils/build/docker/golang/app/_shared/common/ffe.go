@@ -45,7 +45,6 @@ func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
 			defStr, _ := body.DefaultValue.(string)
 			val, _ = ofClient.StringValue(ctx, body.Flag, defStr, evalCtx)
 		case "INTEGER":
-			// JSON numbers decode as float64 when target is any
 			defFloat, _ := body.DefaultValue.(float64)
 			val, _ = ofClient.IntValue(ctx, body.Flag, int64(defFloat), evalCtx)
 		case "NUMERIC":
