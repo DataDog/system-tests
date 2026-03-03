@@ -2349,16 +2349,7 @@ manifest:
   tests/appsec/test_span_tags_headers.py:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT
-        akka-http: bug (APPSEC-61447)
-        play: bug (APPSEC-61447)
-        ratpack: bug (APPSEC-61447)
-        resteasy-netty3: bug (APPSEC-61447)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-jetty: bug (APPSEC-61447)
-        spring-boot-undertow: bug (APPSEC-61447)
-        spring-boot-wildfly: bug (APPSEC-61447)
-        vertx3: bug (APPSEC-61447)
-        vertx4: bug (APPSEC-61447)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking:
     - weblog_declaration:
         "*": v1.39.0
