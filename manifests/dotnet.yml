@@ -207,6 +207,7 @@ manifest:
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_source_reported: missing_feature (Tainted as request body)
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName::test_telemetry_metric_instrumented_source: missing_feature (Not implemented)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue: v2.28.0
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_telemetry_metric_instrumented_source: missing_feature (Not implemented)
   tests/appsec/iast/source/test_path.py::TestPath: v2.39.0
   tests/appsec/iast/source/test_path.py::TestPath::test_telemetry_metric_instrumented_source: missing_feature (Not implemented)
@@ -687,6 +688,7 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_exposures.py: v3.36.0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: v2.0.0-prerelease
@@ -702,8 +704,11 @@ manifest:
   tests/integrations/crossed_integrations/test_sqs.py::_BaseSQS::test_consume_trace_equality: missing_feature (Expected to fail, .NET does not propagate context)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_MySql: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::Test_Postgres: missing_feature
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm: v0.1  # missing version
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
@@ -726,6 +731,9 @@ manifest:
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka: irrelevant (New behavior with cluster id not merged yet.)
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq: v3.21.0
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy:
+    - declaration: irrelevant (legacy dotnet behavior)
+      component_version: '>2.33.0'
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: v3.21.0
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange: v3.21.0
   tests/integrations/test_dsm.py::Test_DsmSNS: v3.21.0
@@ -747,6 +755,7 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.42.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature (does not support hostname)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v3.4.1
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v3.12.0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v3.4.1
@@ -841,6 +850,7 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # Easy win for all weblogs and version 3.36.0
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Easy win for all weblogs and version 3.36.0
     - declaration: bug (APMSP-2074)
       component_version: '>=3.19.0'
@@ -853,6 +863,8 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
@@ -989,6 +1001,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: v2.46.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_TracerSCITagging: v2.48.0
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v2.48.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: v2.36.0
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.15.0
@@ -1076,6 +1089,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v2.1.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v3.0.0-prerelease
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Long: v2.1.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v2.1.0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v2.1.0
@@ -1150,6 +1164,7 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:  # Easy win for poc, uds and version 3.36.0
     - declaration: bug (APMAPI-728)
       component_version: '>=3.4.0'
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: v3.25.0
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
   tests/test_telemetry.py::Test_TelemetryV2: v2.35.0

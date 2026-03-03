@@ -1,10 +1,22 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot_svc: missing_feature (Not yet implemented)
+  tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
+  tests/integrations/crossed_integrations/test_sqs.py::Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS: irrelevant (Localstack SQS does not support AWS Xray Header parsing)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_MySql::test_db_jdbc_drive_classname: missing_feature (Apply only java)
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_jdbc_drive_classname: missing_feature (Apply only java)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector: irrelevant (These are python only tests.)
@@ -20,6 +32,7 @@ manifest:
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg: irrelevant (These are python only tests.)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql: irrelevant (These are python only tests.)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq::test_dsm_rabbitmq_dotnet_legacy: irrelevant (legacy dotnet behavior)
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_db_mssql_instance_name: irrelevant (Open Telemetry doesn't generate this span. It's recomended but not mandatory)
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_obfuscate_query: bug (OTEL-2778)
@@ -28,12 +41,20 @@ manifest:
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_obfuscate_query: bug (OTEL-2778)
   tests/integrations/test_open_telemetry.py::_BaseOtelDbIntegrationTestClass::test_obfuscate_query: bug (OTEL-2778)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_relative_error_TS008: missing_feature (relative error test is broken)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_keep_span_with_stats_computation_sss010: missing_feature (this has to be implemented by a lot of the tracers and we need to do a bit of work on the assert)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable: "missing_feature (FIXME: library test client sets empty string as the service name)"
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"

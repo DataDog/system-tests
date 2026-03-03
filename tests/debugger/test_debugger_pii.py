@@ -4,12 +4,7 @@
 
 import tests.debugger.utils as debugger
 
-from utils import (
-    scenarios,
-    features,
-    missing_feature,
-    context,
-)
+from utils import context, features, scenarios, slow
 
 REDACTED_KEYS = [
     "_2fa",
@@ -222,10 +217,7 @@ class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     def setup_pii_redaction_method_full(self):
         self._setup()
 
-    @missing_feature(
-        context.library == "ruby", reason="Local variable capture not implemented for method probes", force_skip=True
-    )
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @slow
     def test_pii_redaction_method_full(self):
         self._assert()
 
