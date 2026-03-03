@@ -76,6 +76,9 @@ patterns:
 # rule from this section to the default section at the end of the file.
 ################################################################################
 
+    .claude/*:
+        scenario_groups: null
+        libraries: null
     .cursor/*:
         scenario_groups: null
         libraries: null
