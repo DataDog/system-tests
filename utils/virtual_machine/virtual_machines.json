@@ -704,7 +704,7 @@
             "os_branch": "fedora",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "windows_server_2022_amd64",
