@@ -198,7 +198,9 @@ def _uncompress_attributes(attrs: dict[str, dict], strings: list[str]) -> dict:
             raise ValueError(f"Unknown attribute value: {v}")
     return attrs_dict
 
-jsonMetaValues = frozenset(["_dd.appsec.json", "_dd.iast.json", "_dd.span_links"])
+
+_json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json", "_dd.span_links"])
+
 
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     if len(attrs) % 3 != 0:
@@ -225,7 +227,7 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             attrs_dict[key] = decode_appsec_s_value(attrs_dict[key])
         elif key in ("appsec", "_dd.stack"):
             attrs_dict[key] = msgpack.unpackb(attrs_dict[key], unicode_errors="replace", strict_map_key=False)
-        elif key in jsonMetaValues:
+        elif key in _json_meta_values:
             attrs_dict[key] = json.loads(attrs_dict[key])
 
     return attrs_dict
