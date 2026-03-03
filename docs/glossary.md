@@ -9,6 +9,6 @@
 - pass: A test passes when it is enabled and successful
 - fail: A test fails when it is enabled and unsuccessful
 - xpass: A test is xpass when it is successful but is disabled (not enabled). Indicates an "easy win" opportunity to enable the test
-- xfail: A test is xfail when it is unsuccessful and disabled (not enabled). xfail tests are still executed (except `flaky` and `irrelevant` which are skipped)
-- skipped: A test is skipped when it is not executed at all (e.g., `irrelevant` or `flaky` marked tests)
+- xfail: A test is xfail when it is unsuccessful and disabled (not enabled). xfail tests are still executed (except `flaky` and `irrelevant` which are skipped, and tests marked with `@slow` or `@scenario_crash` which are also skipped)
+- skipped: A test is skipped when it is not executed at all (e.g., `irrelevant` or `flaky` marked tests, or deactivated tests marked with `@slow` or `@scenario_crash`)
 - easy win: another name for xpass. Comes from the fact that enabling xpasses is easy and prevents regressions
