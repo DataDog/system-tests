@@ -330,3 +330,59 @@ class Test_FFE_Eval_Metric_Error:
         assert get_tag_value(tags, "error.type") == "flag_not_found", (
             f"Expected error.type 'flag_not_found', got tags: {tags}"
         )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_Eval_Metric_Type_Mismatch:
+    """Test that requesting the wrong type produces a metric with type_mismatch error.
+
+    This configures a STRING flag but evaluates it as BOOLEAN.  The type
+    conversion error happens *after* the core evaluate() returns, inside the
+    type-specific method (BooleanEvaluation).  Recording metrics via a
+    Finally hook catches this; the old evaluate()-level defer would have
+    recorded a success (targeting_match) instead.
+    """
+
+    def setup_ffe_eval_metric_type_mismatch(self):
+        rc.tracer_rc_state.reset().apply()
+
+        config_id = "ffe-eval-metric-type-mismatch"
+        self.flag_key = "eval-metric-type-mismatch-flag"
+        # Flag is configured as STRING
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, variation_type="STRING")
+        ).apply()
+
+        # But we evaluate it as BOOLEAN → type mismatch
+        self.r = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "BOOLEAN",
+                "defaultValue": False,
+                "targetingKey": "user-1",
+                "attributes": {},
+            },
+        )
+
+        time.sleep(METRICS_PIPELINE_WAIT)
+
+    def test_ffe_eval_metric_type_mismatch(self):
+        """Test that type conversion errors produce metric with error.type:type_mismatch."""
+        assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
+
+        metrics = find_eval_metrics(self.flag_key)
+        assert len(metrics) > 0, (
+            f"Expected metric for flag '{self.flag_key}', found none. All: {find_eval_metrics()}"
+        )
+
+        point = metrics[0]
+        tags = point.get("tags", [])
+
+        assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
+            f"Expected reason 'error' for type mismatch, got tags: {tags}"
+        )
+        assert get_tag_value(tags, "error.type") == "type_mismatch", (
+            f"Expected error.type 'type_mismatch', got tags: {tags}"
+        )
