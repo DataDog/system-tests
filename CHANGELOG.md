@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ### 2026-02 (156 PR merged)
 
 * 2026-02-26 [Adding the datadog mcp to system-tests cursor configuration](https://github.com/DataDog/system-tests/pull/6380) by @nccatoni
-* 2026-02-23 [Support v1 trace format from libraries](https://github.com/DataDog/system-tests/pull/6360) by @cbeauchesne
+* 2026-02-23 [Support v1 trace format from libraries](https://github.com/DataDog/system-tests/pull/6360) by @cbeauchesne and @ajgajg1134
 * 2026-02-19 [[ruby] Use dd-trace-rb version as it is in the library](https://github.com/DataDog/system-tests/pull/6340) by @p-datadog
 * 2026-02-10 [codex: pr review rules](https://github.com/DataDog/system-tests/pull/6246) by @robertomonteromiguel
 * 2026-02-06 [Activate ANN001 format rules (typings) on K8s utils](https://github.com/DataDog/system-tests/pull/6231) by @robertomonteromiguel
