@@ -25,20 +25,21 @@ class Test_V1Payloads:
         assert len(library_traces) == 1
         _, trace = library_traces[0]
         assert isinstance(trace.raw_trace, dict)
-        assert len(trace.raw_trace["spans"]) == 1
+        assert len(trace.raw_trace["spans"]) > 0  # various tracers can return different number of spans
         assert len(trace.raw_trace["trace_id"]) == 34  # 32 bytes for ID and 2 for "0x"
-        assert (
-            trace.raw_trace["sampling_mechanism"] == SamplingMechanism.RULE_RATE
-        )  # TODO: Why is this local rule sampler for go?
+        assert trace.raw_trace["sampling_mechanism"] in (
+            SamplingMechanism.RULE_RATE,
+            SamplingMechanism.DEFAULT,
+        )  # TODO: Why is this local rule sampler for go? For JAVA it is `DEFAULT`.
         assert trace.raw_trace["priority"] == SamplingPriority.USER_KEEP
         span = trace.spans[0]
         assert span.raw_span["error"], "Error field must be boolean"
         assert span.raw_span["env"] == "system-tests"
-        assert span.raw_span["component"] == "net/http"
+        assert span.raw_span["component"], "Component must not be empty"
         assert span.raw_span["span_kind"] == SpanKind.SERVER
 
         assert len(agent_traces) == 1
         _, agent_trace = agent_traces[0]
         assert agent_trace.format == AgentTraceFormat.efficient_trace_payload_format
-        assert len(agent_trace.spans) == 1
+        assert any(s.get_span_resource() == "GET /status" for s in agent_trace.spans)
         assert agent_trace.trace_id == trace.raw_trace["trace_id"]

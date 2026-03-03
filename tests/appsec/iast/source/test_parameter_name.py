@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, features
+from utils import context, missing_feature, features
 from tests.appsec.iast.utils import BaseSourceTest
 
 
@@ -21,35 +21,16 @@ class TestParameterName(BaseSourceTest):
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
-    @missing_feature(
-        context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
-        reason="Tainted as request body",
-    )
-    @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     def test_source_post_reported(self):
         """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
-    @bug(
-        context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2",
-        reason="APPSEC-55387",
-    )
-    @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     def test_source_get_reported(self):
         """For use case where only one is reported, we want to keep a test on the one reported"""
         self.validate_request_reported(self.requests["GET"])
 
-    @missing_feature(
-        context.library == "nodejs" and context.weblog_variant in ["express4", "express5"],
-        reason="Tainted as request body",
-    )
-    @bug(
-        context.library < "java@1.40.0" and context.weblog_variant == "jersey-grizzly2",
-        reason="APPSEC-55387",
-    )
-    @bug(weblog_variant="resteasy-netty3", reason="APPSEC-55687")
     def test_source_reported(self):
         super().test_source_reported()
 
@@ -57,19 +38,11 @@ class TestParameterName(BaseSourceTest):
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
         reason="Metrics not implemented",
     )
-    @missing_feature(
-        context.weblog_variant in ("akka-http", "jersey-grizzly2", "resteasy-netty3", "vertx4"),
-        reason="Metrics not implemented",
-    )
     def test_telemetry_metric_instrumented_source(self):
         super().test_telemetry_metric_instrumented_source()
 
     @missing_feature(
         context.library < "java@1.22.0" and "spring-boot" not in context.weblog_variant,
-        reason="Metrics not implemented",
-    )
-    @missing_feature(
-        context.weblog_variant in ("akka-http", "jersey-grizzly2", "resteasy-netty3", "vertx4"),
         reason="Metrics not implemented",
     )
     def test_telemetry_metric_executed_source(self):

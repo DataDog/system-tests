@@ -97,8 +97,6 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator)
 
-    @bug(context.agent_version >= "7.36.0" and context.agent_version < "7.37.0", reason="APMRP-360")
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_telemetry_proxy_enrichment(self):
         """Test telemetry proxy adds necessary information"""
 
@@ -247,7 +245,6 @@ class Test_Telemetry:
                 return
         raise ValueError("app-started message not found")
 
-    @bug(context.agent_version > "7.53.0", reason="APMAPI-926")
     def test_proxy_forwarding(self):
         """Test that all telemetry requests sent by library are forwarded correctly by the agent"""
 
