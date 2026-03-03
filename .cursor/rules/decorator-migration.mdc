@@ -55,7 +55,7 @@ Decorators are Python annotations applied to test classes or methods that contro
 # All libraries
 @missing_feature(condition=True, reason="Not implemented anywhere")
 
-# With force_skip (prevents test execution entirely)
+# With force_skip (prevents test execution entirely — migrated using @slow, see Rule 6)
 @missing_feature(context.library < "java@1.0.0", reason="...", force_skip=True)
 ```
 
@@ -255,12 +255,43 @@ Always preserve the `reason` parameter in the manifest entry:
 tests/path/test.py::TestClass: bug (APMAPI-1234)
 ```
 
-### Rule 6: force_skip=True
+### Rule 6: force_skip=True → @slow + Manifest
 
-Decorators with `force_skip=True` should NOT be migrated automatically. They require manual review because:
-- They completely prevent test execution
-- Often indicate temporary workarounds
-- May need different handling per case
+Decorators with `force_skip=True` CAN be migrated. The `@slow` decorator replicates the `force_skip` behavior: when a test is marked `@slow` and also has a declaration (from a manifest or another decorator), the test is fully skipped instead of running as xfail.
+
+**Migration steps:**
+1. Migrate the condition to a manifest entry (using the same rules as any other decorator)
+2. Add the `@slow` decorator to the test class or method
+3. Remove the original decorator (including `force_skip=True`)
+
+**Use `@slow` by default** when migrating `force_skip=True` decorators.
+
+**Before:**
+```python
+@missing_feature(context.library < "java@1.0.0", reason="Not implemented", force_skip=True)
+class TestSomething:
+    def test_example(self):
+        pass
+```
+
+**After:**
+```python
+# test file — only @slow remains
+@slow
+class TestSomething:
+    def test_example(self):
+        pass
+```
+
+```yaml
+# manifests/java.yml — the condition is expressed here
+manifest:
+  tests/path/test.py::TestSomething:
+    - declaration: missing_feature (Not implemented)
+      component_version: '<1.0.0'
+```
+
+The `@slow` decorator can be applied at class level or method level, matching where the original `force_skip` decorator was. When applied at class level, all methods in the class inherit the skip-if-xfail behavior.
 
 ### Rule 7: Alphabetical Order
 
