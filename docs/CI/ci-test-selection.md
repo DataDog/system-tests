@@ -41,11 +41,14 @@ Each entry maps a file pattern to the libraries and scenario groups to select:
     scenario_groups: [end_to_end]
 ```
 
-| Field              | Missing (omitted)          | `null` or `[]`    | Explicit list          |
-| ------------------ | -------------------------- | ----------------- | ---------------------- |
-| `libraries`        | Select **all** libraries   | Select **none**   | Select exactly those   |
-| `scenario_groups`  | Select **all** groups      | Select **none**   | Select exactly those   |
-| `scenarios`        | Select **all** groups      | Select **none**   | Select exactly those   |
+| Field              | Missing (omitted)               | `null` or `[]`    | Explicit list          |
+| ------------------ | ------------------------------- | ----------------- | ---------------------- |
+| `libraries`        | Select **all** libraries        | Select **none**   | Select exactly those   |
+| `scenario_groups`  | Select **all** groups (see [1]) | Select **none**   | Select exactly those   |
+| `scenarios`        | Select **all** groups (see [1]) | Select **none**   | Select exactly those   |
+
+[1] All scenario groups are selected only when **both** `scenario_groups` and
+`scenarios` are omitted. If either one is present, only its value is used.
 
 > Use `scenario_groups` when you want to target a category of scenarios, and
 > `scenarios` when you need to target a single scenario by name. Valid scenario
