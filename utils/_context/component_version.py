@@ -96,7 +96,7 @@ class ComponentVersion:
                 if version.startswith("* libddwaf"):
                     version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
-            elif name == "java":
+            elif name in {"java", "java_lambda"}:
                 version = version.replace("~", "+")  # Java uses a ~ to separate the version from the build
 
             elif name == "dotnet":
