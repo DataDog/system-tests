@@ -2355,7 +2355,9 @@ manifest:
     - weblog_declaration:
         "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-jetty: bug (APPSEC-61447)
+  tests/appsec/test_span_tags_headers.py::Test_Headers_Event_Blocking::test_content_type_event_blocking:
+    - weblog_declaration:
+        spring-boot-jetty: bug (APPSEC-61560)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking:
     - weblog_declaration:
         "*": v1.39.0
