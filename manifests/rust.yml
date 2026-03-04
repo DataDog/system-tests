@@ -68,7 +68,9 @@ manifest:
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_malformed: missing_feature (APMSP-2059)
   tests/parametric/test_config_consistency.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature  # Created by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+    - declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_default_trace_rate_limit: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: missing_feature  # Created by easy win activation script
@@ -172,8 +174,12 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_links_add: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false:
+    - declaration: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+    - declaration: incomplete_test_app
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true:
+    - declaration: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+    - declaration: incomplete_test_app
   tests/parametric/test_otel_logs.py: v0.3.0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)

@@ -52,7 +52,9 @@ manifest:
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: missing_feature (propagation style not supported)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+    - declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: ">1.0.0"
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_Tags: ">=2.0.0"  # auto activation: might not be the earliest working version

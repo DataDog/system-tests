@@ -1239,7 +1239,9 @@ manifest:
       component_version: <2.27.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_propagation_tid_in_chunk_root: irrelevant (ruby tracer adds trace level tags to the local root span and not the chunk root span. This inconsistency is not a bug and is expected.)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature
-  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+  tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
+    - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
+    - declaration: missing_feature
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit: v2.0.0
   tests/parametric/test_config_consistency.py::Test_Config_Tags: v2.14.0
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v2.5.0
