@@ -198,6 +198,37 @@ class Test_TracerUniversalServiceTagging:
         assert span["name"] == "operation"
         assert span["meta"]["env"] == library_env["DD_ENV"]
 
+    def test_tracer_manual_service_name_sets_srv_src(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """When a span is created with a manually set service name
+        The span should have meta._dd.srv.src set to "m" (manual)
+        """
+        with test_library, test_library.dd_start_span("operation", service="my-service") as span:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None, "Root span not found"
+        assert root_span["service"] == "my-service"
+        assert root_span["meta"]["_dd.srv.src"] == "m"
+
+    def test_tracer_no_srv_src_when_service_not_manually_set(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """When a span is created without a manually set service name
+        The span should not have meta._dd.srv.src set
+        """
+        with test_library, test_library.dd_start_span("operation") as span:
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = find_trace(traces, span.trace_id)
+
+        root_span = find_root_span(trace)
+        assert root_span is not None, "Root span not found"
+        assert "_dd.srv.src" not in root_span.get("meta", {})
+
 
 @scenarios.parametric
 @features.process_tags
