@@ -39,6 +39,7 @@ readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
 readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
+readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
@@ -319,7 +320,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_kong|cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
+        cpp_kong|cpp_nginx|cpp_httpd|dotnet|golang|java|java_lambda|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;

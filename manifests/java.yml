@@ -171,6 +171,7 @@ manifest:
         uds-spring-boot: irrelevant (Not applicable to weblog variant)
         spring-boot-jetty: irrelevant (Not applicable to weblog variant)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0
@@ -2921,6 +2922,7 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
@@ -3406,6 +3408,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.39.0
+  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics:
+    - component_version: ">=1.60.0"
+      declaration: flaky (APMAPI-1863)
   tests/integrations/test_sql.py::Test_Sql: bug (APMAPI-729)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.59.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.59.0
@@ -4055,7 +4060,7 @@ manifest:
     - weblog_declaration:
         "*": v1.60.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: flaky (APPSEC-61406)
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: bug (APPSEC-61406)
   tests/test_rum_injection.py:
     - weblog_declaration:
         "*": irrelevant (RUM injection only supported for spring-boot)
