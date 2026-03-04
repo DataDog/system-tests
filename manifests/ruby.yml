@@ -995,12 +995,14 @@ manifest:
         rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
+    - declaration: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.17.1
         rails80: v2.17.1
         uds-rails: v2.17.1
+    - declaration: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
     - weblog_declaration:
         "*": irrelevant

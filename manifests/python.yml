@@ -957,6 +957,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v3.5.0
+    - declaration: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
