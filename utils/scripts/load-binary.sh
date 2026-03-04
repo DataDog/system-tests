@@ -16,6 +16,7 @@
 # * Golang:        github.com/DataDog/dd-trace-go/v2@main
 # * .NET:          ghcr.io/datadog/dd-trace-dotnet
 # * Java:          S3
+# * Java Lambda:   S3 (same binary as Java)
 # * PHP:           ghcr.io/datadog/dd-trace-php
 # * Node.js:       Direct from github source
 # * C++:           Direct from github source
@@ -193,7 +194,7 @@ echo "Load $VERSION binary for $TARGET"
 
 cd binaries/
 
-if [ "$TARGET" = "java" ]; then
+if [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"

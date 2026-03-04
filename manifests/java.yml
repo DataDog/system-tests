@@ -21,6 +21,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.54.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span:
     - weblog_declaration:
         "*": v0.2.0  # real version not known
@@ -167,6 +171,7 @@ manifest:
         uds-spring-boot: irrelevant (Not applicable to weblog variant)
         spring-boot-jetty: irrelevant (Not applicable to weblog variant)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v1.31.0
@@ -3393,6 +3398,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         spring-boot: v1.39.0
+  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics:
+    - component_version: ">=1.60.0"
+      declaration: flaky (APMAPI-1863)
   tests/integrations/test_sql.py::Test_Sql: bug (APMAPI-729)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.59.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.59.0

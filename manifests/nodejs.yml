@@ -103,6 +103,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_5_69_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_SensitiveDataScanning:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: missing_feature
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature
@@ -139,6 +143,15 @@ manifest:
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_chat_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_completions_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_responses_create: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: missing_feature
+  tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": *ref_4_21_0
@@ -2210,7 +2223,6 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_81_0
         nextjs: missing_feature
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: flaky (APPSEC-61406)
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
