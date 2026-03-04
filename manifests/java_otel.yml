@@ -35,6 +35,8 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_manual_service_name_sets_srv_src: irrelevant (Only implemented for Java)
+  tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_no_srv_src_when_service_not_manually_set: irrelevant (Only implemented for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
