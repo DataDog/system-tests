@@ -2353,7 +2353,7 @@ manifest:
   tests/appsec/test_shell_execution.py::Test_ShellExecution::test_truncate_blank_2nd_argument: bug (APPSEC-55672)
   tests/appsec/test_span_tags_headers.py:
     - weblog_declaration:
-        "*": v1.60.0-SNAPSHOT
+        "*": v1.61.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking:
     - weblog_declaration:
