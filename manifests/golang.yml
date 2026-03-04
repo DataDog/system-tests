@@ -37,6 +37,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery: missing_feature
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
+  tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.0.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.60.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
@@ -185,9 +186,7 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
-  tests/appsec/rasp/test_api10.py::Test_API10_all:
-    - declaration: bug (APPSEC-61152)
-    - declaration: missing_feature (APPSEC-61152)
+  tests/appsec/rasp/test_api10.py::Test_API10_all: v2.7.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.7.0-dev
@@ -668,13 +667,15 @@ manifest:
         gin: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_gRPC: v1.36.0
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: bug (APPSEC-61196)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:
+    - declaration: bug (APPSEC-61196)
+      component_version: '<2.7.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_html: missing_feature (Support for partial html not implemented)
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:
     - declaration: missing_feature
       component_version: <1.52.0
     - declaration: bug (APPSEC-61196)
-      component_version: '>=1.52.0'
+      component_version: '>=1.52.0 <2.7.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:
     - declaration: missing_feature
       component_version: <1.52.0
