@@ -9,8 +9,8 @@
 # use `>1.0.0` to indicate that requirement.
 # NOTE: only parametric tests are run for cpp, there is no need to mark other tests as "missing_feature" here.
 manifest:
-  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
+  tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
