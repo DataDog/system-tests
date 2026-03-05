@@ -1,213 +1,112 @@
-## What is system-tests?
+# yamlfmt
 
-🛟 Slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X) 🛟
+`yamlfmt` is an extensible command line tool or library to format yaml files.
 
-A workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance) against our suite of dd-trace libraries.
+## Goals
 
-System tests is a test workbench that allows any kind of functional testing over libraries (AKA tracers) and agents. It's built with several key principles:
+* Create a command line yaml formatting tool that is easy to distribute (single binary)
+* Make it simple to extend with new custom formatters
+* Enable alternative use as a library, providing a foundation for users to create a tool that meets specific needs
 
-* *Black box testing*: only components' interfaces are checked. As those interfaces are very stable, our tests can make assertions without any assumptions regarding underlying implementations. "Check that the car moves, regardless of the engine"
-* Tests multiple tracer library implementations in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust
-* Uses pytest to implement tests that are valid across ALL tracer library implementations
+## Maintainers
 
-## Repository Structure
+This tool is not yet officially supported by Google. It is currently maintained solely by @braydonk, and unless something changes primarily in spare time.
 
+## Blog
+
+I'm going to use these links to GitHub Discussions as a blog of sorts, until I can set up something more proper:
+* yamlfmt's recent slow development [#149](https://github.com/google/yamlfmt/discussions/149)
+* Issues related to the yaml.v3 library [#148](https://github.com/google/yamlfmt/discussions/148)
+
+## Installation
+
+To download the `yamlfmt` command, you can download the desired binary from releases or install the module directly:
 ```
-system-tests/
-|-- binaries/           # Folder to store binary tracer files for testing specific versions of libraries
-|-- docs/               # Documentation files
-|-- lib-injection/      # Weblogs for testing library injection
-|-- manifests/          # YAML config files for tests activation (ie. a test will be activated after specific version of the tracer).
-|-- tests/              # Test implementations
-|-- utils/              # Utility code and shared libraries
-|   |-- _context/       # Test context and scenario definitions
-|   |   |-- _scenarios/ # Scenario implementations
-|   |   |   |-- appsec_low_waf_timeout.py # AppSec WAF timeout scenario
-|   |   |   |-- auto_injection.py # Auto-injection scenario
-|   |   |   |-- default.py       # Default scenario implementation
-|   |   |   |-- docker_ssi.py    # Docker SSI scenario
-|   |   |   |-- endtoend.py      # End to end testing framework
-|   |   |   |-- parametric.py    # Parametric scenario
-|   |   |   |-- k8s_lib_injection.py # K8s lib injection scenario
-|   |-- assets/         # Images and other static assets
-|   |-- build/          # Build utilities and scripts
-|   |   |-- docker/     # Docker templates for weblogs used on end to end testing.
-|   |   |-- ssi/        # Docker SSI build utilities (includes weblogs)
-|   |   |-- virtual_machine/ # AWS SSI scenarios and weblog provisions
-|   |   |   |-- provisions/ # AWS SSI scenarios provision definitions
-|   |   |   |-- weblogs/    # AWS SSI weblog provision
-|   |-- docker_ssi/     # Docker SSI utilities
-|   |-- grpc/           # gRPC related utilities
-|   |-- interfaces/     # Interface definitions for components
-|   |-- k8s_lib_injection/ # Kubernetes lib injection utilities
-|   |-- onboarding/     # AWS SSI/Onboarding utilities
-|   |-- parametric/     # Parametric testing utilities
-|   |-- proxy/          # Proxy server implementation
-|   |-- scripts/        # Helper and utility scripts
-|   |   |-- ci_orchestrators/ # CI pipeline scripts
-|   |   |-- parametric/ # Scripts for parametric tests
-|   |   |-- slack/      # Slack notification utilities
-|   |   |-- ssi_wizards/ # SSI wizard scripts
-|   |-- telemetry/      # Telemetry utilities
-|   |-- virtual_machine/ # VM configuration and management
-|
-|-- build.sh            # Script to build test environment
-|-- run.sh              # Script to run tests and scenarios
+go install github.com/google/yamlfmt/cmd/yamlfmt@latest
 ```
+This currently requires Go version 1.21 or greater.
 
-## Technologies Powering System-Tests
+NOTE: Recommended setup if this is your first time installing Go would be in [this DigitalOcean blog post](https://www.digitalocean.com/community/tutorials/how-to-build-and-install-go-programs).
 
-System-tests leverages a variety of tools and frameworks to create a comprehensive testing environment:
+You can also download the binary you want from releases. The binary is self-sufficient with no dependencies, and can simply be put somewhere on your PATH and run with the command `yamlfmt`. Read more about verifying the authenticity of released artifacts [here](#verifying-release-artifacts).
 
-- **Python**: Our primary programming language for test implementation and orchestration
-- **pytest**: The core testing framework that provides structure, fixtures, and assertions
-- **Docker & Docker API**: Used to create isolated environments for reproducible tests across different language tracers
-- **Kubernetes API**: For testing library injection in containerized environments
-- **Kind/Minikube**: Local Kubernetes clusters for K8s library injection tests
-- **Pulumi**: Infrastructure as Code tool used for AWS-based SSI tests
-- **AWS API**: For tests that require cloud infrastructure (primarily used in SSI tests)
+You can also install the command as a [pre-commit](https://pre-commit.com/) hook. See the [pre-commit hook](./docs/pre-commit.md) docs for instructions.
 
-These technologies work together to enable testing across different deployment patterns, languages, and infrastructure configurations.
+## Basic Usage
 
-## Minimal Requirements (End-to-End Testing)
+See [Command Usage](./docs/command-usage.md) for in-depth information and available flags.
 
-To run system-tests, you'll need the following core components:
-
-- **`bash`** - For running scripts and commands
-- **`docker`** - For containerization (version 20.10+ recommended)
-- **`python3.12`** - For test implementation and orchestration
-
-### Python 3.12 Installation
-
-We strongly recommend installing Python 3.12 via [pyenv](https://github.com/pyenv/pyenv#getting-pyenv), a tool that manages multiple Python versions while keeping system-tests dependencies isolated in their virtual environment.
-
-If you prefer not to use pyenv, here are platform-specific installation instructions:
-
-#### Ubuntu/Debian
-
+To run the tool with all default settings, run the command with a path argument:
 ```bash
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.12 python3.12-distutils python3.12-venv python3.12-dev
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python3.12 get-pip.py
-./build.sh -i runner
+yamlfmt x.yaml y.yaml <...>
 ```
-
-#### macOS
-
-For Homebrew users:
-
+You can specify as many paths as you want. You can also specify a directory which will be searched recursively for any files with the extension `.yaml` or `.yml`.
 ```bash
-brew install python@3.12
+yamlfmt .
 ```
 
-#### Windows
+You can also use an alternate mode that will search paths with doublestar globs by supplying the `-dstar` flag.
+```bash
+yamlfmt -dstar **/*.{yaml,yml}
+```
+See the [doublestar](https://github.com/bmatcuk/doublestar) package for more information on this format.
 
-Support coming soon.
-
-### Additional Requirements
-
-Specific scenarios may require additional tools:
-
-- **Kubernetes Tests**: require Kind/Minikube for local K8s clusters
-- **AWS SSI Tests**: require AWS credentials and Pulumi setup
-
-## Getting started
-
-### Run a test/scenario
-
-Running system-tests involves a few key steps:
-
-1. **Set up the Python environment**:
-
-   ```bash
-   # Install Python requirements and create a virtual environment
-   ./build.sh -i runner
-
-   # Activate the virtual environment
-   source venv/bin/activate
-   ```
-> **macOs note** If the `build.sh` script fails due to a missing `timeout` command, it likely means you did not run the Datadog laptop setup [script](https://datadoghq.atlassian.net/wiki/spaces/EE1/pages/3334374707/Laptop+Setup+Script)
->
-> Quick fix:
-> ```bash
-> brew install coreutils
-> ```
-> Update your command-line settings with:
-> ```bash
-> # Prefer GNU binaries to Macintosh binaries.
-> export PATH="{{ homebrew_dir }}/opt/coreutils/libexec/gnubin:$PATH"
-> ```
-
-2. **Build necessary images** for the language you want to test:
-
-   ```bash
-   # Replace <library_name> with: java, nodejs, python, ruby, php, dotnet, cpp, or golang
-   ./build.sh <library_name>
-
-   # Example for testing Python tracer
-   ./build.sh python
-   ```
-3. **Run the tests** using one of these approaches:
-
-   ```bash
-   # Run all default tests
-   ./run.sh
-
-   # Run a specific scenario
-   ./run.sh <SCENARIO_NAME>
-
-   # Run a specific test file
-   ./run.sh tests/test_smoke.py
-
-   # Run a specific test class or method
-   ./run.sh tests/parametric/test_waf.py::Test_WAFAddresses::test_post_json_value
-
-   # Run with timeout applied to each test
-   ./run.sh -v --timeout=<SECONDS> <SCENARIO NAME>
-   ```
-
-For more advanced options:
-
-- See the [run documentation](docs/execute/run.md) for test selection details
-- Check the [build documentation](docs/execute/build.md) for customizing images and weblog variants
-- Learn how disabled tests are managed in [skip-tests.md](docs/edit/skip-tests.md) and [enable-test.md](docs/edit/enable-test.md)
-- Force execution of disabled tests using options in the [force-execute documentation](docs/execute/force-execute.md)
-
-![Output on success](./utils/assets/output.png?raw=true)
-
-### Edit a test
-
-Refer to the [edit docs](docs/edit/README.md).
-
-### Understand the tests
-
-**[Complete documentation](https://github.com/DataDog/system-tests/blob/main/docs)**
-
-System-tests supports various scenarios for running tests; read more about the different kinds of tests that this repo covers in [scenarios/README.md](docs/scenarios/README.md).
-
-Understand the test architecture at the [architectural overview](https://github.com/DataDog/system-tests/blob/main/docs/architecture/overview.md).
-
-```mermaid
-flowchart TD
-    BUILDNODE[./build.sh nodejs] --> BUILT
-    BUILDDOTNET[./build.sh dotnet] --> BUILT
-    BUILDJAVA[./build.sh java] --> BUILT
-    BUILDGO[./build.sh golang] --> BUILT
-    BUILDPHP[./build.sh php] --> BUILT
-    BUILDPY[./build.sh python] --> BUILT
-    BUILDRUBY[./build.sh ruby] --> BUILT
-    BUILT[Build complete] --> RUNDEFAULT
-    RUNDEFAULT[./run.sh] -->|wait| FINISH
-    FINISH[Tests complete] --> LOGS
-    FINISH[Tests complete] --> OUTPUT
-    OUTPUT[Test output in bash]
-    LOGS[Logs directory per scenario]
+Yamlfmt can also be used in ci/cd pipelines which supports running containers. The following snippet shows an example job for GitLab CI:
+```yaml
+yaml lint:
+  image: ghcr.io/google/yamlfmt:latest
+  before_script:
+    - apk add git
+  script:
+    - yamlfmt .
+    - git diff --exit-code
+```
+The Docker image can also be used to run yamlfmt without installing it on your system. Just mount the directory you want to format as a volume (`/project` is used by default):
+```bash
+docker run -v "$(pwd):/project" ghcr.io/google/yamlfmt:latest <yamlfmt args>
 ```
 
-## AI Integration Guidelines: Supported Tools and Implementation Guide
+# Configuration File
 
-The `system-tests` repository includes built-in rules designed to enhance developer productivity when implementing new tests and troubleshooting issues. These default rules streamline workflows, minimize common pitfalls, and leverage best practices, helping you achieve faster, more reliable testing outcomes.
+The `yamlfmt` command can be configured through a yaml file called `.yamlfmt`. This file can live in your working directory, a path specified through a [CLI flag](./docs/command-usage.md#operation-flags), or in the standard global config path on your system (see docs for specifics).
+For in-depth configuration documentation see [Config](docs/config-file.md).
 
-Explore the full capabilities and learn how to maximize the potential of these tools by visiting [AI Tools Integration Guide](docs/ai/ai-tools-integration-guide.md)
+## Verifying release artifacts
+
+NOTE: Support for verifying with cosign is present from v0.14.0 onward.
+
+In case you get the `yamlfmt` binary directly from a release, you may want to verify its authenticity. Checksums are applied to all released artifacts, and the resulting checksum file is signed using [cosign](https://docs.sigstore.dev/cosign/installation/).
+
+Steps to verify (replace `A.B.C` in the commands listed below with the version you want):
+
+1. Download the following files from the release:
+
+   ```text
+   curl -sfLO https://github.com/google/yamlfmt/releases/download/vA.B.C/checksums.txt
+   curl -sfLO https://github.com/google/yamlfmt/releases/download/vA.B.C/checksums.txt.pem
+   curl -sfLO https://github.com/google/yamlfmt/releases/download/vA.B.C/checksums.txt.sig
+   ```
+
+2. Verify the signature:
+
+   ```shell
+    cosign verify-blob checksums.txt \
+       --certificate checksums.txt.pem \
+       --signature checksums.txt.sig \
+       --certificate-identity-regexp 'https://github\.com/google/yamlfmt/\.github/workflows/.+' \
+       --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+   ```
+
+3. Download the compressed archive you want, and validate its checksum:
+
+   ```shell
+   curl -sfLO https://github.com/google/yamlfmt/releases/download/vA.B.C/yamlfmt_A.B.C_Linux_x86_64.tar.gz
+   sha256sum --ignore-missing -c checksums.txt
+   ```
+
+3. If checksum validation goes through, uncompress the archive:
+
+   ```shell
+   tar -xzf yamlfmt_A.B.C_Linux_x86_64.tar.gz
+   ./yamlfmt
+   ```
