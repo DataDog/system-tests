@@ -8,7 +8,7 @@ from utils import weblog, interfaces, scenarios, features
 @features.service_override_source
 @scenarios.integrations
 class Test_SqlServiceNameSource:
-    """Verify that _dd.srv.src is set on sql spans when the integration overrides the service name"""
+    """Verify that _dd.svc_src is set on sql spans when the integration overrides the service name"""
 
     def setup_sql_srv_src(self):
         self.r = weblog.get("/trace/sql")
@@ -18,8 +18,8 @@ class Test_SqlServiceNameSource:
 
         srv_src_found = False
         for _, _, span in interfaces.library.get_spans(request=self.r, full_trace=True):
-            if span.get("meta", {}).get("_dd.srv.src"):
+            if span.get("meta", {}).get("_dd.svc_src"):
                 srv_src_found = True
                 break
 
-        assert srv_src_found, "Expected at least one sql span to have _dd.srv.src set"
+        assert srv_src_found, "Expected at least one sql span to have _dd.svc_src set"
