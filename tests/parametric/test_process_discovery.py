@@ -25,7 +25,7 @@ def find_dd_memfds(test_library: APMLibrary, pid: int) -> list[str]:
 
 def validate_schema(payload: str) -> bool:
     schema = None
-    with open("utils/interfaces/schemas/library/process-discovery.json", "r") as f:
+    with open("tests/schemas/utils/library/process-discovery.json", "r") as f:
         schema = json.load(f)
 
     try:

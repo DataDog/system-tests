@@ -263,6 +263,20 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_sub_utils_folder(self):
+        """Checks that if a file inside ./tests/xx/utils/ folder is modified, then all files ./tests/xx/test_stuff.py will be executed"""
+
+        inputs = build_inputs(["tests/schemas/utils/core.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,TRACE_STATS_COMPUTATION",
+            "",
+        )
+
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_library_tag(self):
         inputs = build_inputs(["utils/build/docker/java/test.Dockerfile"])
